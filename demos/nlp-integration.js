@@ -83,7 +83,7 @@ async function nlpDemo() {
     const complexTerms = [
         "(artificial_intelligence --> computer_science)",
         "(machine_learning --> artificial_intelligence)",
-        "((&, neural_network, deep_learning) --> advanced_ml)"
+        "((*, neural_network, deep_learning) --> advanced_ml)"
     ];
 
     const complexBootstrapResults = [];

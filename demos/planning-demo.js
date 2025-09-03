@@ -52,17 +52,17 @@ async function planningDemo() {
         new Task('(location_b --> location)', '.'),
 
         // Initial state
-        new Task('((&, block, at, location_a) --> true)', '.'),
-        new Task('((&, gripper, at, location_a) --> true)', '.'),
-        new Task('((&, gripper, empty) --> true)', '.'),
+        new Task('((*, block, at, location_a) --> true)', '.'),
+        new Task('((*, gripper, at, location_a) --> true)', '.'),
+        new Task('((*, gripper, empty) --> true)', '.'),
 
         // Goal state
-        new Task('((&, block, at, location_b) --> desired_state)', '.'),
+        new Task('((*, block, at, location_b) --> desired_state)', '.'),
 
         // Action preconditions and effects
-        new Task('((&, move_robot, location_a, location_b) ==> ((&, robot, at, location_b) && (--, robot, at, location_a)))', '.'),
-        new Task('((&, pick_object, block, location) ==> ((&, gripper, holding, block) && (--, block, at, location)))', '.'),
-        new Task('((&, place_object, block, location) ==> ((&, block, at, location) && (--, gripper, holding, block)))', '.'),
+        new Task('((*, move_robot, location_a, location_b) ==> ((*, robot, at, location_b) && (--, robot, at, location_a)))', '.'),
+        new Task('((*, pick_object, block, location) ==> ((*, gripper, holding, block) && (--, block, at, location)))', '.'),
+        new Task('((*, place_object, block, location) ==> ((*, block, at, location) && (--, gripper, holding, block)))', '.'),
     ];
 
     // Bootstrap terms for planning knowledge
@@ -81,7 +81,7 @@ async function planningDemo() {
 
     // Add the goal task with high priority
     console.log("Setting goal...");
-    const goalTask = new Task('((&, block, at, location_b) --> desired_state)', '!');
+    const goalTask = new Task('((*, block, at, location_b) --> desired_state)', '!');
     memory.addTasks(goalTask);
 
     // Bootstrap goal term

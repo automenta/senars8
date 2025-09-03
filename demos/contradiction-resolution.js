@@ -43,10 +43,10 @@ async function contradictionDemo() {
         new Task('(penguin --> flightless)', '.'),
 
         // General rule about birds
-        new Task('((&, bird, x) ==> (x --> can_fly))', '.'),
+        new Task('((*, bird, x) ==> (x --> can_fly))', '.'),
 
         // Specific fact about penguins that contradicts the rule
-        new Task('((&, penguin, x) ==> (--, (x --> can_fly)))', '.'),
+        new Task('((*, penguin, x) ==> (--, (x --> can_fly)))', '.'),
 
         // A contradiction to test detection
         new Task('(penguin --> can_fly)', '.'),

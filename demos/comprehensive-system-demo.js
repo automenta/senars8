@@ -33,8 +33,8 @@ async function comprehensiveDemo() {
             new Task('(tweety {-- bird)', '.', {frequency: 1.0, confidence: 0.99}),
             
             // Implications
-            new Task('((&, animal, hungry) ==> seek_food)', '.', {frequency: 0.9, confidence: 0.8}),
-            new Task('((&, cat, see, mouse) ==> chase)', '.', {frequency: 0.8, confidence: 0.7}),
+            new Task('((*, animal, hungry) ==> seek_food)', '.', {frequency: 0.9, confidence: 0.8}),
+            new Task('((*, cat, see, mouse) ==> chase)', '.', {frequency: 0.8, confidence: 0.7}),
             
             // Goals
             new Task('(understand_ecosystem)', '!', {frequency: 1.0, confidence: 0.9}),

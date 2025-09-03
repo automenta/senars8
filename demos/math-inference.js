@@ -45,11 +45,11 @@ async function mathInferenceDemo() {
         new Task('(6 --> number)', '.'),
 
         // Mathematical facts
-        new Task('((&, addition, 2, 3) --> 5)', '.'),
-        new Task('((&, multiplication, 2, 3) --> 6)', '.'),
+        new Task('((*, addition, 2, 3) --> 5)', '.'),
+        new Task('((*, multiplication, 2, 3) --> 6)', '.'),
 
         // Implications for reasoning
-        new Task('((&, arithmetic_operation, x, y) ==> result)', '.'),
+        new Task('((*, arithmetic_operation, x, y) ==> result)', '.'),
     ];
 
     // Bootstrap terms for new knowledge
