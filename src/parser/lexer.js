@@ -12,27 +12,27 @@ const lexer = moo.compile({
     implies: '==>',
     instance: '{--',
     property: '--}',
-    negation: '--,',
-    conjunction: '&,',
-    disjunction: '||,',
-    extensionalDifference: '#,',
-    intensionalDifference: '\\,',
+    sequentialConjunction: '&/',  // Must be before conjunction
+    parallelConjunction: '&|',    // Must be before conjunction
+    negation: '--',
+    conjunction: '&',
+    disjunction: '||',
+    extensionalDifference: '#',
+    intensionalDifference: '\\',
     product: '*',
-    sequentialConjunction: '&/',  // Temporal conjunction
-    parallelConjunction: '&|',    // Parallel conjunction
-    equivalence: '<=>',           // Equivalence
-    similarity: '<->',            // Similarity
-    retrospection: '=/>',         // Retrospective implication
-    prediction: '=\\>',           // Predictive implication
-    concurrent: '=<>',            // Concurrent implication
-    setExtension: '{',            // Extensional set
-    setIntension: '[',            // Intensional set
-    rbrace: '}',                  // Right brace for extensional set
-    rbracket: ']',                // Right bracket for intensional set
-    colon: ':',                   // Colon for variable typing
-    question: '?',                // Question punctuation
-    goal: '!',                    // Goal punctuation
-    belief: '.',                  // Belief punctuation
+    equivalence: '<=>',
+    similarity: '<->',
+    retrospection: '=/>',
+    prediction: '=\\>',
+    concurrent: '=<>',
+    setExtension: '{',
+    setIntension: '[',
+    rbrace: '}',
+    rbracket: ']',
+    colon: ':',
+    question: '?',
+    goal: '!',
+    belief: '.',
 
     // Literals
     identifier: /[a-zA-Z_][a-zA-Z0-9_]*/,

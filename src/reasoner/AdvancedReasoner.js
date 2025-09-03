@@ -1,5 +1,5 @@
-const {parseTerm} = require('../parser/TermParser');
 const Task = require('../core/Task');
+const Term = require('../core/Term');
 
 /**
  * Derives a new truth value for induction.
@@ -43,22 +43,31 @@ function analogizeTruthValue(tv1, tv2, tv3) {
 
 class AdvancedReasoner {
     /**
-     * Performs induction: (A --> B), (C --> B) |- (A --> C)
-     * @param {Task} task1 - An inheritance task.
-     * @param {Task} task2 - Another inheritance task.
-     * @returns {Task | null} The derived task or null.
+     * Generates a new inheritance hypothesis through induction or abduction.
+     * @private
      */
-    induction(task1, task2) {
+    _generateInheritanceHypothesis(task1, task2, type) {
         if (task1.punctuation !== '.' || task2.punctuation !== '.') return null;
 
-        const parsed1 = parseTerm(task1.termKey);
-        const parsed2 = parseTerm(task2.termKey);
+        const parsed1 = task1.term;
+        const parsed2 = task2.term;
 
         if (parsed1?.type === 'Inheritance' && parsed2?.type === 'Inheritance') {
-            // If both have the same predicate, induce a relationship between subjects
-            if (parsed1.predicate === parsed2.predicate && parsed1.subject !== parsed2.subject) {
-                const newTermKey = `(${parsed1.subject} --> ${parsed2.subject})`;
-                const newTruthValue = induceTruthValue(task1.state.truthValue, task2.state.truthValue);
+            if (Term.build(parsed1.predicate) === Term.build(parsed2.predicate) && Term.build(parsed1.subject) !== Term.build(parsed2.subject)) {
+                let subject, predicate;
+                let newTruthValue;
+
+                if (type === 'induction') {
+                    subject = parsed1.subject;
+                    predicate = parsed2.subject;
+                    newTruthValue = induceTruthValue(task1.state.truthValue, task2.state.truthValue);
+                } else { // abduction
+                    subject = parsed2.subject;
+                    predicate = parsed1.subject;
+                    newTruthValue = abduceTruthValue(task1.state.truthValue, task2.state.truthValue);
+                }
+
+                const newTermKey = Term.build({type: 'Inheritance', subject, predicate});
                 return new Task(newTermKey, '.', newTruthValue);
             }
         }
@@ -66,26 +75,17 @@ class AdvancedReasoner {
     }
 
     /**
+     * Performs induction: (A --> B), (C --> B) |- (A --> C)
+     */
+    induction(task1, task2) {
+        return this._generateInheritanceHypothesis(task1, task2, 'induction');
+    }
+
+    /**
      * Performs abduction: (A --> B), (C --> B) |- (C --> A)
-     * @param {Task} task1 - An inheritance task.
-     * @param {Task} task2 - Another inheritance task.
-     * @returns {Task | null} The derived task or null.
      */
     abduction(task1, task2) {
-        if (task1.punctuation !== '.' || task2.punctuation !== '.') return null;
-
-        const parsed1 = parseTerm(task1.termKey);
-        const parsed2 = parseTerm(task2.termKey);
-
-        if (parsed1?.type === 'Inheritance' && parsed2?.type === 'Inheritance') {
-            // If both have the same predicate, abduce a relationship
-            if (parsed1.predicate === parsed2.predicate && parsed1.subject !== parsed2.subject) {
-                const newTermKey = `(${parsed2.subject} --> ${parsed1.subject})`;
-                const newTruthValue = abduceTruthValue(task1.state.truthValue, task2.state.truthValue);
-                return new Task(newTermKey, '.', newTruthValue);
-            }
-        }
-        return null;
+        return this._generateInheritanceHypothesis(task1, task2, 'abduction');
     }
 
     /**
@@ -98,14 +98,18 @@ class AdvancedReasoner {
     analogy(task1, task2, task3) {
         if (task1.punctuation !== '.' || task2.punctuation !== '.' || task3.punctuation !== '.') return null;
 
-        const parsed1 = parseTerm(task1.termKey);
-        const parsed2 = parseTerm(task2.termKey);
-        const parsed3 = parseTerm(task3.termKey);
+        const parsed1 = task1.term;
+        const parsed2 = task2.term;
+        const parsed3 = task3.term;
 
         if (parsed1?.type === 'Inheritance' && parsed2?.type === 'Inheritance' && parsed3?.type === 'Inheritance') {
-            // Check if we have the pattern for analogy
-            if (parsed1.subject === parsed3.subject && parsed2.subject === parsed3.predicate) {
-                const newTermKey = `(${parsed1.predicate} --> ${parsed2.predicate})`;
+            // Check if we have the pattern for analogy: (A --> B), (C --> D), (A --> C) |- (B --> D)
+            if (Term.build(parsed1.subject) === Term.build(parsed3.subject) && Term.build(parsed2.subject) === Term.build(parsed3.predicate)) {
+                const newTermKey = Term.build({
+                    type: 'Inheritance',
+                    subject: parsed1.predicate,
+                    predicate: parsed2.predicate
+                });
                 const newTruthValue = analogizeTruthValue(
                     task1.state.truthValue,
                     task2.state.truthValue,

@@ -1,4 +1,4 @@
-const {parseTerm} = require('./src/parser/TermParser');
+const {parseTerm} = require('../src/parser/TermParser');
 
 // Test that the parser output matches what the Reasoner expects
 console.log('Testing parser output compatibility with Reasoner:');
@@ -15,19 +15,19 @@ const testCases = [
     {input: '(cat ==> furry)', expectedType: 'Implication'},
 
     // Negation terms
-    {input: '(--,, cat)', expectedType: 'Negation'},
+    {input: '(--, cat)', expectedType: 'Negation'},
 
     // Conjunction terms
-    {input: '(&,, cat, dog)', expectedType: 'Conjunction'},
+    {input: '(&, cat, dog)', expectedType: 'Conjunction'},
 
     // Disjunction terms
-    {input: '(||,, cat, dog)', expectedType: 'Disjunction'},
+    {input: '(||, cat, dog)', expectedType: 'Disjunction'},
 
     // Extensional difference terms
-    {input: '(#,, cat, dog)', expectedType: 'ExtensionalDifference'},
+    {input: '(#, cat, dog)', expectedType: 'ExtensionalDifference'},
 
     // Intensional difference terms
-    {input: '(\\,, cat, dog)', expectedType: 'IntensionalDifference'},
+    {input: '(\\, cat, dog)', expectedType: 'IntensionalDifference'},
 
     // Instance terms
     {input: '(cat {-- animal)', expectedType: 'Instance'},
@@ -65,9 +65,9 @@ testCases.forEach(testCase => {
 // Test nested expressions
 console.log('\n\nTesting nested expressions:');
 const nestedTests = [
-    '(cat --> (&,, furry, intelligent))',
-    '((||,, cat, dog) --> mammal)',
-    '(--,, (cat --> furry))'
+    '(cat --> (&, furry, intelligent))',
+    '((||, cat, dog) --> mammal)',
+    '(--, (cat --> furry))'
 ];
 
 nestedTests.forEach(testCase => {

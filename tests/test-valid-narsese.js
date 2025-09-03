@@ -1,4 +1,4 @@
-const {parseTerm} = require('./src/parser/TermParser');
+const {parseTerm} = require('../src/parser/TermParser');
 
 // Test the new parser with valid Narsese expressions
 console.log('Testing new parser with valid Narsese expressions:');

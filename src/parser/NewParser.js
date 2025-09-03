@@ -121,80 +121,56 @@ class NewParser {
             if (this.match('negation')) {
                 // This is a negation: (--, term)
                 this.consume('negation');
-                // Skip the comma that follows the negation operator
-                if (this.match('comma')) {
-                    this.consume('comma');
-                }
+                this.consume('comma');
                 const term = this.parseTerm();
                 this.consume('rparen');
                 return {type: 'Negation', term};
             } else if (this.match('conjunction')) {
                 // This is a conjunction: (&, term, term, ...)
                 this.consume('conjunction');
-                // Skip the comma that follows the conjunction operator
-                if (this.match('comma')) {
-                    this.consume('comma');
-                }
+                this.consume('comma');
                 const terms = this.parseTermList();
                 this.consume('rparen');
                 return {type: 'Conjunction', terms};
             } else if (this.match('sequentialConjunction')) {
                 // This is a sequential conjunction: (&/, term, term, ...)
                 this.consume('sequentialConjunction');
-                // Skip the comma that follows the conjunction operator
-                if (this.match('comma')) {
-                    this.consume('comma');
-                }
+                this.consume('comma');
                 const terms = this.parseTermList();
                 this.consume('rparen');
                 return {type: 'SequentialConjunction', terms};
             } else if (this.match('parallelConjunction')) {
                 // This is a parallel conjunction: (&|, term, term, ...)
                 this.consume('parallelConjunction');
-                // Skip the comma that follows the conjunction operator
-                if (this.match('comma')) {
-                    this.consume('comma');
-                }
+                this.consume('comma');
                 const terms = this.parseTermList();
                 this.consume('rparen');
                 return {type: 'ParallelConjunction', terms};
             } else if (this.match('product')) {
                 // This is a product: (*, term, term, ...)
                 this.consume('product');
-                // Skip the comma that follows the product operator
-                if (this.match('comma')) {
-                    this.consume('comma');
-                }
+                this.consume('comma');
                 const terms = this.parseTermList();
                 this.consume('rparen');
                 return {type: 'Product', terms};
             } else if (this.match('disjunction')) {
                 // This is a disjunction: (||, term, term, ...)
                 this.consume('disjunction');
-                // Skip the comma that follows the disjunction operator
-                if (this.match('comma')) {
-                    this.consume('comma');
-                }
+                this.consume('comma');
                 const terms = this.parseTermList();
                 this.consume('rparen');
                 return {type: 'Disjunction', terms};
             } else if (this.match('extensionalDifference')) {
                 // This is an extensional difference: (#, term, term, ...)
                 this.consume('extensionalDifference');
-                // Skip the comma that follows the extensional difference operator
-                if (this.match('comma')) {
-                    this.consume('comma');
-                }
+                this.consume('comma');
                 const terms = this.parseTermList();
                 this.consume('rparen');
                 return {type: 'ExtensionalDifference', terms};
             } else if (this.match('intensionalDifference')) {
-                // This is an intensional difference: (\\\\, term, term, ...)
+                // This is an intensional difference: (\\, term, term, ...)
                 this.consume('intensionalDifference');
-                // Skip the comma that follows the intensional difference operator
-                if (this.match('comma')) {
-                    this.consume('comma');
-                }
+                this.consume('comma');
                 const terms = this.parseTermList();
                 this.consume('rparen');
                 return {type: 'IntensionalDifference', terms};

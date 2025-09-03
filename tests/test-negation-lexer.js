@@ -1,7 +1,7 @@
-const lexer = require('./src/parser/lexer');
+const lexer = require('../src/parser/lexer');
 
-// Test the lexer with an intensional difference
-const input = '(\\, cat, dog)';
+// Test the lexer with a negation
+const input = '(--,, cat)';
 console.log('Input:', input);
 
 const lexerInstance = lexer.clone();

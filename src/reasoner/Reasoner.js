@@ -1,7 +1,8 @@
-const {parseTerm} = require('../parser/TermParser');
 const Task = require('../core/Task');
 const Term = require('../core/Term');
 const {AdvancedReasoner, induceTruthValue, abduceTruthValue, analogizeTruthValue} = require('./AdvancedReasoner');
+const BruteForceStrategy = require('./strategies/BruteForceStrategy');
+const BagSamplingStrategy = require('./strategies/BagSamplingStrategy');
 
 /**
  * Derives a new truth value from two premise truth values.
@@ -16,8 +17,9 @@ function deduceTruthValue(tv1, tv2) {
 }
 
 class Reasoner {
-    constructor() {
+    constructor(strategy = new BagSamplingStrategy()) {
         this.advancedReasoner = new AdvancedReasoner();
+        this.strategy = strategy;
     }
 
     /**
@@ -27,50 +29,39 @@ class Reasoner {
      * @returns {Task[]} A list of newly derived tasks.
      */
     performInference(focusSet, termHypergraph) {
-        const derivedTasks = [];
-
-        // Basic inference
-        for (let i = 0; i < focusSet.length; i++) {
-            for (let j = 0; j < focusSet.length; j++) {
-                if (i === j) continue;
-
-                const task1 = focusSet[i];
-                const task2 = focusSet[j];
-
-                // Attempt different inference patterns
-                const detachmentResult = this.modusPonens(task1, task2);
-                if (detachmentResult) derivedTasks.push(detachmentResult);
-
-                const inheritanceResult = this.inheritance(task1, task2);
-                if (inheritanceResult) derivedTasks.push(inheritanceResult);
-            }
+        // Ensure all tasks have their term representation parsed and cached
+        for (const task of focusSet) {
+            task.parseNow();
         }
 
-        // Advanced inference (induction, abduction, analogy)
-        for (let i = 0; i < focusSet.length; i++) {
-            for (let j = 0; j < focusSet.length; j++) {
-                if (i === j) continue;
+        const derivedTasks = [];
+        const processedPairs = new Set();
 
-                const task1 = focusSet[i];
-                const task2 = focusSet[j];
+        // Handle 2-premise and 3-premise rules in a more structured way
+        for (const [task1, task2] of this.strategy.selectPairs(focusSet)) {
+            const pairKey = [task1.id, task2.id].sort().join(',');
+            if (processedPairs.has(pairKey)) continue;
+            processedPairs.add(pairKey);
 
-                // Induction
-                const inductionResult = this.advancedReasoner.induction(task1, task2);
-                if (inductionResult) derivedTasks.push(inductionResult);
+            // Basic 2-premise inference
+            const detachmentResult = this.modusPonens(task1, task2);
+            if (detachmentResult) derivedTasks.push(detachmentResult);
 
-                // Abduction
-                const abductionResult = this.advancedReasoner.abduction(task1, task2);
-                if (abductionResult) derivedTasks.push(abductionResult);
+            const inheritanceResult = this.inheritance(task1, task2);
+            if (inheritanceResult) derivedTasks.push(inheritanceResult);
 
-                // Analogy (requires three tasks)
-                for (let k = 0; k < focusSet.length; k++) {
-                    if (k === i || k === j) continue;
+            // Advanced 2-premise inference
+            const inductionResult = this.advancedReasoner.induction(task1, task2);
+            if (inductionResult) derivedTasks.push(inductionResult);
 
-                    const task3 = focusSet[k];
-                    const analogyResult = this.advancedReasoner.analogy(task1, task2, task3);
-                    if (analogyResult) derivedTasks.push(analogyResult);
-                }
-            }
+            const abductionResult = this.advancedReasoner.abduction(task1, task2);
+            if (abductionResult) derivedTasks.push(abductionResult);
+        }
+
+        // Handle 3-premise rules (analogy)
+        for (const [task1, task2, task3] of this.strategy.selectTriplets(focusSet)) {
+            const analogyResult = this.advancedReasoner.analogy(task1, task2, task3);
+            if (analogyResult) derivedTasks.push(analogyResult);
         }
 
         return derivedTasks;
@@ -85,12 +76,14 @@ class Reasoner {
     modusPonens(task1, task2) {
         if (task1.punctuation !== '.' || task2.punctuation !== '.') return null;
 
-        const parsed1 = parseTerm(task1.termKey);
-        const parsed2 = parseTerm(task2.termKey);
+        const parsed1 = task1.term;
+        const parsed2 = task2.term;
 
         if (parsed1?.type === 'Implication' && parsed2?.type === 'Atomic') {
-            if (parsed1.subject === parsed2.key) {
-                const newTermKey = parsed1.predicate;
+            // The subject of the implication must match the atomic term's key.
+            // Note: The parser should ensure parsed1.subject is an Atomic term.
+            if (parsed1.subject.key === parsed2.key) {
+                const newTermKey = Term.build(parsed1.predicate);
                 const newTruthValue = deduceTruthValue(task1.state.truthValue, task2.state.truthValue);
                 return new Task(newTermKey, '.', newTruthValue);
             }
@@ -107,12 +100,18 @@ class Reasoner {
     inheritance(task1, task2) {
         if (task1.punctuation !== '.' || task2.punctuation !== '.') return null;
 
-        const parsed1 = parseTerm(task1.termKey);
-        const parsed2 = parseTerm(task2.termKey);
+        const parsed1 = task1.term;
+        const parsed2 = task2.term;
 
         if (parsed1?.type === 'Inheritance' && parsed2?.type === 'Inheritance') {
-            if (parsed1.predicate === parsed2.subject) {
-                const newTermKey = `(${parsed1.subject} --> ${parsed2.predicate})`;
+            // Chaining condition: predicate of the first term must match the subject of the second.
+            // We compare their string keys for simplicity.
+            if (Term.build(parsed1.predicate) === Term.build(parsed2.subject)) {
+                const newTermKey = Term.build({
+                    type: 'Inheritance',
+                    subject: parsed1.subject,
+                    predicate: parsed2.predicate
+                });
                 const newTruthValue = deduceTruthValue(task1.state.truthValue, task2.state.truthValue);
                 return new Task(newTermKey, '.', newTruthValue);
             }

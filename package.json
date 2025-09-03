@@ -4,7 +4,7 @@
   "description": "A cognitive architecture unifying formal symbolic reasoning with Language Models (LMs).  - Its foundation is a **Unified Knowledge Hypergraph**, a sophisticated data structure composed of immutable **`Term`s** (concepts) and stateful, evidence-backed **`Task`s** (beliefs, goals, questions).  - The system operates in a **Cognitive Cadence**, a discrete reasoning loop governed by a principle of **Economic Attention**, which pragmatically prioritizes tasks based on their relevance, urgency, confidence, and predicted effort.  - All reasoning is guided by an immutable **`Genesis Core`** of foundational motives.  - The architecture features a dual-engine design: a symbolic **Unified Causal Reasoner (UCR)** performs rigorous, explainable inference, while a neuro-symbolic **Semantic Forge** leverages LMs for creativity, grounding, and natural language fluency.  - Through a powerful **Meta-Cognitive** feedback loop, SeNARS is designed for recursive self-improvement, creating a robust and transparent foundation for genuinely cognitive AI.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node tests/run-all.js && node demos/run-all.js"
   },
   "repository": {
     "type": "git",

@@ -1,7 +1,7 @@
-const lexer = require('./src/parser/lexer');
+const lexer = require('../src/parser/lexer');
 
-// Test the lexer with a conjunction
-const input = '(&,, cat, dog)';
+// Test the lexer with an intensional difference
+const input = '(\\, cat, dog)';
 console.log('Input:', input);
 
 const lexerInstance = lexer.clone();

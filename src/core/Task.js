@@ -1,4 +1,5 @@
 const {v4: uuidv4} = require('uuid');
+const {parseTerm} = require('../parser/TermParser');
 
 class Task {
     constructor(termKey, punctuation, truthValue = {
@@ -15,6 +16,7 @@ class Task {
         this.id = uuidv4();
         this.termKey = termKey;
         this.punctuation = punctuation;
+        this.term = null; // Parsed representation, to be filled by parseNow()
 
         this.state = {
             priority: 0,
@@ -27,6 +29,15 @@ class Task {
                 occurrenceTime: stamp.occurrenceTime,
             },
         };
+    }
+
+    /**
+     * Parses the termKey and caches the result.
+     */
+    parseNow() {
+        if (this.term === null) {
+            this.term = parseTerm(this.termKey);
+        }
     }
 }
 

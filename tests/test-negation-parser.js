@@ -1,4 +1,4 @@
-const {parseTerm} = require('./src/parser/TermParser');
+const {parseTerm} = require('../src/parser/TermParser');
 
 // Test just the negation
 const testCase = '(--,, cat)';

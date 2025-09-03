@@ -1,4 +1,4 @@
-const {parse} = require('./src/parser/NewParser');
+const {parse} = require('../src/parser/NewParser');
 
 // Test cases for the enhanced parser
 const testCases = [

@@ -1,4 +1,4 @@
-const {parseTerm} = require('./src/parser/TermParser');
+const {parseTerm} = require('../src/parser/TermParser');
 
 // Test the new parser with various inputs
 console.log('Testing new parser implementation:');
@@ -7,11 +7,11 @@ const testCases = [
     'cat',
     '(cat --> mammal)',
     '(cat ==> furry)',
-    '(--,, cat)',
-    '(&,, cat, dog)',
-    '(||,, cat, dog)',
-    '(#,, cat, dog)',
-    '(\\,, cat, dog)',  // Corrected intensional difference syntax
+    '(--, cat)',
+    '(&, cat, dog)',
+    '(||, cat, dog)',
+    '(#, cat, dog)',
+    '(\\, cat, dog)',
     '(cat {-- animal)',
     '(cat --} furry)'
 ];
