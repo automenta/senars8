@@ -2,6 +2,8 @@ const Memory = require('../memory/Memory');
 const Reasoner = require('../reasoner/Reasoner');
 const LM = require('../lm/LM');
 const { cosineSimilarity } = require('../utils/math');
+const { calculateTemporalPriority } = require('../utils/temporal-reasoning');
+const actionExecutor = require('./ActionExecutor');
 const CONSTITUTION_TASKS = require('./Constitution');
 
 class Cycle {
@@ -43,10 +45,12 @@ class Cycle {
         // The Importance score is boosted slightly to give it more weight
         const I = (maxSimilarity + 0.1) / 1.1;
 
-
         // U (Urgency): Based on recency
         const timeSinceCreation = currentTime - task.state.stamp.creationTime;
         const U = 1 / (1 + timeSinceCreation / 10000); // Decays over 10s
+
+        // T (Temporal): Based on occurrence time
+        const T = calculateTemporalPriority(task, currentTime);
 
         // C (Confidence): From the task's truth value
         const C = task.state.truthValue.confidence;
@@ -55,7 +59,7 @@ class Cycle {
         const E = 1 / term.complexity;
 
         // Final Priority Calculation
-        return I * U * C * E;
+        return I * U * T * C * E;
     }
 
     async runOnce() {
@@ -87,7 +91,31 @@ class Cycle {
             }
         }
 
-        // Action System (Placeholder)
+        // Action System: Execute high-priority goals
+        const actionableGoals = this.memory.getAllTasks()
+            .filter(task => task.punctuation === '!' && task.state.priority > 0.5)
+            .sort((a, b) => b.state.priority - a.state.priority);
+            
+        const executionResults = [];
+        for (const goal of actionableGoals.slice(0, 3)) { // Execute top 3 goals
+            try {
+                const result = await actionExecutor.executeGoal(goal);
+                executionResults.push(result);
+                if (result.success) {
+                    console.log(`✓ Executed goal: ${goal.termKey}`);
+                } else {
+                    console.log(`✗ Failed to execute goal: ${goal.termKey} (${result.error})`);
+                }
+            } catch (error) {
+                console.log(`✗ Error executing goal: ${goal.termKey} (${error.message})`);
+                executionResults.push({ success: false, task: goal.termKey, error: error.message });
+            }
+        }
+
+        return {
+            derivedTasks: derivedTasks.length,
+            executionResults
+        };
     }
 }
 

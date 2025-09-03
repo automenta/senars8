@@ -1,6 +1,7 @@
 const { parseTerm } = require('../parser/TermParser');
 const Task = require('../core/Task');
 const Term = require('../core/Term');
+const { AdvancedReasoner, induceTruthValue, abduceTruthValue, analogizeTruthValue } = require('./AdvancedReasoner');
 
 /**
  * Derives a new truth value from two premise truth values.
@@ -15,6 +16,10 @@ function deduceTruthValue(tv1, tv2) {
 }
 
 class Reasoner {
+    constructor() {
+        this.advancedReasoner = new AdvancedReasoner();
+    }
+    
     /**
      * Performs one step of inference on the focus set.
      * @param {Task[]} focusSet - A list of high-priority tasks.
@@ -24,6 +29,7 @@ class Reasoner {
     performInference(focusSet, termHypergraph) {
         const derivedTasks = [];
 
+        // Basic inference
         for (let i = 0; i < focusSet.length; i++) {
             for (let j = 0; j < focusSet.length; j++) {
                 if (i === j) continue;
@@ -37,6 +43,33 @@ class Reasoner {
 
                 const inheritanceResult = this.inheritance(task1, task2);
                 if (inheritanceResult) derivedTasks.push(inheritanceResult);
+            }
+        }
+        
+        // Advanced inference (induction, abduction, analogy)
+        for (let i = 0; i < focusSet.length; i++) {
+            for (let j = 0; j < focusSet.length; j++) {
+                if (i === j) continue;
+                
+                const task1 = focusSet[i];
+                const task2 = focusSet[j];
+                
+                // Induction
+                const inductionResult = this.advancedReasoner.induction(task1, task2);
+                if (inductionResult) derivedTasks.push(inductionResult);
+                
+                // Abduction
+                const abductionResult = this.advancedReasoner.abduction(task1, task2);
+                if (abductionResult) derivedTasks.push(abductionResult);
+                
+                // Analogy (requires three tasks)
+                for (let k = 0; k < focusSet.length; k++) {
+                    if (k === i || k === j) continue;
+                    
+                    const task3 = focusSet[k];
+                    const analogyResult = this.advancedReasoner.analogy(task1, task2, task3);
+                    if (analogyResult) derivedTasks.push(analogyResult);
+                }
             }
         }
 
