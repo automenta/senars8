@@ -1,7 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
 
 class Task {
-    constructor(termKey, punctuation, truthValue = { frequency: 1.0, confidence: 0.9 }, stamp = { creationTime: Date.now() }) {
+    constructor(termKey, punctuation, truthValue = { frequency: 1.0, confidence: 0.9 }, stamp = { creationTime: Date.now() }, derivation = null) {
         if (typeof termKey !== 'string' || termKey.length === 0) {
             throw new Error('Task termKey must be a non-empty string.');
         }
@@ -12,6 +12,7 @@ class Task {
         this.id = uuidv4();
         this.termKey = termKey;
         this.punctuation = punctuation;
+        this.derivation = derivation;
 
         this.state = {
             priority: 0,

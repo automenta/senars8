@@ -1,10 +1,33 @@
 const Term = require('../core/Term');
 const Task = require('../core/Task');
+const LM = require('../lm/LM');
+const { CONSTITUTION_TASKS, DRIVES } = require('../system/Constitution');
 
 class Memory {
-    constructor() {
+    constructor(lm) {
+        if (!(lm instanceof LM)) {
+            throw new Error('Memory requires an LM instance.');
+        }
+        this.lm = lm;
         this.terms = new Map();
         this.tasks = new Map();
+        this.drives = [];
+    }
+
+    async init() {
+        // Bootstrap terms for all constitution tasks
+        for (const task of CONSTITUTION_TASKS) {
+            if (!this.terms.has(task.termKey)) {
+                const term = await this.lm.bootstrapTerm(task.termKey);
+                this.addTerm(term);
+            }
+        }
+
+        // Add constitution tasks to memory
+        this.addTasks(CONSTITUTION_TASKS);
+
+        // Store drive tasks for importance calculation
+        this.drives = DRIVES;
     }
 
     addTerm(term) {

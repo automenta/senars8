@@ -1,33 +1,31 @@
 const Memory = require('../memory/Memory');
-const Reasoner = require('../reasoner/Reasoner');
-const LM = require('../lm/LM');
+const reasoner = require('../reasoner/Reasoner');
+const { calculateImportance } = require('./Priority');
 
 class Cycle {
-    constructor(memory, reasoner, lm) {
+    constructor(memory) {
         if (!(memory instanceof Memory)) {
             throw new Error('Cycle requires a Memory instance.');
         }
-        if (!(reasoner instanceof Reasoner)) {
-            throw new Error('Cycle requires a Reasoner instance.');
-        }
-        if (!(lm instanceof LM)) {
-            throw new Error('Cycle requires an LM instance.');
-        }
         this.memory = memory;
-        this.reasoner = reasoner;
-        this.lm = lm;
     }
 
     calculatePriority(task, currentTime) {
+        // I (Importance)
+        const I = calculateImportance(task, this.memory);
+
+        // C (Confidence)
         const C = task.state.truthValue.confidence;
 
+        // E (Effort)
         const term = this.memory.getTerm(task.termKey);
         const E = term ? 1 / term.complexity : 1;
 
+        // U (Urgency)
         const timeSinceCreation = currentTime - task.state.stamp.creationTime;
-        const U_recency = 1 / (Math.max(1, timeSinceCreation / 1000)); // urgency decays over seconds
+        const U = 1 / (Math.max(1, timeSinceCreation / 1000)); // urgency decays over seconds
 
-        return C * E * U_recency;
+        return I * C * E * U;
     }
 
     async runOnce() {
@@ -44,7 +42,7 @@ class Cycle {
 
         // 3. Inference
         const focusSet = this.memory.getHighestPriorityTasks(20);
-        const derivedTasks = this.reasoner.performInference(focusSet, this.memory.terms);
+        const derivedTasks = reasoner.performInference(focusSet, this.memory);
         this.memory.addTasks(derivedTasks);
 
         // 4. Meta-Cognition (Placeholder)
@@ -54,7 +52,8 @@ class Cycle {
         const tasksForEnrichment = [...derivedTasks, ...metaTasks];
         for (const task of tasksForEnrichment) {
             if (!this.memory.getTerm(task.termKey)) {
-                const newTerm = await this.lm.bootstrapTerm(task.termKey);
+                // The LM is now encapsulated in memory
+                const newTerm = await this.memory.lm.bootstrapTerm(task.termKey);
                 this.memory.addTerm(newTerm);
             }
         }

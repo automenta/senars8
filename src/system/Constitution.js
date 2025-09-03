@@ -16,4 +16,7 @@ const CONSTITUTION_TASKS = Object.freeze([
     ...CONSTRAINTS,
 ]);
 
-module.exports = CONSTITUTION_TASKS;
+module.exports = {
+    CONSTITUTION_TASKS,
+    DRIVES,
+};
