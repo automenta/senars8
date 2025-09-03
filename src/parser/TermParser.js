@@ -1,4 +1,4 @@
-const { parse } = require('./NewParser');
+const {parse} = require('./NewParser');
 
 /**
  * Parses a Narsese-style term key into a structured object.

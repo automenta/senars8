@@ -79,7 +79,7 @@ class ActionExecutor {
                 }
                 return null;
             }).filter(Boolean);
-            
+
             return {
                 type: 'sequence',
                 actions: actions,
@@ -114,7 +114,7 @@ class ActionExecutor {
                     const result = await handler(action);
                     actionRecord.status = 'completed';
                     actionRecord.result = result;
-                    
+
                     return {
                         success: true,
                         action: action.name,
@@ -126,7 +126,7 @@ class ActionExecutor {
             // No handler found
             actionRecord.status = 'failed';
             actionRecord.error = 'No handler found for action';
-            
+
             return {
                 success: false,
                 action: action.name,
@@ -135,7 +135,7 @@ class ActionExecutor {
         } catch (error) {
             actionRecord.status = 'failed';
             actionRecord.error = error.message;
-            
+
             return {
                 success: false,
                 action: action.name,
@@ -183,7 +183,7 @@ class ActionExecutor {
             case 'atomic':
             case 'compound':
                 return await this.executeAction(action);
-                
+
             case 'conditional':
                 // For conditional actions, we would need to evaluate the condition first
                 // This is a simplified implementation
@@ -193,7 +193,7 @@ class ActionExecutor {
                     task: goalTask.termKey,
                     result: {message: 'Conditional action processed'}
                 };
-                
+
             case 'sequence':
                 // Execute a sequence of actions
                 const results = [];
@@ -215,7 +215,7 @@ class ActionExecutor {
                     task: goalTask.termKey,
                     results: results
                 };
-                
+
             default:
                 return {
                     success: false,
@@ -234,9 +234,9 @@ class ActionExecutor {
     async planAndExecute(goalTask, availableActions = []) {
         // This is a simplified planning implementation
         // In a more advanced system, this would use automated planning algorithms
-        
+
         const planId = `plan_${Date.now()}`;
-        
+
         // Create a simple plan based on the goal
         const plan = {
             id: planId,
@@ -244,17 +244,17 @@ class ActionExecutor {
             steps: [],
             created: new Date()
         };
-        
+
         // For demonstration, we'll create a simple 3-step plan
         plan.steps = [
             {id: 1, action: 'analyze', parameters: [goalTask.termKey], expectedOutcome: 'understanding'},
             {id: 2, action: 'plan', parameters: [goalTask.termKey], expectedOutcome: 'strategy'},
             {id: 3, action: goalTask.termKey, parameters: [], expectedOutcome: 'goal_achieved'}
         ];
-        
+
         // Store the plan
         this.actionPlans.set(planId, plan);
-        
+
         // Execute the plan
         const executionResults = [];
         for (const step of plan.steps) {
@@ -262,14 +262,14 @@ class ActionExecutor {
                 name: step.action,
                 parameters: step.parameters
             };
-            
+
             const result = await this.executeAction(action);
             executionResults.push({
                 step: step.id,
                 action: step.action,
                 result: result
             });
-            
+
             // Stop if any step fails
             if (!result.success) {
                 return {
@@ -280,7 +280,7 @@ class ActionExecutor {
                 };
             }
         }
-        
+
         return {
             success: true,
             planId: planId,
@@ -383,7 +383,10 @@ actionExecutor.registerActionHandler('analyze', async (action) => {
 
 actionExecutor.registerActionHandler('plan', async (action) => {
     console.log('PLAN ACTION:', action.parameters);
-    return {planned: action.parameters, steps: [`Step 1 for ${action.parameters.join(', ')}`, `Step 2 for ${action.parameters.join(', ')}`]};
+    return {
+        planned: action.parameters,
+        steps: [`Step 1 for ${action.parameters.join(', ')}`, `Step 2 for ${action.parameters.join(', ')}`]
+    };
 });
 
 actionExecutor.registerActionHandler('execute_*', async (action) => {

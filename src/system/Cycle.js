@@ -2,7 +2,14 @@ const Memory = require('../memory/Memory');
 const Reasoner = require('../reasoner/Reasoner');
 const LM = require('../lm/LM');
 const {cosineSimilarity} = require('../utils/math');
-const {calculateTemporalPriority, determineTemporalRelationship, createTemporalRelationshipTask, inferTemporalImplications, createTemporalSequenceTask, detectTemporalPatterns} = require('../utils/temporal-reasoning');
+const {
+    calculateTemporalPriority,
+    determineTemporalRelationship,
+    createTemporalRelationshipTask,
+    inferTemporalImplications,
+    createTemporalSequenceTask,
+    detectTemporalPatterns
+} = require('../utils/temporal-reasoning');
 const actionExecutor = require('./ActionExecutor');
 const CONSTITUTION_TASKS = require('./Constitution');
 const Perception = require('./Perception');
@@ -30,7 +37,7 @@ class Cycle {
             .filter(task => task.punctuation === '!')
             .map(task => this.memory.getTerm(task.termKey)?.embedding)
             .filter(Boolean); // Filter out any terms that might not have been bootstrapped
-        
+
         // Keep track of task derivations for meta-cognition
         this.taskDerivations = new Map();
     }
@@ -86,23 +93,23 @@ class Cycle {
         // 3. Inference
         const focusSet = this.memory.getHighestPriorityTasks(20);
         const derivedTasks = this.reasoner.performInference(focusSet, this.memory.terms);
-        
+
         // Add temporal relationship inference
         const temporalTasks = this.inferTemporalRelationships(focusSet);
         derivedTasks.push(...temporalTasks);
-        
+
         // Add temporal implication inference
         const temporalImplications = this.inferTemporalImplications(focusSet);
         derivedTasks.push(...temporalImplications);
-        
+
         // Detect temporal patterns
         const temporalPatterns = this.detectTemporalPatterns(focusSet);
         derivedTasks.push(...temporalPatterns);
-        
+
         // Generate hypotheses using the LM
         const hypotheses = await this.lm.generateHypotheses(focusSet);
         derivedTasks.push(...hypotheses);
-        
+
         this.memory.addTasks(derivedTasks);
 
         // Track derivations for meta-cognition
@@ -117,7 +124,7 @@ class Cycle {
             console.log(`Found ${contradictions.length} contradictions`);
             metaTasks = this.metaCognition.analyzeFailures(contradictions);
             this.memory.addTasks(metaTasks);
-            
+
             // Give meta-cognition tasks high priority
             for (const metaTask of metaTasks) {
                 metaTask.state.priority = 0.9; // High priority
@@ -161,7 +168,7 @@ class Cycle {
             executionResults
         };
     }
-    
+
     /**
      * Infers temporal relationships between tasks.
      * @param {Task[]} focusSet - The set of tasks to analyze.
@@ -170,13 +177,13 @@ class Cycle {
     inferTemporalRelationships(focusSet) {
         const temporalTasks = [];
         const temporalFocusSet = focusSet.filter(task => task.state.stamp.occurrenceTime);
-        
+
         // Compare each pair of temporal tasks
         for (let i = 0; i < temporalFocusSet.length; i++) {
             for (let j = i + 1; j < temporalFocusSet.length; j++) {
                 const task1 = temporalFocusSet[i];
                 const task2 = temporalFocusSet[j];
-                
+
                 const relationship = determineTemporalRelationship(task1, task2);
                 if (relationship) {
                     const relationshipTask = createTemporalRelationshipTask(task1, task2, relationship);
@@ -184,10 +191,10 @@ class Cycle {
                 }
             }
         }
-        
+
         return temporalTasks;
     }
-    
+
     /**
      * Infers temporal implications from task relationships.
      * @param {Task[]} focusSet - The set of tasks to analyze.
@@ -196,21 +203,21 @@ class Cycle {
     inferTemporalImplications(focusSet) {
         const implicationTasks = [];
         const temporalFocusSet = focusSet.filter(task => task.state.stamp.occurrenceTime);
-        
+
         // Compare each pair of temporal tasks
         for (let i = 0; i < temporalFocusSet.length; i++) {
             for (let j = i + 1; j < temporalFocusSet.length; j++) {
                 const task1 = temporalFocusSet[i];
                 const task2 = temporalFocusSet[j];
-                
+
                 const implications = inferTemporalImplications(task1, task2);
                 implicationTasks.push(...implications);
             }
         }
-        
+
         return implicationTasks;
     }
-    
+
     /**
      * Detects temporal patterns in the focus set.
      * @param {Task[]} focusSet - The set of tasks to analyze.
@@ -219,10 +226,10 @@ class Cycle {
     detectTemporalPatterns(focusSet) {
         const patternTasks = [];
         const temporalFocusSet = focusSet.filter(task => task.state.stamp.occurrenceTime);
-        
+
         // Detect patterns
         const patterns = detectTemporalPatterns(temporalFocusSet);
-        
+
         // Convert patterns to tasks
         for (const pattern of patterns) {
             switch (pattern.type) {
@@ -237,7 +244,7 @@ class Cycle {
                     );
                     patternTasks.push(periodicTask);
                     break;
-                    
+
                 case 'sequential':
                     const sequenceTask = createTemporalSequenceTask(pattern.sequence);
                     if (sequenceTask) {
@@ -246,7 +253,7 @@ class Cycle {
                     break;
             }
         }
-        
+
         return patternTasks;
     }
 }

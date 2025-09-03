@@ -28,11 +28,11 @@ async function simpleDemo() {
         new Task('(dog --> furry)', '.'),
         new Task('(bird --> animal)', '.'),
         new Task('(bird --> flying)', '.'),
-        
+
         // Implications
         new Task('(mammal ==> furry)', '.'),
         new Task('(animal ==> living)', '.'),
-        
+
         // Conjunctions
         new Task('((*, cat, furry) --> pet)', '.'),
     ];
@@ -67,7 +67,7 @@ async function simpleDemo() {
     // Verify inference results
     console.log("\n=== Verification ===");
     const allTasks = memory.getAllTasks();
-    
+
     // Check if new derived tasks were created
     const derivedTasks = allTasks.filter(task =>
         task.state.stamp.creationTime > Date.now() - 10000 // Created recently

@@ -59,7 +59,7 @@ class NewParser {
      */
     parseStatement() {
         const term = this.parseTerm();
-        
+
         // Check for punctuation
         let punctuation = null;
         if (this.match('belief')) {
@@ -69,13 +69,13 @@ class NewParser {
         } else if (this.match('question')) {
             punctuation = this.consume('question');
         }
-        
+
         // Check for truth value
         let truthValue = null;
         if (this.match('lparen')) {
             truthValue = this.parseTruthValue();
         }
-        
+
         if (punctuation || truthValue) {
             return {
                 type: 'Statement',
@@ -84,7 +84,7 @@ class NewParser {
                 truthValue: truthValue
             };
         }
-        
+
         return term;
     }
 
@@ -97,7 +97,7 @@ class NewParser {
         this.consume('comma');
         const confidence = this.parseNumber();
         this.consume('rparen');
-        return { frequency, confidence };
+        return {frequency, confidence};
     }
 
     /**
@@ -116,7 +116,7 @@ class NewParser {
     parseTerm() {
         if (this.match('lparen')) {
             this.consume('lparen');
-            
+
             // Check what operator follows immediately after the left parenthesis
             if (this.match('negation')) {
                 // This is a negation: (--, term)
@@ -127,7 +127,7 @@ class NewParser {
                 }
                 const term = this.parseTerm();
                 this.consume('rparen');
-                return { type: 'Negation', term };
+                return {type: 'Negation', term};
             } else if (this.match('conjunction')) {
                 // This is a conjunction: (&, term, term, ...)
                 this.consume('conjunction');
@@ -137,7 +137,7 @@ class NewParser {
                 }
                 const terms = this.parseTermList();
                 this.consume('rparen');
-                return { type: 'Conjunction', terms };
+                return {type: 'Conjunction', terms};
             } else if (this.match('sequentialConjunction')) {
                 // This is a sequential conjunction: (&/, term, term, ...)
                 this.consume('sequentialConjunction');
@@ -147,7 +147,7 @@ class NewParser {
                 }
                 const terms = this.parseTermList();
                 this.consume('rparen');
-                return { type: 'SequentialConjunction', terms };
+                return {type: 'SequentialConjunction', terms};
             } else if (this.match('parallelConjunction')) {
                 // This is a parallel conjunction: (&|, term, term, ...)
                 this.consume('parallelConjunction');
@@ -157,7 +157,7 @@ class NewParser {
                 }
                 const terms = this.parseTermList();
                 this.consume('rparen');
-                return { type: 'ParallelConjunction', terms };
+                return {type: 'ParallelConjunction', terms};
             } else if (this.match('product')) {
                 // This is a product: (*, term, term, ...)
                 this.consume('product');
@@ -167,7 +167,7 @@ class NewParser {
                 }
                 const terms = this.parseTermList();
                 this.consume('rparen');
-                return { type: 'Product', terms };
+                return {type: 'Product', terms};
             } else if (this.match('disjunction')) {
                 // This is a disjunction: (||, term, term, ...)
                 this.consume('disjunction');
@@ -177,7 +177,7 @@ class NewParser {
                 }
                 const terms = this.parseTermList();
                 this.consume('rparen');
-                return { type: 'Disjunction', terms };
+                return {type: 'Disjunction', terms};
             } else if (this.match('extensionalDifference')) {
                 // This is an extensional difference: (#, term, term, ...)
                 this.consume('extensionalDifference');
@@ -187,7 +187,7 @@ class NewParser {
                 }
                 const terms = this.parseTermList();
                 this.consume('rparen');
-                return { type: 'ExtensionalDifference', terms };
+                return {type: 'ExtensionalDifference', terms};
             } else if (this.match('intensionalDifference')) {
                 // This is an intensional difference: (\\\\, term, term, ...)
                 this.consume('intensionalDifference');
@@ -197,66 +197,66 @@ class NewParser {
                 }
                 const terms = this.parseTermList();
                 this.consume('rparen');
-                return { type: 'IntensionalDifference', terms };
+                return {type: 'IntensionalDifference', terms};
             } else {
                 // This could be an inheritance, implication, instance, property, or parenthesized term
                 const firstTerm = this.parseTerm();
-                
+
                 // Check what operator follows
                 if (this.match('arrow')) {
                     // This is an inheritance: (term --> term)
                     this.consume('arrow');
                     const predicate = this.parseTerm();
                     this.consume('rparen');
-                    return { type: 'Inheritance', subject: firstTerm, predicate };
+                    return {type: 'Inheritance', subject: firstTerm, predicate};
                 } else if (this.match('implies')) {
                     // This is an implication: (term ==> term)
                     this.consume('implies');
                     const predicate = this.parseTerm();
                     this.consume('rparen');
-                    return { type: 'Implication', subject: firstTerm, predicate };
+                    return {type: 'Implication', subject: firstTerm, predicate};
                 } else if (this.match('instance')) {
                     // This is an instance: (term {-- term)
                     this.consume('instance');
                     const predicate = this.parseTerm();
                     this.consume('rparen');
-                    return { type: 'Instance', subject: firstTerm, predicate };
+                    return {type: 'Instance', subject: firstTerm, predicate};
                 } else if (this.match('property')) {
                     // This is a property: (term --} term)
                     this.consume('property');
                     const predicate = this.parseTerm();
                     this.consume('rparen');
-                    return { type: 'Property', subject: firstTerm, predicate };
+                    return {type: 'Property', subject: firstTerm, predicate};
                 } else if (this.match('equivalence')) {
                     // This is an equivalence: (term <=> term)
                     this.consume('equivalence');
                     const predicate = this.parseTerm();
                     this.consume('rparen');
-                    return { type: 'Equivalence', subject: firstTerm, predicate };
+                    return {type: 'Equivalence', subject: firstTerm, predicate};
                 } else if (this.match('similarity')) {
                     // This is a similarity: (term <-> term)
                     this.consume('similarity');
                     const predicate = this.parseTerm();
                     this.consume('rparen');
-                    return { type: 'Similarity', subject: firstTerm, predicate };
+                    return {type: 'Similarity', subject: firstTerm, predicate};
                 } else if (this.match('retrospection')) {
                     // This is a retrospective implication: (term =/> term)
                     this.consume('retrospection');
                     const predicate = this.parseTerm();
                     this.consume('rparen');
-                    return { type: 'RetrospectiveImplication', subject: firstTerm, predicate };
+                    return {type: 'RetrospectiveImplication', subject: firstTerm, predicate};
                 } else if (this.match('prediction')) {
                     // This is a predictive implication: (term =\\> term)
                     this.consume('prediction');
                     const predicate = this.parseTerm();
                     this.consume('rparen');
-                    return { type: 'PredictiveImplication', subject: firstTerm, predicate };
+                    return {type: 'PredictiveImplication', subject: firstTerm, predicate};
                 } else if (this.match('concurrent')) {
                     // This is a concurrent implication: (term =<> term)
                     this.consume('concurrent');
                     const predicate = this.parseTerm();
                     this.consume('rparen');
-                    return { type: 'ConcurrentImplication', subject: firstTerm, predicate };
+                    return {type: 'ConcurrentImplication', subject: firstTerm, predicate};
                 } else {
                     // This is a parenthesized term: (term)
                     this.consume('rparen');
@@ -268,29 +268,29 @@ class NewParser {
             this.consume('setExtension');
             const terms = this.parseTermList();
             this.consume('rbrace');
-            return { type: 'ExtensionalSet', terms };
+            return {type: 'ExtensionalSet', terms};
         } else if (this.match('setIntension')) {
             // Intensional set: [term, term, ...]
             this.consume('setIntension');
             const terms = this.parseTermList();
             this.consume('rbracket');
-            return { type: 'IntensionalSet', terms };
+            return {type: 'IntensionalSet', terms};
         } else if (this.match('identifier')) {
             // This is an atomic term
             const identifier = this.consume('identifier');
-            return { type: 'Atomic', key: identifier };
+            return {type: 'Atomic', key: identifier};
         } else if (this.match('independentVar')) {
             // Independent variable: \\var
             const variable = this.consume('independentVar');
-            return { type: 'IndependentVariable', name: variable };
+            return {type: 'IndependentVariable', name: variable};
         } else if (this.match('dependentVar')) {
             // Dependent variable: #var
             const variable = this.consume('dependentVar');
-            return { type: 'DependentVariable', name: variable };
+            return {type: 'DependentVariable', name: variable};
         } else if (this.match('queryVar')) {
             // Query variable: ?var
             const variable = this.consume('queryVar');
-            return { type: 'QueryVariable', name: variable };
+            return {type: 'QueryVariable', name: variable};
         } else {
             throw new Error(`Unexpected token '${this.current ? this.current.type : 'EOF'}' when parsing term`);
         }
@@ -301,18 +301,18 @@ class NewParser {
      */
     parseTermList() {
         const terms = [];
-        
+
         // Parse the first term
         if (!this.match('rparen') && !this.match('rbrace') && !this.match('rbracket')) {
             terms.push(this.parseTerm());
-            
+
             // Parse remaining terms separated by commas
             while (this.match('comma')) {
                 this.consume('comma');
                 terms.push(this.parseTerm());
             }
         }
-        
+
         return terms;
     }
 }
@@ -336,4 +336,4 @@ function parse(input) {
     }
 }
 
-module.exports = { parse };
+module.exports = {parse};

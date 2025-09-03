@@ -33,7 +33,7 @@ function calculateTemporalPriority(task, currentTime) {
     // If the task has an end time, consider its duration
     const endTime = task.state.stamp.endTime || task.state.stamp.occurrenceTime;
     const duration = endTime - task.state.stamp.occurrenceTime;
-    
+
     // For ongoing events, give them a boost
     const isOngoing = task.state.stamp.occurrenceTime <= currentTime && currentTime <= endTime;
     const ongoingBoost = isOngoing ? 1.5 : 1.0;
@@ -62,10 +62,10 @@ function findTasksInTimeWindow(tasks, startTime, endTime) {
     return tasks.filter(task => {
         const occurrenceTime = task.state.stamp.occurrenceTime;
         if (!occurrenceTime) return false;
-        
+
         // If task has an end time, check for overlap
         const taskEndTime = task.state.stamp.endTime || occurrenceTime;
-        
+
         // Check for overlap between [startTime, endTime] and [occurrenceTime, taskEndTime]
         return startTime <= taskEndTime && endTime >= occurrenceTime;
     });
@@ -80,33 +80,33 @@ function findTasksInTimeWindow(tasks, startTime, endTime) {
 function determineTemporalRelationship(task1, task2) {
     const time1 = task1.state.stamp.occurrenceTime;
     const time2 = task2.state.stamp.occurrenceTime;
-    
+
     if (!time1 || !time2) return null;
-    
+
     const end1 = task1.state.stamp.endTime || time1;
     const end2 = task2.state.stamp.endTime || time2;
-    
+
     // Before relationship
     if (end1 < time2) return 'before';
-    
+
     // After relationship
     if (end2 < time1) return 'after';
-    
+
     // During relationship (task1 occurs during task2)
     if (time1 >= time2 && end1 <= end2) return 'during';
-    
+
     // Contains relationship (task2 occurs during task1)
     if (time2 >= time1 && end2 <= end1) return 'contains';
-    
+
     // Overlaps relationship
     if ((time1 <= time2 && end1 > time2) || (time2 <= time1 && end2 > time1)) return 'overlaps';
-    
+
     // Meets relationship (task1 ends when task2 starts)
     if (end1 === time2) return 'meets';
-    
+
     // Met-by relationship (task2 ends when task1 starts)
     if (end2 === time1) return 'met-by';
-    
+
     return null;
 }
 
@@ -147,7 +147,7 @@ function predictFutureTasks(tasks, predictionTime) {
             totalInterval += interval;
         }
         const avgInterval = totalInterval / (groupTasks.length - 1);
-        
+
         // Calculate variance
         let variance = 0;
         for (const interval of intervals) {
@@ -155,7 +155,7 @@ function predictFutureTasks(tasks, predictionTime) {
         }
         variance /= intervals.length;
         const stdDev = Math.sqrt(variance);
-        
+
         // Regularity measure (lower std dev means more regular)
         const regularity = 1.0 / (1.0 + stdDev / avgInterval);
 
@@ -206,11 +206,11 @@ function createTemporalRelationshipTask(task1, task2, relationship) {
  */
 function inferTemporalImplications(task1, task2) {
     const implications = [];
-    
+
     // Get temporal relationship
     const relationship = determineTemporalRelationship(task1, task2);
     if (!relationship) return implications;
-    
+
     // Create implications based on temporal relationships
     switch (relationship) {
         case 'before':
@@ -227,7 +227,7 @@ function inferTemporalImplications(task1, task2) {
                 implications.push(implication);
             }
             break;
-            
+
         case 'after':
             // If A after B and A is true, then B was true in the past
             if (task1.punctuation === '.') {
@@ -242,7 +242,7 @@ function inferTemporalImplications(task1, task2) {
                 implications.push(implication);
             }
             break;
-            
+
         case 'meets':
             // If A meets B, there's a direct temporal connection
             const meetsImplication = new Task(
@@ -255,7 +255,7 @@ function inferTemporalImplications(task1, task2) {
             );
             implications.push(meetsImplication);
             break;
-            
+
         case 'overlaps':
             // If A overlaps B, there's a temporal intersection
             const overlapImplication = new Task(
@@ -269,7 +269,7 @@ function inferTemporalImplications(task1, task2) {
             implications.push(overlapImplication);
             break;
     }
-    
+
     return implications;
 }
 
@@ -280,11 +280,11 @@ function inferTemporalImplications(task1, task2) {
  */
 function createTemporalSequenceTask(tasks) {
     if (tasks.length < 2) return null;
-    
+
     // Create a sequence term key
     const termKeys = tasks.map(task => task.termKey);
     const termKey = `(&/, ${termKeys.join(', ')})`;
-    
+
     // Calculate aggregate truth value
     let frequency = 1.0;
     let confidence = 1.0;
@@ -292,10 +292,10 @@ function createTemporalSequenceTask(tasks) {
         frequency *= task.state.truthValue.frequency;
         confidence *= task.state.truthValue.confidence;
     }
-    
+
     // Reduce confidence for longer sequences
     confidence *= Math.pow(0.9, tasks.length - 1);
-    
+
     return new Task(termKey, '.', {
         frequency,
         confidence
@@ -312,25 +312,25 @@ function createTemporalSequenceTask(tasks) {
 function detectTemporalPatterns(tasks) {
     const patterns = [];
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
-    
+
     if (temporalTasks.length < 3) return patterns;
-    
+
     // Sort by occurrence time
     temporalTasks.sort((a, b) => a.state.stamp.occurrenceTime - b.state.stamp.occurrenceTime);
-    
+
     // Look for common temporal patterns
     // 1. Regular intervals (periodic patterns)
     const intervals = [];
     for (let i = 1; i < temporalTasks.length; i++) {
-        intervals.push(temporalTasks[i].state.stamp.occurrenceTime - temporalTasks[i-1].state.stamp.occurrenceTime);
+        intervals.push(temporalTasks[i].state.stamp.occurrenceTime - temporalTasks[i - 1].state.stamp.occurrenceTime);
     }
-    
+
     // Check if intervals are similar (periodic pattern)
     if (intervals.length > 1) {
         const avgInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
         const variance = intervals.reduce((sum, interval) => sum + Math.pow(interval - avgInterval, 2), 0) / intervals.length;
         const stdDev = Math.sqrt(variance);
-        
+
         // If standard deviation is small compared to average, it's periodic
         if (stdDev / avgInterval < 0.2) {
             patterns.push({
@@ -341,7 +341,7 @@ function detectTemporalPatterns(tasks) {
             });
         }
     }
-    
+
     // 2. Sequential patterns (A followed by B followed by C)
     if (temporalTasks.length >= 3) {
         patterns.push({
@@ -350,7 +350,7 @@ function detectTemporalPatterns(tasks) {
             confidence: 0.8
         });
     }
-    
+
     return patterns;
 }
 
