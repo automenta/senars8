@@ -1,6 +1,8 @@
 const Memory = require('../memory/Memory');
 const Reasoner = require('../reasoner/Reasoner');
 const LM = require('../lm/LM');
+const { cosineSimilarity } = require('../utils/math');
+const CONSTITUTION_TASKS = require('./Constitution');
 
 class Cycle {
     constructor(memory, reasoner, lm) {
@@ -16,18 +18,44 @@ class Cycle {
         this.memory = memory;
         this.reasoner = reasoner;
         this.lm = lm;
+
+        // Pre-compute the embeddings for the constitutional drives for efficiency
+        this.driveEmbeddings = CONSTITUTION_TASKS
+            .filter(task => task.punctuation === '!')
+            .map(task => this.memory.getTerm(task.termKey)?.embedding)
+            .filter(Boolean); // Filter out any terms that might not have been bootstrapped
     }
 
     calculatePriority(task, currentTime) {
+        const term = this.memory.getTerm(task.termKey);
+        if (!term || !term.embedding || term.embedding.length === 0) {
+            return 0; // Cannot calculate priority without an embedding
+        }
+
+        // I (Importance): Relevance to constitutional drives
+        let maxSimilarity = 0;
+        for (const driveEmbedding of this.driveEmbeddings) {
+            const similarity = cosineSimilarity(term.embedding, driveEmbedding);
+            if (similarity > maxSimilarity) {
+                maxSimilarity = similarity;
+            }
+        }
+        // The Importance score is boosted slightly to give it more weight
+        const I = (maxSimilarity + 0.1) / 1.1;
+
+
+        // U (Urgency): Based on recency
+        const timeSinceCreation = currentTime - task.state.stamp.creationTime;
+        const U = 1 / (1 + timeSinceCreation / 10000); // Decays over 10s
+
+        // C (Confidence): From the task's truth value
         const C = task.state.truthValue.confidence;
 
-        const term = this.memory.getTerm(task.termKey);
-        const E = term ? 1 / term.complexity : 1;
+        // E (Effort): Inverse of the term's complexity
+        const E = 1 / term.complexity;
 
-        const timeSinceCreation = currentTime - task.state.stamp.creationTime;
-        const U_recency = 1 / (Math.max(1, timeSinceCreation / 1000)); // urgency decays over seconds
-
-        return C * E * U_recency;
+        // Final Priority Calculation
+        return I * U * C * E;
     }
 
     async runOnce() {
