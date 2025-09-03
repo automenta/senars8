@@ -5,6 +5,8 @@ const {cosineSimilarity} = require('../utils/math');
 const {calculateTemporalPriority} = require('../utils/temporal-reasoning');
 const actionExecutor = require('./ActionExecutor');
 const CONSTITUTION_TASKS = require('./Constitution');
+const Perception = require('./Perception');
+const MetaCognition = require('./MetaCognition');
 
 class Cycle {
     constructor(memory, reasoner, lm) {
@@ -20,12 +22,17 @@ class Cycle {
         this.memory = memory;
         this.reasoner = reasoner;
         this.lm = lm;
+        this.perception = new Perception(memory, lm);
+        this.metaCognition = new MetaCognition();
 
         // Pre-compute the embeddings for the constitutional drives for efficiency
         this.driveEmbeddings = CONSTITUTION_TASKS
             .filter(task => task.punctuation === '!')
             .map(task => this.memory.getTerm(task.termKey)?.embedding)
             .filter(Boolean); // Filter out any terms that might not have been bootstrapped
+        
+        // Keep track of task derivations for meta-cognition
+        this.taskDerivations = new Map();
     }
 
     calculatePriority(task, currentTime) {
@@ -65,8 +72,10 @@ class Cycle {
     async runOnce() {
         const currentTime = Date.now();
 
-        // 1. Perception (Placeholder)
-        const newTasks = [];
+        // 1. Perception
+        // In a real system, this would connect to sensors or input streams
+        // For now, we'll add a placeholder for external events
+        const newTasks = await this.perception.processEvents();
         this.memory.addTasks(newTasks);
 
         // 2. Prioritization
@@ -79,8 +88,24 @@ class Cycle {
         const derivedTasks = this.reasoner.performInference(focusSet, this.memory.terms);
         this.memory.addTasks(derivedTasks);
 
-        // 4. Meta-Cognition (Placeholder)
-        const metaTasks = [];
+        // Track derivations for meta-cognition
+        for (const derivedTask of derivedTasks) {
+            this.taskDerivations.set(derivedTask.id, [...focusSet]);
+        }
+
+        // 4. Meta-Cognition
+        const contradictions = this.metaCognition.findContradictions(derivedTasks);
+        let metaTasks = [];
+        if (contradictions.length > 0) {
+            console.log(`Found ${contradictions.length} contradictions`);
+            metaTasks = this.metaCognition.analyzeFailures(contradictions);
+            this.memory.addTasks(metaTasks);
+            
+            // Give meta-cognition tasks high priority
+            for (const metaTask of metaTasks) {
+                metaTask.state.priority = 0.9; // High priority
+            }
+        }
 
         // 5. Semantic Enrichment & Action
         const tasksForEnrichment = [...derivedTasks, ...metaTasks];
@@ -114,6 +139,8 @@ class Cycle {
 
         return {
             derivedTasks: derivedTasks.length,
+            contradictions: contradictions.length,
+            metaTasks: metaTasks.length,
             executionResults
         };
     }
