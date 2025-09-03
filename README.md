@@ -3,9 +3,9 @@
 
 A complete cognitive architecture designed to achieve a synergistic union of formal symbolic reasoning and the semantic power of Large Language Models (LMs). 
 - Its foundation is a **Unified Knowledge Hypergraph**, a sophisticated data structure composed of immutable **`Term`s** (concepts) and stateful, evidence-backed **`Task`s** (beliefs, goals, questions). 
-- The system operates in a **Cognitive Cadence**, a discrete reasoning loop governed by a principle of **Economic Attention**, which pragmatically prioritizes tasks based on their relevance, urgency, confidence, and predicted effort. 
-- All reasoning is guided by an immutable **`Genesis Core`** of foundational motives. 
-- The architecture features a dual-engine design: a symbolic **Unified Causal Reasoner (UCR)** performs rigorous, explainable inference, while a neuro-symbolic **Semantic Forge** leverages LMs for creativity, grounding, and natural language fluency. 
+- The system operates in a **Cycle**, a discrete reasoning loop governed by a principle of **Economic Attention**, which pragmatically prioritizes tasks based on their relevance, urgency, confidence, and predicted effort.
+- All reasoning is guided by an immutable **`Constitution`** of foundational motives.
+- The architecture features a dual-engine design: a symbolic **Reasoner** performs rigorous, explainable inference, while a neuro-symbolic **LM** leverages LMs for creativity, grounding, and natural language fluency.
 - Through a powerful **Meta-Cognitive** feedback loop, SeNARS is designed for recursive self-improvement, creating a robust and transparent foundation for genuinely cognitive AI.
 
 ---
@@ -15,9 +15,9 @@ A complete cognitive architecture designed to achieve a synergistic union of for
 1.  **Unified Knowledge Hypergraph**: All knowledge is represented in a unified structure of immutable `Term`s and stateful `Task`s, eliminating artificial distinctions between data types.
 2.  **Term/Task Distinction**: The architecture strictly separates the immutable vocabulary of concepts (`Term`) from the mutable, evidence-backed statements about them (`Task`), ensuring computational efficiency and conceptual clarity.
 3.  **Pragmatic Economic Attention**: The system's focus (`priority`) is the result of a continuous economic calculation, balancing a task's importance, urgency, and confidence against its predicted computational effort.
-4.  **Motive-Driven Cognition**: Reasoning is guided by a foundational, immutable **`Genesis Core`** of top-level goals (Drives) that propagate relevance and purpose throughout the knowledge graph.
+4.  **Motive-Driven Cognition**: Reasoning is guided by a foundational, immutable **`Constitution`** of top-level goals (Drives) that propagate relevance and purpose throughout the knowledge graph.
 5.  **Recursive Meta-Cognition**: The system applies its own reasoning engine to analyze and correct its failures, driven by an intrinsic need to maintain its own cognitive integrity.
-6.  **Neuro-Symbolic Synergy**: A symbolic **UCR** provides rigorous, explainable inference, while a **Semantic Forge** (LM) provides the semantic grounding, creativity, and natural language interface required for real-world interaction.
+6.  **Neuro-Symbolic Synergy**: A symbolic **Reasoner** provides rigorous, explainable inference, while a **LM** provides the semantic grounding, creativity, and natural language interface required for real-world interaction.
 
 ---
 
@@ -26,22 +26,22 @@ A complete cognitive architecture designed to achieve a synergistic union of for
 ```mermaid
 graph TD
     subgraph "SeNARS Cognitive Core"
-        UCR[UCR Symbolic Inference & Meta-Cognition]
+        Reasoner[Reasoner Symbolic Inference & Meta-Cognition]
         Memory[MEMORY Term Hypergraph & Task Collection]
-        SemanticForge[SEMANTIC FORGE LM-Powered Engine]
+        LM[LM LM-Powered Engine]
 
-        UCR <--> Memory
-        UCR -- Triggers on Gaps/Needs --> SemanticForge
-        SemanticForge -- Injects Knowledge --> Memory
+        Reasoner <--> Memory
+        Reasoner -- Triggers on Gaps/Needs --> LM
+        LM -- Injects Knowledge --> Memory
     end
 
     subgraph "Interfaces"
         Perception -- Creates Tasks --> Memory
-        ActionSystem -- Executes Goals from --> UCR
+        ActionSystem -- Executes Goals from --> Reasoner
     end
 
     subgraph "Foundational Layer"
-        GenesisCore[GENESIS Immutable Drives & Constraints] -- Provides Salience Gradients --> Memory
+        Constitution[CONSTITUTION Immutable Drives & Constraints] -- Provides Salience Gradients --> Memory
     end
 ```
 
@@ -53,7 +53,7 @@ graph TD
 -   **Purpose**: A unique, canonical representation of a concept or a relationship.
 -   **Structure**:
     -   `key: string`: The formal, Narsese-inspired syntax.
-    -   `embedding: number[]`: A dense vector representation from the `Semantic Forge`.
+    -   `embedding: number[]`: A dense vector representation from the `LM`.
     -   `complexity: number`: A static measure of structural complexity used for effort estimation.
 -   **Syntax Table**:
 | Relationship         | SeNARS v8.0 Syntax          | Example                               | Meaning                                                                 |
@@ -78,7 +78,7 @@ graph TD
 
 ---
 
-### **4. The Genesis Core**
+### **4. The Constitution**
 
 -   **Purpose**: An immutable, pre-loaded set of `Task`s defining the system's foundational motivations and safety constraints.
 -   **Content Examples**:
@@ -92,7 +92,7 @@ graph TD
 
 ---
 
-### **5. The Cognitive Cadence (Core Loop)**
+### **5. The Cycle (Core Loop)**
 
 ```pseudocode
 function cognitiveCycle():
@@ -106,7 +106,7 @@ function cognitiveCycle():
 
     // 3. Inference: Reason upon the most salient tasks.
     focusSet = Memory.getHighestPriorityTasks(k=20)
-    derivedTasks = UCR.performInference(focusSet, Memory.hypergraph)
+    derivedTasks = Reasoner.performInference(focusSet, Memory.hypergraph)
     Memory.addTasks(derivedTasks)
 
     // 4. Meta-Cognition: Detect and analyze reasoning failures.
@@ -118,7 +118,7 @@ function cognitiveCycle():
     // 5. Semantic Enrichment & Action
     for task in (derivedTasks + metaTasks):
         if isNovelTerm(task.termKey):
-            SemanticForge.bootstrapTerm(task.termKey) // Ground new concepts
+            LM.bootstrapTerm(task.termKey) // Ground new concepts
 
     actionableGoals = Memory.findExecutableGoals() // Find high-confidence, high-priority goals
     ActionSystem.execute(actionableGoals)
@@ -130,21 +130,21 @@ function cognitiveCycle():
 
 #### **6.1 Dynamic Priority Calculation (Economic Attention)**
 `calculatePriority(task)` is a function `f(I, U, C, E)` that balances four factors:
-1.  **`I` (Importance)**: The task's relevance to `Genesis Core` Drives and its causal leverage (how many other important tasks depend on it).
+1.  **`I` (Importance)**: The task's relevance to `Constitution` Drives and its causal leverage (how many other important tasks depend on it).
 2.  **`U` (Urgency)**: The task's recency and its relevance to the current context.
 3.  **`C` (Confidence)**: The task's `truthValue.confidence` (clarity).
 4.  **`E` (Effort)**: The inverse of the `complexity` of the task's `Term`.
 
-#### **6.2 UCR & Meta-Cognition (Recursive Self-Awareness)**
--   **UCR Function**: Derives new `Task`s from existing ones using formal inference rules (deduction, induction, abduction, analogy).
+#### **6.2 Reasoner & Meta-Cognition (Recursive Self-Awareness)**
+-   **Reasoner Function**: Derives new `Task`s from existing ones using formal inference rules (deduction, induction, abduction, analogy).
 -   **Meta-Cognitive Loop**:
-    1.  **Trigger**: The UCR detects a `Contradiction` (e.g., deriving `A.` when `(--, A).` has high confidence).
+    1.  **Trigger**: The Reasoner detects a `Contradiction` (e.g., deriving `A.` when `(--, A).` has high confidence).
     2.  **Activation**: The `MaintainCognitiveIntegrity!` Drive gives the `Contradiction` task extremely high priority.
-    3.  **Analysis (Backward Reasoning)**: The UCR performs abduction on the contradictory `Task`s, tracing their derivations backward to find the premise `Task` with the lowest confidence that contributed to the error.
-    4.  **Remediation**: The `truthValue` of the faulty premise is lowered, and a new `Goal` is generated (e.g., `FindAlternativeFor(faulty_term)!`) to task the `Semantic Forge` with finding a better explanation.
+    3.  **Analysis (Backward Reasoning)**: The Reasoner performs abduction on the contradictory `Task`s, tracing their derivations backward to find the premise `Task` with the lowest confidence that contributed to the error.
+    4.  **Remediation**: The `truthValue` of the faulty premise is lowered, and a new `Goal` is generated (e.g., `FindAlternativeFor(faulty_term)!`) to task the `LM` with finding a better explanation.
 
-#### **6.3 The Semantic Forge (Neuro-Symbolic Engine)**
--   **Purpose**: To bridge the symbolic UCR with the semantic world of LMs.
+#### **6.3 The LM (Neuro-Symbolic Engine)**
+-   **Purpose**: To bridge the symbolic Reasoner with the semantic world of LMs.
 -   **Capabilities (as functions)**:
     -   `bootstrapTerm(termKey)`: Generates an `embedding` and `naturalLanguageHint` for a new `Term`.
     -   `findRelatedTerms(termKey)`: Performs semantic search using vector embeddings to find analogous concepts.

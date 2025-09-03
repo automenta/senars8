@@ -1,0 +1,26 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "A complete cognitive architecture designed to achieve a synergistic union of formal symbolic reasoning and the semantic power of Large Language Models (LMs).  - Its foundation is a **Unified Knowledge Hypergraph**, a sophisticated data structure composed of immutable **`Term`s** (concepts) and stateful, evidence-backed **`Task`s** (beliefs, goals, questions).  - The system operates in a **Cognitive Cadence**, a discrete reasoning loop governed by a principle of **Economic Attention**, which pragmatically prioritizes tasks based on their relevance, urgency, confidence, and predicted effort.  - All reasoning is guided by an immutable **`Genesis Core`** of foundational motives.  - The architecture features a dual-engine design: a symbolic **Unified Causal Reasoner (UCR)** performs rigorous, explainable inference, while a neuro-symbolic **Semantic Forge** leverages LMs for creativity, grounding, and natural language fluency.  - Through a powerful **Meta-Cognitive** feedback loop, SeNARS is designed for recursive self-improvement, creating a robust and transparent foundation for genuinely cognitive AI.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/automenta/senars8.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/automenta/senars8/issues"
+  },
+  "homepage": "https://github.com/automenta/senars8#readme",
+  "dependencies": {
+    "@xenova/transformers": "^2.17.2",
+    "langchain": "^0.3.32",
+    "uuid": "^11.1.0"
+  }
+}
