@@ -1,4 +1,4 @@
-const { cosineSimilarity } = require('./math');
+const {cosineSimilarity} = require('./math');
 
 /**
  * Calculates the structural similarity between two terms based on their keys.
@@ -8,11 +8,11 @@ const { cosineSimilarity } = require('./math');
  */
 function structuralSimilarity(termKey1, termKey2) {
     if (termKey1 === termKey2) return 1.0;
-    
+
     // Simple approach: count common substrings
     const commonSubstrings = [];
     const minLength = Math.min(termKey1.length, termKey2.length);
-    
+
     // Check for common substrings of length 2 or more
     for (let len = 2; len <= minLength; len++) {
         for (let i = 0; i <= termKey1.length - len; i++) {
@@ -22,11 +22,11 @@ function structuralSimilarity(termKey1, termKey2) {
             }
         }
     }
-    
+
     // Calculate similarity based on common substrings
     const totalLength = termKey1.length + termKey2.length;
     const commonLength = commonSubstrings.reduce((sum, substr) => sum + substr.length, 0);
-    
+
     return totalLength > 0 ? (2 * commonLength) / totalLength : 0;
 }
 
@@ -42,28 +42,28 @@ function findSimilarTerms(terms, targetTermKey, maxResults = 10) {
     if (!targetTerm || !targetTerm.embedding) {
         return [];
     }
-    
+
     const similarities = [];
-    
+
     for (const [termKey, term] of terms) {
         if (termKey === targetTermKey) continue;
         if (!term.embedding) continue;
-        
+
         // Calculate cosine similarity
         const semanticSimilarity = cosineSimilarity(targetTerm.embedding, term.embedding);
-        
+
         // Calculate structural similarity
         const structSimilarity = structuralSimilarity(targetTermKey, termKey);
-        
+
         // Combine both similarities (weighted average)
         const combinedSimilarity = 0.7 * semanticSimilarity + 0.3 * structSimilarity;
-        
+
         similarities.push({
             termKey,
             similarity: combinedSimilarity
         });
     }
-    
+
     // Sort by similarity and return top results
     similarities.sort((a, b) => b.similarity - a.similarity);
     return similarities.slice(0, maxResults);
@@ -78,16 +78,16 @@ function findSimilarTerms(terms, targetTermKey, maxResults = 10) {
 function termsEqual(term1, term2) {
     if (term1.key !== term2.key) return false;
     if (term1.complexity !== term2.complexity) return false;
-    
+
     // Compare embeddings (with small tolerance for floating point)
     if (term1.embedding.length !== term2.embedding.length) return false;
-    
+
     for (let i = 0; i < term1.embedding.length; i++) {
         if (Math.abs(term1.embedding[i] - term2.embedding[i]) > 1e-6) {
             return false;
         }
     }
-    
+
     return true;
 }
 

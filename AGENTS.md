@@ -1,4 +1,5 @@
 # Code Guidelines
+
 - Elegant
 - Abstract
 - Modularized

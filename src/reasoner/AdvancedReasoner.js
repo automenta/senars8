@@ -1,4 +1,4 @@
-const { parseTerm } = require('../parser/TermParser');
+const {parseTerm} = require('../parser/TermParser');
 const Task = require('../core/Task');
 
 /**
@@ -11,7 +11,7 @@ function induceTruthValue(tv1, tv2) {
     // Induction is less certain than deduction
     const frequency = (tv1.frequency + tv2.frequency) / 2;
     const confidence = tv1.confidence * tv2.confidence * 0.5; // Lower confidence for induction
-    return { frequency, confidence };
+    return {frequency, confidence};
 }
 
 /**
@@ -24,7 +24,7 @@ function abduceTruthValue(tv1, tv2) {
     // Abduction is even less certain
     const frequency = (tv1.frequency + tv2.frequency) / 2;
     const confidence = tv1.confidence * tv2.confidence * 0.3; // Lower confidence for abduction
-    return { frequency, confidence };
+    return {frequency, confidence};
 }
 
 /**
@@ -38,7 +38,7 @@ function analogizeTruthValue(tv1, tv2, tv3) {
     // Analogy combines three truth values
     const frequency = (tv1.frequency + tv2.frequency + tv3.frequency) / 3;
     const confidence = tv1.confidence * tv2.confidence * tv3.confidence * 0.4; // Moderate confidence for analogy
-    return { frequency, confidence };
+    return {frequency, confidence};
 }
 
 class AdvancedReasoner {
@@ -107,8 +107,8 @@ class AdvancedReasoner {
             if (parsed1.subject === parsed3.subject && parsed2.subject === parsed3.predicate) {
                 const newTermKey = `(${parsed1.predicate} --> ${parsed2.predicate})`;
                 const newTruthValue = analogizeTruthValue(
-                    task1.state.truthValue, 
-                    task2.state.truthValue, 
+                    task1.state.truthValue,
+                    task2.state.truthValue,
                     task3.state.truthValue
                 );
                 return new Task(newTermKey, '.', newTruthValue);

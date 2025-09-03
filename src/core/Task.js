@@ -1,7 +1,10 @@
-const { v4: uuidv4 } = require('uuid');
+const {v4: uuidv4} = require('uuid');
 
 class Task {
-    constructor(termKey, punctuation, truthValue = { frequency: 1.0, confidence: 0.9 }, stamp = { creationTime: Date.now() }) {
+    constructor(termKey, punctuation, truthValue = {
+        frequency: 1.0,
+        confidence: 0.9
+    }, stamp = {creationTime: Date.now()}) {
         if (typeof termKey !== 'string' || termKey.length === 0) {
             throw new Error('Task termKey must be a non-empty string.');
         }

@@ -8,7 +8,7 @@ const DRIVES = [
 ];
 
 const CONSTRAINTS = [
-    new Task('((&, self, cause_harm) ==> NEGATIVE_OUTCOME)', '.', { frequency: 1.0, confidence: 0.99 }),
+    new Task('((&, self, cause_harm) ==> NEGATIVE_OUTCOME)', '.', {frequency: 1.0, confidence: 0.99}),
 ];
 
 const CONSTITUTION_TASKS = Object.freeze([

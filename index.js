@@ -9,7 +9,7 @@ const path = require('path');
 
 async function main() {
     console.log("=== SeNARS Cognitive System Demo Runner ===\n");
-    
+
     try {
         // Run all demos
         const runAllDemos = require('./demos/run-all.js');

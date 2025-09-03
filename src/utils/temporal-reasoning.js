@@ -27,9 +27,9 @@ function calculateTemporalPriority(task, currentTime) {
         // Non-temporal tasks get neutral temporal priority
         return 1.0;
     }
-    
+
     const timeDifference = Math.abs(currentTime - task.state.stamp.occurrenceTime);
-    
+
     // Tasks closer to current time have higher temporal priority
     // Tasks in the future have slightly higher priority than past tasks
     if (task.state.stamp.occurrenceTime > currentTime) {
@@ -64,7 +64,7 @@ function findTasksInTimeWindow(tasks, startTime, endTime) {
 function predictFutureTasks(tasks, predictionTime) {
     // Simple prediction: find recurring patterns
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
-    
+
     // Group tasks by term key
     const taskGroups = {};
     temporalTasks.forEach(task => {
@@ -73,27 +73,27 @@ function predictFutureTasks(tasks, predictionTime) {
         }
         taskGroups[task.termKey].push(task);
     });
-    
+
     const predictions = [];
-    
+
     // For each group, check if there's a temporal pattern
     for (const [termKey, groupTasks] of Object.entries(taskGroups)) {
         if (groupTasks.length < 2) continue;
-        
+
         // Sort by occurrence time
         groupTasks.sort((a, b) => a.state.stamp.occurrenceTime - b.state.stamp.occurrenceTime);
-        
+
         // Calculate average interval
         let totalInterval = 0;
         for (let i = 1; i < groupTasks.length; i++) {
-            totalInterval += groupTasks[i].state.stamp.occurrenceTime - groupTasks[i-1].state.stamp.occurrenceTime;
+            totalInterval += groupTasks[i].state.stamp.occurrenceTime - groupTasks[i - 1].state.stamp.occurrenceTime;
         }
         const avgInterval = totalInterval / (groupTasks.length - 1);
-        
+
         // Predict next occurrence
         const lastOccurrence = groupTasks[groupTasks.length - 1].state.stamp.occurrenceTime;
         const predictedOccurrence = lastOccurrence + avgInterval;
-        
+
         // If prediction is close to requested time, create a prediction task
         if (Math.abs(predictedOccurrence - predictionTime) < avgInterval) {
             const predictionTask = createTemporalTask(
@@ -108,7 +108,7 @@ function predictFutureTasks(tasks, predictionTime) {
             predictions.push(predictionTask);
         }
     }
-    
+
     return predictions;
 }
 

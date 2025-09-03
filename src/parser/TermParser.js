@@ -20,31 +20,31 @@ function parseTerm(termKey) {
     let match;
 
     if ((match = termKey.match(inheritanceRegex))) {
-        return { type: 'Inheritance', subject: match[1], predicate: match[2] };
+        return {type: 'Inheritance', subject: match[1], predicate: match[2]};
     }
     if ((match = termKey.match(implicationRegex))) {
-        return { type: 'Implication', subject: match[1], predicate: match[2] };
+        return {type: 'Implication', subject: match[1], predicate: match[2]};
     }
     if ((match = termKey.match(instanceRegex))) {
-        return { type: 'Instance', instance: match[1], class: match[2] };
+        return {type: 'Instance', instance: match[1], class: match[2]};
     }
     if ((match = termKey.match(propertyRegex))) {
-        return { type: 'Property', instance: match[1], property: match[2] };
+        return {type: 'Property', instance: match[1], property: match[2]};
     }
     if ((match = termKey.match(negationRegex))) {
-        return { type: 'Negation', term: match[1] };
+        return {type: 'Negation', term: match[1]};
     }
     if ((match = termKey.match(conjunctionRegex))) {
         const terms = match[1].split(/\s*,\s*/);
-        return { type: 'Conjunction', terms: terms };
+        return {type: 'Conjunction', terms: terms};
     }
 
     // If no specific structure is matched, treat it as an atomic term.
     if (!/^\(.*\)$/.test(termKey)) {
-        return { type: 'Atomic', key: termKey };
+        return {type: 'Atomic', key: termKey};
     }
 
     return null; // Return null if it looks like a compound term but doesn't match any pattern
 }
 
-module.exports = { parseTerm };
+module.exports = {parseTerm};

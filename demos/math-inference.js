@@ -13,16 +13,16 @@ const Task = require('../src/core/Task');
  */
 async function mathInferenceDemo() {
     console.log("=== Math Inference Demo ===");
-    
+
     // Initialize system components
     const lm = new LM();
     const memory = new Memory();
     const reasoner = new Reasoner();
     const cycle = new Cycle(memory, reasoner, lm);
-    
+
     // Load Constitution
     memory.addTasks(CONSTITUTION_TASKS);
-    
+
     // Bootstrap constitutional terms
     const termPromises = CONSTITUTION_TASKS.map(task => {
         if (!memory.getTerm(task.termKey)) {
@@ -30,10 +30,10 @@ async function mathInferenceDemo() {
         }
         return Promise.resolve(null);
     });
-    
+
     const newTerms = (await Promise.all(termPromises)).filter(Boolean);
     newTerms.forEach(term => memory.addTerm(term));
-    
+
     // Add mathematical knowledge
     console.log("Adding mathematical knowledge...");
     const mathKnowledge = [
@@ -43,15 +43,15 @@ async function mathInferenceDemo() {
         new Task('(2 --> number)', '.'),
         new Task('(3 --> number)', '.'),
         new Task('(6 --> number)', '.'),
-        
+
         // Mathematical facts
         new Task('((&, addition, 2, 3) --> 5)', '.'),
         new Task('((&, multiplication, 2, 3) --> 6)', '.'),
-        
+
         // Implications for reasoning
         new Task('((&, arithmetic_operation, x, y) ==> result)', '.'),
     ];
-    
+
     // Bootstrap terms for new knowledge
     const mathTermPromises = mathKnowledge.map(task => {
         if (!memory.getTerm(task.termKey)) {
@@ -59,50 +59,50 @@ async function mathInferenceDemo() {
         }
         return Promise.resolve(null);
     });
-    
+
     const mathTerms = (await Promise.all(mathTermPromises)).filter(Boolean);
     mathTerms.forEach(term => memory.addTerm(term));
-    
+
     memory.addTasks(mathKnowledge);
     console.log(`Added ${mathKnowledge.length} mathematical tasks to memory.`);
-    
+
     // Run cycles to perform inference
     console.log("Running inference cycles...");
     for (let i = 0; i < 3; i++) {
         console.log(`\n--- Cycle ${i + 1} ---`);
         await cycle.runOnce();
-        
+
         const topTasks = memory.getHighestPriorityTasks(5);
         console.log("Top priority tasks:");
         topTasks.forEach(task => {
             console.log(`- ${task.termKey}${task.punctuation} (Priority: ${task.state.priority.toPrecision(3)})`);
         });
     }
-    
+
     // Verify inference results
     console.log("\n=== Verification ===");
     const allTasks = memory.getAllTasks();
-    const multiplicationTasks = allTasks.filter(task => 
+    const multiplicationTasks = allTasks.filter(task =>
         task.termKey.includes('multiplication') && task.termKey.includes('2') && task.termKey.includes('3')
     );
-    
+
     if (multiplicationTasks.length > 0) {
         console.log("✓ Successfully processed multiplication tasks");
     } else {
         console.log("✗ Failed to process multiplication tasks");
     }
-    
+
     // Check if new derived tasks were created
-    const derivedTasks = allTasks.filter(task => 
+    const derivedTasks = allTasks.filter(task =>
         task.state.stamp.creationTime > Date.now() - 10000 // Created recently
     );
-    
+
     if (derivedTasks.length > 0) {
         console.log(`✓ Generated ${derivedTasks.length} new derived tasks`);
     } else {
         console.log("⚠ No new derived tasks were generated");
     }
-    
+
     console.log("\n=== Math Inference Demo Complete ===");
     return {
         totalTasks: allTasks.length,

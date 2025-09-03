@@ -1,8 +1,8 @@
 const Memory = require('../memory/Memory');
 const Reasoner = require('../reasoner/Reasoner');
 const LM = require('../lm/LM');
-const { cosineSimilarity } = require('../utils/math');
-const { calculateTemporalPriority } = require('../utils/temporal-reasoning');
+const {cosineSimilarity} = require('../utils/math');
+const {calculateTemporalPriority} = require('../utils/temporal-reasoning');
 const actionExecutor = require('./ActionExecutor');
 const CONSTITUTION_TASKS = require('./Constitution');
 
@@ -95,7 +95,7 @@ class Cycle {
         const actionableGoals = this.memory.getAllTasks()
             .filter(task => task.punctuation === '!' && task.state.priority > 0.5)
             .sort((a, b) => b.state.priority - a.state.priority);
-            
+
         const executionResults = [];
         for (const goal of actionableGoals.slice(0, 3)) { // Execute top 3 goals
             try {
@@ -108,7 +108,7 @@ class Cycle {
                 }
             } catch (error) {
                 console.log(`✗ Error executing goal: ${goal.termKey} (${error.message})`);
-                executionResults.push({ success: false, task: goal.termKey, error: error.message });
+                executionResults.push({success: false, task: goal.termKey, error: error.message});
             }
         }
 

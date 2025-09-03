@@ -1,4 +1,4 @@
-const { pipeline } = require('@xenova/transformers');
+const {pipeline} = require('@xenova/transformers');
 const Term = require("../core/Term");
 
 class LM {

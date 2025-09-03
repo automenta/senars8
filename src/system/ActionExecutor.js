@@ -1,4 +1,4 @@
-const { parseTerm } = require('../parser/TermParser');
+const {parseTerm} = require('../parser/TermParser');
 
 /**
  * Action Execution System
@@ -10,7 +10,7 @@ class ActionExecutor {
         this.actionHandlers = new Map();
         this.registeredActions = new Set();
     }
-    
+
     /**
      * Registers an action handler.
      * @param {string} actionPattern - Pattern to match actions (e.g., 'move_*').
@@ -20,7 +20,7 @@ class ActionExecutor {
         this.actionHandlers.set(actionPattern, handler);
         this.registeredActions.add(actionPattern);
     }
-    
+
     /**
      * Translates a goal task to an executable action.
      * @param {Task} goalTask - The goal task to translate.
@@ -30,12 +30,12 @@ class ActionExecutor {
         if (goalTask.punctuation !== '!') {
             return null; // Only goals can be translated to actions
         }
-        
+
         const parsed = parseTerm(goalTask.termKey);
         if (!parsed) {
             return null;
         }
-        
+
         // Simple translation rules
         if (parsed.type === 'Atomic') {
             // For atomic goals, try to find a direct action
@@ -45,7 +45,7 @@ class ActionExecutor {
                 parameters: {}
             };
         }
-        
+
         if (parsed.type === 'Inheritance' && parsed.subject.startsWith('&')) {
             // For compound actions like (&, move, robot, kitchen)
             const parts = parsed.subject.slice(2, -1).split(/\s*,\s*/);
@@ -55,10 +55,10 @@ class ActionExecutor {
                 parameters: parts.slice(1)
             };
         }
-        
+
         return null;
     }
-    
+
     /**
      * Executes an action.
      * @param {object} action - The action to execute.
@@ -66,7 +66,7 @@ class ActionExecutor {
      */
     async executeAction(action) {
         console.log(`Executing action: ${action.name}`, action.parameters);
-        
+
         // Try to find a matching handler
         for (const [pattern, handler] of this.actionHandlers) {
             if (this.matchPattern(action.name, pattern)) {
@@ -86,7 +86,7 @@ class ActionExecutor {
                 }
             }
         }
-        
+
         // No handler found
         return {
             success: false,
@@ -94,7 +94,7 @@ class ActionExecutor {
             error: 'No handler found for action'
         };
     }
-    
+
     /**
      * Matches an action name against a pattern.
      * @param {string} actionName - The action name.
@@ -104,16 +104,16 @@ class ActionExecutor {
     matchPattern(actionName, pattern) {
         if (pattern === '*') return true;
         if (pattern === actionName) return true;
-        
+
         // Handle wildcards
         if (pattern.endsWith('*')) {
             const prefix = pattern.slice(0, -1);
             return actionName.startsWith(prefix);
         }
-        
+
         return false;
     }
-    
+
     /**
      * Executes a goal task by translating it to an action and executing it.
      * @param {Task} goalTask - The goal task to execute.
@@ -128,7 +128,7 @@ class ActionExecutor {
                 error: 'Failed to translate goal to action'
             };
         }
-        
+
         return await this.executeAction(action);
     }
 }
@@ -140,17 +140,17 @@ const actionExecutor = new ActionExecutor();
 actionExecutor.registerActionHandler('print_*', async (action) => {
     const message = action.parameters.join(' ');
     console.log(`PRINT ACTION: ${message}`);
-    return { message };
+    return {message};
 });
 
 actionExecutor.registerActionHandler('log', async (action) => {
     console.log('LOG ACTION:', action.parameters);
-    return { logged: true };
+    return {logged: true};
 });
 
 actionExecutor.registerActionHandler('achieve', async (action) => {
     console.log('ACHIEVE ACTION:', action.parameters);
-    return { achieved: action.parameters };
+    return {achieved: action.parameters};
 });
 
 module.exports = actionExecutor;

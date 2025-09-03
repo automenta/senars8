@@ -22,32 +22,32 @@ const orderedDemoFiles = [
 
 async function runAllDemos() {
     console.log("=== SeNARS Demos Runner ===\n");
-    
+
     const results = [];
-    
+
     for (const demoFile of orderedDemoFiles) {
         try {
             console.log(`\n▶ Running ${demoFile}...`);
-            console.log("=" .repeat(50));
-            
+            console.log("=".repeat(50));
+
             // Import and run the demo
             const demoModule = require(path.join(demosDir, demoFile));
             const result = await demoModule();
-            results.push({ demo: demoFile, success: true, result });
-            
-            console.log("=" .repeat(50));
+            results.push({demo: demoFile, success: true, result});
+
+            console.log("=".repeat(50));
             console.log(`✓ ${demoFile} completed\n`);
         } catch (error) {
             console.error(`✗ ${demoFile} failed:`, error.message);
-            results.push({ demo: demoFile, success: false, error: error.message });
+            results.push({demo: demoFile, success: false, error: error.message});
         }
     }
-    
+
     // Summary
     console.log("\n=== Demos Execution Summary ===");
     let passed = 0;
     let failed = 0;
-    
+
     for (const result of results) {
         if (result.success) {
             console.log(`✓ ${result.demo}`);
@@ -57,9 +57,9 @@ async function runAllDemos() {
             failed++;
         }
     }
-    
+
     console.log(`\nTotal: ${results.length}, Passed: ${passed}, Failed: ${failed}`);
-    
+
     if (failed > 0) {
         process.exit(1);
     }
