@@ -1,4 +1,4 @@
-const {parseTerm} = require('../parser/TermParser');
+const {parseTerm} = require('../parser/NewParser');
 const Task = require('../core/Task');
 
 class MetaCognition {

@@ -1,6 +1,6 @@
 const Term = require("../core/Term");
 const Task = require("../core/Task");
-const {parseTerm} = require('../parser/TermParser');
+const {parseTerm} = require('../parser/NewParser');
 
 class LM {
     constructor() {

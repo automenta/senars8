@@ -1,4 +1,4 @@
-const {parseTerm} = require('../src/parser/TermParser');
+const {parseTerm} = require('../src/parser/NewParser');
 
 // Test that the parser output matches what the Reasoner expects
 console.log('Testing parser output compatibility with Reasoner:');

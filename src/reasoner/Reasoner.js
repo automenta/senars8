@@ -1,7 +1,7 @@
 const Task = require('../core/Task');
 const Term = require('../core/Term');
 const {buildTermKey} = require('../utils/term-builder');
-const {parseTerm} = require('../parser/TermParser');
+const {parseTerm} = require('../parser/NewParser');
 const {AdvancedReasoner, induceTruthValue, abduceTruthValue, analogizeTruthValue} = require('./AdvancedReasoner');
 const BruteForceStrategy = require('./strategies/BruteForceStrategy');
 const BagSamplingStrategy = require('./strategies/BagSamplingStrategy');

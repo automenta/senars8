@@ -1,7 +1,7 @@
 const Task = require('../core/Task');
 const Term = require('../core/Term');
 const {buildTermKey} = require('../utils/term-builder');
-const {parseTerm} = require('../parser/TermParser');
+const {parseTerm} = require('../parser/NewParser');
 
 function induceTruthValue(tv1, tv2) {
     const frequency = (tv1.frequency + tv2.frequency) / 2;

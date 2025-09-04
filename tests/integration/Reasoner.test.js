@@ -2,7 +2,7 @@ const Reasoner = require('../../src/reasoner/Reasoner');
 const Memory = require('../../src/memory/Memory');
 const Task = require('../../src/core/Task');
 const Term = require('../../src/core/Term');
-const {parseTerm} = require('../../src/parser/TermParser');
+const {parseTerm} = require('../../src/parser/NewParser');
 const LM = require('../../src/lm/LM');
 
 jest.mock('@xenova/transformers', () => ({

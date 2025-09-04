@@ -1,23 +1,33 @@
 const Task = require('../core/Task');
-const {parseTerm} = require('../parser/TermParser');
+const {parseTerm} = require('../parser/NewParser');
 const {
     determineTemporalRelationship,
     createTemporalRelationshipTask,
-    inferTemporalImplications,
+    inferTemporalImplications: inferImplications,
     createTemporalSequenceTask,
-    detectTemporalPatterns
+    detectTemporalPatterns: detectPatterns,
 } = require('../utils/temporal-reasoning');
 
 class TemporalReasoner {
-    inferTemporalRelationships(focusSet) {
-        const temporalTasks = [];
+    infer(focusSet) {
         const temporalFocusSet = focusSet.filter(task => task.state.stamp.occurrenceTime);
+        if (temporalFocusSet.length < 2) {
+            return [];
+        }
 
+        const relationshipTasks = this._inferTemporalRelationships(temporalFocusSet);
+        const implicationTasks = this._inferTemporalImplications(temporalFocusSet);
+        const patternTasks = this._detectTemporalPatterns(temporalFocusSet);
+
+        return [...relationshipTasks, ...implicationTasks, ...patternTasks];
+    }
+
+    _inferTemporalRelationships(temporalFocusSet) {
+        const temporalTasks = [];
         for (let i = 0; i < temporalFocusSet.length; i++) {
             for (let j = i + 1; j < temporalFocusSet.length; j++) {
                 const task1 = temporalFocusSet[i];
                 const task2 = temporalFocusSet[j];
-
                 const relationship = determineTemporalRelationship(task1, task2);
                 if (relationship) {
                     const relationshipTask = createTemporalRelationshipTask(task1, task2, relationship);
@@ -25,56 +35,43 @@ class TemporalReasoner {
                 }
             }
         }
-
         return temporalTasks;
     }
 
-    inferTemporalImplications(focusSet) {
+    _inferTemporalImplications(temporalFocusSet) {
         const implicationTasks = [];
-        const temporalFocusSet = focusSet.filter(task => task.state.stamp.occurrenceTime);
-
         for (let i = 0; i < temporalFocusSet.length; i++) {
             for (let j = i + 1; j < temporalFocusSet.length; j++) {
                 const task1 = temporalFocusSet[i];
                 const task2 = temporalFocusSet[j];
-
-                const implications = inferTemporalImplications(task1, task2);
+                const implications = inferImplications(task1, task2);
                 implicationTasks.push(...implications);
             }
         }
-
         return implicationTasks;
     }
 
-    detectTemporalPatterns(focusSet) {
+    _detectTemporalPatterns(temporalFocusSet) {
         const patternTasks = [];
-        const temporalFocusSet = focusSet.filter(task => task.state.stamp.occurrenceTime);
-
-        const patterns = detectTemporalPatterns(temporalFocusSet);
+        const patterns = detectPatterns(temporalFocusSet);
 
         for (const pattern of patterns) {
-            switch (pattern.type) {
-                case 'periodic':
-                    const periodicTask = new Task(
-                        parseTerm(`(periodic_pattern, ${pattern.tasks[0].termKey})`),
-                        '.',
-                        {
-                            frequency: 0.9,
-                            confidence: pattern.confidence
-                        }
-                    );
-                    patternTasks.push(periodicTask);
-                    break;
-
-                case 'sequential':
-                    const sequenceTask = createTemporalSequenceTask(pattern.sequence);
-                    if (sequenceTask) {
-                        patternTasks.push(sequenceTask);
+            if (pattern.type === 'periodic') {
+                const periodicTask = new Task(
+                    parseTerm(`(periodic_pattern, ${pattern.tasks[0].termKey})`),
+                    '.', {
+                        frequency: 0.9,
+                        confidence: pattern.confidence
                     }
-                    break;
+                );
+                patternTasks.push(periodicTask);
+            } else if (pattern.type === 'sequential') {
+                const sequenceTask = createTemporalSequenceTask(pattern.sequence);
+                if (sequenceTask) {
+                    patternTasks.push(sequenceTask);
+                }
             }
         }
-
         return patternTasks;
     }
 }

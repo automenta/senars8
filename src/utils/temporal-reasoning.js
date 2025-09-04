@@ -1,5 +1,5 @@
 const Task = require('../core/Task');
-const {parseTerm} = require('../parser/TermParser');
+const {parseTerm} = require('../parser/NewParser');
 
 function createTemporalTask(termKey, punctuation, truthValue, occurrenceTime, endTime = null) {
     const stamp = {

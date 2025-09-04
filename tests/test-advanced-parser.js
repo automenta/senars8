@@ -1,4 +1,4 @@
-const {parse} = require('../src/parser/NewParser');
+const {parseTerm} = require('../src/parser/NewParser');
 
 // Test cases for the enhanced parser
 const testCases = [
@@ -50,7 +50,7 @@ console.log("Testing enhanced Narsese parser:\n");
 
 for (const testCase of testCases) {
     try {
-        const result = parse(testCase);
+        const result = parseTerm(testCase);
         console.log(`Input:  ${testCase}`);
         console.log(`Output: ${JSON.stringify(result, null, 2)}`);
         console.log("---");

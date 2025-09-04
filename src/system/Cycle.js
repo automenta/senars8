@@ -78,19 +78,16 @@ class Cycle {
 
     async _reason() {
         const focusSet = this.memory.getHighestPriorityTasks(FOCUS_SET_SIZE);
-        const derivedTasks = this.reasoner.performInference(focusSet, this.memory.terms);
 
-        const temporalTasks = this.temporalReasoner.inferTemporalRelationships(focusSet);
-        derivedTasks.push(...temporalTasks);
+        const symbolicDerivedTasks = this.reasoner.performInference(focusSet, this.memory.terms);
+        const temporalDerivedTasks = this.temporalReasoner.infer(focusSet);
+        const lmHypotheses = await this.lm.generateHypotheses(focusSet);
 
-        const temporalImplications = this.temporalReasoner.inferTemporalImplications(focusSet);
-        derivedTasks.push(...temporalImplications);
-
-        const temporalPatterns = this.temporalReasoner.detectTemporalPatterns(focusSet);
-        derivedTasks.push(...temporalPatterns);
-
-        const hypotheses = await this.lm.generateHypotheses(focusSet);
-        derivedTasks.push(...hypotheses);
+        const derivedTasks = [
+            ...symbolicDerivedTasks,
+            ...temporalDerivedTasks,
+            ...lmHypotheses
+        ];
 
         this.memory.addTasks(derivedTasks);
 

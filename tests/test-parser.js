@@ -1,4 +1,4 @@
-const {parseTerm} = require('../src/parser/TermParser');
+const {parseTerm} = require('../src/parser/NewParser');
 
 // Test the new parser with various inputs
 console.log('Testing new parser implementation:');

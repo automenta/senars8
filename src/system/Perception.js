@@ -1,6 +1,6 @@
 const Task = require('../core/Task');
 const {createTemporalTask} = require('../utils/temporal-reasoning');
-const {parseTerm} = require('../parser/TermParser');
+const {parseTerm} = require('../parser/NewParser');
 
 class Perception {
     constructor(memory, lm) {
