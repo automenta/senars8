@@ -6,15 +6,17 @@ const Task = require('../../src/core/Task');
 const Term = require('../../src/core/Term');
 const {parseTerm} = require('../../src/parser/NewParser');
 
-jest.mock('@xenova/transformers', () => ({
-    pipeline: jest.fn(() => {
-        return jest.fn(() => ({
-            data: new Float32Array(),
-        }));
-    }),
-}));
-
 jest.mock('../../src/lm/LM');
+
+jest.mock('@xenova/transformers', () => {
+    const transformers = jest.genMockFromModule('@xenova/transformers');
+    transformers.pipeline = jest.fn(async () => {
+        return jest.fn(() => ({
+            data: new Float32Array([1, 2, 3]),
+        }));
+    });
+    return transformers;
+});
 
 describe('Cycle Integration Test', () => {
     let memory, reasoner, lm, cycle;

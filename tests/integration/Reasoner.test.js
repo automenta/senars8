@@ -5,13 +5,15 @@ const Term = require('../../src/core/Term');
 const {parseTerm} = require('../../src/parser/NewParser');
 const LM = require('../../src/lm/LM');
 
-jest.mock('@xenova/transformers', () => ({
-    pipeline: jest.fn(() => {
+jest.mock('@xenova/transformers', () => {
+    const transformers = jest.genMockFromModule('@xenova/transformers');
+    transformers.pipeline = jest.fn(async () => {
         return jest.fn(() => ({
-            data: new Float32Array(),
+            data: new Float32Array([1, 2, 3]),
         }));
-    }),
-}));
+    });
+    return transformers;
+});
 
 describe('Reasoner Integration Test', () => {
     let reasoner, memory, lm;

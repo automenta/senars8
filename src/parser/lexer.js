@@ -38,12 +38,12 @@ const lexer = moo.compile({
     identifier: /[a-zA-Z_][a-zA-Z0-9_]*/,
 
     // Variables
-    independentVar: /\\\\w+/,
-    dependentVar: /#\\w+/,
-    queryVar: /\\?\\w+/,
+    independentVar: /\w+/,
+    dependentVar: /#\w+/,
+    queryVar: /\?\w+/,
 
     // Numbers
-    number: /\\d+(?:\\.\\d+)?/
+    number: /\d+(?:\.\d+)?/
 });
 
 module.exports = lexer;
