@@ -1,14 +1,8 @@
 #!/usr/bin/env node
 
-/**
- * SeNARS Test Suite Runner
- * Executes all available tests.
- */
-
 const fs = require('fs');
 const path = require('path');
 
-// Get all test files
 const testsDir = path.join(__dirname);
 const testFiles = fs.readdirSync(testsDir)
     .filter(file => file.endsWith('.js') && file !== 'run-all.js')
@@ -24,7 +18,6 @@ async function runAllTests() {
             console.log(`\n▶ Running ${testFile}...`);
             console.log("=".repeat(50));
 
-            // Import and run the test
             require(path.join(testsDir, testFile));
             results.push({test: testFile, success: true});
 
@@ -36,7 +29,6 @@ async function runAllTests() {
         }
     }
 
-    // Summary
     console.log("\n=== Test Suite Execution Summary ===");
     let passed = 0;
     let failed = 0;
@@ -58,7 +50,6 @@ async function runAllTests() {
     }
 }
 
-// Run all tests if this file is executed directly
 if (require.main === module) {
     runAllTests().catch(error => {
         console.error("Runner failed:", error);

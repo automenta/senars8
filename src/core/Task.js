@@ -1,22 +1,21 @@
 const {v4: uuidv4} = require('uuid');
-const {parseTerm} = require('../parser/TermParser');
 
 class Task {
-    constructor(termKey, punctuation, truthValue = {
+    constructor(term, punctuation, truthValue = {
         frequency: 1.0,
         confidence: 0.9
     }, stamp = {creationTime: Date.now()}) {
-        if (typeof termKey !== 'string' || termKey.length === 0) {
-            throw new Error('Task termKey must be a non-empty string.');
+        if (!term || typeof term.key !== 'string' || term.key.length === 0) {
+            throw new Error('Task requires a valid term object with a non-empty key.');
         }
         if (!['.', '!', '?'].includes(punctuation)) {
             throw new Error('Task punctuation must be one of ".", "!", or "?".');
         }
 
         this.id = uuidv4();
-        this.termKey = termKey;
+        this.term = term;
+        this.termKey = term.key;
         this.punctuation = punctuation;
-        this.term = null; // Parsed representation, to be filled by parseNow()
 
         this.state = {
             priority: 0,
@@ -29,15 +28,6 @@ class Task {
                 occurrenceTime: stamp.occurrenceTime,
             },
         };
-    }
-
-    /**
-     * Parses the termKey and caches the result.
-     */
-    parseNow() {
-        if (this.term === null) {
-            this.term = parseTerm(this.termKey);
-        }
     }
 }
 

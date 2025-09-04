@@ -1,6 +1,6 @@
-const {pipeline} = require('@xenova/transformers');
 const Term = require("../core/Term");
 const Task = require("../core/Task");
+const {parseTerm} = require('../parser/TermParser');
 
 class LM {
     constructor() {
@@ -9,24 +9,25 @@ class LM {
         this._qaPipelinePromise = null;
     }
 
-    getFeaturePipeline() {
+    async getFeaturePipeline() {
         if (!this._featurePipelinePromise) {
+            const {pipeline} = await import('@xenova/transformers');
             this._featurePipelinePromise = pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
         }
         return this._featurePipelinePromise;
     }
 
-    getGenerationPipeline() {
+    async getGenerationPipeline() {
         if (!this._generationPipelinePromise) {
-            // Using a lightweight generation model for hypothesis generation
+            const {pipeline} = await import('@xenova/transformers');
             this._generationPipelinePromise = pipeline('text-generation', 'Xenova/distilgpt2');
         }
         return this._generationPipelinePromise;
     }
 
-    getQAPipeline() {
+    async getQAPipeline() {
         if (!this._qaPipelinePromise) {
-            // Using a QA model for explanations
+            const {pipeline} = await import('@xenova/transformers');
             this._qaPipelinePromise = pipeline('question-answering', 'Xenova/distilbert-base-uncased-distilled-squad');
         }
         return this._qaPipelinePromise;
@@ -49,28 +50,18 @@ class LM {
         return new Term(termKey, embeddingVector, complexity);
     }
 
-    /**
-     * Generates hypotheses based on a set of tasks.
-     * @param {Task[]} tasks - Array of tasks to generate hypotheses from.
-     * @returns {Promise<Task[]>} Array of generated hypothesis tasks.
-     */
     async generateHypotheses(tasks) {
         if (!tasks || tasks.length === 0) {
             return [];
         }
 
-        // Get the generation pipeline
         const generator = await this.getGenerationPipeline();
 
-        // Create a context from the tasks
         const context = tasks.map(task => `${task.termKey}${task.punctuation}`).join('\n');
 
-        // Generate hypotheses
         const hypotheses = [];
 
-        // Generate 3 different types of hypotheses
         for (let i = 0; i < 3; i++) {
-            // 1. Generalization hypothesis
             const generalizationPrompt = `Based on these observations:\n${context}\n\nA general principle that explains these observations is:`;
             const generalizationResult = await generator(generalizationPrompt, {
                 max_new_tokens: 50,
@@ -82,10 +73,10 @@ class LM {
                 const hypothesisText = generalizationResult[0].generated_text.replace(generalizationPrompt, '').trim();
                 if (hypothesisText.length > 0) {
                     const hypothesisTask = new Task(
-                        hypothesisText,
+                        parseTerm(hypothesisText),
                         '.',
                         {
-                            frequency: 0.5, // Uncertain hypothesis
+                            frequency: 0.5,
                             confidence: 0.3
                         }
                     );
@@ -97,22 +88,12 @@ class LM {
         return hypotheses;
     }
 
-    /**
-     * Explains a task or concept using natural language.
-     * @param {string} termKey - The term to explain.
-     * @param {string} question - Optional question to guide the explanation.
-     * @returns {Promise<string>} Natural language explanation.
-     */
     async explain(termKey, question = null) {
         if (typeof termKey !== 'string' || termKey.length === 0) {
             return "Cannot explain an empty term.";
         }
 
         try {
-            // For now, we'll generate a simple explanation
-            // In a more advanced implementation, we would use the QA pipeline
-            // with a knowledge base or context
-
             const generator = await this.getGenerationPipeline();
 
             let prompt;
@@ -139,11 +120,6 @@ class LM {
         }
     }
 
-    /**
-     * Generates a natural language summary of a set of tasks.
-     * @param {Task[]} tasks - Array of tasks to summarize.
-     * @returns {Promise<string>} Natural language summary.
-     */
     async summarize(tasks) {
         if (!tasks || tasks.length === 0) {
             return "No tasks to summarize.";
@@ -152,7 +128,6 @@ class LM {
         try {
             const generator = await this.getGenerationPipeline();
 
-            // Create a context from the tasks
             const context = tasks.map(task => `${task.termKey}${task.punctuation}`).join('\n');
 
             const prompt = `Summarize the following knowledge:\n${context}\n\nSummary:`;
@@ -174,23 +149,14 @@ class LM {
         }
     }
 
-    /**
-     * Evaluates the coherence of a set of tasks.
-     * @param {Task[]} tasks - Array of tasks to evaluate.
-     * @returns {Promise<object>} Coherence evaluation results.
-     */
     async evaluateCoherence(tasks) {
         if (!tasks || tasks.length === 0) {
             return {coherence: 0, explanation: "No tasks to evaluate."};
         }
 
         try {
-            // For now, we'll use a simple heuristic based on term similarity
-            // In a more advanced implementation, we would use more sophisticated methods
-
             const extractor = await this.getFeaturePipeline();
 
-            // Extract embeddings for all terms
             const embeddings = [];
             for (const task of tasks) {
                 const output = await extractor(task.termKey, {
@@ -203,7 +169,6 @@ class LM {
                 });
             }
 
-            // Calculate average similarity between all pairs
             let totalSimilarity = 0;
             let pairCount = 0;
 
@@ -217,8 +182,7 @@ class LM {
 
             const averageSimilarity = pairCount > 0 ? totalSimilarity / pairCount : 0;
 
-            // Coherence is based on average similarity
-            const coherence = Math.min(1.0, averageSimilarity * 2); // Scale to 0-1 range
+            const coherence = Math.min(1.0, averageSimilarity * 2);
 
             return {
                 coherence: coherence,
@@ -233,12 +197,6 @@ class LM {
         }
     }
 
-    /**
-     * Calculates cosine similarity between two vectors.
-     * @param {number[]} vecA - First vector.
-     * @param {number[]} vecB - Second vector.
-     * @returns {number} Cosine similarity.
-     */
     cosineSimilarity(vecA, vecB) {
         if (!vecA || !vecB || vecA.length !== vecB.length) {
             return 0;
