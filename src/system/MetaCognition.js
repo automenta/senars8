@@ -30,8 +30,8 @@ class MetaCognition {
             }).filter(Boolean)
         );
 
-        const transitiveContradictions = this.findTransitiveInheritanceContradictions(beliefTasks);
-        return [...pairwiseContradictions, ...transitiveContradictions];
+        // const transitiveContradictions = this.findTransitiveInheritanceContradictions(beliefTasks);
+        return pairwiseContradictions;
     }
 
     calculateContradictionSeverity(contradictionType, task1, task2) {

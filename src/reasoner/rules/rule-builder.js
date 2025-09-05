@@ -7,11 +7,11 @@ function createRule(spec) {
         arity: spec.arity,
         operands: spec.operands,
         condition: (...tasks) => {
-            const parsedTasks = tasks.map(t => t.term);
+            const parsedTasks = tasks.map(t => parseTerm(t.termKey));
             return spec.condition(...parsedTasks);
         },
         action: (...tasks) => {
-            const parsedTasks = tasks.map(t => t.term);
+            const parsedTasks = tasks.map(t => parseTerm(t.termKey));
             const result = spec.action(...parsedTasks, ...tasks);
             if (!result) return null;
 

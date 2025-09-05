@@ -2,6 +2,7 @@ const Memory = require('../memory/Memory');
 const Reasoner = require('../reasoner/Reasoner');
 const LM = require('../lm/LM');
 const {calculateTemporalPriority} = require('../utils/temporal-reasoning');
+const {cosineSimilarity} = require('../utils/math');
 const actionExecutor = require('./ActionExecutor');
 const CONSTITUTION_TASKS = require('./Constitution');
 const PerceptionEnhanced = require('./PerceptionEnhanced');
@@ -41,7 +42,7 @@ class Cycle {
         if (!term?.embedding?.length) return 0;
 
         const maxSimilarity = this.driveEmbeddings.reduce((max, driveEmbedding) => {
-            const similarity = require('../utils/math').cosineSimilarity(term.embedding, driveEmbedding);
+            const similarity = cosineSimilarity(term.embedding, driveEmbedding);
             return similarity > max ? similarity : max;
         }, 0);
 

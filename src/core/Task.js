@@ -1,10 +1,7 @@
 const {v4: uuidv4} = require('uuid');
 
 class Task {
-    constructor(term, punctuation, truthValue = {
-        frequency: 1.0,
-        confidence: 0.9
-    }, stamp = {creationTime: Date.now()}) {
+    constructor(term, punctuation, truthValue = {}, stamp = {}) {
         if (!term || typeof term.key !== 'string' || term.key.length === 0) {
             throw new Error('Task requires a valid term object with a non-empty key.');
         }
@@ -20,12 +17,13 @@ class Task {
         this.state = {
             priority: 0,
             truthValue: {
-                frequency: truthValue.frequency,
-                confidence: truthValue.confidence,
+                frequency: 1.0,
+                confidence: 0.9,
+                ...truthValue
             },
             stamp: {
-                creationTime: stamp.creationTime,
-                occurrenceTime: stamp.occurrenceTime,
+                creationTime: Date.now(),
+                ...stamp
             },
         };
     }
