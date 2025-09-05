@@ -5,7 +5,7 @@
  * Initializes and runs the complete cognitive system.
  */
 
-const System = require('./src/system/System');
+const System = require('../src/system/System');
 
 async function main() {
     console.log("=== SeNARS Cognitive System ===\n");

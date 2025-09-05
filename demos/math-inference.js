@@ -1,6 +1,5 @@
 const System = require('../src/system/System');
-const Task = require('../src/core/Task');
-const {parseTerm} = require('../src/parser/NewParser');
+const { createTask } = require('./demo-utils');
 
 /**
  * Math Inference Demo
@@ -11,16 +10,6 @@ async function mathInferenceDemo() {
 
     const system = new System();
     await system.initialize();
-
-    // Helper function to create a task with error handling
-    function createTask(termKey, punctuation, truthValue) {
-        const parsedTerm = parseTerm(termKey);
-        if (!parsedTerm) {
-            console.warn(`Failed to parse term: ${termKey}`);
-            return null;
-        }
-        return new Task(parsedTerm, punctuation, truthValue);
-    }
 
     // Add initial mathematical knowledge
     const taskDefs = [

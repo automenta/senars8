@@ -146,16 +146,20 @@ npm install
 ### **Running Demos**
 
 ```bash
-# Run all demos
+# Run all demos, which are discovered dynamically
 node index.js
 
 # Run a specific demo
 node demos/math-inference.js
 node demos/planning-demo.js
 node demos/comprehensive-system-demo.js
+node demos/system-runner-demo.js
+```
 
-# Run the main system
-node system.js
+### **Running Tests**
+
+```bash
+npm test
 ```
 
 ### **Project Structure**
@@ -171,8 +175,8 @@ senars8/
 │   ├── system/        # System components (Cycle, Constitution, etc.)
 │   └── utils/         # Utility functions
 ├── demos/             # Demonstration scripts
+├── tests/             # Test suite
 ├── index.js           # Demo runner
-├── system.js          # Main system entry point
 ├── package.json       # Project dependencies
 └── README.md          # This file
 ```

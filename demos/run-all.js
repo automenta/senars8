@@ -1,27 +1,16 @@
+const fs = require('fs');
 const path = require('path');
 
 async function runAllDemos() {
-    const demos = [
-        'math-inference.js',
-        'planning-demo.js',
-        'comprehensive-system-demo.js',
-        'nlp-integration-demo.js',
-        'contradiction-resolution-demo.js',
-        'enhanced-temporal-reasoning-demo.js',
-        'advanced-lm-demo.js',
-        'enhanced-contradiction-resolution-demo.js',
-        'extended-action-execution-demo.js',
-        'enhanced-perception-demo.js',
-        'extended-inference-rules-demo.js',
-        'advanced-truth-value-revision-demo.js',
-        'enhanced-narsese-demo.js',
-        'debug-contradictions.js'
-    ];
+    const demoDir = __dirname;
+    const files = fs.readdirSync(demoDir);
 
-    for (const demoName of demos) {
+    const demoFiles = files.filter(file => file.endsWith('-demo.js') && file !== 'run-all.js');
+
+    for (const demoName of demoFiles) {
         try {
             console.log(`\n=== Running ${demoName} ===`);
-            const demo = require(path.join(__dirname, demoName));
+            const demo = require(path.join(demoDir, demoName));
             await demo();
         } catch (error) {
             console.error(`Error running ${demoName}:`, error.message);

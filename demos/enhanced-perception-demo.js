@@ -1,6 +1,5 @@
 const System = require('../src/system/System');
-const Task = require('../src/core/Task');
-const {parseTerm} = require('../src/parser/NewParser');
+const { createTask } = require('./demo-utils');
 const PerceptionEnhanced = require('../src/system/PerceptionEnhanced');
 
 /**
@@ -15,16 +14,6 @@ async function enhancedPerceptionDemo() {
 
     // Initialize enhanced perception for direct testing
     const perception = new PerceptionEnhanced(system.memory, system.lm);
-
-    // Helper function to create a task
-    function createTask(termKey, punctuation, truthValue) {
-        const parsedTerm = parseTerm(termKey);
-        if (!parsedTerm) {
-            console.warn(`Failed to parse term: ${termKey}`);
-            return null;
-        }
-        return new Task(parsedTerm, punctuation, truthValue);
-    }
 
     // Register custom sensory modalities
     perception.registerSensoryModality('visual', async (input) => {

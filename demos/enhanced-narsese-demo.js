@@ -1,6 +1,5 @@
 const System = require('../src/system/System');
-const Task = require('../src/core/Task');
-const {parseTerm} = require('../src/parser/NewParser');
+const { createTask } = require('./demo-utils');
 
 /**
  * Enhanced Narsese Constructs Demo
@@ -11,16 +10,6 @@ async function enhancedNarseseDemo() {
 
     const system = new System();
     await system.initialize();
-
-    // Helper function to create a task
-    function createTask(termKey, punctuation, truthValue) {
-        const parsedTerm = parseTerm(termKey);
-        if (!parsedTerm) {
-            console.warn(`Failed to parse term: ${termKey}`);
-            return null;
-        }
-        return new Task(parsedTerm, punctuation, truthValue);
-    }
 
     // Add knowledge with enhanced Narsese constructs
     const taskDefs = [

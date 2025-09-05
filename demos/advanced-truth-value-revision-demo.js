@@ -1,6 +1,5 @@
 const System = require('../src/system/System');
-const Task = require('../src/core/Task');
-const {parseTerm} = require('../src/parser/NewParser');
+const { createTask } = require('./demo-utils');
 const TruthValueManager = require('../src/reasoner/TruthValueManager');
 const MetaCognition = require('../src/system/MetaCognition');
 
@@ -17,16 +16,6 @@ async function advancedTruthValueRevisionDemo() {
     // Initialize TruthValueManager and MetaCognition for direct testing
     const truthValueManager = new TruthValueManager();
     const metaCognition = new MetaCognition();
-
-    // Helper function to create a task
-    function createTask(termKey, punctuation, truthValue, stamp = {creationTime: Date.now()}) {
-        const parsedTerm = parseTerm(termKey);
-        if (!parsedTerm) {
-            console.warn(`Failed to parse term: ${termKey}`);
-            return null;
-        }
-        return new Task(parsedTerm, punctuation, truthValue, stamp);
-    }
 
     // Add knowledge with varying truth values
     const taskDefs = [

@@ -1,6 +1,5 @@
 const System = require('../src/system/System');
-const Task = require('../src/core/Task');
-const {parseTerm} = require('../src/parser/NewParser');
+const { createTask } = require('./demo-utils');
 const LM = require('../src/lm/LM');
 
 /**
@@ -15,16 +14,6 @@ async function advancedLMDemo() {
 
     // Initialize LM for direct testing
     const lm = new LM();
-
-    // Helper function to create a task
-    function createTask(termKey, punctuation, truthValue) {
-        const parsedTerm = parseTerm(termKey);
-        if (!parsedTerm) {
-            console.warn(`Failed to parse term: ${termKey}`);
-            return null;
-        }
-        return new Task(parsedTerm, punctuation, truthValue);
-    }
 
     // Add initial knowledge about AI systems
     const taskDefs = [
