@@ -5,7 +5,7 @@ const {cosineSimilarity} = require('../utils/math');
 const {calculateTemporalPriority} = require('../utils/temporal-reasoning');
 const actionExecutor = require('./ActionExecutor');
 const CONSTITUTION_TASKS = require('./Constitution');
-const Perception = require('./Perception');
+const PerceptionEnhanced = require('./PerceptionEnhanced');
 const MetaCognition = require('./MetaCognition');
 const TemporalReasoner = require('../reasoner/TemporalReasoner');
 
@@ -28,7 +28,7 @@ class Cycle {
         this.memory = memory;
         this.reasoner = reasoner;
         this.lm = lm;
-        this.perception = new Perception(memory, lm);
+        this.perception = new PerceptionEnhanced(memory, lm);
         this.metaCognition = new MetaCognition();
         this.temporalReasoner = new TemporalReasoner();
         this.driveEmbeddings = [];
@@ -81,12 +81,27 @@ class Cycle {
 
         const symbolicDerivedTasks = this.reasoner.performInference(focusSet, this.memory.terms);
         const temporalDerivedTasks = this.temporalReasoner.infer(focusSet);
-        const lmHypotheses = await this.lm.generateHypotheses(focusSet);
+        
+        // Generate multiple types of hypotheses
+        const basicHypotheses = await this.lm.generateHypotheses(focusSet);
+        const creativeHypotheses = await this.lm.generateCreativeHypotheses(focusSet, 3);
+        const sophisticatedHypotheses = await this.lm.generateSophisticatedHypotheses(focusSet);
+        const comprehensiveHypotheses = await this.lm.generateComprehensiveHypotheses(focusSet);
+        
+        // Combine and rank all hypotheses
+        const allHypotheses = [
+            ...basicHypotheses,
+            ...creativeHypotheses,
+            ...sophisticatedHypotheses,
+            ...comprehensiveHypotheses
+        ];
+        
+        const rankedHypotheses = await this.lm.evaluateAndRankHypotheses(focusSet, allHypotheses);
 
         const derivedTasks = [
             ...symbolicDerivedTasks,
             ...temporalDerivedTasks,
-            ...lmHypotheses
+            ...rankedHypotheses
         ];
 
         this.memory.addTasks(derivedTasks);
@@ -106,14 +121,8 @@ class Cycle {
         let allMetaTasks = [];
         if (contradictions.length > 0) {
             for (const contradiction of contradictions) {
-                let strategy;
-                if (contradiction.severity > 0.8) {
-                    strategy = 'revision';
-                } else if (contradiction.severity > 0.5) {
-                    strategy = 'evidence_gathering';
-                } else {
-                    strategy = 'monitoring';
-                }
+                // Use the auto strategy selection for better contradiction resolution
+                const strategy = 'auto';
 
                 const newMetaTasks = this.metaCognition.resolve(contradiction, strategy);
                 if (newMetaTasks.length > 0) {

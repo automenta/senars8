@@ -25,6 +25,15 @@ const lexer = moo.compile({
     retrospection: '=/>',
     prediction: '=\\>',
     concurrent: '=<>',
+
+    // Temporal operators
+    always: 'always',
+    eventually: 'eventually',
+    until: 'until',
+    since: 'since',
+    next: 'next',
+    previous: 'previous',
+
     setExtension: '{',
     setIntension: '[',
     rbrace: '}',

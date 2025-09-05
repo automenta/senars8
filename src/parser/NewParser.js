@@ -134,6 +134,30 @@ class NewParser {
                 const terms = this.parseTermList();
                 this.consume('rparen');
                 return {type: 'IntensionalDifference', terms};
+            } else if (this.match('always')) {
+                this.consume('always');
+                this.consume('comma');
+                const term = this.parseTerm();
+                this.consume('rparen');
+                return {type: 'Always', term};
+            } else if (this.match('eventually')) {
+                this.consume('eventually');
+                this.consume('comma');
+                const term = this.parseTerm();
+                this.consume('rparen');
+                return {type: 'Eventually', term};
+            } else if (this.match('next')) {
+                this.consume('next');
+                this.consume('comma');
+                const term = this.parseTerm();
+                this.consume('rparen');
+                return {type: 'Next', term};
+            } else if (this.match('previous')) {
+                this.consume('previous');
+                this.consume('comma');
+                const term = this.parseTerm();
+                this.consume('rparen');
+                return {type: 'Previous', term};
             } else {
                 const firstTerm = this.parseTerm();
 
@@ -182,6 +206,16 @@ class NewParser {
                     const predicate = this.parseTerm();
                     this.consume('rparen');
                     return {type: 'ConcurrentImplication', subject: firstTerm, predicate};
+                } else if (this.match('until')) {
+                    this.consume('until');
+                    const predicate = this.parseTerm();
+                    this.consume('rparen');
+                    return {type: 'Until', subject: firstTerm, predicate};
+                } else if (this.match('since')) {
+                    this.consume('since');
+                    const predicate = this.parseTerm();
+                    this.consume('rparen');
+                    return {type: 'Since', subject: firstTerm, predicate};
                 } else {
                     this.consume('rparen');
                     return firstTerm;
