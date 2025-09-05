@@ -8,7 +8,7 @@ class MetaCognition {
     constructor() {
         this.truthValueManager = new TruthValueManager();
     }
-    
+
     findContradictions(tasks) {
         const contradictions = [];
         const beliefTasks = tasks.filter(task => task.punctuation === '.');
@@ -118,35 +118,35 @@ class MetaCognition {
     findTransitiveInheritanceContradictions(tasks) {
         const contradictions = [];
         const inheritanceTasks = tasks.filter(task => task.punctuation === '.' && task.term.type === 'Inheritance');
-        
+
         // Create maps for easier lookup
         const subjectToPredicates = new Map(); // subject -> [predicates]
-        
+
         // Populate the maps
         for (const task of inheritanceTasks) {
             const subject = task.term.subject.key;
             const predicate = task.term.predicate;
-            
+
             if (!subjectToPredicates.has(subject)) {
                 subjectToPredicates.set(subject, []);
             }
-            
+
             // Handle both atomic predicates and negated predicates
             const predicateKey = predicate.type === 'Negation' ? predicate.term.key : predicate.key;
-            subjectToPredicates.get(subject).push({ 
-                predicate: predicateKey, 
-                task, 
-                isNegative: predicate.type === 'Negation' 
+            subjectToPredicates.get(subject).push({
+                predicate: predicateKey,
+                task,
+                isNegative: predicate.type === 'Negation'
             });
         }
-        
+
         // Look for direct contradictions (same subject, contradictory predicates)
         for (const [subject, predicates] of subjectToPredicates.entries()) {
             for (let i = 0; i < predicates.length; i++) {
                 for (let j = i + 1; j < predicates.length; j++) {
                     const pred1 = predicates[i];
                     const pred2 = predicates[j];
-                    
+
                     // Check for direct contradiction
                     if (pred1.predicate === pred2.predicate && pred1.isNegative !== pred2.isNegative) {
                         contradictions.push({
@@ -159,7 +159,7 @@ class MetaCognition {
                 }
             }
         }
-        
+
         // Look for transitive contradictions (A->B, B->C, A->(--,C))
         for (const [subject1, predicates1] of subjectToPredicates.entries()) {
             for (const pred1 of predicates1) {
@@ -176,17 +176,17 @@ class MetaCognition {
                             for (const directPred of subject1Predicates) {
                                 if (directPred.isNegative && directPred.predicate === pred2.predicate) {
                                     const confidence = Math.min(
-                                pred1.task.state.truthValue.confidence,
-                                pred2.task.state.truthValue.confidence,
-                                directPred.task.state.truthValue.confidence
-                            );
-                            contradictions.push({
-                                type: 'transitive_inheritance_conflict',
-                                tasks: [pred1.task, pred2.task, directPred.task],
-                                confidence: confidence,
-                                details: `Transitive contradiction: "${subject1}" -> "${intermediate}" -> "${pred2.predicate}" vs direct "${subject1}" -> "(--, ${directPred.predicate})"`,
-                                severity: this.calculateContradictionSeverity({type: 'transitive_inheritance_conflict'}, pred1.task, pred2.task)
-                            });
+                                        pred1.task.state.truthValue.confidence,
+                                        pred2.task.state.truthValue.confidence,
+                                        directPred.task.state.truthValue.confidence
+                                    );
+                                    contradictions.push({
+                                        type: 'transitive_inheritance_conflict',
+                                        tasks: [pred1.task, pred2.task, directPred.task],
+                                        confidence: confidence,
+                                        details: `Transitive contradiction: "${subject1}" -> "${intermediate}" -> "${pred2.predicate}" vs direct "${subject1}" -> "(--, ${directPred.predicate})"`,
+                                        severity: this.calculateContradictionSeverity({type: 'transitive_inheritance_conflict'}, pred1.task, pred2.task)
+                                    });
                                 }
                             }
                         }
@@ -194,7 +194,7 @@ class MetaCognition {
                 }
             }
         }
-        
+
         return contradictions;
     }
 
@@ -651,7 +651,7 @@ class MetaCognition {
         if (strategy === 'auto') {
             strategy = this._selectOptimalResolutionStrategy(contradiction);
         }
-        
+
         switch (strategy) {
             case 'revision':
                 return this._executeRevision(contradiction);
@@ -687,36 +687,36 @@ class MetaCognition {
         if (contradiction.severity > 0.8) {
             return 'revision';
         }
-        
+
         // Medium-high severity contradictions might benefit from reconciliation
         if (contradiction.severity > 0.6) {
             return 'reconciliation';
         }
-        
+
         // Contradictions with temporal information should be analyzed temporally
-        const hasTemporalInfo = contradiction.tasks.some(task => 
+        const hasTemporalInfo = contradiction.tasks.some(task =>
             task.state.stamp && task.state.stamp.occurrenceTime);
         if (hasTemporalInfo) {
             return 'temporal_analysis';
         }
-        
+
         // Contradictions with causal relationships should be analyzed causally
         if (contradiction.type === 'inheritance_conflict' || contradiction.type === 'implication_conflict') {
             return 'causal_analysis';
         }
-        
+
         // High confidence contradictions with significant frequency differences 
         // should use truth value revision
-        const highConfidence = contradiction.tasks.every(task => 
+        const highConfidence = contradiction.tasks.every(task =>
             task.state.truthValue.confidence > 0.8);
-        const frequencyDifference = contradiction.tasks.length > 1 ? 
-            Math.abs(contradiction.tasks[0].state.truthValue.frequency - 
-                    contradiction.tasks[1].state.truthValue.frequency) : 0;
-            
+        const frequencyDifference = contradiction.tasks.length > 1 ?
+            Math.abs(contradiction.tasks[0].state.truthValue.frequency -
+                contradiction.tasks[1].state.truthValue.frequency) : 0;
+
         if (highConfidence && frequencyDifference > 0.6) {
             return 'truth_value_revision';
         }
-        
+
         // Contradictions with moderate severity and contextual potential
         if (contradiction.severity > 0.4) {
             // For hierarchical contradictions, use hierarchical reconciliation
@@ -725,12 +725,12 @@ class MetaCognition {
             }
             return 'contextual_reconciliation';
         }
-        
+
         // Low severity contradictions can be monitored
         if (contradiction.severity > 0.2) {
             return 'monitoring';
         }
-        
+
         // Very low severity contradictions should gather evidence
         return 'evidence_gathering';
     }
@@ -822,7 +822,7 @@ class MetaCognition {
 
     _executeExternalValidation(contradiction) {
         const newTasks = [];
-        
+
         // Create tasks to seek external validation for each contradictory belief
         for (const task of contradiction.tasks) {
             // Create a goal to seek external validation
@@ -835,13 +835,13 @@ class MetaCognition {
             );
             newTasks.push(validationGoal);
         }
-        
+
         // Create a meta-task to synthesize findings after validation
         const synthesisTask = this._createMetaTask('synthesize_validation_results', 'contradiction_resolution', contradiction.confidence);
         if (synthesisTask) {
             newTasks.push(synthesisTask);
         }
-        
+
         return newTasks;
     }
 
@@ -852,15 +852,15 @@ class MetaCognition {
      */
     _executeTemporalAnalysis(contradiction) {
         const newTasks = [];
-        
+
         // Check if tasks have temporal information
         const temporalTasks = contradiction.tasks.filter(task => task.state.stamp && task.state.stamp.occurrenceTime);
-        
+
         if (temporalTasks.length > 0) {
             // Create a task to analyze temporal patterns
             const temporalAnalysisTermKey = `(&, temporal_analysis, ${contradiction.tasks[0].termKey}, ${contradiction.tasks[1].termKey})`;
             const parsedTerm = parseTerm(temporalAnalysisTermKey);
-            
+
             if (parsedTerm) {
                 const temporalAnalysisTask = new Task(
                     parsedTerm,
@@ -871,12 +871,12 @@ class MetaCognition {
                 );
                 newTasks.push(temporalAnalysisTask);
             }
-            
+
             // Create tasks to investigate temporal context for each belief
             for (const task of contradiction.tasks) {
                 const contextInvestigationTermKey = `(&, investigate_temporal_context, ${task.termKey})`;
                 const parsedContextTerm = parseTerm(contextInvestigationTermKey);
-                
+
                 if (parsedContextTerm) {
                     const contextTask = new Task(
                         parsedContextTerm,
@@ -892,7 +892,7 @@ class MetaCognition {
             // If no temporal information, fall back to evidence gathering
             return this._executeEvidenceGathering(contradiction);
         }
-        
+
         return newTasks;
     }
 
@@ -903,15 +903,15 @@ class MetaCognition {
      */
     _executeContextualReconciliation(contradiction) {
         const newTasks = [];
-        
+
         // Create a contextual reconciliation task
         const contextReconciliationTermKey = `(&, contextual_reconciliation, ${contradiction.tasks[0].termKey}, ${contradiction.tasks[1].termKey})`;
         const parsedTerm = parseTerm(contextReconciliationTermKey);
-        
+
         if (parsedTerm) {
             // Calculate contextual confidence based on contradiction severity
             const contextualConfidence = Math.max(0.3, contradiction.severity * 0.7);
-            
+
             const reconciliationTask = new Task(
                 parsedTerm,
                 '!', {
@@ -921,12 +921,12 @@ class MetaCognition {
             );
             newTasks.push(reconciliationTask);
         }
-        
+
         // Create tasks to identify contextual factors
         for (const task of contradiction.tasks) {
             const contextIdentificationTermKey = `(&, identify_context, ${task.termKey})`;
             const parsedContextTerm = parseTerm(contextIdentificationTermKey);
-            
+
             if (parsedContextTerm) {
                 const contextTask = new Task(
                     parsedContextTerm,
@@ -938,7 +938,7 @@ class MetaCognition {
                 newTasks.push(contextTask);
             }
         }
-        
+
         return newTasks;
     }
 
@@ -949,19 +949,19 @@ class MetaCognition {
      */
     _executeTruthValueRevision(contradiction) {
         const newTasks = [];
-        
+
         // Use the TruthValueManager to resolve the contradiction
         if (contradiction.tasks.length >= 2) {
             const task1 = contradiction.tasks[0];
             const task2 = contradiction.tasks[1];
-            
+
             // Resolve the conflict using the TruthValueManager
             const resolvedTruthValue = this.truthValueManager.resolveConflict(task1, task2);
-            
+
             // Create a meta-task to record the resolution
             const resolutionTermKey = `(&, resolved_conflict, ${task1.termKey}, ${task2.termKey})`;
             const parsedTerm = parseTerm(resolutionTermKey);
-            
+
             if (parsedTerm) {
                 const resolutionTask = new Task(
                     parsedTerm,
@@ -973,7 +973,7 @@ class MetaCognition {
                 );
                 newTasks.push(resolutionTask);
             }
-            
+
             // Create tasks to gather more evidence about the resolved belief
             for (const task of contradiction.tasks) {
                 const evidenceTask = new Task(
@@ -987,7 +987,7 @@ class MetaCognition {
                 newTasks.push(evidenceTask);
             }
         }
-        
+
         return newTasks;
     }
 
@@ -998,12 +998,12 @@ class MetaCognition {
      */
     _executeCausalAnalysis(contradiction) {
         const newTasks = [];
-        
+
         // Create tasks to investigate the causal relationships
         for (const task of contradiction.tasks) {
             const causalAnalysisTermKey = `(&, causal_analysis, ${task.termKey})`;
             const parsedTerm = parseTerm(causalAnalysisTermKey);
-            
+
             if (parsedTerm) {
                 const analysisTask = new Task(
                     parsedTerm,
@@ -1016,11 +1016,11 @@ class MetaCognition {
                 newTasks.push(analysisTask);
             }
         }
-        
+
         // Create a meta-task to synthesize causal findings
         const synthesisTermKey = `(&, synthesize_causal_findings, ${contradiction.tasks.map(t => t.termKey).join(', ')})`;
         const parsedSynthesisTerm = parseTerm(synthesisTermKey);
-        
+
         if (parsedSynthesisTerm) {
             const synthesisTask = new Task(
                 parsedSynthesisTerm,
@@ -1032,7 +1032,7 @@ class MetaCognition {
             );
             newTasks.push(synthesisTask);
         }
-        
+
         return newTasks;
     }
 
@@ -1043,15 +1043,15 @@ class MetaCognition {
      */
     _executeHierarchicalReconciliation(contradiction) {
         const newTasks = [];
-        
+
         // For hierarchical contradictions, we want to preserve the more specific knowledge
         // and revise the more general knowledge
-        
+
         // Create tasks to investigate the hierarchy
         for (const task of contradiction.tasks) {
             const hierarchyInvestigationTermKey = `(&, investigate_hierarchy, ${task.termKey})`;
             const parsedTerm = parseTerm(hierarchyInvestigationTermKey);
-            
+
             if (parsedTerm) {
                 const investigationTask = new Task(
                     parsedTerm,
@@ -1064,11 +1064,11 @@ class MetaCognition {
                 newTasks.push(investigationTask);
             }
         }
-        
+
         // Create a meta-task to perform hierarchical reconciliation
         const reconciliationTermKey = `(&, hierarchical_reconciliation, ${contradiction.tasks.map(t => t.termKey).join(', ')})`;
         const parsedReconciliationTerm = parseTerm(reconciliationTermKey);
-        
+
         if (parsedReconciliationTerm) {
             const reconciliationTask = new Task(
                 parsedReconciliationTerm,
@@ -1080,7 +1080,7 @@ class MetaCognition {
             );
             newTasks.push(reconciliationTask);
         }
-        
+
         return newTasks;
     }
 

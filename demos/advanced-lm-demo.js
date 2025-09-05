@@ -1,6 +1,6 @@
 const System = require('../src/system/System');
 const Task = require('../src/core/Task');
-const { parseTerm } = require('../src/parser/NewParser');
+const {parseTerm} = require('../src/parser/NewParser');
 const LM = require('../src/lm/LM');
 
 /**
@@ -12,7 +12,7 @@ async function advancedLMDemo() {
 
     const system = new System();
     await system.initialize();
-    
+
     // Initialize LM for direct testing
     const lm = new LM();
 
@@ -28,18 +28,34 @@ async function advancedLMDemo() {
 
     // Add initial knowledge about AI systems
     const taskDefs = [
-        { termKey: '(AI --> intelligent_system)', punctuation: '.', truthValue: { frequency: 0.95, confidence: 0.9 } },
-        { termKey: '(neural_network --> machine_learning_model)', punctuation: '.', truthValue: { frequency: 0.9, confidence: 0.85 } },
-        { termKey: '(symbolic_reasoning --> logical_inference)', punctuation: '.', truthValue: { frequency: 0.85, confidence: 0.8 } },
-        { termKey: '(AI --> (&, neural_network, symbolic_reasoning))', punctuation: '.', truthValue: { frequency: 0.8, confidence: 0.75 } },
-        { termKey: '(cognitive_architecture --> AI)', punctuation: '.', truthValue: { frequency: 0.75, confidence: 0.7 } },
-        { termKey: '(SeNARS --> cognitive_architecture)', punctuation: '.', truthValue: { frequency: 1.0, confidence: 0.95 } },
-        { termKey: '(explain_seNARS)', punctuation: '!', truthValue: { frequency: 1.0, confidence: 0.9 } }
+        {termKey: '(AI --> intelligent_system)', punctuation: '.', truthValue: {frequency: 0.95, confidence: 0.9}},
+        {
+            termKey: '(neural_network --> machine_learning_model)',
+            punctuation: '.',
+            truthValue: {frequency: 0.9, confidence: 0.85}
+        },
+        {
+            termKey: '(symbolic_reasoning --> logical_inference)',
+            punctuation: '.',
+            truthValue: {frequency: 0.85, confidence: 0.8}
+        },
+        {
+            termKey: '(AI --> (&, neural_network, symbolic_reasoning))',
+            punctuation: '.',
+            truthValue: {frequency: 0.8, confidence: 0.75}
+        },
+        {termKey: '(cognitive_architecture --> AI)', punctuation: '.', truthValue: {frequency: 0.75, confidence: 0.7}},
+        {
+            termKey: '(SeNARS --> cognitive_architecture)',
+            punctuation: '.',
+            truthValue: {frequency: 1.0, confidence: 0.95}
+        },
+        {termKey: '(explain_seNARS)', punctuation: '!', truthValue: {frequency: 1.0, confidence: 0.9}}
     ];
 
     // Create tasks and filter out any that failed to parse
     const tasks = taskDefs.map(def => createTask(def.termKey, def.punctuation, def.truthValue)).filter(Boolean);
-    
+
     if (tasks.length === 0) {
         console.log("No valid tasks could be created. Exiting demo.");
         return;
@@ -48,19 +64,19 @@ async function advancedLMDemo() {
     await system.addTasks(tasks);
 
     console.log("Running 3 cognitive cycles to demonstrate advanced LM capabilities...\n");
-    
+
     for (let i = 0; i < 3; i++) {
         const result = await system.runCycle();
-        console.log(`Cycle ${i+1}:`);
+        console.log(`Cycle ${i + 1}:`);
         console.log(`  - Derived Tasks: ${result.derivedTasks}`);
         console.log(`  - Contradictions: ${result.contradictions}`);
         console.log(`  - Meta Tasks: ${result.metaTasks}`);
         console.log();
     }
-    
+
     // Direct LM testing
     console.log("\n=== Direct LM Testing ===");
-    
+
     // Test comprehensive explanation
     console.log("\n1. Comprehensive explanation of 'SeNARS':");
     try {
@@ -72,7 +88,7 @@ async function advancedLMDemo() {
     } catch (error) {
         console.log("  Error:", error.message);
     }
-    
+
     // Test visual analogies
     console.log("\n2. Explanation with visual analogies:");
     try {
@@ -87,7 +103,7 @@ async function advancedLMDemo() {
     } catch (error) {
         console.log("  Error:", error.message);
     }
-    
+
     // Test interactive explanation
     console.log("\n3. Interactive explanation:");
     try {
@@ -103,7 +119,7 @@ async function advancedLMDemo() {
     } catch (error) {
         console.log("  Error:", error.message);
     }
-    
+
     // Test comparative explanation
     console.log("\n4. Comparative explanation:");
     try {
@@ -112,7 +128,7 @@ async function advancedLMDemo() {
     } catch (error) {
         console.log("  Error:", error.message);
     }
-    
+
     // Test comprehensive hypothesis generation
     console.log("\n5. Comprehensive hypothesis generation:");
     try {

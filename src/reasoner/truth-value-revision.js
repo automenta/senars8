@@ -13,10 +13,10 @@
 function bayesianRevision(oldTruthValue, newEvidence, weight = 0.5) {
     // Bayesian update: Posterior ∝ Prior × Likelihood
     // For simplicity, we use a weighted average approach
-    
+
     const revisedFrequency = (1 - weight) * oldTruthValue.frequency + weight * newEvidence.frequency;
     const revisedConfidence = Math.min(1.0, oldTruthValue.confidence + newEvidence.confidence * weight);
-    
+
     return {
         frequency: revisedFrequency,
         confidence: revisedConfidence
@@ -33,21 +33,21 @@ function consensusRevision(currentTruthValue, evidenceSources) {
     if (!evidenceSources || evidenceSources.length === 0) {
         return currentTruthValue;
     }
-    
+
     // Calculate weighted average based on source confidence
     let totalWeightedFrequency = currentTruthValue.frequency * currentTruthValue.confidence;
     let totalWeight = currentTruthValue.confidence;
     let maxConfidence = currentTruthValue.confidence;
-    
+
     for (const evidence of evidenceSources) {
         totalWeightedFrequency += evidence.frequency * evidence.confidence;
         totalWeight += evidence.confidence;
         maxConfidence = Math.max(maxConfidence, evidence.confidence);
     }
-    
+
     const revisedFrequency = totalWeightedFrequency / totalWeight;
     const revisedConfidence = Math.min(1.0, maxConfidence);
-    
+
     return {
         frequency: revisedFrequency,
         confidence: revisedConfidence
@@ -65,7 +65,7 @@ function consensusRevision(currentTruthValue, evidenceSources) {
 function temporalDecayRevision(truthValue, currentTime, creationTime, decayRate = 0.0001) {
     const age = currentTime - creationTime;
     const decayFactor = Math.exp(-decayRate * age);
-    
+
     return {
         frequency: truthValue.frequency,
         confidence: truthValue.confidence * decayFactor
@@ -81,19 +81,19 @@ function temporalDecayRevision(truthValue, currentTime, creationTime, decayRate 
 function conflictResolutionRevision(truthValue1, truthValue2) {
     // Simple conflict resolution: weighted average based on confidence
     const totalConfidence = truthValue1.confidence + truthValue2.confidence;
-    
+
     if (totalConfidence === 0) {
-        return { frequency: 0.5, confidence: 0.0 };
+        return {frequency: 0.5, confidence: 0.0};
     }
-    
+
     const weight1 = truthValue1.confidence / totalConfidence;
     const weight2 = truthValue2.confidence / totalConfidence;
-    
+
     // For conflicting frequencies, we take a weighted average but reduce overall confidence
     const revisedFrequency = weight1 * truthValue1.frequency + weight2 * truthValue2.frequency;
     const confidenceReduction = Math.abs(truthValue1.frequency - truthValue2.frequency);
     const revisedConfidence = Math.max(0.1, (weight1 * truthValue1.confidence + weight2 * truthValue2.confidence) * (1 - confidenceReduction));
-    
+
     return {
         frequency: revisedFrequency,
         confidence: revisedConfidence
@@ -111,11 +111,11 @@ function reinforcementRevision(truthValue, reward, learningRate = 0.1) {
     // Adjust frequency based on reward
     const delta = reward * learningRate;
     const revisedFrequency = Math.max(0.0, Math.min(1.0, truthValue.frequency + delta));
-    
+
     // Adjust confidence based on consistency of rewards
     const confidenceAdjustment = Math.abs(reward) * learningRate;
     const revisedConfidence = Math.min(1.0, truthValue.confidence + confidenceAdjustment);
-    
+
     return {
         frequency: revisedFrequency,
         confidence: revisedConfidence
@@ -130,17 +130,17 @@ function reinforcementRevision(truthValue, reward, learningRate = 0.1) {
  */
 function entropyBasedRevision(truthValue, newInformation) {
     // Calculate entropy of current truth value
-    const currentEntropy = - (truthValue.frequency * Math.log2(truthValue.frequency || 0.0001) + 
-                            (1 - truthValue.frequency) * Math.log2((1 - truthValue.frequency) || 0.0001));
-    
+    const currentEntropy = -(truthValue.frequency * Math.log2(truthValue.frequency || 0.0001) +
+        (1 - truthValue.frequency) * Math.log2((1 - truthValue.frequency) || 0.0001));
+
     // Adjust confidence based on entropy and new information
     const informationGain = Math.abs(newInformation) * 0.1;
     const entropyReduction = informationGain / (1 + currentEntropy);
-    
+
     const revisedConfidence = Math.min(1.0, truthValue.confidence + entropyReduction);
     // Keep frequency relatively stable but allow small adjustments
     const revisedFrequency = Math.max(0.0, Math.min(1.0, truthValue.frequency + (newInformation * 0.05)));
-    
+
     return {
         frequency: revisedFrequency,
         confidence: revisedConfidence
@@ -154,47 +154,47 @@ function entropyBasedRevision(truthValue, newInformation) {
  * @returns {object} Revised truth value.
  */
 function sophisticatedRevision(currentTruthValue, options = {}) {
-    let revisedTruthValue = { ...currentTruthValue };
-    
+    let revisedTruthValue = {...currentTruthValue};
+
     // Apply temporal decay if requested
     if (options.applyTemporalDecay && options.currentTime && options.creationTime) {
         revisedTruthValue = temporalDecayRevision(
-            revisedTruthValue, 
-            options.currentTime, 
-            options.creationTime, 
+            revisedTruthValue,
+            options.currentTime,
+            options.creationTime,
             options.decayRate
         );
     }
-    
+
     // Apply Bayesian revision if new evidence is provided
     if (options.newEvidence) {
         revisedTruthValue = bayesianRevision(
-            revisedTruthValue, 
-            options.newEvidence, 
+            revisedTruthValue,
+            options.newEvidence,
             options.evidenceWeight
         );
     }
-    
+
     // Apply consensus revision if multiple evidence sources are provided
     if (options.evidenceSources && options.evidenceSources.length > 0) {
         revisedTruthValue = consensusRevision(revisedTruthValue, options.evidenceSources);
     }
-    
+
     // Apply conflict resolution if contradictory evidence is provided
     if (options.contradictoryEvidence) {
         revisedTruthValue = conflictResolutionRevision(revisedTruthValue, options.contradictoryEvidence);
     }
-    
+
     // Apply reinforcement learning update if reward is provided
     if (typeof options.reward !== 'undefined') {
         revisedTruthValue = reinforcementRevision(revisedTruthValue, options.reward, options.learningRate);
     }
-    
+
     // Apply entropy-based revision if new information is provided
     if (typeof options.newInformation !== 'undefined') {
         revisedTruthValue = entropyBasedRevision(revisedTruthValue, options.newInformation);
     }
-    
+
     return revisedTruthValue;
 }
 

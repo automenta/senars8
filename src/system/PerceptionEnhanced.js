@@ -89,7 +89,7 @@ class PerceptionEnhanced extends Perception {
             const focusTask = new Task(
                 parseTerm(`(attention_focus_${this.attentionFocus})`),
                 '.',
-                { frequency: 1.0, confidence: 0.9 }
+                {frequency: 1.0, confidence: 0.9}
             );
             if (!this.memory.getTerm(focusTask.termKey)) {
                 const term = await this.lm.bootstrapTerm(focusTask.termKey);
@@ -104,7 +104,7 @@ class PerceptionEnhanced extends Perception {
             const contextTask = new Task(
                 parseTerm(`(context_${JSON.stringify(currentContext).replace(/"/g, '')})`),
                 '.',
-                { frequency: 0.8, confidence: 0.7 }
+                {frequency: 0.8, confidence: 0.7}
             );
             if (!this.memory.getTerm(contextTask.termKey)) {
                 const term = await this.lm.bootstrapTerm(contextTask.termKey);
@@ -142,7 +142,7 @@ class PerceptionEnhanced extends Perception {
             const patternTask = new Task(
                 parseTerm(`advanced_pattern_${pattern.type}_${pattern.id}`),
                 '.',
-                { frequency: pattern.confidence, confidence: 0.8 }
+                {frequency: pattern.confidence, confidence: 0.8}
             );
             if (!this.memory.getTerm(patternTask.termKey)) {
                 const term = await this.lm.bootstrapTerm(patternTask.termKey);
@@ -197,7 +197,7 @@ class PerceptionEnhanced extends Perception {
             const type = event.type || 'unknown';
             const timeBucket = Math.floor((event.timestamp || Date.now()) / 10000); // 10-second buckets
             const key = `${type}_${timeBucket}`;
-            
+
             if (!eventGroups[key]) {
                 eventGroups[key] = [];
             }
@@ -229,18 +229,18 @@ class PerceptionEnhanced extends Perception {
 
         // Simple Granger causality test approximation
         const eventTypes = [...new Set(eventStream.map(e => e.type || 'unknown'))];
-        
+
         for (let i = 0; i < eventTypes.length; i++) {
             for (let j = 0; j < eventTypes.length; j++) {
                 if (i !== j) {
                     const type1 = eventTypes[i];
                     const type2 = eventTypes[j];
-                    
+
                     // Count occurrences of type1 followed by type2 within a time window
                     let causalCount = 0;
                     const events1 = eventStream.filter(e => (e.type || 'unknown') === type1);
                     const events2 = eventStream.filter(e => (e.type || 'unknown') === type2);
-                    
+
                     for (const event1 of events1) {
                         for (const event2 of events2) {
                             const timeDiff = (event2.timestamp || Date.now()) - (event1.timestamp || Date.now());
@@ -249,7 +249,7 @@ class PerceptionEnhanced extends Perception {
                             }
                         }
                     }
-                    
+
                     // Calculate causal strength
                     if (causalCount > 2 && events1.length > 0) {
                         const causalStrength = causalCount / events1.length;
@@ -258,7 +258,7 @@ class PerceptionEnhanced extends Perception {
                                 type: 'causal_relationship',
                                 id: `${type1}_causes_${type2}`,
                                 confidence: causalStrength,
-                                relationship: { cause: type1, effect: type2 }
+                                relationship: {cause: type1, effect: type2}
                             });
                         }
                     }
@@ -319,9 +319,9 @@ class PerceptionEnhanced extends Perception {
                 const task = new Task(
                     parsed,
                     '.', // Default to belief
-                    { frequency: 0.9, confidence: 0.8 }
+                    {frequency: 0.9, confidence: 0.8}
                 );
-                
+
                 if (!this.memory.getTerm(task.termKey)) {
                     const term = await this.lm.bootstrapTerm(task.termKey);
                     this.memory.addTerm(term);
@@ -356,9 +356,9 @@ class PerceptionEnhanced extends Perception {
             const analogyTask = new Task(
                 parseTerm(`(analogy_${analogy.source}_${analogy.target})`),
                 '.',
-                { frequency: 0.7, confidence: 0.6 }
+                {frequency: 0.7, confidence: 0.6}
             );
-            
+
             if (!this.memory.getTerm(analogyTask.termKey)) {
                 const term = await this.lm.bootstrapTerm(analogyTask.termKey);
                 this.memory.addTerm(term);
@@ -370,9 +370,9 @@ class PerceptionEnhanced extends Perception {
                 const mappingTask = new Task(
                     parseTerm(`(analogy_mapping_${JSON.stringify(analogy.mapping).replace(/"/g, '')})`),
                     '.',
-                    { frequency: 0.8, confidence: 0.7 }
+                    {frequency: 0.8, confidence: 0.7}
                 );
-                
+
                 if (!this.memory.getTerm(mappingTask.termKey)) {
                     const term = await this.lm.bootstrapTerm(mappingTask.termKey);
                     this.memory.addTerm(term);
@@ -412,7 +412,7 @@ class PerceptionEnhanced extends Perception {
                     confidence: uncertainInput.confidence || 0.5
                 }
             );
-            
+
             if (!this.memory.getTerm(task.termKey)) {
                 const term = await this.lm.bootstrapTerm(task.termKey);
                 this.memory.addTerm(term);
@@ -430,7 +430,7 @@ class PerceptionEnhanced extends Perception {
                             confidence: alternative.confidence || 0.3
                         }
                     );
-                    
+
                     if (!this.memory.getTerm(altTask.termKey)) {
                         const term = await this.lm.bootstrapTerm(altTask.termKey);
                         this.memory.addTerm(term);

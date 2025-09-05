@@ -1,6 +1,6 @@
 const System = require('../src/system/System');
 const Task = require('../src/core/Task');
-const { parseTerm } = require('../src/parser/NewParser');
+const {parseTerm} = require('../src/parser/NewParser');
 
 /**
  * Math Inference Demo
@@ -25,20 +25,24 @@ async function mathInferenceDemo() {
     // Add initial mathematical knowledge
     const taskDefs = [
         // Axiom: All numbers are either even or odd
-        { termKey: '(number --> (||, even, odd))', punctuation: '.', truthValue: { frequency: 1.0, confidence: 0.9 } },
+        {termKey: '(number --> (||, even, odd))', punctuation: '.', truthValue: {frequency: 1.0, confidence: 0.9}},
         // Fact: 2 is a number
-        { termKey: '(2 --> number)', punctuation: '.', truthValue: { frequency: 1.0, confidence: 0.95 } },
+        {termKey: '(2 --> number)', punctuation: '.', truthValue: {frequency: 1.0, confidence: 0.95}},
         // Fact: 2 is even
-        { termKey: '(2 --> even)', punctuation: '.', truthValue: { frequency: 1.0, confidence: 0.95 } },
+        {termKey: '(2 --> even)', punctuation: '.', truthValue: {frequency: 1.0, confidence: 0.95}},
         // Rule: Even numbers are divisible by 2
-        { termKey: '((number --> even) ==> (number --> divisible_by_2))', punctuation: '.', truthValue: { frequency: 0.9, confidence: 0.9 } },
+        {
+            termKey: '((number --> even) ==> (number --> divisible_by_2))',
+            punctuation: '.',
+            truthValue: {frequency: 0.9, confidence: 0.9}
+        },
         // Goal: Understand properties of 2
-        { termKey: '(2 --> divisible_by_2)', punctuation: '?', truthValue: { frequency: 1.0, confidence: 0.8 } }
+        {termKey: '(2 --> divisible_by_2)', punctuation: '?', truthValue: {frequency: 1.0, confidence: 0.8}}
     ];
 
     // Create tasks and filter out any that failed to parse
     const tasks = taskDefs.map(def => createTask(def.termKey, def.punctuation, def.truthValue)).filter(Boolean);
-    
+
     if (tasks.length === 0) {
         console.log("No valid tasks could be created. Exiting demo.");
         return;
@@ -47,7 +51,7 @@ async function mathInferenceDemo() {
     await system.addTasks(tasks);
 
     console.log("Running 3 cognitive cycles to demonstrate inference...\n");
-    
+
     for (let i = 0; i < 3; i++) {
         await system.runCycle();
     }

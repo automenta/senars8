@@ -81,13 +81,13 @@ class Cycle {
 
         const symbolicDerivedTasks = this.reasoner.performInference(focusSet, this.memory.terms);
         const temporalDerivedTasks = this.temporalReasoner.infer(focusSet);
-        
+
         // Generate multiple types of hypotheses
         const basicHypotheses = await this.lm.generateHypotheses(focusSet);
         const creativeHypotheses = await this.lm.generateCreativeHypotheses(focusSet, 3);
         const sophisticatedHypotheses = await this.lm.generateSophisticatedHypotheses(focusSet);
         const comprehensiveHypotheses = await this.lm.generateComprehensiveHypotheses(focusSet);
-        
+
         // Combine and rank all hypotheses
         const allHypotheses = [
             ...basicHypotheses,
@@ -95,7 +95,7 @@ class Cycle {
             ...sophisticatedHypotheses,
             ...comprehensiveHypotheses
         ];
-        
+
         const rankedHypotheses = await this.lm.evaluateAndRankHypotheses(focusSet, allHypotheses);
 
         const derivedTasks = [

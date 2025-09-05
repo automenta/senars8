@@ -17,13 +17,13 @@ module.exports = createRule({
             subject: `(--,${buildTermKey(parsed1.predicate)})`,
             predicate: `(--,${buildTermKey(parsed1.subject)})`
         });
-        
+
         // Truth value remains the same for contraposition
         const newTruthValue = {
             frequency: task1.state.truthValue.frequency,
             confidence: task1.state.truthValue.confidence
         };
-        
+
         return {newTermKey, newTruthValue};
     },
 });

@@ -75,7 +75,6 @@ class LM {
         const generalizationResult = await generator(generalizationPrompt, {
             max_new_tokens: 50,
             temperature: 0.7,
-            max_length: 1024,
             do_sample: true,
             // Limit total sequence length to prevent overflow
             max_length: 1024
@@ -311,7 +310,7 @@ class LM {
 
         // Get embeddings for all tasks and hypotheses
         const extractor = await this.getFeaturePipeline();
-        
+
         // Get embeddings for existing tasks
         const taskEmbeddings = [];
         for (const task of tasks) {
@@ -380,7 +379,7 @@ class LM {
             const result = await generator(prompt, {
                 max_new_tokens: 60,
                 temperature: 0.8,
-            max_length: 1024, // Higher temperature for more creativity
+                max_length: 1024, // Higher temperature for more creativity
                 do_sample: true
             });
 
@@ -422,7 +421,7 @@ class LM {
 
         // Generate causal hypotheses
         const causalPrompt = `Based on these observations:\n${context}\n\nIdentify potential causal relationships between these phenomena. For each causal relationship, propose both a mechanism and testable predictions:\n\nCausal Hypotheses:`;
-        
+
         const result = await generator(causalPrompt, {
             max_new_tokens: 150,
             temperature: 0.7,
@@ -432,7 +431,7 @@ class LM {
 
         if (result && result[0] && result[0].generated_text) {
             const hypothesisText = result[0].generated_text.replace(causalPrompt, '').trim();
-            
+
             // Try to extract multiple hypotheses from the response
             const lines = hypothesisText.split('\n');
             for (const line of lines) {
@@ -470,7 +469,7 @@ class LM {
         }
 
         const generator = await this.getGenerationPipeline();
-        
+
         const targetContext = tasks.map(task => `${task.termKey}${task.punctuation}`).join('\n');
         const sourceContext = analogySourceTasks.map(task => `${task.termKey}${task.punctuation}`).join('\n');
 
@@ -484,7 +483,7 @@ And these observations in domain B:
 ${targetContext}
 
 What insights from domain A might explain phenomena in domain B? Propose an analogical hypothesis:`;
-        
+
         const result = await generator(analogyPrompt, {
             max_new_tokens: 100,
             temperature: 0.7,
@@ -534,7 +533,7 @@ ${context}
 What future events or states might logically follow from these patterns? Propose testable predictions:
 
 Predictions:`;
-        
+
         const result = await generator(predictivePrompt, {
             max_new_tokens: 150,
             temperature: 0.7,
@@ -544,7 +543,7 @@ Predictions:`;
 
         if (result && result[0] && result[0].generated_text) {
             const hypothesisText = result[0].generated_text.replace(predictivePrompt, '').trim();
-            
+
             // Try to extract multiple hypotheses from the response
             const lines = hypothesisText.split('\n');
             for (const line of lines) {
@@ -586,7 +585,7 @@ Predictions:`;
 
         // Generate meta-hypotheses about reasoning strategies
         const metaPrompt = `Based on these observations:\n${context}\n\nWhat general principles might guide effective reasoning about these phenomena? Propose meta-level hypotheses about reasoning strategies:`;
-        
+
         const result = await generator(metaPrompt, {
             max_new_tokens: 100,
             temperature: 0.7,
@@ -633,7 +632,7 @@ Predictions:`;
             const result = await generator(prompt, {
                 max_new_tokens: 100,
                 temperature: 0.5,
-            max_length: 1024,
+                max_length: 1024,
                 do_sample: true
             });
 
@@ -666,18 +665,18 @@ Predictions:`;
             const result = await generator(prompt, {
                 max_new_tokens: 200,
                 temperature: 0.5,
-            max_length: 1024,
+                max_length: 1024,
                 do_sample: true
             });
 
             if (result && result[0] && result[0].generated_text) {
                 const explanationText = result[0].generated_text.replace(prompt, '').trim();
-                
+
                 // Parse the structured explanation
                 const sections = {};
                 const lines = explanationText.split('\n');
                 let currentSection = '';
-                
+
                 for (const line of lines) {
                     if (line.startsWith('Definition:')) {
                         currentSection = 'definition';
@@ -698,7 +697,7 @@ Predictions:`;
                         sections[currentSection] += ' ' + line.trim();
                     }
                 }
-                
+
                 return {
                     term: termKey,
                     explanation: explanationText,
@@ -737,20 +736,20 @@ Predictions:`;
             const result = await generator(prompt, {
                 max_new_tokens: 250,
                 temperature: 0.6,
-            max_length: 1024,
+                max_length: 1024,
                 do_sample: true
             });
 
             if (result && result[0] && result[0].generated_text) {
                 const explanationText = result[0].generated_text.replace(prompt, '').trim();
-                
+
                 // Parse the explanation and analogies
                 const lines = explanationText.split('\n');
                 let inExplanation = false;
                 let inAnalogies = false;
                 let explanation = '';
                 const analogies = [];
-                
+
                 for (const line of lines) {
                     if (line.startsWith('Explanation:')) {
                         inExplanation = true;
@@ -767,7 +766,7 @@ Predictions:`;
                         }
                     }
                 }
-                
+
                 return {
                     term: termKey,
                     explanation: explanation.trim(),
@@ -807,13 +806,13 @@ Predictions:`;
             const result = await generator(prompt, {
                 max_new_tokens: 200,
                 temperature: 0.6,
-            max_length: 1024,
+                max_length: 1024,
                 do_sample: true
             });
 
             if (result && result[0] && result[0].generated_text) {
                 const explanationText = result[0].generated_text.replace(prompt, '').trim();
-                
+
                 return {
                     term: termKey,
                     relatedTerms: relatedTerms,
@@ -873,7 +872,7 @@ Predictions:`;
                 const result = await generator(perspective.prompt, {
                     max_new_tokens: 100,
                     temperature: 0.7,
-            max_length: 1024,
+                    max_length: 1024,
                     do_sample: true
                 });
 
@@ -894,7 +893,7 @@ Provide a synthesis that integrates all these viewpoints into a cohesive underst
             const synthesisResult = await generator(synthesisPrompt, {
                 max_new_tokens: 150,
                 temperature: 0.6,
-            max_length: 1024,
+                max_length: 1024,
                 do_sample: true
             });
 
@@ -958,13 +957,13 @@ Anticipated Questions:
             const result = await generator(prompt, {
                 max_new_tokens: 300,
                 temperature: 0.6,
-            max_length: 1024,
+                max_length: 1024,
                 do_sample: true
             });
 
             if (result && result[0] && result[0].generated_text) {
                 const explanationText = result[0].generated_text.replace(prompt, '').trim();
-                
+
                 // Parse the explanation and questions
                 const lines = explanationText.split('\n');
                 let inExplanation = false;
@@ -972,7 +971,7 @@ Anticipated Questions:
                 let explanation = '';
                 const questions = [];
                 let currentQuestion = null;
-                
+
                 for (const line of lines) {
                     if (line.startsWith('Explanation:')) {
                         inExplanation = true;
@@ -997,13 +996,13 @@ Anticipated Questions:
                         }
                     }
                 }
-                
+
                 // Add the last question
                 if (currentQuestion) {
                     currentQuestion.answer = currentQuestion.answer.trim();
                     questions.push(currentQuestion);
                 }
-                
+
                 return {
                     term: termKey,
                     explanation: explanation.trim(),
@@ -1033,7 +1032,7 @@ Anticipated Questions:
             const result = await generator(prompt, {
                 max_new_tokens: 150,
                 temperature: 0.5,
-            max_length: 1024,
+                max_length: 1024,
                 do_sample: true
             });
 
@@ -1122,14 +1121,14 @@ Analogies for "${termKey}":`;
                 const analogiesText = result[0].generated_text.replace(prompt, '').trim();
                 const analogies = [];
                 const lines = analogiesText.split('\n');
-                
+
                 for (const line of lines) {
                     const match = line.match(/^\d+\.\s*(.+)$/);
                     if (match) {
                         analogies.push(match[1].trim());
                     }
                 }
-                
+
                 return analogies;
             }
 
@@ -1189,7 +1188,7 @@ Counterfactual Scenarios:
 
             if (result && result[0] && result[0].generated_text) {
                 const explanationText = result[0].generated_text.replace(prompt, '').trim();
-                
+
                 // Parse the explanation and scenarios
                 const lines = explanationText.split('\n');
                 let inExplanation = false;
@@ -1197,7 +1196,7 @@ Counterfactual Scenarios:
                 let explanation = '';
                 const scenarios = [];
                 let currentScenario = null;
-                
+
                 for (const line of lines) {
                     if (line.startsWith('Explanation:')) {
                         inExplanation = true;
@@ -1217,7 +1216,7 @@ Counterfactual Scenarios:
                         }
                     }
                 }
-                
+
                 return {
                     term: termKey,
                     explanation: explanation.trim(),
@@ -1242,25 +1241,25 @@ Counterfactual Scenarios:
             if (context) {
                 const qaPipeline = await this.getQAPipeline();
                 const result = await qaPipeline(question, context);
-                
+
                 if (result && result.answer) {
                     return result.answer;
                 }
             }
-            
+
             // Fall back to generation pipeline for more complex questions
             const generator = await this.getGenerationPipeline();
-            const prompt = context 
+            const prompt = context
                 ? `Context: ${context}
 Question: ${question}
 Answer:`
                 : `Question: ${question}
 Answer:`;
-                
+
             const result = await generator(prompt, {
                 max_new_tokens: 100,
                 temperature: 0.5,
-            max_length: 1024,
+                max_length: 1024,
                 do_sample: true
             });
 
@@ -1312,7 +1311,7 @@ Answer:`;
             const result = await generator(prompt, {
                 max_new_tokens: 150,
                 temperature: 0.6,
-            max_length: 1024,
+                max_length: 1024,
                 do_sample: true
             });
 

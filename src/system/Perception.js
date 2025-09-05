@@ -192,7 +192,7 @@ class Perception {
         const interactionType = event.interactionType || 'unknown';
         const emotionalTone = event.emotionalTone || 'neutral';
         const relationshipContext = event.relationshipContext || 'acquaintance';
-        
+
         const termKey = `(social_interaction_${interactionType}_${participants.join('_')}_${emotionalTone})`;
         const punctuation = '.';
         const truthValue = {
@@ -209,20 +209,20 @@ class Perception {
         const emotionalTask = new Task(
             parseTerm(`(emotional_context_${emotionalTone}_${participants.join('_')})`),
             '.',
-            { frequency: event.emotionalIntensity || 0.5, confidence: 0.7 }
+            {frequency: event.emotionalIntensity || 0.5, confidence: 0.7}
         );
-        
+
         const relationshipTask = new Task(
             parseTerm(`(relationship_${relationshipContext}_${participants.join('_')})`),
             '.',
-            { frequency: 0.8, confidence: 0.9 }
+            {frequency: 0.8, confidence: 0.9}
         );
 
         if (!this.memory.getTerm(emotionalTask.termKey)) {
             const term = await this.lm.bootstrapTerm(emotionalTask.termKey);
             this.memory.addTerm(term);
         }
-        
+
         if (!this.memory.getTerm(relationshipTask.termKey)) {
             const term = await this.lm.bootstrapTerm(relationshipTask.termKey);
             this.memory.addTerm(term);
@@ -242,7 +242,7 @@ class Perception {
         const location = event.location || 'unknown_location';
         const magnitude = event.magnitude || 1.0;
         const duration = event.duration || 0;
-        
+
         const termKey = `(environmental_change_${description}_${location})`;
         const punctuation = '.';
         const truthValue = {
@@ -259,18 +259,18 @@ class Perception {
         const spatialTask = new Task(
             parseTerm(`(spatial_context_${location})`),
             '.',
-            { frequency: 0.9, confidence: 0.95 }
+            {frequency: 0.9, confidence: 0.95}
         );
-        
+
         if (duration > 0) {
             const temporalTask = createTemporalTask(
                 `(temporal_duration_${duration}_ms)`,
                 '.',
-                { frequency: 1.0, confidence: 0.9 },
+                {frequency: 1.0, confidence: 0.9},
                 event.time || Date.now(),
                 (event.time || Date.now()) + duration
             );
-            
+
             if (!this.memory.getTerm(temporalTask.termKey)) {
                 const term = await this.lm.bootstrapTerm(temporalTask.termKey);
                 this.memory.addTerm(term);
@@ -301,7 +301,7 @@ class Perception {
         const method = event.method || 'unknown_method';
         const effectiveness = event.effectiveness || 0.7;
         const retention = event.retention || 0.5;
-        
+
         const termKey = `(learning_experience_${topic}_${method})`;
         const punctuation = '.';
         const truthValue = {
@@ -326,7 +326,7 @@ class Perception {
             const retentionTask = new Task(
                 retentionParsedTerm,
                 '.',
-                { frequency: retention, confidence: 0.8 }
+                {frequency: retention, confidence: 0.8}
             );
 
             if (!this.memory.getTerm(retentionTask.termKey)) {
@@ -528,7 +528,7 @@ class Perception {
                 const contextTask = new Task(
                     parsedTerm,
                     '.',
-                    { frequency: 0.8, confidence: 0.7 }
+                    {frequency: 0.8, confidence: 0.7}
                 );
                 if (!this.memory.getTerm(contextTask.termKey)) {
                     const term = await this.lm.bootstrapTerm(contextTask.termKey);
@@ -546,7 +546,7 @@ class Perception {
                 const emotionTask = new Task(
                     parsedTerm,
                     '.',
-                    { frequency: 0.9, confidence: 0.8 }
+                    {frequency: 0.9, confidence: 0.8}
                 );
                 if (!this.memory.getTerm(emotionTask.termKey)) {
                     const term = await this.lm.bootstrapTerm(emotionTask.termKey);
@@ -564,7 +564,7 @@ class Perception {
                 const spatialTask = new Task(
                     parsedTerm,
                     '.',
-                    { frequency: 0.85, confidence: 0.75 }
+                    {frequency: 0.85, confidence: 0.75}
                 );
                 if (!this.memory.getTerm(spatialTask.termKey)) {
                     const term = await this.lm.bootstrapTerm(spatialTask.termKey);
@@ -595,7 +595,7 @@ class Perception {
             const anomalyTask = new Task(
                 parseTerm(`anomaly_detected_${anomaly.type}_${anomaly.timestamp}`),
                 '.',
-                { frequency: anomaly.severity, confidence: 0.8 }
+                {frequency: anomaly.severity, confidence: 0.8}
             );
             if (!this.memory.getTerm(anomalyTask.termKey)) {
                 const term = await this.lm.bootstrapTerm(anomalyTask.termKey);
@@ -610,7 +610,7 @@ class Perception {
             const trendTask = new Task(
                 parseTerm(`trend_${trend.type}_${trend.direction}`),
                 '.',
-                { frequency: trend.strength, confidence: 0.7 }
+                {frequency: trend.strength, confidence: 0.7}
             );
             if (!this.memory.getTerm(trendTask.termKey)) {
                 const term = await this.lm.bootstrapTerm(trendTask.termKey);
@@ -625,7 +625,7 @@ class Perception {
             const patternTask = new Task(
                 parseTerm(`periodic_pattern_${pattern.type}_${pattern.period}`),
                 '.',
-                { frequency: pattern.regularity, confidence: 0.85 }
+                {frequency: pattern.regularity, confidence: 0.85}
             );
             if (!this.memory.getTerm(patternTask.termKey)) {
                 const term = await this.lm.bootstrapTerm(patternTask.termKey);
@@ -640,7 +640,7 @@ class Perception {
             const correlationTask = new Task(
                 parseTerm(`correlation_${correlation.type1}_and_${correlation.type2}`),
                 '.',
-                { frequency: correlation.strength, confidence: 0.8 }
+                {frequency: correlation.strength, confidence: 0.8}
             );
             if (!this.memory.getTerm(correlationTask.termKey)) {
                 const term = await this.lm.bootstrapTerm(correlationTask.termKey);
@@ -659,7 +659,7 @@ class Perception {
      */
     detectPeriodicPatterns(eventStream) {
         const patterns = [];
-        
+
         if (eventStream.length > 10) {
             // Group events by type
             const eventGroups = {};
@@ -670,22 +670,22 @@ class Perception {
                 }
                 eventGroups[type].push(event);
             }
-            
+
             // For each event type, check for periodicity
             for (const [type, events] of Object.entries(eventGroups)) {
                 if (events.length > 3) {
                     // Calculate time intervals between consecutive events
                     const intervals = [];
                     for (let i = 1; i < events.length; i++) {
-                        intervals.push(events[i].timestamp - events[i-1].timestamp);
+                        intervals.push(events[i].timestamp - events[i - 1].timestamp);
                     }
-                    
+
                     // Check for regular intervals (periodicity)
                     if (intervals.length > 2) {
                         const avgInterval = intervals.reduce((sum, val) => sum + val, 0) / intervals.length;
                         const variance = intervals.reduce((sum, val) => sum + Math.pow(val - avgInterval, 2), 0) / intervals.length;
                         const stdDev = Math.sqrt(variance);
-                        
+
                         // If standard deviation is small relative to average, it's periodic
                         if (stdDev / avgInterval < 0.3) {
                             patterns.push({
@@ -698,7 +698,7 @@ class Perception {
                 }
             }
         }
-        
+
         return patterns;
     }
 
@@ -709,7 +709,7 @@ class Perception {
      */
     detectCorrelations(eventStream) {
         const correlations = [];
-        
+
         if (eventStream.length > 10) {
             // Group events by type
             const eventGroups = {};
@@ -720,10 +720,10 @@ class Perception {
                 }
                 eventGroups[type].push(event);
             }
-            
+
             // Get all event types
             const types = Object.keys(eventGroups);
-            
+
             // Compare each pair of event types
             for (let i = 0; i < types.length; i++) {
                 for (let j = i + 1; j < types.length; j++) {
@@ -731,11 +731,11 @@ class Perception {
                     const type2 = types[j];
                     const events1 = eventGroups[type1];
                     const events2 = eventGroups[type2];
-                    
+
                     // Calculate temporal correlation
                     let correlationStrength = 0;
                     let totalCount = 0;
-                    
+
                     for (const event1 of events1) {
                         // Count events of type2 that occur close in time to events of type1
                         for (const event2 of events2) {
@@ -746,7 +746,7 @@ class Perception {
                             }
                         }
                     }
-                    
+
                     if (totalCount > 0) {
                         const normalizedStrength = correlationStrength / (events1.length * events2.length);
                         if (normalizedStrength > 0.3) {
@@ -760,7 +760,7 @@ class Perception {
                 }
             }
         }
-        
+
         return correlations;
     }
 
@@ -813,21 +813,21 @@ class Perception {
             // Calculate slope
             const n = values.length;
             let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
-            
+
             for (let i = 0; i < n; i++) {
                 sumX += times[i];
                 sumY += values[i];
                 sumXY += times[i] * values[i];
                 sumXX += times[i] * times[i];
             }
-            
+
             const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
-            
+
             // Determine trend direction and strength
             if (Math.abs(slope) > 0.001) {
                 const direction = slope > 0 ? 'increasing' : 'decreasing';
                 const strength = Math.min(1.0, Math.abs(slope) * 1000); // Normalize strength
-                
+
                 trends.push({
                     type: 'linear_trend',
                     direction: direction,
@@ -851,12 +851,12 @@ class Perception {
         const feedbackTask = new Task(
             parseTerm(`feedback_${feedback.type || 'general'}_${Date.now()}`),
             '.',
-            { 
-                frequency: feedback.effectiveness || 0.5, 
-                confidence: feedback.confidence || 0.8 
+            {
+                frequency: feedback.effectiveness || 0.5,
+                confidence: feedback.confidence || 0.8
             }
         );
-        
+
         if (!this.memory.getTerm(feedbackTask.termKey)) {
             const term = await this.lm.bootstrapTerm(feedbackTask.termKey);
             this.memory.addTerm(term);
@@ -868,9 +868,9 @@ class Perception {
             const improvementGoal = new Task(
                 parseTerm(`improve_${feedback.domain || 'system'}_performance`),
                 '!',
-                { frequency: 1.0, confidence: 0.9 }
+                {frequency: 1.0, confidence: 0.9}
             );
-            
+
             if (!this.memory.getTerm(improvementGoal.termKey)) {
                 const term = await this.lm.bootstrapTerm(improvementGoal.termKey);
                 this.memory.addTerm(term);

@@ -17,13 +17,13 @@ module.exports = createRule({
             subject: parsed1.predicate,
             predicate: parsed1.subject
         });
-        
+
         // Adjust truth value for conversion (weaker confidence)
         const newTruthValue = {
             frequency: task1.state.truthValue.frequency,
             confidence: task1.state.truthValue.confidence * 0.7
         };
-        
+
         return {newTermKey, newTruthValue};
     },
 });

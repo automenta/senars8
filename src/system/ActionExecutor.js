@@ -421,14 +421,14 @@ class ActionExecutor {
      */
     async executeTemporalAction(action) {
         console.log(`Executing temporal action: ${action.tense} ${action.action} at ${action.time}`);
-        
+
         // For now, we'll just execute the action directly
         // In a more advanced system, we would schedule it for the appropriate time
         const result = await this.executeAction({
             name: action.action,
             parameters: action.parameters
         });
-        
+
         return {
             success: result.success,
             task: `${action.tense}_${action.action}`,
@@ -447,11 +447,11 @@ class ActionExecutor {
      */
     async executeParallelActions(actions) {
         console.log(`Executing ${actions.length} actions in parallel`);
-        
+
         // Execute all actions concurrently
         const promises = actions.map(action => this.executeAction(action));
         const results = await Promise.all(promises);
-        
+
         return results;
     }
 
@@ -462,7 +462,7 @@ class ActionExecutor {
      */
     async executeChoiceActions(actions) {
         console.log(`Executing one of ${actions.length} alternative actions`);
-        
+
         // Try each action in order until one succeeds
         for (const action of actions) {
             const result = await this.executeAction(action);
@@ -470,7 +470,7 @@ class ActionExecutor {
                 return result;
             }
         }
-        
+
         // If none succeeded, return the last result
         return {
             success: false,
@@ -529,7 +529,7 @@ class ActionExecutor {
                 if (this.rollbackEnabled) {
                     await this.rollbackPlan(planId, executionResults);
                 }
-                
+
                 return {
                     success: false,
                     planId: planId,
@@ -554,9 +554,9 @@ class ActionExecutor {
      */
     async rollbackPlan(planId, executedSteps) {
         console.log(`Rolling back plan ${planId}`);
-        
+
         const rollbackResults = [];
-        
+
         // Execute rollback actions in reverse order
         for (let i = executedSteps.length - 1; i >= 0; i--) {
             const step = executedSteps[i];
@@ -564,7 +564,7 @@ class ActionExecutor {
                 name: `rollback_${step.action}`,
                 parameters: step.result ? [step.result] : []
             };
-            
+
             try {
                 const result = await this.executeAction(rollbackAction);
                 rollbackResults.push({
@@ -581,7 +581,7 @@ class ActionExecutor {
                 });
             }
         }
-        
+
         return {
             success: true,
             planId: planId,

@@ -115,7 +115,7 @@ class TemporalReasoner {
 
     _createTemporalAbstractions(temporalFocusSet) {
         const abstractionTasks = [];
-        
+
         // Create abstraction for the entire set
         const overallAbstraction = createTemporalAbstraction(temporalFocusSet);
         if (overallAbstraction) {

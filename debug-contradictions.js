@@ -1,22 +1,22 @@
 const MetaCognition = require('./src/system/MetaCognition');
 const Task = require('./src/core/Task');
-const { parseTerm } = require('./src/parser/NewParser');
+const {parseTerm} = require('./src/parser/NewParser');
 
 async function debugContradictions() {
     console.log("=== Debugging Contradiction Detection ===\n");
-    
+
     const metaCognition = new MetaCognition();
-    
+
     // Create tasks with contradictions
     const taskDefs = [
         // High confidence belief that birds can fly
-        { termKey: '(bird --> can_fly)', punctuation: '.', truthValue: { frequency: 0.95, confidence: 0.95 } },
+        {termKey: '(bird --> can_fly)', punctuation: '.', truthValue: {frequency: 0.95, confidence: 0.95}},
         // High confidence belief that penguins are birds
-        { termKey: '(penguin --> bird)', punctuation: '.', truthValue: { frequency: 1.0, confidence: 0.95 } },
+        {termKey: '(penguin --> bird)', punctuation: '.', truthValue: {frequency: 1.0, confidence: 0.95}},
         // High confidence belief that penguins cannot fly
-        { termKey: '(penguin --> (--, can_fly))', punctuation: '.', truthValue: { frequency: 0.95, confidence: 0.95 } }
+        {termKey: '(penguin --> (--, can_fly))', punctuation: '.', truthValue: {frequency: 0.95, confidence: 0.95}}
     ];
-    
+
     // Create tasks
     const tasks = [];
     for (const def of taskDefs) {
@@ -32,11 +32,11 @@ async function debugContradictions() {
             console.log(`Failed to parse term: ${def.termKey}`);
         }
     }
-    
+
     // Find contradictions
     console.log("Finding contradictions...\n");
     const contradictions = metaCognition.findContradictions(tasks);
-    
+
     console.log(`Found ${contradictions.length} contradictions:`);
     for (let i = 0; i < contradictions.length; i++) {
         const contradiction = contradictions[i];
@@ -50,7 +50,7 @@ async function debugContradictions() {
         }
         console.log();
     }
-    
+
     // Try to resolve contradictions
     if (contradictions.length > 0) {
         console.log("Resolving contradictions...\n");
@@ -64,7 +64,7 @@ async function debugContradictions() {
             console.log();
         }
     }
-    
+
     console.log("=== Debug Complete ===");
 }
 

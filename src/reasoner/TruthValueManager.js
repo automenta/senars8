@@ -8,7 +8,7 @@ const {
     sophisticatedRevision
 } = require('./truth-value-revision');
 
-const { cosineSimilarity } = require('../utils/math');
+const {cosineSimilarity} = require('../utils/math');
 
 /**
  * Truth Value Manager
@@ -28,15 +28,15 @@ class TruthValueManager {
      * @param {number} weight - Weight for the new evidence (0-1).
      */
     bayesianRevision(task, newEvidence, weight = 0.5) {
-        const oldTruthValue = { ...task.state.truthValue };
+        const oldTruthValue = {...task.state.truthValue};
         const revisedTruthValue = bayesianRevision(oldTruthValue, newEvidence, weight);
-        
+
         // Update the task's truth value
         task.state.truthValue = revisedTruthValue;
-        
+
         // Record the revision
-        this._recordRevision(task.id, 'bayesian', oldTruthValue, revisedTruthValue, { newEvidence, weight });
-        
+        this._recordRevision(task.id, 'bayesian', oldTruthValue, revisedTruthValue, {newEvidence, weight});
+
         return revisedTruthValue;
     }
 
@@ -46,15 +46,15 @@ class TruthValueManager {
      * @param {Array} evidenceSources - Array of evidence truth values from different sources.
      */
     consensusRevision(task, evidenceSources) {
-        const oldTruthValue = { ...task.state.truthValue };
+        const oldTruthValue = {...task.state.truthValue};
         const revisedTruthValue = consensusRevision(oldTruthValue, evidenceSources);
-        
+
         // Update the task's truth value
         task.state.truthValue = revisedTruthValue;
-        
+
         // Record the revision
-        this._recordRevision(task.id, 'consensus', oldTruthValue, revisedTruthValue, { evidenceSources });
-        
+        this._recordRevision(task.id, 'consensus', oldTruthValue, revisedTruthValue, {evidenceSources});
+
         return revisedTruthValue;
     }
 
@@ -65,23 +65,23 @@ class TruthValueManager {
      * @param {number} decayRate - Rate of decay (higher means faster decay).
      */
     temporalDecayRevision(task, currentTime, decayRate = 0.0001) {
-        const oldTruthValue = { ...task.state.truthValue };
+        const oldTruthValue = {...task.state.truthValue};
         const revisedTruthValue = temporalDecayRevision(
-            oldTruthValue, 
-            currentTime, 
-            task.state.stamp.creationTime, 
+            oldTruthValue,
+            currentTime,
+            task.state.stamp.creationTime,
             decayRate
         );
-        
+
         // Update the task's truth value
         task.state.truthValue = revisedTruthValue;
-        
+
         // Record the revision
-        this._recordRevision(task.id, 'temporal_decay', oldTruthValue, revisedTruthValue, { 
-            currentTime, 
-            decayRate 
+        this._recordRevision(task.id, 'temporal_decay', oldTruthValue, revisedTruthValue, {
+            currentTime,
+            decayRate
         });
-        
+
         return revisedTruthValue;
     }
 
@@ -91,23 +91,23 @@ class TruthValueManager {
      * @param {Task} task2 - Second (conflicting) task.
      */
     resolveConflict(task1, task2) {
-        const oldTruthValue1 = { ...task1.state.truthValue };
-        const oldTruthValue2 = { ...task2.state.truthValue };
-        
+        const oldTruthValue1 = {...task1.state.truthValue};
+        const oldTruthValue2 = {...task2.state.truthValue};
+
         const resolvedTruthValue = conflictResolutionRevision(oldTruthValue1, oldTruthValue2);
-        
+
         // Update both tasks' truth values
         task1.state.truthValue = resolvedTruthValue;
         task2.state.truthValue = resolvedTruthValue;
-        
+
         // Record the revision
-        this._recordRevision(task1.id, 'conflict_resolution', oldTruthValue1, resolvedTruthValue, { 
-            conflictingTaskId: task2.id 
+        this._recordRevision(task1.id, 'conflict_resolution', oldTruthValue1, resolvedTruthValue, {
+            conflictingTaskId: task2.id
         });
-        this._recordRevision(task2.id, 'conflict_resolution', oldTruthValue2, resolvedTruthValue, { 
-            conflictingTaskId: task1.id 
+        this._recordRevision(task2.id, 'conflict_resolution', oldTruthValue2, resolvedTruthValue, {
+            conflictingTaskId: task1.id
         });
-        
+
         // Track the conflict set
         const conflictId = `${task1.id}_${task2.id}`;
         this.conflictSets.set(conflictId, {
@@ -115,7 +115,7 @@ class TruthValueManager {
             resolvedTruthValue: resolvedTruthValue,
             timestamp: Date.now()
         });
-        
+
         return resolvedTruthValue;
     }
 
@@ -126,18 +126,18 @@ class TruthValueManager {
      * @param {number} learningRate - Learning rate (0-1).
      */
     reinforcementUpdate(task, reward, learningRate = 0.1) {
-        const oldTruthValue = { ...task.state.truthValue };
+        const oldTruthValue = {...task.state.truthValue};
         const updatedTruthValue = reinforcementRevision(oldTruthValue, reward, learningRate);
-        
+
         // Update the task's truth value
         task.state.truthValue = updatedTruthValue;
-        
+
         // Record the update
-        this._recordRevision(task.id, 'reinforcement', oldTruthValue, updatedTruthValue, { 
-            reward, 
-            learningRate 
+        this._recordRevision(task.id, 'reinforcement', oldTruthValue, updatedTruthValue, {
+            reward,
+            learningRate
         });
-        
+
         return updatedTruthValue;
     }
 
@@ -147,17 +147,17 @@ class TruthValueManager {
      * @param {number} newInformation - New information that affects uncertainty.
      */
     entropyBasedUpdate(task, newInformation) {
-        const oldTruthValue = { ...task.state.truthValue };
+        const oldTruthValue = {...task.state.truthValue};
         const updatedTruthValue = entropyBasedRevision(oldTruthValue, newInformation);
-        
+
         // Update the task's truth value
         task.state.truthValue = updatedTruthValue;
-        
+
         // Record the update
-        this._recordRevision(task.id, 'entropy_based', oldTruthValue, updatedTruthValue, { 
-            newInformation 
+        this._recordRevision(task.id, 'entropy_based', oldTruthValue, updatedTruthValue, {
+            newInformation
         });
-        
+
         return updatedTruthValue;
     }
 
@@ -167,19 +167,19 @@ class TruthValueManager {
      * @param {object} options - Revision options.
      */
     sophisticatedRevision(task, options = {}) {
-        const oldTruthValue = { ...task.state.truthValue };
+        const oldTruthValue = {...task.state.truthValue};
         const revisedTruthValue = sophisticatedRevision(oldTruthValue, {
             ...options,
             currentTime: options.currentTime || Date.now(),
             creationTime: options.creationTime || task.state.stamp.creationTime
         });
-        
+
         // Update the task's truth value
         task.state.truthValue = revisedTruthValue;
-        
+
         // Record the revision
         this._recordRevision(task.id, 'sophisticated', oldTruthValue, revisedTruthValue, options);
-        
+
         return revisedTruthValue;
     }
 
@@ -196,7 +196,7 @@ class TruthValueManager {
         if (!this.revisionHistory.has(taskId)) {
             this.revisionHistory.set(taskId, []);
         }
-        
+
         this.revisionHistory.get(taskId).push({
             type: revisionType,
             oldTruthValue: oldTruthValue,
@@ -232,7 +232,7 @@ class TruthValueManager {
         if (!this.evidenceSources.has(taskId)) {
             this.evidenceSources.set(taskId, new Map());
         }
-        
+
         this.evidenceSources.get(taskId).set(sourceId, truthValue);
     }
 
@@ -253,21 +253,21 @@ class TruthValueManager {
     async maintainTruthValues(tasks, options = {}) {
         const currentTime = Date.now();
         const results = [];
-        
+
         for (const task of tasks) {
             try {
                 // Apply temporal decay
                 if (options.applyTemporalDecay !== false) {
                     this.temporalDecayRevision(task, currentTime, options.decayRate);
                 }
-                
+
                 // Apply consensus revision if multiple sources are available
                 const evidenceSources = this.getEvidenceSources(task.id);
                 if (evidenceSources.size > 1) {
                     const sources = Array.from(evidenceSources.values());
                     this.consensusRevision(task, sources);
                 }
-                
+
                 results.push({
                     taskId: task.id,
                     termKey: task.termKey,
@@ -282,7 +282,7 @@ class TruthValueManager {
                 });
             }
         }
-        
+
         return results;
     }
 
@@ -294,22 +294,22 @@ class TruthValueManager {
     async resolveConflicts(tasks) {
         const results = [];
         const beliefTasks = tasks.filter(task => task.punctuation === '.');
-        
+
         // Check for conflicts between belief tasks
         for (let i = 0; i < beliefTasks.length; i++) {
             for (let j = i + 1; j < beliefTasks.length; j++) {
                 const task1 = beliefTasks[i];
                 const task2 = beliefTasks[j];
-                
+
                 // Simple conflict detection based on semantic similarity and contradictory frequencies
                 try {
                     const similarity = this._calculateSemanticSimilarity(task1, task2);
-                    
-                    if (similarity > 0.8 && 
+
+                    if (similarity > 0.8 &&
                         Math.abs(task1.state.truthValue.frequency - task2.state.truthValue.frequency) > 0.7) {
                         // High similarity but contradictory frequencies - likely conflict
                         const resolvedTruthValue = this.resolveConflict(task1, task2);
-                        
+
                         results.push({
                             taskIds: [task1.id, task2.id],
                             termKeys: [task1.termKey, task2.termKey],
@@ -328,7 +328,7 @@ class TruthValueManager {
                 }
             }
         }
-        
+
         return results;
     }
 
@@ -345,11 +345,11 @@ class TruthValueManager {
         if (task1.termKey === task2.termKey) {
             return 1.0;
         }
-        
+
         // Simple string similarity
         const commonTerms = task1.termKey.split(' ').filter(term => task2.termKey.includes(term));
         const maxTerms = Math.max(task1.termKey.split(' ').length, task2.termKey.split(' ').length);
-        
+
         return commonTerms.length / maxTerms;
     }
 }
