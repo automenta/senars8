@@ -1,6 +1,6 @@
-const { buildTermKey } = require('../../utils/term-builder');
-const { deduceTruthValue } = require('../truth-value');
-const { createRule } = require('./rule-builder');
+const {buildTermKey} = require('../../utils/term-builder');
+const {deduceTruthValue} = require('../truth-value');
+const {createRule} = require('./rule-builder');
 
 module.exports = createRule({
     name: 'modus-ponens',
@@ -16,6 +16,6 @@ module.exports = createRule({
     action: (parsed1, parsed2, task1, task2) => {
         const newTermKey = buildTermKey(parsed1.predicate);
         const newTruthValue = deduceTruthValue(task1.state.truthValue, task2.state.truthValue);
-        return { newTermKey, newTruthValue };
+        return {newTermKey, newTruthValue};
     },
 });

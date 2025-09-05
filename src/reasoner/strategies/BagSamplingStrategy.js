@@ -14,7 +14,7 @@ class BagSamplingStrategy {
      * @param {Task[]} focusSet - The list of tasks to select from.
      * @yields {Task[]} An array containing a pair of tasks.
      */
-    *selectPairs(focusSet) {
+    * selectPairs(focusSet) {
         if (focusSet.length < 2) return;
 
         const bag = new Bag();
@@ -40,7 +40,7 @@ class BagSamplingStrategy {
      * @param {Task[]} focusSet - The list of tasks to select from.
      * @yields {Task[]} An array containing a triplet of tasks.
      */
-    *selectTriplets(focusSet) {
+    * selectTriplets(focusSet) {
         if (focusSet.length < 3) return;
 
         const bag = new Bag();

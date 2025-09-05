@@ -8,7 +8,7 @@ class BruteForceStrategy {
      * @param {Task[]} focusSet - The list of tasks to select from.
      * @yields {Task[]} An array containing a pair of tasks.
      */
-    *selectPairs(focusSet) {
+    * selectPairs(focusSet) {
         for (let i = 0; i < focusSet.length; i++) {
             for (let j = 0; j < focusSet.length; j++) {
                 if (i === j) continue;
@@ -22,7 +22,7 @@ class BruteForceStrategy {
      * @param {Task[]} focusSet - The list of tasks to select from.
      * @yields {Task[]} An array containing a triplet of tasks.
      */
-    *selectTriplets(focusSet) {
+    * selectTriplets(focusSet) {
         for (let i = 0; i < focusSet.length; i++) {
             for (let j = 0; j < focusSet.length; j++) {
                 if (i === j) continue;

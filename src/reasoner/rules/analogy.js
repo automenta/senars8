@@ -1,6 +1,6 @@
-const { buildTermKey } = require('../../utils/term-builder');
-const { analogizeTruthValue } = require('../truth-value');
-const { createRule } = require('./rule-builder');
+const {buildTermKey} = require('../../utils/term-builder');
+const {analogizeTruthValue} = require('../truth-value');
+const {createRule} = require('./rule-builder');
 
 module.exports = createRule({
     name: 'analogy',
@@ -27,6 +27,6 @@ module.exports = createRule({
             task2.state.truthValue,
             task3.state.truthValue
         );
-        return { newTermKey, newTruthValue };
+        return {newTermKey, newTruthValue};
     },
 });
