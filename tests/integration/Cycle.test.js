@@ -28,6 +28,10 @@ describe('Cycle Integration Test', () => {
         cycle = new Cycle(memory, reasoner, lm);
 
         lm.generateHypotheses.mockResolvedValue([]);
+        lm.generateCreativeHypotheses.mockResolvedValue([]);
+        lm.generateSophisticatedHypotheses.mockResolvedValue([]);
+        lm.generateComprehensiveHypotheses.mockResolvedValue([]);
+        lm.evaluateAndRankHypotheses.mockImplementation(async (tasks, hypotheses) => hypotheses);
         lm.bootstrapTerm.mockImplementation(async (termKey) => {
             return new Term(termKey, [], 1);
         });

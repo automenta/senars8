@@ -14,7 +14,8 @@ async function runAllDemos() {
         'enhanced-perception-demo.js',
         'extended-inference-rules-demo.js',
         'advanced-truth-value-revision-demo.js',
-        'enhanced-narsese-demo.js'
+        'enhanced-narsese-demo.js',
+        'debug-contradictions.js'
     ];
 
     for (const demoName of demos) {

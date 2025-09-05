@@ -5,6 +5,7 @@ const Term = require('../../src/core/Term');
 const {parseTerm} = require('../../src/parser/NewParser');
 const LM = require('../../src/lm/LM');
 
+jest.mock('../../src/lm/LM');
 jest.mock('@xenova/transformers', () => {
     const transformers = jest.genMockFromModule('@xenova/transformers');
     transformers.pipeline = jest.fn(async () => {
@@ -22,6 +23,10 @@ describe('Reasoner Integration Test', () => {
         reasoner = new Reasoner();
         memory = new Memory();
         lm = new LM();
+
+        lm.bootstrapTerm.mockImplementation(async (termKey) => {
+            return new Term(termKey, [], 1);
+        });
     });
 
     test('should perform modus ponens', async () => {

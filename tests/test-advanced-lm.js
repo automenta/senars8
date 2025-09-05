@@ -1,6 +1,6 @@
-const LM = require('./src/lm/LM');
-const Task = require('./src/core/Task');
-const {parseTerm} = require('./src/parser/NewParser');
+const LM = require('../src/lm/LM');
+const Task = require('../src/core/Task');
+const {parseTerm} = require('../src/parser/NewParser');
 
 async function testAdvancedLMCapabilities() {
     console.log("=== Testing Advanced LM Capabilities ===\n");

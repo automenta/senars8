@@ -1,7 +1,6 @@
 const Memory = require('../memory/Memory');
 const Reasoner = require('../reasoner/Reasoner');
 const LM = require('../lm/LM');
-const {cosineSimilarity} = require('../utils/math');
 const {calculateTemporalPriority} = require('../utils/temporal-reasoning');
 const actionExecutor = require('./ActionExecutor');
 const CONSTITUTION_TASKS = require('./Constitution');
@@ -16,14 +15,8 @@ const MAX_GOALS_TO_EXECUTE = 3;
 
 class Cycle {
     constructor(memory, reasoner, lm) {
-        if (!(memory instanceof Memory)) {
-            throw new Error('Cycle requires a Memory instance.');
-        }
-        if (!(reasoner instanceof Reasoner)) {
-            throw new Error('Cycle requires a Reasoner instance.');
-        }
-        if (!(lm instanceof LM)) {
-            throw new Error('Cycle requires an LM instance.');
+        if (!(memory instanceof Memory) || !(reasoner instanceof Reasoner) || !(lm instanceof LM)) {
+            throw new Error('Cycle requires instances of Memory, Reasoner, and LM.');
         }
         this.memory = memory;
         this.reasoner = reasoner;
@@ -36,28 +29,24 @@ class Cycle {
     }
 
     async bootstrap() {
-        this.driveEmbeddings = CONSTITUTION_TASKS
+        const driveTerms = CONSTITUTION_TASKS
             .filter(task => task.punctuation === '!')
-            .map(task => this.memory.getTerm(task.termKey)?.embedding)
+            .map(task => this.memory.getTerm(task.termKey))
             .filter(Boolean);
+        this.driveEmbeddings = driveTerms.map(term => term.embedding);
     }
 
     calculatePriority(task, currentTime) {
         const term = this.memory.getTerm(task.termKey);
-        if (!term || !term.embedding || term.embedding.length === 0) {
-            return 0;
-        }
+        if (!term?.embedding?.length) return 0;
 
-        let maxSimilarity = 0;
-        for (const driveEmbedding of this.driveEmbeddings) {
-            const similarity = cosineSimilarity(term.embedding, driveEmbedding);
-            if (similarity > maxSimilarity) {
-                maxSimilarity = similarity;
-            }
-        }
+        const maxSimilarity = this.driveEmbeddings.reduce((max, driveEmbedding) => {
+            const similarity = require('../utils/math').cosineSimilarity(term.embedding, driveEmbedding);
+            return similarity > max ? similarity : max;
+        }, 0);
+
         const I = (maxSimilarity + 0.1) / 1.1;
-        const timeSinceCreation = currentTime - task.state.stamp.creationTime;
-        const U = 1 / (1 + timeSinceCreation / 10000);
+        const U = 1 / (1 + (currentTime - task.state.stamp.creationTime) / 10000);
         const T = calculateTemporalPriority(task, currentTime);
         const C = task.state.truthValue.confidence;
         const E = 1 / term.complexity;
@@ -71,32 +60,30 @@ class Cycle {
     }
 
     _prioritize(currentTime) {
-        for (const task of this.memory.getAllTasks()) {
+        this.memory.getAllTasks().forEach(task => {
             task.state.priority = this.calculatePriority(task, currentTime);
-        }
+        });
     }
 
     async _reason() {
         const focusSet = this.memory.getHighestPriorityTasks(FOCUS_SET_SIZE);
+        if (focusSet.length === 0) return [];
 
-        const symbolicDerivedTasks = this.reasoner.performInference(focusSet, this.memory.terms);
+        const symbolicDerivedTasks = this.reasoner.performInference(focusSet);
         const temporalDerivedTasks = this.temporalReasoner.infer(focusSet);
 
-        // Generate multiple types of hypotheses
-        const basicHypotheses = await this.lm.generateHypotheses(focusSet);
-        const creativeHypotheses = await this.lm.generateCreativeHypotheses(focusSet, 3);
-        const sophisticatedHypotheses = await this.lm.generateSophisticatedHypotheses(focusSet);
-        const comprehensiveHypotheses = await this.lm.generateComprehensiveHypotheses(focusSet);
-
-        // Combine and rank all hypotheses
-        const allHypotheses = [
-            ...basicHypotheses,
-            ...creativeHypotheses,
-            ...sophisticatedHypotheses,
-            ...comprehensiveHypotheses
+        const hypothesisConfigs = [
+            {type: 'general', num: 2},
+            {type: 'creative', num: 1},
+            {type: 'sophisticated', num: 1},
         ];
 
-        const rankedHypotheses = await this.lm.evaluateAndRankHypotheses(focusSet, allHypotheses);
+        const lmHypothesesPromises = hypothesisConfigs.map(config =>
+            this.lm.generateHypotheses(focusSet, config)
+        );
+
+        const lmHypotheses = (await Promise.all(lmHypothesesPromises)).flat();
+        const rankedHypotheses = await this.lm.evaluateAndRankHypotheses(focusSet, lmHypotheses);
 
         const derivedTasks = [
             ...symbolicDerivedTasks,
@@ -105,69 +92,49 @@ class Cycle {
         ];
 
         this.memory.addTasks(derivedTasks);
-
-        for (const derivedTask of derivedTasks) {
+        derivedTasks.forEach(derivedTask => {
             this.taskDerivations.set(derivedTask.id, [...focusSet]);
-        }
+        });
 
         return derivedTasks;
     }
 
     _metaCognition(derivedTasks) {
-        // Also consider existing tasks in memory for finding contradictions
         const allTasks = [...this.memory.getAllTasks(), ...derivedTasks];
         const contradictions = this.metaCognition.findContradictions(allTasks);
+        if (contradictions.length === 0) return {contradictions: [], metaTasks: []};
 
-        let allMetaTasks = [];
-        if (contradictions.length > 0) {
-            for (const contradiction of contradictions) {
-                // Use the auto strategy selection for better contradiction resolution
-                const strategy = 'auto';
+        const allMetaTasks = contradictions.flatMap(contradiction =>
+            this.metaCognition.resolve(contradiction, 'auto')
+        );
 
-                const newMetaTasks = this.metaCognition.resolve(contradiction, strategy);
-                if (newMetaTasks.length > 0) {
-                    allMetaTasks.push(...newMetaTasks);
-                }
-            }
-
-            if (allMetaTasks.length > 0) {
-                this.memory.addTasks(allMetaTasks);
-                for (const metaTask of allMetaTasks) {
-                    metaTask.state.priority = META_TASK_PRIORITY;
-                }
-            }
+        if (allMetaTasks.length > 0) {
+            this.memory.addTasks(allMetaTasks);
+            allMetaTasks.forEach(metaTask => metaTask.state.priority = META_TASK_PRIORITY);
         }
 
-        return {
-            contradictions,
-            metaTasks: allMetaTasks
-        };
+        return {contradictions, metaTasks: allMetaTasks};
     }
 
     async _enrich(tasks) {
-        for (const task of tasks) {
-            if (!this.memory.getTerm(task.termKey)) {
-                const newTerm = await this.lm.bootstrapTerm(task.termKey);
-                this.memory.addTerm(newTerm);
-            }
-        }
+        const newTermKeys = [...new Set(tasks.map(t => t.termKey).filter(tk => !this.memory.getTerm(tk)))];
+        const newTerms = await Promise.all(newTermKeys.map(termKey => this.lm.bootstrapTerm(termKey)));
+        newTerms.forEach(term => this.memory.addTerm(term));
     }
 
     async _act() {
         const actionableGoals = this.memory.getAllTasks()
             .filter(task => task.punctuation === '!' && task.state.priority > ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
-            .sort((a, b) => b.state.priority - a.state.priority);
+            .sort((a, b) => b.state.priority - a.state.priority)
+            .slice(0, MAX_GOALS_TO_EXECUTE);
 
-        const executionResults = [];
-        for (const goal of actionableGoals.slice(0, MAX_GOALS_TO_EXECUTE)) {
-            try {
-                const result = await actionExecutor.executeGoal(goal);
-                executionResults.push(result);
-            } catch (error) {
-                executionResults.push({success: false, task: goal.termKey, error: error.message});
-            }
-        }
-        return executionResults;
+        return Promise.all(actionableGoals.map(goal =>
+            actionExecutor.executeGoal(goal).catch(error => ({
+                success: false,
+                task: goal.termKey,
+                error: error.message
+            }))
+        ));
     }
 
     async runOnce() {
