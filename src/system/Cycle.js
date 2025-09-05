@@ -99,19 +99,39 @@ class Cycle {
     }
 
     _metaCognition(derivedTasks) {
-        const contradictions = this.metaCognition.findContradictions(derivedTasks);
-        let metaTasks = [];
-        if (contradictions.length > 0) {
-            metaTasks = this.metaCognition.analyzeFailures(contradictions);
-            this.memory.addTasks(metaTasks);
+        // Also consider existing tasks in memory for finding contradictions
+        const allTasks = [...this.memory.getAllTasks(), ...derivedTasks];
+        const contradictions = this.metaCognition.findContradictions(allTasks);
 
-            for (const metaTask of metaTasks) {
-                metaTask.state.priority = META_TASK_PRIORITY;
+        let allMetaTasks = [];
+        if (contradictions.length > 0) {
+            for (const contradiction of contradictions) {
+                let strategy;
+                if (contradiction.severity > 0.8) {
+                    strategy = 'revision';
+                } else if (contradiction.severity > 0.5) {
+                    strategy = 'evidence_gathering';
+                } else {
+                    strategy = 'monitoring';
+                }
+
+                const newMetaTasks = this.metaCognition.resolve(contradiction, strategy);
+                if (newMetaTasks.length > 0) {
+                    allMetaTasks.push(...newMetaTasks);
+                }
+            }
+
+            if (allMetaTasks.length > 0) {
+                this.memory.addTasks(allMetaTasks);
+                for (const metaTask of allMetaTasks) {
+                    metaTask.state.priority = META_TASK_PRIORITY;
+                }
             }
         }
+
         return {
             contradictions,
-            metaTasks
+            metaTasks: allMetaTasks
         };
     }
 
