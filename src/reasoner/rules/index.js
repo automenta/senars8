@@ -4,10 +4,10 @@ const induction = require('./induction');
 const abduction = require('./abduction');
 const decomposition = require('./decomposition');
 const intersection = require('./intersection');
-const intersection = require('./intersection');
 const union = require('./union');
 const conversion = require('./conversion');
 const contraposition = require('./contraposition');
+const analogy = require('./analogy');
 
 module.exports = [
     modusPonens,
@@ -15,7 +15,6 @@ module.exports = [
     induction,
     abduction,
     analogy,
-    composition,
     decomposition,
     intersection,
     union,

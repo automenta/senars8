@@ -118,14 +118,9 @@ describe('Contradiction Resolution in Cycle', () => {
         expect(originalTask1.state.truthValue.confidence).toBe(0.7);
         expect(originalTask2.state.truthValue.confidence).toBe(0.6);
 
-        // Two new question tasks should be created to re-evaluate the beliefs
-        const questionTasks = memory.getAllTasks().filter(t => t.punctuation === '?');
-        expect(questionTasks.length).toBe(2);
-
-        const q1 = questionTasks.find(t => t.termKey === termKey1);
-        const q2 = questionTasks.find(t => t.termKey === termKey2);
-
-        expect(q1).toBeDefined();
-        expect(q2).toBeDefined();
+        // A meta-task should be created for causal analysis, which is now the default for this kind of conflict
+        const metaTask = memory.getAllTasks().find(t => t.termKey.startsWith('(&, causal_analysis'));
+        expect(metaTask).toBeDefined();
+        expect(metaTask.punctuation).toBe('!');
     });
 });

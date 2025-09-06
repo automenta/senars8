@@ -14,12 +14,16 @@ class Reasoner {
             [3, this.strategy.selectTriplets(focusSet)],
         ]);
 
-        return this.rules.flatMap(rule => {
+        const derivedTasks = this.rules.flatMap(rule => {
             const combinations = taskCombinations.get(rule.arity) || [];
-            return combinations
-                .map(tasks => this._applyRule(rule, tasks, processedCombinations))
-                .filter(Boolean);
+            const results = combinations
+                .map(tasks => this._applyRule(rule, tasks, processedCombinations));
+
+            // Explicitly convert to array if it's an iterator
+            const filteredResults = Array.from(results).filter(Boolean);
+            return filteredResults;
         });
+        return derivedTasks;
     }
 
     _applyRule(rule, tasks, processedCombinations) {
