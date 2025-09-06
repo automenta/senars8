@@ -28,9 +28,6 @@ describe('Cycle Integration Test', () => {
         cycle = new Cycle(memory, reasoner, lm);
 
         lm.generateHypotheses.mockResolvedValue([]);
-        lm.generateCreativeHypotheses.mockResolvedValue([]);
-        lm.generateSophisticatedHypotheses.mockResolvedValue([]);
-        lm.generateComprehensiveHypotheses.mockResolvedValue([]);
         lm.evaluateAndRankHypotheses.mockImplementation(async (tasks, hypotheses) => hypotheses);
         lm.bootstrapTerm.mockImplementation(async (termKey) => {
             return new Term(termKey, [], 1);
@@ -42,13 +39,15 @@ describe('Cycle Integration Test', () => {
     });
 
     test('should add new tasks to memory and derive new knowledge', async () => {
-        const term1 = new Term('cat', [1, 0, 0], 1);
-        const term2 = new Term('mammal', [0, 1, 0], 1);
+        const term1 = new Term('cat', [1,0,0], 1);
+        const term2 = new Term('mammal', [0,1,0], 1);
+        const term3 = new Term('(cat --> mammal)', [1,1,0], 2);
         await memory.addTerm(term1);
         await memory.addTerm(term2);
+        await memory.addTerm(term3);
 
         const task1 = new Task(term1, '.');
-        const task2 = new Task(parseTerm('(cat --> mammal)'), '.');
+        const task2 = new Task(term3, '.');
         await memory.addTasks([task1, task2]);
 
         await cycle.runOnce();

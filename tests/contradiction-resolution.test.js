@@ -33,9 +33,6 @@ describe('Contradiction Resolution in Cycle', () => {
 
         // Mock LM methods
         lm.generateHypotheses.mockResolvedValue([]);
-        lm.generateCreativeHypotheses.mockResolvedValue([]);
-        lm.generateSophisticatedHypotheses.mockResolvedValue([]);
-        lm.generateComprehensiveHypotheses.mockResolvedValue([]);
         lm.evaluateAndRankHypotheses.mockImplementation(async (tasks, hypotheses) => hypotheses);
         lm.bootstrapTerm.mockImplementation(async (termKey) => {
             const term = new Term(termKey, [1, 2, 3], 1);
