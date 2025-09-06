@@ -1,41 +1,38 @@
-const BruteForceStrategy = require('./strategies/BruteForceStrategy');
+const BagSamplingStrategy = require('./strategies/BagSamplingStrategy');
 const rules = require('./rules');
-const Task = require('../core/Task');
-const { parseTerm } = require('../parser/narseseParser');
+const TemporalReasoner = require('./TemporalReasoner');
 
 class Reasoner {
-    constructor(strategy = new BruteForceStrategy()) {
+    constructor(strategy = new BagSamplingStrategy()) {
         this.strategy = strategy;
         this.rules = rules;
+        this.temporalReasoner = new TemporalReasoner();
     }
 
     performInference(focusSet) {
-        const processedCombinations = new Set();
         const derivedTasks = [];
 
-        const arity2Combinations = Array.from(this.strategy.selectPairs(focusSet));
-        for (const tasks of arity2Combinations) {
-            for (const rule of this.rules) {
-                if (rule.arity === 2) {
-                    const derived = this._applyRule(rule, tasks, processedCombinations);
-                    if (derived) {
-                        derivedTasks.push(derived);
-                    }
+        // --- Symbolic Inference ---
+        const processedCombinations = new Set();
+        for (const rule of this.rules) {
+            // Skip rules with no arity defined or arity < 1
+            if (!rule.arity || rule.arity < 1) continue;
+
+            const combinations = this.strategy.selectCombinations(focusSet, rule.arity);
+            for (const tasks of combinations) {
+                if (tasks.length !== rule.arity) continue;
+
+                const derived = this._applyRule(rule, tasks, processedCombinations);
+                if (derived) {
+                    derivedTasks.push(derived);
                 }
             }
         }
 
-        const arity3Combinations = Array.from(this.strategy.selectTriplets(focusSet));
-        for (const tasks of arity3Combinations) {
-            for (const rule of this.rules) {
-                if (rule.arity === 3) {
-                    const derived = this._applyRule(rule, tasks, processedCombinations);
-                    if (derived) {
-                        derivedTasks.push(derived);
-                    }
-                }
-            }
-        }
+        // --- Temporal Inference ---
+        // The temporal reasoner performs a global analysis on the focus set
+        const temporalTasks = this.temporalReasoner.infer(focusSet);
+        derivedTasks.push(...temporalTasks);
 
         return derivedTasks;
     }
@@ -47,12 +44,15 @@ class Reasoner {
         processedCombinations.add(combinationKey);
 
         if (this._areOperandsValid(rule, tasks) && rule.condition(...tasks)) {
+            // The rule action returns a plain object that the Memory component will convert into a Task
             return rule.action(...tasks);
         }
         return null;
     }
 
     _areOperandsValid(rule, tasks) {
+        // Ensure the number of tasks matches the rule's operand definitions
+        if (tasks.length !== rule.operands.length) return false;
         return tasks.every((task, i) => rule.operands[i](task));
     }
 }

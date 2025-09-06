@@ -16,7 +16,14 @@ function createRule(spec) {
             if (!result) return null;
 
             const {newTermKey, newTruthValue} = result;
-            return new Task(parseTerm(newTermKey), '.', newTruthValue);
+
+            const parsedTerm = parseTerm(newTermKey);
+
+            if (!parsedTerm) {
+                return null;
+            }
+
+            return new Task(parsedTerm, '.', newTruthValue);
         },
     };
 }

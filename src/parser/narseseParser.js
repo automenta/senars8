@@ -302,14 +302,12 @@ function parseTerm(input) {
         const parsed = parser.parseMain();
         if (parsed) {
             // Attach the original string key to the parsed object.
-            // This is crucial for the Task constructor, which needs a consistent way to get the term key.
             if (typeof parsed === 'object' && !parsed.key) {
                 parsed.key = input;
             }
         }
         return parsed;
     } catch (error) {
-        // console.error('Parsing error:', error.message); // This can be noisy, disable for now
         return null;
     }
 }

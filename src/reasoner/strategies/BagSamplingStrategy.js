@@ -10,54 +10,42 @@ class BagSamplingStrategy {
     }
 
     /**
-     * A generator that yields pairs of tasks sampled from a Bag.
+     * A generator that yields combinations of tasks sampled from a Bag.
      * @param {Task[]} focusSet - The list of tasks to select from.
-     * @yields {Task[]} An array containing a pair of tasks.
+     * @param {number} arity - The size of the combinations to generate.
+     * @yields {Task[]} An array containing a combination of tasks.
      */
-    * selectPairs(focusSet) {
-        if (focusSet.length < 2) return;
+    * selectCombinations(focusSet, arity) {
+        if (focusSet.length < arity) return;
 
-        const bag = new Bag();
+        const bag = new Bag(focusSet.length); // Set capacity for the bag
         for (const task of focusSet) {
-            bag.add(task, task.state.priority);
+            bag.put(task, task.state.priority); // Use the new 'put' method
         }
 
-        if (bag.size() < 2) return;
+        bag.commit(); // Commit the bag to prepare for efficient sampling
+
+        if (bag.size() < arity) return;
 
         const numSamples = Math.ceil(focusSet.length * this.samplingFactor);
 
         for (let i = 0; i < numSamples; i++) {
-            const task1 = bag.sample();
-            const task2 = bag.sample();
-            if (task1 && task2 && task1.id !== task2.id) {
-                yield [task1, task2];
+            const combination = [];
+            const ids = new Set();
+
+            // Try to get a unique set of tasks of size 'arity'
+            let attempts = 0;
+            while (combination.length < arity && attempts < arity * 2) {
+                const task = bag.sample();
+                if (task && !ids.has(task.id)) {
+                    combination.push(task);
+                    ids.add(task.id);
+                }
+                attempts++;
             }
-        }
-    }
 
-    /**
-     * A generator that yields triplets of tasks sampled from a Bag.
-     * @param {Task[]} focusSet - The list of tasks to select from.
-     * @yields {Task[]} An array containing a triplet of tasks.
-     */
-    * selectTriplets(focusSet) {
-        if (focusSet.length < 3) return;
-
-        const bag = new Bag();
-        for (const task of focusSet) {
-            bag.add(task, task.state.priority);
-        }
-
-        if (bag.size() < 3) return;
-
-        const numSamples = Math.ceil(focusSet.length * this.samplingFactor);
-
-        for (let i = 0; i < numSamples; i++) {
-            const task1 = bag.sample();
-            const task2 = bag.sample();
-            const task3 = bag.sample();
-            if (task1 && task2 && task3 && task1.id !== task2.id && task1.id !== task3.id && task2.id !== task3.id) {
-                yield [task1, task2, task3];
+            if (combination.length === arity) {
+                yield combination;
             }
         }
     }

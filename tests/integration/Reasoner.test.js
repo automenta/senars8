@@ -2,8 +2,9 @@ const Reasoner = require('../../src/reasoner/Reasoner');
 const Memory = require('../../src/memory/Memory');
 const Task = require('../../src/core/Task');
 const Term = require('../../src/core/Term');
-const {parseTerm} = require('../../src/parser/narseseParser');
+const { parseTerm } = require('../../src/parser/narseseParser');
 const LM = require('../../src/lm/LM');
+const BruteForceStrategy = require('../../src/reasoner/strategies/BruteForceStrategy');
 
 jest.mock('../../src/lm/LM');
 jest.mock('@xenova/transformers', () => {
@@ -20,7 +21,8 @@ describe('Reasoner Integration Test', () => {
     let reasoner, memory, lm;
 
     beforeEach(() => {
-        reasoner = new Reasoner();
+        // Use BruteForceStrategy for deterministic test results
+        reasoner = new Reasoner(new BruteForceStrategy());
         memory = new Memory();
         lm = new LM();
 
@@ -51,8 +53,8 @@ describe('Reasoner Integration Test', () => {
         memory.addTerm(termB);
         memory.addTerm(termC);
 
-        const task1 = new Task(parseTerm('(cat --> mammal)'), '.', {}, {}, 1);
-        const task2 = new Task(parseTerm('(mammal --> animal)'), '.', {}, {}, 1);
+        const task1 = new Task(parseTerm('(cat --> mammal)'), '.');
+        const task2 = new Task(parseTerm('(mammal --> animal)'), '.');
 
         const derivedTasks = reasoner.performInference([task1, task2]);
         const derivedTask = derivedTasks.find(t => t.termKey === '(cat --> animal)');
