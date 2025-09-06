@@ -41,13 +41,18 @@ describe('Cycle Integration Test', () => {
     test('should add new tasks to memory and derive new knowledge', async () => {
         const term1 = new Term('cat', [1,0,0], 1);
         const term2 = new Term('mammal', [0,1,0], 1);
-        const term3 = new Term('(cat --> mammal)', [1,1,0], 2);
+        const term3 = new Term('(cat ==> mammal)', [1,1,0], 2);
         await memory.addTerm(term1);
         await memory.addTerm(term2);
         await memory.addTerm(term3);
 
         const task1 = new Task(term1, '.', {}, {}, 1);
         const task2 = new Task(term3, '.', {}, {}, 1);
+
+        // Manually boost priority to ensure they get into the focus set
+        task1.state.priority = 100;
+        task2.state.priority = 100;
+
         await memory.addTasks([task1, task2]);
 
         await cycle.runOnce();

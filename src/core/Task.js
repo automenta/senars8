@@ -1,4 +1,5 @@
 const {v4: uuidv4} = require('uuid');
+const {parseTerm} = require('../parser/narseseParser');
 
 const DEFAULT_TRUTH_VALUE = {frequency: 1.0, confidence: 0.9};
 
@@ -9,7 +10,9 @@ class Task {
         }
 
         this.id = uuidv4();
-        this.term = term;
+        // Ensure that `this.term` is always a parsed Narsese object with a `.type` property.
+        // This handles cases where the task is created from a `Term` instance instead of a parsed object.
+        this.term = term.type ? term : parseTerm(term.key);
         this.termKey = term.key;
         this.punctuation = punctuation;
 

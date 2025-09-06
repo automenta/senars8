@@ -12,7 +12,7 @@ module.exports = createRule({
     condition: (parsed1, parsed2) =>
         parsed1?.type === 'Inheritance' &&
         parsed2?.type === 'Inheritance' &&
-        buildTermKey(parsed1.predicate) === buildTermKey(parsed2.subject),
+        parsed1.predicate.key === parsed2.subject.key,
     action: (parsed1, parsed2, task1, task2) => {
         const newTermKey = buildTermKey({
             type: 'Inheritance',
