@@ -35,12 +35,10 @@ describe('Reasoner Integration Test', () => {
         memory.addTerm(termA);
         memory.addTerm(termB);
 
-        const task1 = new Task(parseTerm('(cat ==> mammal)'), '.');
-        task1.state.priority = 1;
-        const task2 = new Task(termA, '.');
-        task2.state.priority = 1;
+        const task1 = new Task(parseTerm('(cat ==> mammal)'), '.', {}, {}, 1);
+        const task2 = new Task(termA, '.', {}, {}, 1);
 
-        const derivedTasks = reasoner.performInference([task1, task2], memory.terms);
+        const derivedTasks = reasoner.performInference([task1, task2]);
         const derivedTask = derivedTasks.find(t => t.termKey === 'mammal');
         expect(derivedTask).toBeDefined();
     });
@@ -53,12 +51,10 @@ describe('Reasoner Integration Test', () => {
         memory.addTerm(termB);
         memory.addTerm(termC);
 
-        const task1 = new Task(parseTerm('(cat --> mammal)'), '.');
-        task1.state.priority = 1;
-        const task2 = new Task(parseTerm('(mammal --> animal)'), '.');
-        task2.state.priority = 1;
+        const task1 = new Task(parseTerm('(cat --> mammal)'), '.', {}, {}, 1);
+        const task2 = new Task(parseTerm('(mammal --> animal)'), '.', {}, {}, 1);
 
-        const derivedTasks = reasoner.performInference([task1, task2], memory.terms);
+        const derivedTasks = reasoner.performInference([task1, task2]);
         const derivedTask = derivedTasks.find(t => t.termKey === '(cat --> animal)');
         expect(derivedTask).toBeDefined();
     });

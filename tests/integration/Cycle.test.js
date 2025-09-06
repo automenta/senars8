@@ -46,8 +46,8 @@ describe('Cycle Integration Test', () => {
         await memory.addTerm(term2);
         await memory.addTerm(term3);
 
-        const task1 = new Task(term1, '.');
-        const task2 = new Task(term3, '.');
+        const task1 = new Task(term1, '.', {}, {}, 1);
+        const task2 = new Task(term3, '.', {}, {}, 1);
         await memory.addTasks([task1, task2]);
 
         await cycle.runOnce();

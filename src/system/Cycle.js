@@ -7,14 +7,8 @@ const CONSTITUTION_TASKS = require('./Constitution');
 const Perception = require('./Perception');
 const MetaCognition = require('./MetaCognition');
 const TemporalReasoner = require('../reasoner/TemporalReasoner');
-
-const FOCUS_SET_SIZE = 20;
-const META_TASK_PRIORITY = 0.9;
-const ACTIONABLE_GOAL_PRIORITY_THRESHOLD = 0.5;
-const MAX_GOALS_TO_EXECUTE = 3;
-const RECENCY_DECAY_FACTOR = 10000;
-const SIMILARITY_OFFSET = 0.1;
-const SIMILARITY_SCALE = 1.1;
+const PriorityManager = require('../reasoner/PriorityManager');
+const config = require('../config');
 
 class Cycle {
     constructor(memory, reasoner, lm) {
@@ -27,6 +21,7 @@ class Cycle {
         this.perception = new Perception(memory, lm);
         this.metaCognition = new MetaCognition();
         this.temporalReasoner = new TemporalReasoner();
+        this.priorityManager = new PriorityManager(memory);
         this.driveEmbeddings = [];
         this.taskDerivations = new Map();
     }
@@ -39,24 +34,6 @@ class Cycle {
         this.driveEmbeddings = driveTerms.map(term => term.embedding);
     }
 
-    calculatePriority(task, currentTime) {
-        const term = this.memory.getTerm(task.termKey);
-        if (!term?.embedding?.length) return 0;
-
-        const maxSimilarity = this.driveEmbeddings.reduce((max, driveEmbedding) => {
-            const similarity = require('../utils/math').cosineSimilarity(term.embedding, driveEmbedding);
-            return Math.max(max, similarity);
-        }, 0);
-
-        const I = (maxSimilarity + SIMILARITY_OFFSET) / SIMILARITY_SCALE;
-        const U = 1 / (1 + (currentTime - task.state.stamp.creationTime) / RECENCY_DECAY_FACTOR);
-        const T = calculateTemporalPriority(task, currentTime);
-        const C = task.state.truthValue.confidence;
-        const E = 1 / term.complexity;
-
-        return I * U * T * C * E;
-    }
-
     async _perceive() {
         const newTasks = await this.perception.processEvents();
         this.memory.addTasks(newTasks);
@@ -64,7 +41,7 @@ class Cycle {
 
     _prioritize(currentTime) {
         this.memory.getAllTasks().forEach(task => {
-            task.state.priority = this.calculatePriority(task, currentTime);
+            task.state.priority = this.priorityManager.calculatePriority(task, currentTime, this.driveEmbeddings);
         });
     }
 
@@ -84,7 +61,7 @@ class Cycle {
     }
 
     async _reason() {
-        const focusSet = this.memory.getHighestPriorityTasks(FOCUS_SET_SIZE);
+        const focusSet = this.memory.getHighestPriorityTasks(config.FOCUS_SET_SIZE);
         if (focusSet.length === 0) return [];
 
         const symbolicTasks = this.reasoner.performInference(focusSet);
@@ -113,7 +90,7 @@ class Cycle {
         );
 
         if (metaTasks.length > 0) {
-            metaTasks.forEach(mt => mt.state.priority = META_TASK_PRIORITY);
+            metaTasks.forEach(mt => mt.state.priority = config.META_TASK_PRIORITY);
             this.memory.addTasks(metaTasks);
         }
 
@@ -128,9 +105,9 @@ class Cycle {
 
     async _act() {
         const actionableGoals = this.memory.getAllTasks()
-            .filter(task => task.punctuation === '!' && task.state.priority > ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
+            .filter(task => task.punctuation === '!' && task.state.priority > config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
             .sort((a, b) => b.state.priority - a.state.priority)
-            .slice(0, MAX_GOALS_TO_EXECUTE);
+            .slice(0, config.MAX_GOALS_TO_EXECUTE);
 
         return Promise.all(actionableGoals.map(goal =>
             planner.planAndExecute(goal).catch(error => ({

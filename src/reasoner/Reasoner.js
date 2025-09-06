@@ -1,5 +1,7 @@
 const BagSamplingStrategy = require('./strategies/BagSamplingStrategy');
 const rules = require('./rules');
+const Task = require('../core/Task');
+const { parseTerm } = require('../parser/narseseParser');
 
 class Reasoner {
     constructor(strategy = new BagSamplingStrategy()) {
@@ -14,16 +16,14 @@ class Reasoner {
             [3, this.strategy.selectTriplets(focusSet)],
         ]);
 
-        const derivedTasks = this.rules.flatMap(rule => {
-            const combinations = taskCombinations.get(rule.arity) || [];
-            const results = combinations
-                .map(tasks => this._applyRule(rule, tasks, processedCombinations));
+        return this.rules.flatMap(rule => {
+            const combinations = taskCombinations.get(rule.arity);
+            if (!combinations) return [];
 
-            // Explicitly convert to array if it's an iterator
-            const filteredResults = Array.from(results).filter(Boolean);
-            return filteredResults;
+            return [...combinations]
+                .map(tasks => this._applyRule(rule, tasks, processedCombinations))
+                .filter(Boolean);
         });
-        return derivedTasks;
     }
 
     _applyRule(rule, tasks, processedCombinations) {
@@ -31,8 +31,18 @@ class Reasoner {
         if (processedCombinations.has(combinationKey)) return null;
         processedCombinations.add(combinationKey);
 
-        if (this._areOperandsValid(rule, tasks) && rule.condition(...tasks)) {
-            return rule.action(...tasks);
+        const parsedTasks = tasks.map(task => parseTerm(task.termKey));
+        if (parsedTasks.some(p => !p)) return null;
+
+        if (this._areOperandsValid(rule, tasks) && rule.condition(...parsedTasks)) {
+            const result = rule.action(...parsedTasks, ...tasks);
+            if (!result) return null;
+
+            const { newTermKey, newTruthValue } = result;
+            const newTerm = parseTerm(newTermKey);
+            if (!newTerm) return null;
+
+            return new Task(newTerm, '.', newTruthValue);
         }
         return null;
     }
