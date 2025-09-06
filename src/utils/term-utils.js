@@ -107,13 +107,13 @@ function buildTermKey(parsedTerm) {
         case 'Conjunction':
             if (parsedTerm.terms && parsedTerm.terms.length > 0) {
                 const termKeys = parsedTerm.terms.map(term => buildTermKey(term));
-                return `(&, ${termKeys.join(', ')})`;
+                return `(&,${termKeys.join(',')})`;
             }
             return '(&)';
         case 'Disjunction':
             if (parsedTerm.terms && parsedTerm.terms.length > 0) {
                 const termKeys = parsedTerm.terms.map(term => buildTermKey(term));
-                return `(||, ${termKeys.join(', ')})`;
+                return `(||,${termKeys.join(',')})`;
             }
             return `(||)`;
         case 'Implication':
@@ -123,23 +123,23 @@ function buildTermKey(parsedTerm) {
         case 'SequentialConjunction':
             if (parsedTerm.terms && parsedTerm.terms.length > 0) {
                 const termKeys = parsedTerm.terms.map(term => buildTermKey(term));
-                return `(&/, ${termKeys.join(', ')})`;
+                return `(&/,${termKeys.join(',')})`;
             }
             return `(&/)`;
         case 'ParallelConjunction':
             if (parsedTerm.terms && parsedTerm.terms.length > 0) {
                 const termKeys = parsedTerm.terms.map(term => buildTermKey(term));
-                return `(&|, ${termKeys.join(', ')})`;
+                return `(&|,${termKeys.join(',')})`;
             }
             return `(&|)`;
         case 'Always':
-            return `(always, ${buildTermKey(parsedTerm.term)})`;
+            return `(always,${buildTermKey(parsedTerm.term)})`;
         case 'Eventually':
-            return `(eventually, ${buildTermKey(parsedTerm.term)})`;
+            return `(eventually,${buildTermKey(parsedTerm.term)})`;
         case 'Next':
-            return `(next, ${buildTermKey(parsedTerm.term)})`;
+            return `(next,${buildTermKey(parsedTerm.term)})`;
         case 'Previous':
-            return `(previous, ${buildTermKey(parsedTerm.term)})`;
+            return `(previous,${buildTermKey(parsedTerm.term)})`;
         case 'Until':
             return `(${buildTermKey(parsedTerm.subject)} until ${buildTermKey(parsedTerm.predicate)})`;
         case 'Since':

@@ -2,6 +2,7 @@ const Task = require('../core/Task');
 const { parseTerm } = require('../parser/narseseParser');
 const TaskFactory = require('../core/TaskFactory');
 const PatternDetector = require('../reasoner/PatternDetector');
+const EventBus = require('./EventBus');
 
 class Perception {
     constructor(memory, lm) {
@@ -216,7 +217,9 @@ class Perception {
             }
         }
 
-        return newTasks;
+        if (newTasks.length > 0) {
+            EventBus.emit('NewTasksCreated', newTasks);
+        }
     }
 
     async processNaturalLanguage(text) {

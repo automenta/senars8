@@ -1,10 +1,12 @@
 const Term = require('../core/Term');
 const Task = require('../core/Task');
+const EventBus = require('../system/EventBus');
 
 class Memory {
     constructor() {
         this.terms = new Map();
         this.tasks = new Map();
+        EventBus.on('NewTasksCreated', (tasks) => this.addTasks(tasks));
     }
 
     addTerm(term) {

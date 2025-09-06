@@ -2,7 +2,7 @@ const Memory = require('../memory/Memory');
 const Reasoner = require('../reasoner/Reasoner');
 const LM = require('../lm/LM');
 const {calculateTemporalPriority} = require('../utils/temporal-reasoning');
-const planner = require('./Planner');
+const Planner = require('./Planner');
 const CONSTITUTION_TASKS = require('./Constitution');
 const Perception = require('./Perception');
 const MetaCognition = require('./MetaCognition');
@@ -19,6 +19,7 @@ class Cycle {
         this.reasoner = reasoner;
         this.lm = lm;
         this.perception = new Perception(memory, lm);
+        this.planner = new Planner(memory);
         this.metaCognition = new MetaCognition();
         this.temporalReasoner = new TemporalReasoner();
         this.priorityManager = new PriorityManager(memory);
@@ -35,8 +36,7 @@ class Cycle {
     }
 
     async _perceive() {
-        const newTasks = await this.perception.processEvents();
-        this.memory.addTasks(newTasks);
+        await this.perception.processEvents();
     }
 
     _prioritize(currentTime) {
@@ -104,7 +104,7 @@ class Cycle {
             .slice(0, config.MAX_GOALS_TO_EXECUTE);
 
         return Promise.all(actionableGoals.map(goal =>
-            planner.planAndExecute(goal).catch(error => ({
+            this.planner.planAndExecute(goal).catch(error => ({
                 success: false,
                 task: goal.termKey,
                 error: error.message

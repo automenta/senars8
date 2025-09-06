@@ -19,17 +19,15 @@ describe('Term', () => {
     });
 
     test('should throw an error if key is not a non-empty string', () => {
-        expect(() => new Term('')).toThrow('Invalid arguments for Term constructor');
-        expect(() => new Term(123)).toThrow('Invalid arguments for Term constructor');
+        expect(() => new Term('')).toThrow('Invalid key for Term constructor');
+        expect(() => new Term(123)).toThrow('Invalid key for Term constructor');
     });
 
-    test('should throw an error if embedding is not an array', () => {
-        expect(() => new Term('cat', 'not-an-array')).toThrow('Invalid arguments for Term constructor');
-    });
-
-    test('should throw an error if complexity is not a positive number', () => {
-        expect(() => new Term('cat', [], 0)).toThrow('Invalid arguments for Term constructor');
-        expect(() => new Term('cat', [], -1)).toThrow('Invalid arguments for Term constructor');
+    test('should parse and cache the term structure', () => {
+        const term = new Term('(cat --> animal)');
+        expect(term.type).toBe('Inheritance');
+        expect(term.subject.key).toBe('cat');
+        expect(term.predicate.key).toBe('animal');
     });
 });
 

@@ -57,7 +57,18 @@ graph TD
     subgraph "Foundational Layer"
         Constitution[CONSTITUTION Immutable Drives & Constraints] -- Provides Salience Gradients --> Memory
     end
+
+    subgraph "System-Wide"
+        EventBus((Event Bus))
+        Perception -- Publishes --> EventBus
+        EventBus -- Notifies --> Memory
+        EventBus -- Notifies --> MetaCognition
+    end
 ```
+
+#### **2.1 Event Bus Architecture**
+
+To enhance modularity and extensibility, the system uses a central **`EventBus`**. Components can publish events (e.g., `NewTasksCreated`) and subscribe to them, allowing for decoupled communication and making it easier to add new functionality without modifying core components.
 
 ---
 
@@ -65,11 +76,12 @@ graph TD
 
 #### **3.1 `Term`: The Immutable Vocabulary**
 
-- **Purpose**: A unique, canonical representation of a concept or a relationship.
+- **Purpose**: A unique, canonical, and *intelligent* representation of a concept or relationship.
 - **Structure**:
     - `key: string`: The formal, Narsese-inspired syntax.
     - `embedding: number[]`: A dense vector representation from the `LM`.
-    - `complexity: number`: A static measure of structural complexity used for effort estimation.
+    - `complexity: number`: A static measure of structural complexity.
+- **Intelligence**: The `Term` class is not just a data container. It parses its own key upon instantiation, caching its Narsese structure. This allows for efficient access to its components (e.g., `term.subject`, `term.predicate`) as full `Term` instances, making the rest of the system's code cleaner and more performant.
 
 #### **3.2 `Task`: The Stateful Cognitive Atom**
 
@@ -188,8 +200,8 @@ senars8/
 - **Symbolic Reasoning**: Formal inference with deduction, induction, abduction, and analogy
 - **Neuro-Symbolic Integration**: Embedding-based semantic similarity and term grounding
 - **Attention Mechanism**: Economic attention model for task prioritization
-- **Meta-Cognition**: Basic contradiction detection and resolution
-- **Planning**: Goal-directed behavior and action execution
+- **Meta-Cognition**: Contradiction detection with an extensible, strategy-pattern-based resolution system.
+- **Planning**: A sophisticated, graph-integrated Hierarchical Task Network (HTN) planner that decomposes complex goals by querying planning knowledge stored directly in the knowledge graph.
 - **Temporal Reasoning**: Time-aware task processing
 
 ---
