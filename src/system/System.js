@@ -4,134 +4,84 @@ const LM = require('../lm/LM');
 const Cycle = require('./Cycle');
 const CONSTITUTION_TASKS = require('./Constitution');
 
-/**
- * Main System Class
- * Orchestrates all components of the SeNARS cognitive system.
- */
 class System {
     constructor() {
-        // Initialize core components
         this.memory = new Memory();
         this.reasoner = new Reasoner();
         this.lm = new LM();
         this.cycle = new Cycle(this.memory, this.reasoner, this.lm);
-
-        // System state
         this.isRunning = false;
         this.cycleCount = 0;
         this.initialized = false;
     }
 
-    /**
-     * Initializes the system with constitutional knowledge.
-     */
-    async initialize() {
-        console.log("Initializing SeNARS system...");
+    async _bootstrapTerms(tasks) {
+        const termKeys = [...new Set(tasks.map(task => task.termKey))];
+        const newTermKeys = termKeys.filter(key => !this.memory.getTerm(key));
+        if (newTermKeys.length === 0) return;
 
-        // Load Constitution
-        this.memory.addTasks(CONSTITUTION_TASKS);
-
-        // Bootstrap constitutional terms
-        const termPromises = CONSTITUTION_TASKS.map(task => {
-            if (!this.memory.getTerm(task.termKey)) {
-                return this.lm.bootstrapTerm(task.termKey);
-            }
-            return Promise.resolve(null);
-        });
-
+        const termPromises = newTermKeys.map(key => this.lm.bootstrapTerm(key));
         const newTerms = (await Promise.all(termPromises)).filter(Boolean);
         newTerms.forEach(term => this.memory.addTerm(term));
+    }
 
+    async _ensureInitialized() {
+        if (this.initialized) return;
+        console.log("Initializing SeNARS system...");
+        this.memory.addTasks(CONSTITUTION_TASKS);
+        await this._bootstrapTerms(CONSTITUTION_TASKS);
         this.initialized = true;
         console.log(`System initialized with ${CONSTITUTION_TASKS.length} constitutional tasks`);
     }
 
-    /**
-     * Runs the cognitive cycle once.
-     */
-    async runCycle() {
-        // Initialize if not already done
-        if (!this.initialized) {
-            await this.initialize();
-        }
-
-        this.cycleCount++;
-        console.log(`\n=== Cognitive Cycle ${this.cycleCount} ===`);
-
-        const result = await this.cycle.runOnce();
-        return result;
+    async initialize() {
+        await this._ensureInitialized();
     }
 
-    /**
-     * Starts the continuous cognitive loop.
-     * @param {number} maxCycles - Maximum number of cycles to run (0 for infinite).
-     */
+    async runCycle() {
+        await this._ensureInitialized();
+        this.cycleCount++;
+        console.log(`\n=== Cognitive Cycle ${this.cycleCount} ===`);
+        return this.cycle.runOnce();
+    }
+
     async start(maxCycles = 0) {
         if (this.isRunning) {
             console.warn('System is already running');
             return;
         }
-
-        if (!this.initialized) {
-            await this.initialize();
-        }
+        await this._ensureInitialized();
 
         this.isRunning = true;
         this.cycleCount = 0;
-
         console.log("System started. Running cognitive cycles...");
 
-        let cyclesRun = 0;
-        while (this.isRunning && (maxCycles === 0 || cyclesRun < maxCycles)) {
+        while (this.isRunning && (maxCycles === 0 || this.cycleCount < maxCycles)) {
             try {
                 await this.runCycle();
-                cyclesRun++;
-
-                // Small delay to prevent overwhelming the system
                 await new Promise(resolve => setTimeout(resolve, 100));
             } catch (error) {
                 console.error('Error during cycle execution:', error);
-                break;
+                this.stop();
+                return;
             }
         }
 
-        if (maxCycles > 0 && cyclesRun >= maxCycles) {
+        if (this.isRunning) {
             console.log(`Reached maximum cycle count (${maxCycles}). Stopping system.`);
             this.stop();
         }
     }
 
-    /**
-     * Stops the cognitive loop.
-     */
     stop() {
         this.isRunning = false;
         console.log(`System stopped after ${this.cycleCount} cycles.`);
     }
 
-    /**
-     * Adds a task to the system's memory.
-     * @param {Task|Task[]} tasks - Task or array of tasks to add.
-     */
     async addTasks(tasks) {
-        // Initialize if not already done
-        if (!this.initialized) {
-            await this.initialize();
-        }
-
+        await this._ensureInitialized();
         const tasksToAdd = Array.isArray(tasks) ? tasks : [tasks];
-
-        // Bootstrap terms for new tasks
-        const termPromises = tasksToAdd.map(task => {
-            if (!this.memory.getTerm(task.termKey)) {
-                return this.lm.bootstrapTerm(task.termKey);
-            }
-            return Promise.resolve(null);
-        });
-
-        const newTerms = (await Promise.all(termPromises)).filter(Boolean);
-        newTerms.forEach(term => this.memory.addTerm(term));
-
+        await this._bootstrapTerms(tasksToAdd);
         this.memory.addTasks(tasksToAdd);
         console.log(`Added ${tasksToAdd.length} tasks to system memory.`);
     }

@@ -10,33 +10,29 @@ class LM {
         this._qaPipelinePromise = null;
     }
 
-    async getFeaturePipeline() {
-        if (!this._featurePipelinePromise) {
+    async _initializePipeline(promiseKey, type, model, options = {}) {
+        if (!this[promiseKey]) {
             const {pipeline} = await import('@xenova/transformers');
-            this._featurePipelinePromise = pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+            this[promiseKey] = pipeline(type, model, options);
         }
-        return this._featurePipelinePromise;
+        return this[promiseKey];
     }
 
-    async getGenerationPipeline() {
-        if (!this._generationPipelinePromise) {
-            const {pipeline} = await import('@xenova/transformers');
-            this._generationPipelinePromise = pipeline('text-generation', 'Xenova/distilgpt2', {
-                maxLength: 1024,
-                useCache: false
-            });
-        }
-        return this._generationPipelinePromise;
+    getFeaturePipeline() {
+        return this._initializePipeline('_featurePipelinePromise', 'feature-extraction', 'Xenova/all-MiniLM-L6-v2');
     }
 
-    async getQAPipeline() {
-        if (!this._qaPipelinePromise) {
-            const {pipeline} = await import('@xenova/transformers');
-            this._qaPipelinePromise = pipeline('question-answering', 'Xenova/distilbert-base-uncased-distilled-squad', {
-                maxLength: 512
-            });
-        }
-        return this._qaPipelinePromise;
+    getGenerationPipeline() {
+        return this._initializePipeline('_generationPipelinePromise', 'text-generation', 'Xenova/distilgpt2', {
+            maxLength: 1024,
+            useCache: false
+        });
+    }
+
+    getQAPipeline() {
+        return this._initializePipeline('_qaPipelinePromise', 'question-answering', 'Xenova/distilbert-base-uncased-distilled-squad', {
+            maxLength: 512
+        });
     }
 
     async _generate(prompt, options = {}) {

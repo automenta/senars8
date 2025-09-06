@@ -37,22 +37,7 @@ class MetaCognition {
     calculateContradictionSeverity(contradictionType, task1, task2) {
         const c1 = task1.state.truthValue.confidence;
         const c2 = task2.state.truthValue.confidence;
-        const typeWeights = {
-            direct_negation: 1.0,
-            inheritance_conflict: 0.8,
-            implication_conflict: 0.8,
-            transitive_inheritance_conflict: 0.7,
-            equivalence_conflict: 0.7,
-            set_conflict: 0.7,
-            conjunction_conflict: 0.65,
-            disjunction_conflict: 0.65,
-            intensional_set_conflict: 0.65,
-            variable_conflict: 0.6,
-            temporal_conflict: 0.6,
-            goal_conflict: 0.6,
-            frequency_conflict: 0.55
-        };
-        const typeWeight = typeWeights[contradictionType.type] || 0.5;
+        const typeWeight = CONTRADICTION_SEVERITY_WEIGHTS[contradictionType.type] || 0.5;
         return Math.min(1.0, typeWeight * (c1 + c2) / 2);
     }
 
@@ -125,8 +110,8 @@ class MetaCognition {
         return check(parsed1, parsed2, task1, task2) || check(parsed2, parsed1, task2, task1);
     }
 
-    _analyzeInheritanceConflict(task1, task2, parsed1, parsed2) {
-        if (parsed1.type !== 'Inheritance' || parsed2.type !== 'Inheritance' || parsed1.subject.key !== parsed2.subject.key) {
+    _analyzeBinaryStatementConflict(task1, task2, parsed1, parsed2, statementType) {
+        if (parsed1.type !== statementType || parsed2.type !== statementType || parsed1.subject.key !== parsed2.subject.key) {
             return null;
         }
         const pred1 = parsed1.predicate;
@@ -134,43 +119,23 @@ class MetaCognition {
         const check = (p1, p2) => p1.type === 'Negation' && p1.term.key === p2.key;
         if (check(pred1, pred2) || check(pred2, pred1)) {
             return {
-                type: 'inheritance_conflict',
-                details: `Inheritance conflict: "${task1.termKey}" vs "${task2.termKey}"`
+                type: `${statementType.toLowerCase()}_conflict`,
+                details: `${statementType} conflict: "${task1.termKey}" vs "${task2.termKey}"`
             };
         }
         return null;
+    }
+
+    _analyzeInheritanceConflict(task1, task2, parsed1, parsed2) {
+        return this._analyzeBinaryStatementConflict(task1, task2, parsed1, parsed2, 'Inheritance');
     }
 
     _analyzeImplicationConflict(task1, task2, parsed1, parsed2) {
-        if (parsed1.type !== 'Implication' || parsed2.type !== 'Implication' || parsed1.subject.key !== parsed2.subject.key) {
-            return null;
-        }
-        const pred1 = parsed1.predicate;
-        const pred2 = parsed2.predicate;
-        const check = (p1, p2) => p1.type === 'Negation' && p1.term.key === p2.key;
-        if (check(pred1, pred2) || check(pred2, pred1)) {
-            return {
-                type: 'implication_conflict',
-                details: `Implication conflict: "${task1.termKey}" vs "${task2.termKey}"`
-            };
-        }
-        return null;
+        return this._analyzeBinaryStatementConflict(task1, task2, parsed1, parsed2, 'Implication');
     }
 
     _analyzeEquivalenceConflict(task1, task2, parsed1, parsed2) {
-        if (parsed1.type !== 'Equivalence' || parsed2.type !== 'Equivalence' || parsed1.subject.key !== parsed2.subject.key) {
-            return null;
-        }
-        const pred1 = parsed1.predicate;
-        const pred2 = parsed2.predicate;
-        const check = (p1, p2) => p1.type === 'Negation' && p1.term.key === p2.key;
-        if (check(pred1, pred2) || check(pred2, pred1)) {
-            return {
-                type: 'equivalence_conflict',
-                details: `Equivalence conflict: "${task1.termKey}" vs "${task2.termKey}"`
-            };
-        }
-        return null;
+        return this._analyzeBinaryStatementConflict(task1, task2, parsed1, parsed2, 'Equivalence');
     }
 
     _analyzeSetConflict(task1, task2, parsed1, parsed2) {
@@ -401,5 +366,21 @@ class MetaCognition {
             ).join('\n\n');
     }
 }
+
+const CONTRADICTION_SEVERITY_WEIGHTS = {
+    direct_negation: 1.0,
+    inheritance_conflict: 0.8,
+    implication_conflict: 0.8,
+    transitive_inheritance_conflict: 0.7,
+    equivalence_conflict: 0.7,
+    set_conflict: 0.7,
+    conjunction_conflict: 0.65,
+    disjunction_conflict: 0.65,
+    intensional_set_conflict: 0.65,
+    variable_conflict: 0.6,
+    temporal_conflict: 0.6,
+    goal_conflict: 0.6,
+    frequency_conflict: 0.55
+};
 
 module.exports = MetaCognition;

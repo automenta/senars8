@@ -8,42 +8,33 @@ class Reasoner {
     }
 
     performInference(focusSet) {
-        const derivedTasks = [];
         const processedCombinations = new Set();
-
         const taskCombinations = new Map([
             [2, this.strategy.selectPairs(focusSet)],
             [3, this.strategy.selectTriplets(focusSet)],
         ]);
 
-        for (const rule of this.rules) {
-            const combinations = taskCombinations.get(rule.arity);
-            if (!combinations) continue;
+        return this.rules.flatMap(rule => {
+            const combinations = taskCombinations.get(rule.arity) || [];
+            return combinations
+                .map(tasks => this._applyRule(rule, tasks, processedCombinations))
+                .filter(Boolean);
+        });
+    }
 
-            for (const tasks of combinations) {
-                const combinationKey = tasks.map(t => t.id).sort().join(',');
-                if (processedCombinations.has(combinationKey)) continue;
-                processedCombinations.add(combinationKey);
+    _applyRule(rule, tasks, processedCombinations) {
+        const combinationKey = tasks.map(t => t.id).sort().join(',');
+        if (processedCombinations.has(combinationKey)) return null;
+        processedCombinations.add(combinationKey);
 
-                if (this._areOperandsValid(rule, tasks) && rule.condition(...tasks)) {
-                    const derivedTask = rule.action(...tasks);
-                    if (derivedTask) {
-                        derivedTasks.push(derivedTask);
-                    }
-                }
-            }
+        if (this._areOperandsValid(rule, tasks) && rule.condition(...tasks)) {
+            return rule.action(...tasks);
         }
-
-        return derivedTasks;
+        return null;
     }
 
     _areOperandsValid(rule, tasks) {
-        for (let i = 0; i < rule.arity; i++) {
-            if (!rule.operands[i](tasks[i])) {
-                return false;
-            }
-        }
-        return true;
+        return tasks.every((task, i) => rule.operands[i](task));
     }
 }
 

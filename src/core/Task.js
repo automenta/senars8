@@ -1,15 +1,11 @@
 const {v4: uuidv4} = require('uuid');
 
+const DEFAULT_TRUTH_VALUE = {frequency: 1.0, confidence: 0.9};
+
 class Task {
-    constructor(term, punctuation, truthValue = {
-        frequency: 1.0,
-        confidence: 0.9
-    }, stamp = {creationTime: Date.now()}) {
-        if (!term || typeof term.key !== 'string' || term.key.length === 0) {
-            throw new Error('Task requires a valid term object with a non-empty key.');
-        }
-        if (!['.', '!', '?'].includes(punctuation)) {
-            throw new Error('Task punctuation must be one of ".", "!", or "?".');
+    constructor(term, punctuation, truthValue = {}, stamp = {}) {
+        if (!term?.key || !['.', '!', '?'].includes(punctuation)) {
+            throw new Error('Invalid Task arguments');
         }
 
         this.id = uuidv4();
@@ -19,14 +15,8 @@ class Task {
 
         this.state = {
             priority: 0,
-            truthValue: {
-                frequency: truthValue.frequency,
-                confidence: truthValue.confidence,
-            },
-            stamp: {
-                creationTime: stamp.creationTime,
-                occurrenceTime: stamp.occurrenceTime,
-            },
+            truthValue: {...DEFAULT_TRUTH_VALUE, ...truthValue},
+            stamp: {creationTime: Date.now(), ...stamp},
         };
     }
 }

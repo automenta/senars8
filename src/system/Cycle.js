@@ -12,6 +12,9 @@ const FOCUS_SET_SIZE = 20;
 const META_TASK_PRIORITY = 0.9;
 const ACTIONABLE_GOAL_PRIORITY_THRESHOLD = 0.5;
 const MAX_GOALS_TO_EXECUTE = 3;
+const RECENCY_DECAY_FACTOR = 10000;
+const SIMILARITY_OFFSET = 0.1;
+const SIMILARITY_SCALE = 1.1;
 
 class Cycle {
     constructor(memory, reasoner, lm) {
@@ -42,11 +45,11 @@ class Cycle {
 
         const maxSimilarity = this.driveEmbeddings.reduce((max, driveEmbedding) => {
             const similarity = require('../utils/math').cosineSimilarity(term.embedding, driveEmbedding);
-            return similarity > max ? similarity : max;
+            return Math.max(max, similarity);
         }, 0);
 
-        const I = (maxSimilarity + 0.1) / 1.1;
-        const U = 1 / (1 + (currentTime - task.state.stamp.creationTime) / 10000);
+        const I = (maxSimilarity + SIMILARITY_OFFSET) / SIMILARITY_SCALE;
+        const U = 1 / (1 + (currentTime - task.state.stamp.creationTime) / RECENCY_DECAY_FACTOR);
         const T = calculateTemporalPriority(task, currentTime);
         const C = task.state.truthValue.confidence;
         const E = 1 / term.complexity;
@@ -65,13 +68,7 @@ class Cycle {
         });
     }
 
-    async _reason() {
-        const focusSet = this.memory.getHighestPriorityTasks(FOCUS_SET_SIZE);
-        if (focusSet.length === 0) return [];
-
-        const symbolicDerivedTasks = this.reasoner.performInference(focusSet);
-        const temporalDerivedTasks = this.temporalReasoner.infer(focusSet);
-
+    async _generateLmHypotheses(focusSet) {
         const hypothesisConfigs = [
             {type: 'general', num: 2},
             {type: 'creative', num: 1},
@@ -83,13 +80,18 @@ class Cycle {
         );
 
         const lmHypotheses = (await Promise.all(lmHypothesesPromises)).flat();
-        const rankedHypotheses = await this.lm.evaluateAndRankHypotheses(focusSet, lmHypotheses);
+        return this.lm.evaluateAndRankHypotheses(focusSet, lmHypotheses);
+    }
 
-        const derivedTasks = [
-            ...symbolicDerivedTasks,
-            ...temporalDerivedTasks,
-            ...rankedHypotheses
-        ];
+    async _reason() {
+        const focusSet = this.memory.getHighestPriorityTasks(FOCUS_SET_SIZE);
+        if (focusSet.length === 0) return [];
+
+        const symbolicTasks = this.reasoner.performInference(focusSet);
+        const temporalTasks = this.temporalReasoner.infer(focusSet);
+        const lmTasks = await this._generateLmHypotheses(focusSet);
+
+        const derivedTasks = [...symbolicTasks, ...temporalTasks, ...lmTasks];
 
         this.memory.addTasks(derivedTasks);
         derivedTasks.forEach(derivedTask => {
@@ -102,18 +104,20 @@ class Cycle {
     _metaCognition(derivedTasks) {
         const allTasks = [...this.memory.getAllTasks(), ...derivedTasks];
         const contradictions = this.metaCognition.findContradictions(allTasks);
-        if (contradictions.length === 0) return {contradictions: [], metaTasks: []};
-
-        const allMetaTasks = contradictions.flatMap(contradiction =>
-            this.metaCognition.resolve(contradiction, 'auto')
-        );
-
-        if (allMetaTasks.length > 0) {
-            this.memory.addTasks(allMetaTasks);
-            allMetaTasks.forEach(metaTask => metaTask.state.priority = META_TASK_PRIORITY);
+        if (contradictions.length === 0) {
+            return {contradictions, metaTasks: []};
         }
 
-        return {contradictions, metaTasks: allMetaTasks};
+        const metaTasks = contradictions.flatMap(c =>
+            this.metaCognition.resolve(c, 'auto')
+        );
+
+        if (metaTasks.length > 0) {
+            metaTasks.forEach(mt => mt.state.priority = META_TASK_PRIORITY);
+            this.memory.addTasks(metaTasks);
+        }
+
+        return {contradictions, metaTasks};
     }
 
     async _enrich(tasks) {
