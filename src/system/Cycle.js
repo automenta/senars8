@@ -46,14 +46,8 @@ class Cycle {
     }
 
     async _generateLmHypotheses(focusSet) {
-        const hypothesisConfigs = [
-            {type: 'general', num: 2},
-            {type: 'creative', num: 1},
-            {type: 'sophisticated', num: 1},
-        ];
-
-        const lmHypothesesPromises = hypothesisConfigs.map(config =>
-            this.lm.generateHypotheses(focusSet, config)
+        const lmHypothesesPromises = config.LM_HYPOTHESIS_CONFIGS.map(hConfig =>
+            this.lm.generateHypotheses(focusSet, hConfig)
         );
 
         const lmHypotheses = (await Promise.all(lmHypothesesPromises)).flat();
