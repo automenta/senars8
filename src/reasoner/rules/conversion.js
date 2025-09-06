@@ -1,5 +1,5 @@
-const {buildTermKey} = require('../../utils/term-builder');
-const {deduceTruthValue} = require('../truth-value');
+const {buildTermKey} = require('../../utils/term-utils');
+const TruthValueManager = require('../TruthValueManager');
 const {createRule} = require('./rule-builder');
 
 module.exports = createRule({

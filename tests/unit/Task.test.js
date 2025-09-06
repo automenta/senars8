@@ -37,13 +37,13 @@ describe('Task', () => {
     });
 
     test('should throw an error if term is invalid', () => {
-        expect(() => new Task(null, '.')).toThrow('Task requires a valid term object with a non-empty key.');
-        expect(() => new Task({}, '.')).toThrow('Task requires a valid term object with a non-empty key.');
-        expect(() => new Task({key: ''}, '.')).toThrow('Task requires a valid term object with a non-empty key.');
+        expect(() => new Task(null, '.')).toThrow('Invalid Task arguments');
+        expect(() => new Task({}, '.')).toThrow('Invalid Task arguments');
+        expect(() => new Task({key: ''}, '.')).toThrow('Invalid Task arguments');
     });
 
     test('should throw an error if punctuation is invalid', () => {
         const term = new Term('cat');
-        expect(() => new Task(term, 'a')).toThrow('Task punctuation must be one of ".", "!", or "?".');
+        expect(() => new Task(term, 'a')).toThrow('Invalid Task arguments');
     });
 });

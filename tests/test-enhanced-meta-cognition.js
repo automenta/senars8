@@ -1,6 +1,6 @@
 const MetaCognition = require('../src/system/MetaCognition');
 const Task = require('../src/core/Task');
-const {parseTerm} = require('../src/parser/NewParser');
+const {parseTerm} = require('../src/parser/narseseParser');
 
 async function testEnhancedMetaCognition() {
     console.log("=== Testing Enhanced Meta-Cognition ===\n");

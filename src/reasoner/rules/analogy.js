@@ -1,5 +1,5 @@
-const {buildTermKey} = require('../../utils/term-builder');
-const {analogizeTruthValue} = require('../truth-value');
+const {buildTermKey} = require('../../utils/term-utils');
+const TruthValueManager = require('../TruthValueManager');
 const {createRule} = require('./rule-builder');
 
 module.exports = createRule({
@@ -22,7 +22,7 @@ module.exports = createRule({
             subject: parsed1.predicate,
             predicate: parsed2.predicate
         });
-        const newTruthValue = analogizeTruthValue(
+        const newTruthValue = TruthValueManager.analogize(
             task1.state.truthValue,
             task2.state.truthValue,
             task3.state.truthValue

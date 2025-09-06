@@ -1,6 +1,6 @@
 const System = require('../src/system/System');
 const Task = require('../src/core/Task');
-const {parseTerm} = require('../src/parser/NewParser');
+const {parseTerm} = require('../src/parser/narseseParser');
 
 /**
  * Enhanced Temporal Reasoning Demo

@@ -1,6 +1,6 @@
 const System = require('../src/system/System');
 const { createTask } = require('./demo-utils');
-const PerceptionEnhanced = require('../src/system/PerceptionEnhanced');
+const Perception = require('../src/system/Perception');
 
 /**
  * Enhanced Perception Demo
@@ -12,8 +12,8 @@ async function enhancedPerceptionDemo() {
     const system = new System();
     await system.initialize();
 
-    // Initialize enhanced perception for direct testing
-    const perception = new PerceptionEnhanced(system.memory, system.lm);
+    // Initialize perception for direct testing
+    const perception = new Perception(system.memory, system.lm);
 
     // Register custom sensory modalities
     perception.registerSensoryModality('visual', async (input) => {
@@ -61,8 +61,8 @@ async function enhancedPerceptionDemo() {
         console.log();
     }
 
-    // Direct PerceptionEnhanced testing
-    console.log("\n=== Direct PerceptionEnhanced Testing ===");
+    // Direct Perception testing
+    console.log("\n=== Direct Perception Testing ===");
 
     // Test attention focus
     console.log("\n1. Attention focus:");

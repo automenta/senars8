@@ -6,7 +6,7 @@ const Task = require('../src/core/Task');
 const Term = require('../src/core/Term');
 const {
     parseTerm
-} = require('../src/parser/NewParser');
+} = require('../src/parser/narseseParser');
 
 // Mock the LM to avoid loading heavy models
 jest.mock('../src/lm/LM');

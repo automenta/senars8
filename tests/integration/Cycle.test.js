@@ -4,7 +4,7 @@ const Reasoner = require('../../src/reasoner/Reasoner');
 const LM = require('../../src/lm/LM');
 const Task = require('../../src/core/Task');
 const Term = require('../../src/core/Term');
-const {parseTerm} = require('../../src/parser/NewParser');
+const {parseTerm} = require('../../src/parser/narseseParser');
 
 jest.mock('../../src/lm/LM');
 

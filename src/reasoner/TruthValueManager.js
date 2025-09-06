@@ -1,13 +1,3 @@
-const {
-    bayesianRevision,
-    consensusRevision,
-    temporalDecayRevision,
-    conflictResolutionRevision,
-    reinforcementRevision,
-    entropyBasedRevision,
-    sophisticatedRevision
-} = require('./truth-value-revision');
-
 const {cosineSimilarity} = require('../utils/math');
 
 /**
@@ -29,7 +19,7 @@ class TruthValueManager {
      */
     bayesianRevision(task, newEvidence, weight = 0.5) {
         const oldTruthValue = {...task.state.truthValue};
-        const revisedTruthValue = bayesianRevision(oldTruthValue, newEvidence, weight);
+        const revisedTruthValue = TruthValueManager.bayesianRevision(oldTruthValue, newEvidence, weight);
 
         // Update the task's truth value
         task.state.truthValue = revisedTruthValue;
@@ -47,7 +37,7 @@ class TruthValueManager {
      */
     consensusRevision(task, evidenceSources) {
         const oldTruthValue = {...task.state.truthValue};
-        const revisedTruthValue = consensusRevision(oldTruthValue, evidenceSources);
+        const revisedTruthValue = TruthValueManager.consensusRevision(oldTruthValue, evidenceSources);
 
         // Update the task's truth value
         task.state.truthValue = revisedTruthValue;
@@ -66,7 +56,7 @@ class TruthValueManager {
      */
     temporalDecayRevision(task, currentTime, decayRate = 0.0001) {
         const oldTruthValue = {...task.state.truthValue};
-        const revisedTruthValue = temporalDecayRevision(
+        const revisedTruthValue = TruthValueManager.temporalDecayRevision(
             oldTruthValue,
             currentTime,
             task.state.stamp.creationTime,
@@ -94,7 +84,7 @@ class TruthValueManager {
         const oldTruthValue1 = {...task1.state.truthValue};
         const oldTruthValue2 = {...task2.state.truthValue};
 
-        const resolvedTruthValue = conflictResolutionRevision(oldTruthValue1, oldTruthValue2);
+        const resolvedTruthValue = TruthValueManager.conflictResolutionRevision(oldTruthValue1, oldTruthValue2);
 
         // Update both tasks' truth values
         task1.state.truthValue = resolvedTruthValue;
@@ -127,7 +117,7 @@ class TruthValueManager {
      */
     reinforcementUpdate(task, reward, learningRate = 0.1) {
         const oldTruthValue = {...task.state.truthValue};
-        const updatedTruthValue = reinforcementRevision(oldTruthValue, reward, learningRate);
+        const updatedTruthValue = TruthValueManager.reinforcementRevision(oldTruthValue, reward, learningRate);
 
         // Update the task's truth value
         task.state.truthValue = updatedTruthValue;
@@ -148,7 +138,7 @@ class TruthValueManager {
      */
     entropyBasedUpdate(task, newInformation) {
         const oldTruthValue = {...task.state.truthValue};
-        const updatedTruthValue = entropyBasedRevision(oldTruthValue, newInformation);
+        const updatedTruthValue = TruthValueManager.entropyBasedRevision(oldTruthValue, newInformation);
 
         // Update the task's truth value
         task.state.truthValue = updatedTruthValue;
@@ -168,7 +158,7 @@ class TruthValueManager {
      */
     sophisticatedRevision(task, options = {}) {
         const oldTruthValue = {...task.state.truthValue};
-        const revisedTruthValue = sophisticatedRevision(oldTruthValue, {
+        const revisedTruthValue = TruthValueManager.sophisticatedRevision(oldTruthValue, {
             ...options,
             currentTime: options.currentTime || Date.now(),
             creationTime: options.creationTime || task.state.stamp.creationTime
@@ -351,6 +341,136 @@ class TruthValueManager {
         const maxTerms = Math.max(task1.termKey.split(' ').length, task2.termKey.split(' ').length);
 
         return commonTerms.length / maxTerms;
+    }
+
+    static deduce(tv1, tv2) {
+        const frequency = tv1.frequency * tv2.frequency;
+        const confidence = tv1.confidence * tv2.confidence * 0.9;
+        return {frequency, confidence};
+    }
+
+    static induce(tv1, tv2) {
+        const frequency = (tv1.frequency + tv2.frequency) / 2;
+        const confidence = tv1.confidence * tv2.confidence * 0.5;
+        return {frequency, confidence};
+    }
+
+    static abduce(tv1, tv2) {
+        const frequency = (tv1.frequency + tv2.frequency) / 2;
+        const confidence = tv1.confidence * tv2.confidence * 0.3;
+        return {frequency, confidence};
+    }
+
+    static analogize(tv1, tv2, tv3) {
+        const frequency = (tv1.frequency + tv2.frequency + tv3.frequency) / 3;
+        const confidence = tv1.confidence * tv2.confidence * tv3.confidence * 0.4;
+        return {frequency, confidence};
+    }
+
+    static bayesianRevision(oldTruthValue, newEvidence, weight = 0.5) {
+        const revisedFrequency = (1 - weight) * oldTruthValue.frequency + weight * newEvidence.frequency;
+        const revisedConfidence = Math.min(1.0, oldTruthValue.confidence + newEvidence.confidence * weight);
+        return {frequency: revisedFrequency, confidence: revisedConfidence};
+    }
+
+    static consensusRevision(currentTruthValue, evidenceSources) {
+        if (!evidenceSources || evidenceSources.length === 0) {
+            return currentTruthValue;
+        }
+
+        let totalWeightedFrequency = currentTruthValue.frequency * currentTruthValue.confidence;
+        let totalWeight = currentTruthValue.confidence;
+        let maxConfidence = currentTruthValue.confidence;
+
+        for (const evidence of evidenceSources) {
+            totalWeightedFrequency += evidence.frequency * evidence.confidence;
+            totalWeight += evidence.confidence;
+            maxConfidence = Math.max(maxConfidence, evidence.confidence);
+        }
+
+        const revisedFrequency = totalWeightedFrequency / totalWeight;
+        const revisedConfidence = Math.min(1.0, maxConfidence);
+        return {frequency: revisedFrequency, confidence: revisedConfidence};
+    }
+
+    static temporalDecayRevision(truthValue, currentTime, creationTime, decayRate = 0.0001) {
+        const age = currentTime - creationTime;
+        const decayFactor = Math.exp(-decayRate * age);
+        return {frequency: truthValue.frequency, confidence: truthValue.confidence * decayFactor};
+    }
+
+    static conflictResolutionRevision(truthValue1, truthValue2) {
+        const totalConfidence = truthValue1.confidence + truthValue2.confidence;
+        if (totalConfidence === 0) {
+            return {frequency: 0.5, confidence: 0.0};
+        }
+
+        const weight1 = truthValue1.confidence / totalConfidence;
+        const weight2 = truthValue2.confidence / totalConfidence;
+
+        const revisedFrequency = weight1 * truthValue1.frequency + weight2 * truthValue2.frequency;
+        const confidenceReduction = Math.abs(truthValue1.frequency - truthValue2.frequency);
+        const revisedConfidence = Math.max(0.1, (weight1 * truthValue1.confidence + weight2 * truthValue2.confidence) * (1 - confidenceReduction));
+        return {frequency: revisedFrequency, confidence: revisedConfidence};
+    }
+
+    static reinforcementRevision(truthValue, reward, learningRate = 0.1) {
+        const delta = reward * learningRate;
+        const revisedFrequency = Math.max(0.0, Math.min(1.0, truthValue.frequency + delta));
+        const confidenceAdjustment = Math.abs(reward) * learningRate;
+        const revisedConfidence = Math.min(1.0, truthValue.confidence + confidenceAdjustment);
+        return {frequency: revisedFrequency, confidence: revisedConfidence};
+    }
+
+    static entropyBasedRevision(truthValue, newInformation) {
+        const currentEntropy = -(truthValue.frequency * Math.log2(truthValue.frequency || 0.0001) +
+            (1 - truthValue.frequency) * Math.log2((1 - truthValue.frequency) || 0.0001));
+
+        const informationGain = Math.abs(newInformation) * 0.1;
+        const entropyReduction = informationGain / (1 + currentEntropy);
+
+        const revisedConfidence = Math.min(1.0, truthValue.confidence + entropyReduction);
+        const revisedFrequency = Math.max(0.0, Math.min(1.0, truthValue.frequency + (newInformation * 0.05)));
+        return {frequency: revisedFrequency, confidence: revisedConfidence};
+    }
+
+    static sophisticatedRevision(currentTruthValue, options = {}) {
+        let revisedTruthValue = {...currentTruthValue};
+
+        if (options.applyTemporalDecay && options.currentTime && options.creationTime) {
+            revisedTruthValue = TruthValueManager.temporalDecayRevision(
+                revisedTruthValue,
+                options.currentTime,
+                options.creationTime,
+                options.decayRate
+            );
+        }
+
+        if (options.newEvidence) {
+            revisedTruthValue = TruthValueManager.bayesianRevision(
+                revisedTruthValue,
+                options.newEvidence,
+                options.evidenceWeight
+            );
+        }
+
+        if (options.evidenceSources && options.evidenceSources.length > 0) {
+            revisedTruthValue = TruthValueManager.consensusRevision(revisedTruthValue, options.evidenceSources);
+        }
+
+        if (options.contradictoryEvidence) {
+            revisedTruthValue = TruthValueManager.conflictResolutionRevision(revisedTruthValue, options.contradictoryEvidence);
+        }
+
+        if (typeof options.reward !== 'undefined') {
+            revisedTruthValue = TruthValueManager.reinforcementRevision(revisedTruthValue, options.reward, options.learningRate);
+        }
+
+        if (typeof options.newInformation !== 'undefined') {
+            revisedTruthValue = TruthValueManager.entropyBasedRevision(revisedTruthValue, options.newInformation);
+        }
+
+        return revisedTruthValue;
     }
 }
 

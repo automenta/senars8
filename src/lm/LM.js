@@ -1,6 +1,6 @@
 const Term = require("../core/Term");
 const Task = require("../core/Task");
-const {parseTerm} = require('../parser/NewParser');
+const {parseTerm} = require('../parser/narseseParser');
 const {cosineSimilarity} = require('../utils/math');
 
 class LM {
@@ -24,7 +24,6 @@ class LM {
 
     getGenerationPipeline() {
         return this._initializePipeline('_generationPipelinePromise', 'text-generation', 'Xenova/distilgpt2', {
-            maxLength: 1024,
             useCache: false
         });
     }
@@ -38,11 +37,10 @@ class LM {
     async _generate(prompt, options = {}) {
         const generator = await this.getGenerationPipeline();
         const result = await generator(prompt, {
-            max_new_tokens: 100,
+            max_new_tokens: 100, // Default value
             temperature: 0.7,
             do_sample: true,
             ...options,
-            max_length: 1024, // Ensure max_length is always set
         });
         return result?.[0]?.generated_text.replace(prompt, '').trim() || '';
     }

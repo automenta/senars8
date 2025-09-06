@@ -1,12 +1,40 @@
 const lexer = require('./lexer');
 
-class NewParser {
+class NarseseParser {
     constructor(input) {
         this.lexer = lexer.clone();
         this.lexer.reset(input);
         this.current = null;
         this.next();
     }
+
+    termParsers = {
+        lparen: () => {
+            this.consume('lparen');
+            const operatorToken = this.current.type;
+            this.consume(operatorToken);
+            this.consume('comma');
+            const terms = this.parseTermList();
+            this.consume('rparen');
+            return {type: operatorToken, terms};
+        },
+        setExtension: () => {
+            this.consume('setExtension');
+            const terms = this.parseTermList();
+            this.consume('rbrace');
+            return {type: 'ExtensionalSet', terms};
+        },
+        setIntension: () => {
+            this.consume('setIntension');
+            const terms = this.parseTermList();
+            this.consume('rbracket');
+            return {type: 'IntensionalSet', terms};
+        },
+        identifier: () => ({type: 'Atomic', key: this.consume('identifier')}),
+        independentVar: () => ({type: 'IndependentVariable', name: this.consume('independentVar')}),
+        dependentVar: () => ({type: 'DependentVariable', name: this.consume('dependentVar')}),
+        queryVar: () => ({type: 'QueryVariable', name: this.consume('queryVar')}),
+    };
 
     next() {
         this.current = this.lexer.next();
@@ -270,7 +298,7 @@ function parseTerm(input) {
     }
 
     try {
-        const parser = new NewParser(input);
+        const parser = new NarseseParser(input);
         const parsed = parser.parseMain();
         if (parsed) {
             // Attach the original string key to the parsed object.

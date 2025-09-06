@@ -1,5 +1,5 @@
 const Task = require('../core/Task');
-const {parseTerm} = require('../parser/NewParser');
+const {parseTerm} = require('../parser/narseseParser');
 
 const DRIVES = [
     new Task(parseTerm('AcquireKnowledge'), '!'),
@@ -9,7 +9,6 @@ const DRIVES = [
 ];
 
 const CONSTRAINTS = [
-    // new Task(parseTerm('((&, self, cause_harm) ==> NEGATIVE_OUTCOME)'), '.', {frequency: 1.0, confidence: 0.99}),
 ];
 
 const CONSTITUTION_TASKS = Object.freeze([

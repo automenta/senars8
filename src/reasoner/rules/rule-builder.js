@@ -1,5 +1,5 @@
 const Task = require('../../core/Task');
-const {parseTerm} = require('../../parser/NewParser');
+const {parseTerm} = require('../../parser/narseseParser');
 
 function createRule(spec) {
     return {

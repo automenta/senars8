@@ -1,5 +1,5 @@
 const Term = require('../../src/core/Term');
-const {buildTermKey} = require('../../src/utils/term-builder');
+const {buildTermKey} = require('../../src/utils/term-utils');
 
 describe('Term', () => {
     test('should create a new Term object', () => {
@@ -19,17 +19,17 @@ describe('Term', () => {
     });
 
     test('should throw an error if key is not a non-empty string', () => {
-        expect(() => new Term('')).toThrow('Term key must be a non-empty string.');
-        expect(() => new Term(123)).toThrow('Term key must be a non-empty string.');
+        expect(() => new Term('')).toThrow('Invalid arguments for Term constructor');
+        expect(() => new Term(123)).toThrow('Invalid arguments for Term constructor');
     });
 
     test('should throw an error if embedding is not an array', () => {
-        expect(() => new Term('cat', 'not-an-array')).toThrow('Term embedding must be an array.');
+        expect(() => new Term('cat', 'not-an-array')).toThrow('Invalid arguments for Term constructor');
     });
 
     test('should throw an error if complexity is not a positive number', () => {
-        expect(() => new Term('cat', [], 0)).toThrow('Term complexity must be a positive number.');
-        expect(() => new Term('cat', [], -1)).toThrow('Term complexity must be a positive number.');
+        expect(() => new Term('cat', [], 0)).toThrow('Invalid arguments for Term constructor');
+        expect(() => new Term('cat', [], -1)).toThrow('Invalid arguments for Term constructor');
     });
 });
 

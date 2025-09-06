@@ -1,5 +1,16 @@
 const Task = require('../core/Task');
-const {parseTerm} = require('../parser/NewParser');
+const {parseTerm} = require('../parser/narseseParser');
+
+function _groupTasksByTermKey(tasks) {
+    const taskGroups = {};
+    tasks.forEach(task => {
+        if (!taskGroups[task.termKey]) {
+            taskGroups[task.termKey] = [];
+        }
+        taskGroups[task.termKey].push(task);
+    });
+    return taskGroups;
+}
 
 function createTemporalTask(termKey, punctuation, truthValue, occurrenceTime, endTime = null) {
     const stamp = {
@@ -67,15 +78,7 @@ function determineTemporalRelationship(task1, task2) {
 
 function predictFutureTasks(tasks, predictionTime) {
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
-
-    const taskGroups = {};
-    temporalTasks.forEach(task => {
-        if (!taskGroups[task.termKey]) {
-            taskGroups[task.termKey] = [];
-        }
-        taskGroups[task.termKey].push(task);
-    });
-
+    const taskGroups = _groupTasksByTermKey(temporalTasks);
     const predictions = [];
 
     for (const [termKey, groupTasks] of Object.entries(taskGroups)) {
@@ -287,14 +290,7 @@ function detectTemporalCycles(tasks) {
 
     if (temporalTasks.length < 4) return cycles;
 
-    // Group tasks by term key
-    const taskGroups = {};
-    temporalTasks.forEach(task => {
-        if (!taskGroups[task.termKey]) {
-            taskGroups[task.termKey] = [];
-        }
-        taskGroups[task.termKey].push(task);
-    });
+    const taskGroups = _groupTasksByTermKey(temporalTasks);
 
     // For each group, check for cyclic patterns
     for (const [termKey, groupTasks] of Object.entries(taskGroups)) {
@@ -386,14 +382,7 @@ function detectTemporalAnomalies(tasks) {
 
     if (temporalTasks.length < 5) return anomalies;
 
-    // Group tasks by term key
-    const taskGroups = {};
-    temporalTasks.forEach(task => {
-        if (!taskGroups[task.termKey]) {
-            taskGroups[task.termKey] = [];
-        }
-        taskGroups[task.termKey].push(task);
-    });
+    const taskGroups = _groupTasksByTermKey(temporalTasks);
 
     // For each group, check for anomalies
     for (const [termKey, groupTasks] of Object.entries(taskGroups)) {
@@ -445,14 +434,7 @@ function advancedPredictFutureTasks(tasks, predictionHorizon) {
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
     if (temporalTasks.length < 3) return predictions;
 
-    // Group tasks by term key
-    const taskGroups = {};
-    temporalTasks.forEach(task => {
-        if (!taskGroups[task.termKey]) {
-            taskGroups[task.termKey] = [];
-        }
-        taskGroups[task.termKey].push(task);
-    });
+    const taskGroups = _groupTasksByTermKey(temporalTasks);
 
     // For each group, make predictions
     for (const [termKey, groupTasks] of Object.entries(taskGroups)) {

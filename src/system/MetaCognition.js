@@ -1,6 +1,6 @@
 const {
     parseTerm
-} = require('../parser/NewParser');
+} = require('../parser/narseseParser');
 const Task = require('../core/Task');
 const TruthValueManager = require('../reasoner/TruthValueManager');
 
@@ -47,7 +47,6 @@ class MetaCognition {
             this._analyzeImplicationConflict, this._analyzeEquivalenceConflict,
             this._analyzeSetConflict, this._analyzeConjunctionConflict,
             this._analyzeDisjunctionConflict, this._analyzeIntensionalSetConflict,
-            this._analyzeVariableConflict, this._analyzeTemporalConflict,
             this._analyzeGoalConflict, this._analyzeFrequencyConflict
         ];
         for (const method of analysisMethods) {
@@ -154,8 +153,8 @@ class MetaCognition {
         return null;
     }
 
-    _analyzeConjunctionConflict(task1, task2, parsed1, parsed2) {
-        if (parsed1.type !== 'Conjunction' || parsed2.type !== 'Conjunction') return null;
+    _analyzeCompoundTermConflict(task1, task2, parsed1, parsed2, expectedType, conflictType) {
+        if (parsed1.type !== expectedType || parsed2.type !== expectedType) return null;
         const terms1 = new Map((parsed1.terms || []).map(t => [t.key.replace('--', ''), t]));
         const terms2 = new Map((parsed2.terms || []).map(t => [t.key.replace('--', ''), t]));
 
@@ -163,29 +162,20 @@ class MetaCognition {
             const term2 = terms2.get(key);
             if (term2 && term1.type !== term2.type) {
                 return {
-                    type: 'conjunction_conflict',
-                    details: `Conjunction conflict on element ${key}`
+                    type: conflictType,
+                    details: `${expectedType} conflict on element ${key}`
                 };
             }
         }
         return null;
     }
 
-    _analyzeDisjunctionConflict(task1, task2, parsed1, parsed2) {
-        if (parsed1.type !== 'Disjunction' || parsed2.type !== 'Disjunction') return null;
-        const terms1 = new Map((parsed1.terms || []).map(t => [t.key.replace('--', ''), t]));
-        const terms2 = new Map((parsed2.terms || []).map(t => [t.key.replace('--', ''), t]));
+    _analyzeConjunctionConflict(task1, task2, parsed1, parsed2) {
+        return this._analyzeCompoundTermConflict(task1, task2, parsed1, parsed2, 'Conjunction', 'conjunction_conflict');
+    }
 
-        for (const [key, term1] of terms1.entries()) {
-            const term2 = terms2.get(key);
-            if (term2 && term1.type !== term2.type) {
-                return {
-                    type: 'disjunction_conflict',
-                    details: `Disjunction conflict on element ${key}`
-                };
-            }
-        }
-        return null;
+    _analyzeDisjunctionConflict(task1, task2, parsed1, parsed2) {
+        return this._analyzeCompoundTermConflict(task1, task2, parsed1, parsed2, 'Disjunction', 'disjunction_conflict');
     }
 
     _analyzeIntensionalSetConflict(task1, task2, parsed1, parsed2) {
@@ -204,31 +194,6 @@ class MetaCognition {
         return null;
     }
 
-    _analyzeVariableConflict(task1, task2, parsed1, parsed2) {
-        if (parsed1.type !== 'StatementWithVariables' || parsed2.type !== 'StatementWithVariables' || parsed1.statement !== parsed2.statement) return null;
-        const freqConflict = Math.abs(task1.state.truthValue.frequency - task2.state.truthValue.frequency) > 0.8;
-        const highConfidence = task1.state.truthValue.confidence > 0.8 && task2.state.truthValue.confidence > 0.8;
-        if (freqConflict && highConfidence) {
-            return {
-                type: 'variable_conflict',
-                details: `Variable conflict for statement "${parsed1.statement}"`
-            };
-        }
-        return null;
-    }
-
-    _analyzeTemporalConflict(task1, task2, parsed1, parsed2) {
-        if (parsed1.type !== 'Event' || parsed2.type !== 'Event' || parsed1.event !== parsed2.event || task1.state.stamp.occurrenceTime === task2.state.stamp.occurrenceTime) return null;
-        const freqConflict = Math.abs(task1.state.truthValue.frequency - task2.state.truthValue.frequency) > 0.8;
-        const highConfidence = task1.state.truthValue.confidence > 0.8 && task2.state.truthValue.confidence > 0.8;
-        if (freqConflict && highConfidence) {
-            return {
-                type: 'temporal_conflict',
-                details: `Temporal conflict for event "${parsed1.event}"`
-            };
-        }
-        return null;
-    }
 
     _analyzeFrequencyConflict(task1, task2) {
         const freqConflict = Math.abs(task1.state.truthValue.frequency - task2.state.truthValue.frequency) > 0.8;

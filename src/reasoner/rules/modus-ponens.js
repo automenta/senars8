@@ -1,5 +1,5 @@
-const {buildTermKey} = require('../../utils/term-builder');
-const {deduceTruthValue} = require('../truth-value');
+const {buildTermKey} = require('../../utils/term-utils');
+const TruthValueManager = require('../TruthValueManager');
 const {createRule} = require('./rule-builder');
 
 module.exports = createRule({
@@ -15,7 +15,7 @@ module.exports = createRule({
         parsed1.subject.key === parsed2.key,
     action: (parsed1, parsed2, task1, task2) => {
         const newTermKey = buildTermKey(parsed1.predicate);
-        const newTruthValue = deduceTruthValue(task1.state.truthValue, task2.state.truthValue);
+        const newTruthValue = TruthValueManager.deduce(task1.state.truthValue, task2.state.truthValue);
         return {newTermKey, newTruthValue};
     },
 });
