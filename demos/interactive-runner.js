@@ -4,11 +4,11 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-const DEMO_DIR = path.join(__dirname, 'demos');
+const DEMO_DIR = __dirname;
 
 function getDemoFiles() {
     return fs.readdirSync(DEMO_DIR)
-        .filter(file => file.endsWith('-demo.js') && file !== 'run-all.js');
+        .filter(file => file.endsWith('-demo.js') && file !== 'run-all.js' && file !== 'interactive-runner.js');
 }
 
 async function runDemo(demoFile) {

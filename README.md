@@ -160,7 +160,7 @@ npm install
 To explore the system's capabilities, use the interactive demo runner:
 
 ```bash
-node index.js
+npm run start:demo
 ```
 
 This command will present you with a list of available demos. You can choose to run a specific demo or all of them sequentially. This is the best way to see the system in action.
@@ -232,9 +232,8 @@ senars8/
 │   ├── lm/            # Language model integration
 │   ├── system/        # High-level system components (System, Cycle, etc.)
 │   └── utils/         # Utility functions
-├── demos/             # Demonstration scripts
+├── demos/             # Demonstration scripts (including interactive-runner.js)
 ├── tests/             # Test suite
-├── index.js           # Interactive demo runner
 ├── package.json       # Project dependencies
 └── README.md          # This file
 ```

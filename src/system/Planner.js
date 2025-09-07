@@ -1,36 +1,12 @@
-const HTNPlanner = require('../reasoner/HTNPlanner');
 const { v4: uuidv4 } = require('uuid');
 
-class Planner {
-    constructor(memory, actionExecutor) {
-        if (!memory || !actionExecutor) {
-            throw new Error('Planner requires memory and actionExecutor instances.');
-        }
-        this.htnPlanner = new HTNPlanner(memory);
+class PlanExecutor {
+    constructor(actionExecutor) {
         this.actionExecutor = actionExecutor;
-        this.planCache = new Map();
         this.activePlans = new Map();
     }
 
-    async planAndExecute(goalTask) {
-        const plan = await this.createPlan(goalTask);
-        return plan ? this.executePlan(plan) : { success: false, error: 'No plan found' };
-    }
-
-    async createPlan(goalTask) {
-        const goalKey = goalTask.termKey;
-        if (this.planCache.has(goalKey)) {
-            return this.planCache.get(goalKey);
-        }
-
-        const plan = await this.htnPlanner.findPlan(goalTask);
-        if (plan) {
-            this.planCache.set(goalKey, plan);
-        }
-        return plan;
-    }
-
-    async executePlan(plan) {
+    async execute(plan) {
         const planId = uuidv4();
         this.activePlans.set(planId, { id: planId, steps: plan });
 
@@ -72,6 +48,35 @@ class Planner {
             default:
                 return null;
         }
+    }
+}
+
+class Planner {
+    constructor(planningStrategy, actionExecutor) {
+        if (!planningStrategy || !actionExecutor) {
+            throw new Error('Planner requires a planning strategy and an actionExecutor.');
+        }
+        this.strategy = planningStrategy;
+        this.executor = new PlanExecutor(actionExecutor);
+        this.planCache = new Map();
+    }
+
+    async planAndExecute(goalTask) {
+        const plan = await this.createPlan(goalTask);
+        return plan ? this.executor.execute(plan) : { success: false, error: 'No plan found' };
+    }
+
+    async createPlan(goalTask) {
+        const goalKey = goalTask.termKey;
+        if (this.planCache.has(goalKey)) {
+            return this.planCache.get(goalKey);
+        }
+
+        const plan = await this.strategy.findPlan(goalTask);
+        if (plan) {
+            this.planCache.set(goalKey, plan);
+        }
+        return plan;
     }
 }
 

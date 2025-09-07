@@ -1,6 +1,13 @@
 const { v4: uuidv4 } = require('uuid');
 const { ACTION_EXECUTOR } = require('../config');
 
+class Action {
+    constructor(name, parameters = []) {
+        this.name = name;
+        this.parameters = parameters;
+    }
+}
+
 class ActionExecutor {
     constructor(memory) {
         this.memory = memory;
@@ -31,41 +38,58 @@ class ActionExecutor {
     }
 
     async execute(action) {
-        const actionRecord = { id: uuidv4(), action, timestamp: new Date(), status: 'pending' };
-        this.actionHistory.push(actionRecord);
-
+        const actionRecord = this._createActionRecord(action);
         try {
-            if (!this._checkConstraints(action)) {
-                throw new Error('Constraints not satisfied');
-            }
-
-            const handler = this._findHandler(action.name);
-            if (!handler) {
-                throw new Error('No handler found for action');
-            }
-
-            this._acquireResources(action);
-            const result = await handler(action);
-            this._releaseResources(action);
-
-            actionRecord.status = 'completed';
-            actionRecord.result = result;
-            return { success: true, result };
-
+            this._validate(action);
+            const result = await this._performExecution(action);
+            return this._recordSuccess(actionRecord, result);
         } catch (error) {
-            this._releaseResources(action); // Release resources on failure too
-            actionRecord.status = 'failed';
-            actionRecord.error = error.message;
-            return { success: false, error: error.message };
+            this._releaseResources(action); // Release resources on failure
+            return this._recordFailure(actionRecord, error);
         }
     }
 
+    _createActionRecord(action) {
+        const record = { id: uuidv4(), action, timestamp: new Date(), status: 'pending' };
+        this.actionHistory.push(record);
+        return record;
+    }
+
+    _validate(action) {
+        if (!this._checkConstraints(action)) {
+            throw new Error('Constraints not satisfied');
+        }
+        if (!this._findHandler(action.name)) {
+            throw new Error('No handler found for action');
+        }
+    }
+
+    async _performExecution(action) {
+        const handler = this._findHandler(action.name);
+        this._acquireResources(action);
+        const result = await handler(action);
+        this._releaseResources(action);
+        return result;
+    }
+
+    _recordSuccess(actionRecord, result) {
+        actionRecord.status = 'completed';
+        actionRecord.result = result;
+        return { success: true, result };
+    }
+
+    _recordFailure(actionRecord, error) {
+        actionRecord.status = 'failed';
+        actionRecord.error = error.message;
+        return { success: false, error: error.message };
+    }
+
     _acquireResources(action) {
-        // Placeholder for future implementation
+        // Placeholder for resource acquisition logic
     }
 
     _releaseResources(action) {
-        // Placeholder for future implementation
+        // Placeholder for resource release logic
     }
 
     _checkConstraints(action) {
@@ -89,4 +113,4 @@ class ActionExecutor {
     }
 }
 
-module.exports = ActionExecutor;
+module.exports = { ActionExecutor, Action };

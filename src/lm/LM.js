@@ -8,26 +8,33 @@ const { PromptTemplate } = require("@langchain/core/prompts");
 const { StructuredOutputParser } = require("@langchain/core/output_parsers");
 const { LM: LM_CONFIG } = require('../config');
 
-class LM {
+class PipelineFactory {
     constructor() {
         this._pipelines = new Map();
+    }
+
+    async get(type, model, options = {}) {
+        const key = `${type}-${model}`;
+        if (!this._pipelines.has(key)) {
+            const { pipeline } = await import('@xenova/transformers');
+            this._pipelines.set(key, pipeline(type, model, options));
+        }
+        return this._pipelines.get(key);
+    }
+}
+
+class LM {
+    constructor() {
+        this.pipelineFactory = new PipelineFactory();
         this.llm = null;
     }
 
-    async _getPipeline(type, model, options = {}) {
-        if (!this._pipelines.has(type)) {
-            const { pipeline } = await import('@xenova/transformers');
-            this._pipelines.set(type, pipeline(type, model, options));
-        }
-        return this._pipelines.get(type);
-    }
-
     async _getFeaturePipeline() {
-        return this._getPipeline('feature-extraction', LM_CONFIG.FEATURE_EXTRACTION_MODEL);
+        return this.pipelineFactory.get('feature-extraction', LM_CONFIG.FEATURE_EXTRACTION_MODEL);
     }
 
     async _getGenerationPipeline() {
-        const pipeline = await this._getPipeline('text-generation', LM_CONFIG.TEXT_GENERATION_MODEL, { useCache: false });
+        const pipeline = await this.pipelineFactory.get('text-generation', LM_CONFIG.TEXT_GENERATION_MODEL, { useCache: false });
         if (!this.llm) {
             this.llm = new XenovaLLM(pipeline);
         }
@@ -35,7 +42,7 @@ class LM {
     }
 
     async _getQAPipeline() {
-        return this._getPipeline('question-answering', LM_CONFIG.QA_MODEL, { maxLength: 512 });
+        return this.pipelineFactory.get('question-answering', LM_CONFIG.QA_MODEL, { maxLength: 512 });
     }
 
     async _generate(prompt, options = {}) {
@@ -98,6 +105,11 @@ class LM {
         }).filter(Boolean);
 
         return refinement ? Promise.all(hypotheses.map(h => this.refineHypothesis(h, refinement))) : hypotheses;
+    }
+
+    async generateHypothesis(task, config = {}) {
+        if (!task) return null;
+        return (await this.generateHypotheses([task], { ...config, num: 1 }))[0] || null;
     }
 
     async explain(termKey, config = {}) {

@@ -2,7 +2,7 @@ const Memory = require('../memory/Memory');
 const Reasoner = require('../reasoner/Reasoner');
 const LM = require('../lm/LM');
 const Cycle = require('./Cycle');
-const ActionExecutor = require('./ActionExecutor');
+const { ActionExecutor } = require('./ActionExecutor');
 const CONSTITUTION_TASKS = require('./Constitution');
 const registerDefaultActions = require('./default-actions');
 
