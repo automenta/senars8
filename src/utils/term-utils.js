@@ -63,7 +63,7 @@ function buildTermKey(pTerm) {
 
         case 'Conjunction': return `(&,${buildList(pTerm.terms || [])})`;
         case 'Disjunction': return `(||,${buildList(pTerm.terms || [])})`;
-        case 'SequentialConjunction': return `(&/,${buildList(pTerm.terms || [])})`;
+        case 'SequentialConjunction': return `(&&,${buildList(pTerm.terms || [])})`;
         case 'ParallelConjunction': return `(&|,${buildList(pTerm.terms || [])})`;
 
         case 'IntensionalSet': return `[${buildList(pTerm.terms || [])}]`;

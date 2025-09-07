@@ -17,8 +17,8 @@ describe('HTNPlanner Integration Test', () => {
         const goalKey = 'a';
         const action1Key = 'b';
         const action2Key = 'c';
-        // Narsese for: a ==> (&/ b, c)
-        const methodKey = `(${goalKey} ==> (&/,${action1Key},${action2Key}))`;
+        // Narsese for: a ==> (&&, b, c)
+        const methodKey = `(${goalKey} ==> (&&,${action1Key},${action2Key}))`;
 
         const goalTerm = new Term(goalKey);
         const action1Term = new Term(action1Key);

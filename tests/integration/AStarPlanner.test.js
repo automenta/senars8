@@ -34,8 +34,8 @@ describe('AStarPlanner Integration Test', () => {
         addTermToMemory('action_expensive');
         addBeliefToMemory('(action_expensive --> [10])');
 
-        // Path 2 (longer, but cheaper): goal ==> (&/, action_cheap1, action_cheap2)
-        addTermToMemory('(goal ==> (&/, action_cheap1, action_cheap2))');
+        // Path 2 (longer, but cheaper): goal ==> (&&, action_cheap1, action_cheap2)
+        addTermToMemory('(goal ==> (&&, action_cheap1, action_cheap2))');
         addTermToMemory('action_cheap1');
         addTermToMemory('action_cheap2');
 
@@ -50,7 +50,7 @@ describe('AStarPlanner Integration Test', () => {
 
     test('should find a simple plan with one level of decomposition', async () => {
         // Knowledge: to achieve 'goal', you must do 'action1' then 'action2'
-        addTermToMemory('(goal ==> (&/, action1, action2))');
+        addTermToMemory('(goal ==> (&&, action1, action2))');
         const goalTerm = addTermToMemory('goal');
         addTermToMemory('action1');
         addTermToMemory('action2');
@@ -77,9 +77,9 @@ describe('AStarPlanner Integration Test', () => {
     });
 
     test('should find the optimal (cheapest) plan when two paths exist', async () => {
-        // Path 1 (longer): goal ==> intermediate, intermediate ==> (&/, action1, action2)
+        // Path 1 (longer): goal ==> intermediate, intermediate ==> (&&, action1, action2)
         addTermToMemory('(goal ==> intermediate)');
-        addTermToMemory('(intermediate ==> (&/, action1, action2))');
+        addTermToMemory('(intermediate ==> (&&, action1, action2))');
 
         // Path 2 (shorter): goal ==> action3
         addTermToMemory('(goal ==> action3)');

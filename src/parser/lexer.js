@@ -12,7 +12,7 @@ const lexer = moo.compile({
     implies: '==>',
     instance: '{--',
     property: '--}',
-    sequentialConjunction: '&/',  // Must be before conjunction
+    sequentialConjunction: '&&',  // Must be before conjunction
     parallelConjunction: '&|',    // Must be before conjunction
     negation: '--',
     conjunction: '&',

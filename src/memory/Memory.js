@@ -8,6 +8,7 @@ class Memory {
         this.tasks = new Map();
         this.implicationIndex = new Map(); // Index for HTN planning
         this.beliefIndex = new Map(); // Index for fast belief lookup
+        this.costIndex = new Map(); // Index for action costs
         EventBus.on('NewTasksCreated', (tasks) => this.addTasks(tasks));
     }
 
@@ -52,6 +53,7 @@ class Memory {
             // If the task is a belief, add it to the belief index
             if (task.punctuation === '.') {
                 this.beliefIndex.set(task.termKey, task);
+                this._updateCostIndex(task.term, 'add');
             }
         }
     }
@@ -67,6 +69,23 @@ class Memory {
             // If the task was a belief, remove it from the belief index as well
             if (task.punctuation === '.') {
                 this.beliefIndex.delete(task.termKey);
+                this._updateCostIndex(task.term, 'remove');
+            }
+        }
+    }
+
+    _updateCostIndex(term, operation) {
+        if (term && term.type === 'Inheritance' && term.subject) {
+            if (term.predicate.type === 'IntensionalSet' && term.predicate.terms.length === 1) {
+                const cost = parseFloat(term.predicate.terms[0].key);
+                if (!isNaN(cost)) {
+                    const actionKey = term.subject.key;
+                    if (operation === 'add') {
+                        this.costIndex.set(actionKey, cost);
+                    } else if (operation === 'remove') {
+                        this.costIndex.delete(actionKey);
+                    }
+                }
             }
         }
     }

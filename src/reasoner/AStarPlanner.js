@@ -1,5 +1,6 @@
 const { MinPriorityQueue } = require('@datastructures-js/priority-queue');
 const BasePlanner = require('./BasePlanner');
+const PlannerUtils = require('./utils/PlannerUtils');
 
 class AStarPlanner extends BasePlanner {
     async findPlan(goalTask, maxIterations = 100) {
@@ -35,7 +36,7 @@ class AStarPlanner extends BasePlanner {
 
             const [currentTask, ...remainingTasks] = currentNode.tasks;
 
-            if (this._isAchieved(currentTask)) {
+            if (PlannerUtils.isAchieved(currentTask, this.memory, this.config)) {
                 const newNode = {
                     plan: currentNode.plan,
                     tasks: remainingTasks,
@@ -46,7 +47,20 @@ class AStarPlanner extends BasePlanner {
                 continue;
             }
 
-            const decompositionMethods = this._findDecompositionMethods(currentTask);
+            if (currentTask.type === 'SequentialConjunction') {
+                const subTasks = PlannerUtils.extractSubTasksFromMethod(currentTask);
+                const newTasks = [...subTasks, ...remainingTasks];
+                const newNode = {
+                    plan: currentNode.plan,
+                    tasks: newTasks,
+                    g: currentNode.g,
+                    h: this._calculateHeuristic(newTasks),
+                };
+                openSet.enqueue(newNode);
+                continue;
+            }
+
+            const decompositionMethods = PlannerUtils.findDecompositionMethods(currentTask, this.memory);
 
             if (decompositionMethods.length === 0) {
                 const newPlanKeys = [...currentNode.plan, currentTask.key];
@@ -54,7 +68,7 @@ class AStarPlanner extends BasePlanner {
                 const newNode = {
                     plan: newPlanKeys,
                     tasks: remainingTasks,
-                    g: this.getPlanCost(newPlanTerms),
+                    g: this.costManager.getPlanCost(newPlanTerms),
                     h: this._calculateHeuristic(remainingTasks),
                 };
                 openSet.enqueue(newNode);
@@ -66,8 +80,8 @@ class AStarPlanner extends BasePlanner {
                         preconditions = subject.terms.slice(1);
                     }
 
-                    if (this._arePreconditionsMet(preconditions)) {
-                        const subTasks = this._extractSubTasksFromMethod(method.predicate);
+                    if (PlannerUtils.arePreconditionsMet(preconditions, this.memory, this.config)) {
+                        const subTasks = PlannerUtils.extractSubTasksFromMethod(method.predicate);
                         if (!subTasks) continue;
 
                         const newTasks = [...subTasks, ...remainingTasks];
@@ -88,7 +102,7 @@ class AStarPlanner extends BasePlanner {
 
     _calculateHeuristic(tasks) {
         // Heuristic: sum of difficulties of all remaining tasks.
-        return tasks.reduce((total, task) => total + this.getTaskDifficulty(task), 0);
+        return tasks.reduce((total, task) => total + this.costManager.getTaskDifficulty(task), 0);
     }
 }
 

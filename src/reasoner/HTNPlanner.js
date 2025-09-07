@@ -1,4 +1,5 @@
 const BasePlanner = require('./BasePlanner');
+const PlannerUtils = require('./utils/PlannerUtils');
 
 class HTNPlanner extends BasePlanner {
     async findPlan(goalTask, maxDepth = 10) {
@@ -18,11 +19,17 @@ class HTNPlanner extends BasePlanner {
         const currentTask = tasksToDo[0];
         const remainingTasks = tasksToDo.slice(1);
 
-        if (this._isAchieved(currentTask)) {
+        if (PlannerUtils.isAchieved(currentTask, this.memory, this.config)) {
             return this._findPlanRecursive(remainingTasks, planSoFar, depth + 1, maxDepth);
         }
 
-        const implications = this._findDecompositionMethods(currentTask);
+        if (currentTask.type === 'SequentialConjunction') {
+            const subTasks = PlannerUtils.extractSubTasksFromMethod(currentTask);
+            const newTasksToDo = [...subTasks, ...remainingTasks];
+            return this._findPlanRecursive(newTasksToDo, planSoFar, depth + 1, maxDepth);
+        }
+
+        const implications = PlannerUtils.findDecompositionMethods(currentTask, this.memory);
 
         if (implications.length === 0) {
             const newPlan = [...planSoFar, currentTask.key];
@@ -37,9 +44,9 @@ class HTNPlanner extends BasePlanner {
                 preconditions = subject.terms.slice(1);
             }
 
-            if (this._arePreconditionsMet(preconditions)) {
+            if (PlannerUtils.arePreconditionsMet(preconditions, this.memory, this.config)) {
                 const method = implication.predicate;
-                const subTasks = this._extractSubTasksFromMethod(method);
+                const subTasks = PlannerUtils.extractSubTasksFromMethod(method);
                 if (subTasks) {
                     const newTasksToDo = [...subTasks, ...remainingTasks];
                     const result = await this._findPlanRecursive(newTasksToDo, planSoFar, depth + 1, maxDepth);
