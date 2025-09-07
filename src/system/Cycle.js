@@ -3,7 +3,7 @@ const Reasoner = require('../reasoner/Reasoner');
 const LM = require('../lm/LM');
 const {calculateTemporalPriority} = require('../utils/temporal-reasoning');
 const Planner = require('./Planner');
-const HTNPlanner = require('../reasoner/HTNPlanner');
+const AStarPlanner = require('../reasoner/AStarPlanner');
 const CONSTITUTION_TASKS = require('./Constitution');
 const Perception = require('./Perception');
 const MetaCognition = require('./MetaCognition');
@@ -20,7 +20,7 @@ class Cycle {
         this.reasoner = reasoner;
         this.lm = lm;
         this.perception = new Perception(memory, lm);
-        this.planner = new Planner(new HTNPlanner(memory), actionExecutor);
+        this.planner = new Planner(new AStarPlanner(memory), actionExecutor);
         this.metaCognition = new MetaCognition();
         this.temporalReasoner = new TemporalReasoner();
         this.priorityManager = new PriorityManager(memory);

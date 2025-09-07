@@ -71,13 +71,11 @@ class HTNPlanner {
     }
 
     _arePreconditionsMet(preconditions, confidenceThreshold = 0.8) {
-        const allBeliefs = this.memory.getAllTasks()
-            .filter(task => task.punctuation === '.' && task.state.truthValue.confidence > confidenceThreshold);
-
-        const beliefMap = new Map(allBeliefs.map(task => [task.termKey, task]));
-
         for (const precondition of preconditions) {
-            if (!beliefMap.has(precondition.key)) {
+            const belief = this.memory.beliefIndex.get(precondition.key);
+
+            // Check if the belief exists and meets the confidence threshold
+            if (!belief || belief.state.truthValue.confidence <= confidenceThreshold) {
                 return false; // A precondition is not met
             }
         }

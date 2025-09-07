@@ -7,6 +7,7 @@ class Memory {
         this.terms = new Map();
         this.tasks = new Map();
         this.implicationIndex = new Map(); // Index for HTN planning
+        this.beliefIndex = new Map(); // Index for fast belief lookup
         EventBus.on('NewTasksCreated', (tasks) => this.addTasks(tasks));
     }
 
@@ -47,11 +48,27 @@ class Memory {
                 throw new Error('Can only add Task instances to memory.');
             }
             this.tasks.set(task.id, task);
+
+            // If the task is a belief, add it to the belief index
+            if (task.punctuation === '.') {
+                this.beliefIndex.set(task.termKey, task);
+            }
         }
     }
 
     getTask(id) {
         return this.tasks.get(id);
+    }
+
+    removeTask(taskId) {
+        const task = this.tasks.get(taskId);
+        if (task) {
+            this.tasks.delete(taskId);
+            // If the task was a belief, remove it from the belief index as well
+            if (task.punctuation === '.') {
+                this.beliefIndex.delete(task.termKey);
+            }
+        }
     }
 
     getAllTasks() {
