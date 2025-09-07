@@ -6,15 +6,13 @@ class AStarPlanner extends BasePlanner {
         const goalTerm = this.memory.getTerm(goalTask.termKey);
         if (!goalTerm) return null;
 
-        const openSet = new MinPriorityQueue(
-            (node) => node.g + node.h
-        );
+        const openSet = new MinPriorityQueue((node) => node.g + node.h);
 
         const initialState = {
             plan: [],
             tasks: [goalTerm],
             g: 0,
-            h: 1,
+            h: this._calculateHeuristic([goalTerm]),
         };
 
         openSet.enqueue(initialState);
@@ -26,7 +24,7 @@ class AStarPlanner extends BasePlanner {
             const currentNode = openSet.dequeue();
 
             if (currentNode.tasks.length === 0) {
-                return currentNode.plan;
+                return currentNode.plan.map(termKey => this.memory.getTerm(termKey));
             }
 
             const tasksKey = currentNode.tasks.map(t => t.key).join(',');
@@ -42,7 +40,7 @@ class AStarPlanner extends BasePlanner {
                     plan: currentNode.plan,
                     tasks: remainingTasks,
                     g: currentNode.g,
-                    h: remainingTasks.length,
+                    h: this._calculateHeuristic(remainingTasks),
                 };
                 openSet.enqueue(newNode);
                 continue;
@@ -51,12 +49,13 @@ class AStarPlanner extends BasePlanner {
             const decompositionMethods = this._findDecompositionMethods(currentTask);
 
             if (decompositionMethods.length === 0) {
-                const newPlan = [...currentNode.plan, currentTask];
+                const newPlanKeys = [...currentNode.plan, currentTask.key];
+                const newPlanTerms = newPlanKeys.map(key => this.memory.getTerm(key));
                 const newNode = {
-                    plan: newPlan,
+                    plan: newPlanKeys,
                     tasks: remainingTasks,
-                    g: newPlan.length,
-                    h: remainingTasks.length,
+                    g: this.getPlanCost(newPlanTerms),
+                    h: this._calculateHeuristic(remainingTasks),
                 };
                 openSet.enqueue(newNode);
             } else {
@@ -76,7 +75,7 @@ class AStarPlanner extends BasePlanner {
                             plan: currentNode.plan,
                             tasks: newTasks,
                             g: currentNode.g,
-                            h: newTasks.length,
+                            h: this._calculateHeuristic(newTasks),
                         };
                         openSet.enqueue(newNode);
                     }
@@ -85,6 +84,11 @@ class AStarPlanner extends BasePlanner {
         }
 
         return null;
+    }
+
+    _calculateHeuristic(tasks) {
+        // Heuristic: sum of difficulties of all remaining tasks.
+        return tasks.reduce((total, task) => total + this.getTaskDifficulty(task), 0);
     }
 }
 

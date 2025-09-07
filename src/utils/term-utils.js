@@ -66,6 +66,12 @@ function buildTermKey(pTerm) {
         case 'SequentialConjunction': return `(&/,${buildList(pTerm.terms || [])})`;
         case 'ParallelConjunction': return `(&|,${buildList(pTerm.terms || [])})`;
 
+        case 'IntensionalSet': return `[${buildList(pTerm.terms || [])}]`;
+
+        case 'IndependentVariable': return pTerm.name;
+        case 'DependentVariable': return pTerm.name;
+        case 'QueryVariable': return pTerm.name;
+
         default:
             throw new Error(`buildTermKey does not support type: ${pTerm.type}`);
     }

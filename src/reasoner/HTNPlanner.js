@@ -5,10 +5,10 @@ class HTNPlanner extends BasePlanner {
         const goalTerm = this.memory.getTerm(goalTask.termKey);
         if (!goalTerm) return null;
 
-        const planOfTerms = await this._findPlanRecursive([goalTerm], [], 0, maxDepth);
-        if (!planOfTerms) return null;
+        const planOfKeys = await this._findPlanRecursive([goalTerm], [], 0, maxDepth);
+        if (!planOfKeys) return null;
 
-        return planOfTerms.map(term => this.memory.getTerm(term.key));
+        return planOfKeys.map(key => this.memory.getTerm(key));
     }
 
     async _findPlanRecursive(tasksToDo, planSoFar, depth, maxDepth) {
@@ -25,7 +25,7 @@ class HTNPlanner extends BasePlanner {
         const implications = this._findDecompositionMethods(currentTask);
 
         if (implications.length === 0) {
-            const newPlan = [...planSoFar, currentTask];
+            const newPlan = [...planSoFar, currentTask.key];
             return this._findPlanRecursive(remainingTasks, newPlan, depth + 1, maxDepth);
         }
 
