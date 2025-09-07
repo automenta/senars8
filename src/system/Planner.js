@@ -1,5 +1,4 @@
 const HTNPlanner = require('../reasoner/HTNPlanner');
-const ActionExecutor = require('./ActionExecutor');
 const { v4: uuidv4 } = require('uuid');
 
 class Planner {
@@ -7,8 +6,7 @@ class Planner {
         if (!memory || !actionExecutor) {
             throw new Error('Planner requires memory and actionExecutor instances.');
         }
-        this.memory = memory;
-        this.htnPlanner = new HTNPlanner(this.memory);
+        this.htnPlanner = new HTNPlanner(memory);
         this.actionExecutor = actionExecutor;
         this.planCache = new Map();
         this.activePlans = new Map();
@@ -16,10 +14,7 @@ class Planner {
 
     async planAndExecute(goalTask) {
         const plan = await this.createPlan(goalTask);
-        if (!plan) {
-            return { success: false, error: 'No plan found' };
-        }
-        return this.executePlan(plan);
+        return plan ? this.executePlan(plan) : { success: false, error: 'No plan found' };
     }
 
     async createPlan(goalTask) {
@@ -37,50 +32,46 @@ class Planner {
 
     async executePlan(plan) {
         const planId = uuidv4();
-        this.activePlans.set(planId, plan);
+        this.activePlans.set(planId, { id: planId, steps: plan });
 
-        const executionResults = [];
+        const results = [];
         for (const term of plan) {
-            const action = this.parseAction(term);
+            const action = this._parseAction(term);
             if (!action) {
-                console.error(`Could not parse action from term: ${term.key}`);
-                continue;
+                this.activePlans.delete(planId);
+                return { success: false, planId, error: `Could not parse action: ${term.key}`, results };
             }
 
             const result = await this.actionExecutor.execute(action);
-            executionResults.push({ action: action.name, result });
+            results.push({ action: action.name, result });
 
             if (!result.success) {
                 this.activePlans.delete(planId);
-                return {
-                    success: false,
-                    planId,
-                    error: `Plan failed at action ${action.name}`,
-                    results: executionResults,
-                };
+                return { success: false, planId, error: `Plan failed at action ${action.name}`, results };
             }
         }
 
         this.activePlans.delete(planId);
-        return { success: true, planId, results: executionResults };
+        return { success: true, planId, results };
     }
 
-    parseAction(term) {
-        if (term.type === 'Atomic') {
-            return { name: term.key, parameters: [] };
+    _parseAction(term) {
+        switch (term.type) {
+            case 'Atomic':
+                return { name: term.key, parameters: [] };
+            case 'SequentialConjunction':
+            case 'Conjunction':
+                if (term.terms.length > 0) {
+                    const [nameTerm, ...paramTerms] = term.terms;
+                    return {
+                        name: nameTerm.key,
+                        parameters: paramTerms.map(t => t.key),
+                    };
+                }
+                return null;
+            default:
+                return null;
         }
-
-        const isCompound = term.type === 'SequentialConjunction' || term.type === 'Conjunction';
-        if (isCompound && term.terms.length > 0) {
-            const [nameTerm, ...paramTerms] = term.terms;
-            return {
-                name: nameTerm.key,
-                parameters: paramTerms.map(t => t.key),
-            };
-        }
-
-        console.warn(`Cannot parse action from term of type ${term.type}: ${term.key}`);
-        return null;
     }
 }
 

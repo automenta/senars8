@@ -2,7 +2,12 @@
   "name": "senars",
   "version": "1.1.0",
   "description": "A neuro-symbolic cognitive architecture for advanced reasoning and learning.",
-  "main": "index.js",
+  "main": "src/index.js",
+  "files": [
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "start": "node index.js",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest"

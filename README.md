@@ -155,18 +155,15 @@ The cognitive cycle is implemented in `src/system/Cycle.js` and follows the spec
 npm install
 ```
 
-### **Running Demos**
+### **Running the Interactive Demo Runner**
+
+To explore the system's capabilities, use the interactive demo runner:
 
 ```bash
-# Run all demos, which are discovered dynamically
 node index.js
-
-# Run a specific demo
-node demos/math-inference.js
-node demos/planning-demo.js
-node demos/comprehensive-system-demo.js
-node demos/system-runner-demo.js
 ```
+
+This command will present you with a list of available demos. You can choose to run a specific demo or all of them sequentially. This is the best way to see the system in action.
 
 ### **Running Tests**
 
@@ -174,21 +171,70 @@ node demos/system-runner-demo.js
 npm test
 ```
 
+---
+## **Usage as a Library**
+
+You can easily integrate the SeNARS system into your own projects.
+
+```javascript
+const { System } = require('./src'); // Assuming you have an index.js in src
+const { Task } = require('./src/core/Task');
+const { parseTerm } = require('./src/parser/narseseParser');
+
+async function runSystem() {
+    // 1. Initialize the system
+    const system = new System();
+    await system.initialize();
+
+    // 2. Add knowledge to the system
+    const belief = new Task(
+        parseTerm('<cat --> animal>.'),
+        '.',
+        { frequency: 1.0, confidence: 0.9 }
+    );
+    await system.addTasks([belief]);
+
+    console.log('System initialized and belief added.');
+
+    // 3. Run the cognitive cycle
+    for (let i = 0; i < 10; i++) {
+        const output = await system.runCycle();
+        console.log(`Cycle ${i+1} complete. Derived ${output.derivedTasks} new tasks.`);
+    }
+
+    system.stop();
+}
+
+runSystem();
+```
+
+---
+
+## **Contributing**
+
+We welcome contributions from the community! To contribute, please follow these guidelines:
+
+1.  **Fork the repository.**
+2.  **Create a new branch** for your feature or bug fix.
+3.  **Follow the coding style:** Adhere to the principles outlined in `AGENTS.md`. The code should be clean, self-documenting, and elegant.
+4.  **Write tests** for any new functionality.
+5.  **Submit a pull request** with a clear description of your changes.
+
 ### **Project Structure**
 
 ```
 senars8/
 ├── src/
-│   ├── core/          # Core classes (Term, Task)
-│   ├── memory/        # Memory management
-│   ├── parser/        # Term parsing utilities
-│   ├── reasoner/      # Inference engine
+│   ├── core/          # Core classes (Term, Task, TaskFactory)
+│   ├── memory/        # Memory management (Memory)
+│   ├── parser/        # Narsese lexer and parser
+│   ├── reasoner/      # Inference engine and strategies
 │   ├── lm/            # Language model integration
-│   ├── system/        # System components (Cycle, Constitution, etc.)
+│   ├── system/        # High-level system components (System, Cycle, etc.)
 │   └── utils/         # Utility functions
 ├── demos/             # Demonstration scripts
 ├── tests/             # Test suite
-├── index.js           # Demo runner
+├── index.js           # Interactive demo runner
 ├── package.json       # Project dependencies
 └── README.md          # This file
 ```

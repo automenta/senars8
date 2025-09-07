@@ -18,21 +18,31 @@ module.exports = {
             { name: 'network', total: 1000, unit: 'Mbps' },
         ],
         CONSTRAINTS: {
-            resource_limit: (action) => {
-                if (action.resource_requirements) {
-                    for (const req of action.resource_requirements) {
-                        if (!this.resources.has(req.name)) {
-                            console.warn(`Action ${action.name} requires unregistered resource: ${req.name}`);
-                            return false;
-                        }
+            resource_limit: function(action) {
+                if (!action.resource_requirements) {
+                    return true;
+                }
+                for (const req of action.resource_requirements) {
+                    const resource = this.resources.get(req.name);
+                    if (!resource) {
+                        return false; // Fails if resource is not registered
+                    }
+                    const currentlyReserved = resource.reservations.reduce((acc, res) => acc + res.amount, 0);
+                    if (currentlyReserved + req.amount > resource.total) {
+                        return false; // Fails if resource is over-allocated
                     }
                 }
                 return true;
             },
-            safety: (action) => {
+            safety: function(action) {
                 const dangerousActions = ['delete_system', 'format_disk', 'shutdown_system'];
                 return !dangerousActions.includes(action.name);
             },
         },
     },
+    LM: {
+        FEATURE_EXTRACTION_MODEL: 'Xenova/all-MiniLM-L6-v2',
+        TEXT_GENERATION_MODEL: 'Xenova/distilgpt2',
+        QA_MODEL: 'Xenova/distilbert-base-uncased-distilled-squad',
+    }
 };

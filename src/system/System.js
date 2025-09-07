@@ -31,11 +31,9 @@ class System {
 
     async _ensureInitialized() {
         if (this.initialized) return;
-        console.log("Initializing SeNARS system...");
         this.memory.addTasks(CONSTITUTION_TASKS);
         await this._bootstrapTerms(CONSTITUTION_TASKS);
         this.initialized = true;
-        console.log(`System initialized with ${CONSTITUTION_TASKS.length} constitutional tasks`);
     }
 
     async initialize() {
@@ -45,41 +43,33 @@ class System {
     async runCycle() {
         await this._ensureInitialized();
         this.cycleCount++;
-        console.log(`\n=== Cognitive Cycle ${this.cycleCount} ===`);
         return this.cycle.runOnce();
     }
 
     async start(maxCycles = 0) {
-        if (this.isRunning) {
-            console.warn('System is already running');
-            return;
-        }
+        if (this.isRunning) return;
         await this._ensureInitialized();
 
         this.isRunning = true;
         this.cycleCount = 0;
-        console.log("System started. Running cognitive cycles...");
 
         while (this.isRunning && (maxCycles === 0 || this.cycleCount < maxCycles)) {
             try {
                 await this.runCycle();
                 await new Promise(resolve => setTimeout(resolve, 100));
             } catch (error) {
-                console.error('Error during cycle execution:', error);
                 this.stop();
-                return;
+                throw error;
             }
         }
 
         if (this.isRunning) {
-            console.log(`Reached maximum cycle count (${maxCycles}). Stopping system.`);
             this.stop();
         }
     }
 
     stop() {
         this.isRunning = false;
-        console.log(`System stopped after ${this.cycleCount} cycles.`);
     }
 
     async addTasks(tasks) {
@@ -87,7 +77,6 @@ class System {
         const tasksToAdd = Array.isArray(tasks) ? tasks : [tasks];
         await this._bootstrapTerms(tasksToAdd);
         this.memory.addTasks(tasksToAdd);
-        console.log(`Added ${tasksToAdd.length} tasks to system memory.`);
     }
 }
 
