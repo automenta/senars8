@@ -1,12 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const { ACTION_EXECUTOR } = require('../config');
-
-class Action {
-    constructor(name, parameters = []) {
-        this.name = name;
-        this.parameters = parameters;
-    }
-}
+const Action = require('../core/Action');
 
 class ActionExecutor {
     constructor(memory) {
@@ -39,13 +33,21 @@ class ActionExecutor {
 
     async execute(action) {
         const actionRecord = this._createActionRecord(action);
+        let resourcesAcquired = false;
         try {
             this._validate(action);
-            const result = await this._performExecution(action);
+            this._acquireResources(action);
+            resourcesAcquired = true;
+
+            const handler = this._findHandler(action.name);
+            const result = await handler(action);
             return this._recordSuccess(actionRecord, result);
         } catch (error) {
-            this._releaseResources(action); // Release resources on failure
             return this._recordFailure(actionRecord, error);
+        } finally {
+            if (resourcesAcquired) {
+                this._releaseResources(action);
+            }
         }
     }
 
@@ -56,21 +58,21 @@ class ActionExecutor {
     }
 
     _validate(action) {
-        if (!this._checkConstraints(action)) {
-            throw new Error('Constraints not satisfied');
-        }
         if (!this._findHandler(action.name)) {
-            throw new Error('No handler found for action');
+            throw new Error(`No handler found for action: ${action.name}`);
+        }
+
+        for (const param of action.parameters) {
+            if (!this.memory.getTerm(param)) {
+                throw new Error(`Parameter term not found in memory: ${param}`);
+            }
+        }
+
+        if (!this._checkConstraints(action)) {
+            throw new Error('Action violates system constraints');
         }
     }
 
-    async _performExecution(action) {
-        const handler = this._findHandler(action.name);
-        this._acquireResources(action);
-        const result = await handler(action);
-        this._releaseResources(action);
-        return result;
-    }
 
     _recordSuccess(actionRecord, result) {
         actionRecord.status = 'completed';
@@ -85,11 +87,32 @@ class ActionExecutor {
     }
 
     _acquireResources(action) {
-        // Placeholder for resource acquisition logic
+        if (!action.resources) return;
+
+        for (const resourceName of action.resources) {
+            const resource = this.resources.get(resourceName);
+            if (!resource) {
+                throw new Error(`Resource not found: ${resourceName}`);
+            }
+            if (resource.locked) {
+                throw new Error(`Resource is locked: ${resourceName}`);
+            }
+        }
+
+        for (const resourceName of action.resources) {
+            this.resources.get(resourceName).locked = true;
+        }
     }
 
     _releaseResources(action) {
-        // Placeholder for resource release logic
+        if (!action.resources) return;
+
+        for (const resourceName of action.resources) {
+            const resource = this.resources.get(resourceName);
+            if (resource) {
+                resource.locked = false;
+            }
+        }
     }
 
     _checkConstraints(action) {
@@ -98,19 +121,13 @@ class ActionExecutor {
 
     _findHandler(actionName) {
         for (const [pattern, handler] of this.actionHandlers) {
-            if (this._matchPattern(actionName, pattern)) {
+            const regex = new RegExp(pattern);
+            if (regex.test(actionName)) {
                 return handler;
             }
         }
         return null;
     }
-
-    _matchPattern(actionName, pattern) {
-        if (pattern.endsWith('*')) {
-            return actionName.startsWith(pattern.slice(0, -1));
-        }
-        return pattern === '*' || pattern === actionName;
-    }
 }
 
-module.exports = { ActionExecutor, Action };
+module.exports = ActionExecutor;

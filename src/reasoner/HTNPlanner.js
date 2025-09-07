@@ -1,7 +1,10 @@
 const BasePlanner = require('./BasePlanner');
-const PlannerUtils = require('./utils/PlannerUtils');
 
 class HTNPlanner extends BasePlanner {
+    constructor(memory, lm, config = {}) {
+        super(memory, lm, config);
+    }
+
     async findPlan(goalTask, maxDepth = 10) {
         const goalTerm = this.memory.getTerm(goalTask.termKey);
         if (!goalTerm) return null;
@@ -16,44 +19,29 @@ class HTNPlanner extends BasePlanner {
         if (depth > maxDepth) return null;
         if (tasksToDo.length === 0) return planSoFar;
 
-        const currentTask = tasksToDo[0];
-        const remainingTasks = tasksToDo.slice(1);
+        const [currentTask, ...remainingTasks] = tasksToDo;
 
-        if (PlannerUtils.isAchieved(currentTask, this.memory, this.config)) {
-            return this._findPlanRecursive(remainingTasks, planSoFar, depth + 1, maxDepth);
+        if (this._isAchieved(currentTask)) {
+            return this._findPlanRecursive(remainingTasks, planSoFar, depth, maxDepth);
         }
 
-        if (currentTask.type === 'SequentialConjunction') {
-            const subTasks = PlannerUtils.extractSubTasksFromMethod(currentTask);
-            const newTasksToDo = [...subTasks, ...remainingTasks];
-            return this._findPlanRecursive(newTasksToDo, planSoFar, depth + 1, maxDepth);
+        const expansions = this._getExpansions(currentTask);
+
+        // If a task has no valid expansions, this path fails.
+        if (expansions.length === 0) {
+            return null;
         }
 
-        const implications = PlannerUtils.findDecompositionMethods(currentTask, this.memory);
-
-        if (implications.length === 0) {
-            const newPlan = [...planSoFar, currentTask.key];
-            return this._findPlanRecursive(remainingTasks, newPlan, depth + 1, maxDepth);
-        }
-
-        for (const implication of implications) {
-            const subject = implication.subject;
-            let preconditions = [];
-
-            if (subject.type === 'SequentialConjunction') {
-                preconditions = subject.terms.slice(1);
-            }
-
-            if (PlannerUtils.arePreconditionsMet(preconditions, this.memory, this.config)) {
-                const method = implication.predicate;
-                const subTasks = PlannerUtils.extractSubTasksFromMethod(method);
-                if (subTasks) {
-                    const newTasksToDo = [...subTasks, ...remainingTasks];
-                    const result = await this._findPlanRecursive(newTasksToDo, planSoFar, depth + 1, maxDepth);
-                    if (result !== null) {
-                        return result;
-                    }
-                }
+        for (const expansion of expansions) {
+            // A null method indicates a primitive action.
+            if (expansion.method === null && expansion.subTasks.length > 0) {
+                const newPlan = [...planSoFar, ...expansion.subTasks.map(t => t.key)];
+                const result = await this._findPlanRecursive(remainingTasks, newPlan, depth + 1, maxDepth);
+                if (result !== null) return result;
+            } else { // Decomposed into sub-tasks
+                const newTasksToDo = [...expansion.subTasks, ...remainingTasks];
+                const result = await this._findPlanRecursive(newTasksToDo, planSoFar, depth + 1, maxDepth);
+                if (result !== null) return result;
             }
         }
 

@@ -27,6 +27,16 @@ class LM {
     constructor() {
         this.pipelineFactory = new PipelineFactory();
         this.llm = null;
+        this.reasoner = null;
+        this.memory = null;
+    }
+
+    setReasoner(reasoner) {
+        this.reasoner = reasoner;
+    }
+
+    setMemory(memory) {
+        this.memory = memory;
     }
 
     async _getFeaturePipeline() {
@@ -84,12 +94,20 @@ class LM {
         if (!tasks || tasks.length === 0) return [];
         await this._getGenerationPipeline();
 
-        const { type = 'general', num = 3, refinement = null, promptTemplate = null } = config;
-        const context = tasks.map(task => `${task.termKey}${task.punctuation}`).join('\n');
+        const { type = 'general', num = 3, refinement = null, promptTemplate = null, goals = [], contradictions = [] } = config;
+
+        let context = "Observations:\n" + tasks.map(task => `${task.termKey}${task.punctuation}`).join('\n');
+        if (goals.length > 0) {
+            context += "\n\nCurrent Goals:\n" + goals.map(task => `${task.termKey}${task.punctuation}`).join('\n');
+        }
+        if (contradictions.length > 0) {
+            context += "\n\nRecent Contradictions:\n" + contradictions.map(c => `${c.taskA.termKey} vs ${c.taskB.termKey}`).join('\n');
+        }
 
         const prompts = {
-            general: "Based on these observations:\n{context}\n\nA general principle that explains these observations is:",
-            creative: "Based on these observations:\n{context}\n\nA surprising insight that explains these observations is:",
+            general: "Based on the following context:\n{context}\n\nA general principle that explains these observations is:",
+            creative: "Based on the following context:\n{context}\n\nA surprising insight that explains these observations is:",
+            goal_oriented: "Given the following context:\n{context}\n\nA useful hypothesis to explore to achieve the current goals is:",
         };
         const selectedPrompt = promptTemplate || prompts[type] || prompts.general;
 
@@ -165,7 +183,22 @@ class LM {
         if (!refinedText) return hypothesis;
 
         const parsedTerm = parseTerm(refinedText);
-        return parsedTerm ? new Task(parsedTerm, '.', { ...hypothesis.state.truthValue }) : hypothesis;
+        if (!parsedTerm) return hypothesis;
+
+        const refinedHypothesis = new Task(parsedTerm, '.', { ...hypothesis.state.truthValue });
+
+        if (this.reasoner && this.memory) {
+            const tempMemory = this.memory.clone();
+            tempMemory.addTasks([refinedHypothesis]);
+            const MetaCognition = require('../system/MetaCognition');
+            const metaCognition = new MetaCognition();
+            const contradictions = metaCognition.findContradictions(tempMemory.getAllTasks());
+            if (contradictions.some(c => c.severity > 0.8)) {
+                return hypothesis; // Reject refinement if it causes a high-severity contradiction
+            }
+        }
+
+        return refinedHypothesis;
     }
 
     async answerQuestion(question, context = null) {
@@ -177,6 +210,67 @@ class LM {
         }
         const prompt = context ? `Context: ${context}\nQuestion: ${question}\nAnswer:` : `Question: ${question}\nAnswer:`;
         return this._generate(prompt);
+    }
+
+    async suggestPlanRepair(goalTask, failedPlan) {
+        await this._getGenerationPipeline();
+
+        const goal = goalTask.termKey;
+        const failedPlanSteps = failedPlan ? failedPlan.map(t => t.key).join(', ') : 'None';
+
+        const context = `
+Goal: ${goal}
+Failed Plan: ${failedPlanSteps}
+The previous attempt to achieve the goal failed. Please suggest a new sequence of primitive actions to achieve the goal.
+The new plan should be a list of Narsese terms.
+`;
+
+        const chain = this._createStructuredChain(
+            context + "New creative plan:",
+            require('zod').object({ plan: require('zod').array(require('zod').string()).describe("A list of Narsese terms for the new plan.") }),
+            {}
+        );
+
+        const result = await chain.call({ context: "" }); // context is already in the prompt template
+        const parsed = this._parseStructuredResult(result.text);
+
+        if (!parsed || !parsed.plan) {
+            return null;
+        }
+
+        const planTerms = parsed.plan.map(termKey => parseTerm(termKey)).filter(Boolean);
+        return planTerms;
+    }
+
+    async proactiveEnrichment(tasks) {
+        if (!tasks || tasks.length === 0) return [];
+        await this._getGenerationPipeline();
+
+        const newBeliefs = tasks.filter(t => t.punctuation === '.' && t.state.truthValue.confidence > 0.8);
+        if (newBeliefs.length === 0) return [];
+
+        const context = "Given the following new beliefs:\n" + newBeliefs.map(t => t.termKey).join('\n');
+        const prompt = context + "\n\nWhat are some interesting implications or related concepts? Generate new knowledge in Narsese format.";
+
+        const chain = this._createStructuredChain(
+            prompt,
+            require('zod').object({ new_knowledge: require('zod').array(require('zod').string()).describe("A list of new Narsese statements.") }),
+            {}
+        );
+
+        const result = await chain.call({ context: "" });
+        const parsed = this._parseStructuredResult(result.text);
+
+        if (!parsed || !parsed.new_knowledge) {
+            return [];
+        }
+
+        const newTasks = parsed.new_knowledge.map(termKey => {
+            const parsedTerm = parseTerm(termKey);
+            return parsedTerm ? new Task(parsedTerm, '.', { confidence: 0.6, frequency: 0.5 }) : null;
+        }).filter(Boolean);
+
+        return newTasks;
     }
 }
 

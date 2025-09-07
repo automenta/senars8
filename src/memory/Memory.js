@@ -99,6 +99,16 @@ class Memory {
         allTasks.sort((a, b) => b.state.priority - a.state.priority);
         return allTasks.slice(0, k);
     }
+
+    clone() {
+        const newMemory = new Memory();
+        newMemory.terms = new Map(this.terms);
+        newMemory.tasks = new Map(this.tasks);
+        newMemory.implicationIndex = new Map(this.implicationIndex);
+        newMemory.beliefIndex = new Map(this.beliefIndex);
+        newMemory.costIndex = new Map(this.costIndex);
+        return newMemory;
+    }
 }
 
 module.exports = Memory;

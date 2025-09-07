@@ -19,8 +19,10 @@ class Cycle {
         this.memory = memory;
         this.reasoner = reasoner;
         this.lm = lm;
+        this.lm.setReasoner(this.reasoner);
+        this.lm.setMemory(this.memory);
         this.perception = new Perception(memory, lm);
-        this.planner = new Planner(new AStarPlanner(memory), actionExecutor);
+        this.planner = new Planner(new AStarPlanner(memory, this.lm), actionExecutor);
         this.metaCognition = new MetaCognition();
         this.temporalReasoner = new TemporalReasoner();
         this.priorityManager = new PriorityManager(memory);
@@ -46,22 +48,26 @@ class Cycle {
         });
     }
 
-    async _generateLmHypotheses(focusSet) {
+    async _generateLmHypotheses(focusSet, goals, contradictions) {
         const lmHypothesesPromises = config.LM_HYPOTHESIS_CONFIGS.map(hConfig =>
-            this.lm.generateHypotheses(focusSet, hConfig)
+            this.lm.generateHypotheses(focusSet, { ...hConfig, goals, contradictions })
         );
 
         const lmHypotheses = (await Promise.all(lmHypothesesPromises)).flat();
         return this.lm.evaluateAndRankHypotheses(focusSet, lmHypotheses);
     }
 
-    async _reason() {
+    async _reason(contradictions) {
         const focusSet = this.memory.getHighestPriorityTasks(config.FOCUS_SET_SIZE);
         if (focusSet.length === 0) return [];
 
+        const goals = this.memory.getAllTasks()
+            .filter(task => task.punctuation === '!' && task.state.priority > config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
+            .sort((a, b) => b.state.priority - a.state.priority);
+
         const symbolicTasks = this.reasoner.performInference(focusSet);
         const temporalTasks = this.temporalReasoner.infer(focusSet);
-        const lmTasks = await this._generateLmHypotheses(focusSet);
+        const lmTasks = await this._generateLmHypotheses(focusSet, goals, contradictions);
 
         const derivedTasks = [...symbolicTasks, ...temporalTasks, ...lmTasks];
 
@@ -73,9 +79,8 @@ class Cycle {
         return derivedTasks;
     }
 
-    _metaCognition(derivedTasks) {
-        const allTasks = [...this.memory.getAllTasks(), ...derivedTasks];
-        const contradictions = this.metaCognition.findContradictions(allTasks);
+    _metaCognition(tasks) {
+        const contradictions = this.metaCognition.findContradictions(tasks);
         if (contradictions.length === 0) {
             return {contradictions, metaTasks: []};
         }
@@ -104,13 +109,21 @@ class Cycle {
             .sort((a, b) => b.state.priority - a.state.priority)
             .slice(0, config.MAX_GOALS_TO_EXECUTE);
 
-        return Promise.all(actionableGoals.map(goal =>
-            this.planner.planAndExecute(goal).catch(error => ({
+        const executionResults = [];
+        for (const goal of actionableGoals) {
+            const result = await this.planner.planAndExecute(goal).catch(error => ({
                 success: false,
                 task: goal.termKey,
-                error: error.message
-            }))
-        ));
+                error: error.message,
+            }));
+            executionResults.push(result);
+
+            // If a high-priority goal fails, stop processing further goals in this cycle.
+            if (!result.success) {
+                break;
+            }
+        }
+        return executionResults;
     }
 
     async runOnce() {
@@ -118,15 +131,24 @@ class Cycle {
 
         await this._perceive();
         this._prioritize(currentTime);
-        const derivedTasks = await this._reason();
-        const {contradictions, metaTasks} = this._metaCognition(derivedTasks);
+
+        const allTasks = this.memory.getAllTasks();
+        const { contradictions, metaTasks } = this._metaCognition(allTasks);
+
+        const derivedTasks = await this._reason(contradictions);
+
         await this._enrich([...derivedTasks, ...metaTasks]);
+
+        const proactiveTasks = await this.lm.proactiveEnrichment(this.memory.getAllTasks());
+        this.memory.addTasks(proactiveTasks);
+
         const executionResults = await this._act();
 
         return {
             derivedTasks: derivedTasks.length,
             contradictions: contradictions.length,
             metaTasks: metaTasks.length,
+            proactiveTasks: proactiveTasks.length,
             executionResults
         };
     }

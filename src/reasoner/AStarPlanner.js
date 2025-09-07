@@ -1,8 +1,17 @@
 const { MinPriorityQueue } = require('@datastructures-js/priority-queue');
 const BasePlanner = require('./BasePlanner');
-const PlannerUtils = require('./utils/PlannerUtils');
+const { cosineSimilarity } = require('../utils/math');
 
 class AStarPlanner extends BasePlanner {
+    constructor(memory, lm, config = {}) {
+        super(memory, lm, config);
+        this.config.heuristicWeights = config.heuristicWeights || {
+            complexity: 0.4,
+            confidence: 0.3,
+            semantic: 0.3,
+        };
+    }
+
     async findPlan(goalTask, maxIterations = 100) {
         const goalTerm = this.memory.getTerm(goalTask.termKey);
         if (!goalTerm) return null;
@@ -13,7 +22,7 @@ class AStarPlanner extends BasePlanner {
             plan: [],
             tasks: [goalTerm],
             g: 0,
-            h: this._calculateHeuristic([goalTerm]),
+            h: await this._calculateHeuristic([goalTerm], goalTerm),
         };
 
         openSet.enqueue(initialState);
@@ -36,63 +45,39 @@ class AStarPlanner extends BasePlanner {
 
             const [currentTask, ...remainingTasks] = currentNode.tasks;
 
-            if (PlannerUtils.isAchieved(currentTask, this.memory, this.config)) {
+            if (this._isAchieved(currentTask)) {
                 const newNode = {
                     plan: currentNode.plan,
                     tasks: remainingTasks,
                     g: currentNode.g,
-                    h: this._calculateHeuristic(remainingTasks),
+                    h: await this._calculateHeuristic(remainingTasks, goalTerm),
                 };
                 openSet.enqueue(newNode);
                 continue;
             }
 
-            if (currentTask.type === 'SequentialConjunction') {
-                const subTasks = PlannerUtils.extractSubTasksFromMethod(currentTask);
-                const newTasks = [...subTasks, ...remainingTasks];
-                const newNode = {
-                    plan: currentNode.plan,
-                    tasks: newTasks,
-                    g: currentNode.g,
-                    h: this._calculateHeuristic(newTasks),
-                };
-                openSet.enqueue(newNode);
-                continue;
-            }
+            const expansions = this._getExpansions(currentTask);
 
-            const decompositionMethods = PlannerUtils.findDecompositionMethods(currentTask, this.memory);
-
-            if (decompositionMethods.length === 0) {
-                const newPlanKeys = [...currentNode.plan, currentTask.key];
-                const newPlanTerms = newPlanKeys.map(key => this.memory.getTerm(key));
-                const newNode = {
-                    plan: newPlanKeys,
-                    tasks: remainingTasks,
-                    g: this.costManager.getPlanCost(newPlanTerms),
-                    h: this._calculateHeuristic(remainingTasks),
-                };
-                openSet.enqueue(newNode);
-            } else {
-                for (const method of decompositionMethods) {
-                    const subject = method.subject;
-                    let preconditions = [];
-                    if (subject.type === 'SequentialConjunction') {
-                        preconditions = subject.terms.slice(1);
-                    }
-
-                    if (PlannerUtils.arePreconditionsMet(preconditions, this.memory, this.config)) {
-                        const subTasks = PlannerUtils.extractSubTasksFromMethod(method.predicate);
-                        if (!subTasks) continue;
-
-                        const newTasks = [...subTasks, ...remainingTasks];
-                        const newNode = {
-                            plan: currentNode.plan,
-                            tasks: newTasks,
-                            g: currentNode.g,
-                            h: this._calculateHeuristic(newTasks),
-                        };
-                        openSet.enqueue(newNode);
-                    }
+            for (const expansion of expansions) {
+                if (expansion.method === null && expansion.subTasks.length > 0) {
+                    const newPlanKeys = [...currentNode.plan, ...expansion.subTasks.map(t => t.key)];
+                    const newPlanTerms = newPlanKeys.map(key => this.memory.getTerm(key));
+                    const newNode = {
+                        plan: newPlanKeys,
+                        tasks: remainingTasks,
+                        g: this.costManager.getPlanCost(newPlanTerms),
+                        h: await this._calculateHeuristic(remainingTasks, goalTerm),
+                    };
+                    openSet.enqueue(newNode);
+                } else {
+                    const newTasks = [...expansion.subTasks, ...remainingTasks];
+                    const newNode = {
+                        plan: currentNode.plan,
+                        tasks: newTasks,
+                        g: currentNode.g,
+                        h: await this._calculateHeuristic(newTasks, goalTerm),
+                    };
+                    openSet.enqueue(newNode);
                 }
             }
         }
@@ -100,9 +85,27 @@ class AStarPlanner extends BasePlanner {
         return null;
     }
 
-    _calculateHeuristic(tasks) {
-        // Heuristic: sum of difficulties of all remaining tasks.
-        return tasks.reduce((total, task) => total + this.costManager.getTaskDifficulty(task), 0);
+    async _calculateHeuristic(tasks, goalTerm) {
+        if (tasks.length === 0) return 0;
+
+        const complexityCost = tasks.reduce((acc, task) => acc + this.costManager.getTaskDifficulty(task), 0);
+
+        const confidenceCost = tasks.reduce((acc, task) => {
+            const belief = this.memory.beliefIndex.get(task.key);
+            return acc + (1 - (belief ? belief.state.truthValue.confidence : 0));
+        }, 0);
+
+        let semanticCost = 0;
+        if (this.lm) {
+            const taskEmbeddings = tasks.map(t => t.embedding).filter(Boolean);
+            if (taskEmbeddings.length > 0 && goalTerm.embedding) {
+                const avgSimilarity = taskEmbeddings.reduce((acc, emb) => acc + cosineSimilarity(emb, goalTerm.embedding), 0) / taskEmbeddings.length;
+                semanticCost = 1 - avgSimilarity;
+            }
+        }
+
+        const { complexity, confidence, semantic } = this.config.heuristicWeights;
+        return (complexityCost * complexity) + (confidenceCost * confidence) + (semanticCost * semantic);
     }
 }
 

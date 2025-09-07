@@ -2,7 +2,7 @@ const Cycle = require('../../src/system/Cycle');
 const Memory = require('../../src/memory/Memory');
 const Reasoner = require('../../src/reasoner/Reasoner');
 const LM = require('../../src/lm/LM');
-const { ActionExecutor } = require('../../src/system/ActionExecutor');
+const ActionExecutor = require('../../src/system/ActionExecutor');
 const Task = require('../../src/core/Task');
 const Term = require('../../src/core/Term');
 const {parseTerm} = require('../../src/parser/narseseParser');
@@ -35,6 +35,7 @@ describe('Cycle Integration Test', () => {
         lm.bootstrapTerm.mockImplementation(async (termKey) => {
             return new Term(termKey, [], 1);
         });
+        lm.proactiveEnrichment.mockResolvedValue([]);
     });
 
     test('should run a cycle without errors', async () => {

@@ -9,12 +9,15 @@ describe('AStarPlanner Integration Test', () => {
 
     beforeEach(() => {
         memory = new Memory();
-        planner = new AStarPlanner(memory);
+        const lm = {
+            bootstrapTerm: async (termKey) => new Term(termKey, [0.1, 0.2, 0.3]),
+        };
+        planner = new AStarPlanner(memory, lm);
     });
 
     // Helper to create and add a term to memory
     const addTermToMemory = (key) => {
-        const term = new Term(key);
+        const term = new Term(key, [Math.random(), Math.random(), Math.random()]);
         memory.addTerm(term);
         return term;
     };

@@ -1,48 +1,29 @@
 const { v4: uuidv4 } = require('uuid');
+const Action = require('../core/Action');
 
 class PlanExecutor {
     constructor(actionExecutor) {
         this.actionExecutor = actionExecutor;
-        this.activePlans = new Map();
     }
 
-    async execute(plan) {
-        const planId = uuidv4();
-        this.activePlans.set(planId, { id: planId, steps: plan });
-
-        const results = [];
-        for (const term of plan) {
-            const action = this._parseAction(term);
-            if (!action) {
-                this.activePlans.delete(planId);
-                return { success: false, planId, error: `Could not parse action: ${term.key}`, results };
-            }
-
-            const result = await this.actionExecutor.execute(action);
-            results.push({ action: action.name, result });
-
-            if (!result.success) {
-                this.activePlans.delete(planId);
-                return { success: false, planId, error: `Plan failed at action ${action.name}`, results };
-            }
+    async executeAction(term) {
+        const action = this._parseAction(term);
+        if (!action) {
+            return { success: false, error: `Could not parse action: ${term.key}` };
         }
-
-        this.activePlans.delete(planId);
-        return { success: true, planId, results };
+        const result = await this.actionExecutor.execute(action);
+        return { ...result, action: action.name };
     }
 
     _parseAction(term) {
         switch (term.type) {
             case 'Atomic':
-                return { name: term.key, parameters: [] };
+                return new Action(term.key);
             case 'SequentialConjunction':
             case 'Conjunction':
                 if (term.terms.length > 0) {
                     const [nameTerm, ...paramTerms] = term.terms;
-                    return {
-                        name: nameTerm.key,
-                        parameters: paramTerms.map(t => t.key),
-                    };
+                    return new Action(nameTerm.key, paramTerms.map(t => t.key));
                 }
                 return null;
             default:
@@ -61,15 +42,60 @@ class Planner {
         this.planCache = new Map();
     }
 
-    async planAndExecute(goalTask) {
-        const plan = await this.createPlan(goalTask);
-        return plan ? this.executor.execute(plan) : { success: false, error: 'No plan found' };
+    async planAndExecute(goalTask, maxAttempts = 3) {
+        let attempts = 0;
+        let lastFailedPlan = null;
+
+        while (attempts < maxAttempts) {
+            attempts++;
+            const plan = await this.createPlan(goalTask, lastFailedPlan);
+
+            if (!plan || plan.length === 0) {
+                const isAchieved = this.strategy._isAchieved(this.strategy.memory.getTerm(goalTask.termKey));
+                if (isAchieved) return { success: true, planId: null, results: ['Goal already achieved'] };
+
+                if (this.strategy.lm) {
+                    const lmSuggestion = await this.strategy.lm.suggestPlanRepair(goalTask, lastFailedPlan);
+                    if (lmSuggestion && lmSuggestion.length > 0) {
+                        const executionResult = await this._executePlan(lmSuggestion);
+                        if (executionResult.success) return executionResult;
+                    }
+                }
+                return { success: false, error: 'No plan found, and LM could not repair.' };
+            }
+
+            const executionResult = await this._executePlan(plan);
+            if (executionResult.success) {
+                return executionResult;
+            }
+
+            lastFailedPlan = plan;
+            this.planCache.delete(goalTask.termKey);
+        }
+
+        return { success: false, error: `Plan failed after ${maxAttempts} attempts` };
     }
 
-    async createPlan(goalTask) {
+    async _executePlan(plan) {
+        const planId = uuidv4();
+        const results = [];
+        for (const step of plan) {
+            const result = await this.executor.executeAction(step);
+            results.push(result);
+
+            if (!result.success) {
+                return { success: false, planId, error: `Plan failed at action ${step.key}`, results };
+            }
+        }
+        return { success: true, planId, results };
+    }
+
+    async createPlan(goalTask, failedPlan = null) {
         const goalKey = goalTask.termKey;
-        if (this.planCache.has(goalKey)) {
-            return this.planCache.get(goalKey);
+        const cachedPlan = this.planCache.get(goalKey);
+
+        if (cachedPlan && cachedPlan !== failedPlan) {
+            return cachedPlan;
         }
 
         const plan = await this.strategy.findPlan(goalTask);
