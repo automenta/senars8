@@ -57,11 +57,11 @@ class LM {
         return new Term(termKey, embeddingVector, complexity);
     }
 
-    async generateHypotheses(tasks, config = {type: 'general', num: 3}) {
+    async generateHypotheses(tasks, config = {type: 'general', num: 3, refinement: null}) {
         if (!tasks || tasks.length === 0) return [];
 
         const context = tasks.map(task => `${task.termKey}${task.punctuation}`).join('\n');
-        const hypotheses = [];
+        let hypotheses = [];
 
         const prompts = {
             general: [
@@ -109,6 +109,14 @@ class LM {
                 }
             }
         }
+
+        if (config.refinement) {
+            const refinedHypotheses = await Promise.all(
+                hypotheses.map(h => this.refineHypothesis(h, config.refinement))
+            );
+            return refinedHypotheses;
+        }
+
         return hypotheses;
     }
 
@@ -185,6 +193,30 @@ class LM {
 
         evaluatedHypotheses.sort((a, b) => b.relevance - a.relevance);
         return evaluatedHypotheses.map(item => item.hypothesis);
+    }
+
+    async refineHypothesis(hypothesis, refinementType = 'formalize') {
+        const prompts = {
+            formalize: `Refine the following hypothesis into a more formal and precise statement:\n${hypothesis.termKey}`,
+            simplify: `Simplify the following hypothesis into a more concise and understandable statement:\n${hypothesis.termKey}`,
+            make_testable: `Rewrite the following hypothesis to make it more specific and empirically testable:\n${hypothesis.termKey}`,
+        };
+
+        const prompt = prompts[refinementType] || prompts.formalize;
+        const refinedText = await this._generate(prompt, { max_new_tokens: 60 });
+
+        if (refinedText) {
+            const parsedTerm = parseTerm(refinedText);
+            if (parsedTerm) {
+                // Create a new task with the refined term, inheriting some properties
+                return new Task(
+                    parsedTerm,
+                    '.',
+                    { ...hypothesis.state.truthValue } // Carry over the original truth value
+                );
+            }
+        }
+        return hypothesis; // Return original if refinement fails
     }
 
     async answerQuestion(question, context = null) {

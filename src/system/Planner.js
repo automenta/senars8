@@ -23,13 +23,14 @@ class Planner {
 
         const executionResults = [];
         for (const term of plan) {
-            // The plan consists of terms representing primitive actions
-            const action = {
-                name: term.key, // Assuming the term key is the action name
-                parameters: [] // Assuming no parameters for now
-            };
+            const action = this.parseAction(term);
+            if (!action) {
+                // If parsing fails, we can either skip or fail the plan
+                console.error(`Could not parse action from term: ${term.key}`);
+                continue;
+            }
 
-            const result = await actionExecutor.executeAction(action);
+            const result = await actionExecutor.executeAction({ name: action.name, parameters: action.parameters });
             executionResults.push({
                 action: action.name,
                 result: result
@@ -50,6 +51,26 @@ class Planner {
             planId: planId,
             results: executionResults
         };
+    }
+
+    parseAction(term) {
+        const isConjunction = term.type === 'SequentialConjunction' || term.type === 'Conjunction';
+
+        // A primitive action is expected to be a conjunction
+        // e.g., (&, GoTo, room, kitchen) or (&/, GoTo, room, kitchen)
+        if (!isConjunction || term.terms.length < 1) {
+            // Or it could be a simple term for an action with no parameters
+            if (term.type === 'Atomic') {
+                return { name: term.key, parameters: [] };
+            }
+            return null;
+        }
+
+        // The first term is the action name, the rest are parameters.
+        const name = term.terms[0].key;
+        const parameters = term.terms.slice(1).map(t => t.key);
+
+        return { name, parameters };
     }
 }
 

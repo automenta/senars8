@@ -6,6 +6,7 @@ class Memory {
     constructor() {
         this.terms = new Map();
         this.tasks = new Map();
+        this.implicationIndex = new Map(); // Index for HTN planning
         EventBus.on('NewTasksCreated', (tasks) => this.addTasks(tasks));
     }
 
@@ -17,6 +18,15 @@ class Memory {
             return;
         }
         this.terms.set(term.key, term);
+
+        // For efficient planning, index implications by their subject
+        if (term.type === 'Implication' && term.subject) {
+            const subjectKey = term.subject.key;
+            if (!this.implicationIndex.has(subjectKey)) {
+                this.implicationIndex.set(subjectKey, []);
+            }
+            this.implicationIndex.get(subjectKey).push(term);
+        }
     }
 
     getTerm(key) {

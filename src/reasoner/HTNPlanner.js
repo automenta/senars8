@@ -21,36 +21,62 @@ class HTNPlanner {
         const currentTask = tasksToDo[0];
         const remainingTasks = tasksToDo.slice(1);
 
-        const methods = this._findDecompositionMethods(currentTask);
+        const implications = this._findDecompositionMethods(currentTask);
 
-        if (methods.length === 0) { // Task is primitive
+        // If no decomposition methods found, the task is considered primitive
+        if (implications.length === 0) {
             const newPlan = [...planSoFar, currentTask];
             return this._findPlanRecursive(remainingTasks, newPlan, depth + 1, maxDepth);
         }
 
-        // Task is compound, try each valid method
-        for (const method of methods) {
-            const subTasks = this._extractSubTasksFromMethod(method);
-            if (subTasks) {
-                const newTasksToDo = [...subTasks, ...remainingTasks];
-                const result = await this._findPlanRecursive(newTasksToDo, planSoFar, depth + 1, maxDepth);
-                if (result !== null) {
-                    return result;
+        // Task is compound, try each valid method (implication)
+        for (const implication of implications) {
+            const subject = implication.subject;
+            let preconditions = [];
+
+            if (subject.type === 'SequentialConjunction') {
+                preconditions = subject.terms.slice(1);
+            }
+
+            if (this._arePreconditionsMet(preconditions)) {
+                const method = implication.predicate;
+                const subTasks = this._extractSubTasksFromMethod(method);
+                if (subTasks) {
+                    const newTasksToDo = [...subTasks, ...remainingTasks];
+                    const result = await this._findPlanRecursive(newTasksToDo, planSoFar, depth + 1, maxDepth);
+                    if (result !== null) {
+                        return result; // Found a valid plan
+                    }
                 }
             }
         }
 
-        return null;
+        return null; // No valid plan found from this path
     }
 
     _findDecompositionMethods(goalTerm) {
-        const allTerms = Array.from(this.memory.terms.values());
+        const allImplications = Array.from(this.memory.terms.values())
+            .filter(term => term.type === 'Implication');
 
-        return allTerms.filter(term =>
-            term.type === 'Implication' &&
-            term.subject &&
-            term.subject.equals(goalTerm)
-        ).map(term => term.predicate);
+        const matchingMethods = allImplications.filter(term => {
+            const subject = term.subject;
+            if (!subject) return false;
+
+            // Case 1: Simple implication, e.g., <goal> ==> <method>
+            if (subject.equals(goalTerm)) {
+                return true;
+            }
+
+            // Case 2: Implication with preconditions, e.g., ((&, <goal>, <precond1>, ...)) ==> <method>
+            if (subject.type === 'SequentialConjunction' && subject.terms.length > 0) {
+                const goalInSubject = subject.terms[0];
+                return goalInSubject.equals(goalTerm);
+            }
+
+            return false;
+        });
+
+        return matchingMethods; // Return the full implication term
     }
 
     _extractSubTasksFromMethod(methodTerm) {
@@ -62,6 +88,20 @@ class HTNPlanner {
 
         // Method is a single task
         return [methodTerm];
+    }
+
+    _arePreconditionsMet(preconditions, confidenceThreshold = 0.8) {
+        const allBeliefs = this.memory.getAllTasks()
+            .filter(task => task.punctuation === '.' && task.state.truthValue.confidence > confidenceThreshold);
+
+        const beliefMap = new Map(allBeliefs.map(task => [task.termKey, task]));
+
+        for (const precondition of preconditions) {
+            if (!beliefMap.has(precondition.key)) {
+                return false; // A precondition is not met
+            }
+        }
+        return true;
     }
 }
 

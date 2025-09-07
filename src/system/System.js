@@ -3,6 +3,8 @@ const Reasoner = require('../reasoner/Reasoner');
 const LM = require('../lm/LM');
 const Cycle = require('./Cycle');
 const CONSTITUTION_TASKS = require('./Constitution');
+const actionExecutor = require('./ActionExecutor');
+const registerDefaultActions = require('./default-actions');
 
 class System {
     constructor() {
@@ -10,6 +12,7 @@ class System {
         this.reasoner = new Reasoner();
         this.lm = new LM();
         this.cycle = new Cycle(this.memory, this.reasoner, this.lm);
+        registerDefaultActions(actionExecutor);
         this.isRunning = false;
         this.cycleCount = 0;
         this.initialized = false;
