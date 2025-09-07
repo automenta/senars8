@@ -2,6 +2,7 @@ const Cycle = require('../src/system/Cycle');
 const Memory = require('../src/memory/Memory');
 const Reasoner = require('../src/reasoner/Reasoner');
 const LM = require('../src/lm/LM');
+const ActionExecutor = require('../src/system/ActionExecutor');
 const Task = require('../src/core/Task');
 const Term = require('../src/core/Term');
 const {
@@ -29,7 +30,8 @@ describe('Contradiction Resolution in Cycle', () => {
         memory = new Memory();
         reasoner = new Reasoner();
         lm = new LM();
-        cycle = new Cycle(memory, reasoner, lm);
+        const actionExecutor = new ActionExecutor(memory);
+        cycle = new Cycle(memory, reasoner, lm, actionExecutor);
 
         // Mock LM methods
         lm.generateHypotheses.mockResolvedValue([]);

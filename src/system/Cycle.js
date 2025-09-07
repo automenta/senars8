@@ -11,7 +11,7 @@ const PriorityManager = require('../reasoner/PriorityManager');
 const config = require('../config');
 
 class Cycle {
-    constructor(memory, reasoner, lm) {
+    constructor(memory, reasoner, lm, actionExecutor) {
         if (!(memory instanceof Memory) || !(reasoner instanceof Reasoner) || !(lm instanceof LM)) {
             throw new Error('Cycle requires instances of Memory, Reasoner, and LM.');
         }
@@ -19,7 +19,7 @@ class Cycle {
         this.reasoner = reasoner;
         this.lm = lm;
         this.perception = new Perception(memory, lm);
-        this.planner = new Planner(memory);
+        this.planner = new Planner(memory, actionExecutor);
         this.metaCognition = new MetaCognition();
         this.temporalReasoner = new TemporalReasoner();
         this.priorityManager = new PriorityManager(memory);

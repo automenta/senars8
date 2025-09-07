@@ -1,6 +1,5 @@
 const System = require('../src/system/System');
 const { createTask } = require('./demo-utils');
-const actionExecutor = require('../src/system/ActionExecutor');
 
 /**
  * Extended Action Execution Demo
@@ -81,70 +80,6 @@ async function extendedActionExecutionDemo() {
         console.log(`  - Meta Tasks: ${result.metaTasks}`);
         console.log(`  - Execution Results: ${result.executionResults ? result.executionResults.length : 0}`);
         console.log();
-    }
-
-    // Direct ActionExecutor testing
-    console.log("\n=== Direct ActionExecutor Testing ===");
-
-    // Test resource management
-    console.log("\n1. Resource management:");
-    try {
-        actionExecutor.registerResource('gpu', {total: 100, unit: 'percent'});
-        console.log("  Registered GPU resource");
-
-        const reserved = actionExecutor.reserveResource('gpu', Date.now(), Date.now() + 10000);
-        console.log(`  Resource reservation: ${reserved ? 'Success' : 'Failed'}`);
-
-        const released = actionExecutor.releaseResource('gpu', Date.now());
-        console.log(`  Resource release: ${released ? 'Success' : 'Failed'}`);
-    } catch (error) {
-        console.log("  Error:", error.message);
-    }
-
-    // Test constraint checking
-    console.log("\n2. Constraint checking:");
-    try {
-        actionExecutor.setConstraint('energy_limit', (action) => {
-            // Simple energy constraint
-            return true; // Always allow for demo
-        });
-        console.log("  Registered energy constraint");
-
-        const safeAction = {name: 'safe_operation', parameters: []};
-        const isSafe = actionExecutor.checkConstraints(safeAction);
-        console.log(`  Safe action constraint check: ${isSafe ? 'Passed' : 'Failed'}`);
-    } catch (error) {
-        console.log("  Error:", error.message);
-    }
-
-    // Test hierarchical planning
-    console.log("\n3. Hierarchical planning:");
-    try {
-        const complexGoal = createTask('(&, achieve, complex_objective)', '!', {frequency: 1.0, confidence: 0.9});
-        if (complexGoal) {
-            const plan = await actionExecutor.createHierarchicalPlan(complexGoal);
-            console.log(`  Created hierarchical plan with ${plan.root.children.length} root children`);
-
-            // Optimize the plan
-            const optimizedPlan = actionExecutor.optimizePlan(plan.id);
-            console.log(`  Optimized plan created: ${optimizedPlan ? 'Success' : 'Failed'}`);
-        }
-    } catch (error) {
-        console.log("  Error:", error.message);
-    }
-
-    // Test action history
-    console.log("\n4. Action history:");
-    try {
-        const history = actionExecutor.getActionHistory();
-        console.log(`  Action history contains ${history.length} records`);
-
-        if (history.length > 0) {
-            const lastAction = history[history.length - 1];
-            console.log(`  Last action: ${lastAction.action.name} (${lastAction.status})`);
-        }
-    } catch (error) {
-        console.log("  Error:", error.message);
     }
 
     console.log("\n=== Demo Complete ===");

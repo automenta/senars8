@@ -1,18 +1,23 @@
 const Term = require("../core/Term");
 const Task = require("../core/Task");
-const {parseTerm} = require('../parser/narseseParser');
-const {cosineSimilarity} = require('../utils/math');
+const XenovaLLM = require("./XenovaLLM");
+const { parseTerm } = require('../parser/narseseParser');
+const { cosineSimilarity } = require('../utils/math');
+const { LLMChain } = require("langchain/chains");
+const { PromptTemplate } = require("@langchain/core/prompts");
+const { StructuredOutputParser } = require("@langchain/core/output_parsers");
 
 class LM {
     constructor() {
         this._featurePipelinePromise = null;
         this._generationPipelinePromise = null;
         this._qaPipelinePromise = null;
+        this.llm = null;
     }
 
     async _initializePipeline(promiseKey, type, model, options = {}) {
         if (!this[promiseKey]) {
-            const {pipeline} = await import('@xenova/transformers');
+            const { pipeline } = await import('@xenova/transformers');
             this[promiseKey] = pipeline(type, model, options);
         }
         return this[promiseKey];
@@ -22,27 +27,36 @@ class LM {
         return this._initializePipeline('_featurePipelinePromise', 'feature-extraction', 'Xenova/all-MiniLM-L6-v2');
     }
 
-    getGenerationPipeline() {
-        return this._initializePipeline('_generationPipelinePromise', 'text-generation', 'Xenova/distilgpt2', {
-            useCache: false
-        });
+    async getGenerationPipeline() {
+        const pipeline = await this._initializePipeline('_generationPipelinePromise', 'text-generation', 'Xenova/distilgpt2', { useCache: false });
+        if (!this.llm) {
+            this.llm = new XenovaLLM(pipeline);
+        }
+        return pipeline;
     }
 
     getQAPipeline() {
-        return this._initializePipeline('_qaPipelinePromise', 'question-answering', 'Xenova/distilbert-base-uncased-distilled-squad', {
-            maxLength: 512
-        });
+        return this._initializePipeline('_qaPipelinePromise', 'question-answering', 'Xenova/distilbert-base-uncased-distilled-squad', { maxLength: 512 });
     }
 
     async _generate(prompt, options = {}) {
-        const generator = await this.getGenerationPipeline();
-        const result = await generator(prompt, {
-            max_new_tokens: 100, // Default value
-            temperature: 0.7,
-            do_sample: true,
-            ...options,
+        await this.getGenerationPipeline();
+        return this.llm._call(prompt, options);
+    }
+
+    _createHypothesisChain(promptTemplate, generationOptions) {
+        const parser = StructuredOutputParser.fromNamesAndDescriptions({
+            term: "The generated hypothesis in valid Narsese format (e.g., <subject --> predicate>).",
         });
-        return result?.[0]?.generated_text.replace(prompt, '').trim() || '';
+
+        const formatInstructions = parser.getFormatInstructions();
+        const prompt = new PromptTemplate({
+            template: `${promptTemplate}\n{format_instructions}\n`,
+            inputVariables: ["context"],
+            partialVariables: { format_instructions: formatInstructions },
+        });
+
+        return new LLMChain({ llm: this.llm, prompt, ...generationOptions });
     }
 
     async bootstrapTerm(termKey) {
@@ -51,73 +65,54 @@ class LM {
         }
 
         const extractor = await this.getFeaturePipeline();
-        const output = await extractor(termKey, {pooling: 'mean', normalize: true});
+        const output = await extractor(termKey, { pooling: 'mean', normalize: true });
         const embeddingVector = Array.from(output.data);
         const complexity = termKey.split(/[(&,)/]/).filter(s => s.length > 0).length;
         return new Term(termKey, embeddingVector, complexity);
     }
 
-    async generateHypotheses(tasks, config = {type: 'general', num: 3, refinement: null}) {
+    async generateHypotheses(tasks, config = { type: 'general', num: 3, refinement: null }) {
         if (!tasks || tasks.length === 0) return [];
+        await this.getGenerationPipeline();
 
         const context = tasks.map(task => `${task.termKey}${task.punctuation}`).join('\n');
-        let hypotheses = [];
+        const hypotheses = [];
 
         const prompts = {
-            general: [
-                `Based on these observations:\n${context}\n\nA general principle that explains these observations is:`,
-                `Based on these observations:\n${context}\n\nA causal relationship that might explain these observations is:`,
-                `Based on these observations:\n${context}\n\nA pattern that emerges from these observations is:`,
-            ],
-            creative: [
-                `Based on these observations:\n${context}\n\nA surprising insight that explains these observations is:`,
-                `Based on these observations:\n${context}\n\nAn unconventional explanation for these observations is:`,
-                `Based on these observations:\n${context}\n\nA radical new perspective on these observations is:`,
-            ],
-            sophisticated: [
-                `Based on these observations:\n${context}\n\nIdentify complex relationships between these concepts and propose a unifying theory:`,
-                `Based on these observations:\n${context}\n\nWhat would happen if the opposite were true? Propose a counterfactual hypothesis:`,
-                `Based on these observations:\n${context}\n\nWhat underlying mechanisms might explain these phenomena? Propose a mechanistic hypothesis:`,
-            ],
-            comprehensive: [
-                `Based on these observations:\n${context}\n\nPropose a testable prediction based on these patterns:`,
-                `Based on these observations:\n${context}\n\nWhat insights from an analogous domain might apply here? Propose an analogical hypothesis:`,
-                `Based on these observations:\n${context}\n\nWhat meta-level reasoning strategy would be most effective here?`,
-            ]
+            general: "Based on these observations:\n{context}\n\nA general principle that explains these observations is:",
+            creative: "Based on these observations:\n{context}\n\nA surprising insight that explains these observations is:",
+            sophisticated: "Based on these observations:\n{context}\n\nIdentify complex relationships and propose a unifying theory:",
+            comprehensive: "Based on these observations:\n{context}\n\nPropose a testable prediction based on these patterns:",
         };
+        const selectedPromptTemplate = prompts[config.type] || prompts.general;
 
-        const selectedPrompts = prompts[config.type] || prompts.general;
         const generationOptions = {
-            creative: {temperature: 0.8, max_new_tokens: 60},
-            sophisticated: {temperature: 0.75, max_new_tokens: 75},
-            comprehensive: {temperature: 0.7, max_new_tokens: 150},
-        }[config.type] || {temperature: 0.7, max_new_tokens: 50};
+            creative: { temperature: 0.8, max_new_tokens: 60 },
+            sophisticated: { temperature: 0.75, max_new_tokens: 75 },
+            comprehensive: { temperature: 0.7, max_new_tokens: 150 },
+        }[config.type] || { temperature: 0.7, max_new_tokens: 50 };
 
-        for (let i = 0; i < Math.min(config.num, selectedPrompts.length); i++) {
-            const hypothesisText = await this._generate(selectedPrompts[i], generationOptions);
-            if (hypothesisText) {
-                const parsedTerm = parseTerm(hypothesisText);
+        const chain = this._createHypothesisChain(selectedPromptTemplate, generationOptions);
+
+        for (let i = 0; i < config.num; i++) {
+            try {
+                const result = await chain.call({ context });
+                const parsedResult = JSON.parse(result.text.match(/```json\n(.*)\n```/s)[1]);
+                const parsedTerm = parseTerm(parsedResult.term);
                 if (parsedTerm) {
-                    hypotheses.push(new Task(
-                        parsedTerm,
-                        '.',
-                        {
-                            frequency: 0.3 + Math.random() * 0.3,
-                            confidence: 0.2 + Math.random() * 0.2
-                        }
-                    ));
+                    hypotheses.push(new Task(parsedTerm, '.', {
+                        frequency: 0.3 + Math.random() * 0.3,
+                        confidence: 0.2 + Math.random() * 0.2,
+                    }));
                 }
+            } catch (e) {
+                console.error("Failed to generate or parse hypothesis:", e);
             }
         }
 
-        if (config.refinement) {
-            const refinedHypotheses = await Promise.all(
-                hypotheses.map(h => this.refineHypothesis(h, config.refinement))
-            );
-            return refinedHypotheses;
-        }
-
-        return hypotheses;
+        return config.refinement
+            ? Promise.all(hypotheses.map(h => this.refineHypothesis(h, config.refinement)))
+            : hypotheses;
     }
 
     async explain(termKey, config = {}) {

@@ -1,76 +1,86 @@
 const HTNPlanner = require('../reasoner/HTNPlanner');
-const actionExecutor = require('./ActionExecutor');
+const ActionExecutor = require('./ActionExecutor');
+const { v4: uuidv4 } = require('uuid');
 
 class Planner {
-    constructor(memory) {
-        if (!memory) {
-            throw new Error('Planner requires a memory instance.');
+    constructor(memory, actionExecutor) {
+        if (!memory || !actionExecutor) {
+            throw new Error('Planner requires memory and actionExecutor instances.');
         }
         this.memory = memory;
         this.htnPlanner = new HTNPlanner(this.memory);
-        this.actionPlans = new Map();
+        this.actionExecutor = actionExecutor;
+        this.planCache = new Map();
+        this.activePlans = new Map();
     }
 
     async planAndExecute(goalTask) {
-        const plan = await this.htnPlanner.findPlan(goalTask);
-
-        if (!plan || plan.length === 0) {
+        const plan = await this.createPlan(goalTask);
+        if (!plan) {
             return { success: false, error: 'No plan found' };
         }
+        return this.executePlan(plan);
+    }
 
-        const planId = `plan_${Date.now()}`;
-        this.actionPlans.set(planId, plan);
+    async createPlan(goalTask) {
+        const goalKey = goalTask.termKey;
+        if (this.planCache.has(goalKey)) {
+            return this.planCache.get(goalKey);
+        }
+
+        const plan = await this.htnPlanner.findPlan(goalTask);
+        if (plan) {
+            this.planCache.set(goalKey, plan);
+        }
+        return plan;
+    }
+
+    async executePlan(plan) {
+        const planId = uuidv4();
+        this.activePlans.set(planId, plan);
 
         const executionResults = [];
         for (const term of plan) {
             const action = this.parseAction(term);
             if (!action) {
-                // If parsing fails, we can either skip or fail the plan
                 console.error(`Could not parse action from term: ${term.key}`);
                 continue;
             }
 
-            const result = await actionExecutor.executeAction({ name: action.name, parameters: action.parameters });
-            executionResults.push({
-                action: action.name,
-                result: result
-            });
+            const result = await this.actionExecutor.execute(action);
+            executionResults.push({ action: action.name, result });
 
             if (!result.success) {
+                this.activePlans.delete(planId);
                 return {
                     success: false,
-                    planId: planId,
+                    planId,
                     error: `Plan failed at action ${action.name}`,
-                    results: executionResults
+                    results: executionResults,
                 };
             }
         }
 
-        return {
-            success: true,
-            planId: planId,
-            results: executionResults
-        };
+        this.activePlans.delete(planId);
+        return { success: true, planId, results: executionResults };
     }
 
     parseAction(term) {
-        const isConjunction = term.type === 'SequentialConjunction' || term.type === 'Conjunction';
-
-        // A primitive action is expected to be a conjunction
-        // e.g., (&, GoTo, room, kitchen) or (&/, GoTo, room, kitchen)
-        if (!isConjunction || term.terms.length < 1) {
-            // Or it could be a simple term for an action with no parameters
-            if (term.type === 'Atomic') {
-                return { name: term.key, parameters: [] };
-            }
-            return null;
+        if (term.type === 'Atomic') {
+            return { name: term.key, parameters: [] };
         }
 
-        // The first term is the action name, the rest are parameters.
-        const name = term.terms[0].key;
-        const parameters = term.terms.slice(1).map(t => t.key);
+        const isCompound = term.type === 'SequentialConjunction' || term.type === 'Conjunction';
+        if (isCompound && term.terms.length > 0) {
+            const [nameTerm, ...paramTerms] = term.terms;
+            return {
+                name: nameTerm.key,
+                parameters: paramTerms.map(t => t.key),
+            };
+        }
 
-        return { name, parameters };
+        console.warn(`Cannot parse action from term of type ${term.type}: ${term.key}`);
+        return null;
     }
 }
 

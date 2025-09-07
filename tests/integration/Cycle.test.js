@@ -2,6 +2,7 @@ const Cycle = require('../../src/system/Cycle');
 const Memory = require('../../src/memory/Memory');
 const Reasoner = require('../../src/reasoner/Reasoner');
 const LM = require('../../src/lm/LM');
+const ActionExecutor = require('../../src/system/ActionExecutor');
 const Task = require('../../src/core/Task');
 const Term = require('../../src/core/Term');
 const {parseTerm} = require('../../src/parser/narseseParser');
@@ -26,7 +27,8 @@ describe('Cycle Integration Test', () => {
         const BruteForceStrategy = require('../../src/reasoner/strategies/BruteForceStrategy');
         reasoner = new Reasoner(new BruteForceStrategy());
         lm = new LM();
-        cycle = new Cycle(memory, reasoner, lm);
+        const actionExecutor = new ActionExecutor(memory);
+        cycle = new Cycle(memory, reasoner, lm, actionExecutor);
 
         lm.generateHypotheses.mockResolvedValue([]);
         lm.evaluateAndRankHypotheses.mockImplementation(async (tasks, hypotheses) => hypotheses);

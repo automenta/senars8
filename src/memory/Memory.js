@@ -19,13 +19,20 @@ class Memory {
         }
         this.terms.set(term.key, term);
 
-        // For efficient planning, index implications by their subject
+        // For efficient planning, index implications by their goal
         if (term.type === 'Implication' && term.subject) {
-            const subjectKey = term.subject.key;
-            if (!this.implicationIndex.has(subjectKey)) {
-                this.implicationIndex.set(subjectKey, []);
+            let goalTerm;
+            if (term.subject.type === 'SequentialConjunction' && term.subject.terms.length > 0) {
+                goalTerm = term.subject.terms[0]; // The goal is the first term in the conjunction
+            } else {
+                goalTerm = term.subject; // The subject itself is the goal
             }
-            this.implicationIndex.get(subjectKey).push(term);
+
+            const goalKey = goalTerm.key;
+            if (!this.implicationIndex.has(goalKey)) {
+                this.implicationIndex.set(goalKey, []);
+            }
+            this.implicationIndex.get(goalKey).push(term);
         }
     }
 

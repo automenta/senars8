@@ -11,4 +11,28 @@ module.exports = {
         {type: 'creative', num: 1},
         {type: 'sophisticated', num: 1},
     ],
+    ACTION_EXECUTOR: {
+        RESOURCES: [
+            { name: 'cpu', total: 100, unit: 'percent' },
+            { name: 'memory', total: 8192, unit: 'MB' },
+            { name: 'network', total: 1000, unit: 'Mbps' },
+        ],
+        CONSTRAINTS: {
+            resource_limit: (action) => {
+                if (action.resource_requirements) {
+                    for (const req of action.resource_requirements) {
+                        if (!this.resources.has(req.name)) {
+                            console.warn(`Action ${action.name} requires unregistered resource: ${req.name}`);
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            },
+            safety: (action) => {
+                const dangerousActions = ['delete_system', 'format_disk', 'shutdown_system'];
+                return !dangerousActions.includes(action.name);
+            },
+        },
+    },
 };

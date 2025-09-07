@@ -1,0 +1,28 @@
+const { LLM } = require("@langchain/core/language_models/llms");
+
+class XenovaLLM extends LLM {
+    constructor(pipeline, options = {}) {
+        super(options);
+        this.pipeline = pipeline;
+        this.options = options;
+    }
+
+    async _call(prompt, options) {
+        const generationOptions = {
+            max_new_tokens: 100,
+            temperature: 0.7,
+            do_sample: true,
+            ...this.options,
+            ...options,
+        };
+
+        const result = await this.pipeline(prompt, generationOptions);
+        return result?.[0]?.generated_text.replace(prompt, '').trim() || '';
+    }
+
+    _llmType() {
+        return "xenova";
+    }
+}
+
+module.exports = XenovaLLM;

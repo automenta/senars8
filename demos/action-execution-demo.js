@@ -13,9 +13,6 @@ async function actionExecutionDemo() {
     const system = new System();
     await system.initialize();
 
-    // Enable rollback for this demo
-    system.cycle.actionExecutor.enableRollback(true);
-
     console.log("1. Testing parallel action execution...\n");
 
     // Create tasks for parallel execution
@@ -38,17 +35,17 @@ async function actionExecutionDemo() {
     ];
 
     // Register custom action handlers for our parallel tasks
-    system.cycle.actionExecutor.registerActionHandler('move_*', async (action) => {
+    system.actionExecutor.registerActionHandler('move_*', async (action) => {
         console.log(`Moving robot to ${action.name.replace('move_robot_', '')}`);
         return {success: true, action: action.name, result: 'Robot moved successfully'};
     });
 
-    system.cycle.actionExecutor.registerActionHandler('activate_*', async (action) => {
+    system.actionExecutor.registerActionHandler('activate_*', async (action) => {
         console.log(`Activating ${action.name.replace('activate_', '')}`);
         return {success: true, action: action.name, result: 'System activated successfully'};
     });
 
-    system.cycle.actionExecutor.registerActionHandler('monitor_*', async (action) => {
+    system.actionExecutor.registerActionHandler('monitor_*', async (action) => {
         console.log(`Monitoring ${action.name.replace('monitor_', '')}`);
         return {success: true, action: action.name, result: 'Monitoring started successfully'};
     });
@@ -124,7 +121,7 @@ async function actionExecutionDemo() {
     );
 
     // Register a handler that will fail
-    system.cycle.actionExecutor.registerActionHandler('perform_risky_operation', async (action) => {
+    system.actionExecutor.registerActionHandler('perform_risky_operation', async (action) => {
         console.log("Attempting risky operation...");
         throw new Error("Risky operation failed due to unexpected conditions");
     });

@@ -55,28 +55,8 @@ class HTNPlanner {
     }
 
     _findDecompositionMethods(goalTerm) {
-        const allImplications = Array.from(this.memory.terms.values())
-            .filter(term => term.type === 'Implication');
-
-        const matchingMethods = allImplications.filter(term => {
-            const subject = term.subject;
-            if (!subject) return false;
-
-            // Case 1: Simple implication, e.g., <goal> ==> <method>
-            if (subject.equals(goalTerm)) {
-                return true;
-            }
-
-            // Case 2: Implication with preconditions, e.g., ((&, <goal>, <precond1>, ...)) ==> <method>
-            if (subject.type === 'SequentialConjunction' && subject.terms.length > 0) {
-                const goalInSubject = subject.terms[0];
-                return goalInSubject.equals(goalTerm);
-            }
-
-            return false;
-        });
-
-        return matchingMethods; // Return the full implication term
+        // Efficiently find matching decomposition methods using the implication index
+        return this.memory.implicationIndex.get(goalTerm.key) || [];
     }
 
     _extractSubTasksFromMethod(methodTerm) {
