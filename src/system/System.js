@@ -1,3 +1,6 @@
+// Suppress ONNX Runtime warnings about unused initializers
+process.env.ORT_LOGGING_LEVEL = 'ERROR';
+
 const Memory = require('../memory/Memory');
 const Reasoner = require('../reasoner/Reasoner');
 const LM = require('../lm/LM');

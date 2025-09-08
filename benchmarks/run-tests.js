@@ -1,23 +1,11 @@
-// benchmarks/run-tests.js
-const CognitiveTestSuite = require('./CognitiveTestSuite');
+#!/usr/bin/env node
 
-async function runBenchmark() {
-    console.log('=== SeNARS Cognitive Benchmark ===\n');
-    
-    const testSuite = new CognitiveTestSuite();
-    
-    try {
-        const results = await testSuite.runAllTests();
-        testSuite.generateReport();
-        
-        console.log('\n=== Benchmark Complete ===');
-    } catch (error) {
-        console.error('Benchmark failed:', error);
-    }
+const { runAllTests } = require('./index');
+
+async function main() {
+    await runAllTests();
 }
 
 if (require.main === module) {
-    runBenchmark();
+    main();
 }
-
-module.exports = runBenchmark;

@@ -1,6 +1,3 @@
-// Suppress ONNX Runtime warnings
-process.env.ORT_LOGGING_LEVEL = 'ERROR';
-
 const System = require('./src/system/System');
 const Task = require('./src/core/Task');
 const {parseTerm} = require('./src/parser/narseseParser');

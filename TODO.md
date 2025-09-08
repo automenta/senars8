@@ -26,6 +26,16 @@
 - [x] **Refactor `LM.js`:**
     - [x] Enhance language model capabilities (e.g., hypothesis generation).
 
+## Recent Completed Refactoring Tasks
+
+### `[x]` Suppress ONNX Runtime Warnings
+
+- [x] **Issue**: The system was producing numerous warnings from the ONNX Runtime about unused initializers in transformer models
+- [x] **Solution**: Added environment variable setting to suppress these warnings by setting `process.env.ORT_LOGGING_LEVEL = 'ERROR'` in the System class constructor
+- [x] **Files Modified**: 
+    - `src/system/System.js`: Added `process.env.ORT_LOGGING_LEVEL = 'ERROR';` at the top of the file to suppress ONNX Runtime warnings about unused initializers
+- [x] **Verification**: Tests run successfully without showing the warnings, system initializes correctly, demo applications can be run without the verbose ONNX warnings
+
 ## Phase 2: Advanced Capabilities (Long-Term)
 
 ### `[ ]` 1. Systematic Evaluation and Benchmarking
