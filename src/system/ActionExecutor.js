@@ -9,6 +9,11 @@ class ActionExecutor {
         this.actionHistory = [];
         this.resources = new Map();
         this.constraints = new Map();
+
+        this.actionQueue = [];
+        this.pendingActions = new Map();
+        this.processing = false;
+
         this._initializeFromConfig();
     }
 
@@ -32,27 +37,72 @@ class ActionExecutor {
     }
 
     async execute(action) {
-        const actionRecord = this._createActionRecord(action);
-        let resourcesAcquired = false;
-        try {
-            this._validate(action);
-            this._acquireResources(action);
-            resourcesAcquired = true;
+        const actionId = uuidv4();
+        const promise = new Promise((resolve, reject) => {
+            this.pendingActions.set(actionId, { resolve, reject });
+        });
 
-            const handler = this._findHandler(action.name);
-            const result = await handler(action);
-            return this._recordSuccess(actionRecord, result);
-        } catch (error) {
-            return this._recordFailure(actionRecord, error);
-        } finally {
-            if (resourcesAcquired) {
-                this._releaseResources(action);
-            }
-        }
+        this.actionQueue.push({ action, actionId });
+        this._processQueue();
+
+        return promise;
     }
 
-    _createActionRecord(action) {
-        const record = { id: uuidv4(), action, timestamp: new Date(), status: 'pending' };
+    async _processQueue() {
+        if (this.processing) return;
+        this.processing = true;
+
+        for (let i = 0; i < this.actionQueue.length; i++) {
+            const { action, actionId } = this.actionQueue[i];
+            const { resolve, reject } = this.pendingActions.get(actionId);
+
+            try {
+                this._validate(action);
+
+                if (this._checkResourceAvailability(action)) {
+                    this.actionQueue.splice(i, 1);
+                    i--;
+
+                    const actionRecord = this._createActionRecord(action, actionId);
+                    this._acquireResources(action);
+
+                    try {
+                        const handler = this._findHandler(action.name);
+                        const result = await handler(action);
+                        resolve(this._recordSuccess(actionRecord, result));
+                    } catch (executionError) {
+                        reject(this._recordFailure(actionRecord, executionError));
+                    } finally {
+                        this._releaseResources(action);
+                        this.pendingActions.delete(actionId);
+                    }
+                }
+            } catch (validationError) {
+                this.actionQueue.splice(i, 1);
+                i--;
+                const actionRecord = this._createActionRecord(action, actionId);
+                reject(this._recordFailure(actionRecord, validationError));
+                this.pendingActions.delete(actionId);
+            }
+        }
+
+        this.processing = false;
+    }
+
+    _checkResourceAvailability(action) {
+        if (!action.resources) return true;
+
+        for (const resourceName of action.resources) {
+            const resource = this.resources.get(resourceName);
+            if (!resource || resource.locked) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    _createActionRecord(action, actionId) {
+        const record = { id: actionId, action, timestamp: new Date(), status: 'pending' };
         this.actionHistory.push(record);
         return record;
     }
@@ -88,31 +138,24 @@ class ActionExecutor {
 
     _acquireResources(action) {
         if (!action.resources) return;
-
         for (const resourceName of action.resources) {
             const resource = this.resources.get(resourceName);
-            if (!resource) {
-                throw new Error(`Resource not found: ${resourceName}`);
+            if (resource) {
+                resource.locked = true;
             }
-            if (resource.locked) {
-                throw new Error(`Resource is locked: ${resourceName}`);
-            }
-        }
-
-        for (const resourceName of action.resources) {
-            this.resources.get(resourceName).locked = true;
         }
     }
 
     _releaseResources(action) {
         if (!action.resources) return;
-
         for (const resourceName of action.resources) {
             const resource = this.resources.get(resourceName);
             if (resource) {
                 resource.locked = false;
             }
         }
+        // After releasing resources, try to process the queue again
+        this._processQueue();
     }
 
     _checkConstraints(action) {

@@ -8,6 +8,17 @@ const { PromptTemplate } = require("@langchain/core/prompts");
 const { StructuredOutputParser } = require("@langchain/core/output_parsers");
 const { LM: LM_CONFIG } = require('../config');
 
+const HYPOTHESIS_TYPES = {
+    GENERAL: 'general',
+    CREATIVE: 'creative',
+    GOAL_ORIENTED: 'goal_oriented',
+};
+
+const REFINEMENT_TYPES = {
+    FORMALIZE: 'formalize',
+    SIMPLIFY: 'simplify',
+};
+
 class PipelineFactory {
     constructor() {
         this._pipelines = new Map();
@@ -90,12 +101,7 @@ class LM {
         return new Term(termKey, embeddingVector, complexity);
     }
 
-    async generateHypotheses(tasks, config = {}) {
-        if (!tasks || tasks.length === 0) return [];
-        await this._getGenerationPipeline();
-
-        const { type = 'general', num = 3, refinement = null, promptTemplate = null, goals = [], contradictions = [] } = config;
-
+    _buildHypothesisContext(tasks, goals, contradictions) {
         let context = "Observations:\n" + tasks.map(task => `${task.termKey}${task.punctuation}`).join('\n');
         if (goals.length > 0) {
             context += "\n\nCurrent Goals:\n" + goals.map(task => `${task.termKey}${task.punctuation}`).join('\n');
@@ -103,13 +109,27 @@ class LM {
         if (contradictions.length > 0) {
             context += "\n\nRecent Contradictions:\n" + contradictions.map(c => `${c.taskA.termKey} vs ${c.taskB.termKey}`).join('\n');
         }
+        return context;
+    }
 
+    _createHypothesisPrompt(type, promptTemplate) {
+        if (promptTemplate) return promptTemplate;
         const prompts = {
-            general: "Based on the following context:\n{context}\n\nA general principle that explains these observations is:",
-            creative: "Based on the following context:\n{context}\n\nA surprising insight that explains these observations is:",
-            goal_oriented: "Given the following context:\n{context}\n\nA useful hypothesis to explore to achieve the current goals is:",
+            [HYPOTHESIS_TYPES.GENERAL]: "Based on the following context:\n{context}\n\nA general principle that explains these observations is:",
+            [HYPOTHESIS_TYPES.CREATIVE]: "Based on the following context:\n{context}\n\nA surprising insight that explains these observations is:",
+            [HYPOTHESIS_TYPES.GOAL_ORIENTED]: "Given the following context:\n{context}\n\nA useful hypothesis to explore to achieve the current goals is:",
         };
-        const selectedPrompt = promptTemplate || prompts[type] || prompts.general;
+        return prompts[type] || prompts[HYPOTHESIS_TYPES.GENERAL];
+    }
+
+    async generateHypotheses(tasks, config = {}) {
+        if (!tasks || tasks.length === 0) return [];
+        await this._getGenerationPipeline();
+
+        const { type = HYPOTHESIS_TYPES.GENERAL, num = 3, refinement = null, promptTemplate = null, goals = [], contradictions = [] } = config;
+
+        const context = this._buildHypothesisContext(tasks, goals, contradictions);
+        const selectedPrompt = this._createHypothesisPrompt(type, promptTemplate);
 
         const chain = this._createStructuredChain(selectedPrompt, require('zod').object({ term: require('zod').string().describe("The generated hypothesis in valid Narsese format.") }), {});
 
@@ -173,12 +193,12 @@ class LM {
         return evaluatedHypotheses.sort((a, b) => b.relevance - a.relevance).map(item => item.hypothesis);
     }
 
-    async refineHypothesis(hypothesis, refinementType = 'formalize') {
+    async refineHypothesis(hypothesis, refinementType = REFINEMENT_TYPES.FORMALIZE) {
         const prompts = {
-            formalize: `Refine into a more formal statement: ${hypothesis.termKey}`,
-            simplify: `Simplify into a more concise statement: ${hypothesis.termKey}`,
+            [REFINEMENT_TYPES.FORMALIZE]: `Refine into a more formal statement: ${hypothesis.termKey}`,
+            [REFINEMENT_TYPES.SIMPLIFY]: `Simplify into a more concise statement: ${hypothesis.termKey}`,
         };
-        const prompt = prompts[refinementType] || prompts.formalize;
+        const prompt = prompts[refinementType] || prompts[REFINEMENT_TYPES.FORMALIZE];
         const refinedText = await this._generate(prompt, { max_new_tokens: 60 });
         if (!refinedText) return hypothesis;
 

@@ -8,6 +8,7 @@ const Term = require('../src/core/Term');
 const {
     parseTerm
 } = require('../src/parser/narseseParser');
+const config = require('../src/config');
 
 // Mock the LM to avoid loading heavy models
 jest.mock('../src/lm/LM');
@@ -31,7 +32,7 @@ describe('Contradiction Resolution in Cycle', () => {
         reasoner = new Reasoner();
         lm = new LM();
         const actionExecutor = new ActionExecutor(memory);
-        cycle = new Cycle(memory, reasoner, lm, actionExecutor);
+        cycle = new Cycle(memory, reasoner, lm, actionExecutor, config);
 
         // Mock LM methods
         lm.generateHypotheses.mockResolvedValue([]);

@@ -3,26 +3,28 @@ const Reasoner = require('../reasoner/Reasoner');
 const LM = require('../lm/LM');
 const {calculateTemporalPriority} = require('../utils/temporal-reasoning');
 const Planner = require('./Planner');
-const AStarPlanner = require('../reasoner/AStarPlanner');
 const CONSTITUTION_TASKS = require('./Constitution');
 const Perception = require('./Perception');
 const MetaCognition = require('./MetaCognition');
 const TemporalReasoner = require('../reasoner/TemporalReasoner');
 const PriorityManager = require('../reasoner/PriorityManager');
-const config = require('../config');
 
 class Cycle {
-    constructor(memory, reasoner, lm, actionExecutor) {
+    constructor(memory, reasoner, lm, actionExecutor, config) {
         if (!(memory instanceof Memory) || !(reasoner instanceof Reasoner) || !(lm instanceof LM)) {
             throw new Error('Cycle requires instances of Memory, Reasoner, and LM.');
+        }
+        if (!config) {
+            throw new Error('Cycle requires a config object.');
         }
         this.memory = memory;
         this.reasoner = reasoner;
         this.lm = lm;
+        this.config = config;
         this.lm.setReasoner(this.reasoner);
         this.lm.setMemory(this.memory);
         this.perception = new Perception(memory, lm);
-        this.planner = new Planner(new AStarPlanner(memory, this.lm), actionExecutor);
+        this.planner = new Planner(this.memory, this.lm, actionExecutor, this.config.planner);
         this.metaCognition = new MetaCognition();
         this.temporalReasoner = new TemporalReasoner();
         this.priorityManager = new PriorityManager(memory);
@@ -49,7 +51,7 @@ class Cycle {
     }
 
     async _generateLmHypotheses(focusSet, goals, contradictions) {
-        const lmHypothesesPromises = config.LM_HYPOTHESIS_CONFIGS.map(hConfig =>
+        const lmHypothesesPromises = this.config.LM_HYPOTHESIS_CONFIGS.map(hConfig =>
             this.lm.generateHypotheses(focusSet, { ...hConfig, goals, contradictions })
         );
 
@@ -58,11 +60,11 @@ class Cycle {
     }
 
     async _reason(contradictions) {
-        const focusSet = this.memory.getHighestPriorityTasks(config.FOCUS_SET_SIZE);
+        const focusSet = this.memory.getHighestPriorityTasks(this.config.FOCUS_SET_SIZE);
         if (focusSet.length === 0) return [];
 
         const goals = this.memory.getAllTasks()
-            .filter(task => task.punctuation === '!' && task.state.priority > config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
+            .filter(task => task.punctuation === '!' && task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
             .sort((a, b) => b.state.priority - a.state.priority);
 
         const symbolicTasks = this.reasoner.performInference(focusSet);
@@ -90,7 +92,7 @@ class Cycle {
         );
 
         if (metaTasks.length > 0) {
-            metaTasks.forEach(mt => mt.state.priority = config.META_TASK_PRIORITY);
+            metaTasks.forEach(mt => mt.state.priority = this.config.META_TASK_PRIORITY);
             this.memory.addTasks(metaTasks);
         }
 
@@ -105,9 +107,9 @@ class Cycle {
 
     async _act() {
         const actionableGoals = this.memory.getAllTasks()
-            .filter(task => task.punctuation === '!' && task.state.priority > config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
+            .filter(task => task.punctuation === '!' && task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
             .sort((a, b) => b.state.priority - a.state.priority)
-            .slice(0, config.MAX_GOALS_TO_EXECUTE);
+            .slice(0, this.config.MAX_GOALS_TO_EXECUTE);
 
         const executionResults = [];
         for (const goal of actionableGoals) {

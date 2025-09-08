@@ -44,5 +44,16 @@ module.exports = {
         FEATURE_EXTRACTION_MODEL: 'Xenova/all-MiniLM-L6-v2',
         TEXT_GENERATION_MODEL: 'Xenova/distilgpt2',
         QA_MODEL: 'Xenova/distilbert-base-uncased-distilled-squad',
-    }
+    },
+    planner: {
+        strategy: 'HTN', // Can be 'AStar' or 'HTN'
+        plannerConfig: {
+            // A* specific configs
+            heuristicWeights: {
+                complexity: 0.4,
+                confidence: 0.3,
+                semantic: 0.3,
+            },
+        }
+    },
 };

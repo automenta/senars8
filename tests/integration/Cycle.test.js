@@ -5,6 +5,7 @@ const LM = require('../../src/lm/LM');
 const ActionExecutor = require('../../src/system/ActionExecutor');
 const Task = require('../../src/core/Task');
 const Term = require('../../src/core/Term');
+const config = require('../../src/config');
 const {parseTerm} = require('../../src/parser/narseseParser');
 
 jest.mock('../../src/lm/LM');
@@ -28,7 +29,7 @@ describe('Cycle Integration Test', () => {
         reasoner = new Reasoner(new BruteForceStrategy());
         lm = new LM();
         const actionExecutor = new ActionExecutor(memory);
-        cycle = new Cycle(memory, reasoner, lm, actionExecutor);
+        cycle = new Cycle(memory, reasoner, lm, actionExecutor, config);
 
         lm.generateHypotheses.mockResolvedValue([]);
         lm.evaluateAndRankHypotheses.mockImplementation(async (tasks, hypotheses) => hypotheses);

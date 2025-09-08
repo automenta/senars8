@@ -6,13 +6,17 @@ const { ActionExecutor } = require('./ActionExecutor');
 const CONSTITUTION_TASKS = require('./Constitution');
 const registerDefaultActions = require('./default-actions');
 
+const config = require('../config');
+const _ = require('lodash');
+
 class System {
-    constructor() {
+    constructor(userConfig = {}) {
+        this.config = _.merge({}, config, userConfig);
         this.memory = new Memory();
         this.reasoner = new Reasoner();
         this.lm = new LM();
         this.actionExecutor = new ActionExecutor(this.memory);
-        this.cycle = new Cycle(this.memory, this.reasoner, this.lm, this.actionExecutor);
+        this.cycle = new Cycle(this.memory, this.reasoner, this.lm, this.actionExecutor, this.config);
         registerDefaultActions(this.actionExecutor);
         this.isRunning = false;
         this.cycleCount = 0;

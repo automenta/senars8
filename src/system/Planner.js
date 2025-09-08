@@ -32,12 +32,21 @@ class PlanExecutor {
     }
 }
 
+const Planners = require('../reasoner');
+
 class Planner {
-    constructor(planningStrategy, actionExecutor) {
-        if (!planningStrategy || !actionExecutor) {
-            throw new Error('Planner requires a planning strategy and an actionExecutor.');
+    constructor(memory, lm, actionExecutor, config = {}) {
+        if (!memory || !lm || !actionExecutor) {
+            throw new Error('Planner requires memory, lm, and actionExecutor instances.');
         }
-        this.strategy = planningStrategy;
+
+        const strategyName = config.strategy || 'HTN';
+        const PlannerClass = Planners[strategyName + 'Planner'];
+        if (!PlannerClass) {
+            throw new Error(`Unknown planner strategy: ${strategyName}`);
+        }
+
+        this.strategy = new PlannerClass(memory, lm, config.plannerConfig);
         this.executor = new PlanExecutor(actionExecutor);
         this.planCache = new Map();
     }
