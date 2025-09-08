@@ -52,37 +52,53 @@ class ActionExecutor {
         if (this.processing) return;
         this.processing = true;
 
-        for (let i = 0; i < this.actionQueue.length; i++) {
-            const { action, actionId } = this.actionQueue[i];
-            const { resolve, reject } = this.pendingActions.get(actionId);
+        let processedAnAction = true;
+        while (processedAnAction) {
+            processedAnAction = false;
+            let actionToProcess = null;
+            let indexToRemove = -1;
 
-            try {
-                this._validate(action);
-
-                if (this._checkResourceAvailability(action)) {
-                    this.actionQueue.splice(i, 1);
-                    i--;
-
-                    const actionRecord = this._createActionRecord(action, actionId);
-                    this._acquireResources(action);
-
-                    try {
-                        const handler = this._findHandler(action.name);
-                        const result = await handler(action);
-                        resolve(this._recordSuccess(actionRecord, result));
-                    } catch (executionError) {
-                        reject(this._recordFailure(actionRecord, executionError));
-                    } finally {
-                        this._releaseResources(action);
-                        this.pendingActions.delete(actionId);
+            // Find the first runnable action
+            for (let i = 0; i < this.actionQueue.length; i++) {
+                const item = this.actionQueue[i];
+                try {
+                    this._validate(item.action);
+                    if (this._checkResourceAvailability(item.action)) {
+                        actionToProcess = item;
+                        indexToRemove = i;
+                        break; // Found one, stop searching
                     }
+                } catch (validationError) {
+                    // Invalid action, remove it from the queue and reject
+                    const { reject } = this.pendingActions.get(item.actionId);
+                    const actionRecord = this._createActionRecord(item.action, item.actionId);
+                    reject(this._recordFailure(actionRecord, validationError));
+                    this.pendingActions.delete(item.actionId);
+                    this.actionQueue.splice(i, 1);
+                    i--; // Adjust index after splice
                 }
-            } catch (validationError) {
-                this.actionQueue.splice(i, 1);
-                i--;
+            }
+
+            if (actionToProcess) {
+                // Remove from queue
+                this.actionQueue.splice(indexToRemove, 1);
+
+                const { action, actionId } = actionToProcess;
+                const { resolve, reject } = this.pendingActions.get(actionId);
                 const actionRecord = this._createActionRecord(action, actionId);
-                reject(this._recordFailure(actionRecord, validationError));
-                this.pendingActions.delete(actionId);
+
+                this._acquireResources(action);
+                try {
+                    const handler = this._findHandler(action.name);
+                    const result = await handler(action);
+                    resolve(this._recordSuccess(actionRecord, result));
+                } catch (executionError) {
+                    reject(this._recordFailure(actionRecord, executionError));
+                } finally {
+                    this._releaseResources(action);
+                    this.pendingActions.delete(actionId);
+                }
+                processedAnAction = true; // Loop again to check for more actions
             }
         }
 
@@ -154,8 +170,6 @@ class ActionExecutor {
                 resource.locked = false;
             }
         }
-        // After releasing resources, try to process the queue again
-        this._processQueue();
     }
 
     _checkConstraints(action) {

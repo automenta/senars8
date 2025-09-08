@@ -113,14 +113,36 @@ class Cycle {
 
         const executionResults = [];
         for (const goal of actionableGoals) {
-            const result = await this.planner.planAndExecute(goal).catch(error => ({
-                success: false,
-                task: goal.termKey,
-                error: error.message,
-            }));
+            let result = { success: false };
+            let attempts = 0;
+            let lastFailedPlan = null;
+            const maxAttempts = 3; // From old planner implementation
+
+            while (attempts < maxAttempts && !result.success) {
+                attempts++;
+                const plan = await this.planner.createPlan(goal, lastFailedPlan);
+
+                if (plan && plan.steps.length > 0) {
+                    result = await plan.execute().catch(error => ({
+                        success: false,
+                        task: goal.termKey,
+                        error: error.message,
+                    }));
+                    if (!result.success) {
+                        lastFailedPlan = plan;
+                    }
+                } else if (plan) { // Empty plan, goal already achieved
+                    result = { success: true, planId: plan.id, results: ['Goal already achieved'] };
+                } else {
+                    // No plan could be created, break the attempt loop
+                    result = { success: false, error: `No plan found for ${goal.termKey}` };
+                    break;
+                }
+            }
+
             executionResults.push(result);
 
-            // If a high-priority goal fails, stop processing further goals in this cycle.
+            // If a goal fails after all attempts, stop processing further goals.
             if (!result.success) {
                 break;
             }

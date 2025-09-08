@@ -17,12 +17,12 @@
 - [x] **Refactor `Perception.js`:**
     - [x] Extract task creation logic into a `TaskFactory` module.
     - [x] Extract pattern detection logic into a `PatternDetector` module.
-- [ ] **Refactor `Planner.js`:**
-    - [ ] Improve planning algorithms beyond the current simple implementation.
-- [ ] **Refactor `ActionExecutor.js`:**
-    - [ ] Make the action execution more robust and extensible.
-- [ ] **Refactor `LM.js`:**
-    - [ ] Enhance language model capabilities (e.g., hypothesis generation).
+- [x] **Refactor `Planner.js`:**
+    - [x] Improve planning algorithms beyond the current simple implementation.
+- [x] **Refactor `ActionExecutor.js`:**
+    - [x] Make the action execution more robust and extensible.
+- [x] **Refactor `LM.js`:**
+    - [x] Enhance language model capabilities (e.g., hypothesis generation).
 
 ## Phase 2: Advanced Capabilities (Long-Term)
 
