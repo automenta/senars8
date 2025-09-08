@@ -108,41 +108,49 @@ class Cycle {
         newTerms.forEach(term => this.memory.addTerm(term));
     }
 
-    async _act() {
-        const actionableGoals = this.memory.getAllTasks()
+    _getActionableGoals() {
+        return this.memory.getAllTasks()
             .filter(task => task.punctuation === '!' && task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
             .sort((a, b) => b.state.priority - a.state.priority)
             .slice(0, this.config.MAX_GOALS_TO_EXECUTE);
+    }
 
-        const executionResults = [];
-        for (const goal of actionableGoals) {
-            let result = {success: false};
-            let attempts = 0;
-            let lastFailedPlan = null;
-            const maxAttempts = 3; // From old planner implementation
+    async _executeGoalPlan(goal, maxAttempts = 3) {
+        let result = {success: false};
+        let attempts = 0;
+        let lastFailedPlan = null;
 
-            while (attempts < maxAttempts && !result.success) {
-                attempts++;
-                const plan = await this.planner.createPlan(goal, lastFailedPlan);
+        while (attempts < maxAttempts && !result.success) {
+            attempts++;
+            const plan = await this.planner.createPlan(goal, lastFailedPlan);
 
-                if (plan && plan.steps.length > 0) {
-                    result = await plan.execute().catch(error => ({
-                        success: false,
-                        task: goal.termKey,
-                        error: error.message,
-                    }));
-                    if (!result.success) {
-                        lastFailedPlan = plan;
-                    }
-                } else if (plan) { // Empty plan, goal already achieved
-                    result = {success: true, planId: plan.id, results: ['Goal already achieved']};
-                } else {
-                    // No plan could be created, break the attempt loop
-                    result = {success: false, error: `No plan found for ${goal.termKey}`};
-                    break;
+            if (plan && plan.steps.length > 0) {
+                result = await plan.execute().catch(error => ({
+                    success: false,
+                    task: goal.termKey,
+                    error: error.message,
+                }));
+                if (!result.success) {
+                    lastFailedPlan = plan;
                 }
+            } else if (plan) { // Empty plan, goal already achieved
+                result = {success: true, planId: plan.id, results: ['Goal already achieved']};
+            } else {
+                // No plan could be created, break the attempt loop
+                result = {success: false, error: `No plan found for ${goal.termKey}`};
+                break;
             }
+        }
 
+        return result;
+    }
+
+    async _act() {
+        const actionableGoals = this._getActionableGoals();
+        const executionResults = [];
+        
+        for (const goal of actionableGoals) {
+            const result = await this._executeGoalPlan(goal);
             executionResults.push(result);
 
             // If a goal fails after all attempts, stop processing further goals.
@@ -150,6 +158,7 @@ class Cycle {
                 break;
             }
         }
+        
         return executionResults;
     }
 

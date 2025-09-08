@@ -1,10 +1,12 @@
 const moo = require('moo');
 
-const lexer = moo.compile({
-    // Whitespace
-    whitespace: {match: /\s+/, lineBreaks: true},
+// Define tokens in groups for better organization while maintaining correct order
+const WHITESPACE = {
+    whitespace: {match: /\s+/, lineBreaks: true}
+};
 
-    // Punctuation
+// Punctuation tokens - order matters for correct parsing
+const PUNCTUATION = {
     lparen: '(',
     rparen: ')',
     comma: ',',
@@ -12,8 +14,10 @@ const lexer = moo.compile({
     implies: '==>',
     instance: '{--',
     property: '--}',
-    sequentialConjunction: '&&',  // Must be before conjunction
-    parallelConjunction: '&|',    // Must be before conjunction
+    // Must be before conjunction for correct parsing
+    sequentialConjunction: '&&',
+    // Must be before conjunction for correct parsing
+    parallelConjunction: '&|',
     negation: '--',
     conjunction: '&',
     disjunction: '||',
@@ -24,35 +28,54 @@ const lexer = moo.compile({
     similarity: '<->',
     retrospection: '=/>',
     prediction: '=\\>',
-    concurrent: '=<>',
+    concurrent: '=<>'
+};
 
-    // Temporal operators
+// Temporal operators
+const TEMPORAL = {
     always: 'always',
     eventually: 'eventually',
     until: 'until',
     since: 'since',
     next: 'next',
-    previous: 'previous',
+    previous: 'previous'
+};
 
+// Set notation tokens
+const SETS = {
     setExtension: '{',
     setIntension: '[',
     rbrace: '}',
-    rbracket: ']',
+    rbracket: ']'
+};
+
+// Statement punctuation
+const STATEMENT_PUNCTUATION = {
     colon: ':',
     question: '?',
     goal: '!',
-    belief: '.',
+    belief: '.'
+};
 
-    // Literals
+// Literals and variables
+const LITERALS = {
     identifier: /[a-zA-Z_][a-zA-Z0-9_]*/,
-
     // Variables
     independentVar: /\w+/,
     dependentVar: /#\w+/,
     queryVar: /\?\w+/,
-
     // Numbers
     number: /\d+(?:\.\d+)?/
+};
+
+// Combine all tokens in the exact same order as the original
+const lexer = moo.compile({
+    ...WHITESPACE,
+    ...PUNCTUATION,
+    ...TEMPORAL,
+    ...SETS,
+    ...STATEMENT_PUNCTUATION,
+    ...LITERALS
 });
 
 module.exports = lexer;
