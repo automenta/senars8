@@ -42,7 +42,7 @@ class CostManager {
 
     /**
      * Calculates the cost of a single action.
-     * Looks for a belief like `<action --> [costValue]>`.
+     * Looks for a belief like `(action --> [costValue])`.
      * @param {Term} actionTerm The term representing the action.
      * @returns {number} The cost of the action.
      */

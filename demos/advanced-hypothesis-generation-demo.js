@@ -16,9 +16,9 @@ async function advancedHypothesisGenerationDemo() {
     console.log("1. Providing the system with initial observations...\n");
 
     const observations = [
-        createTask('<cat --> chase_mouse>.', '.', {frequency: 0.9, confidence: 0.9}),
-        createTask('<dog --> chase_cat>.', '.', {frequency: 0.8, confidence: 0.8}),
-        createTask('<hawk --> chase_mouse>.', '.', {frequency: 0.7, confidence: 0.7}),
+        createTask('(cat --> chase_mouse).', '.', {frequency: 0.9, confidence: 0.9}),
+        createTask('(dog --> chase_cat).', '.', {frequency: 0.8, confidence: 0.8}),
+        createTask('(hawk --> chase_mouse).', '.', {frequency: 0.7, confidence: 0.7}),
     ].filter(Boolean);
 
     await system.addTasks(observations);

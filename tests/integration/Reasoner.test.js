@@ -37,8 +37,8 @@ describe('Reasoner Integration Test', () => {
         memory.addTerm(termA);
         memory.addTerm(termB);
 
-        const task1 = new Task(parseTerm('(cat ==> mammal)'), '.', {}, {}, 1);
-        const task2 = new Task(termA, '.', {}, {}, 1);
+        const task1 = new Task(parseTerm('(cat ==> mammal)'), '.', {}, {});
+        const task2 = new Task(termA, '.', {}, {});
 
         const derivedTasks = reasoner.performInference([task1, task2]);
         const derivedTask = derivedTasks.find(t => t.termKey === 'mammal');

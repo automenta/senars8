@@ -37,7 +37,7 @@ class Term {
      * 
      * @example
      * // Create a complex term
-     * const term3 = new Term('(&&, <cat --> pet>, <dog --> pet>)');
+     * const term3 = new Term('(&&, (cat --> pet), (dog --> pet))');
      */
     constructor(key, embedding = [], complexity = 1) {
         // Validate required parameters

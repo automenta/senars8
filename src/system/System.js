@@ -164,6 +164,180 @@ class System {
     getHighPriorityTasks(threshold = 0.5) {
         return this.memory.getHighPriorityTasks(threshold);
     }
+
+    /**
+     * Get a task by its ID
+     * @param {string} taskId - The ID of the task to retrieve
+     * @returns {Task|null} The task or null if not found
+     */
+    getTask(taskId) {
+        return this.memory.getTask(taskId);
+    }
+
+    /**
+     * Query tasks using various filters
+     * @param {object} filters - Filter criteria
+     * @param {string} [filters.termKey] - Term key to match
+     * @param {string} [filters.punctuation] - Punctuation type ('.', '!', '?')
+     * @param {number} [filters.minPriority] - Minimum priority threshold
+     * @param {number} [filters.minConfidence] - Minimum confidence threshold
+     * @param {number} [filters.limit] - Maximum number of tasks to return
+     * @returns {Task[]} Array of matching tasks
+     */
+    queryTasks(filters = {}) {
+        let tasks = this.memory.getAllTasks();
+
+        // Apply filters
+        if (filters.termKey) {
+            tasks = tasks.filter(task => task.termKey === filters.termKey);
+        }
+        
+        if (filters.punctuation) {
+            tasks = tasks.filter(task => task.punctuation === filters.punctuation);
+        }
+        
+        if (filters.minPriority !== undefined) {
+            tasks = tasks.filter(task => task.state.priority >= filters.minPriority);
+        }
+        
+        if (filters.minConfidence !== undefined) {
+            tasks = tasks.filter(task => task.state.truthValue.confidence >= filters.minConfidence);
+        }
+        
+        // Sort by priority (highest first)
+        tasks.sort((a, b) => b.state.priority - a.state.priority);
+        
+        // Apply limit
+        if (filters.limit !== undefined) {
+            tasks = tasks.slice(0, filters.limit);
+        }
+        
+        return tasks;
+    }
+
+    /**
+     * Revise a task's truth value using Bayesian updating
+     * @param {string} taskId - The ID of the task to revise
+     * @param {object} newEvidence - The new evidence truth value {frequency, confidence}
+     * @param {number} weight - Weight for the new evidence (0-1)
+     * @returns {object} The revised truth value
+     */
+    async reviseTaskTruthValue(taskId, newEvidence, weight = 0.5) {
+        try {
+            await this._ensureInitialized();
+            const task = this.memory.getTask(taskId);
+            if (!task) {
+                throw new Error(`Task with ID ${taskId} not found`);
+            }
+
+            const TruthValueManager = require('../reasoner/TruthValueManager');
+            const truthValueManager = new TruthValueManager();
+            const revisedTruthValue = truthValueManager.bayesianRevision(task, newEvidence, weight);
+            
+            debug(`Revised truth value for task ${taskId}`);
+            return revisedTruthValue;
+        } catch (err) {
+            error('Error revising task truth value:', err);
+            throw handleError(err, 'Task truth value revision failed');
+        }
+    }
+
+    /**
+     * Remove a task from the system
+     * @param {string} taskId - The ID of the task to remove
+     */
+    async removeTask(taskId) {
+        try {
+            await this._ensureInitialized();
+            this.memory.removeTask(taskId);
+            debug(`Removed task ${taskId}`);
+            info(`Successfully removed task ${taskId}`);
+        } catch (err) {
+            error('Error removing task:', err);
+            throw handleError(err, 'Task removal failed');
+        }
+    }
+
+    /**
+     * Export the current memory state to a JSON object
+     * @returns {object} Serializable representation of the memory state
+     */
+    exportMemoryState() {
+        const terms = Array.from(this.memory.terms.entries()).map(([key, term]) => ({
+            key: term.key,
+            embedding: Array.from(term.embedding),
+            complexity: term.complexity
+        }));
+
+        const tasks = this.memory.getAllTasks().map(task => ({
+            id: task.id,
+            termKey: task.termKey,
+            punctuation: task.punctuation,
+            state: {
+                priority: task.state.priority,
+                truthValue: {...task.state.truthValue},
+                stamp: {
+                    creationTime: Number(task.state.stamp.creationTime),
+                    lastAccessed: Number(task.state.stamp.lastAccessed),
+                    ...(task.state.stamp.occurrenceTime && { occurrenceTime: Number(task.state.stamp.occurrenceTime) }),
+                    ...(task.state.stamp.endTime && { endTime: Number(task.state.stamp.endTime) })
+                }
+            }
+        }));
+
+        return {
+            terms,
+            tasks,
+            timestamp: Date.now()
+        };
+    }
+
+    /**
+     * Import memory state from a JSON object
+     * @param {object} state - Serializable representation of the memory state
+     */
+    async importMemoryState(state) {
+        try {
+            await this._ensureInitialized();
+            
+            // Clear existing memory
+            this.memory.clear();
+            
+            // Import terms
+            const Term = require('../core/Term');
+            for (const termData of state.terms) {
+                const term = new Term(termData.key, termData.embedding, termData.complexity);
+                this.memory.addTerm(term);
+            }
+            
+            // Import tasks
+            const Task = require('../core/Task');
+            const { parseTerm } = require('../parser/narseseParser');
+            for (const taskData of state.tasks) {
+                try {
+                    const term = this.memory.getTerm(taskData.termKey) || parseTerm(taskData.termKey);
+                    if (term) {
+                        const task = new Task(term, taskData.punctuation, taskData.state.truthValue, {
+                            creationTime: BigInt(taskData.state.stamp.creationTime),
+                            lastAccessed: BigInt(taskData.state.stamp.lastAccessed),
+                            ...(taskData.state.stamp.occurrenceTime && { occurrenceTime: BigInt(taskData.state.stamp.occurrenceTime) }),
+                            ...(taskData.state.stamp.endTime && { endTime: BigInt(taskData.state.stamp.endTime) })
+                        });
+                        // Manually set the task ID to preserve it
+                        task.id = taskData.id;
+                        this.memory.addTasks([task]);
+                    }
+                } catch (err) {
+                    error(`Error importing task ${taskData.id}:`, err);
+                }
+            }
+            
+            info(`Successfully imported memory state with ${state.terms.length} terms and ${state.tasks.length} tasks`);
+        } catch (err) {
+            error('Error importing memory state:', err);
+            throw handleError(err, 'Memory state import failed');
+        }
+    }
 }
 
 module.exports = System;

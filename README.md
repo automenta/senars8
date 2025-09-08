@@ -194,7 +194,7 @@ async function runSystem() {
 
     // 2. Add knowledge to the system
     const belief = new Task(
-        parseTerm('<cat --> animal>.'),
+        parseTerm('(cat --> animal).'),
         '.',
         { frequency: 1.0, confidence: 0.9 }
     );
@@ -207,6 +207,10 @@ async function runSystem() {
         const output = await system.runCycle();
         console.log(`Cycle ${i+1} complete. Derived ${output.derivedTasks} new tasks.`);
     }
+
+    // 4. Query and manipulate tasks
+    const animalBeliefs = system.queryTasks({ termKey: '(cat --> animal)', punctuation: '.' });
+    console.log('Found animal beliefs:', animalBeliefs);
 
     system.stop();
 }
