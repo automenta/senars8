@@ -2,6 +2,7 @@ const Task = require('./Task');
 const {createTemporalTask} = require('../utils/temporal-reasoning');
 const {parseTerm} = require('../parser/narseseParser');
 const config = require('../config');
+const {error: logError} = require('../utils/logger');
 
 class TaskFactory {
     constructor(memory, lm) {
@@ -32,7 +33,7 @@ class TaskFactory {
                         confidence: e.confidence || config.DEFAULT_TRUTH_VALUE.confidence
                     });
                 } catch (error) {
-                    console.error('Error processing observation event:', error);
+                    logError('Error processing observation event:', error);
                     return null;
                 }
             },
@@ -43,7 +44,7 @@ class TaskFactory {
                         confidence: 0.8
                     });
                 } catch (error) {
-                    console.error('Error processing user_input event:', error);
+                    logError('Error processing user_input event:', error);
                     return null;
                 }
             },
@@ -54,7 +55,7 @@ class TaskFactory {
                         confidence: e.accuracy || 0.95
                     });
                 } catch (error) {
-                    console.error('Error processing sensor_data event:', error);
+                    logError('Error processing sensor_data event:', error);
                     return null;
                 }
             },
@@ -62,7 +63,7 @@ class TaskFactory {
                 try {
                     return await this._createTemporalEventTask(e);
                 } catch (error) {
-                    console.error('Error processing temporal_event:', error);
+                    logError('Error processing temporal_event:', error);
                     return null;
                 }
             },
@@ -73,7 +74,7 @@ class TaskFactory {
                         confidence: e.confidence || config.DEFAULT_TRUTH_VALUE.confidence
                     });
                 } catch (error) {
-                    console.error('Error processing communication event:', error);
+                    logError('Error processing communication event:', error);
                     return null;
                 }
             },
@@ -84,7 +85,7 @@ class TaskFactory {
                         confidence: e.confidence || config.DEFAULT_TRUTH_VALUE.confidence
                     });
                 } catch (error) {
-                    console.error('Error processing action_feedback event:', error);
+                    logError('Error processing action_feedback event:', error);
                     return null;
                 }
             },
@@ -95,7 +96,7 @@ class TaskFactory {
                         confidence: e.confidence || 0.95
                     });
                 } catch (error) {
-                    console.error('Error processing goal_achievement event:', error);
+                    logError('Error processing goal_achievement event:', error);
                     return null;
                 }
             },
@@ -103,7 +104,7 @@ class TaskFactory {
                 try {
                     return await this._createSocialInteractionTask(e);
                 } catch (error) {
-                    console.error('Error processing social_interaction event:', error);
+                    logError('Error processing social_interaction event:', error);
                     return null;
                 }
             },
@@ -111,7 +112,7 @@ class TaskFactory {
                 try {
                     return await this._createEnvironmentalChangeTask(e);
                 } catch (error) {
-                    console.error('Error processing environmental_change event:', error);
+                    logError('Error processing environmental_change event:', error);
                     return null;
                 }
             },
@@ -119,7 +120,7 @@ class TaskFactory {
                 try {
                     return await this._createLearningExperienceTask(e);
                 } catch (error) {
-                    console.error('Error processing learning_experience event:', error);
+                    logError('Error processing learning_experience event:', error);
                     return null;
                 }
             },
@@ -130,7 +131,7 @@ class TaskFactory {
                         confidence: e.confidence || config.DEFAULT_TRUTH_VALUE.confidence
                     });
                 } catch (error) {
-                    console.error('Error processing default event:', error);
+                    logError('Error processing default event:', error);
                     return null;
                 }
             },
@@ -143,7 +144,7 @@ class TaskFactory {
         try {
             return await handler(event);
         } catch (error) {
-            console.error(`Error converting event to task:`, error);
+            logError(`Error converting event to task:`, error);
             return null;
         }
     }

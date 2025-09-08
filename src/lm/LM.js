@@ -10,7 +10,7 @@ const {LM: LM_CONFIG} = require('../config');
 const HypothesisGenerator = require('./HypothesisGenerator');
 const {getBeliefTasks} = require('../utils/task-utils');
 const {handleError, handleErrorWithDefault} = require('../utils/error-handler');
-const {info, error, debug} = require('../utils/logger');
+const {info, error, debug, warn} = require('../utils/logger');
 
 class PipelineFactory {
     constructor() {
@@ -323,7 +323,16 @@ The new plan should be a list of Narsese terms.
         }
     }
     
-    // Cleanup method
+    // Get the current pipeline factory statistics
+    getPipelineStatistics() {
+        return {
+            pipelineCount: this.pipelineFactory._pipelines.size
+        };
+    }
+    
+    /**
+     * Cleanup method
+     */
     async dispose() {
         info('Disposing LM resources');
         if (this.pipelineFactory) {

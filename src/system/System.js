@@ -11,7 +11,7 @@ const registerDefaultActions = require('./default-actions');
 const config = require('../config');
 const _ = require('lodash');
 const {handleError, handleErrorWithDefault} = require('../utils/error-handler');
-const {info, error, debug} = require('../utils/logger');
+const {info, error, debug, warn} = require('../utils/logger');
 
 class System {
     constructor(userConfig = {}) {
@@ -127,7 +127,8 @@ class System {
     async addTasks(tasks) {
         try {
             await this._ensureInitialized();
-            const tasksToAdd = Array.isArray(tasks) ? tasks : [tasks];
+            const {normalizeToArray} = require('../utils/array-utils');
+            const tasksToAdd = normalizeToArray(tasks);
             debug(`Adding ${tasksToAdd.length} tasks to system`);
             await this._bootstrapTerms(tasksToAdd);
             this.memory.addTasks(tasksToAdd);
@@ -136,6 +137,32 @@ class System {
             error('Error adding tasks to system:', err);
             throw handleError(err, 'Task addition failed');
         }
+    }
+
+    /**
+     * Get the current memory statistics
+     * @returns {object} Memory statistics
+     */
+    getMemoryStatistics() {
+        return this.memory.getStatistics();
+    }
+
+    /**
+     * Find tasks by term key
+     * @param {string} termKey - The term key to search for
+     * @returns {Task[]} Array of tasks with the specified term key
+     */
+    findTasksByTermKey(termKey) {
+        return this.memory.findTasksByTermKey(termKey);
+    }
+
+    /**
+     * Get tasks with priority above a threshold
+     * @param {number} threshold - The priority threshold
+     * @returns {Task[]} Array of high-priority tasks
+     */
+    getHighPriorityTasks(threshold = 0.5) {
+        return this.memory.getHighPriorityTasks(threshold);
     }
 }
 

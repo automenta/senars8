@@ -89,6 +89,36 @@ class Task {
     touch() {
         this.state.stamp.lastAccessed = BigInt(Date.now());
     }
+
+    /**
+     * Get a string representation of the task
+     * 
+     * @returns {string} String representation of the task
+     */
+    toString() {
+        return `${this.termKey}${this.punctuation} (f: ${this.state.truthValue.frequency.toFixed(3)}, c: ${this.state.truthValue.confidence.toFixed(3)})`;
+    }
+
+    /**
+     * Check if this task is equal to another task
+     * 
+     * Two tasks are equal if they have the same ID.
+     * 
+     * @param {Task} other - The task to compare with
+     * @returns {boolean} True if the tasks are equal, false otherwise
+     */
+    equals(other) {
+        return other instanceof Task && this.id === other.id;
+    }
+
+    /**
+     * Clone this task with a new ID
+     * 
+     * @returns {Task} A clone of this task
+     */
+    clone() {
+        return new Task(this.term, this.punctuation, {...this.state.truthValue}, {...this.state.stamp});
+    }
 }
 
 module.exports = Task;

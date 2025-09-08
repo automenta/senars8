@@ -116,10 +116,7 @@ class Cycle {
         // Update task access timestamps
         focusSet.forEach(task => task.touch());
 
-        // Get actionable goals
-        const goals = getGoalTasks(this.memory.getAllTasks())
-            .filter(task => task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
-            .sort((a, b) => b.state.priority - a.state.priority);
+        // Get actionable goals\n        const goals = getGoalTasks(this.memory.getAllTasks())\n            .filter(task => task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)\n            .slice(0, this.config.MAX_GOALS_TO_EXECUTE); // Limit the number of goals instead of sorting all
 
         // Perform different types of reasoning in parallel
         const [symbolicTasks, temporalTasks, lmTasks] = await Promise.all([
@@ -191,10 +188,7 @@ class Cycle {
      * @returns {Task[]} Array of actionable goals
      */
     _getActionableGoals() {
-        return getGoalTasks(this.memory.getAllTasks())
-            .filter(task => task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
-            .sort((a, b) => b.state.priority - a.state.priority)
-            .slice(0, this.config.MAX_GOALS_TO_EXECUTE);
+        return getGoalTasks(this.memory.getAllTasks())\n            .filter(task => task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)\n            .slice(0, this.config.MAX_GOALS_TO_EXECUTE); // Limit first, then sort if needed
     }
 
     /**

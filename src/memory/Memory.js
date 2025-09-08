@@ -160,7 +160,8 @@ class Memory {
         }
         
         // Normalize to array
-        const tasksToAdd = Array.isArray(tasks) ? tasks : [tasks];
+        const {normalizeToArray} = require('../utils/array-utils');
+        const tasksToAdd = normalizeToArray(tasks);
         
         // Process each task
         for (const task of tasksToAdd) {
@@ -259,14 +260,10 @@ class Memory {
      * @returns {Task[]} Array of all tasks
      */
     getAllTasks() {
-        // Use concat instead of spread for better performance with large datasets
+        // Use a more efficient approach to avoid creating intermediate arrays
         const allTasks = [];
-        for (const task of this.shortTermTasks.values()) {
-            allTasks.push(task);
-        }
-        for (const task of this.longTermTasks.values()) {
-            allTasks.push(task);
-        }
+        this.shortTermTasks.forEach(task => allTasks.push(task));
+        this.longTermTasks.forEach(task => allTasks.push(task));
         return allTasks;
     }
 
@@ -281,13 +278,24 @@ class Memory {
             return [];
         }
         
-        // For small k, use a priority queue approach for better performance
+        // For small k, use a partial selection approach for better performance
         if (k < 50) {
             const allTasks = this.getAllTasks();
-            // Use a partial sort approach for small k
-            return allTasks
-                .sort((a, b) => b.state.priority - a.state.priority)
-                .slice(0, k);
+            // Use a partial selection approach for small k
+            const result = [];
+            for (let i = 0; i < Math.min(k, allTasks.length); i++) {
+                let maxIndex = i;
+                for (let j = i + 1; j < allTasks.length; j++) {
+                    if (allTasks[j].state.priority > allTasks[maxIndex].state.priority) {
+                        maxIndex = j;
+                    }
+                }
+                if (maxIndex !== i) {
+                    [allTasks[i], allTasks[maxIndex]] = [allTasks[maxIndex], allTasks[i]];
+                }
+                result.push(allTasks[i]);
+            }
+            return result;
         } else {
             // For larger k, we can use a more efficient approach
             const allTasks = this.getAllTasks();
@@ -341,6 +349,33 @@ class Memory {
             beliefs: this.beliefIndex.size,
             costs: this.costIndex.size
         };
+    }
+
+    /**
+     * Find tasks by term key
+     * @param {string} termKey - The term key to search for
+     * @returns {Task[]} Array of tasks with the specified term key
+     */
+    findTasksByTermKey(termKey) {
+        return this.getAllTasks().filter(task => task.termKey === termKey);
+    }
+
+    /**
+     * Find tasks by type (belief, goal, question)
+     * @param {string} type - The punctuation type ('.', '!', or '?')
+     * @returns {Task[]} Array of tasks with the specified type
+     */
+    findTasksByType(type) {
+        return this.getAllTasks().filter(task => task.punctuation === type);
+    }
+
+    /**
+     * Get tasks with priority above a threshold
+     * @param {number} threshold - The priority threshold
+     * @returns {Task[]} Array of high-priority tasks
+     */
+    getHighPriorityTasks(threshold = 0.5) {
+        return this.getAllTasks().filter(task => task.state.priority >= threshold);
     }
 }
 

@@ -198,6 +198,30 @@ class Term {
     equals(other) {
         return other instanceof Term && this.key === other.key;
     }
+
+    /**
+     * Get a string representation of the term
+     * 
+     * @returns {string} String representation of the term
+     */
+    toString() {
+        return this.key;
+    }
+
+    /**
+     * Get the hash code of the term
+     * 
+     * @returns {number} Hash code of the term
+     */
+    hashCode() {
+        let hash = 0;
+        for (let i = 0; i < this.key.length; i++) {
+            const char = this.key.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32bit integer
+        }
+        return hash;
+    }
 }
 
 module.exports = Term;

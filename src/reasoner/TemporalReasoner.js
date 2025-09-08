@@ -16,7 +16,7 @@ const {
     detectTemporalClusters,
     createTemporalClusterAbstractions
 } = require('../utils/temporal-reasoning');
-const {info, error, debug, warn} = require('../utils/logger');
+const {debug, warn} = require('../utils/logger');
 const {handleErrorWithDefault} = require('../utils/error-handler');
 
 class TemporalReasoner {
@@ -44,7 +44,6 @@ class TemporalReasoner {
             debug(`Temporal reasoning produced ${allTasks.length} derived tasks`);
             return allTasks;
         } catch (err) {
-            error('Error in temporal reasoning:', err);
             return handleErrorWithDefault(err, 'Temporal reasoning error', []);
         }
     }
@@ -55,8 +54,13 @@ class TemporalReasoner {
             const temporalTasks = [];
             let relationshipCount = 0;
             
-            for (let i = 0; i < temporalFocusSet.length; i++) {
-                for (let j = i + 1; j < temporalFocusSet.length; j++) {
+            // Limit the number of comparisons to prevent performance issues
+            const maxComparisons = 1000;
+            let comparisonCount = 0;
+            
+            for (let i = 0; i < temporalFocusSet.length && comparisonCount < maxComparisons; i++) {
+                for (let j = i + 1; j < temporalFocusSet.length && comparisonCount < maxComparisons; j++) {
+                    comparisonCount++;
                     const task1 = temporalFocusSet[i];
                     const task2 = temporalFocusSet[j];
                     const relationship = determineTemporalRelationship(task1, task2);
@@ -70,10 +74,9 @@ class TemporalReasoner {
                 }
             }
             
-            debug(`Found ${relationshipCount} temporal relationships`);
+            debug(`Found ${relationshipCount} temporal relationships (${comparisonCount} comparisons)`);
             return temporalTasks;
         } catch (err) {
-            error('Error inferring temporal relationships:', err);
             return handleErrorWithDefault(err, 'Temporal relationship inference error', []);
         }
     }
@@ -84,8 +87,13 @@ class TemporalReasoner {
             const implicationTasks = [];
             let implicationCount = 0;
             
-            for (let i = 0; i < temporalFocusSet.length; i++) {
-                for (let j = i + 1; j < temporalFocusSet.length; j++) {
+            // Limit the number of comparisons to prevent performance issues
+            const maxComparisons = 1000;
+            let comparisonCount = 0;
+            
+            for (let i = 0; i < temporalFocusSet.length && comparisonCount < maxComparisons; i++) {
+                for (let j = i + 1; j < temporalFocusSet.length && comparisonCount < maxComparisons; j++) {
+                    comparisonCount++;
                     const task1 = temporalFocusSet[i];
                     const task2 = temporalFocusSet[j];
                     const implications = inferImplications(task1, task2);
@@ -94,10 +102,9 @@ class TemporalReasoner {
                 }
             }
             
-            debug(`Found ${implicationCount} temporal implications`);
+            debug(`Found ${implicationCount} temporal implications (${comparisonCount} comparisons)`);
             return implicationTasks;
         } catch (err) {
-            error('Error inferring temporal implications:', err);
             return handleErrorWithDefault(err, 'Temporal implication inference error', []);
         }
     }
@@ -131,7 +138,7 @@ class TemporalReasoner {
                         }
                     }
                 } catch (err) {
-                    error(`Error processing pattern of type ${pattern.type}:`, err);
+                    handleErrorWithDefault(err, `Error processing pattern of type ${pattern.type}`, null);
                     // Continue with other patterns
                 }
             }
@@ -139,7 +146,6 @@ class TemporalReasoner {
             debug(`Detected ${patternTasks.length} temporal pattern tasks`);
             return patternTasks;
         } catch (err) {
-            error('Error detecting temporal patterns:', err);
             return handleErrorWithDefault(err, 'Temporal pattern detection error', []);
         }
     }
@@ -162,7 +168,7 @@ class TemporalReasoner {
                     );
                     cycleTasks.push(cycleTask);
                 } catch (err) {
-                    error(`Error processing cycle for term ${cycle.termKey}:`, err);
+                    handleErrorWithDefault(err, `Error processing cycle for term ${cycle.termKey}`, null);
                     // Continue with other cycles
                 }
             }
@@ -170,7 +176,6 @@ class TemporalReasoner {
             debug(`Detected ${cycleTasks.length} temporal cycles`);
             return cycleTasks;
         } catch (err) {
-            error('Error detecting temporal cycles:', err);
             return handleErrorWithDefault(err, 'Temporal cycle detection error', []);
         }
     }
@@ -189,7 +194,6 @@ class TemporalReasoner {
             debug(`Created ${abstractionTasks.length} temporal abstractions`);
             return abstractionTasks;
         } catch (err) {
-            error('Error creating temporal abstractions:', err);
             return handleErrorWithDefault(err, 'Temporal abstraction creation error', []);
         }
     }
@@ -212,7 +216,7 @@ class TemporalReasoner {
                     );
                     anomalyTasks.push(anomalyTask);
                 } catch (err) {
-                    error(`Error processing anomaly for term ${anomaly.termKey}:`, err);
+                    handleErrorWithDefault(err, `Error processing anomaly for term ${anomaly.termKey}`, null);
                     // Continue with other anomalies
                 }
             }
@@ -220,7 +224,6 @@ class TemporalReasoner {
             debug(`Detected ${anomalyTasks.length} temporal anomalies`);
             return anomalyTasks;
         } catch (err) {
-            error('Error detecting temporal anomalies:', err);
             return handleErrorWithDefault(err, 'Temporal anomaly detection error', []);
         }
     }
@@ -233,7 +236,6 @@ class TemporalReasoner {
             debug(`Predicted ${predictionTasks.length} future tasks`);
             return predictionTasks;
         } catch (err) {
-            error('Error predicting future tasks:', err);
             return handleErrorWithDefault(err, 'Future task prediction error', []);
         }
     }
@@ -248,7 +250,6 @@ class TemporalReasoner {
             debug(`Detected ${clusterTasks.length} temporal cluster abstractions`);
             return clusterTasks;
         } catch (err) {
-            error('Error detecting temporal clusters:', err);
             return handleErrorWithDefault(err, 'Temporal cluster detection error', []);
         }
     }
@@ -268,7 +269,6 @@ class TemporalReasoner {
             debug(`Temporal coherence score: ${coherenceScore}`);
             return [coherenceTask];
         } catch (err) {
-            error('Error calculating temporal coherence:', err);
             return handleErrorWithDefault(err, 'Temporal coherence calculation error', []);
         }
     }

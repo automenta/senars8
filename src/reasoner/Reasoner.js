@@ -1,7 +1,7 @@
 const BagSamplingStrategy = require('./strategies/BagSamplingStrategy');
 const rules = require('./rules');
 const TemporalReasoner = require('./TemporalReasoner');
-const {info, error, debug} = require('../utils/logger');
+const {info, debug} = require('../utils/logger');
 const {handleErrorWithDefault} = require('../utils/error-handler');
 
 class Reasoner {
@@ -53,7 +53,7 @@ class Reasoner {
                     }
                 }
             } catch (err) {
-                error(`Error applying rule ${rule.name}:`, err);
+                handleErrorWithDefault(err, `Error applying rule ${rule.name}`, null);
                 // Continue with other rules even if one fails
             }
         }
@@ -67,7 +67,7 @@ class Reasoner {
             derivedTasks.push(...temporalTasks);
             debug(`Temporal inference produced ${temporalTasks.length} derived tasks`);
         } catch (err) {
-            error('Error in temporal inference:', err);
+            handleErrorWithDefault(err, 'Error in temporal inference', null);
             // Continue even if temporal inference fails
         }
 
@@ -103,8 +103,8 @@ class Reasoner {
             }
             return null;
         } catch (err) {
-            error(`Error applying rule ${rule.name}:`, err);
-            return handleErrorWithDefault(err, `Rule application error for ${rule.name}`, null);
+            handleErrorWithDefault(err, `Error applying rule ${rule.name}`, null);
+            return null;
         }
     }
 
@@ -123,14 +123,31 @@ class Reasoner {
                 try {
                     return rule.operands[index](task);
                 } catch (err) {
-                    error(`Error validating operand for rule ${rule.name}:`, err);
+                    handleErrorWithDefault(err, `Error validating operand for rule ${rule.name}`, false);
                     return false;
                 }
             });
         } catch (err) {
-            error(`Error validating operands for rule ${rule.name}:`, err);
+            handleErrorWithDefault(err, `Error validating operands for rule ${rule.name}`, false);
             return false;
         }
+    }
+
+    /**
+     * Get the list of available rules
+     * @returns {Array} Array of rule names
+     */
+    getRuleNames() {
+        return this.rules.map(rule => rule.name);
+    }
+
+    /**
+     * Get a specific rule by name
+     * @param {string} name - The name of the rule
+     * @returns {object|null} The rule object or null if not found
+     */
+    getRule(name) {
+        return this.rules.find(rule => rule.name === name) || null;
     }
 }
 

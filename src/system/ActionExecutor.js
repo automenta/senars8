@@ -1,6 +1,7 @@
 const {v4: uuidv4} = require('uuid');
 const config = require('../config');
 const {handleErrorWithDefault} = require('../utils/error-handler');
+const {isNonEmptyArray} = require('../utils/array-utils');
 const Action = require('../core/Action');
 
 class ActionExecutor {
@@ -155,7 +156,7 @@ class ActionExecutor {
 
         // Validate parameters
         if (action.parameters) {
-            if (!Array.isArray(action.parameters)) {
+            if (!isNonEmptyArray(action.parameters)) {
                 throw new Error('Action parameters must be an array');
             }
             
@@ -168,7 +169,7 @@ class ActionExecutor {
 
         // Validate resources
         if (action.resources) {
-            if (!Array.isArray(action.resources)) {
+            if (!isNonEmptyArray(action.resources)) {
                 throw new Error('Action resources must be an array');
             }
             
@@ -241,6 +242,37 @@ class ActionExecutor {
             }
         }
         return null;
+    }
+
+    /**
+     * Get action history
+     * @returns {Array} Action history
+     */
+    getActionHistory() {
+        return this.actionHistory;
+    }
+
+    /**
+     * Clear action history
+     */
+    clearActionHistory() {
+        this.actionHistory = [];
+    }
+
+    /**
+     * Get registered resources
+     * @returns {Array} Registered resources
+     */
+    getResources() {
+        return Array.from(this.resources.values());
+    }
+
+    /**
+     * Get registered action handlers
+     * @returns {Array} Registered action handlers
+     */
+    getActionHandlers() {
+        return Array.from(this.actionHandlers.keys());
     }
 }
 
