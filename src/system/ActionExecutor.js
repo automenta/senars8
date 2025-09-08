@@ -29,7 +29,12 @@ class ActionExecutor {
     }
 
     registerResource(resourceName, availability) {
-        this.resources.set(resourceName, {name: resourceName, ...availability, reservations: []});
+        this.resources.set(resourceName, {
+            name: resourceName,
+            ...availability,
+            reservations: [],
+            locked: false
+        });
     }
 
     setConstraint(constraintName, constraintFunction) {
@@ -52,65 +57,83 @@ class ActionExecutor {
         if (this.processing) return;
         this.processing = true;
 
-        let processedAnAction = true;
-        while (processedAnAction) {
-            processedAnAction = false;
-            let actionToProcess = null;
-            let indexToRemove = -1;
+        try {
+            let processedAnAction = true;
+            while (processedAnAction) {
+                processedAnAction = false;
+                const nextRunnableIndex = this._findNextRunnableAction();
 
-            // Find the first runnable action
-            for (let i = 0; i < this.actionQueue.length; i++) {
-                const item = this.actionQueue[i];
-                try {
-                    this._validate(item.action);
-                    if (this._checkResourceAvailability(item.action)) {
-                        actionToProcess = item;
-                        indexToRemove = i;
-                        break; // Found one, stop searching
-                    }
-                } catch (validationError) {
-                    // Invalid action, remove it from the queue and reject
-                    const {reject} = this.pendingActions.get(item.actionId);
-                    const actionRecord = this._createActionRecord(item.action, item.actionId);
-                    reject(this._recordFailure(actionRecord, validationError));
-                    this.pendingActions.delete(item.actionId);
-                    this.actionQueue.splice(i, 1);
-                    i--; // Adjust index after splice
+                if (nextRunnableIndex !== -1) {
+                    const item = this.actionQueue.splice(nextRunnableIndex, 1)[0];
+                    await this._processActionItem(item);
+                    processedAnAction = true;
                 }
             }
+        } finally {
+            this.processing = false;
+        }
+    }
 
-            if (actionToProcess) {
-                // Remove from queue
-                this.actionQueue.splice(indexToRemove, 1);
-
-                const {action, actionId} = actionToProcess;
-                const {resolve, reject} = this.pendingActions.get(actionId);
-                const actionRecord = this._createActionRecord(action, actionId);
-
-                this._acquireResources(action);
-                try {
-                    const handler = this._findHandler(action.name);
-                    const result = await handler(action);
-                    resolve(this._recordSuccess(actionRecord, result));
-                } catch (executionError) {
-                    reject(this._recordFailure(actionRecord, executionError));
-                } finally {
-                    this._releaseResources(action);
-                    this.pendingActions.delete(actionId);
+    _findNextRunnableAction() {
+        for (let i = 0; i < this.actionQueue.length; i++) {
+            const item = this.actionQueue[i];
+            try {
+                this._validate(item.action);
+                if (this._checkResourceAvailability(item.action)) {
+                    return i;
                 }
-                processedAnAction = true; // Loop again to check for more actions
+            } catch (validationError) {
+                // Invalid action, remove it from the queue and reject
+                this._rejectActionWithError(item, validationError);
+                // Remove the item from the queue since we've already processed it
+                this.actionQueue.splice(i, 1);
+                i--; // Adjust index after removal
             }
         }
+        return -1;
+    }
 
-        this.processing = false;
+    _rejectActionWithError(item, error) {
+        const pendingAction = this.pendingActions.get(item.actionId);
+        if (pendingAction) {
+            const {reject} = pendingAction;
+            const actionRecord = this._createActionRecord(item.action, item.actionId);
+            reject(this._recordFailure(actionRecord, error));
+            this.pendingActions.delete(item.actionId);
+        }
+    }
+
+    async _processActionItem(item) {
+        const {action, actionId} = item;
+        const {resolve, reject} = this.pendingActions.get(actionId);
+        const actionRecord = this._createActionRecord(action, actionId);
+
+        this._acquireResources(action);
+        try {
+            const handler = this._findHandler(action.name);
+            if (!handler) {
+                throw new Error(`No handler found for action: ${action.name}`);
+            }
+            
+            const result = await handler(action);
+            resolve(this._recordSuccess(actionRecord, result));
+        } catch (executionError) {
+            reject(this._recordFailure(actionRecord, executionError));
+        } finally {
+            this._releaseResources(action);
+            this.pendingActions.delete(actionId);
+        }
     }
 
     _checkResourceAvailability(action) {
-        if (!action.resources) return true;
+        if (!action.resources || action.resources.length === 0) return true;
 
         for (const resourceName of action.resources) {
             const resource = this.resources.get(resourceName);
-            if (!resource || resource.locked) {
+            if (!resource) {
+                return false;
+            }
+            if (resource.locked) {
                 return false;
             }
         }
@@ -124,21 +147,42 @@ class ActionExecutor {
     }
 
     _validate(action) {
-        if (!this._findHandler(action.name)) {
-            throw new Error(`No handler found for action: ${action.name}`);
+        // Validate action name
+        if (!action.name || typeof action.name !== 'string') {
+            throw new Error('Action must have a valid name');
         }
 
-        for (const param of action.parameters) {
-            if (!this.memory.getTerm(param)) {
-                throw new Error(`Parameter term not found in memory: ${param}`);
+        // Validate parameters
+        if (action.parameters) {
+            if (!Array.isArray(action.parameters)) {
+                throw new Error('Action parameters must be an array');
+            }
+            
+            for (const param of action.parameters) {
+                if (!this.memory.getTerm(param)) {
+                    throw new Error(`Parameter term not found in memory: ${param}`);
+                }
             }
         }
 
+        // Validate resources
+        if (action.resources) {
+            if (!Array.isArray(action.resources)) {
+                throw new Error('Action resources must be an array');
+            }
+            
+            for (const resourceName of action.resources) {
+                if (!this.resources.has(resourceName)) {
+                    throw new Error(`Resource not registered: ${resourceName}`);
+                }
+            }
+        }
+
+        // Check constraints
         if (!this._checkConstraints(action)) {
             throw new Error('Action violates system constraints');
         }
     }
-
 
     _recordSuccess(actionRecord, result) {
         actionRecord.status = 'completed';
@@ -153,7 +197,8 @@ class ActionExecutor {
     }
 
     _acquireResources(action) {
-        if (!action.resources) return;
+        if (!action.resources || action.resources.length === 0) return;
+        
         for (const resourceName of action.resources) {
             const resource = this.resources.get(resourceName);
             if (resource) {
@@ -163,7 +208,8 @@ class ActionExecutor {
     }
 
     _releaseResources(action) {
-        if (!action.resources) return;
+        if (!action.resources || action.resources.length === 0) return;
+        
         for (const resourceName of action.resources) {
             const resource = this.resources.get(resourceName);
             if (resource) {
@@ -173,14 +219,25 @@ class ActionExecutor {
     }
 
     _checkConstraints(action) {
-        return Array.from(this.constraints.values()).every(constraint => constraint(action));
+        return Array.from(this.constraints.values()).every(constraint => {
+            try {
+                return constraint(action);
+            } catch (error) {
+                console.warn(`Constraint check failed: ${error.message}`);
+                return false;
+            }
+        });
     }
 
     _findHandler(actionName) {
         for (const [pattern, handler] of this.actionHandlers) {
-            const regex = new RegExp(pattern);
-            if (regex.test(actionName)) {
-                return handler;
+            try {
+                const regex = new RegExp(pattern);
+                if (regex.test(actionName)) {
+                    return handler;
+                }
+            } catch (error) {
+                console.warn(`Invalid regex pattern in action handler: ${pattern}`);
             }
         }
         return null;

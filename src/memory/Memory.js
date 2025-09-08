@@ -5,34 +5,42 @@ const config = require('../config');
 
 class Memory {
     constructor() {
+        // Core data structures
         this.terms = new Map();
         this.shortTermTasks = new Map();
         this.longTermTasks = new Map();
+        
+        // Indexes for efficient lookups
         this.implicationIndex = new Map();
         this.beliefIndex = new Map();
         this.costIndex = new Map();
 
+        // Maintenance settings
         this.cycleCounter = 0;
         this.maintenanceFrequency = config.memory.MAINTENANCE_CYCLE_FREQUENCY;
 
+        // Load forgetting strategy
         this._loadForgettingStrategy();
 
+        // Event listeners
         EventBus.on('NewTasksCreated', (tasks) => this.addTasks(tasks));
         EventBus.on('SystemCycleEnded', () => this._handleSystemCycleEnded());
     }
 
+    // Strategy management
     _loadForgettingStrategy() {
         const strategyName = config.memory.FORGETTING_STRATEGY_NAME;
         try {
             const StrategyClass = require(`./strategies/${strategyName}ForgettingStrategy`);
             this.forgettingStrategy = new StrategyClass();
         } catch (e) {
-            console.error(`Could not load forgetting strategy: ${strategyName}`, e);
+            console.warn(`Could not load forgetting strategy: ${strategyName}`, e);
             const DefaultStrategy = require('./strategies/TimeBasedForgettingStrategy');
             this.forgettingStrategy = new DefaultStrategy();
         }
     }
 
+    // Maintenance methods
     _handleSystemCycleEnded() {
         this.cycleCounter++;
         if (this.cycleCounter % this.maintenanceFrequency === 0) {
@@ -64,16 +72,29 @@ class Memory {
         }
     }
 
+    // Term management
     addTerm(term) {
-        if (!(term instanceof Term)) throw new Error('Can only add Term instances to memory.');
-        if (this.terms.has(term.key)) return;
+        if (!term) {
+            throw new Error('Term cannot be null or undefined');
+        }
+        
+        if (!(term instanceof Term)) {
+            throw new Error('Can only add Term instances to memory.');
+        }
+        
+        if (this.terms.has(term.key)) {
+            return; // Term already exists
+        }
+        
         this.terms.set(term.key, term);
 
+        // Update implication index for implications
         if (term.type === 'Implication' && term.subject) {
             const goalTerm = (term.subject.type === 'SequentialConjunction' && term.subject.terms.length > 0)
                 ? term.subject.terms[0]
                 : term.subject;
             const goalKey = goalTerm.key;
+            
             if (!this.implicationIndex.has(goalKey)) {
                 this.implicationIndex.set(goalKey, []);
             }
@@ -82,16 +103,33 @@ class Memory {
     }
 
     getTerm(key) {
+        if (!key) {
+            return null;
+        }
         return this.terms.get(key);
     }
 
+    // Task management
     addTasks(tasks) {
+        if (!tasks) {
+            return;
+        }
+        
         const tasksToAdd = Array.isArray(tasks) ? tasks : [tasks];
+        
         for (const task of tasksToAdd) {
-            if (!(task instanceof Task)) throw new Error('Can only add Task instances to memory.');
+            if (!task) {
+                continue;
+            }
+            
+            if (!(task instanceof Task)) {
+                throw new Error('Can only add Task instances to memory.');
+            }
+            
             // New tasks are always added to short-term memory
             this.shortTermTasks.set(task.id, task);
 
+            // Update indexes for beliefs
             if (task.punctuation === '.') {
                 this.beliefIndex.set(task.termKey, task);
                 this._updateCostIndex(task.term, 'add');
@@ -100,14 +138,22 @@ class Memory {
     }
 
     getTask(id) {
+        if (!id) {
+            return null;
+        }
         return this.shortTermTasks.get(id) || this.longTermTasks.get(id);
     }
 
     removeTask(taskId) {
+        if (!taskId) {
+            return;
+        }
+        
         const task = this.shortTermTasks.get(taskId) || this.longTermTasks.get(taskId);
         if (task) {
             this.shortTermTasks.delete(taskId);
             this.longTermTasks.delete(taskId);
+            
             if (task.punctuation === '.') {
                 this.beliefIndex.delete(task.termKey);
                 this._updateCostIndex(task.term, 'remove');
@@ -116,7 +162,15 @@ class Memory {
     }
 
     _updateCostIndex(term, operation) {
-        if (term?.type === 'Inheritance' && term.subject && term.predicate?.type === 'IntensionalSet' && term.predicate.terms.length === 1) {
+        if (!term) {
+            return;
+        }
+        
+        if (term.type === 'Inheritance' && 
+            term.subject && 
+            term.predicate?.type === 'IntensionalSet' && 
+            term.predicate.terms.length === 1) {
+            
             const cost = parseFloat(term.predicate.terms[0].key);
             if (!isNaN(cost)) {
                 const actionKey = term.subject.key;
@@ -129,16 +183,40 @@ class Memory {
         }
     }
 
+    // Query methods
     getAllTasks() {
-        return [...this.shortTermTasks.values(), ...this.longTermTasks.values()];
+        // Use concat instead of spread for better performance with large datasets
+        const allTasks = [];
+        for (const task of this.shortTermTasks.values()) {
+            allTasks.push(task);
+        }
+        for (const task of this.longTermTasks.values()) {
+            allTasks.push(task);
+        }
+        return allTasks;
     }
 
     getHighestPriorityTasks(k = 20) {
-        const allTasks = this.getAllTasks();
-        allTasks.sort((a, b) => b.state.priority - a.state.priority);
-        return allTasks.slice(0, k);
+        if (k <= 0) {
+            return [];
+        }
+        
+        // For small k, we can optimize by not sorting the entire collection
+        if (k < 10) {
+            const allTasks = this.getAllTasks();
+            // Use a more efficient partial sort for small k
+            return allTasks
+                .sort((a, b) => b.state.priority - a.state.priority)
+                .slice(0, k);
+        } else {
+            // For larger k, sort all tasks
+            const allTasks = this.getAllTasks();
+            allTasks.sort((a, b) => b.state.priority - a.state.priority);
+            return allTasks.slice(0, k);
+        }
     }
 
+    // Utility methods
     clone() {
         const newMemory = new Memory();
         newMemory.terms = new Map(this.terms);
@@ -148,7 +226,32 @@ class Memory {
         newMemory.beliefIndex = new Map(this.beliefIndex);
         newMemory.costIndex = new Map(this.costIndex);
         newMemory.forgettingStrategy = this.forgettingStrategy; // shallow copy of strategy
+        newMemory.cycleCounter = this.cycleCounter;
+        newMemory.maintenanceFrequency = this.maintenanceFrequency;
         return newMemory;
+    }
+    
+    // Cleanup method
+    clear() {
+        this.terms.clear();
+        this.shortTermTasks.clear();
+        this.longTermTasks.clear();
+        this.implicationIndex.clear();
+        this.beliefIndex.clear();
+        this.costIndex.clear();
+        this.cycleCounter = 0;
+    }
+    
+    // Statistics methods
+    getStatistics() {
+        return {
+            terms: this.terms.size,
+            shortTermTasks: this.shortTermTasks.size,
+            longTermTasks: this.longTermTasks.size,
+            implications: this.implicationIndex.size,
+            beliefs: this.beliefIndex.size,
+            costs: this.costIndex.size
+        };
     }
 }
 
