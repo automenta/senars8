@@ -1,11 +1,12 @@
 const BasePlanner = require('./BasePlanner');
+const config = require('../config');
 
 class HTNPlanner extends BasePlanner {
     constructor(memory, lm, config = {}) {
         super(memory, lm, config);
     }
 
-    async findPlan(goalTask, maxDepth = 10) {
+    async findPlan(goalTask, maxDepth = config.planner.maxDepth) {
         const goalTerm = this.memory.getTerm(goalTask.termKey);
         if (!goalTerm) return null;
 

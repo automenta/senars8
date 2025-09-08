@@ -51,6 +51,7 @@ module.exports = {
     },
     planner: {
         strategy: 'HTN', // Can be 'AStar' or 'HTN'
+        maxDepth: 10, // Maximum depth for HTN planning
         plannerConfig: {
             // A* specific configs
             heuristicWeights: {
@@ -95,6 +96,11 @@ module.exports = {
         SEQUENCE_CONFIDENCE_DECAY: 0.9,
         PERIODIC_CONFIDENCE: 0.8,
         TEMPORAL_SUMMARY_CONFIDENCE: 0.9,
-        PREDICTION_CONFIDENCE: 0.5
+        PREDICTION_CONFIDENCE: 0.5,
+        MAX_COMPARISONS: 1000, // Maximum number of comparisons for temporal reasoning
+    },
+    system: {
+        BATCH_SIZE: 10, // Batch size for term bootstrapping
+        CONFIDENCE_REDUCTION_FACTOR: 0.1, // Factor by which to reduce confidence during revision
     }
 };

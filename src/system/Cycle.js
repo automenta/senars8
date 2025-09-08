@@ -116,7 +116,10 @@ class Cycle {
         // Update task access timestamps
         focusSet.forEach(task => task.touch());
 
-        // Get actionable goals\n        const goals = getGoalTasks(this.memory.getAllTasks())\n            .filter(task => task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)\n            .slice(0, this.config.MAX_GOALS_TO_EXECUTE); // Limit the number of goals instead of sorting all
+        // Get actionable goals
+        const goals = getGoalTasks(this.memory.getAllTasks())
+            .filter(task => task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
+            .slice(0, this.config.MAX_GOALS_TO_EXECUTE); // Limit the number of goals instead of sorting all
 
         // Perform different types of reasoning in parallel
         const [symbolicTasks, temporalTasks, lmTasks] = await Promise.all([
@@ -174,7 +177,7 @@ class Cycle {
         const newTermKeys = [...new Set(tasks.map(task => task.termKey).filter(termKey => !this.memory.getTerm(termKey)))];
         
         // Bootstrap new terms using the language model in batches to avoid overwhelming the system
-        const batchSize = 10;
+        const batchSize = this.config.system.BATCH_SIZE;
         for (let i = 0; i < newTermKeys.length; i += batchSize) {
             const batch = newTermKeys.slice(i, i + batchSize);
             const newTerms = await Promise.all(batch.map(termKey => this.lm.bootstrapTerm(termKey)));
@@ -188,7 +191,9 @@ class Cycle {
      * @returns {Task[]} Array of actionable goals
      */
     _getActionableGoals() {
-        return getGoalTasks(this.memory.getAllTasks())\n            .filter(task => task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)\n            .slice(0, this.config.MAX_GOALS_TO_EXECUTE); // Limit first, then sort if needed
+        return getGoalTasks(this.memory.getAllTasks())
+            .filter(task => task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
+            .slice(0, this.config.MAX_GOALS_TO_EXECUTE); // Limit first, then sort if needed
     }
 
     /**

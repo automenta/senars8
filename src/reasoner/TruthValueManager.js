@@ -1,6 +1,7 @@
 const {cosineSimilarity} = require('../utils/math');
 const {getBeliefTasks} = require('../utils/task-utils');
 const config = require('../config');
+const {handleErrorWithDefault} = require('../utils/error-handler');
 
 /**
  * Truth Value Manager
@@ -396,6 +397,7 @@ class TruthValueManager {
                     success: true
                 });
             } catch (error) {
+                handleErrorWithDefault(error, `Error maintaining truth value for task ${task.id}`, null);
                 results.push({
                     taskId: task.id,
                     termKey: task.termKey,
@@ -441,6 +443,7 @@ class TruthValueManager {
                         });
                     }
                 } catch (error) {
+                    handleErrorWithDefault(error, `Error resolving conflicts between tasks ${task1.id} and ${task2.id}`, null);
                     results.push({
                         taskIds: [task1.id, task2.id],
                         termKeys: [task1.termKey, task2.termKey],
