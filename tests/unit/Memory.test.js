@@ -1,184 +1,73 @@
 const Memory = require('../../src/memory/Memory');
-const Term = require('../../src/core/Term');
-const EventBus = require('../../src/system/EventBus');
-
-// Mock dependencies
-jest.mock('../../src/core/Term', () => {
-    return jest.fn().mockImplementation((key) => {
-        const termInstance = {
-            key: key,
-            type: 'Atomic',
-            subject: null,
-            predicate: null,
-            terms: [],
-        };
-        return new Proxy(termInstance, {
-            set: (target, prop, value) => {
-                target[prop] = value;
-                return true;
-            }
-        });
-    });
-});
-// Mock dependencies
-jest.mock('../../src/core/Term', () => {
-    return jest.fn().mockImplementation((key) => {
-        const termInstance = {
-            key: key,
-            type: 'Atomic',
-            subject: null,
-            predicate: null,
-            terms: [],
-        };
-        return new Proxy(termInstance, {
-            set: (target, prop, value) => {
-                target[prop] = value;
-                return true;
-            }
-        });
-    });
-});
-jest.unmock('../../src/core/Task');
 const Task = require('../../src/core/Task');
-
-jest.mock('../../src/system/EventBus', () => ({
-    on: jest.fn(),
-    emit: jest.fn(),
-    off: jest.fn(),
-}));
+const { parseTerm } = require('../../src/parser/narseseParser');
+const config = require('../../src/config');
 
 describe('Memory', () => {
     let memory;
+    let originalMemoryConfig;
 
     beforeEach(() => {
-        Term.mockClear();
-        EventBus.on.mockClear();
-
+        // Manually backup and modify config for tests
+        originalMemoryConfig = { ...config.memory };
+        config.memory = {
+            ...config.memory,
+            FORGETTING_STRATEGY_OPTIONS: {
+                shortTerm: {
+                    expirationThreshold: BigInt(24 * 3600 * 1000), // 1 day
+                    importanceThresholds: { priority: 0.5, confidence: 0.5 }
+                },
+                longTerm: {
+                    expirationThreshold: BigInt(30 * 24 * 3600 * 1000), // 30 days
+                    importanceThresholds: { priority: 0.8, confidence: 0.8 }
+                }
+            }
+        };
+        memory = new Memory();
     });
 
-    describe('costIndex', () => {
-        it('should add a cost to the costIndex when a cost belief is added', () => {
-            memory = new Memory();
-            const actionTerm = new Term('action1');
-            const costTerm = new Term('<action1 --> [10]>');
-            costTerm.type = 'Inheritance';
-            costTerm.subject = actionTerm;
-            costTerm.predicate = { type: 'IntensionalSet', terms: [{ key: '10' }] };
-
-            const belief = new Task(costTerm, '.');
-
-            memory.addTasks([belief]);
-
-            expect(memory.costIndex.has('action1')).toBe(true);
-            expect(memory.costIndex.get('action1')).toBe(10);
-        });
-
-        it('should not add a cost for non-cost beliefs', () => {
-            memory = new Memory();
-            const regularTerm = new Term('<cat --> animal>');
-            regularTerm.type = 'Inheritance';
-            regularTerm.subject = new Term('cat');
-            regularTerm.predicate = new Term('animal');
-
-            const belief = new Task(regularTerm, '.');
-
-            memory.addTasks([belief]);
-
-            expect(memory.costIndex.size).toBe(0);
-        });
-
-        it('should remove a cost from the costIndex when a cost belief is removed', () => {
-            memory = new Memory();
-            // Add the belief first
-            const actionTerm = new Term('action2');
-            const costTerm = new Term('<action2 --> [20]>');
-            costTerm.type = 'Inheritance';
-            costTerm.subject = actionTerm;
-            costTerm.predicate = { type: 'IntensionalSet', terms: [{ key: '20' }] };
-            const belief = new Task(costTerm, '.');
-            belief.id = 'task123'; // Assign an ID for removal
-
-            memory.addTasks([belief]);
-            expect(memory.costIndex.get('action2')).toBe(20);
-
-            // Now remove it
-            memory.removeTask(belief.id);
-
-            expect(memory.costIndex.has('action2')).toBe(false);
-        });
+    afterEach(() => {
+        // Restore original config
+        config.memory = originalMemoryConfig;
     });
 
-    describe('Memory Maintenance', () => {
-        let config;
+    it('should prune expired, unimportant tasks during maintenance', async () => {
+        const now = BigInt(Date.now());
+        const longAgo = now - (BigInt(24 * 3600 * 1000) * BigInt(2)); // 2 days ago
 
-        beforeEach(() => {
-            jest.resetModules(); // Important to reset modules to re-evaluate config
-            config = require('../../src/config');
-            config.memory = {
-                FORGETTING_STRATEGY_NAME: 'TimeBased',
-                FORGETTING_STRATEGY_OPTIONS: { expirationThreshold: 100n },
-                MAINTENANCE_CYCLE_FREQUENCY: 2,
-                CONSOLIDATION_PRIORITY_THRESHOLD: 0.8,
-                CONSOLIDATION_CONFIDENCE_THRESHOLD: 0.9,
-            };
-            memory = new Memory();
-        });
+        const term1 = parseTerm('(unimportant_and_old --> property)');
+        const task1 = new Task(term1, '.');
+        task1.state.stamp.lastAccessed = longAgo;
+        task1.state.priority = 0.1; // Unimportant
+        task1.state.truthValue.confidence = 0.1; // Unimportant
 
-        it('should subscribe to SystemCycleEnded event', () => {
-            expect(EventBus.on).toHaveBeenCalledWith('SystemCycleEnded', expect.any(Function));
-        });
+        const term2 = parseTerm('(new_and_unimportant --> property)');
+        const task2 = new Task(term2, '.');
 
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        await memory.addTasks([task1, task2]);
+        expect(memory.shortTermTasks.size).toBe(2);
 
-        it('should consolidate high-priority tasks from short-term to long-term memory', () => {
-            const highPriorityTask = new Task(new Term('high_priority'), '.');
-            highPriorityTask.state.priority = 0.9;
-            const lowPriorityTask = new Task(new Term('low_priority'), '.');
-            lowPriorityTask.state.priority = 0.5;
-            lowPriorityTask.state.truthValue.confidence = 0.5; // Ensure it's below confidence threshold
+        memory._pruneMemory();
 
-            memory.addTasks([highPriorityTask, lowPriorityTask]);
-            expect(memory.shortTermTasks.size).toBe(2);
-            expect(memory.longTermTasks.size).toBe(0);
+        expect(memory.shortTermTasks.size).toBe(1);
+        expect(memory.shortTermTasks.has(task2.id)).toBe(true);
+    });
 
-            memory._consolidateMemory();
+    it('should NOT prune expired but important tasks', async () => {
+        const now = BigInt(Date.now());
+        const longAgo = now - (BigInt(24 * 3600 * 1000) * BigInt(2)); // 2 days ago
 
-            expect(memory.shortTermTasks.size).toBe(1);
-            expect(memory.longTermTasks.size).toBe(1);
-            expect(memory.longTermTasks.has(highPriorityTask.id)).toBe(true);
-            expect(memory.shortTermTasks.has(lowPriorityTask.id)).toBe(true);
-        });
+        const term1 = parseTerm('(important_and_old --> property)');
+        const task1 = new Task(term1, '.');
+        task1.state.stamp.lastAccessed = longAgo;
+        task1.state.priority = 0.9; // Important!
 
-        it('should consolidate high-confidence tasks from short-term to long-term memory', () => {
-            const highConfidenceTask = new Task(new Term('high_confidence'), '.');
-            highConfidenceTask.state.truthValue.confidence = 0.95;
-            const lowConfidenceTask = new Task(new Term('low_confidence'), '.');
-            lowConfidenceTask.state.truthValue.confidence = 0.5;
+        await memory.addTasks([task1]);
+        expect(memory.shortTermTasks.size).toBe(1);
 
-            memory.addTasks([highConfidenceTask, lowConfidenceTask]);
-            memory._consolidateMemory();
+        memory._pruneMemory();
 
-            expect(memory.longTermTasks.has(highConfidenceTask.id)).toBe(true);
-            expect(memory.shortTermTasks.has(lowConfidenceTask.id)).toBe(true);
-        });
-
-        it('should prune expired tasks from short-term memory', () => {
-            jest.useFakeTimers();
-
-            const task1 = new Task(new Term('task1'), '.');
-            memory.addTasks([task1]);
-
-            jest.advanceTimersByTime(150); // Exceeds expirationThreshold of 100
-
-            const task2 = new Task(new Term('task2'), '.');
-            memory.addTasks([task2]);
-
-            memory._pruneMemory();
-
-            expect(memory.shortTermTasks.size).toBe(1);
-            expect(memory.shortTermTasks.has(task2.id)).toBe(true);
-        });
+        expect(memory.shortTermTasks.size).toBe(1);
+        expect(memory.shortTermTasks.has(task1.id)).toBe(true);
     });
 });

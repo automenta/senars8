@@ -23,14 +23,13 @@ class Memory {
 
     _loadForgettingStrategy() {
         const strategyName = config.memory.FORGETTING_STRATEGY_NAME;
-        const strategyOptions = config.memory.FORGETTING_STRATEGY_OPTIONS;
         try {
             const StrategyClass = require(`./strategies/${strategyName}ForgettingStrategy`);
-            this.forgettingStrategy = new StrategyClass(strategyOptions);
+            this.forgettingStrategy = new StrategyClass();
         } catch (e) {
             console.error(`Could not load forgetting strategy: ${strategyName}`, e);
             const DefaultStrategy = require('./strategies/TimeBasedForgettingStrategy');
-            this.forgettingStrategy = new DefaultStrategy(strategyOptions);
+            this.forgettingStrategy = new DefaultStrategy();
         }
     }
 
@@ -59,8 +58,9 @@ class Memory {
 
     _pruneMemory() {
         if (this.forgettingStrategy) {
-            this.shortTermTasks = this.forgettingStrategy.prune(this.shortTermTasks);
-            // For now, we don't prune long-term memory, but this could be a future feature.
+            const options = config.memory.FORGETTING_STRATEGY_OPTIONS || {};
+            this.shortTermTasks = this.forgettingStrategy.prune(this.shortTermTasks, options.shortTerm);
+            this.longTermTasks = this.forgettingStrategy.prune(this.longTermTasks, options.longTerm);
         }
     }
 
