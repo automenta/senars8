@@ -81,14 +81,14 @@ describe('PlannerUtils', () => {
     describe('isAchieved', () => {
         it('should return true if a belief meets the confidence threshold', () => {
             const term = new Term('achieved_term');
-            memory.beliefIndex.set(term.key, {state: {truthValue: {confidence: 0.95}}});
+            memory.beliefIndex.set(term.key, [{state: {truthValue: {confidence: 0.95}}}]);
             const result = PlannerUtils.isAchieved(term, memory, config);
             expect(result).toBe(true);
         });
 
         it('should return false if a belief is below the confidence threshold', () => {
             const term = new Term('unachieved_term');
-            memory.beliefIndex.set(term.key, {state: {truthValue: {confidence: 0.5}}});
+            memory.beliefIndex.set(term.key, [{state: {truthValue: {confidence: 0.5}}}]);
             const result = PlannerUtils.isAchieved(term, memory, config);
             expect(result).toBe(false);
         });
@@ -104,8 +104,8 @@ describe('PlannerUtils', () => {
         it('should return true if all preconditions are met', () => {
             const pre1 = new Term('pre1');
             const pre2 = new Term('pre2');
-            memory.beliefIndex.set(pre1.key, {state: {truthValue: {confidence: 0.85}}});
-            memory.beliefIndex.set(pre2.key, {state: {truthValue: {confidence: 0.9}}});
+            memory.beliefIndex.set(pre1.key, [{state: {truthValue: {confidence: 0.85}}}]);
+            memory.beliefIndex.set(pre2.key, [{state: {truthValue: {confidence: 0.9}}}]);
             const result = PlannerUtils.arePreconditionsMet([pre1, pre2], memory, config);
             expect(result).toBe(true);
         });
@@ -113,8 +113,8 @@ describe('PlannerUtils', () => {
         it('should return false if any precondition is not met', () => {
             const pre1 = new Term('pre1');
             const pre2 = new Term('pre2_unmet');
-            memory.beliefIndex.set(pre1.key, {state: {truthValue: {confidence: 0.9}}});
-            memory.beliefIndex.set(pre2.key, {state: {truthValue: {confidence: 0.7}}});
+            memory.beliefIndex.set(pre1.key, [{state: {truthValue: {confidence: 0.9}}}]);
+            memory.beliefIndex.set(pre2.key, [{state: {truthValue: {confidence: 0.7}}}]);
             const result = PlannerUtils.arePreconditionsMet([pre1, pre2], memory, config);
             expect(result).toBe(false);
         });
@@ -122,7 +122,7 @@ describe('PlannerUtils', () => {
         it('should return false if any precondition belief does not exist', () => {
             const pre1 = new Term('pre1');
             const pre2 = new Term('pre2_nonexistent');
-            memory.beliefIndex.set(pre1.key, {state: {truthValue: {confidence: 0.9}}});
+            memory.beliefIndex.set(pre1.key, [{state: {truthValue: {confidence: 0.9}}}]);
             const result = PlannerUtils.arePreconditionsMet([pre1, pre2], memory, config);
             expect(result).toBe(false);
         });

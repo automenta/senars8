@@ -1,3 +1,5 @@
+const {createParseError} = require('../../utils/error-handler');
+
 /**
  * Binary operator parsing functions
  */
@@ -21,12 +23,16 @@ function matchBinaryOperator(parser) {
  * @returns {object} The parsed binary operator
  */
 function parseBinaryOperator(parser) {
-    const operatorType = parser.current.type;
-    parser.consume(operatorType);
-    parser.consume('comma');
-    const terms = parser.parseTermList();
-    parser.consume('rparen');
-    return {type: getBinaryOperatorType(operatorType), terms};
+    try {
+        const operatorType = parser.current.type;
+        parser.consume(operatorType);
+        parser.consume('comma');
+        const terms = parser.parseTermList();
+        parser.consume('rparen');
+        return {type: getBinaryOperatorType(operatorType), terms};
+    } catch (error) {
+        throw createParseError(`Error parsing binary operator: ${error.message}`);
+    }
 }
 
 /**

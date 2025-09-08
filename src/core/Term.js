@@ -54,7 +54,7 @@ class Term {
 
         // Lazy initialization of structure and cache
         this._structure = null;
-        this._componentCache = {}; // Cache for Term components to avoid repeated parsing
+        this._componentCache = new Map(); // Use Map for better performance and clearer semantics
     }
 
     /**
@@ -69,7 +69,12 @@ class Term {
      */
     _getStructure() {
         if (this._structure === null) {
-            this._structure = parseTerm(this.key);
+            try {
+                this._structure = parseTerm(this.key);
+            } catch (error) {
+                // If parsing fails, cache null to avoid repeated failed attempts
+                this._structure = null;
+            }
         }
         return this._structure;
     }
@@ -138,18 +143,29 @@ class Term {
      * const terms = term.terms; // Array with Term objects for 'cat' and 'dog'
      */
     get terms() {
+        // Return cached terms if they exist
+        if (this._componentCache.has('terms')) {
+            return this._componentCache.get('terms');
+        }
+
         const structure = this._getStructure();
         // Return null if structure or terms don't exist
-        if (!structure || !structure.terms) return null;
-        
-        // Create and cache terms array if not already cached
-        if (!this._componentCache.terms) {
-            this._componentCache.terms = structure.terms.map((termStructure, index) => 
-                this._getComponent(`term_${index}`, termStructure)
-            );
+        if (!structure || !structure.terms) {
+            this._componentCache.set('terms', null);
+            return null;
         }
         
-        return this._componentCache.terms;
+        // Create and cache terms array
+        try {
+            const termsArray = structure.terms.map((termStructure, index) => 
+                this._getComponent(`term_${index}`, termStructure)
+            );
+            this._componentCache.set('terms', termsArray);
+            return termsArray;
+        } catch (error) {
+            this._componentCache.set('terms', null);
+            return null;
+        }
     }
 
     /**
@@ -165,20 +181,34 @@ class Term {
      * @returns {Term|null} The component term or null if not found
      */
     _getComponent(componentName, structure) {
-        const termStructure = structure || (this._getStructure() ? this._getStructure()[componentName] : null);
-        if (!termStructure) return null;
+        // Return cached component if it exists
+        if (this._componentCache.has(componentName)) {
+            return this._componentCache.get(componentName);
+        }
 
-        // Create and cache the component term if not already cached
-        if (!this._componentCache[componentName]) {
+        const termStructure = structure || (this._getStructure() ? this._getStructure()[componentName] : null);
+        if (!termStructure) {
+            // Cache null for missing components to avoid repeated lookups
+            this._componentCache.set(componentName, null);
+            return null;
+        }
+
+        // Create and cache the component term
+        try {
             const componentKey = buildTermKey(termStructure);
             if (componentKey) {
-                this._componentCache[componentName] = new Term(componentKey);
+                const componentTerm = new Term(componentKey);
+                this._componentCache.set(componentName, componentTerm);
+                return componentTerm;
             } else {
+                this._componentCache.set(componentName, null);
                 return null;
             }
+        } catch (error) {
+            // Cache null for failed component creation to avoid repeated attempts
+            this._componentCache.set(componentName, null);
+            return null;
         }
-        
-        return this._componentCache[componentName];
     }
 
     /**

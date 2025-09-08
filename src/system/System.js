@@ -175,6 +175,75 @@ class System {
     }
 
     /**
+     * Get a term by its key
+     * @param {string} termKey - The key of the term to retrieve
+     * @returns {Term|null} The term or null if not found
+     */
+    getTerm(termKey) {
+        return this.memory.getTerm(termKey);
+    }
+
+    /**
+     * Get all tasks in the system
+     * @returns {Task[]} Array of all tasks
+     */
+    getAllTasks() {
+        return this.memory.getAllTasks();
+    }
+
+    /**
+     * Get all terms in the system
+     * @returns {Term[]} Array of all terms
+     */
+    getAllTerms() {
+        return Array.from(this.memory.terms.values());
+    }
+
+    /**
+     * Get all belief tasks (. punctuation)
+     * @returns {Task[]} Array of belief tasks
+     */
+    getBeliefs() {
+        return this.memory.findTasksByType('.');
+    }
+
+    /**
+     * Get all goal tasks (! punctuation)
+     * @returns {Task[]} Array of goal tasks
+     */
+    getGoals() {
+        return this.memory.findTasksByType('!');
+    }
+
+    /**
+     * Get all question tasks (? punctuation)
+     * @returns {Task[]} Array of question tasks
+     */
+    getQuestions() {
+        return this.memory.findTasksByType('?');
+    }
+
+    /**
+     * Get the highest priority tasks
+     * @param {number} count - The number of tasks to retrieve (default: 10)
+     * @returns {Task[]} Array of highest priority tasks
+     */
+    getTopPriorityTasks(count = 10) {
+        return this.memory.getHighestPriorityTasks(count);
+    }
+
+    /**
+     * Get tasks sorted by creation time (newest first)
+     * @param {number} count - The number of tasks to retrieve (default: 10)
+     * @returns {Task[]} Array of recently created tasks
+     */
+    getRecentTasks(count = 10) {
+        const tasks = this.memory.getAllTasks();
+        tasks.sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime));
+        return tasks.slice(0, count);
+    }
+
+    /**
      * Query tasks using various filters
      * @param {object} filters - Filter criteria
      * @param {string} [filters.termKey] - Term key to match
@@ -337,6 +406,50 @@ class System {
             error('Error importing memory state:', err);
             throw handleError(err, 'Memory state import failed');
         }
+    }
+
+    /**
+     * Get the list of available inference rules
+     * @returns {string[]} Array of rule names
+     */
+    getAvailableRules() {
+        return this.reasoner.getRuleNames();
+    }
+
+    /**
+     * Get information about a specific inference rule
+     * @param {string} ruleName - The name of the rule
+     * @returns {object|null} Rule information or null if not found
+     */
+    getRuleInfo(ruleName) {
+        const rule = this.reasoner.getRule(ruleName);
+        return rule ? {
+            name: rule.name,
+            arity: rule.arity,
+            description: rule.description || 'No description available'
+        } : null;
+    }
+
+    /**
+     * Get system status information
+     * @returns {object} System status information
+     */
+    getStatus() {
+        return {
+            initialized: this.initialized,
+            isRunning: this.isRunning,
+            cycleCount: this.cycleCount,
+            memory: this.memory.getStatistics(),
+            rules: this.reasoner.getRuleNames().length
+        };
+    }
+
+    /**
+     * Get system configuration
+     * @returns {object} Current system configuration
+     */
+    getConfig() {
+        return {...this.config};
     }
 }
 

@@ -7,6 +7,8 @@ const Bag = require('../../utils/Bag');
 class BagSamplingStrategy {
     constructor(samplingFactor = 2) {
         this.samplingFactor = samplingFactor;
+        // Cache for storing previously created bags to avoid recreation
+        this._bagCache = new Map();
     }
 
     /**
@@ -16,14 +18,29 @@ class BagSamplingStrategy {
      * @yields {Task[]} An array containing a combination of tasks.
      */
     * selectCombinations(focusSet, arity) {
-        if (focusSet.length < arity) return;
+        if (!Array.isArray(focusSet) || focusSet.length < arity) return;
 
-        const bag = new Bag(focusSet.length); // Set capacity for the bag
-        for (const task of focusSet) {
-            bag.put(task, task.state.priority); // Use the new 'put' method
+        // Create a cache key based on focus set IDs and arity
+        const focusSetIds = focusSet.map(task => task.id).sort().join(',');
+        const cacheKey = `${focusSetIds}:${arity}`;
+        
+        let bag;
+        // Try to use cached bag if available
+        if (this._bagCache.has(cacheKey)) {
+            bag = this._bagCache.get(cacheKey);
+        } else {
+            // Create new bag
+            bag = new Bag(focusSet.length);
+            for (const task of focusSet) {
+                bag.put(task, task.state.priority);
+            }
+            bag.commit();
+            
+            // Cache the bag for future use (with size limit to prevent memory issues)
+            if (this._bagCache.size < 100) { // Limit cache size
+                this._bagCache.set(cacheKey, bag);
+            }
         }
-
-        bag.commit(); // Commit the bag to prepare for efficient sampling
 
         if (bag.size() < arity) return;
 
@@ -48,6 +65,13 @@ class BagSamplingStrategy {
                 yield combination;
             }
         }
+    }
+    
+    /**
+     * Clear the bag cache to free memory
+     */
+    clearCache() {
+        this._bagCache.clear();
     }
 }
 

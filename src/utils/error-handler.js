@@ -10,6 +10,30 @@ const { error: logError } = require('./logger');
  */
 
 /**
+ * Custom error classes for specific error types
+ */
+class ValidationError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'ValidationError';
+    }
+}
+
+class ParseError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'ParseError';
+    }
+}
+
+class InferenceError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'InferenceError';
+    }
+}
+
+/**
  * Handles errors with consistent logging and error creation
  * 
  * Logs the error and optionally throws a new error with context information.
@@ -31,6 +55,11 @@ function handleError(error, context, shouldThrow = true) {
     logError(`${context}:`, error);
     
     if (shouldThrow) {
+        // Preserve the original error type if it's one of our custom errors
+        if (error instanceof ValidationError || error instanceof ParseError || error instanceof InferenceError) {
+            error.message = `${context}: ${error.message}`;
+            return error;
+        }
         return new Error(`${context}: ${error.message}`);
     }
     
@@ -78,8 +107,44 @@ function withErrorHandling(fn, context, defaultValue = null) {
     };
 }
 
+/**
+ * Creates a validation error
+ * 
+ * @param {string} message - Error message
+ * @returns {ValidationError} Validation error instance
+ */
+function createValidationError(message) {
+    return new ValidationError(message);
+}
+
+/**
+ * Creates a parse error
+ * 
+ * @param {string} message - Error message
+ * @returns {ParseError} Parse error instance
+ */
+function createParseError(message) {
+    return new ParseError(message);
+}
+
+/**
+ * Creates an inference error
+ * 
+ * @param {string} message - Error message
+ * @returns {InferenceError} Inference error instance
+ */
+function createInferenceError(message) {
+    return new InferenceError(message);
+}
+
 module.exports = {
     handleError,
     handleErrorWithDefault,
-    withErrorHandling
+    withErrorHandling,
+    createValidationError,
+    createParseError,
+    createInferenceError,
+    ValidationError,
+    ParseError,
+    InferenceError
 };

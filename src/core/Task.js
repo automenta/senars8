@@ -19,8 +19,7 @@ class Task {
     /**
      * Create a new Task
      * 
-     * @param {object} term - The term associated with this task
-     * @param {string} term.key - The term key
+     * @param {object|string} term - The term associated with this task (can be a parsed term object or a string key)
      * @param {string} punctuation - The punctuation mark ('.', '!', or '?')
      *   - '.' represents a belief/judgment
      *   - '!' represents a goal
@@ -39,44 +38,88 @@ class Task {
      * @throws {Error} If term or punctuation is invalid
      * 
      * @example
-     * // Create a belief task
-     * const term = { key: 'cat' };
-     * const beliefTask = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+     * // Create a belief task with a string key
+     * const beliefTask = new Task('cat', '.', { frequency: 0.8, confidence: 0.9 });
      * 
      * @example
-     * // Create a goal task
+     * // Create a goal task with a parsed term
      * const goalTask = new Task(parseTerm('find_food'), '!', { frequency: 1.0, confidence: 0.95 });
      * 
      * @example
      * // Create a question task
-     * const questionTask = new Task(parseTerm('what_time_is_it'), '?', { frequency: 1.0, confidence: 0.8 });
+     * const questionTask = new Task('(what_time_is_it)?', '?', { frequency: 1.0, confidence: 0.8 });
      */
     constructor(term, punctuation, truthValue = {}, stamp = {}) {
-        // Validate required parameters
-        const isValidTerm = term?.key;
-        const isValidPunctuation = ['.', '!', '?'].includes(punctuation);
+        // Validate required parameters for backward compatibility
+        const isValidTerm = term && (typeof term === 'string' || (typeof term === 'object' && term.key));
+        const isValidPunctuation = typeof punctuation === 'string' && ['.', '!', '?'].includes(punctuation);
         
         if (!isValidTerm || !isValidPunctuation) {
             throw new Error('Invalid Task arguments: term and punctuation are required');
         }
 
+        // Process term
+        let processedTerm;
+        let termKey;
+        
+        if (typeof term === 'string') {
+            termKey = term;
+            processedTerm = parseTerm(term);
+            if (!processedTerm) {
+                throw new Error(`Failed to parse term: ${term}`);
+            }
+        } else {
+            // term is an object
+            termKey = term.key;
+            processedTerm = term.type ? term : parseTerm(term.key);
+            if (!processedTerm) {
+                throw new Error(`Failed to parse term: ${term.key}`);
+            }
+        }
+
+        // Validate truth value
+        const validatedTruthValue = this._validateTruthValue(truthValue);
+
         // Initialize core properties
         this.id = uuidv4();
-        // Only parse the term if it doesn't already have a type
-        this.term = term.type ? term : parseTerm(term.key);
-        this.termKey = term.key;
+        this.term = processedTerm;
+        this.termKey = termKey;
         this.punctuation = punctuation;
 
         // Initialize state with default values
         this.state = {
             priority: 0,
-            truthValue: {...DEFAULT_TRUTH_VALUE, ...truthValue},
+            truthValue: validatedTruthValue,
             stamp: {
                 creationTime: BigInt(Date.now()),
                 lastAccessed: BigInt(Date.now()),
                 ...stamp
             },
         };
+    }
+
+    /**
+     * Validate and normalize truth value
+     * 
+     * @private
+     * @param {object} truthValue - The truth value to validate
+     * @returns {object} Validated truth value with defaults applied
+     */
+    _validateTruthValue(truthValue) {
+        if (!truthValue || typeof truthValue !== 'object') {
+            return {...DEFAULT_TRUTH_VALUE};
+        }
+        
+        // Apply defaults and clamp values to valid ranges
+        const frequency = typeof truthValue.frequency === 'number' 
+            ? Math.max(0, Math.min(1, truthValue.frequency)) 
+            : DEFAULT_TRUTH_VALUE.frequency;
+            
+        const confidence = typeof truthValue.confidence === 'number' 
+            ? Math.max(0, Math.min(1, truthValue.confidence)) 
+            : DEFAULT_TRUTH_VALUE.confidence;
+            
+        return {frequency, confidence};
     }
 
     /**

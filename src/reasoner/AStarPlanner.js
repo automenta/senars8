@@ -91,8 +91,12 @@ class AStarPlanner extends BasePlanner {
         const complexityCost = tasks.reduce((acc, task) => acc + this.costManager.getTaskDifficulty(task), 0);
 
         const confidenceCost = tasks.reduce((acc, task) => {
-            const belief = this.memory.beliefIndex.get(task.key);
-            return acc + (1 - (belief ? belief.state.truthValue.confidence : 0));
+            const beliefs = this.memory.beliefIndex.get(task.key);
+            // Get the highest confidence belief if there are multiple beliefs
+            const confidence = beliefs && beliefs.length > 0 
+                ? Math.max(...beliefs.map(b => b.state.truthValue.confidence))
+                : 0;
+            return acc + (1 - confidence);
         }, 0);
 
         let semanticCost = 0;

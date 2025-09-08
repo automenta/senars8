@@ -19,9 +19,19 @@ class Reasoner {
     /**
      * Perform inference on a focus set of tasks
      * @param {Task[]} focusSet - The set of tasks to perform inference on
+     * @param {object} [options] - Additional options for inference
+     * @param {number} [options.maxDerivedTasks] - Maximum number of derived tasks to generate
      * @returns {Task[]} Array of derived tasks
      */
-    performInference(focusSet) {
+    performInference(focusSet, options = {}) {
+        // Validate input
+        if (!Array.isArray(focusSet)) {
+            handleErrorWithDefault(new Error('Focus set must be an array'), 'Reasoner.performInference', []);
+            return [];
+        }
+        
+        const { maxDerivedTasks = Infinity } = options;
+        
         debug(`Performing inference on ${focusSet.length} tasks`);
         const derivedTasks = [];
 
@@ -36,6 +46,11 @@ class Reasoner {
                 debug(`Skipping rule ${rule.name} due to invalid arity`);
                 continue;
             }
+            
+            // Skip rule if we've already reached the maximum number of derived tasks
+            if (derivedTasks.length >= maxDerivedTasks) {
+                break;
+            }
 
             try {
                 // Select combinations of tasks based on rule arity
@@ -43,6 +58,16 @@ class Reasoner {
                 
                 // Apply rule to each combination
                 for (const tasks of combinations) {
+                    // Skip rule if we've already reached the maximum number of derived tasks
+                    if (derivedTasks.length >= maxDerivedTasks) {
+                        break;
+                    }
+                    
+                    // Validate tasks array
+                    if (!Array.isArray(tasks)) {
+                        continue;
+                    }
+                    
                     // Skip combinations that don't match rule arity
                     if (tasks.length !== rule.arity) continue;
 
@@ -50,6 +75,11 @@ class Reasoner {
                     const derived = this._applyRule(rule, tasks, processedCombinations);
                     if (derived) {
                         derivedTasks.push(derived);
+                        
+                        // Early termination if we've reached the maximum
+                        if (derivedTasks.length >= maxDerivedTasks) {
+                            break;
+                        }
                     }
                 }
             } catch (err) {
@@ -62,13 +92,21 @@ class Reasoner {
 
         // --- Temporal Inference ---
         // The temporal reasoner performs a global analysis on the focus set
-        try {
-            const temporalTasks = this.temporalReasoner.infer(focusSet);
-            derivedTasks.push(...temporalTasks);
-            debug(`Temporal inference produced ${temporalTasks.length} derived tasks`);
-        } catch (err) {
-            handleErrorWithDefault(err, 'Error in temporal inference', null);
-            // Continue even if temporal inference fails
+        // Only run temporal inference if we haven't reached the maximum yet
+        if (derivedTasks.length < maxDerivedTasks) {
+            try {
+                const temporalTasks = this.temporalReasoner.infer(focusSet);
+                if (Array.isArray(temporalTasks)) {
+                    // Add temporal tasks up to the limit
+                    const remainingSlots = maxDerivedTasks - derivedTasks.length;
+                    const tasksToAdd = temporalTasks.slice(0, remainingSlots);
+                    derivedTasks.push(...tasksToAdd);
+                    debug(`Temporal inference produced ${tasksToAdd.length} derived tasks`);
+                }
+            } catch (err) {
+                handleErrorWithDefault(err, 'Error in temporal inference', null);
+                // Continue even if temporal inference fails
+            }
         }
 
         debug(`Total inference produced ${derivedTasks.length} derived tasks`);
@@ -84,14 +122,26 @@ class Reasoner {
      * @returns {Task|null} Derived task or null if rule doesn't apply
      */
     _applyRule(rule, tasks, processedCombinations) {
-        try {
-            // Use a rule-specific key to allow different rules to be applied to the same combination
-            const combinationKey = rule.name + ':' + tasks.map(task => task.id).sort().join(',');
-            if (processedCombinations.has(combinationKey)) {
-                return null;
-            }
-            processedCombinations.add(combinationKey);
+        // Validate inputs
+        if (!rule || !Array.isArray(tasks) || !processedCombinations) {
+            handleErrorWithDefault(new Error('Invalid arguments to _applyRule'), '_applyRule validation', null);
+            return null;
+        }
+        
+        // Use a rule-specific key to allow different rules to be applied to the same combination
+        // Sort task IDs to ensure consistent key generation regardless of task order
+        const taskIds = tasks.map(task => task.id).sort();
+        const combinationKey = rule.name + ':' + taskIds.join(',');
+        
+        // Check if this combination has already been processed
+        if (processedCombinations.has(combinationKey)) {
+            return null;
+        }
+        
+        // Add to processed combinations immediately to prevent duplicate processing
+        processedCombinations.add(combinationKey);
 
+        try {
             // Check if operands are valid and rule condition is met
             if (this._areOperandsValid(rule, tasks) && rule.condition(...tasks)) {
                 // The rule action returns a plain object that the Memory component will convert into a Task
@@ -116,11 +166,24 @@ class Reasoner {
      * @returns {boolean} True if operands are valid, false otherwise
      */
     _areOperandsValid(rule, tasks) {
+        // Validate inputs
+        if (!rule || !Array.isArray(tasks)) {
+            handleErrorWithDefault(new Error('Invalid arguments to _areOperandsValid'), '_areOperandsValid validation', false);
+            return false;
+        }
+        
         try {
             // Ensure the number of tasks matches the rule's operand definitions
-            if (tasks.length !== rule.operands.length) return false;
+            if (!Array.isArray(rule.operands) || tasks.length !== rule.operands.length) return false;
+            
             return tasks.every((task, index) => {
                 try {
+                    // Validate that the operand validator is a function
+                    if (typeof rule.operands[index] !== 'function') {
+                        handleErrorWithDefault(new Error(`Operand validator at index ${index} is not a function`), `_areOperandsValid rule ${rule.name}`, false);
+                        return false;
+                    }
+                    
                     return rule.operands[index](task);
                 } catch (err) {
                     handleErrorWithDefault(err, `Error validating operand for rule ${rule.name}`, false);
@@ -148,6 +211,25 @@ class Reasoner {
      */
     getRule(name) {
         return this.rules.find(rule => rule.name === name) || null;
+    }
+
+    /**
+     * Get rule statistics and performance information
+     * @returns {object} Rule statistics
+     */
+    getRuleStatistics() {
+        return {
+            totalRules: this.rules.length,
+            ruleNames: this.rules.map(rule => rule.name),
+            rulesByArity: this.rules.reduce((acc, rule) => {
+                const arity = rule.arity || 0;
+                if (!acc[arity]) {
+                    acc[arity] = [];
+                }
+                acc[arity].push(rule.name);
+                return acc;
+            }, {})
+        };
     }
 }
 

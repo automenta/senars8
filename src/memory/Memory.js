@@ -13,12 +13,15 @@ class Memory {
         
         // Indexes for efficient lookups of specific types of information
         this.implicationIndex = new Map();  // Index of implications by goal term
-        this.beliefIndex = new Map();       // Index of beliefs by term key
+        this.beliefIndex = new Map();       // Index of beliefs by term key (maps termKey to array of tasks)
         this.costIndex = new Map();         // Index of action costs
 
         // Maintenance settings for memory management
         this.cycleCounter = 0;
         this.maintenanceFrequency = config.memory.MAINTENANCE_CYCLE_FREQUENCY;
+
+        // Cached task list for performance
+        this._cachedAllTasks = null;
 
         // Load forgetting strategy for memory pruning
         this._loadForgettingStrategy();
@@ -83,6 +86,9 @@ class Memory {
             this.longTermTasks.set(taskId, task);
             this.shortTermTasks.delete(taskId);
         }
+        
+        // Invalidate cached task list since we've moved tasks
+        this._cachedAllTasks = null;
     }
 
     /**
@@ -95,6 +101,8 @@ class Memory {
             const options = config.memory.FORGETTING_STRATEGY_OPTIONS || {};
             this.shortTermTasks = this.forgettingStrategy.prune(this.shortTermTasks, options.shortTerm);
             this.longTermTasks = this.forgettingStrategy.prune(this.longTermTasks, options.longTerm);
+            // Invalidate cached task list since we've pruned tasks
+            this._cachedAllTasks = null;
         }
     }
 
@@ -180,10 +188,18 @@ class Memory {
 
             // Update indexes for belief tasks
             if (isBelief(task)) {
-                this.beliefIndex.set(task.termKey, task);
+                // Initialize belief index entry if needed
+                if (!this.beliefIndex.has(task.termKey)) {
+                    this.beliefIndex.set(task.termKey, []);
+                }
+                // Add belief to index
+                this.beliefIndex.get(task.termKey).push(task);
                 this._updateCostIndex(task.term, 'add');
             }
         }
+        
+        // Invalidate cached task list
+        this._cachedAllTasks = null;
     }
 
     /**
@@ -217,9 +233,23 @@ class Memory {
             
             // Update indexes for belief tasks
             if (isBelief(task)) {
-                this.beliefIndex.delete(task.termKey);
+                // Remove task from belief index
+                if (this.beliefIndex.has(task.termKey)) {
+                    const beliefs = this.beliefIndex.get(task.termKey);
+                    const index = beliefs.indexOf(task);
+                    if (index !== -1) {
+                        beliefs.splice(index, 1);
+                        // Clean up empty arrays
+                        if (beliefs.length === 0) {
+                            this.beliefIndex.delete(task.termKey);
+                        }
+                    }
+                }
                 this._updateCostIndex(task.term, 'remove');
             }
+            
+            // Invalidate cached task list
+            this._cachedAllTasks = null;
         }
     }
 
@@ -260,15 +290,18 @@ class Memory {
      * @returns {Task[]} Array of all tasks
      */
     getAllTasks() {
-        // Use a more efficient approach to avoid creating intermediate arrays
-        const allTasks = [];
-        this.shortTermTasks.forEach(task => allTasks.push(task));
-        this.longTermTasks.forEach(task => allTasks.push(task));
-        return allTasks;
+        // Cache the combined tasks array to avoid recreating it unnecessarily
+        if (!this._cachedAllTasks) {
+            this._cachedAllTasks = [
+                ...this.shortTermTasks.values(),
+                ...this.longTermTasks.values()
+            ];
+        }
+        return this._cachedAllTasks;
     }
 
     /**
-     * Get the highest priority tasks from memory using a more efficient approach
+     * Get the highest priority tasks from memory
      * @param {number} k - The number of tasks to retrieve
      * @returns {Task[]} Array of highest priority tasks
      */
@@ -278,30 +311,36 @@ class Memory {
             return [];
         }
         
-        // For small k, use a partial selection approach for better performance
-        if (k < 50) {
-            const allTasks = this.getAllTasks();
-            // Use a partial selection approach for small k
+        // Get all tasks and sort them by priority (highest first)
+        const allTasks = this.getAllTasks();
+        
+        // For small k, use a partial sort for better performance
+        if (k < 50 && k < allTasks.length / 10) {
+            // Use a min-heap based approach for small k with large datasets
+            const {MinPriorityQueue} = require('@datastructures-js/priority-queue');
+            const pq = new MinPriorityQueue({ priority: (task) => task.state.priority });
+            
+            for (const task of allTasks) {
+                if (pq.size() < k) {
+                    pq.enqueue(task);
+                } else if (task.state.priority > pq.front().priority) {
+                    pq.dequeue();
+                    pq.enqueue(task);
+                }
+            }
+            
+            // Extract tasks in descending order of priority
             const result = [];
-            for (let i = 0; i < Math.min(k, allTasks.length); i++) {
-                let maxIndex = i;
-                for (let j = i + 1; j < allTasks.length; j++) {
-                    if (allTasks[j].state.priority > allTasks[maxIndex].state.priority) {
-                        maxIndex = j;
-                    }
-                }
-                if (maxIndex !== i) {
-                    [allTasks[i], allTasks[maxIndex]] = [allTasks[maxIndex], allTasks[i]];
-                }
-                result.push(allTasks[i]);
+            while (!pq.isEmpty()) {
+                result.unshift(pq.dequeue().element);
             }
             return result;
         } else {
-            // For larger k, we can use a more efficient approach
-            const allTasks = this.getAllTasks();
-            // Sort only once for better performance
-            allTasks.sort((a, b) => b.state.priority - a.state.priority);
-            return allTasks.slice(0, k);
+            // For larger k, use a more efficient full sort with a limit
+            // Clone the array to avoid modifying the cached version
+            const sortedTasks = [...allTasks];
+            sortedTasks.sort((a, b) => b.state.priority - a.state.priority);
+            return sortedTasks.slice(0, k);
         }
     }
 
@@ -315,7 +354,12 @@ class Memory {
         newMemory.shortTermTasks = new Map(this.shortTermTasks);
         newMemory.longTermTasks = new Map(this.longTermTasks);
         newMemory.implicationIndex = new Map(this.implicationIndex);
-        newMemory.beliefIndex = new Map(this.beliefIndex);
+        
+        // Deep copy the belief index (arrays of tasks)
+        for (const [termKey, tasks] of this.beliefIndex.entries()) {
+            newMemory.beliefIndex.set(termKey, [...tasks]);
+        }
+        
         newMemory.costIndex = new Map(this.costIndex);
         newMemory.forgettingStrategy = this.forgettingStrategy; // shallow copy of strategy
         newMemory.cycleCounter = this.cycleCounter;
@@ -334,6 +378,7 @@ class Memory {
         this.beliefIndex.clear();
         this.costIndex.clear();
         this.cycleCounter = 0;
+        this._cachedAllTasks = null;
     }
     
     /**
@@ -357,7 +402,14 @@ class Memory {
      * @returns {Task[]} Array of tasks with the specified term key
      */
     findTasksByTermKey(termKey) {
-        return this.getAllTasks().filter(task => task.termKey === termKey);
+        // First check the belief index for better performance
+        if (this.beliefIndex.has(termKey)) {
+            return this.beliefIndex.get(termKey);
+        }
+        
+        // Fall back to searching all tasks
+        const allTasks = this.getAllTasks();
+        return allTasks.filter(task => task.termKey === termKey);
     }
 
     /**
@@ -366,7 +418,8 @@ class Memory {
      * @returns {Task[]} Array of tasks with the specified type
      */
     findTasksByType(type) {
-        return this.getAllTasks().filter(task => task.punctuation === type);
+        const allTasks = this.getAllTasks();
+        return allTasks.filter(task => task.punctuation === type);
     }
 
     /**
@@ -375,7 +428,8 @@ class Memory {
      * @returns {Task[]} Array of high-priority tasks
      */
     getHighPriorityTasks(threshold = 0.5) {
-        return this.getAllTasks().filter(task => task.state.priority >= threshold);
+        const allTasks = this.getAllTasks();
+        return allTasks.filter(task => task.state.priority >= threshold);
     }
 }
 

@@ -1,5 +1,5 @@
-const lexer = require('./lexer');
-const {handleErrorWithDefault} = require('../utils/error-handler');
+const BaseParser = require('./BaseParser');
+const {handleErrorWithDefault, createParseError} = require('../utils/error-handler');
 
 // Import parser modules
 const unaryOperators = require('./modules/unary-operators');
@@ -9,43 +9,31 @@ const compoundTerms = require('./modules/compound-terms');
 const setTerms = require('./modules/set-terms');
 const atomicTerms = require('./modules/atomic-terms');
 
-class NarseseParser {
+class NarseseParser extends BaseParser {
     constructor(input) {
-        this.lexer = lexer.clone();
-        this.lexer.reset(input);
-        this.current = null;
-        this.next();
+        super(input);
     }
 
-    next() {
-        this.current = this.lexer.next();
-        while (this.current && this.current.type === 'whitespace') {
-            this.current = this.lexer.next();
-        }
-        return this.current;
-    }
-
-    match(type) {
-        return this.current && this.current.type === type;
-    }
-
-    consume(type) {
-        if (this.match(type)) {
-            const value = this.current.value;
-            this.next();
-            return value;
-        }
-        throw new Error(`Expected token type '${type}', but found '${this.current ? this.current.type : 'EOF'}'`);
-    }
-
+    /**
+     * Parse the main input
+     * @returns {object} The parsed result
+     */
     parseMain() {
-        const result = this.parseStatement();
-        if (this.current) {
-            throw new Error(`Unexpected token '${this.current.type}' at end of input`);
+        try {
+            const result = this.parseStatement();
+            if (this.current) {
+                throw createParseError(`Unexpected token '${this.current.type}' at end of input`);
+            }
+            return result;
+        } catch (error) {
+            return handleErrorWithDefault(error, 'Narsese parsing error', null);
         }
-        return result;
     }
 
+    /**
+     * Parse a statement
+     * @returns {object} The parsed statement
+     */
     parseStatement() {
         const term = this.parseTerm();
 
@@ -75,6 +63,10 @@ class NarseseParser {
         return term;
     }
 
+    /**
+     * Parse a truth value
+     * @returns {object} The parsed truth value
+     */
     parseTruthValue() {
         this.consume('lparen');
         const frequency = this.parseNumber();
@@ -84,15 +76,21 @@ class NarseseParser {
         return {frequency, confidence};
     }
 
+    /**
+     * Parse a number
+     * @returns {number} The parsed number
+     */
     parseNumber() {
         if (this.match('number')) {
             return this.consume('number');
         }
-        throw new Error(`Expected a number, but found '${this.current ? this.current.type : 'EOF'}'`);
+        throw createParseError(`Expected a number, but found '${this.current ? this.current.type : 'EOF'}'`);
     }
 
-    // --- Term parsing methods ---
-
+    /**
+     * Parse a term
+     * @returns {object} The parsed term
+     */
     parseTerm() {
         if (this.match('lparen')) {
             return this.parseCompoundTerm();
@@ -109,10 +107,14 @@ class NarseseParser {
         } else if (this.match('queryVar')) {
             return atomicTerms.parseQueryVariable(this);
         } else {
-            throw new Error(`Unexpected token '${this.current ? this.current.type : 'EOF'}' when parsing term`);
+            throw createParseError(`Unexpected token '${this.current ? this.current.type : 'EOF'}' when parsing term`);
         }
     }
 
+    /**
+     * Parse a compound term
+     * @returns {object} The parsed compound term
+     */
     parseCompoundTerm() {
         this.consume('lparen');
 
@@ -161,24 +163,34 @@ class NarseseParser {
             return firstTerm;
         }
     }
+}
 
-    // --- Term lists ---
+/**
+ * Parse a term from a string input
+ * @param {string} input - The input string to parse
+ * @returns {object|null} The parsed term or null if parsing fails
+ */
+function parseTermString(input) {
+    if (typeof input !== 'string' || input.length === 0) {
+        return null;
+    }
 
-    parseTermList() {
-        const terms = [];
-
-        if (!this.match('rparen') && !this.match('rbrace') && !this.match('rbracket')) {
-            terms.push(this.parseTerm());
-
-            while (this.match('comma')) {
-                this.consume('comma');
-                terms.push(this.parseTerm());
+    try {
+        const parser = new NarseseParser(input);
+        const parsed = parser.parseMain();
+        if (parsed) {
+            // Attach the original string key to the parsed object.
+            if (typeof parsed === 'object' && !parsed.key) {
+                parsed.key = input;
             }
         }
-
-        return terms;
+        return parsed;
+    } catch (error) {
+        return handleErrorWithDefault(error, 'Narsese parsing error', null);
     }
 }
+
+module.exports = {parseTerm: parseTermString};
 
 function parseTerm(input) {
     if (typeof input !== 'string' || input.length === 0) {
