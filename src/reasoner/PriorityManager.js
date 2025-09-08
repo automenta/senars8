@@ -17,7 +17,7 @@ class PriorityManager {
         }, 0);
 
         const I = (maxSimilarity + config.SIMILARITY_OFFSET) / config.SIMILARITY_SCALE;
-        const U = 1 / (1 + (currentTime - task.state.stamp.creationTime) / config.RECENCY_DECAY_FACTOR);
+        const U = 1 / (1 + (currentTime - Number(task.state.stamp.creationTime)) / config.RECENCY_DECAY_FACTOR);
         const T = calculateTemporalPriority(task, currentTime);
         const C = task.state.truthValue.confidence;
         const E = 1 / term.complexity;

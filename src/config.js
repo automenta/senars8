@@ -56,4 +56,13 @@ module.exports = {
             },
         }
     },
+    memory: {
+        FORGETTING_STRATEGY_NAME: 'TimeBased',
+        FORGETTING_STRATEGY_OPTIONS: {
+            expirationThreshold: 86400000n, // 1 day in milliseconds
+        },
+        MAINTENANCE_CYCLE_FREQUENCY: 10,
+        CONSOLIDATION_PRIORITY_THRESHOLD: 0.8,
+        CONSOLIDATION_CONFIDENCE_THRESHOLD: 0.9,
+    },
 };

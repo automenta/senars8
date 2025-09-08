@@ -3,6 +3,7 @@ const Memory = require('../../src/memory/Memory');
 const Reasoner = require('../../src/reasoner/Reasoner');
 const LM = require('../../src/lm/LM');
 const ActionExecutor = require('../../src/system/ActionExecutor');
+const EventBus = require('../../src/system/EventBus');
 const Task = require('../../src/core/Task');
 const Term = require('../../src/core/Term');
 const config = require('../../src/config');

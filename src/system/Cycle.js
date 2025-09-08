@@ -8,6 +8,7 @@ const Perception = require('./Perception');
 const MetaCognition = require('./MetaCognition');
 const TemporalReasoner = require('../reasoner/TemporalReasoner');
 const PriorityManager = require('../reasoner/PriorityManager');
+const EventBus = require('./EventBus');
 
 class Cycle {
     constructor(memory, reasoner, lm, actionExecutor, config) {
@@ -62,6 +63,8 @@ class Cycle {
     async _reason(contradictions) {
         const focusSet = this.memory.getHighestPriorityTasks(this.config.FOCUS_SET_SIZE);
         if (focusSet.length === 0) return [];
+
+        focusSet.forEach(task => task.touch());
 
         const goals = this.memory.getAllTasks()
             .filter(task => task.punctuation === '!' && task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
@@ -167,6 +170,8 @@ class Cycle {
         this.memory.addTasks(proactiveTasks);
 
         const executionResults = await this._act();
+
+        EventBus.emit('SystemCycleEnded');
 
         return {
             derivedTasks: derivedTasks.length,

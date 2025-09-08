@@ -17,8 +17,16 @@ class Task {
         this.state = {
             priority: 0,
             truthValue: { ...DEFAULT_TRUTH_VALUE, ...truthValue },
-            stamp: { creationTime: Date.now(), ...stamp },
+            stamp: {
+                creationTime: BigInt(Date.now()),
+                lastAccessed: BigInt(Date.now()),
+                ...stamp
+            },
         };
+    }
+
+    touch() {
+        this.state.stamp.lastAccessed = BigInt(Date.now());
     }
 }
 

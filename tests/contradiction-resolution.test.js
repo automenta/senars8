@@ -9,6 +9,7 @@ const {
     parseTerm
 } = require('../src/parser/narseseParser');
 const config = require('../src/config');
+const EventBus = require('../src/system/EventBus');
 
 // Mock the LM to avoid loading heavy models
 jest.mock('../src/lm/LM');

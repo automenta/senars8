@@ -33,7 +33,9 @@ describe('Task', () => {
         expect(task.termKey).toBe('cat');
         expect(task.punctuation).toBe('!');
         expect(task.state.truthValue).toEqual(truthValue);
-        expect(task.state.stamp).toEqual(stamp);
+        expect(task.state.stamp.creationTime).toEqual(stamp.creationTime);
+        expect(task.state.stamp.occurrenceTime).toEqual(stamp.occurrenceTime);
+        expect(task.state.stamp.lastAccessed).toEqual(expect.any(BigInt));
     });
 
     test('should throw an error if term is invalid', () => {
