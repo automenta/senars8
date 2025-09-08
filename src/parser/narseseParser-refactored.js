@@ -161,12 +161,11 @@ class NarseseParser {
     }
 
     parseUnaryOperator() {
-        const operatorType = this.current.type;
-        this.consume(operatorType);
+        const operator = this.consume(this.current.type);
         this.consume('comma');
         const term = this.parseTerm();
         this.consume('rparen');
-        return {type: this.getUnaryOperatorType(operatorType), term};
+        return {type: this.getUnaryOperatorType(operator), term};
     }
 
     getUnaryOperatorType(operator) {
@@ -183,12 +182,11 @@ class NarseseParser {
     }
 
     parseTemporalOperator() {
-        const operatorType = this.current.type;
-        this.consume(operatorType);
+        const operator = this.consume(this.current.type);
         this.consume('comma');
         const term = this.parseTerm();
         this.consume('rparen');
-        return {type: this.getTemporalOperatorType(operatorType), term};
+        return {type: this.getTemporalOperatorType(operator), term};
     }
 
     getTemporalOperatorType(operator) {
@@ -212,12 +210,11 @@ class NarseseParser {
     }
 
     parseBinaryOperator() {
-        const operatorType = this.current.type;
-        this.consume(operatorType);
+        const operator = this.consume(this.current.type);
         this.consume('comma');
         const terms = this.parseTermList();
         this.consume('rparen');
-        return {type: this.getBinaryOperatorType(operatorType), terms};
+        return {type: this.getBinaryOperatorType(operator), terms};
     }
 
     getBinaryOperatorType(operator) {

@@ -6,66 +6,85 @@ const {isBelief} = require('../utils/task-utils');
 
 class Memory {
     constructor() {
-        // Core data structures
+        // Core data structures for storing terms and tasks
         this.terms = new Map();
         this.shortTermTasks = new Map();
         this.longTermTasks = new Map();
         
-        // Indexes for efficient lookups
-        this.implicationIndex = new Map();
-        this.beliefIndex = new Map();
-        this.costIndex = new Map();
+        // Indexes for efficient lookups of specific types of information
+        this.implicationIndex = new Map();  // Index of implications by goal term
+        this.beliefIndex = new Map();       // Index of beliefs by term key
+        this.costIndex = new Map();         // Index of action costs
 
-        // Maintenance settings
+        // Maintenance settings for memory management
         this.cycleCounter = 0;
         this.maintenanceFrequency = config.memory.MAINTENANCE_CYCLE_FREQUENCY;
 
-        // Load forgetting strategy
+        // Load forgetting strategy for memory pruning
         this._loadForgettingStrategy();
 
-        // Event listeners
+        // Register event listeners for automatic task management
         EventBus.on('NewTasksCreated', (tasks) => this.addTasks(tasks));
         EventBus.on('SystemCycleEnded', () => this._handleSystemCycleEnded());
     }
 
-    // Strategy management
+    /**
+     * Load the configured forgetting strategy or fall back to default
+     * @private
+     */
     _loadForgettingStrategy() {
         const strategyName = config.memory.FORGETTING_STRATEGY_NAME;
         try {
             const StrategyClass = require(`./strategies/${strategyName}ForgettingStrategy`);
             this.forgettingStrategy = new StrategyClass();
-        } catch (e) {
-            console.warn(`Could not load forgetting strategy: ${strategyName}`, e);
+        } catch (error) {
+            console.warn(`Could not load forgetting strategy: ${strategyName}`, error);
             const DefaultStrategy = require('./strategies/TimeBasedForgettingStrategy');
             this.forgettingStrategy = new DefaultStrategy();
         }
     }
 
-    // Maintenance methods
+    /**
+     * Handle system cycle completion by performing memory maintenance
+     * @private
+     */
     _handleSystemCycleEnded() {
         this.cycleCounter++;
+        // Perform maintenance at configured frequency
         if (this.cycleCounter % this.maintenanceFrequency === 0) {
             this._consolidateMemory();
             this._pruneMemory();
         }
     }
 
+    /**
+     * Consolidate memory by moving high-priority or high-confidence tasks to long-term storage
+     * @private
+     */
     _consolidateMemory() {
         const priorityThreshold = config.memory.CONSOLIDATION_PRIORITY_THRESHOLD;
         const confidenceThreshold = config.memory.CONSOLIDATION_CONFIDENCE_THRESHOLD;
 
-        for (const [id, task] of this.shortTermTasks.entries()) {
+        // Iterate through short-term tasks to identify candidates for consolidation
+        for (const [taskId, task] of this.shortTermTasks.entries()) {
+            // Check if task meets consolidation criteria
             const isHighPriority = task.state.priority >= priorityThreshold;
             const isHighConfidence = task.state.truthValue.confidence >= confidenceThreshold;
 
+            // Move qualifying tasks to long-term storage
             if (isHighPriority || isHighConfidence) {
-                this.longTermTasks.set(id, task);
-                this.shortTermTasks.delete(id);
+                this.longTermTasks.set(taskId, task);
+                this.shortTermTasks.delete(taskId);
             }
         }
     }
 
+    /**
+     * Prune memory using the configured forgetting strategy
+     * @private
+     */
     _pruneMemory() {
+        // Apply forgetting strategy if available
         if (this.forgettingStrategy) {
             const options = config.memory.FORGETTING_STRATEGY_OPTIONS || {};
             this.shortTermTasks = this.forgettingStrategy.prune(this.shortTermTasks, options.shortTerm);
@@ -73,8 +92,12 @@ class Memory {
         }
     }
 
-    // Term management
+    /**
+     * Add a term to memory
+     * @param {Term} term - The term to add
+     */
     addTerm(term) {
+        // Validate input
         if (!term) {
             throw new Error('Term cannot be null or undefined');
         }
@@ -83,26 +106,36 @@ class Memory {
             throw new Error('Can only add Term instances to memory.');
         }
         
+        // Skip if term already exists
         if (this.terms.has(term.key)) {
-            return; // Term already exists
+            return;
         }
         
+        // Add term to memory
         this.terms.set(term.key, term);
 
-        // Update implication index for implications
+        // Update implication index for implication terms
         if (term.type === 'Implication' && term.subject) {
+            // Extract goal term from sequential conjunction if present
             const goalTerm = (term.subject.type === 'SequentialConjunction' && term.subject.terms.length > 0)
                 ? term.subject.terms[0]
                 : term.subject;
             const goalKey = goalTerm.key;
             
+            // Initialize implication index entry if needed
             if (!this.implicationIndex.has(goalKey)) {
                 this.implicationIndex.set(goalKey, []);
             }
+            // Add implication to index
             this.implicationIndex.get(goalKey).push(term);
         }
     }
 
+    /**
+     * Get a term from memory by key
+     * @param {string} key - The term key to look up
+     * @returns {Term|null} The term or null if not found
+     */
     getTerm(key) {
         if (!key) {
             return null;
@@ -110,27 +143,35 @@ class Memory {
         return this.terms.get(key);
     }
 
-    // Task management
+    /**
+     * Add tasks to memory
+     * @param {Task|Task[]} tasks - The task(s) to add
+     */
     addTasks(tasks) {
+        // Handle empty input
         if (!tasks) {
             return;
         }
         
+        // Normalize to array
         const tasksToAdd = Array.isArray(tasks) ? tasks : [tasks];
         
+        // Process each task
         for (const task of tasksToAdd) {
+            // Skip null/undefined tasks
             if (!task) {
                 continue;
             }
             
+            // Validate task type
             if (!(task instanceof Task)) {
                 throw new Error('Can only add Task instances to memory.');
             }
             
-            // New tasks are always added to short-term memory
+            // Add new tasks to short-term memory
             this.shortTermTasks.set(task.id, task);
 
-            // Update indexes for beliefs
+            // Update indexes for belief tasks
             if (isBelief(task)) {
                 this.beliefIndex.set(task.termKey, task);
                 this._updateCostIndex(task.term, 'add');
@@ -138,6 +179,11 @@ class Memory {
         }
     }
 
+    /**
+     * Get a task from memory by ID
+     * @param {string} id - The task ID to look up
+     * @returns {Task|null} The task or null if not found
+     */
     getTask(id) {
         if (!id) {
             return null;
@@ -145,16 +191,24 @@ class Memory {
         return this.shortTermTasks.get(id) || this.longTermTasks.get(id);
     }
 
+    /**
+     * Remove a task from memory by ID
+     * @param {string} taskId - The task ID to remove
+     */
     removeTask(taskId) {
+        // Validate input
         if (!taskId) {
             return;
         }
         
+        // Find task in either memory store
         const task = this.shortTermTasks.get(taskId) || this.longTermTasks.get(taskId);
         if (task) {
+            // Remove from both memory stores
             this.shortTermTasks.delete(taskId);
             this.longTermTasks.delete(taskId);
             
+            // Update indexes for belief tasks
             if (isBelief(task)) {
                 this.beliefIndex.delete(task.termKey);
                 this._updateCostIndex(task.term, 'remove');
@@ -162,19 +216,29 @@ class Memory {
         }
     }
 
+    /**
+     * Update the cost index for action terms
+     * @private
+     * @param {Term} term - The term to process
+     * @param {string} operation - The operation type ('add' or 'remove')
+     */
     _updateCostIndex(term, operation) {
+        // Skip if no term provided
         if (!term) {
             return;
         }
         
+        // Process inheritance terms with intensional set predicates containing costs
         if (term.type === 'Inheritance' && 
             term.subject && 
             term.predicate?.type === 'IntensionalSet' && 
             term.predicate.terms.length === 1) {
             
+            // Extract and validate cost value
             const cost = parseFloat(term.predicate.terms[0].key);
             if (!isNaN(cost)) {
                 const actionKey = term.subject.key;
+                // Update cost index based on operation
                 if (operation === 'add') {
                     this.costIndex.set(actionKey, cost);
                 } else {
@@ -184,7 +248,10 @@ class Memory {
         }
     }
 
-    // Query methods
+    /**
+     * Get all tasks from both short-term and long-term memory
+     * @returns {Task[]} Array of all tasks
+     */
     getAllTasks() {
         // Use concat instead of spread for better performance with large datasets
         const allTasks = [];
@@ -197,12 +264,18 @@ class Memory {
         return allTasks;
     }
 
+    /**
+     * Get the highest priority tasks from memory
+     * @param {number} k - The number of tasks to retrieve
+     * @returns {Task[]} Array of highest priority tasks
+     */
     getHighestPriorityTasks(k = 20) {
+        // Handle invalid input
         if (k <= 0) {
             return [];
         }
         
-        // For small k, we can optimize by not sorting the entire collection
+        // Optimize for small k values with partial sorting
         if (k < 10) {
             const allTasks = this.getAllTasks();
             // Use a more efficient partial sort for small k
@@ -217,7 +290,10 @@ class Memory {
         }
     }
 
-    // Utility methods
+    /**
+     * Create a deep clone of this memory instance
+     * @returns {Memory} A new memory instance with copied data
+     */
     clone() {
         const newMemory = new Memory();
         newMemory.terms = new Map(this.terms);
@@ -232,7 +308,9 @@ class Memory {
         return newMemory;
     }
     
-    // Cleanup method
+    /**
+     * Clear all memory contents
+     */
     clear() {
         this.terms.clear();
         this.shortTermTasks.clear();
@@ -243,7 +321,10 @@ class Memory {
         this.cycleCounter = 0;
     }
     
-    // Statistics methods
+    /**
+     * Get memory statistics
+     * @returns {object} Object containing memory statistics
+     */
     getStatistics() {
         return {
             terms: this.terms.size,
