@@ -1,5 +1,5 @@
 const System = require('../src/system/System');
-const { createTask } = require('./demo-utils');
+const {createTask} = require('./demo-utils');
 
 /**
  * Enhanced Narsese Constructs Demo

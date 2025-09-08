@@ -1,7 +1,7 @@
 const Reasoner = require('../src/reasoner/Reasoner');
 const BruteForceStrategy = require('../src/reasoner/strategies/BruteForceStrategy');
 const BagSamplingStrategy = require('../src/reasoner/strategies/BagSamplingStrategy');
-const { createTask } = require('./demo-utils');
+const {createTask} = require('./demo-utils');
 const rules = require('../src/reasoner/rules');
 
 /**
@@ -21,19 +21,19 @@ function strategyComparisonDemo() {
 
     // 1. Create a set of tasks with a wide range of priorities
     const taskDefs = [
-        { name: "High_Priority_1", priority: 0.99 },
-        { name: "High_Priority_2", priority: 0.98 },
-        { name: "High_Priority_3", priority: 0.97 },
-        { name: "Medium_Priority_1", priority: 0.5 },
-        { name: "Medium_Priority_2", priority: 0.4 },
-        { name: "Low_Priority_1", priority: 0.1 },
-        { name: "Low_Priority_2", priority: 0.05 },
-        { name: "Low_Priority_3", priority: 0.01 },
+        {name: "High_Priority_1", priority: 0.99},
+        {name: "High_Priority_2", priority: 0.98},
+        {name: "High_Priority_3", priority: 0.97},
+        {name: "Medium_Priority_1", priority: 0.5},
+        {name: "Medium_Priority_2", priority: 0.4},
+        {name: "Low_Priority_1", priority: 0.1},
+        {name: "Low_Priority_2", priority: 0.05},
+        {name: "Low_Priority_3", priority: 0.01},
     ];
 
     const focusSet = taskDefs.map((def, i) => {
         // We use a simple term structure for clarity
-        const task = createTask(`(task${i} --> ${def.name})`, '.', { frequency: 1.0, confidence: def.priority });
+        const task = createTask(`(task${i} --> ${def.name})`, '.', {frequency: 1.0, confidence: def.priority});
         // Manually set the priority on the task's state for this demo
         task.state.priority = def.priority;
         return task;

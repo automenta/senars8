@@ -1,6 +1,6 @@
 const TimeBasedForgettingStrategy = require('../../src/memory/strategies/TimeBasedForgettingStrategy');
 const Task = require('../../src/core/Task');
-const { parseTerm } = require('../../src/parser/narseseParser');
+const {parseTerm} = require('../../src/parser/narseseParser');
 
 describe('TimeBasedForgettingStrategy', () => {
     let strategy;
@@ -29,7 +29,10 @@ describe('TimeBasedForgettingStrategy', () => {
 
     it('should prune tasks that have expired and are not important', () => {
         const tasks = new Map([[task1.id, task1], [task2.id, task2]]);
-        const options = { expirationThreshold: BigInt(24 * 3600 * 1000), importanceThresholds: { priority: 0.5, confidence: 0.5 } };
+        const options = {
+            expirationThreshold: BigInt(24 * 3600 * 1000),
+            importanceThresholds: {priority: 0.5, confidence: 0.5}
+        };
         const prunedTasks = strategy.prune(tasks, options);
 
         expect(prunedTasks.size).toBe(1);
@@ -39,7 +42,10 @@ describe('TimeBasedForgettingStrategy', () => {
 
     it('should NOT prune tasks that have expired but ARE important', () => {
         const tasks = new Map([[task3.id, task3], [task2.id, task2]]);
-        const options = { expirationThreshold: BigInt(24 * 3600 * 1000), importanceThresholds: { priority: 0.5, confidence: 0.5 } };
+        const options = {
+            expirationThreshold: BigInt(24 * 3600 * 1000),
+            importanceThresholds: {priority: 0.5, confidence: 0.5}
+        };
         const prunedTasks = strategy.prune(tasks, options);
 
         expect(prunedTasks.size).toBe(2);

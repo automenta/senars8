@@ -1,12 +1,12 @@
 const Term = require("../core/Term");
 const Task = require("../core/Task");
 const XenovaLLM = require("./XenovaLLM");
-const { parseTerm } = require('../parser/narseseParser');
-const { cosineSimilarity } = require('../utils/math');
-const { LLMChain } = require("langchain/chains");
-const { PromptTemplate } = require("@langchain/core/prompts");
-const { StructuredOutputParser } = require("@langchain/core/output_parsers");
-const { LM: LM_CONFIG } = require('../config');
+const {parseTerm} = require('../parser/narseseParser');
+const {cosineSimilarity} = require('../utils/math');
+const {LLMChain} = require("langchain/chains");
+const {PromptTemplate} = require("@langchain/core/prompts");
+const {StructuredOutputParser} = require("@langchain/core/output_parsers");
+const {LM: LM_CONFIG} = require('../config');
 const HypothesisGenerator = require('./HypothesisGenerator');
 
 class PipelineFactory {
@@ -17,7 +17,7 @@ class PipelineFactory {
     async get(type, model, options = {}) {
         const key = `${type}-${model}`;
         if (!this._pipelines.has(key)) {
-            const { pipeline } = await import('@xenova/transformers');
+            const {pipeline} = await import('@xenova/transformers');
             this._pipelines.set(key, pipeline(type, model, options));
         }
         return this._pipelines.get(key);
@@ -46,7 +46,7 @@ class LM {
     }
 
     async _getGenerationPipeline() {
-        const pipeline = await this.pipelineFactory.get('text-generation', LM_CONFIG.TEXT_GENERATION_MODEL, { useCache: false });
+        const pipeline = await this.pipelineFactory.get('text-generation', LM_CONFIG.TEXT_GENERATION_MODEL, {useCache: false});
         if (!this.llm) {
             this.llm = new XenovaLLM(pipeline);
         }
@@ -54,7 +54,7 @@ class LM {
     }
 
     async _getQAPipeline() {
-        return this.pipelineFactory.get('question-answering', LM_CONFIG.QA_MODEL, { maxLength: 512 });
+        return this.pipelineFactory.get('question-answering', LM_CONFIG.QA_MODEL, {maxLength: 512});
     }
 
     async _generate(prompt, options = {}) {
@@ -67,9 +67,9 @@ class LM {
         const prompt = new PromptTemplate({
             template: `${promptTemplate}\n{format_instructions}\n`,
             inputVariables: ["context"],
-            partialVariables: { format_instructions: parser.getFormatInstructions() },
+            partialVariables: {format_instructions: parser.getFormatInstructions()},
         });
-        return new LLMChain({ llm: this.llm, prompt, ...generationOptions });
+        return new LLMChain({llm: this.llm, prompt, ...generationOptions});
     }
 
     _parseStructuredResult(resultText) {
@@ -86,7 +86,7 @@ class LM {
             throw new Error('termKey must be a non-empty string.');
         }
         const extractor = await this._getFeaturePipeline();
-        const output = await extractor(termKey, { pooling: 'mean', normalize: true });
+        const output = await extractor(termKey, {pooling: 'mean', normalize: true});
         const embeddingVector = Array.from(output.data);
         const complexity = termKey.split(/[(&,)/]/).filter(s => s.length > 0).length;
         return new Term(termKey, embeddingVector, complexity);
@@ -101,19 +101,19 @@ class LM {
     }
 
     async explain(termKey, config = {}) {
-        const { type = 'simple', context = null, promptTemplate = null } = config;
-        if (!promptTemplate && (!termKey || typeof termKey !== 'string')) return { error: "Cannot explain an empty term." };
+        const {type = 'simple', context = null, promptTemplate = null} = config;
+        if (!promptTemplate && (!termKey || typeof termKey !== 'string')) return {error: "Cannot explain an empty term."};
 
         const finalPrompt = promptTemplate ? promptTemplate : this._getExplanationPrompt(termKey, config);
         const fullPrompt = context ? `Context: ${context}\n${finalPrompt}` : finalPrompt;
 
-        const explanationText = await this._generate(fullPrompt, { max_new_tokens: 300 });
-        if (!explanationText) return { error: `Explanation generation failed.` };
+        const explanationText = await this._generate(fullPrompt, {max_new_tokens: 300});
+        if (!explanationText) return {error: `Explanation generation failed.`};
 
-        return { term: termKey, explanation: explanationText };
+        return {term: termKey, explanation: explanationText};
     }
 
-    _getExplanationPrompt(termKey, { type, relatedTerms = [], audience = 'intermediate' }) {
+    _getExplanationPrompt(termKey, {type, relatedTerms = [], audience = 'intermediate'}) {
         const prompts = {
             simple: `Explain what "${termKey}" means.`,
             structured: `Provide a structured explanation of "${termKey}" with Definition, Key Components, and Examples.`,
@@ -156,11 +156,11 @@ The new plan should be a list of Narsese terms.
 
         const chain = this._createStructuredChain(
             context + "New creative plan:",
-            require('zod').object({ plan: require('zod').array(require('zod').string()).describe("A list of Narsese terms for the new plan.") }),
+            require('zod').object({plan: require('zod').array(require('zod').string()).describe("A list of Narsese terms for the new plan.")}),
             {}
         );
 
-        const result = await chain.call({ context: "" }); // context is already in the prompt template
+        const result = await chain.call({context: ""}); // context is already in the prompt template
         const parsed = this._parseStructuredResult(result.text);
 
         if (!parsed || !parsed.plan) {
@@ -183,11 +183,11 @@ The new plan should be a list of Narsese terms.
 
         const chain = this._createStructuredChain(
             prompt,
-            require('zod').object({ new_knowledge: require('zod').array(require('zod').string()).describe("A list of new Narsese statements.") }),
+            require('zod').object({new_knowledge: require('zod').array(require('zod').string()).describe("A list of new Narsese statements.")}),
             {}
         );
 
-        const result = await chain.call({ context: "" });
+        const result = await chain.call({context: ""});
         const parsed = this._parseStructuredResult(result.text);
 
         if (!parsed || !parsed.new_knowledge) {
@@ -196,7 +196,7 @@ The new plan should be a list of Narsese terms.
 
         const newTasks = parsed.new_knowledge.map(termKey => {
             const parsedTerm = parseTerm(termKey);
-            return parsedTerm ? new Task(parsedTerm, '.', { confidence: 0.6, frequency: 0.5 }) : null;
+            return parsedTerm ? new Task(parsedTerm, '.', {confidence: 0.6, frequency: 0.5}) : null;
         }).filter(Boolean);
 
         return newTasks;

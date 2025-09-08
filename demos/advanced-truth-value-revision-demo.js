@@ -1,5 +1,5 @@
 const System = require('../src/system/System');
-const { createTask } = require('./demo-utils');
+const {createTask} = require('./demo-utils');
 const TruthValueManager = require('../src/reasoner/TruthValueManager');
 const MetaCognition = require('../src/system/MetaCognition');
 

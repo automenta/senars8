@@ -1,6 +1,6 @@
 const Task = require('../core/Task');
-const { parseTerm } = require('../parser/narseseParser');
-const { cosineSimilarity } = require('../utils/math');
+const {parseTerm} = require('../parser/narseseParser');
+const {cosineSimilarity} = require('../utils/math');
 
 const HYPOTHESIS_TYPES = {
     GENERAL: 'general',
@@ -46,20 +46,27 @@ class HypothesisGenerator {
         if (!tasks || tasks.length === 0) return [];
         await this.lm._getGenerationPipeline();
 
-        const { type = HYPOTHESIS_TYPES.GENERAL, num = 3, refinement = null, promptTemplate = null, goals = [], contradictions = [] } = config;
+        const {
+            type = HYPOTHESIS_TYPES.GENERAL,
+            num = 3,
+            refinement = null,
+            promptTemplate = null,
+            goals = [],
+            contradictions = []
+        } = config;
 
         const context = this._buildHypothesisContext(tasks, goals, contradictions);
         const selectedPrompt = this._createHypothesisPrompt(type, promptTemplate);
 
-        const chain = this.lm._createStructuredChain(selectedPrompt, require('zod').object({ term: require('zod').string().describe("The generated hypothesis in valid Narsese format.") }), {});
+        const chain = this.lm._createStructuredChain(selectedPrompt, require('zod').object({term: require('zod').string().describe("The generated hypothesis in valid Narsese format.")}), {});
 
-        const results = await Promise.all(Array(num).fill().map(() => chain.call({ context })));
+        const results = await Promise.all(Array(num).fill().map(() => chain.call({context})));
 
         const hypotheses = results.map(result => {
             const parsed = this.lm._parseStructuredResult(result.text);
             if (!parsed || !parsed.term) return null;
             const parsedTerm = parseTerm(parsed.term);
-            return parsedTerm ? new Task(parsedTerm, '.', { confidence: 0.5, frequency: 0.5 }) : null;
+            return parsedTerm ? new Task(parsedTerm, '.', {confidence: 0.5, frequency: 0.5}) : null;
         }).filter(Boolean);
 
         return refinement ? Promise.all(hypotheses.map(h => this.refineHypothesis(h, refinement))) : hypotheses;
@@ -67,7 +74,7 @@ class HypothesisGenerator {
 
     async generateHypothesis(task, config = {}) {
         if (!task) return null;
-        return (await this.generateHypotheses([task], { ...config, num: 1 }))[0] || null;
+        return (await this.generateHypotheses([task], {...config, num: 1}))[0] || null;
     }
 
     async evaluateAndRankHypotheses(tasks, hypotheses) {
@@ -97,13 +104,13 @@ class HypothesisGenerator {
             [REFINEMENT_TYPES.SIMPLIFY]: `Simplify into a more concise statement: ${hypothesis.termKey}`,
         };
         const prompt = prompts[refinementType] || prompts[REFINEMENT_TYPES.FORMALIZE];
-        const refinedText = await this.lm._generate(prompt, { max_new_tokens: 60 });
+        const refinedText = await this.lm._generate(prompt, {max_new_tokens: 60});
         if (!refinedText) return hypothesis;
 
         const parsedTerm = parseTerm(refinedText);
         if (!parsedTerm) return hypothesis;
 
-        const refinedHypothesis = new Task(parsedTerm, '.', { ...hypothesis.state.truthValue });
+        const refinedHypothesis = new Task(parsedTerm, '.', {...hypothesis.state.truthValue});
 
         if (this.lm.reasoner && this.lm.memory) {
             const tempMemory = this.lm.memory.clone();

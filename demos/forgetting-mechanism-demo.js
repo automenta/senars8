@@ -1,7 +1,7 @@
 const assert = require('assert');
-const { System } = require('../src');
+const {System} = require('../src');
 const Task = require('../src/core/Task');
-const { parseTerm } = require('../src/parser/narseseParser');
+const {parseTerm} = require('../src/parser/narseseParser');
 const config = require('../src/config');
 
 async function forgettingMechanismDemo() {
@@ -23,17 +23,26 @@ async function forgettingMechanismDemo() {
 
         // Task 1: Old and unimportant. Should be pruned from short-term memory.
         const oldUnimportantTerm = parseTerm('(old_and_unimportant --> property)');
-        const oldUnimportantTask = new Task(oldUnimportantTerm, '.', { frequency: 1.0, confidence: 0.1 }, { creationTime: twoDaysAgo, lastAccessed: twoDaysAgo });
+        const oldUnimportantTask = new Task(oldUnimportantTerm, '.', {
+            frequency: 1.0,
+            confidence: 0.1
+        }, {creationTime: twoDaysAgo, lastAccessed: twoDaysAgo});
         oldUnimportantTask.state.priority = 0.1;
 
         // Task 2: Old but important (high priority). Should be consolidated and kept.
         const oldImportantPriorityTerm = parseTerm('(old_but_high_priority --> property)');
-        const oldImportantPriorityTask = new Task(oldImportantPriorityTerm, '.', { frequency: 1.0, confidence: 0.5 }, { creationTime: twoDaysAgo, lastAccessed: twoDaysAgo });
+        const oldImportantPriorityTask = new Task(oldImportantPriorityTerm, '.', {
+            frequency: 1.0,
+            confidence: 0.5
+        }, {creationTime: twoDaysAgo, lastAccessed: twoDaysAgo});
         oldImportantPriorityTask.state.priority = config.memory.CONSOLIDATION_PRIORITY_THRESHOLD + 0.1; // Ensure it gets consolidated
 
         // Task 3: Old but important (high confidence). Should be consolidated and kept.
         const oldImportantConfidenceTerm = parseTerm('(old_but_high_confidence --> property)');
-        const oldImportantConfidenceTask = new Task(oldImportantConfidenceTerm, '.', { frequency: 1.0, confidence: config.memory.CONSOLIDATION_CONFIDENCE_THRESHOLD + 0.1 }, { creationTime: twoDaysAgo, lastAccessed: twoDaysAgo });
+        const oldImportantConfidenceTask = new Task(oldImportantConfidenceTerm, '.', {
+            frequency: 1.0,
+            confidence: config.memory.CONSOLIDATION_CONFIDENCE_THRESHOLD + 0.1
+        }, {creationTime: twoDaysAgo, lastAccessed: twoDaysAgo});
         oldImportantConfidenceTask.state.priority = 0.1; // Low priority, but high confidence
 
         // Task 4: New task. Should remain in short-term memory.
@@ -62,7 +71,7 @@ async function forgettingMechanismDemo() {
         }
 
         console.log('--- Verification ---');
-        const { shortTermTasks, longTermTasks } = memory;
+        const {shortTermTasks, longTermTasks} = memory;
         console.log(`Final state: ${shortTermTasks.size} short-term tasks, ${longTermTasks.size} long-term tasks.`);
 
         // Verification for Task 1 (Old and unimportant)

@@ -30,7 +30,7 @@ describe('HTNPlanner Integration Test', () => {
         memory.addTerm(action2Term);
         memory.addTerm(methodTerm);
 
-        const goalTask = new Task(goalTerm, '!', { frequency: 1.0, confidence: 0.9 });
+        const goalTask = new Task(goalTerm, '!', {frequency: 1.0, confidence: 0.9});
         const plan = await planner.findPlan(goalTask);
 
         expect(plan).not.toBeNull();

@@ -1,6 +1,6 @@
-const { MinPriorityQueue } = require('@datastructures-js/priority-queue');
+const {MinPriorityQueue} = require('@datastructures-js/priority-queue');
 const BasePlanner = require('./BasePlanner');
-const { cosineSimilarity } = require('../utils/math');
+const {cosineSimilarity} = require('../utils/math');
 
 class AStarPlanner extends BasePlanner {
     constructor(memory, lm, config = {}) {
@@ -104,7 +104,7 @@ class AStarPlanner extends BasePlanner {
             }
         }
 
-        const { complexity, confidence, semantic } = this.config.heuristicWeights;
+        const {complexity, confidence, semantic} = this.config.heuristicWeights;
         return (complexityCost * complexity) + (confidenceCost * confidence) + (semanticCost * semantic);
     }
 }

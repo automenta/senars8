@@ -8,8 +8,7 @@ const DRIVES = [
     new Task(parseTerm('MaintainCognitiveIntegrity'), '!'),
 ];
 
-const CONSTRAINTS = [
-];
+const CONSTRAINTS = [];
 
 const CONSTITUTION_TASKS = Object.freeze([
     ...DRIVES,

@@ -1,4 +1,4 @@
-const { parseTerm } = require('../parser/narseseParser');
+const {parseTerm} = require('../parser/narseseParser');
 const ContradictionAnalyzer = require('../reasoner/ContradictionAnalyzer');
 const ResolutionStrategy = require('../reasoner/strategies/ResolutionStrategy');
 
@@ -40,7 +40,7 @@ class MetaCognition {
         if (contradictions.length === 0) return "No contradictions found.";
         return `Contradiction Report (${contradictions.length} found):\n` +
             contradictions.map((c, i) =>
-                `${i+1}. Type: ${c.type}\n` +
+                `${i + 1}. Type: ${c.type}\n` +
                 `   Confidence: ${c.confidence.toFixed(3)}\n` +
                 `   Severity: ${c.severity.toFixed(3)}\n` +
                 `   Details: ${c.details}\n` +

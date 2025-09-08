@@ -1,6 +1,6 @@
 const Memory = require('../../src/memory/Memory');
 const Task = require('../../src/core/Task');
-const { parseTerm } = require('../../src/parser/narseseParser');
+const {parseTerm} = require('../../src/parser/narseseParser');
 const config = require('../../src/config');
 
 describe('Memory', () => {
@@ -9,17 +9,17 @@ describe('Memory', () => {
 
     beforeEach(() => {
         // Manually backup and modify config for tests
-        originalMemoryConfig = { ...config.memory };
+        originalMemoryConfig = {...config.memory};
         config.memory = {
             ...config.memory,
             FORGETTING_STRATEGY_OPTIONS: {
                 shortTerm: {
                     expirationThreshold: BigInt(24 * 3600 * 1000), // 1 day
-                    importanceThresholds: { priority: 0.5, confidence: 0.5 }
+                    importanceThresholds: {priority: 0.5, confidence: 0.5}
                 },
                 longTerm: {
                     expirationThreshold: BigInt(30 * 24 * 3600 * 1000), // 30 days
-                    importanceThresholds: { priority: 0.8, confidence: 0.8 }
+                    importanceThresholds: {priority: 0.8, confidence: 0.8}
                 }
             }
         };

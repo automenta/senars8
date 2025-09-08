@@ -1,5 +1,5 @@
-const { v4: uuidv4 } = require('uuid');
-const { ACTION_EXECUTOR } = require('../config');
+const {v4: uuidv4} = require('uuid');
+const {ACTION_EXECUTOR} = require('../config');
 const Action = require('../core/Action');
 
 class ActionExecutor {
@@ -29,7 +29,7 @@ class ActionExecutor {
     }
 
     registerResource(resourceName, availability) {
-        this.resources.set(resourceName, { name: resourceName, ...availability, reservations: [] });
+        this.resources.set(resourceName, {name: resourceName, ...availability, reservations: []});
     }
 
     setConstraint(constraintName, constraintFunction) {
@@ -39,10 +39,10 @@ class ActionExecutor {
     async execute(action) {
         const actionId = uuidv4();
         const promise = new Promise((resolve, reject) => {
-            this.pendingActions.set(actionId, { resolve, reject });
+            this.pendingActions.set(actionId, {resolve, reject});
         });
 
-        this.actionQueue.push({ action, actionId });
+        this.actionQueue.push({action, actionId});
         this._processQueue();
 
         return promise;
@@ -70,7 +70,7 @@ class ActionExecutor {
                     }
                 } catch (validationError) {
                     // Invalid action, remove it from the queue and reject
-                    const { reject } = this.pendingActions.get(item.actionId);
+                    const {reject} = this.pendingActions.get(item.actionId);
                     const actionRecord = this._createActionRecord(item.action, item.actionId);
                     reject(this._recordFailure(actionRecord, validationError));
                     this.pendingActions.delete(item.actionId);
@@ -83,8 +83,8 @@ class ActionExecutor {
                 // Remove from queue
                 this.actionQueue.splice(indexToRemove, 1);
 
-                const { action, actionId } = actionToProcess;
-                const { resolve, reject } = this.pendingActions.get(actionId);
+                const {action, actionId} = actionToProcess;
+                const {resolve, reject} = this.pendingActions.get(actionId);
                 const actionRecord = this._createActionRecord(action, actionId);
 
                 this._acquireResources(action);
@@ -118,7 +118,7 @@ class ActionExecutor {
     }
 
     _createActionRecord(action, actionId) {
-        const record = { id: actionId, action, timestamp: new Date(), status: 'pending' };
+        const record = {id: actionId, action, timestamp: new Date(), status: 'pending'};
         this.actionHistory.push(record);
         return record;
     }
@@ -143,13 +143,13 @@ class ActionExecutor {
     _recordSuccess(actionRecord, result) {
         actionRecord.status = 'completed';
         actionRecord.result = result;
-        return { success: true, result };
+        return {success: true, result};
     }
 
     _recordFailure(actionRecord, error) {
         actionRecord.status = 'failed';
         actionRecord.error = error.message;
-        return { success: false, error: error.message };
+        return {success: false, error: error.message};
     }
 
     _acquireResources(action) {

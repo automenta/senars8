@@ -7,9 +7,9 @@ function setupMemory(numTerms) {
     const memory = new Memory();
     for (let i = 0; i < numTerms - 1; i++) {
         const term1 = new Term(`t${i}`);
-        const term2 = new Term(`t${i+1}`);
+        const term2 = new Term(`t${i + 1}`);
         const relation = new Term(`(${term1.key} --> ${term2.key})`);
-        const task = new Task(relation, '.', { frequency: 0.9, confidence: 0.9 }, {}, 1.0);
+        const task = new Task(relation, '.', {frequency: 0.9, confidence: 0.9}, {}, 1.0);
         memory.addTerm(term1);
         memory.addTerm(term2);
         memory.addTerm(relation);

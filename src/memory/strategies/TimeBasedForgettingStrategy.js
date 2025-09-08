@@ -20,7 +20,7 @@ class TimeBasedForgettingStrategy extends ForgettingStrategy {
         const {
             expirationThreshold,
             importanceThresholds
-        } = { ...this.defaultOptions, ...options };
+        } = {...this.defaultOptions, ...options};
 
         for (const [id, task] of tasks.entries()) {
             const lastAccessed = task.state.stamp.lastAccessed || task.state.stamp.creationTime;
@@ -32,7 +32,7 @@ class TimeBasedForgettingStrategy extends ForgettingStrategy {
             }
 
             const isImportant = task.state.priority >= importanceThresholds.priority ||
-                              task.state.truthValue.confidence >= importanceThresholds.confidence;
+                task.state.truthValue.confidence >= importanceThresholds.confidence;
 
             if (isImportant) {
                 updatedTasks.set(id, task);

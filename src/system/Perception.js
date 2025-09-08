@@ -1,5 +1,5 @@
 const Task = require('../core/Task');
-const { parseTerm } = require('../parser/narseseParser');
+const {parseTerm} = require('../parser/narseseParser');
 const TaskFactory = require('../core/TaskFactory');
 const PatternDetector = require('../reasoner/PatternDetector');
 const EventBus = require('./EventBus');
@@ -25,7 +25,7 @@ class Perception {
         }
         try {
             const tasks = await processor(input);
-            this.perceptionHistory.push({ modality: modalityName, input, timestamp: Date.now(), tasks: tasks.length });
+            this.perceptionHistory.push({modality: modalityName, input, timestamp: Date.now(), tasks: tasks.length});
             return tasks;
         } catch (error) {
             // Error handling can be improved, e.g., by emitting an error event
@@ -47,7 +47,11 @@ class Perception {
     async processEventStream(eventStream) {
         const advancedPatterns = this.patternDetector.detectAdvancedPatterns(eventStream);
         const patternTasks = await Promise.all(advancedPatterns.map(p =>
-            this.taskFactory.convertEventToTask({ type: 'observation', content: `pattern_${p.type}_${p.id}`, confidence: p.confidence })
+            this.taskFactory.convertEventToTask({
+                type: 'observation',
+                content: `pattern_${p.type}_${p.id}`,
+                confidence: p.confidence
+            })
         ));
 
         const eventTasks = await Promise.all(eventStream.map(e => this.taskFactory.convertEventToTask(e)));

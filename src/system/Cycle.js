@@ -53,7 +53,7 @@ class Cycle {
 
     async _generateLmHypotheses(focusSet, goals, contradictions) {
         const lmHypothesesPromises = this.config.LM_HYPOTHESIS_CONFIGS.map(hConfig =>
-            this.lm.generateHypotheses(focusSet, { ...hConfig, goals, contradictions })
+            this.lm.generateHypotheses(focusSet, {...hConfig, goals, contradictions})
         );
 
         const lmHypotheses = (await Promise.all(lmHypothesesPromises)).flat();
@@ -116,7 +116,7 @@ class Cycle {
 
         const executionResults = [];
         for (const goal of actionableGoals) {
-            let result = { success: false };
+            let result = {success: false};
             let attempts = 0;
             let lastFailedPlan = null;
             const maxAttempts = 3; // From old planner implementation
@@ -135,10 +135,10 @@ class Cycle {
                         lastFailedPlan = plan;
                     }
                 } else if (plan) { // Empty plan, goal already achieved
-                    result = { success: true, planId: plan.id, results: ['Goal already achieved'] };
+                    result = {success: true, planId: plan.id, results: ['Goal already achieved']};
                 } else {
                     // No plan could be created, break the attempt loop
-                    result = { success: false, error: `No plan found for ${goal.termKey}` };
+                    result = {success: false, error: `No plan found for ${goal.termKey}`};
                     break;
                 }
             }
@@ -160,7 +160,7 @@ class Cycle {
         this._prioritize(currentTime);
 
         const allTasks = this.memory.getAllTasks();
-        const { contradictions, metaTasks } = this._metaCognition(allTasks);
+        const {contradictions, metaTasks} = this._metaCognition(allTasks);
 
         const derivedTasks = await this._reason(contradictions);
 

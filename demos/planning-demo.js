@@ -1,5 +1,5 @@
 const System = require('../src/system/System');
-const { createTask } = require('./demo-utils');
+const {createTask} = require('./demo-utils');
 
 /**
  * Planning Demo
@@ -10,12 +10,20 @@ async function planningDemo() {
     console.log("=== Planning Demo ===\n");
 
     const taskDefs = [
-        { termKey: '((&&, make_coffee, water) ==> coffee_made)', punctuation: '.', truthValue: { frequency: 0.9, confidence: 0.9 } },
-        { termKey: '((&&, make_coffee, coffee_beans) ==> coffee_made)', punctuation: '.', truthValue: { frequency: 0.9, confidence: 0.9 } },
-        { termKey: '(tap --> water_source)', punctuation: '.', truthValue: { frequency: 1.0, confidence: 0.95 } },
-        { termKey: '(buy --> obtain_coffee_beans)', punctuation: '.', truthValue: { frequency: 0.8, confidence: 0.9 } },
-        { termKey: 'make_coffee', punctuation: '!', truthValue: { frequency: 1.0, confidence: 0.9 } },
-        { termKey: 'obtain_water', punctuation: '!', truthValue: { frequency: 1.0, confidence: 0.8 } }
+        {
+            termKey: '((&&, make_coffee, water) ==> coffee_made)',
+            punctuation: '.',
+            truthValue: {frequency: 0.9, confidence: 0.9}
+        },
+        {
+            termKey: '((&&, make_coffee, coffee_beans) ==> coffee_made)',
+            punctuation: '.',
+            truthValue: {frequency: 0.9, confidence: 0.9}
+        },
+        {termKey: '(tap --> water_source)', punctuation: '.', truthValue: {frequency: 1.0, confidence: 0.95}},
+        {termKey: '(buy --> obtain_coffee_beans)', punctuation: '.', truthValue: {frequency: 0.8, confidence: 0.9}},
+        {termKey: 'make_coffee', punctuation: '!', truthValue: {frequency: 1.0, confidence: 0.9}},
+        {termKey: 'obtain_water', punctuation: '!', truthValue: {frequency: 1.0, confidence: 0.8}}
     ];
 
     const tasks = taskDefs.map(def => createTask(def.termKey, def.punctuation, def.truthValue, def.stamp)).filter(Boolean);

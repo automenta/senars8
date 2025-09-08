@@ -26,7 +26,7 @@ describe('AStarPlanner Integration Test', () => {
     const addBeliefToMemory = (key, confidence = 0.9) => {
         const term = new Term(key);
         memory.addTerm(term);
-        const belief = new Task(term, '.', { confidence });
+        const belief = new Task(term, '.', {confidence});
         memory.addTasks([belief]);
         return belief;
     };
@@ -44,7 +44,7 @@ describe('AStarPlanner Integration Test', () => {
 
         const goalTerm = addTermToMemory('goal');
 
-        const goalTask = new Task(goalTerm, '!', { confidence: 0.9 });
+        const goalTask = new Task(goalTerm, '!', {confidence: 0.9});
         const plan = await planner.findPlan(goalTask);
 
         expect(plan).not.toBeNull();
@@ -58,7 +58,7 @@ describe('AStarPlanner Integration Test', () => {
         addTermToMemory('action1');
         addTermToMemory('action2');
 
-        const goalTask = new Task(goalTerm, '!', { confidence: 0.9 });
+        const goalTask = new Task(goalTerm, '!', {confidence: 0.9});
         const plan = await planner.findPlan(goalTask);
 
         expect(plan).not.toBeNull();
@@ -71,7 +71,7 @@ describe('AStarPlanner Integration Test', () => {
         const goalTerm = addTermToMemory('goal');
         addTermToMemory('action1');
 
-        const goalTask = new Task(goalTerm, '!', { confidence: 0.9 });
+        const goalTask = new Task(goalTerm, '!', {confidence: 0.9});
         const plan = await planner.findPlan(goalTask);
 
         // The planner's job is to find the sequence of primitives. It correctly finds ['action1'].
@@ -93,7 +93,7 @@ describe('AStarPlanner Integration Test', () => {
         addTermToMemory('action2');
         addTermToMemory('action3');
 
-        const goalTask = new Task(goalTerm, '!', { confidence: 0.9 });
+        const goalTask = new Task(goalTerm, '!', {confidence: 0.9});
         const plan = await planner.findPlan(goalTask);
 
         expect(plan).not.toBeNull();
@@ -104,10 +104,10 @@ describe('AStarPlanner Integration Test', () => {
         const goalTerm = addTermToMemory('achieved_goal');
 
         // The belief that the goal is already achieved exists in memory
-        const belief = new Task(goalTerm, '.', { confidence: 0.99 });
+        const belief = new Task(goalTerm, '.', {confidence: 0.99});
         memory.addTasks([belief]);
 
-        const goalTask = new Task(goalTerm, '!', { confidence: 0.9 });
+        const goalTask = new Task(goalTerm, '!', {confidence: 0.9});
         const plan = await planner.findPlan(goalTask);
 
         expect(plan).not.toBeNull();
@@ -123,7 +123,7 @@ describe('AStarPlanner Integration Test', () => {
         addTermToMemory('step2');
         addTermToMemory('action');
 
-        const goalTask = new Task(goalTerm, '!', { confidence: 0.9 });
+        const goalTask = new Task(goalTerm, '!', {confidence: 0.9});
         const plan = await planner.findPlan(goalTask);
 
         expect(plan).not.toBeNull();

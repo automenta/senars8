@@ -1,5 +1,5 @@
 const Task = require('../../core/Task');
-const { parseTerm } = require('../../parser/narseseParser');
+const {parseTerm} = require('../../parser/narseseParser');
 
 function createMetaTask(action, targetTermKey, confidence) {
     const metaTermKey = `(&, ${action}, ${targetTermKey})`;
@@ -11,4 +11,4 @@ function createMetaTask(action, targetTermKey, confidence) {
     });
 }
 
-module.exports = { createMetaTask };
+module.exports = {createMetaTask};

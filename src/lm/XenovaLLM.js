@@ -1,4 +1,4 @@
-const { LLM } = require("@langchain/core/language_models/llms");
+const {LLM} = require("@langchain/core/language_models/llms");
 
 class XenovaLLM extends LLM {
     constructor(pipeline, options = {}) {

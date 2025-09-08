@@ -68,4 +68,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { main, getDemoFiles, runDemo };
+module.exports = {main, getDemoFiles, runDemo};

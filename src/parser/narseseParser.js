@@ -1,13 +1,6 @@
 const lexer = require('./lexer');
 
 class NarseseParser {
-    constructor(input) {
-        this.lexer = lexer.clone();
-        this.lexer.reset(input);
-        this.current = null;
-        this.next();
-    }
-
     termParsers = {
         lparen: () => {
             this.consume('lparen');
@@ -35,6 +28,13 @@ class NarseseParser {
         dependentVar: () => ({type: 'DependentVariable', name: this.consume('dependentVar')}),
         queryVar: () => ({type: 'QueryVariable', name: this.consume('queryVar')}),
     };
+
+    constructor(input) {
+        this.lexer = lexer.clone();
+        this.lexer.reset(input);
+        this.current = null;
+        this.next();
+    }
 
     next() {
         this.current = this.lexer.next();

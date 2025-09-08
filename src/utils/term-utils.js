@@ -1,4 +1,4 @@
-const { cosineSimilarity } = require('./math');
+const {cosineSimilarity} = require('./math');
 
 function structuralSimilarity(termKey1, termKey2) {
     if (termKey1 === termKey2) return 1.0;
@@ -28,7 +28,7 @@ function findSimilarTerms(terms, targetTermKey, maxResults = 10) {
         .map(([key, term]) => {
             const semantic = cosineSimilarity(targetTerm.embedding, term.embedding);
             const structural = structuralSimilarity(targetTermKey, key);
-            return { termKey: key, similarity: 0.7 * semantic + 0.3 * structural };
+            return {termKey: key, similarity: 0.7 * semantic + 0.3 * structural};
         });
 
     return similarities.sort((a, b) => b.similarity - a.similarity).slice(0, maxResults);
@@ -36,9 +36,9 @@ function findSimilarTerms(terms, targetTermKey, maxResults = 10) {
 
 function termsEqual(term1, term2) {
     return term1.key === term2.key &&
-           term1.complexity === term2.complexity &&
-           term1.embedding.length === term2.embedding.length &&
-           term1.embedding.every((v, i) => Math.abs(v - term2.embedding[i]) < 1e-6);
+        term1.complexity === term2.complexity &&
+        term1.embedding.length === term2.embedding.length &&
+        term1.embedding.every((v, i) => Math.abs(v - term2.embedding[i]) < 1e-6);
 }
 
 function buildTermKey(pTerm) {
@@ -48,29 +48,48 @@ function buildTermKey(pTerm) {
     const buildList = (terms) => terms.map(build).join(',');
 
     switch (pTerm.type) {
-        case 'Atomic': return pTerm.key;
-        case 'Inheritance': return `(${build(pTerm.subject)} --> ${build(pTerm.predicate)})`;
-        case 'Implication': return `(${build(pTerm.subject)} ==> ${build(pTerm.predicate)})`;
-        case 'Equivalence': return `(${build(pTerm.subject)} <=> ${build(pTerm.predicate)})`;
-        case 'Until': return `(${build(pTerm.subject)} until ${build(pTerm.predicate)})`;
-        case 'Since': return `(${build(pTerm.subject)} since ${build(pTerm.predicate)})`;
+        case 'Atomic':
+            return pTerm.key;
+        case 'Inheritance':
+            return `(${build(pTerm.subject)} --> ${build(pTerm.predicate)})`;
+        case 'Implication':
+            return `(${build(pTerm.subject)} ==> ${build(pTerm.predicate)})`;
+        case 'Equivalence':
+            return `(${build(pTerm.subject)} <=> ${build(pTerm.predicate)})`;
+        case 'Until':
+            return `(${build(pTerm.subject)} until ${build(pTerm.predicate)})`;
+        case 'Since':
+            return `(${build(pTerm.subject)} since ${build(pTerm.predicate)})`;
 
-        case 'Negation': return `(--,${build(pTerm.term)})`;
-        case 'Always': return `(always,${build(pTerm.term)})`;
-        case 'Eventually': return `(eventually,${build(pTerm.term)})`;
-        case 'Next': return `(next,${build(pTerm.term)})`;
-        case 'Previous': return `(previous,${build(pTerm.term)})`;
+        case 'Negation':
+            return `(--,${build(pTerm.term)})`;
+        case 'Always':
+            return `(always,${build(pTerm.term)})`;
+        case 'Eventually':
+            return `(eventually,${build(pTerm.term)})`;
+        case 'Next':
+            return `(next,${build(pTerm.term)})`;
+        case 'Previous':
+            return `(previous,${build(pTerm.term)})`;
 
-        case 'Conjunction': return `(&,${buildList(pTerm.terms || [])})`;
-        case 'Disjunction': return `(||,${buildList(pTerm.terms || [])})`;
-        case 'SequentialConjunction': return `(&&,${buildList(pTerm.terms || [])})`;
-        case 'ParallelConjunction': return `(&|,${buildList(pTerm.terms || [])})`;
+        case 'Conjunction':
+            return `(&,${buildList(pTerm.terms || [])})`;
+        case 'Disjunction':
+            return `(||,${buildList(pTerm.terms || [])})`;
+        case 'SequentialConjunction':
+            return `(&&,${buildList(pTerm.terms || [])})`;
+        case 'ParallelConjunction':
+            return `(&|,${buildList(pTerm.terms || [])})`;
 
-        case 'IntensionalSet': return `[${buildList(pTerm.terms || [])}]`;
+        case 'IntensionalSet':
+            return `[${buildList(pTerm.terms || [])}]`;
 
-        case 'IndependentVariable': return pTerm.name;
-        case 'DependentVariable': return pTerm.name;
-        case 'QueryVariable': return pTerm.name;
+        case 'IndependentVariable':
+            return pTerm.name;
+        case 'DependentVariable':
+            return pTerm.name;
+        case 'QueryVariable':
+            return pTerm.name;
 
         default:
             throw new Error(`buildTermKey does not support type: ${pTerm.type}`);

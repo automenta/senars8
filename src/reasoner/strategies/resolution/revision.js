@@ -1,4 +1,4 @@
-const { createMetaTask } = require('../strategy-utils');
+const {createMetaTask} = require('../strategy-utils');
 
 function revision(contradiction) {
     const [task1, task2] = contradiction.tasks;

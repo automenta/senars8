@@ -3,11 +3,13 @@
 ## Phase 1: Stabilization and Refactoring (Short-Term)
 
 ### `[x]` 1. Stabilize Core System
+
 - [x] **Fix Failing Integration Tests:**
     - [x] Isolate the root cause of failures in the `Reasoner` and `Cycle` integration tests.
     - [x] Ensure all existing tests pass reliably.
 
 ### `[x]` 2. Complete Codebase Refactoring
+
 - [x] **Refactor `Cycle.js`:**
     - [x] Move constants to a central `config.js` file.
     - [x] Extract priority calculation logic into a `PriorityManager` module.
@@ -27,6 +29,7 @@
 ## Phase 2: Advanced Capabilities (Long-Term)
 
 ### `[ ]` 1. Systematic Evaluation and Benchmarking
+
 - [ ] **Develop Cognitive Test Suite:**
     - [ ] Create tests for deductive reasoning (e.g., logic puzzles).
     - [ ] Create tests for inductive/abductive reasoning (e.g., scientific reasoning).
@@ -39,6 +42,7 @@
     - [ ] Implement tracking for goal achievement rate.
 
 ### `[ ]` 2. Advanced Meta-Cognition and Self-Improvement
+
 - [ ] **Implement Automated Bug-Fixing:**
     - [ ] Develop a mechanism to identify and flag faulty inference rules.
     - [ ] Develop a mechanism to identify and distrust unreliable information sources.
@@ -46,6 +50,7 @@
     - [ ] Allow the system to manage its own computational resources based on cognitive load.
 
 ### `[ ]` 3. Richer Interfaces and Embodiment
+
 - [ ] **Integrate with a Robotic Platform:**
     - [ ] Connect SeNARS to a simulated or physical robot.
     - [ ] Develop perception and action capabilities for a physical environment.
@@ -55,6 +60,7 @@
     - [ ] Develop a basic "Theory of Mind" model for user interaction.
 
 ### `[ ]` 4. Long-Term Memory and Learning
+
 - [ ] **Implement a Forgetting Mechanism:**
     - [ ] Create a system for pruning irrelevant or old information from memory.
 - [ ] **Implement Memory Consolidation:**
@@ -63,6 +69,7 @@
 ## Phase 3: Community and Growth
 
 ### `[ ]` 1. Foster an Open-Source Community
+
 - [ ] **Create Comprehensive Documentation:**
     - [ ] Write detailed documentation for the system's theory, API, and usage.
     - [ ] Create tutorials and contribution guidelines.

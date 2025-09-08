@@ -1,7 +1,7 @@
 const Task = require('../../../core/Task');
 
 function truthValueRevision(contradiction, context) {
-    const { truthValueManager } = context;
+    const {truthValueManager} = context;
     if (!truthValueManager) {
         throw new Error('TruthValueManager not provided in context');
     }

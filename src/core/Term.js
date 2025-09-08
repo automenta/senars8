@@ -1,5 +1,5 @@
-const { parseTerm } = require('../parser/narseseParser');
-const { buildTermKey } = require('../utils/term-utils');
+const {parseTerm} = require('../parser/narseseParser');
+const {buildTermKey} = require('../utils/term-utils');
 
 class Term {
     constructor(key, embedding = [], complexity = 1) {

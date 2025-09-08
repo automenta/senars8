@@ -1,5 +1,5 @@
 const System = require('../src/system/System');
-const { createTask } = require('./demo-utils');
+const {createTask} = require('./demo-utils');
 const Perception = require('../src/system/Perception');
 
 /**

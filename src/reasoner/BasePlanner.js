@@ -31,13 +31,13 @@ class BasePlanner {
     _getExpansions(task) {
         if (task.type === 'SequentialConjunction') {
             const subTasks = this._getSubTasks(task);
-            return subTasks ? [{ subTasks, method: null, preconditions: [] }] : [];
+            return subTasks ? [{subTasks, method: null, preconditions: []}] : [];
         }
 
         const decompositionMethods = this._getDecompositionMethods(task);
 
         if (decompositionMethods.length === 0) {
-            return [{ subTasks: [task], method: null, preconditions: [] }];
+            return [{subTasks: [task], method: null, preconditions: []}];
         }
 
         const expansions = [];
@@ -52,7 +52,7 @@ class BasePlanner {
             if (this._arePreconditionsMet(preconditions)) {
                 const subTasks = this._getSubTasks(method.predicate);
                 if (subTasks) {
-                    expansions.push({ subTasks, method, preconditions });
+                    expansions.push({subTasks, method, preconditions});
                 }
             }
         }

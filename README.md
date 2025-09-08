@@ -68,7 +68,9 @@ graph TD
 
 #### **2.1 Event Bus Architecture**
 
-To enhance modularity and extensibility, the system uses a central **`EventBus`**. Components can publish events (e.g., `NewTasksCreated`) and subscribe to them, allowing for decoupled communication and making it easier to add new functionality without modifying core components.
+To enhance modularity and extensibility, the system uses a central **`EventBus`**. Components can publish events (e.g.,
+`NewTasksCreated`) and subscribe to them, allowing for decoupled communication and making it easier to add new
+functionality without modifying core components.
 
 ---
 
@@ -81,7 +83,9 @@ To enhance modularity and extensibility, the system uses a central **`EventBus`*
     - `key: string`: The formal, Narsese-inspired syntax.
     - `embedding: number[]`: A dense vector representation from the `LM`.
     - `complexity: number`: A static measure of structural complexity.
-- **Intelligence**: The `Term` class is not just a data container. It parses its own key upon instantiation, caching its Narsese structure. This allows for efficient access to its components (e.g., `term.subject`, `term.predicate`) as full `Term` instances, making the rest of the system's code cleaner and more performant.
+- **Intelligence**: The `Term` class is not just a data container. It parses its own key upon instantiation, caching its
+  Narsese structure. This allows for efficient access to its components (e.g., `term.subject`, `term.predicate`) as full
+  `Term` instances, making the rest of the system's code cleaner and more performant.
 
 #### **3.2 `Task`: The Stateful Cognitive Atom**
 
@@ -163,7 +167,8 @@ To explore the system's capabilities, use the interactive demo runner:
 npm run start:demo
 ```
 
-This command will present you with a list of available demos. You can choose to run a specific demo or all of them sequentially. This is the best way to see the system in action.
+This command will present you with a list of available demos. You can choose to run a specific demo or all of them
+sequentially. This is the best way to see the system in action.
 
 ### **Running Tests**
 
@@ -172,6 +177,7 @@ npm test
 ```
 
 ---
+
 ## **Usage as a Library**
 
 You can easily integrate the SeNARS system into your own projects.
@@ -214,11 +220,12 @@ runSystem();
 
 We welcome contributions from the community! To contribute, please follow these guidelines:
 
-1.  **Fork the repository.**
-2.  **Create a new branch** for your feature or bug fix.
-3.  **Follow the coding style:** Adhere to the principles outlined in `AGENTS.md`. The code should be clean, self-documenting, and elegant.
-4.  **Write tests** for any new functionality.
-5.  **Submit a pull request** with a clear description of your changes.
+1. **Fork the repository.**
+2. **Create a new branch** for your feature or bug fix.
+3. **Follow the coding style:** Adhere to the principles outlined in `AGENTS.md`. The code should be clean,
+   self-documenting, and elegant.
+4. **Write tests** for any new functionality.
+5. **Submit a pull request** with a clear description of your changes.
 
 ### **Project Structure**
 
@@ -246,7 +253,8 @@ senars8/
 - **Neuro-Symbolic Integration**: Embedding-based semantic similarity and term grounding
 - **Attention Mechanism**: Economic attention model for task prioritization
 - **Meta-Cognition**: Contradiction detection with an extensible, strategy-pattern-based resolution system.
-- **Planning**: A sophisticated, graph-integrated Hierarchical Task Network (HTN) planner that decomposes complex goals by querying planning knowledge stored directly in the knowledge graph.
+- **Planning**: A sophisticated, graph-integrated Hierarchical Task Network (HTN) planner that decomposes complex goals
+  by querying planning knowledge stored directly in the knowledge graph.
 - **Temporal Reasoning**: Time-aware task processing
 
 ---

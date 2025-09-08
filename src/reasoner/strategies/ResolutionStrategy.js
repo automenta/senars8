@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const Task = require('../../core/Task');
-const { parseTerm } = require('../../parser/narseseParser');
+const {parseTerm} = require('../../parser/narseseParser');
 const TruthValueManager = require('../TruthValueManager');
-const { createMetaTask } = require('./strategy-utils');
+const {createMetaTask} = require('./strategy-utils');
 
 class ResolutionStrategy {
     constructor() {
