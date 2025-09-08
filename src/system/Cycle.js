@@ -121,10 +121,12 @@ class Cycle {
             .filter(task => task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
             .sort((a, b) => b.state.priority - a.state.priority);
 
-        // Perform different types of reasoning
-        const symbolicTasks = this.reasoner.performInference(focusSet);
-        const temporalTasks = this.temporalReasoner.infer(focusSet);
-        const lmTasks = await this._generateLmHypotheses(focusSet, goals, contradictions);
+        // Perform different types of reasoning in parallel
+        const [symbolicTasks, temporalTasks, lmTasks] = await Promise.all([
+            Promise.resolve(this.reasoner.performInference(focusSet)),
+            Promise.resolve(this.temporalReasoner.infer(focusSet)),
+            this._generateLmHypotheses(focusSet, goals, contradictions)
+        ]);
 
         // Combine all derived tasks
         const derivedTasks = [...symbolicTasks, ...temporalTasks, ...lmTasks];
@@ -174,9 +176,13 @@ class Cycle {
         // Identify new term keys that aren't already in memory
         const newTermKeys = [...new Set(tasks.map(task => task.termKey).filter(termKey => !this.memory.getTerm(termKey)))];
         
-        // Bootstrap new terms using the language model
-        const newTerms = await Promise.all(newTermKeys.map(termKey => this.lm.bootstrapTerm(termKey)));
-        newTerms.forEach(term => this.memory.addTerm(term));
+        // Bootstrap new terms using the language model in batches to avoid overwhelming the system
+        const batchSize = 10;
+        for (let i = 0; i < newTermKeys.length; i += batchSize) {
+            const batch = newTermKeys.slice(i, i + batchSize);
+            const newTerms = await Promise.all(batch.map(termKey => this.lm.bootstrapTerm(termKey)));
+            newTerms.forEach(term => this.memory.addTerm(term));
+        }
     }
 
     /**
@@ -231,24 +237,16 @@ class Cycle {
     }
 
     /**
-     * Execute actions for actionable goals
+     * Execute actions for actionable goals in parallel
      * @private
      * @returns {object[]} Array of execution results
      */
     async _act() {
         const actionableGoals = this._getActionableGoals();
-        const executionResults = [];
         
-        // Execute each actionable goal
-        for (const goal of actionableGoals) {
-            const result = await this._executeGoalPlan(goal);
-            executionResults.push(result);
-
-            // Stop processing further goals if current goal fails
-            if (!result.success) {
-                break;
-            }
-        }
+        // Execute all actionable goals in parallel
+        const executionPromises = actionableGoals.map(goal => this._executeGoalPlan(goal));
+        const executionResults = await Promise.all(executionPromises);
         
         return executionResults;
     }

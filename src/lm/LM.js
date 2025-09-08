@@ -10,6 +10,7 @@ const {LM: LM_CONFIG} = require('../config');
 const HypothesisGenerator = require('./HypothesisGenerator');
 const {getBeliefTasks} = require('../utils/task-utils');
 const {handleError, handleErrorWithDefault} = require('../utils/error-handler');
+const {info, error, debug} = require('../utils/logger');
 
 class PipelineFactory {
     constructor() {
@@ -19,6 +20,7 @@ class PipelineFactory {
     async get(type, model, options = {}) {
         const key = `${type}-${model}`;
         if (!this._pipelines.has(key)) {
+            info(`Loading pipeline: ${type} - ${model}`);
             const {pipeline} = await import('@xenova/transformers');
             this._pipelines.set(key, pipeline(type, model, options));
         }
@@ -27,6 +29,7 @@ class PipelineFactory {
     
     async dispose() {
         // Clear all pipelines to free up memory
+        info('Disposing all pipelines');
         this._pipelines.clear();
     }
 }
@@ -38,30 +41,37 @@ class LM {
         this.reasoner = null;
         this.memory = null;
         this.hypothesisGenerator = new HypothesisGenerator(this);
+        info('LM initialized');
     }
 
     setReasoner(reasoner) {
         this.reasoner = reasoner;
+        debug('Reasoner set for LM');
     }
 
     setMemory(memory) {
         this.memory = memory;
+        debug('Memory set for LM');
     }
 
     // Pipeline management methods
     async _getFeaturePipeline() {
+        debug('Getting feature extraction pipeline');
         return this.pipelineFactory.get('feature-extraction', LM_CONFIG.FEATURE_EXTRACTION_MODEL);
     }
 
     async _getGenerationPipeline() {
+        debug('Getting text generation pipeline');
         const pipeline = await this.pipelineFactory.get('text-generation', LM_CONFIG.TEXT_GENERATION_MODEL, {useCache: false});
         if (!this.llm) {
+            info('Initializing XenovaLLM');
             this.llm = new XenovaLLM(pipeline);
         }
         return pipeline;
     }
 
     async _getQAPipeline() {
+        debug('Getting QA pipeline');
         return this.pipelineFactory.get('question-answering', LM_CONFIG.QA_MODEL, {maxLength: 512});
     }
 
@@ -72,10 +82,14 @@ class LM {
         }
         
         try {
+            debug('Generating text with prompt length:', prompt.length);
             await this._getGenerationPipeline();
-            return this.llm._call(prompt, options);
-        } catch (error) {
-            return handleError(error, 'Generation error', true);
+            const result = await this.llm._call(prompt, options);
+            debug('Text generation completed');
+            return result;
+        } catch (err) {
+            error('Text generation error:', err);
+            return handleError(err, 'Generation error', true);
         }
     }
 
@@ -84,6 +98,7 @@ class LM {
             throw new Error('Prompt template and output schema are required');
         }
         
+        debug('Creating structured chain');
         const parser = StructuredOutputParser.fromZodSchema(outputSchema);
         const prompt = new PromptTemplate({
             template: `${promptTemplate}\n{format_instructions}\n`,
@@ -99,10 +114,16 @@ class LM {
         }
         
         try {
+            debug('Parsing structured result');
             const match = resultText.match(/```json\n(.*)\n```/s);
-            return match ? JSON.parse(match[1]) : null;
+            const result = match ? JSON.parse(match[1]) : null;
+            if (result) {
+                debug('Structured result parsed successfully');
+            }
+            return result;
         } catch (e) {
-            console.warn('Failed to parse structured result:', e.message);
+            error('Error parsing structured result:', e);
+            // Silently fail for structured result parsing
             return null;
         }
     }
@@ -114,30 +135,38 @@ class LM {
         }
         
         try {
+            debug(`Bootstrapping term: ${termKey}`);
             const extractor = await this._getFeaturePipeline();
             const output = await extractor(termKey, {pooling: 'mean', normalize: true});
             const embeddingVector = Array.from(output.data);
             const complexity = termKey.split(/[(&,)/]/).filter(s => s.length > 0).length;
-            return new Term(termKey, embeddingVector, complexity);
-        } catch (error) {
-            return handleError(error, `Failed to bootstrap term "${termKey}"`, true);
+            const term = new Term(termKey, embeddingVector, complexity);
+            debug(`Term bootstrapped successfully: ${termKey}`);
+            return term;
+        } catch (err) {
+            error(`Error bootstrapping term "${termKey}":`, err);
+            return handleError(err, `Failed to bootstrap term "${termKey}"`, true);
         }
     }
 
     // Hypothesis generation methods (delegated to HypothesisGenerator)
     async generateHypotheses(tasks, config = {}) {
+        debug(`Generating hypotheses for ${tasks.length} tasks`);
         return this.hypothesisGenerator.generateHypotheses(tasks, config);
     }
 
     async generateHypothesis(task, config = {}) {
+        debug('Generating hypothesis for task');
         return this.hypothesisGenerator.generateHypothesis(task, config);
     }
 
     async evaluateAndRankHypotheses(tasks, hypotheses) {
+        debug(`Evaluating and ranking ${hypotheses.length} hypotheses`);
         return this.hypothesisGenerator.evaluateAndRankHypotheses(tasks, hypotheses);
     }
 
     async refineHypothesis(hypothesis, refinementType) {
+        debug(`Refining hypothesis with type: ${refinementType}`);
         return this.hypothesisGenerator.refineHypothesis(hypothesis, refinementType);
     }
 
@@ -148,21 +177,26 @@ class LM {
             return {error: "Cannot explain an empty term."};
         }
 
+        debug(`Explaining term: ${termKey} with type: ${type}`);
         const finalPrompt = promptTemplate ? promptTemplate : this._getExplanationPrompt(termKey, config);
         const fullPrompt = context ? `Context: ${context}\n${finalPrompt}` : finalPrompt;
 
         try {
             const explanationText = await this._generate(fullPrompt, {max_new_tokens: 300});
             if (!explanationText) {
+                error('Explanation generation failed');
                 return {error: `Explanation generation failed.`};
             }
+            debug('Explanation generated successfully');
             return {term: termKey, explanation: explanationText};
-        } catch (error) {
-            return {error: `Failed to generate explanation: ${error.message}`};
+        } catch (err) {
+            error('Error generating explanation:', err);
+            return {error: `Failed to generate explanation: ${err.message}`};
         }
     }
 
     _getExplanationPrompt(termKey, {type, relatedTerms = [], audience = 'intermediate'}) {
+        debug(`Getting explanation prompt for: ${termKey}`);
         const prompts = {
             simple: `Explain what "${termKey}" means.`,
             structured: `Provide a structured explanation of "${termKey}" with Definition, Key Components, and Examples.`,
@@ -178,18 +212,23 @@ class LM {
         }
         
         try {
+            debug(`Answering question: ${question.substring(0, 50)}...`);
             if (context) {
                 const qaPipeline = await this._getQAPipeline();
                 const result = await qaPipeline(question, context);
                 if (result && result.answer) {
+                    debug('Question answered using QA pipeline');
                     return result.answer;
                 }
             }
             
             const prompt = context ? `Context: ${context}\nQuestion: ${question}\nAnswer:` : `Question: ${question}\nAnswer:`;
-            return await this._generate(prompt);
-        } catch (error) {
-            return handleErrorWithDefault(error, 'Question answering error', `Failed to answer question: ${error.message}`);
+            const answer = await this._generate(prompt);
+            debug('Question answered using generation');
+            return answer;
+        } catch (err) {
+            error('Error answering question:', err);
+            return handleErrorWithDefault(err, 'Question answering error', `Failed to answer question: ${err.message}`);
         }
     }
 
@@ -200,6 +239,7 @@ class LM {
         }
         
         try {
+            debug(`Suggesting plan repair for goal: ${goalTask.termKey}`);
             await this._getGenerationPipeline();
 
             const goal = goalTask.termKey;
@@ -222,26 +262,37 @@ The new plan should be a list of Narsese terms.
             const parsed = this._parseStructuredResult(result.text);
 
             if (!parsed || !parsed.plan) {
+                warn('Plan repair suggestion failed to parse');
                 return null;
             }
 
             const planTerms = parsed.plan.map(termKey => parseTerm(termKey)).filter(Boolean);
+            debug(`Plan repair suggested ${planTerms.length} terms`);
             return planTerms;
-        } catch (error) {
-            return handleErrorWithDefault(error, 'Plan repair error', null);
+        } catch (err) {
+            error('Error in plan repair suggestion:', err);
+            return handleErrorWithDefault(err, 'Plan repair error', null);
         }
     }
 
-    // Proactive enrichment methods
+    // Proactive enrichment methods with improved error handling and logging
     async proactiveEnrichment(tasks) {
-        if (!tasks || tasks.length === 0) return [];
+        if (!tasks || tasks.length === 0) {
+            debug('No tasks for proactive enrichment');
+            return [];
+        }
         
         try {
+            debug(`Performing proactive enrichment on ${tasks.length} tasks`);
             await this._getGenerationPipeline();
 
             const newBeliefs = getBeliefTasks(tasks).filter(t => t.state.truthValue.confidence > 0.8);
-            if (newBeliefs.length === 0) return [];
+            if (newBeliefs.length === 0) {
+                debug('No high-confidence beliefs for enrichment');
+                return [];
+            }
 
+            debug(`Found ${newBeliefs.length} high-confidence beliefs for enrichment`);
             const context = "Given the following new beliefs:\n" + newBeliefs.map(t => t.termKey).join('\n');
             const prompt = context + "\n\nWhat are some interesting implications or related concepts? Generate new knowledge in Narsese format.";
 
@@ -255,6 +306,7 @@ The new plan should be a list of Narsese terms.
             const parsed = this._parseStructuredResult(result.text);
 
             if (!parsed || !parsed.new_knowledge) {
+                debug('Proactive enrichment failed to parse results');
                 return [];
             }
 
@@ -263,20 +315,24 @@ The new plan should be a list of Narsese terms.
                 return parsedTerm ? new Task(parsedTerm, '.', {confidence: 0.6, frequency: 0.5}) : null;
             }).filter(Boolean);
 
+            debug(`Proactive enrichment generated ${newTasks.length} new tasks`);
             return newTasks;
-        } catch (error) {
-            return handleErrorWithDefault(error, 'Proactive enrichment error', []);
+        } catch (err) {
+            error('Error in proactive enrichment:', err);
+            return handleErrorWithDefault(err, 'Proactive enrichment error', []);
         }
     }
     
     // Cleanup method
     async dispose() {
+        info('Disposing LM resources');
         if (this.pipelineFactory) {
             await this.pipelineFactory.dispose();
         }
         this.llm = null;
         this.reasoner = null;
         this.memory = null;
+        info('LM resources disposed');
     }
 }
 

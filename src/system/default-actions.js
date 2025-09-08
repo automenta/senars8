@@ -1,3 +1,5 @@
+const { info } = require('../utils/logger');
+
 const defaultActionHandlers = {
     // Core Actions
     'print_*': (action) => ({message: `PRINT ACTION: ${action.parameters.join(' ')}`}),
@@ -54,7 +56,7 @@ const defaultActionHandlers = {
 function registerDefaultActions(actionExecutor) {
     for (const [pattern, handler] of Object.entries(defaultActionHandlers)) {
         actionExecutor.registerActionHandler(pattern, async (action) => {
-            console.log(`Executing ${pattern}...`, action.parameters);
+            info(`Executing ${pattern}...`, action.parameters);
             return handler(action);
         });
     }
@@ -68,10 +70,10 @@ function registerDefaultActions(actionExecutor) {
         // In a real system, the handlerName would be used to look up a function.
         // For now, we'll just register a simple logger.
         actionExecutor.registerActionHandler(pattern, async (act) => {
-            console.log(`Dynamically registered action ${pattern} executed.`, act.parameters);
+            info(`Dynamically registered action ${pattern} executed.`, act.parameters);
             return {success: true, registered_action: pattern};
         });
-        console.log(`ACTION: Dynamically registered new action handler for "${pattern}"`);
+        info(`ACTION: Dynamically registered new action handler for "${pattern}"`);
         return {success: true, registered: pattern};
     });
 }

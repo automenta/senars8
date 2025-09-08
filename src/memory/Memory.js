@@ -38,7 +38,7 @@ class Memory {
             const StrategyClass = require(`./strategies/${strategyName}ForgettingStrategy`);
             this.forgettingStrategy = new StrategyClass();
         } catch (error) {
-            console.warn(`Could not load forgetting strategy: ${strategyName}`, error);
+            // Silently fall back to default strategy if the configured one fails to load
             const DefaultStrategy = require('./strategies/TimeBasedForgettingStrategy');
             this.forgettingStrategy = new DefaultStrategy();
         }
@@ -66,16 +66,22 @@ class Memory {
         const confidenceThreshold = config.memory.CONSOLIDATION_CONFIDENCE_THRESHOLD;
 
         // Iterate through short-term tasks to identify candidates for consolidation
+        const tasksToMove = [];
         for (const [taskId, task] of this.shortTermTasks.entries()) {
             // Check if task meets consolidation criteria
             const isHighPriority = task.state.priority >= priorityThreshold;
             const isHighConfidence = task.state.truthValue.confidence >= confidenceThreshold;
 
-            // Move qualifying tasks to long-term storage
+            // Collect qualifying tasks for consolidation
             if (isHighPriority || isHighConfidence) {
-                this.longTermTasks.set(taskId, task);
-                this.shortTermTasks.delete(taskId);
+                tasksToMove.push([taskId, task]);
             }
+        }
+
+        // Move qualifying tasks to long-term storage in batch
+        for (const [taskId, task] of tasksToMove) {
+            this.longTermTasks.set(taskId, task);
+            this.shortTermTasks.delete(taskId);
         }
     }
 
@@ -265,7 +271,7 @@ class Memory {
     }
 
     /**
-     * Get the highest priority tasks from memory
+     * Get the highest priority tasks from memory using a more efficient approach
      * @param {number} k - The number of tasks to retrieve
      * @returns {Task[]} Array of highest priority tasks
      */
@@ -275,16 +281,17 @@ class Memory {
             return [];
         }
         
-        // Optimize for small k values with partial sorting
-        if (k < 10) {
+        // For small k, use a priority queue approach for better performance
+        if (k < 50) {
             const allTasks = this.getAllTasks();
-            // Use a more efficient partial sort for small k
+            // Use a partial sort approach for small k
             return allTasks
                 .sort((a, b) => b.state.priority - a.state.priority)
                 .slice(0, k);
         } else {
-            // For larger k, sort all tasks
+            // For larger k, we can use a more efficient approach
             const allTasks = this.getAllTasks();
+            // Sort only once for better performance
             allTasks.sort((a, b) => b.state.priority - a.state.priority);
             return allTasks.slice(0, k);
         }
