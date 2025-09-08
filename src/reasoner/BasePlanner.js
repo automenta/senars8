@@ -1,5 +1,6 @@
 const CostManager = require('./CostManager');
 const PlannerUtils = require('./utils/PlannerUtils');
+const globalConfig = require('../config');
 
 class BasePlanner {
     constructor(memory, lm, config = {}) {
@@ -7,7 +8,7 @@ class BasePlanner {
         this.lm = lm;
         this.costManager = new CostManager(memory, config);
         this.config = {
-            confidenceThreshold: config.confidenceThreshold || 0.9,
+            confidenceThreshold: config.confidenceThreshold || globalConfig.DEFAULT_TRUTH_VALUE.confidence,
             preconditionConfidenceThreshold: config.preconditionConfidenceThreshold || 0.8,
         };
     }

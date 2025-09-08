@@ -1,4 +1,5 @@
 const {cosineSimilarity} = require('./math');
+const config = require('../config');
 
 function structuralSimilarity(termKey1, termKey2) {
     if (termKey1 === termKey2) return 1.0;
@@ -28,7 +29,7 @@ function findSimilarTerms(terms, targetTermKey, maxResults = 10) {
         .map(([key, term]) => {
             const semantic = cosineSimilarity(targetTerm.embedding, term.embedding);
             const structural = structuralSimilarity(targetTermKey, key);
-            return {termKey: key, similarity: 0.7 * semantic + 0.3 * structural};
+            return {termKey: key, similarity: config.temporal.REGULARITY_BOOST * semantic + config.temporal.STRUCTURAL_SIMILARITY_WEIGHT * structural};
         });
 
     return similarities.sort((a, b) => b.similarity - a.similarity).slice(0, maxResults);
@@ -56,6 +57,18 @@ function buildTermKey(pTerm) {
             return `(${build(pTerm.subject)} ==> ${build(pTerm.predicate)})`;
         case 'Equivalence':
             return `(${build(pTerm.subject)} <=> ${build(pTerm.predicate)})`;
+        case 'Similarity':
+            return `(${build(pTerm.subject)} <-> ${build(pTerm.predicate)})`;
+        case 'Instance':
+            return `(${build(pTerm.subject)} {-- ${build(pTerm.predicate)})`;
+        case 'Property':
+            return `(${build(pTerm.subject)} --} ${build(pTerm.predicate)})`;
+        case 'PredictiveImplication':
+            return `(${build(pTerm.subject)} =\> ${build(pTerm.predicate)})`;
+        case 'RetrospectiveImplication':
+            return `(${build(pTerm.subject)} =/> ${build(pTerm.predicate)})`;
+        case 'ConcurrentImplication':
+            return `(${build(pTerm.subject)} =<> ${build(pTerm.predicate)})`;
         case 'Until':
             return `(${build(pTerm.subject)} until ${build(pTerm.predicate)})`;
         case 'Since':
@@ -80,16 +93,24 @@ function buildTermKey(pTerm) {
             return `(&&,${buildList(pTerm.terms || [])})`;
         case 'ParallelConjunction':
             return `(&|,${buildList(pTerm.terms || [])})`;
+        case 'ExtensionalDifference':
+            return `(#,${buildList(pTerm.terms || [])})`;
+        case 'IntensionalDifference':
+            return `(\\,${buildList(pTerm.terms || [])})`;
+        case 'Product':
+            return `(*,${buildList(pTerm.terms || [])})`;
 
+        case 'ExtensionalSet':
+            return `{${buildList(pTerm.terms || [])}}`;
         case 'IntensionalSet':
             return `[${buildList(pTerm.terms || [])}]`;
 
         case 'IndependentVariable':
             return pTerm.name;
         case 'DependentVariable':
-            return pTerm.name;
+            return `#${pTerm.name}`;
         case 'QueryVariable':
-            return pTerm.name;
+            return `?${pTerm.name}`;
 
         default:
             throw new Error(`buildTermKey does not support type: ${pTerm.type}`);

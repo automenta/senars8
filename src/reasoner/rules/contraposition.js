@@ -1,12 +1,13 @@
 const {buildTermKey} = require('../../utils/term-utils');
 const TruthValueManager = require('../TruthValueManager');
 const {createRule} = require('./rule-builder');
+const {isBelief} = require('../../utils/task-utils');
 
 module.exports = createRule({
     name: 'contraposition',
     arity: 1,
     operands: [
-        (task) => task.punctuation === '.',
+        (task) => isBelief(task),
     ],
     condition: (parsed1) =>
         parsed1?.type === 'Inheritance',

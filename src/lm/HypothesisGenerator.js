@@ -1,6 +1,7 @@
 const Task = require('../core/Task');
-const {parseTerm} = require('../parser/narseseParser');
 const {cosineSimilarity} = require('../utils/math');
+const {parseTerm} = require('../parser/narseseParser');
+const config = require('../config');
 
 const HYPOTHESIS_TYPES = {
     GENERAL: 'general',
@@ -91,7 +92,7 @@ class HypothesisGenerator {
             const hypothesisEmbedding = Array.from(output.data);
             const totalSimilarity = taskEmbeddings.reduce((sum, taskEmbedding) => sum + cosineSimilarity(hypothesisEmbedding, taskEmbedding), 0);
             const averageRelevance = taskEmbeddings.length > 0 ? totalSimilarity / taskEmbeddings.length : 0;
-            hypothesis.state.truthValue.confidence = Math.min(0.9, (hypothesis.state.truthValue.confidence || 0.5) * (0.5 + 0.5 * averageRelevance));
+            hypothesis.state.truthValue.confidence = Math.min(config.DEFAULT_TRUTH_VALUE.confidence, (hypothesis.state.truthValue.confidence || 0.5) * (0.5 + 0.5 * averageRelevance));
             return {hypothesis, relevance: averageRelevance};
         }));
 

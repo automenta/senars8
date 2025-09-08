@@ -1,6 +1,7 @@
 const Task = require('./Task');
 const {createTemporalTask} = require('../utils/temporal-reasoning');
 const {parseTerm} = require('../parser/narseseParser');
+const config = require('../config');
 
 class TaskFactory {
     constructor(memory, lm) {
@@ -26,7 +27,7 @@ class TaskFactory {
         return {
             'observation': e => this._createTask(e.content || `observed_${Date.now()}`, '.', {
                 frequency: e.confidence || 1.0,
-                confidence: e.confidence || 0.9
+                confidence: e.confidence || config.DEFAULT_TRUTH_VALUE.confidence
             }),
             'user_input': e => this._createTask(e.content || `user_input_${Date.now()}`, '?', {
                 frequency: 1.0,
@@ -39,11 +40,11 @@ class TaskFactory {
             'temporal_event': e => this._createTemporalEventTask(e),
             'communication': e => this._createTask(e.content ? `(communication_${e.sender}_to_${e.recipient}_${e.content})` : `communication_${Date.now()}`, '.', {
                 frequency: e.confidence || 1.0,
-                confidence: e.confidence || 0.9
+                confidence: e.confidence || config.DEFAULT_TRUTH_VALUE.confidence
             }),
             'action_feedback': e => this._createTask(e.action ? `(action_feedback_${e.action}_${e.result})` : `action_feedback_${Date.now()}`, '.', {
                 frequency: e.success ? 1.0 : 0.0,
-                confidence: e.confidence || 0.9
+                confidence: e.confidence || config.DEFAULT_TRUTH_VALUE.confidence
             }),
             'goal_achievement': e => this._createTask(e.goal ? `(goal_achieved_${e.goal})` : `goal_achieved_${Date.now()}`, '.', {
                 frequency: 1.0,
@@ -54,7 +55,7 @@ class TaskFactory {
             'learning_experience': e => this._createLearningExperienceTask(e),
             'default': e => this._createTask(e.description || `event_${Date.now()}`, e.punctuation || '.', {
                 frequency: e.frequency || 1.0,
-                confidence: e.confidence || 0.9
+                confidence: e.confidence || config.DEFAULT_TRUTH_VALUE.confidence
             }),
         };
     }

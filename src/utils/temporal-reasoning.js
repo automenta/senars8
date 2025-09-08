@@ -1,5 +1,6 @@
 const Task = require('../core/Task');
 const {parseTerm} = require('../parser/narseseParser');
+const config = require('../config');
 
 function _groupTasksByTermKey(tasks) {
     const taskGroups = {};
@@ -112,8 +113,8 @@ function predictFutureTasks(tasks, predictionTime) {
                 termKey,
                 '.',
                 {
-                    frequency: 0.7 * regularity,
-                    confidence: 0.5 * regularity
+                    frequency: config.temporal.REGULARITY_BOOST * regularity,
+                    confidence: config.temporal.PREDICTION_CONFIDENCE * regularity
                 },
                 predictedOccurrence
             );
@@ -132,7 +133,7 @@ function createTemporalRelationshipTask(task1, task2, relationship) {
     }
     return new Task(parsedTerm, '.', {
         frequency: 1.0,
-        confidence: 0.9
+        confidence: config.temporal.TEMPORAL_CONFIDENCE
     }, {
         creationTime: Date.now()
     });
@@ -154,8 +155,8 @@ function inferTemporalImplications(task1, task2) {
                         parsedTerm,
                         '.',
                         {
-                            frequency: task1.state.truthValue.frequency * 0.8,
-                            confidence: task1.state.truthValue.confidence * 0.7
+                            frequency: task1.state.truthValue.frequency * config.temporal.TEMPORAL_RELATIONSHIP_FREQUENCY,
+                            confidence: task1.state.truthValue.confidence * config.temporal.TEMPORAL_RELATIONSHIP_CONFIDENCE
                         }
                     );
                     implications.push(implication);
@@ -172,8 +173,8 @@ function inferTemporalImplications(task1, task2) {
                         parsedTerm,
                         '.',
                         {
-                            frequency: task1.state.truthValue.frequency * 0.8,
-                            confidence: task1.state.truthValue.confidence * 0.7
+                            frequency: task1.state.truthValue.frequency * config.temporal.TEMPORAL_RELATIONSHIP_FREQUENCY,
+                            confidence: task1.state.truthValue.confidence * config.temporal.TEMPORAL_RELATIONSHIP_CONFIDENCE
                         }
                     );
                     implications.push(implication);
@@ -189,8 +190,8 @@ function inferTemporalImplications(task1, task2) {
                     parsedTerm,
                     '.',
                     {
-                        frequency: 0.9,
-                        confidence: 0.8
+                        frequency: config.temporal.MEETS_IMPLICATION_FREQUENCY,
+                        confidence: config.temporal.MEETS_IMPLICATION_CONFIDENCE
                     }
                 );
                 implications.push(meetsImplication);
@@ -205,8 +206,8 @@ function inferTemporalImplications(task1, task2) {
                     overlapParsedTerm,
                     '.',
                     {
-                        frequency: 0.8,
-                        confidence: 0.7
+                        frequency: config.temporal.OVERLAP_IMPLICATION_FREQUENCY,
+                        confidence: config.temporal.OVERLAP_IMPLICATION_CONFIDENCE
                     }
                 );
                 implications.push(overlapImplication);
@@ -230,7 +231,7 @@ function createTemporalSequenceTask(tasks) {
         confidence *= task.state.truthValue.confidence;
     }
 
-    confidence *= Math.pow(0.9, tasks.length - 1);
+    confidence *= Math.pow(config.temporal.SEQUENCE_CONFIDENCE_DECAY, tasks.length - 1);
 
     return new Task(parseTerm(termKey), '.', {
         frequency,
@@ -272,7 +273,7 @@ function detectTemporalPatterns(tasks) {
         patterns.push({
             type: 'sequential',
             sequence: temporalTasks,
-            confidence: 0.8
+            confidence: config.temporal.PERIODIC_CONFIDENCE
         });
     }
 
@@ -526,7 +527,7 @@ function createTemporalSummary(tasks, startTime, endTime) {
 
     return new Task(parseTerm(termKey), '.', {
         frequency: Math.min(1.0, density / 10), // Normalize density
-        confidence: 0.9
+        confidence: config.temporal.TEMPORAL_SUMMARY_CONFIDENCE
     }, {
         creationTime: Date.now(),
         occurrenceTime: startTime,
@@ -648,7 +649,7 @@ function createTemporalClusterAbstractions(clusters) {
             parseTerm(termKey),
             '.',
             {
-                frequency: 0.9,
+                frequency: config.temporal.TEMPORAL_CONFIDENCE,
                 confidence: cluster.confidence
             },
             {

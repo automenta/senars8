@@ -1,5 +1,6 @@
 const {v4: uuidv4} = require('uuid');
-const {ACTION_EXECUTOR} = require('../config');
+const config = require('../config');
+const {handleErrorWithDefault} = require('../utils/error-handler');
 const Action = require('../core/Action');
 
 class ActionExecutor {
@@ -18,8 +19,8 @@ class ActionExecutor {
     }
 
     _initializeFromConfig() {
-        ACTION_EXECUTOR.RESOURCES.forEach(res => this.registerResource(res.name, res));
-        Object.entries(ACTION_EXECUTOR.CONSTRAINTS).forEach(([name, func]) => {
+        config.ACTION_EXECUTOR.RESOURCES.forEach(res => this.registerResource(res.name, res));
+        Object.entries(config.ACTION_EXECUTOR.CONSTRAINTS).forEach(([name, func]) => {
             this.setConstraint(name, func.bind(this));
         });
     }
@@ -223,8 +224,7 @@ class ActionExecutor {
             try {
                 return constraint(action);
             } catch (error) {
-                console.warn(`Constraint check failed: ${error.message}`);
-                return false;
+                return handleErrorWithDefault(error, 'Constraint check failed', false);
             }
         });
     }
@@ -237,7 +237,7 @@ class ActionExecutor {
                     return handler;
                 }
             } catch (error) {
-                console.warn(`Invalid regex pattern in action handler: ${pattern}`);
+                return handleErrorWithDefault(error, `Invalid regex pattern in action handler: ${pattern}`, false);
             }
         }
         return null;

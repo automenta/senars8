@@ -1,13 +1,14 @@
 const {buildTermKey} = require('../../utils/term-utils');
 const TruthValueManager = require('../TruthValueManager');
 const {createRule} = require('./rule-builder');
+const {isBelief} = require('../../utils/task-utils');
 
 module.exports = createRule({
     name: 'inheritance',
     arity: 2,
     operands: [
-        (task) => task.punctuation === '.',
-        (task) => task.punctuation === '.',
+        (task) => isBelief(task),
+        (task) => isBelief(task),
     ],
     condition: (parsed1, parsed2) =>
         parsed1?.type === 'Inheritance' &&

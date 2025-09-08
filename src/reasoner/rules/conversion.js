@@ -1,12 +1,14 @@
 const {buildTermKey} = require('../../utils/term-utils');
 const TruthValueManager = require('../TruthValueManager');
 const {createRule} = require('./rule-builder');
+const {isBelief} = require('../../utils/task-utils');
+const config = require('../../config');
 
 module.exports = createRule({
     name: 'conversion',
     arity: 1,
     operands: [
-        (task) => task.punctuation === '.',
+        (task) => isBelief(task),
     ],
     condition: (parsed1) =>
         parsed1?.type === 'Inheritance',
@@ -21,7 +23,7 @@ module.exports = createRule({
         // Adjust truth value for conversion (weaker confidence)
         const newTruthValue = {
             frequency: task1.state.truthValue.frequency,
-            confidence: task1.state.truthValue.confidence * 0.7
+            confidence: task1.state.truthValue.confidence * config.temporal.TEMPORAL_RELATIONSHIP_CONFIDENCE
         };
 
         return {newTermKey, newTruthValue};

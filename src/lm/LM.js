@@ -8,6 +8,8 @@ const {PromptTemplate} = require("@langchain/core/prompts");
 const {StructuredOutputParser} = require("@langchain/core/output_parsers");
 const {LM: LM_CONFIG} = require('../config');
 const HypothesisGenerator = require('./HypothesisGenerator');
+const {getBeliefTasks} = require('../utils/task-utils');
+const {handleError, handleErrorWithDefault} = require('../utils/error-handler');
 
 class PipelineFactory {
     constructor() {
@@ -73,8 +75,7 @@ class LM {
             await this._getGenerationPipeline();
             return this.llm._call(prompt, options);
         } catch (error) {
-            console.error('Generation error:', error);
-            throw new Error(`Failed to generate response: ${error.message}`);
+            return handleError(error, 'Generation error', true);
         }
     }
 
@@ -119,8 +120,7 @@ class LM {
             const complexity = termKey.split(/[(&,)/]/).filter(s => s.length > 0).length;
             return new Term(termKey, embeddingVector, complexity);
         } catch (error) {
-            console.error(`Failed to bootstrap term "${termKey}":`, error);
-            throw new Error(`Failed to bootstrap term: ${error.message}`);
+            return handleError(error, `Failed to bootstrap term "${termKey}"`, true);
         }
     }
 
@@ -189,8 +189,7 @@ class LM {
             const prompt = context ? `Context: ${context}\nQuestion: ${question}\nAnswer:` : `Question: ${question}\nAnswer:`;
             return await this._generate(prompt);
         } catch (error) {
-            console.error('Question answering error:', error);
-            return `Failed to answer question: ${error.message}`;
+            return handleErrorWithDefault(error, 'Question answering error', `Failed to answer question: ${error.message}`);
         }
     }
 
@@ -229,8 +228,7 @@ The new plan should be a list of Narsese terms.
             const planTerms = parsed.plan.map(termKey => parseTerm(termKey)).filter(Boolean);
             return planTerms;
         } catch (error) {
-            console.error('Plan repair error:', error);
-            return null;
+            return handleErrorWithDefault(error, 'Plan repair error', null);
         }
     }
 
@@ -241,7 +239,7 @@ The new plan should be a list of Narsese terms.
         try {
             await this._getGenerationPipeline();
 
-            const newBeliefs = tasks.filter(t => t.punctuation === '.' && t.state.truthValue.confidence > 0.8);
+            const newBeliefs = getBeliefTasks(tasks).filter(t => t.state.truthValue.confidence > 0.8);
             if (newBeliefs.length === 0) return [];
 
             const context = "Given the following new beliefs:\n" + newBeliefs.map(t => t.termKey).join('\n');
@@ -267,8 +265,7 @@ The new plan should be a list of Narsese terms.
 
             return newTasks;
         } catch (error) {
-            console.error('Proactive enrichment error:', error);
-            return [];
+            return handleErrorWithDefault(error, 'Proactive enrichment error', []);
         }
     }
     

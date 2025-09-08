@@ -9,6 +9,8 @@ const MetaCognition = require('./MetaCognition');
 const TemporalReasoner = require('../reasoner/TemporalReasoner');
 const PriorityManager = require('../reasoner/PriorityManager');
 const EventBus = require('./EventBus');
+const {getGoalTasks} = require('../utils/task-utils');
+const {handleErrorWithDefault} = require('../utils/error-handler');
 
 class Cycle {
     constructor(memory, reasoner, lm, actionExecutor, config) {
@@ -66,8 +68,8 @@ class Cycle {
 
         focusSet.forEach(task => task.touch());
 
-        const goals = this.memory.getAllTasks()
-            .filter(task => task.punctuation === '!' && task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
+        const goals = getGoalTasks(this.memory.getAllTasks())
+            .filter(task => task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
             .sort((a, b) => b.state.priority - a.state.priority);
 
         const symbolicTasks = this.reasoner.performInference(focusSet);
@@ -109,8 +111,8 @@ class Cycle {
     }
 
     _getActionableGoals() {
-        return this.memory.getAllTasks()
-            .filter(task => task.punctuation === '!' && task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
+        return getGoalTasks(this.memory.getAllTasks())
+            .filter(task => task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
             .sort((a, b) => b.state.priority - a.state.priority)
             .slice(0, this.config.MAX_GOALS_TO_EXECUTE);
     }

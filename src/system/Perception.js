@@ -3,6 +3,7 @@ const {parseTerm} = require('../parser/narseseParser');
 const TaskFactory = require('../core/TaskFactory');
 const PatternDetector = require('../reasoner/PatternDetector');
 const EventBus = require('./EventBus');
+const {handleErrorWithDefault} = require('../utils/error-handler');
 
 class Perception {
     constructor(memory, lm) {
@@ -28,8 +29,7 @@ class Perception {
             this.perceptionHistory.push({modality: modalityName, input, timestamp: Date.now(), tasks: tasks.length});
             return tasks;
         } catch (error) {
-            // Error handling can be improved, e.g., by emitting an error event
-            return [];
+            return handleErrorWithDefault(error, 'Perception processing error', []);
         }
     }
 

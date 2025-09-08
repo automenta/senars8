@@ -2,6 +2,7 @@ const Term = require('../core/Term');
 const Task = require('../core/Task');
 const EventBus = require('../system/EventBus');
 const config = require('../config');
+const {isBelief} = require('../utils/task-utils');
 
 class Memory {
     constructor() {
@@ -130,7 +131,7 @@ class Memory {
             this.shortTermTasks.set(task.id, task);
 
             // Update indexes for beliefs
-            if (task.punctuation === '.') {
+            if (isBelief(task)) {
                 this.beliefIndex.set(task.termKey, task);
                 this._updateCostIndex(task.term, 'add');
             }
@@ -154,7 +155,7 @@ class Memory {
             this.shortTermTasks.delete(taskId);
             this.longTermTasks.delete(taskId);
             
-            if (task.punctuation === '.') {
+            if (isBelief(task)) {
                 this.beliefIndex.delete(task.termKey);
                 this._updateCostIndex(task.term, 'remove');
             }

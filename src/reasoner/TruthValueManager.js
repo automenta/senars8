@@ -1,4 +1,6 @@
 const {cosineSimilarity} = require('../utils/math');
+const {getBeliefTasks} = require('../utils/task-utils');
+const config = require('../config');
 
 /**
  * Truth Value Manager
@@ -13,7 +15,7 @@ class TruthValueManager {
 
     static deduce(tv1, tv2) {
         const frequency = tv1.frequency * tv2.frequency;
-        const confidence = tv1.confidence * tv2.confidence * 0.9;
+        const confidence = tv1.confidence * tv2.confidence * config.DEFAULT_TRUTH_VALUE.confidence;
         return {frequency, confidence};
     }
 
@@ -413,7 +415,7 @@ class TruthValueManager {
      */
     async resolveConflicts(tasks) {
         const results = [];
-        const beliefTasks = tasks.filter(task => task.punctuation === '.');
+        const beliefTasks = getBeliefTasks(tasks);
 
         // Check for conflicts between belief tasks
         for (let i = 0; i < beliefTasks.length; i++) {

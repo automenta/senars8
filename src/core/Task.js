@@ -1,7 +1,8 @@
 const {v4: uuidv4} = require('uuid');
 const {parseTerm} = require('../parser/narseseParser');
+const config = require('../config');
 
-const DEFAULT_TRUTH_VALUE = {frequency: 1.0, confidence: 0.9};
+const DEFAULT_TRUTH_VALUE = config.DEFAULT_TRUTH_VALUE;
 
 class Task {
     constructor(term, punctuation, truthValue = {}, stamp = {}) {

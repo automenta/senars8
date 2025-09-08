@@ -1,6 +1,7 @@
 const {parseTerm} = require('../parser/narseseParser');
 const ContradictionAnalyzer = require('../reasoner/ContradictionAnalyzer');
 const ResolutionStrategy = require('../reasoner/strategies/ResolutionStrategy');
+const {getBeliefTasks} = require('../utils/task-utils');
 
 class MetaCognition {
     constructor() {
@@ -9,7 +10,7 @@ class MetaCognition {
     }
 
     findContradictions(tasks) {
-        const beliefTasks = tasks.filter(task => task.punctuation === '.');
+        const beliefTasks = getBeliefTasks(tasks);
         const parsedBeliefs = beliefTasks.map(task => ({
             task,
             parsed: parseTerm(task.termKey)

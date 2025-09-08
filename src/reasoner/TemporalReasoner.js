@@ -1,5 +1,6 @@
 const Task = require('../core/Task');
 const {parseTerm} = require('../parser/narseseParser');
+const config = require('../config');
 const {
     determineTemporalRelationship,
     createTemporalRelationshipTask,
@@ -163,7 +164,7 @@ class TemporalReasoner {
             '.',
             {
                 frequency: coherenceScore,
-                confidence: 0.9
+                confidence: config.DEFAULT_TRUTH_VALUE.confidence
             }
         );
         return [coherenceTask];

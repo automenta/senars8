@@ -5,9 +5,9 @@ const Cycle = require('./Cycle');
 const ActionExecutor = require('./ActionExecutor');
 const CONSTITUTION_TASKS = require('./Constitution');
 const registerDefaultActions = require('./default-actions');
-
 const config = require('../config');
 const _ = require('lodash');
+const {handleError} = require('../utils/error-handler');
 
 class System {
     constructor(userConfig = {}) {

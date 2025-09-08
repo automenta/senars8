@@ -1,4 +1,5 @@
 const lexer = require('./lexer');
+const {handleErrorWithDefault} = require('../utils/error-handler');
 
 class NarseseParser {
     termParsers = {
@@ -308,7 +309,7 @@ function parseTerm(input) {
         }
         return parsed;
     } catch (error) {
-        return null;
+        return handleErrorWithDefault(error, 'Narsese parsing error', null);
     }
 }
 
