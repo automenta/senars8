@@ -39,13 +39,12 @@ class Memory {
 
     _loadForgettingStrategy() {
         const strategyName = config.memory.FORGETTING_STRATEGY_NAME;
-        try {
-            const StrategyClass = require(`./strategies/${strategyName}ForgettingStrategy`);
-            this.forgettingStrategy = new StrategyClass();
-        } catch (error) {
-            const DefaultStrategy = require('./strategies/TimeBasedForgettingStrategy');
-            this.forgettingStrategy = new DefaultStrategy();
-        }
+        const strategies = {
+            'TimeBased': require('./strategies/TimeBasedForgettingStrategy'),
+        };
+
+        const StrategyClass = strategies[strategyName] || require('./strategies/TimeBasedForgettingStrategy');
+        this.forgettingStrategy = new StrategyClass();
     }
 
     _registerEventListeners() {
@@ -151,13 +150,17 @@ class Memory {
         return this._cachedAllTasks;
     }
 
+    _shouldUsePriorityQueue(k, totalTasks) {
+        const K_THRESHOLD = 50;
+        const RATIO_THRESHOLD = 10;
+        return k < K_THRESHOLD && k < totalTasks / RATIO_THRESHOLD;
+    }
+
     getHighestPriorityTasks(k = 20) {
         if (k <= 0) return [];
         
         const allTasks = this.getAllTasks();
-        const usePQ = k < 50 && k < allTasks.length / 10;
-
-        if (usePQ) {
+        if (this._shouldUsePriorityQueue(k, allTasks.length)) {
             return getHighestPriorityTasksWithPQ(allTasks, k);
         } else {
             return [...allTasks].sort((a, b) => b.state.priority - a.state.priority).slice(0, k);

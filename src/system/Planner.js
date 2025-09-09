@@ -26,39 +26,21 @@ class Planner {
         try {
             const goalKey = goalTask.termKey;
             debug(`Creating plan for goal: ${goalKey}`);
-            
-            const cachedPlan = this.planCache.get(goalKey);
 
-            if (cachedPlan && cachedPlan !== failedPlan) {
-                debug(`Using cached plan for goal: ${goalKey}`);
-                return new Plan(cachedPlan.steps, this.actionExecutor);
+            const cachedPlan = this._getcachedPlan(goalKey, failedPlan);
+            if (cachedPlan) {
+                return cachedPlan;
             }
 
-            debug(`Generating plan for goal: ${goalKey}`);
-            let planSteps = await this.strategy.findPlan(goalTask);
+            let planSteps = await this._generateNewPlan(goalTask);
 
             if (!planSteps || planSteps.length === 0) {
-                const isAchieved = this.strategy._isAchieved(this.strategy.memory.getTerm(goalTask.termKey));
-                if (isAchieved) {
-                    debug(`Goal already achieved: ${goalKey}`);
-                    return new Plan([], this.actionExecutor);
-                }
-
-                if (this.lm) {
-                    debug(`Requesting LM plan suggestion for goal: ${goalKey}`);
-                    const lmSuggestion = await this.lm.suggestPlanRepair(goalTask, failedPlan ? failedPlan.steps : null);
-                    if (lmSuggestion && lmSuggestion.length > 0) {
-                        debug(`LM provided ${lmSuggestion.length} plan steps`);
-                        planSteps = lmSuggestion;
-                    } else {
-                        warn(`LM failed to provide plan suggestion for goal: ${goalKey}`);
-                    }
-                }
+                planSteps = await this._handleEmptyPlan(goalTask, failedPlan);
             }
 
             if (!planSteps || planSteps.length === 0) {
                 warn(`No plan could be created for goal: ${goalKey}`);
-                return null; // No plan could be created
+                return null;
             }
 
             const plan = new Plan(planSteps, this.actionExecutor);
@@ -69,6 +51,43 @@ class Planner {
             error(`Error creating plan for goal ${goalTask.termKey}:`, err);
             return handleErrorWithDefault(err, 'Plan creation error', null);
         }
+    }
+
+    _getcachedPlan(goalKey, failedPlan) {
+        const cachedPlan = this.planCache.get(goalKey);
+        if (cachedPlan && cachedPlan !== failedPlan) {
+            debug(`Using cached plan for goal: ${goalKey}`);
+            return new Plan(cachedPlan.steps, this.actionExecutor);
+        }
+        return null;
+    }
+
+    async _generateNewPlan(goalTask) {
+        debug(`Generating new plan with strategy for goal: ${goalTask.termKey}`);
+        return this.strategy.findPlan(goalTask);
+    }
+
+    async _handleEmptyPlan(goalTask, failedPlan) {
+        const isAchieved = this.strategy._isAchieved(this.strategy.memory.getTerm(goalTask.termKey));
+        if (isAchieved) {
+            debug(`Goal already achieved: ${goalTask.termKey}`);
+            return [];
+        }
+        return this._getLmSuggestion(goalTask, failedPlan);
+    }
+
+    async _getLmSuggestion(goalTask, failedPlan) {
+        if (this.lm) {
+            debug(`Requesting LM plan suggestion for goal: ${goalTask.termKey}`);
+            const lmSuggestion = await this.lm.suggestPlanRepair(goalTask, failedPlan ? failedPlan.steps : null);
+            if (lmSuggestion && lmSuggestion.length > 0) {
+                debug(`LM provided ${lmSuggestion.length} plan steps`);
+                return lmSuggestion;
+            } else {
+                warn(`LM failed to provide plan suggestion for goal: ${goalTask.termKey}`);
+            }
+        }
+        return null;
     }
 }
 

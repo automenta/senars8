@@ -1,0 +1,55 @@
+const { handleErrorWithDefault } = require('../utils/error-handler');
+const { error, debug, warn } = require('../utils/logger');
+const { parseTerm } = require('../parser/narseseParser');
+const zod = require('zod');
+
+class PlanRepairer {
+    constructor(getGenerationPipeline, createStructuredChain, parseStructuredResult) {
+        this._getGenerationPipeline = getGenerationPipeline;
+        this._createStructuredChain = createStructuredChain;
+        this._parseStructuredResult = parseStructuredResult;
+    }
+
+    async suggestPlanRepair(goalTask, failedPlan) {
+        if (!goalTask) throw new Error('Goal task is required');
+
+        try {
+            debug(`Suggesting plan repair for goal: ${goalTask.termKey}`);
+            await this._getGenerationPipeline();
+
+            const context = this._createPlanRepairContext(goalTask.termKey, failedPlan);
+            const chain = this._createStructuredChain(
+                context + "New creative plan:",
+                zod.object({plan: zod.array(zod.string()).describe("A list of Narsese terms for the new plan.")}),
+                {}
+            );
+
+            const result = await chain.call({context: ""});
+            const parsed = this._parseStructuredResult(result.text);
+
+            if (!parsed || !parsed.plan) {
+                warn('Plan repair suggestion failed to parse');
+                return null;
+            }
+
+            const planTerms = parsed.plan.map(termKey => parseTerm(termKey)).filter(Boolean);
+            debug(`Plan repair suggested ${planTerms.length} terms`);
+            return planTerms;
+        } catch (err) {
+            error('Error in plan repair suggestion:', err);
+            return handleErrorWithDefault(err, 'Plan repair error', null);
+        }
+    }
+
+    _createPlanRepairContext(goal, failedPlan) {
+        const failedPlanSteps = failedPlan ? failedPlan.map(t => t.key).join(', ') : 'None';
+        return `
+Goal: ${goal}
+Failed Plan: ${failedPlanSteps}
+The previous attempt to achieve the goal failed. Please suggest a new sequence of primitive actions to achieve the goal.
+The new plan should be a list of Narsese terms.
+`;
+    }
+}
+
+module.exports = PlanRepairer;

@@ -20,11 +20,17 @@ class Reasoner {
         const { maxDerivedTasks = Infinity } = options;
         debug(`Performing inference on ${focusSet.length} tasks`);
 
-        const derivedTasks = this._performSymbolicInference(focusSet, maxDerivedTasks);
-        this._performTemporalInference(focusSet, derivedTasks, maxDerivedTasks);
+        let derivedTasks = this._performSymbolicInference(focusSet, maxDerivedTasks);
 
-        debug(`Total inference produced ${derivedTasks.length} derived tasks`);
-        return derivedTasks;
+        if (derivedTasks.length < maxDerivedTasks) {
+            const temporalTasks = this._performTemporalInference(focusSet);
+            derivedTasks = [...derivedTasks, ...temporalTasks];
+        }
+
+        const finalTasks = derivedTasks.slice(0, maxDerivedTasks);
+
+        debug(`Total inference produced ${finalTasks.length} derived tasks`);
+        return finalTasks;
     }
 
     _performSymbolicInference(focusSet, maxDerivedTasks) {
@@ -61,19 +67,16 @@ class Reasoner {
         }
     }
 
-    _performTemporalInference(focusSet, derivedTasks, maxDerivedTasks) {
-        if (derivedTasks.length >= maxDerivedTasks) return;
-
+    _performTemporalInference(focusSet) {
         try {
             const temporalTasks = this.temporalReasoner.infer(focusSet);
             if (Array.isArray(temporalTasks)) {
-                const remainingSlots = maxDerivedTasks - derivedTasks.length;
-                const tasksToAdd = temporalTasks.slice(0, remainingSlots);
-                derivedTasks.push(...tasksToAdd);
-                debug(`Temporal inference produced ${tasksToAdd.length} derived tasks`);
+                debug(`Temporal inference produced ${temporalTasks.length} derived tasks`);
+                return temporalTasks;
             }
+            return [];
         } catch (err) {
-            handleErrorWithDefault(err, 'Error in temporal inference', null);
+            return handleErrorWithDefault(err, 'Error in temporal inference', []);
         }
     }
 
