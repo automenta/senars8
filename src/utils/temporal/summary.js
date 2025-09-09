@@ -1,8 +1,8 @@
 const Task = require('../../core/Task');
 const {parseTerm} = require('../../parser/narseseParser');
 const config = require('../../config');
-const { findTasksInTimeWindow } = require('./query');
-const { calculateIntervalStats } = require('./helpers');
+const {findTasksInTimeWindow} = require('./query');
+const {calculateIntervalStats} = require('./helpers');
 
 function createTemporalSummary(tasks, startTime, endTime) {
     const tasksInWindow = findTasksInTimeWindow(tasks, startTime, endTime);
@@ -40,7 +40,7 @@ function createTemporalAbstraction(tasks) {
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
     if (temporalTasks.length < 2) return null;
 
-    const { avgInterval, stdDev } = calculateIntervalStats(temporalTasks);
+    const {avgInterval, stdDev} = calculateIntervalStats(temporalTasks);
     const regularity = 1.0 / (1.0 + stdDev / avgInterval);
 
     const startTime = temporalTasks[0].state.stamp.occurrenceTime;

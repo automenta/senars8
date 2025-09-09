@@ -1,4 +1,4 @@
-const { error: logError } = require('./logger');
+const {error: logError} = require('./logger');
 
 // Error classes
 class ValidationError extends Error {
@@ -30,13 +30,13 @@ function logAndReturn(error, context, returnValue = null) {
 
 function logAndThrow(error, context) {
     logError(`${context}:`, error);
-    
+
     // Preserve specific error types or create a generic one
     if (error instanceof ValidationError || error instanceof ParseError || error instanceof InferenceError) {
         error.message = `${context}: ${error.message}`;
         return error;
     }
-    
+
     return new Error(`${context}: ${error.message}`);
 }
 

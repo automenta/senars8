@@ -1,6 +1,6 @@
-const { handleErrorWithDefault } = require('../utils/error-handler');
-const { error, debug, warn } = require('../utils/logger');
-const { parseTerm } = require('../parser/narseseParser');
+const {handleErrorWithDefault} = require('../utils/error-handler');
+const {error, debug, warn} = require('../utils/logger');
+const {parseTerm} = require('../parser/narseseParser');
 const zod = require('zod');
 
 class PlanRepairer {

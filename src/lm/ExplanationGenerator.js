@@ -1,5 +1,5 @@
-const { handleError } = require('../utils/error-handler');
-const { error, debug } = require('../utils/logger');
+const {handleError} = require('../utils/error-handler');
+const {error, debug} = require('../utils/logger');
 
 class ExplanationGenerator {
     constructor(generateFunction) {

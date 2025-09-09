@@ -74,7 +74,7 @@ class Cycle {
         this._runPrioritizationPhase(context);
 
         // META-COGNITION
-        const { contradictions, metaTasks } = this._runMetaCognitionPhase(context);
+        const {contradictions, metaTasks} = this._runMetaCognitionPhase(context);
         context.contradictions = contradictions;
         context.metaTasks = metaTasks;
 
@@ -83,7 +83,7 @@ class Cycle {
         context.derivedTasks = derivedTasks;
 
         // ENRICHMENT
-        const { proactiveTasks } = await this._runEnrichmentPhase(context);
+        const {proactiveTasks} = await this._runEnrichmentPhase(context);
         context.proactiveTasks = proactiveTasks;
 
         // ACTION
@@ -108,21 +108,21 @@ class Cycle {
     }
 
     _runPrioritizationPhase(context) {
-        const { currentTime, driveEmbeddings } = context;
+        const {currentTime, driveEmbeddings} = context;
         this.memory.getAllTasks().forEach(task => {
             task.state.priority = this.priorityManager.calculatePriority(task, currentTime, driveEmbeddings);
         });
     }
 
     _runMetaCognitionPhase(context) {
-        const { allTasks } = context;
+        const {allTasks} = context;
         const contradictions = this.metaCognition.findContradictions(allTasks);
         const metaTasks = contradictions.length > 0 ? this._resolveContradictions(contradictions) : [];
-        return { contradictions, metaTasks };
+        return {contradictions, metaTasks};
     }
 
     async _runReasoningPhase(context) {
-        const { contradictions } = context;
+        const {contradictions} = context;
         const focusSet = this._getFocusSet();
         if (focusSet.length === 0) {
             return [];
@@ -136,13 +136,13 @@ class Cycle {
     }
 
     async _runEnrichmentPhase(context) {
-        const { derivedTasks, metaTasks } = context;
+        const {derivedTasks, metaTasks} = context;
 
         const newTermKeys = this._getNewTermKeys([...derivedTasks, ...metaTasks]);
         await this._bootstrapTerms(newTermKeys);
 
         const proactiveTasks = await this._proactiveEnrichment();
-        return { proactiveTasks };
+        return {proactiveTasks};
     }
 
     async _runActionPhase() {
@@ -181,7 +181,7 @@ class Cycle {
 
     async _generateLmHypotheses(focusSet, goals, contradictions) {
         const lmHypothesesPromises = this.config.LM_HYPOTHESIS_CONFIGS.map(hypothesisConfig =>
-            this.lm.generateHypotheses(focusSet, { ...hypothesisConfig, goals, contradictions })
+            this.lm.generateHypotheses(focusSet, {...hypothesisConfig, goals, contradictions})
         );
         const lmHypotheses = (await Promise.all(lmHypothesesPromises)).flat();
         return this.lm.evaluateAndRankHypotheses(focusSet, lmHypotheses);
@@ -226,7 +226,7 @@ class Cycle {
     }
 
     async _executeGoalPlan(goal, maxAttempts = 3) {
-        let result = { success: false };
+        let result = {success: false};
         let attempts = 0;
         let lastFailedPlan = null;
 

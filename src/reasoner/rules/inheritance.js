@@ -1,5 +1,5 @@
 const TruthValueManager = require('../TruthValueManager');
-const { createTransitiveInheritanceRule } = require('./rule-factories');
+const {createTransitiveInheritanceRule} = require('./rule-factories');
 const Term = require('../../core/Term');
 
 module.exports = createTransitiveInheritanceRule(

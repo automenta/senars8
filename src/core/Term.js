@@ -15,17 +15,6 @@ class Term {
         this._componentCache = new Map();
     }
 
-    _getStructure() {
-        if (this._structure === null) {
-            try {
-                this._structure = parseTerm(this.key);
-            } catch (error) {
-                this._structure = null;
-            }
-        }
-        return this._structure;
-    }
-
     get type() {
         const structure = this._getStructure();
         return structure ? structure.type : 'Atomic';
@@ -49,9 +38,9 @@ class Term {
             this._componentCache.set('terms', null);
             return null;
         }
-        
+
         try {
-            const termsArray = structure.terms.map((termStructure, index) => 
+            const termsArray = structure.terms.map((termStructure, index) =>
                 this._getComponent(`term_${index}`, termStructure)
             );
             this._componentCache.set('terms', termsArray);
@@ -60,51 +49,6 @@ class Term {
             this._componentCache.set('terms', null);
             return null;
         }
-    }
-
-    _getComponent(componentName, structure) {
-        if (this._componentCache.has(componentName)) {
-            return this._componentCache.get(componentName);
-        }
-
-        const termStructure = structure || (this._getStructure() ? this._getStructure()[componentName] : null);
-        if (!termStructure) {
-            this._componentCache.set(componentName, null);
-            return null;
-        }
-
-        try {
-            const componentKey = Term.buildTermKey(termStructure);
-            if (componentKey) {
-                const componentTerm = new Term(componentKey);
-                this._componentCache.set(componentName, componentTerm);
-                return componentTerm;
-            } else {
-                this._componentCache.set(componentName, null);
-                return null;
-            }
-        } catch (error) {
-            this._componentCache.set(componentName, null);
-            return null;
-        }
-    }
-
-    equals(other) {
-        return other instanceof Term && this.key === other.key;
-    }
-
-    toString() {
-        return this.key;
-    }
-
-    hashCode() {
-        let hash = 0;
-        for (let i = 0; i < this.key.length; i++) {
-            const char = this.key.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash;
-        }
-        return hash;
     }
 
     static structuralSimilarity(termKey1, termKey2) {
@@ -136,9 +80,9 @@ class Term {
                 const semantic = cosineSimilarity(targetTerm.embedding, term.embedding);
                 const structural = Term.structuralSimilarity(targetTermKey, key);
                 return {
-                    termKey: key, 
-                    similarity: config.temporal.REGULARITY_BOOST * semantic + 
-                               config.temporal.STRUCTURAL_SIMILARITY_WEIGHT * structural
+                    termKey: key,
+                    similarity: config.temporal.REGULARITY_BOOST * semantic +
+                        config.temporal.STRUCTURAL_SIMILARITY_WEIGHT * structural
                 };
             });
 
@@ -152,14 +96,6 @@ class Term {
             term1.complexity === term2.complexity &&
             term1.embedding.length === term2.embedding.length &&
             term1.embedding.every((v, i) => Math.abs(v - term2.embedding[i]) < 1e-6);
-    }
-
-    toJSON() {
-        return {
-            key: this.key,
-            embedding: this.embedding,
-            complexity: this.complexity,
-        };
     }
 
     static fromJSON(json) {
@@ -245,6 +181,70 @@ class Term {
             default:
                 throw new Error(`buildTermKey does not support type: ${pTerm.type}`);
         }
+    }
+
+    _getStructure() {
+        if (this._structure === null) {
+            try {
+                this._structure = parseTerm(this.key);
+            } catch (error) {
+                this._structure = null;
+            }
+        }
+        return this._structure;
+    }
+
+    _getComponent(componentName, structure) {
+        if (this._componentCache.has(componentName)) {
+            return this._componentCache.get(componentName);
+        }
+
+        const termStructure = structure || (this._getStructure() ? this._getStructure()[componentName] : null);
+        if (!termStructure) {
+            this._componentCache.set(componentName, null);
+            return null;
+        }
+
+        try {
+            const componentKey = Term.buildTermKey(termStructure);
+            if (componentKey) {
+                const componentTerm = new Term(componentKey);
+                this._componentCache.set(componentName, componentTerm);
+                return componentTerm;
+            } else {
+                this._componentCache.set(componentName, null);
+                return null;
+            }
+        } catch (error) {
+            this._componentCache.set(componentName, null);
+            return null;
+        }
+    }
+
+    equals(other) {
+        return other instanceof Term && this.key === other.key;
+    }
+
+    toString() {
+        return this.key;
+    }
+
+    hashCode() {
+        let hash = 0;
+        for (let i = 0; i < this.key.length; i++) {
+            const char = this.key.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+        }
+        return hash;
+    }
+
+    toJSON() {
+        return {
+            key: this.key,
+            embedding: this.embedding,
+            complexity: this.complexity,
+        };
     }
 }
 

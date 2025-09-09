@@ -9,11 +9,11 @@ const CONSTITUTION_TASKS = require('./Constitution');
 const registerDefaultActions = require('./default-actions');
 const config = require('../config');
 const _ = require('lodash');
-const { handleError } = require('../utils/error-handler');
-const { info, error, debug, warn } = require('../utils/logger');
-const { normalizeToArray } = require('../utils/helpers');
+const {handleError} = require('../utils/error-handler');
+const {info, error, debug, warn} = require('../utils/logger');
+const {normalizeToArray} = require('../utils/helpers');
 const TruthValueManager = require('../reasoner/TruthValueManager');
-const { forwardMethods } = require('../utils/method-forwarding');
+const {forwardMethods} = require('../utils/method-forwarding');
 
 class System {
     // Private constructor, use System.create() instead
@@ -89,7 +89,7 @@ class System {
             warn('System is already running');
             return;
         }
-        
+
         try {
             info(`Starting system with maxCycles=${maxCycles}`);
             this.isRunning = true;
@@ -109,7 +109,7 @@ class System {
             if (this.isRunning) {
                 this.stop();
             }
-            
+
             info(`System stopped after ${this.cycleCount} cycles`);
         } catch (err) {
             error('Error during system execution:', err);

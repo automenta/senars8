@@ -11,7 +11,7 @@ class BagSamplingStrategy {
 
         const focusSetIds = focusSet.map(task => task.id).sort().join(',');
         const cacheKey = `${focusSetIds}:${arity}`;
-        
+
         let bag;
         if (this._bagCache.has(cacheKey)) {
             bag = this._bagCache.get(cacheKey);
@@ -21,7 +21,7 @@ class BagSamplingStrategy {
                 bag.put(task, task.state.priority);
             }
             bag.commit();
-            
+
             if (this._bagCache.size < 100) {
                 this._bagCache.set(cacheKey, bag);
             }
@@ -50,7 +50,7 @@ class BagSamplingStrategy {
             }
         }
     }
-    
+
     clearCache() {
         this._bagCache.clear();
     }

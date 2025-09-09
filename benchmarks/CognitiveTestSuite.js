@@ -26,19 +26,19 @@ class CognitiveTestSuite {
 
     async runAllTests() {
         await this.initialize();
-        
+
         console.log('Running Deductive Reasoning Tests...');
         await this.runDeductiveTests();
-        
+
         console.log('Running Inductive/Abductive Reasoning Tests...');
         await this.runInductiveTests();
-        
+
         console.log('Running Constitutional/Moral Reasoning Tests...');
         await this.runConstitutionalTests();
-        
+
         console.log('Running Creative Reasoning Tests...');
         await this.runCreativeTests();
-        
+
         return this.results;
     }
 
@@ -69,7 +69,7 @@ class CognitiveTestSuite {
             const startTime = Date.now();
             const result = await this.testDeduction(test.premises, test.conclusion);
             const endTime = Date.now();
-            
+
             this.results.deductive.push({
                 name: test.name,
                 passed: result,
@@ -84,23 +84,23 @@ class CognitiveTestSuite {
         // Create a fresh system for each test
         const testSystem = new System();
         await testSystem.initialize();
-        
+
         // Add premises
         const premiseTasks = premises.map(p => createTask(p, '.', {frequency: 1.0, confidence: 0.9})).filter(Boolean);
         await testSystem.addTasks(premiseTasks);
-        
+
         // Run cycles to allow inference
         for (let i = 0; i < 5; i++) {
             await testSystem.runCycle();
         }
-        
+
         // Check if conclusion was derived
         const allTasks = testSystem.memory.getAllTasks();
-        const conclusionTask = allTasks.find(task => 
-            task.termKey === conclusion && 
+        const conclusionTask = allTasks.find(task =>
+            task.termKey === conclusion &&
             task.punctuation === '.'
         );
-        
+
         return !!conclusionTask;
     }
 
@@ -123,7 +123,7 @@ class CognitiveTestSuite {
             const startTime = Date.now();
             const result = await this.testInduction(test.observations, test.hypothesis);
             const endTime = Date.now();
-            
+
             this.results.inductive.push({
                 name: test.name,
                 result: result,
@@ -138,26 +138,29 @@ class CognitiveTestSuite {
         // Create a fresh system for each test
         const testSystem = new System();
         await testSystem.initialize();
-        
+
         // Add observations
-        const observationTasks = observations.map(obs => createTask(obs, '.', {frequency: 1.0, confidence: 0.9})).filter(Boolean);
+        const observationTasks = observations.map(obs => createTask(obs, '.', {
+            frequency: 1.0,
+            confidence: 0.9
+        })).filter(Boolean);
         await testSystem.addTasks(observationTasks);
-        
+
         // Add hypothesis as question
         const hypothesisTask = createTask(hypothesis.replace(/[.!?]$/, ''), '?');
         if (hypothesisTask) {
             await testSystem.addTasks([hypothesisTask]);
         }
-        
+
         // Run cycles to allow inference
         for (let i = 0; i < 10; i++) {
             await testSystem.runCycle();
         }
-        
+
         // Check what was derived
         const allTasks = testSystem.memory.getAllTasks();
         const derivedBeliefs = allTasks.filter(task => task.punctuation === '.');
-        
+
         // Simple check for now
         return derivedBeliefs.length > observationTasks.length ? 'generalization' : 'no_generalization';
     }
@@ -179,7 +182,7 @@ class CognitiveTestSuite {
             const startTime = Date.now();
             const result = await this.testConstitutionalConstraint(test.scenario, test.action);
             const endTime = Date.now();
-            
+
             this.results.constitutional.push({
                 name: test.name,
                 result: result,
@@ -194,22 +197,22 @@ class CognitiveTestSuite {
         // Create a fresh system for each test
         const testSystem = new System();
         await testSystem.initialize();
-        
+
         // Add scenario
         const scenarioTasks = scenario.map(s => createTask(s, '.', {frequency: 1.0, confidence: 0.9})).filter(Boolean);
         await testSystem.addTasks(scenarioTasks);
-        
+
         // Add action goal
         const actionTask = createTask(action.replace(/[.!?]$/, ''), '!');
         if (actionTask) {
             await testSystem.addTasks([actionTask]);
         }
-        
+
         // Run cycles to allow action execution
         for (let i = 0; i < 5; i++) {
             await testSystem.runCycle();
         }
-        
+
         // Check if action was executed or blocked
         // This is a simplified check
         return 'blocked'; // Placeholder
@@ -230,7 +233,7 @@ class CognitiveTestSuite {
             const startTime = Date.now();
             const result = await this.testAnalogy(test.source, test.target);
             const endTime = Date.now();
-            
+
             this.results.creative.push({
                 name: test.name,
                 result: result,
@@ -245,24 +248,24 @@ class CognitiveTestSuite {
         // Create a fresh system for each test
         const testSystem = new System();
         await testSystem.initialize();
-        
+
         // Add source knowledge
         const sourceTask = createTask(source, '.', {frequency: 1.0, confidence: 0.9});
         if (sourceTask) {
             await testSystem.addTasks([sourceTask]);
         }
-        
+
         // Add target as question
         const targetTask = createTask(target.replace(/[.!?]$/, ''), '?');
         if (targetTask) {
             await testSystem.addTasks([targetTask]);
         }
-        
+
         // Run cycles to allow creative inference
         for (let i = 0; i < 10; i++) {
             await testSystem.runCycle();
         }
-        
+
         // Check what was derived
         // This is a simplified check
         return 'animal'; // Placeholder
@@ -270,27 +273,27 @@ class CognitiveTestSuite {
 
     generateReport() {
         console.log('\n=== Cognitive Test Suite Report ===\n');
-        
+
         console.log('Deductive Reasoning:');
         this.results.deductive.forEach(test => {
             console.log(`  ${test.name}: ${test.correct ? 'PASS' : 'FAIL'} (${test.time}ms)`);
         });
-        
+
         console.log('\nInductive Reasoning:');
         this.results.inductive.forEach(test => {
             console.log(`  ${test.name}: ${test.result} (${test.time}ms)`);
         });
-        
+
         console.log('\nConstitutional Reasoning:');
         this.results.constitutional.forEach(test => {
             console.log(`  ${test.name}: ${test.result} (${test.time}ms)`);
         });
-        
+
         console.log('\nCreative Reasoning:');
         this.results.creative.forEach(test => {
             console.log(`  ${test.name}: ${test.result} (${test.time}ms)`);
         });
-        
+
         return this.results;
     }
 }

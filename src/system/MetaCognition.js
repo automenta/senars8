@@ -17,7 +17,7 @@ class MetaCognition {
             debug(`Finding contradictions in ${tasks.length} tasks`);
             const beliefTasks = Task.getBeliefTasks(tasks);
             debug(`Found ${beliefTasks.length} belief tasks`);
-            
+
             const parsedBeliefs = beliefTasks.map(task => ({
                 task,
                 parsed: parseTerm(task.termKey)
@@ -31,7 +31,7 @@ class MetaCognition {
                         try {
                             const contradictionType = this.contradictionAnalyzer.analyze(item1.task, item2.task, item1.parsed, item2.parsed);
                             if (!contradictionType) return null;
-                            
+
                             contradictionCount++;
                             return {
                                 type: contradictionType.type,
@@ -77,20 +77,20 @@ class MetaCognition {
                 debug('No contradictions to report');
                 return "No contradictions found.";
             }
-            
+
             debug(`Generating report for ${contradictions.length} contradictions`);
             let report = `Contradiction Report (${contradictions.length} found):
 `;
-            
+
             contradictions.forEach((c, i) => {
                 report += `${i + 1}. Type: ${c.type}
 `;
                 report += `   Confidence: ${c.confidence.toFixed(3)
-}`;
+                }`;
                 report += `   Severity: ${c.severity.toFixed(3)
-}`;
+                }`;
                 report += `   Details: ${c.details
-}`;
+                }`;
                 report += `   Tasks:
 `;
                 c.tasks.forEach(t => {
@@ -100,7 +100,7 @@ class MetaCognition {
                 report += `
 `;
             });
-            
+
             return report;
         } catch (err) {
             error('Error generating contradiction report:', err);

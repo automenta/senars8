@@ -12,14 +12,14 @@ function extractSubTasksFromMethod(methodTerm) {
 
 function isAchieved(term, memory, config) {
     const beliefs = memory.beliefIndex.get(term.key);
-    return !!(beliefs && beliefs.length > 0 && 
+    return !!(beliefs && beliefs.length > 0 &&
         beliefs.some(belief => belief.state.truthValue.confidence >= config.confidenceThreshold));
 }
 
 function arePreconditionsMet(preconditions, memory, config) {
     for (const precondition of preconditions) {
         const beliefs = memory.beliefIndex.get(precondition.key);
-        if (!beliefs || beliefs.length === 0 || 
+        if (!beliefs || beliefs.length === 0 ||
             !beliefs.some(belief => belief.state.truthValue.confidence > config.preconditionConfidenceThreshold)) {
             return false;
         }

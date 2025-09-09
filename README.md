@@ -81,7 +81,8 @@ functionality without modifying core components.
 
 ## **Implementation Details**
 
-This repository contains a working implementation of the SeNARS cognitive system. The system includes all core components and demonstrates the key principles of neuro-symbolic cognition.
+This repository contains a working implementation of the SeNARS cognitive system. The system includes all core
+components and demonstrates the key principles of neuro-symbolic cognition.
 
 ### **Knowledge Representation**
 
@@ -134,14 +135,21 @@ The cognitive cycle is implemented in `src/system/Cycle.js` and follows the spec
 ### **Core Mechanisms**
 
 - **Dynamic Priority Calculation (Economic Attention)**: Implemented in `src/system/Cycle.js`
-- **Reasoner & Meta-Cognition**: Basic inference rules (deduction, induction, abduction, analogy) implemented in `src/reasoner/`. Basic contradiction detection in `src/system/MetaCognition.js`
-- **The LM (Neuro-Symbolic Engine)**: Integration with transformer models via `@xenova/transformers` in `src/lm/LM.js`. Term embedding generation implemented.
+- **Reasoner & Meta-Cognition**: Basic inference rules (deduction, induction, abduction, analogy) implemented in
+  `src/reasoner/`. Basic contradiction detection in `src/system/MetaCognition.js`
+- **The LM (Neuro-Symbolic Engine)**: Integration with transformer models via `@xenova/transformers` in `src/lm/LM.js`.
+  Term embedding generation implemented.
 
 ### **Recent Refactoring**
+
 The codebase has undergone significant refactoring to improve modularity and stability. Key improvements include:
+
 - **Stabilized Core System**: Fixed integration test failures in the Reasoner and Cycle.
-- **Refactored Key Modules**: `Cycle.js`, `MetaCognition.js`, `Perception.js`, `Planner.js`, `ActionExecutor.js`, and `LM.js` have been refactored to extract logic into more focused modules (e.g., `PriorityManager`, `ContradictionAnalyzer`).
-- **Suppressed ONNX Runtime Warnings**: Cleaned up console output by suppressing ignorable warnings from the underlying ONNX runtime.
+- **Refactored Key Modules**: `Cycle.js`, `MetaCognition.js`, `Perception.js`, `Planner.js`, `ActionExecutor.js`, and
+  `LM.js` have been refactored to extract logic into more focused modules (e.g., `PriorityManager`,
+  `ContradictionAnalyzer`).
+- **Suppressed ONNX Runtime Warnings**: Cleaned up console output by suppressing ignorable warnings from the underlying
+  ONNX runtime.
 
 ---
 
@@ -165,9 +173,12 @@ To explore the system's capabilities, use the interactive demo runner:
 ```bash
 npm run start:demo
 ```
-This command will present you with a list of available demos. You can choose to run a specific demo or all of them sequentially. This is the best way to see the system in action.
+
+This command will present you with a list of available demos. You can choose to run a specific demo or all of them
+sequentially. This is the best way to see the system in action.
 
 Available demos include:
+
 1. **Math Inference Demo**: Tests logical inference with mathematical relationships
 2. **Planning Demo**: Demonstrates goal-directed behavior and planning
 3. **Comprehensive System Demo**: Full system demonstration with complex knowledge
@@ -175,6 +186,7 @@ Available demos include:
 5. **Contradiction Resolution Demo**: Demonstrates meta-cognitive capabilities
 
 To run the full test suite:
+
 ```bash
 npm test
 ```
@@ -223,10 +235,13 @@ runSystem();
 
 ### **Advanced Capabilities**
 
-- **Systematic Evaluation and Benchmarking**: Develop a comprehensive cognitive test suite and track performance metrics for speed, knowledge acquisition, and goal achievement.
+- **Systematic Evaluation and Benchmarking**: Develop a comprehensive cognitive test suite and track performance metrics
+  for speed, knowledge acquisition, and goal achievement.
 - **Advanced Meta-Cognition and Self-Improvement**: Implement automated bug-fixing and dynamic resource management.
-- **Richer Interfaces and Embodiment**: Integrate with robotic platforms and develop sophisticated conversational interfaces.
+- **Richer Interfaces and Embodiment**: Integrate with robotic platforms and develop sophisticated conversational
+  interfaces.
 - **Long-Term Memory and Learning**: Implement forgetting mechanisms and memory consolidation.
 
 ### **Community and Growth**
+
 - **Foster an Open-Source Community**: Create comprehensive documentation, tutorials, and encourage collaboration.

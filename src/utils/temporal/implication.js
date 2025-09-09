@@ -1,7 +1,7 @@
 const Task = require('../../core/Task');
 const {parseTerm} = require('../../parser/narseseParser');
 const config = require('../../config');
-const { determineTemporalRelationship } = require('./query');
+const {determineTemporalRelationship} = require('./query');
 
 function _createImplicationTask(termKey, truthValue) {
     const parsedTerm = parseTerm(termKey);

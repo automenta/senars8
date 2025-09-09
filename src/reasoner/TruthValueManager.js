@@ -7,6 +7,17 @@ const {handleErrorWithDefault} = require('../utils/error-handler');
  * Manages advanced truth value revision and updating mechanisms.
  */
 class TruthValueManager {
+    bayesianRevision = this._createRevisionMethod('bayesian', this.constructor.bayesianRevision, (newEvidence, weight) => ({
+        newEvidence,
+        weight
+    }));
+    consensusRevision = this._createRevisionMethod('consensus', this.constructor.consensusRevision, (evidenceSources) => ({evidenceSources}));
+    reinforcementUpdate = this._createRevisionMethod('reinforcement', this.constructor.reinforcementRevision, (reward, learningRate) => ({
+        reward,
+        learningRate
+    }));
+    entropyBasedUpdate = this._createRevisionMethod('entropy_based', this.constructor.entropyBasedRevision, (newInformation) => ({newInformation}));
+
     constructor() {
         this.revisionHistory = new Map();
         this.conflictSets = new Map();
@@ -149,18 +160,14 @@ class TruthValueManager {
             const oldTruthValue = {...task.state.truthValue};
             const revisedTruthValue = staticMethod.call(this.constructor, oldTruthValue, ...args);
             task.state.truthValue = revisedTruthValue;
-            
+
             const metadata = getAdditionalParams(...args);
             this._recordRevision(task.id, methodName, oldTruthValue, revisedTruthValue, metadata);
-            
+
             return revisedTruthValue;
         };
     }
 
-    bayesianRevision = this._createRevisionMethod('bayesian', this.constructor.bayesianRevision, (newEvidence, weight) => ({newEvidence, weight}));
-    
-    consensusRevision = this._createRevisionMethod('consensus', this.constructor.consensusRevision, (evidenceSources) => ({evidenceSources}));
-    
     temporalDecayRevision(task, currentTime, decayRate = 0.0001) {
         const oldTruthValue = {...task.state.truthValue};
         const revisedTruthValue = this.constructor.temporalDecayRevision(
@@ -170,12 +177,12 @@ class TruthValueManager {
             decayRate
         );
         task.state.truthValue = revisedTruthValue;
-        
+
         this._recordRevision(task.id, 'temporal_decay', oldTruthValue, revisedTruthValue, {
             currentTime,
             decayRate
         });
-        
+
         return revisedTruthValue;
     }
 
@@ -205,10 +212,6 @@ class TruthValueManager {
         return resolvedTruthValue;
     }
 
-    reinforcementUpdate = this._createRevisionMethod('reinforcement', this.constructor.reinforcementRevision, (reward, learningRate) => ({reward, learningRate}));
-    
-    entropyBasedUpdate = this._createRevisionMethod('entropy_based', this.constructor.entropyBasedRevision, (newInformation) => ({newInformation}));
-
     sophisticatedRevision(task, options = {}) {
         const oldTruthValue = {...task.state.truthValue};
         const revisedTruthValue = this.constructor.sophisticatedRevision(oldTruthValue, {
@@ -217,9 +220,9 @@ class TruthValueManager {
             creationTime: options.creationTime || task.state.stamp.creationTime
         });
         task.state.truthValue = revisedTruthValue;
-        
+
         this._recordRevision(task.id, 'sophisticated', oldTruthValue, revisedTruthValue, options);
-        
+
         return revisedTruthValue;
     }
 

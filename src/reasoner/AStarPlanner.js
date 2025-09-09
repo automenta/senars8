@@ -92,7 +92,7 @@ class AStarPlanner extends BasePlanner {
 
         const confidenceCost = tasks.reduce((acc, task) => {
             const beliefs = this.memory.beliefIndex.get(task.key);
-            const confidence = beliefs && beliefs.length > 0 
+            const confidence = beliefs && beliefs.length > 0
                 ? Math.max(...beliefs.map(b => b.state.truthValue.confidence))
                 : 0;
             return acc + (1 - confidence);

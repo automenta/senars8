@@ -1,4 +1,4 @@
-const { createUnaryInheritanceRule } = require('./rule-factories');
+const {createUnaryInheritanceRule} = require('./rule-factories');
 const Term = require('../../core/Term');
 
 module.exports = createUnaryInheritanceRule(

@@ -1,5 +1,5 @@
-const { handleErrorWithDefault } = require('../utils/error-handler');
-const { error, debug } = require('../utils/logger');
+const {handleErrorWithDefault} = require('../utils/error-handler');
+const {error, debug} = require('../utils/logger');
 
 class QAService {
     constructor(generateFunction, getQAPipelineFunction) {

@@ -1,4 +1,4 @@
-const { createTemporalAbstraction } = require('../../utils/temporal/summary');
+const {createTemporalAbstraction} = require('../../utils/temporal/summary');
 const {debug} = require('../../utils/logger');
 const {handleErrorWithDefault} = require('../../utils/error-handler');
 

@@ -1,6 +1,6 @@
-const { handleErrorWithDefault } = require('../utils/error-handler');
-const { error, debug } = require('../utils/logger');
-const { parseTerm } = require('../parser/narseseParser');
+const {handleErrorWithDefault} = require('../utils/error-handler');
+const {error, debug} = require('../utils/logger');
+const {parseTerm} = require('../parser/narseseParser');
 const Task = require('../core/Task');
 const zod = require('zod');
 

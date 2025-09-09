@@ -13,15 +13,6 @@ const {
 } = require('./memoryUtils');
 
 class Memory {
-    static getForwardableMethods() {
-        return [
-            'getMemoryStatistics', 'findTasksByTermKey', 'getHighPriorityTasks',
-            'getTask', 'getTerm', 'getAllTasks', 'getAllTerms', 'getBeliefs',
-            'getGoals', 'getQuestions', 'getTopPriorityTasks', 'getRecentTasks',
-            'queryTasks', 'removeTask', 'exportState', 'importState'
-        ];
-    }
-
     constructor() {
         this.terms = new Map();
         this.shortTermTasks = new Map();
@@ -35,6 +26,15 @@ class Memory {
 
         this._loadForgettingStrategy();
         this._registerEventListeners();
+    }
+
+    static getForwardableMethods() {
+        return [
+            'getMemoryStatistics', 'findTasksByTermKey', 'getHighPriorityTasks',
+            'getTask', 'getTerm', 'getAllTasks', 'getAllTerms', 'getBeliefs',
+            'getGoals', 'getQuestions', 'getTopPriorityTasks', 'getRecentTasks',
+            'queryTasks', 'removeTask', 'exportState', 'importState'
+        ];
     }
 
     _loadForgettingStrategy() {
@@ -123,7 +123,7 @@ class Memory {
             this.shortTermTasks.set(task.id, task);
             this._indexTask(task);
         }
-        
+
         this._invalidateTaskCache();
     }
 
@@ -158,7 +158,7 @@ class Memory {
 
     getHighestPriorityTasks(k = 20) {
         if (k <= 0) return [];
-        
+
         const allTasks = this.getAllTasks();
         if (this._shouldUsePriorityQueue(k, allTasks.length)) {
             return getHighestPriorityTasksWithPQ(allTasks, k);
@@ -180,7 +180,7 @@ class Memory {
         newMemory.maintenanceFrequency = this.maintenanceFrequency;
         return newMemory;
     }
-    
+
     clear() {
         this.terms.clear();
         this.shortTermTasks.clear();
@@ -191,7 +191,7 @@ class Memory {
         this.cycleCounter = 0;
         this._invalidateTaskCache();
     }
-    
+
     getStatistics() {
         return {
             terms: this.terms.size,
@@ -204,15 +204,15 @@ class Memory {
     }
 
     getBeliefs() {
-        return this.queryTasks({ punctuation: '.' });
+        return this.queryTasks({punctuation: '.'});
     }
 
     getGoals() {
-        return this.queryTasks({ punctuation: '!' });
+        return this.queryTasks({punctuation: '!'});
     }
 
     getQuestions() {
-        return this.queryTasks({ punctuation: '?' });
+        return this.queryTasks({punctuation: '?'});
     }
 
     getRecentTasks(count = 10) {

@@ -17,7 +17,7 @@ class Reasoner {
             return handleErrorWithDefault(new Error('Focus set must be an array'), 'Reasoner.performInference', []);
         }
 
-        const { maxDerivedTasks = Infinity } = options;
+        const {maxDerivedTasks = Infinity} = options;
         debug(`Performing inference on ${focusSet.length} tasks`);
 
         let derivedTasks = this._performSymbolicInference(focusSet, maxDerivedTasks);

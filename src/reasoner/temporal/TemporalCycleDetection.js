@@ -1,6 +1,6 @@
 const Task = require('../../core/Task');
 const {parseTerm} = require('../../parser/narseseParser');
-const { detectTemporalCycles } = require('../../utils/temporal/pattern-detection');
+const {detectTemporalCycles} = require('../../utils/temporal/pattern-detection');
 const {debug} = require('../../utils/logger');
 const {handleErrorWithDefault} = require('../../utils/error-handler');
 
@@ -26,7 +26,7 @@ class TemporalCycleDetection {
                     handleErrorWithDefault(err, `Error processing cycle for term ${cycle.termKey}`, null);
                 }
             }
-            
+
             debug(`Detected ${cycleTasks.length} temporal cycles`);
             return cycleTasks;
         } catch (err) {

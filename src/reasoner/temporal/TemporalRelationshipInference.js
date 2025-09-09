@@ -1,5 +1,5 @@
-const { determineTemporalRelationship } = require('../../utils/temporal/query');
-const { createTemporalRelationshipTask } = require('../../utils/temporal/task-creation');
+const {determineTemporalRelationship} = require('../../utils/temporal/query');
+const {createTemporalRelationshipTask} = require('../../utils/temporal/task-creation');
 const {debug} = require('../../utils/logger');
 const {handleErrorWithDefault} = require('../../utils/error-handler');
 const config = require('../../config');
@@ -10,10 +10,10 @@ class TemporalRelationshipInference {
             debug(`Inferring temporal relationships for ${temporalFocusSet.length} tasks`);
             const temporalTasks = [];
             let relationshipCount = 0;
-            
+
             const maxComparisons = config.temporal.MAX_COMPARISONS;
             let comparisonCount = 0;
-            
+
             for (let i = 0; i < temporalFocusSet.length && comparisonCount < maxComparisons; i++) {
                 for (let j = i + 1; j < temporalFocusSet.length && comparisonCount < maxComparisons; j++) {
                     comparisonCount++;
@@ -29,7 +29,7 @@ class TemporalRelationshipInference {
                     }
                 }
             }
-            
+
             debug(`Found ${relationshipCount} temporal relationships (${comparisonCount} comparisons)`);
             return temporalTasks;
         } catch (err) {

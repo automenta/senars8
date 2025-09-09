@@ -16,4 +16,4 @@ function forwardMethods(source, target, methodNames) {
     }
 }
 
-module.exports = { forwardMethods };
+module.exports = {forwardMethods};

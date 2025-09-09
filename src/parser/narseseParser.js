@@ -139,7 +139,7 @@ class NarseseParser {
         }
 
         const firstTerm = this.parseTerm();
-        
+
         if (this.match('arrow')) {
             return this.parseInheritance(firstTerm);
         } else if (this.match('implies')) {

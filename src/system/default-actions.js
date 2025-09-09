@@ -1,4 +1,4 @@
-const { info } = require('../utils/logger');
+const {info} = require('../utils/logger');
 
 const defaultActionHandlers = {
     'print_*': (action) => ({message: `PRINT ACTION: ${action.parameters.join(' ')}`}),

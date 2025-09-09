@@ -116,7 +116,7 @@ class ActionExecutor {
             if (!handler) {
                 throw new Error(`No handler found for action: ${action.name}`);
             }
-            
+
             const result = await handler(action);
             resolve(this._recordSuccess(actionRecord, result));
         } catch (executionError) {
@@ -159,7 +159,7 @@ class ActionExecutor {
             if (!isNonEmptyArray(action.parameters)) {
                 throw new Error('Action parameters must be an array');
             }
-            
+
             for (const param of action.parameters) {
                 if (!this.memory.getTerm(param)) {
                     throw new Error(`Parameter term not found in memory: ${param}`);
@@ -172,7 +172,7 @@ class ActionExecutor {
             if (!isNonEmptyArray(action.resources)) {
                 throw new Error('Action resources must be an array');
             }
-            
+
             for (const resourceName of action.resources) {
                 if (!this.resources.has(resourceName)) {
                     throw new Error(`Resource not registered: ${resourceName}`);
@@ -200,7 +200,7 @@ class ActionExecutor {
 
     _acquireResources(action) {
         if (!action.resources || action.resources.length === 0) return;
-        
+
         for (const resourceName of action.resources) {
             const resource = this.resources.get(resourceName);
             if (resource) {
@@ -211,7 +211,7 @@ class ActionExecutor {
 
     _releaseResources(action) {
         if (!action.resources || action.resources.length === 0) return;
-        
+
         for (const resourceName of action.resources) {
             const resource = this.resources.get(resourceName);
             if (resource) {

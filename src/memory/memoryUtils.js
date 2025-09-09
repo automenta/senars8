@@ -45,7 +45,7 @@ function consolidateMemory(shortTermTasks, longTermTasks, config) {
  * @returns {Map} Updated cost index
  */
 function updateCostIndex(term, costIndex, operation) {
-    if (!term || term.type !== 'Inheritance' || !term.subject || 
+    if (!term || term.type !== 'Inheritance' || !term.subject ||
         term.predicate?.type !== 'IntensionalSet' || term.predicate.terms.length !== 1) {
         return costIndex;
     }
@@ -79,10 +79,10 @@ function indexImplication(term, implicationIndex) {
     if (!newImplicationIndex.has(goalKey)) {
         newImplicationIndex.set(goalKey, []);
     }
-    
+
     const currentImplications = newImplicationIndex.get(goalKey) || [];
     newImplicationIndex.set(goalKey, [...currentImplications, term]);
-    
+
     return newImplicationIndex;
 }
 
@@ -98,7 +98,7 @@ function indexTask(task, beliefIndex) {
     const newBeliefIndex = new Map(beliefIndex);
     const currentBeliefs = newBeliefIndex.get(task.termKey) || [];
     newBeliefIndex.set(task.termKey, [...currentBeliefs, task]);
-    
+
     return newBeliefIndex;
 }
 
@@ -114,12 +114,12 @@ function unindexTask(task, beliefIndex) {
     const newBeliefIndex = new Map(beliefIndex);
     const beliefs = [...newBeliefIndex.get(task.termKey)];
     const index = beliefs.indexOf(task);
-    
+
     if (index !== -1) {
         beliefs.splice(index, 1);
         beliefs.length === 0 ? newBeliefIndex.delete(task.termKey) : newBeliefIndex.set(task.termKey, beliefs);
     }
-    
+
     return newBeliefIndex;
 }
 
@@ -131,8 +131,8 @@ function unindexTask(task, beliefIndex) {
  */
 function getHighestPriorityTasksWithPQ(tasks, k) {
     const {MinPriorityQueue} = require('@datastructures-js/priority-queue');
-    const pq = new MinPriorityQueue({ priority: (task) => task.state.priority });
-    
+    const pq = new MinPriorityQueue({priority: (task) => task.state.priority});
+
     for (const task of tasks) {
         if (pq.size() < k) {
             pq.enqueue(task);
@@ -141,7 +141,7 @@ function getHighestPriorityTasksWithPQ(tasks, k) {
             pq.enqueue(task);
         }
     }
-    
+
     return pq.toArray().map(item => item.element).sort((a, b) => b.state.priority - a.state.priority);
 }
 

@@ -1,5 +1,5 @@
 const TruthValueManager = require('../TruthValueManager');
-const { createModusPonensRule } = require('./rule-factories');
+const {createModusPonensRule} = require('./rule-factories');
 const Term = require('../../core/Term');
 
 module.exports = createModusPonensRule(

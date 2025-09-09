@@ -19,7 +19,7 @@ function createTask(termKey, punctuation, truthValue, stamp = {creationTime: Dat
 }
 
 async function runDemo(demoName, taskDefs, cycleCount = 5) {
-    const { System } = require('../src/index');
+    const {System} = require('../src/index');
 
     console.log(`\n--- Starting ${demoName} ---`);
 

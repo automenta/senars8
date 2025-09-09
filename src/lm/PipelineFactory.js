@@ -1,4 +1,4 @@
-const { info } = require('../utils/logger');
+const {info} = require('../utils/logger');
 
 class PipelineFactory {
     constructor() {
@@ -9,7 +9,7 @@ class PipelineFactory {
         const key = `${type}-${model}`;
         if (!this._pipelines.has(key)) {
             info(`Loading pipeline: ${type} - ${model}`);
-            const { pipeline } = await import('@xenova/transformers');
+            const {pipeline} = await import('@xenova/transformers');
             this._pipelines.set(key, pipeline(type, model, options));
         }
         return this._pipelines.get(key);

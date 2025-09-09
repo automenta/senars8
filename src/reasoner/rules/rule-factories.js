@@ -22,10 +22,10 @@ function validateTermKey(termKey) {
     if (!termKey || typeof termKey !== 'string' || termKey.length === 0) {
         return false;
     }
-    
+
     // Additional validation to catch invalid term keys that would cause parsing errors
-    return !(termKey.includes('( --> )') || termKey.includes('( ==> )') || 
-             termKey.includes('( <-> )') || termKey.includes('( <=> )'));
+    return !(termKey.includes('( --> )') || termKey.includes('( ==> )') ||
+        termKey.includes('( <-> )') || termKey.includes('( <=> )'));
 }
 
 function createRule(spec) {
@@ -37,12 +37,12 @@ function createRule(spec) {
             try {
                 // For each task, get the parsed structure of the term
                 const parsedTasks = tasks.map(parseTaskTerm);
-                
+
                 // If any parsed task is null, don't proceed with the condition
                 if (parsedTasks.some(task => task === null)) {
                     return false;
                 }
-                
+
                 return spec.condition(...parsedTasks);
             } catch (error) {
                 return false;
@@ -52,12 +52,12 @@ function createRule(spec) {
             try {
                 // For each task, get the parsed structure of the term
                 const parsedTasks = tasks.map(parseTaskTerm);
-                
+
                 // If any parsed task is null, don't proceed with the action
                 if (parsedTasks.some(task => task === null)) {
                     return null;
                 }
-                
+
                 const result = spec.action(...parsedTasks, ...tasks);
                 if (!result) return null;
 
@@ -161,4 +161,10 @@ function createModusPonensRule(name, termBuilder, truthValueFunction) {
     });
 }
 
-module.exports = {createRule, createBinaryInheritanceRule, createTransitiveInheritanceRule, createUnaryInheritanceRule, createModusPonensRule};
+module.exports = {
+    createRule,
+    createBinaryInheritanceRule,
+    createTransitiveInheritanceRule,
+    createUnaryInheritanceRule,
+    createModusPonensRule
+};

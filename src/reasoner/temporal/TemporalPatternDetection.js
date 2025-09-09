@@ -1,7 +1,7 @@
 const Task = require('../../core/Task');
 const {parseTerm} = require('../../parser/narseseParser');
-const { detectTemporalPatterns } = require('../../utils/temporal/pattern-detection');
-const { createTemporalSequenceTask } = require('../../utils/temporal/task-creation');
+const {detectTemporalPatterns} = require('../../utils/temporal/pattern-detection');
+const {createTemporalSequenceTask} = require('../../utils/temporal/task-creation');
 const {debug} = require('../../utils/logger');
 const {handleErrorWithDefault} = require('../../utils/error-handler');
 const config = require('../../config');
@@ -39,7 +39,7 @@ class TemporalPatternDetection {
                     handleErrorWithDefault(err, `Error processing pattern of type ${pattern.type}`, null);
                 }
             }
-            
+
             debug(`Detected ${patternTasks.length} temporal pattern tasks`);
             return patternTasks;
         } catch (err) {

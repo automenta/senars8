@@ -63,7 +63,10 @@ async function actionExecutionDemo() {
     console.log("\n3. Testing hierarchical planning...\n");
 
     // Create a complex goal task
-    const complexGoalTask = createTask('(&/, navigate_to_charging_station, charge_battery, return_to_patrol_route)', '!', {frequency: 0.95, confidence: 0.9});
+    const complexGoalTask = createTask('(&/, navigate_to_charging_station, charge_battery, return_to_patrol_route)', '!', {
+        frequency: 0.95,
+        confidence: 0.9
+    });
 
     await system.addTasks([complexGoalTask]);
 
@@ -76,7 +79,10 @@ async function actionExecutionDemo() {
     console.log("\n4. Testing choice actions...\n");
 
     // Create a choice task (try different approaches)
-    const choiceTask = createTask('(|, approach_person_directly, approach_person_indirectly, wait_for_person_to_approach)', '!', {frequency: 0.8, confidence: 0.7});
+    const choiceTask = createTask('(|, approach_person_directly, approach_person_indirectly, wait_for_person_to_approach)', '!', {
+        frequency: 0.8,
+        confidence: 0.7
+    });
 
     await system.addTasks([choiceTask]);
 

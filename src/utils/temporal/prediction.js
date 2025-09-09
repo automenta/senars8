@@ -1,5 +1,5 @@
-const { groupTasksByTermKey, calculateIntervalStats } = require('./helpers');
-const { createTemporalTask } = require('./task-creation');
+const {groupTasksByTermKey, calculateIntervalStats} = require('./helpers');
+const {createTemporalTask} = require('./task-creation');
 const config = require('../../config');
 
 function predictFutureTasks(tasks, predictionTime) {
@@ -10,7 +10,7 @@ function predictFutureTasks(tasks, predictionTime) {
     for (const [termKey, groupTasks] of Object.entries(taskGroups)) {
         if (groupTasks.length < 2) continue;
 
-        const { avgInterval, stdDev } = calculateIntervalStats(groupTasks);
+        const {avgInterval, stdDev} = calculateIntervalStats(groupTasks);
         const regularity = 1.0 / (1.0 + stdDev / avgInterval);
         const lastOccurrence = groupTasks[groupTasks.length - 1].state.stamp.occurrenceTime;
         const predictedOccurrence = lastOccurrence + avgInterval;
@@ -45,7 +45,7 @@ function advancedPredictFutureTasks(tasks, predictionHorizon) {
     for (const [termKey, groupTasks] of Object.entries(taskGroups)) {
         if (groupTasks.length < 2) continue;
 
-        const { intervals, avgInterval, stdDev } = calculateIntervalStats(groupTasks);
+        const {intervals, avgInterval, stdDev} = calculateIntervalStats(groupTasks);
         const regularity = 1.0 / (1.0 + stdDev / avgInterval);
 
         let intervalTrend = 0;

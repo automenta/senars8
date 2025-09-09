@@ -1,5 +1,5 @@
-const { detectTemporalClusters } = require('../../utils/temporal/pattern-detection');
-const { createTemporalClusterAbstractions } = require('../../utils/temporal/task-creation');
+const {detectTemporalClusters} = require('../../utils/temporal/pattern-detection');
+const {createTemporalClusterAbstractions} = require('../../utils/temporal/task-creation');
 const {debug} = require('../../utils/logger');
 const {handleErrorWithDefault} = require('../../utils/error-handler');
 

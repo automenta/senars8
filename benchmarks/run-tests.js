@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { runAllTests } = require('./index');
+const {runAllTests} = require('./index');
 
 async function main() {
     await runAllTests();
