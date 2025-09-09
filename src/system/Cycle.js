@@ -9,6 +9,14 @@ const TemporalReasoner = require('../reasoner/TemporalReasoner');
 const PriorityManager = require('../reasoner/PriorityManager');
 const EventBus = require('./EventBus');
 const Task = require('../core/Task');
+const {
+    getNewTermKeys,
+    bootstrapTerms,
+    getPrioritizedGoals,
+    getActionableGoals,
+    attemptPlanExecution,
+    executeGoalPlan
+} = require('./cycleUtils');
 
 class Cycle {
     constructor(memory, reasoner, lm, actionExecutor, config) {
@@ -80,9 +88,7 @@ class Cycle {
     }
 
     _getPrioritizedGoals() {
-        return Task.getGoalTasks(this.memory.getAllTasks())
-            .filter(task => task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
-            .slice(0, this.config.MAX_GOALS_TO_EXECUTE);
+        return getPrioritizedGoals(this.memory, this.config);
     }
 
     async _performReasoning(focusSet, goals, contradictions) {
@@ -134,16 +140,11 @@ class Cycle {
     }
 
     _getNewTermKeys(tasks) {
-        return [...new Set(tasks.map(task => task.termKey).filter(termKey => !this.memory.getTerm(termKey)))];
+        return getNewTermKeys(tasks, this.memory);
     }
 
     async _bootstrapTerms(termKeys) {
-        const batchSize = this.config.system.BATCH_SIZE;
-        for (let i = 0; i < termKeys.length; i += batchSize) {
-            const batch = termKeys.slice(i, i + batchSize);
-            const newTerms = await Promise.all(batch.map(termKey => this.lm.bootstrapTerm(termKey)));
-            newTerms.forEach(term => this.memory.addTerm(term));
-        }
+        await bootstrapTerms(termKeys, this.lm, this.memory, this.config);
     }
 
     async _enrich(tasks) {
@@ -152,43 +153,15 @@ class Cycle {
     }
 
     _getActionableGoals() {
-        return Task.getGoalTasks(this.memory.getAllTasks())
-            .filter(task => task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
-            .slice(0, this.config.MAX_GOALS_TO_EXECUTE);
+        return getActionableGoals(this.memory, this.config);
     }
 
     async _attemptPlanExecution(plan, goal) {
-        if (plan && plan.steps.length > 0) {
-            return await plan.execute().catch(error => ({
-                success: false,
-                task: goal.termKey,
-                error: error.message,
-                failedPlan: plan,
-            }));
-        }
-        if (plan) { // Empty plan
-            return {success: true, planId: plan.id, results: ['Goal already achieved']};
-        }
-        return {success: false, error: `No plan found for ${goal.termKey}`};
+        return attemptPlanExecution(plan, goal);
     }
 
     async _executeGoalPlan(goal, maxAttempts = 3) {
-        let result = {success: false};
-        let attempts = 0;
-        let lastFailedPlan = null;
-
-        while (attempts < maxAttempts && !result.success) {
-            attempts++;
-            const plan = await this.planner.createPlan(goal, lastFailedPlan);
-            result = await this._attemptPlanExecution(plan, goal);
-            if (!result.success && result.failedPlan) {
-                lastFailedPlan = result.failedPlan;
-                delete result.failedPlan;
-            } else if (!result.success) {
-                break;
-            }
-        }
-        return result;
+        return executeGoalPlan(this.planner, goal, maxAttempts);
     }
 
     async _act() {

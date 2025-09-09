@@ -1,75 +1,163 @@
-const Term = require('../core/Term');
 const Task = require('../core/Task');
-const { parseTerm } = require('../parser/narseseParser');
-const { info, error } = require('../utils/logger');
-const { handleError } = require('../utils/error-handler');
 
+/**
+ * Memory utilities for task and term management
+ */
 
-function exportMemoryState(memory) {
-    const terms = Array.from(memory.terms.entries()).map(([key, term]) => ({
-        key: term.key,
-        embedding: Array.from(term.embedding),
-        complexity: term.complexity
-    }));
+/**
+ * Consolidates memory by moving high priority/confidence tasks to long term storage
+ * @param {Map} shortTermTasks - Short term task map
+ * @param {Map} longTermTasks - Long term task map
+ * @param {object} config - Memory configuration
+ * @returns {object} Updated task maps
+ */
+function consolidateMemory(shortTermTasks, longTermTasks, config) {
+    const priorityThreshold = config.memory.CONSOLIDATION_PRIORITY_THRESHOLD;
+    const confidenceThreshold = config.memory.CONSOLIDATION_CONFIDENCE_THRESHOLD;
 
-    const tasks = memory.getAllTasks().map(task => ({
-        id: task.id,
-        termKey: task.termKey,
-        punctuation: task.punctuation,
-        state: {
-            priority: task.state.priority,
-            truthValue: { ...task.state.truthValue },
-            stamp: {
-                creationTime: Number(task.state.stamp.creationTime),
-                lastAccessed: Number(task.state.stamp.lastAccessed),
-                ...(task.state.stamp.occurrenceTime && { occurrenceTime: Number(task.state.stamp.occurrenceTime) }),
-                ...(task.state.stamp.endTime && { endTime: Number(task.state.stamp.endTime) })
-            }
+    const tasksToMove = [];
+    for (const [taskId, task] of shortTermTasks.entries()) {
+        if (task.state.priority >= priorityThreshold || task.state.truthValue.confidence >= confidenceThreshold) {
+            tasksToMove.push([taskId, task]);
         }
-    }));
+    }
+
+    // Create new maps to avoid mutating the originals
+    const newShortTermTasks = new Map(shortTermTasks);
+    const newLongTermTasks = new Map(longTermTasks);
+
+    for (const [taskId, task] of tasksToMove) {
+        newLongTermTasks.set(taskId, task);
+        newShortTermTasks.delete(taskId);
+    }
 
     return {
-        terms,
-        tasks,
-        timestamp: Date.now()
+        shortTermTasks: newShortTermTasks,
+        longTermTasks: newLongTermTasks
     };
 }
 
-async function importMemoryState(memory, state) {
-    try {
-        memory.clear();
-
-        for (const termData of state.terms) {
-            const term = new Term(termData.key, termData.embedding, termData.complexity);
-            memory.addTerm(term);
-        }
-
-        for (const taskData of state.tasks) {
-            try {
-                const term = memory.getTerm(taskData.termKey) || parseTerm(taskData.termKey);
-                if (term) {
-                    const task = new Task(term, taskData.punctuation, taskData.state.truthValue, {
-                        creationTime: BigInt(taskData.state.stamp.creationTime),
-                        lastAccessed: BigInt(taskData.state.stamp.lastAccessed),
-                        ...(taskData.state.stamp.occurrenceTime && { occurrenceTime: BigInt(taskData.state.stamp.occurrenceTime) }),
-                        ...(taskData.state.stamp.endTime && { endTime: BigInt(taskData.state.stamp.endTime) })
-                    });
-                    task.id = taskData.id;
-                    memory.addTasks([task]);
-                }
-            } catch (err) {
-                error(`Error importing task ${taskData.id}:`, err);
-            }
-        }
-
-        info(`Successfully imported memory state with ${state.terms.length} terms and ${state.tasks.length} tasks`);
-    } catch (err) {
-        error('Error importing memory state:', err);
-        throw handleError(err, 'Memory state import failed');
+/**
+ * Updates cost index based on term structure
+ * @param {Term} term - Term to process
+ * @param {Map} costIndex - Cost index map
+ * @param {string} operation - Operation type ('add' or 'remove')
+ * @returns {Map} Updated cost index
+ */
+function updateCostIndex(term, costIndex, operation) {
+    if (!term || term.type !== 'Inheritance' || !term.subject || 
+        term.predicate?.type !== 'IntensionalSet' || term.predicate.terms.length !== 1) {
+        return costIndex;
     }
+
+    const cost = parseFloat(term.predicate.terms[0].key);
+    if (isNaN(cost)) return costIndex;
+
+    const actionKey = term.subject.key;
+    const newCostIndex = new Map(costIndex);
+
+    if (operation === 'add') {
+        newCostIndex.set(actionKey, cost);
+    } else {
+        newCostIndex.delete(actionKey);
+    }
+
+    return newCostIndex;
+}
+
+/**
+ * Indexes implications for a term
+ * @param {Term} term - Term to index
+ * @param {Map} implicationIndex - Current implication index
+ * @returns {Map} Updated implication index
+ */
+function indexImplication(term, implicationIndex) {
+    if (term.type !== 'Implication' || !term.subject) return implicationIndex;
+
+    const goalTerm = (term.subject.type === 'SequentialConjunction' && term.subject.terms.length > 0)
+        ? term.subject.terms[0]
+        : term.subject;
+    const goalKey = goalTerm.key;
+
+    const newImplicationIndex = new Map(implicationIndex);
+    if (!newImplicationIndex.has(goalKey)) {
+        newImplicationIndex.set(goalKey, []);
+    }
+    
+    const currentImplications = newImplicationIndex.get(goalKey) || [];
+    newImplicationIndex.set(goalKey, [...currentImplications, term]);
+    
+    return newImplicationIndex;
+}
+
+/**
+ * Indexes a task for belief queries
+ * @param {Task} task - Task to index
+ * @param {Map} beliefIndex - Current belief index
+ * @returns {Map} Updated belief index
+ */
+function indexTask(task, beliefIndex) {
+    if (!Task.isBelief(task)) return beliefIndex;
+
+    const newBeliefIndex = new Map(beliefIndex);
+    const currentBeliefs = newBeliefIndex.get(task.termKey) || [];
+    newBeliefIndex.set(task.termKey, [...currentBeliefs, task]);
+    
+    return newBeliefIndex;
+}
+
+/**
+ * Unindexes a task from belief queries
+ * @param {Task} task - Task to unindex
+ * @param {Map} beliefIndex - Current belief index
+ * @returns {Map} Updated belief index
+ */
+function unindexTask(task, beliefIndex) {
+    if (!Task.isBelief(task) || !beliefIndex.has(task.termKey)) return beliefIndex;
+
+    const newBeliefIndex = new Map(beliefIndex);
+    const beliefs = [...newBeliefIndex.get(task.termKey)];
+    const index = beliefs.indexOf(task);
+    
+    if (index !== -1) {
+        beliefs.splice(index, 1);
+        if (beliefs.length === 0) {
+            newBeliefIndex.delete(task.termKey);
+        } else {
+            newBeliefIndex.set(task.termKey, beliefs);
+        }
+    }
+    
+    return newBeliefIndex;
+}
+
+/**
+ * Gets highest priority tasks using priority queue for efficiency
+ * @param {Array} tasks - Array of tasks
+ * @param {number} k - Number of tasks to return
+ * @returns {Array} Highest priority tasks
+ */
+function getHighestPriorityTasksWithPQ(tasks, k) {
+    const {MinPriorityQueue} = require('@datastructures-js/priority-queue');
+    const pq = new MinPriorityQueue({ priority: (task) => task.state.priority });
+    
+    for (const task of tasks) {
+        if (pq.size() < k) {
+            pq.enqueue(task);
+        } else if (task.state.priority > pq.front().priority) {
+            pq.dequeue();
+            pq.enqueue(task);
+        }
+    }
+    
+    return pq.toArray().map(item => item.element).sort((a, b) => b.state.priority - a.state.priority);
 }
 
 module.exports = {
-    exportMemoryState,
-    importMemoryState,
+    consolidateMemory,
+    updateCostIndex,
+    indexImplication,
+    indexTask,
+    unindexTask,
+    getHighestPriorityTasksWithPQ
 };

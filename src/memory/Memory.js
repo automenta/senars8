@@ -3,7 +3,14 @@ const Task = require('../core/Task');
 const EventBus = require('../system/EventBus');
 const config = require('../config');
 const {normalizeToArray} = require('../utils/array-utils');
-const {MinPriorityQueue} = require('@datastructures-js/priority-queue');
+const {
+    consolidateMemory,
+    updateCostIndex,
+    indexImplication,
+    indexTask,
+    unindexTask,
+    getHighestPriorityTasksWithPQ
+} = require('./memoryUtils');
 
 class Memory {
     constructor() {
@@ -46,21 +53,9 @@ class Memory {
     }
 
     _consolidateMemory() {
-        const priorityThreshold = config.memory.CONSOLIDATION_PRIORITY_THRESHOLD;
-        const confidenceThreshold = config.memory.CONSOLIDATION_CONFIDENCE_THRESHOLD;
-
-        const tasksToMove = [];
-        for (const [taskId, task] of this.shortTermTasks.entries()) {
-            if (task.state.priority >= priorityThreshold || task.state.truthValue.confidence >= confidenceThreshold) {
-                tasksToMove.push([taskId, task]);
-            }
-        }
-
-        for (const [taskId, task] of tasksToMove) {
-            this.longTermTasks.set(taskId, task);
-            this.shortTermTasks.delete(taskId);
-        }
-        
+        const result = consolidateMemory(this.shortTermTasks, this.longTermTasks, config);
+        this.shortTermTasks = result.shortTermTasks;
+        this.longTermTasks = result.longTermTasks;
         this._invalidateTaskCache();
     }
 
@@ -78,17 +73,7 @@ class Memory {
     }
 
     _indexImplication(term) {
-        if (term.type !== 'Implication' || !term.subject) return;
-
-        const goalTerm = (term.subject.type === 'SequentialConjunction' && term.subject.terms.length > 0)
-            ? term.subject.terms[0]
-            : term.subject;
-        const goalKey = goalTerm.key;
-
-        if (!this.implicationIndex.has(goalKey)) {
-            this.implicationIndex.set(goalKey, []);
-        }
-        this.implicationIndex.get(goalKey).push(term);
+        this.implicationIndex = indexImplication(term, this.implicationIndex);
     }
 
     addTerm(term) {
@@ -106,27 +91,13 @@ class Memory {
     }
 
     _indexTask(task) {
-        if (!Task.isBelief(task)) return;
-
-        if (!this.beliefIndex.has(task.termKey)) {
-            this.beliefIndex.set(task.termKey, []);
-        }
-        this.beliefIndex.get(task.termKey).push(task);
-        this._updateCostIndex(task.term, 'add');
+        this.beliefIndex = indexTask(task, this.beliefIndex);
+        this.costIndex = updateCostIndex(task.term, this.costIndex, 'add');
     }
 
     _unindexTask(task) {
-        if (!Task.isBelief(task) || !this.beliefIndex.has(task.termKey)) return;
-
-        const beliefs = this.beliefIndex.get(task.termKey);
-        const index = beliefs.indexOf(task);
-        if (index !== -1) {
-            beliefs.splice(index, 1);
-            if (beliefs.length === 0) {
-                this.beliefIndex.delete(task.termKey);
-            }
-        }
-        this._updateCostIndex(task.term, 'remove');
+        this.beliefIndex = unindexTask(task, this.beliefIndex);
+        this.costIndex = updateCostIndex(task.term, this.costIndex, 'remove');
     }
 
     addTasks(tasks) {
@@ -160,40 +131,11 @@ class Memory {
         }
     }
 
-    _updateCostIndex(term, operation) {
-        if (!term || term.type !== 'Inheritance' || !term.subject || term.predicate?.type !== 'IntensionalSet' || term.predicate.terms.length !== 1) {
-            return;
-        }
-
-        const cost = parseFloat(term.predicate.terms[0].key);
-        if (isNaN(cost)) return;
-
-        const actionKey = term.subject.key;
-        if (operation === 'add') {
-            this.costIndex.set(actionKey, cost);
-        } else {
-            this.costIndex.delete(actionKey);
-        }
-    }
-
     getAllTasks() {
         if (!this._cachedAllTasks) {
             this._cachedAllTasks = [...this.shortTermTasks.values(), ...this.longTermTasks.values()];
         }
         return this._cachedAllTasks;
-    }
-
-    _getHighestPriorityTasksWithPQ(tasks, k) {
-        const pq = new MinPriorityQueue({ priority: (task) => task.state.priority });
-        for (const task of tasks) {
-            if (pq.size() < k) {
-                pq.enqueue(task);
-            } else if (task.state.priority > pq.front().priority) {
-                pq.dequeue();
-                pq.enqueue(task);
-            }
-        }
-        return pq.toArray().map(item => item.element).sort((a, b) => b.state.priority - a.state.priority);
     }
 
     getHighestPriorityTasks(k = 20) {
@@ -203,7 +145,7 @@ class Memory {
         const usePQ = k < 50 && k < allTasks.length / 10;
 
         if (usePQ) {
-            return this._getHighestPriorityTasksWithPQ(allTasks, k);
+            return getHighestPriorityTasksWithPQ(allTasks, k);
         } else {
             return [...allTasks].sort((a, b) => b.state.priority - a.state.priority).slice(0, k);
         }

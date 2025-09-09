@@ -1,5 +1,6 @@
 const { error: logError } = require('./logger');
 
+// Error classes
 class ValidationError extends Error {
     constructor(message) {
         super(message);
@@ -21,23 +22,30 @@ class InferenceError extends Error {
     }
 }
 
-function handleError(error, context, shouldThrow = true) {
+// Consistent error handling functions
+function logAndReturn(error, context, returnValue = null) {
+    logError(`${context}:`, error);
+    return returnValue;
+}
+
+function logAndThrow(error, context) {
     logError(`${context}:`, error);
     
-    if (shouldThrow) {
-        if (error instanceof ValidationError || error instanceof ParseError || error instanceof InferenceError) {
-            error.message = `${context}: ${error.message}`;
-            return error;
-        }
-        return new Error(`${context}: ${error.message}`);
+    // Preserve specific error types or create a generic one
+    if (error instanceof ValidationError || error instanceof ParseError || error instanceof InferenceError) {
+        error.message = `${context}: ${error.message}`;
+        return error;
     }
     
-    return null;
+    return new Error(`${context}: ${error.message}`);
+}
+
+function handleError(error, context, shouldThrow = true) {
+    return shouldThrow ? logAndThrow(error, context) : logAndReturn(error, context, null);
 }
 
 function handleErrorWithDefault(error, context, defaultValue = null) {
-    logError(`${context}:`, error);
-    return defaultValue;
+    return logAndReturn(error, context, defaultValue);
 }
 
 function withErrorHandling(fn, context, defaultValue = null) {
@@ -50,17 +58,10 @@ function withErrorHandling(fn, context, defaultValue = null) {
     };
 }
 
-function createValidationError(message) {
-    return new ValidationError(message);
-}
-
-function createParseError(message) {
-    return new ParseError(message);
-}
-
-function createInferenceError(message) {
-    return new InferenceError(message);
-}
+// Factory functions for specific error types
+const createValidationError = (message) => new ValidationError(message);
+const createParseError = (message) => new ParseError(message);
+const createInferenceError = (message) => new InferenceError(message);
 
 module.exports = {
     handleError,

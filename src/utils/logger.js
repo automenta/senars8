@@ -7,43 +7,37 @@ const LOG_LEVELS = {
 
 const currentLogLevel = LOG_LEVELS[process.env.LOG_LEVEL] || LOG_LEVELS.INFO;
 
-function shouldLog(level) {
-    return level <= currentLogLevel;
-}
+const shouldLog = (level) => level <= currentLogLevel;
 
-function formatLog(level, message, ...args) {
+const formatLog = (level, message, ...args) => {
     const timestamp = new Date().toISOString();
     const formattedMessage = `[${timestamp}] [${level}] ${message}`;
-    if (args.length > 0) {
-        console.log(formattedMessage, ...args);
-    } else {
-        console.log(formattedMessage);
-    }
-}
+    console.log(formattedMessage, ...args);
+};
 
-function error(message, ...args) {
+const error = (message, ...args) => {
     if (shouldLog(LOG_LEVELS.ERROR)) {
         formatLog('ERROR', message, ...args);
     }
-}
+};
 
-function warn(message, ...args) {
+const warn = (message, ...args) => {
     if (shouldLog(LOG_LEVELS.WARN)) {
         formatLog('WARN', message, ...args);
     }
-}
+};
 
-function info(message, ...args) {
+const info = (message, ...args) => {
     if (shouldLog(LOG_LEVELS.INFO)) {
         formatLog('INFO', message, ...args);
     }
-}
+};
 
-function debug(message, ...args) {
+const debug = (message, ...args) => {
     if (shouldLog(LOG_LEVELS.DEBUG)) {
         formatLog('DEBUG', message, ...args);
     }
-}
+};
 
 module.exports = {
     error,

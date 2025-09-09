@@ -1,10 +1,5 @@
-function normalizeToArray(input) {
-    return Array.isArray(input) ? input : [input];
-}
-
-function isNonEmptyArray(input) {
-    return Array.isArray(input) && input.length > 0;
-}
+const normalizeToArray = (input) => Array.isArray(input) ? input : [input];
+const isNonEmptyArray = (input) => Array.isArray(input) && input.length > 0;
 
 module.exports = {
     normalizeToArray,

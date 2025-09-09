@@ -19,17 +19,21 @@ class Bag {
             return;
         }
 
+        // Sort in descending order of priority
         this.items.sort((a, b) => b.priority - a.priority);
 
+        // Trim to capacity if needed
         if (this.items.length > this.capacity) {
             this.items.length = this.capacity;
         }
 
+        // Recalculate cumulative priorities and total
         this.totalPriority = 0;
         this.cumulativePriorities = [];
-        for (const entry of this.items) {
-            this.totalPriority += entry.priority;
-            this.cumulativePriorities.push(this.totalPriority);
+        
+        for (let i = 0; i < this.items.length; i++) {
+            this.totalPriority += this.items[i].priority;
+            this.cumulativePriorities[i] = this.totalPriority;
         }
 
         this.isDirty = false;
@@ -41,15 +45,20 @@ class Bag {
         }
 
         const random = Math.random() * this.totalPriority;
-        let low = 0, high = this.cumulativePriorities.length - 1;
+        
+        // Binary search for the item
+        let low = 0;
+        let high = this.cumulativePriorities.length - 1;
+        
         while (low < high) {
-            const mid = Math.floor((low + high) / 2);
+            const mid = (low + high) >>> 1; // Unsigned right shift for faster integer division
             if (random > this.cumulativePriorities[mid]) {
                 low = mid + 1;
             } else {
                 high = mid;
             }
         }
+        
         return this.items[low].item;
     }
 

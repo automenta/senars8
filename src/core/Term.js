@@ -1,21 +1,18 @@
 const {parseTerm} = require('../parser/narseseParser');
+const {cosineSimilarity} = require('../utils/math');
+const config = require('../config');
 
 class Term {
     constructor(key, embedding = [], complexity = 1) {
-        const isValidKey = typeof key === 'string' && key.length > 0;
-        
-        if (!isValidKey) {
+        if (typeof key !== 'string' || key.length === 0) {
             throw new Error('Invalid key for Term constructor: key must be a non-empty string');
         }
 
-        // Initialize core properties
         this.key = key;
         this.embedding = Object.freeze([...embedding]);
         this.complexity = complexity;
-
-        // Lazy initialization of structure and cache
         this._structure = null;
-        this._componentCache = new Map(); // Use Map for better performance and clearer semantics
+        this._componentCache = new Map();
     }
 
     _getStructure() {
@@ -105,7 +102,7 @@ class Term {
         for (let i = 0; i < this.key.length; i++) {
             const char = this.key.charCodeAt(i);
             hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // Convert to 32bit integer
+            hash = hash & hash;
         }
         return hash;
     }
@@ -138,10 +135,16 @@ class Term {
             .map(([key, term]) => {
                 const semantic = cosineSimilarity(targetTerm.embedding, term.embedding);
                 const structural = Term.structuralSimilarity(targetTermKey, key);
-                return {termKey: key, similarity: config.temporal.REGULARITY_BOOST * semantic + config.temporal.STRUCTURAL_SIMILARITY_WEIGHT * structural};
+                return {
+                    termKey: key, 
+                    similarity: config.temporal.REGULARITY_BOOST * semantic + 
+                               config.temporal.STRUCTURAL_SIMILARITY_WEIGHT * structural
+                };
             });
 
-        return similarities.sort((a, b) => b.similarity - a.similarity).slice(0, maxResults);
+        return similarities
+            .sort((a, b) => b.similarity - a.similarity)
+            .slice(0, maxResults);
     }
 
     static termsEqual(term1, term2) {
@@ -154,12 +157,21 @@ class Term {
     static buildTermKey(pTerm) {
         if (!pTerm || !pTerm.type) return '';
 
-        const build = Term.buildTermKey; // Alias for recursion
+        const build = Term.buildTermKey;
         const buildList = (terms) => terms.map(build).join(',');
 
         switch (pTerm.type) {
+            // Atomic terms
             case 'Atomic':
                 return pTerm.key;
+            case 'IndependentVariable':
+                return pTerm.name;
+            case 'DependentVariable':
+                return `#${pTerm.name}`;
+            case 'QueryVariable':
+                return `?${pTerm.name}`;
+
+            // Binary relations
             case 'Inheritance':
                 return `(${build(pTerm.subject)} --> ${build(pTerm.predicate)})`;
             case 'Implication':
@@ -183,6 +195,7 @@ class Term {
             case 'Since':
                 return `(${build(pTerm.subject)} since ${build(pTerm.predicate)})`;
 
+            // Unary operators
             case 'Negation':
                 return `(--,${build(pTerm.term)})`;
             case 'Always':
@@ -194,6 +207,7 @@ class Term {
             case 'Previous':
                 return `(previous,${build(pTerm.term)})`;
 
+            // N-ary operators
             case 'Conjunction':
                 return `(&,${buildList(pTerm.terms || [])})`;
             case 'Disjunction':
@@ -209,17 +223,11 @@ class Term {
             case 'Product':
                 return `(*,${buildList(pTerm.terms || [])})`;
 
+            // Sets
             case 'ExtensionalSet':
                 return `{${buildList(pTerm.terms || [])}}`;
             case 'IntensionalSet':
                 return `[${buildList(pTerm.terms || [])}]`;
-
-            case 'IndependentVariable':
-                return pTerm.name;
-            case 'DependentVariable':
-                return `#${pTerm.name}`;
-            case 'QueryVariable':
-                return `?${pTerm.name}`;
 
             default:
                 throw new Error(`buildTermKey does not support type: ${pTerm.type}`);
