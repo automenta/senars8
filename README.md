@@ -73,6 +73,131 @@ The `Constitution` (`src/system/Constitution.js`) serves as the system's immutab
 
 ---
 
+## Current Implementation Status
+
+This repository contains a working implementation of the SeNARS cognitive system as specified in the full specification.
+The system includes all core components and demonstrates the key principles of neuro-symbolic cognition.
+
+---
+
+### 1. Core Principles (Implemented)
+
+1. **Unified Knowledge Hypergraph**: ✅ Implemented with `Term` and `Task` classes
+2. **Term/Task Distinction**: ✅ Strictly maintained in the implementation
+3. **Pragmatic Economic Attention**: ✅ Priority calculation implemented
+4. **Motive-Driven Cognition**: ✅ Constitution with drives and constraints
+5. **Recursive Meta-Cognition**: ✅ Basic contradiction detection and analysis
+6. **Neuro-Symbolic Synergy**: ✅ Integration with transformer models via LM class
+
+---
+
+### 2. System Architecture (Implemented)
+
+```mermaid
+graph TD
+    subgraph "SeNARS Cognitive Core"
+        Reasoner[Reasoner Symbolic Inference & Meta-Cognition]
+        Memory[MEMORY Term Hypergraph & Task Collection]
+        LM[LM LM-Powered Engine]
+
+        Reasoner <--> Memory
+        Reasoner -- Triggers on Gaps/Needs --> LM
+        LM -- Injects Knowledge --> Memory
+    end
+
+    subgraph "Interfaces"
+        Perception -- Creates Tasks --> Memory
+        ActionSystem -- Executes Goals from --> Reasoner
+    end
+
+    subgraph "Foundational Layer"
+        Constitution[CONSTITUTION Immutable Drives & Constraints] -- Provides Salience Gradients --> Memory
+    end
+
+    subgraph "System-Wide"
+        EventBus((Event Bus))
+        Perception -- Publishes --> EventBus
+        EventBus -- Notifies --> Memory
+        EventBus -- Notifies --> MetaCognition
+    end
+```
+
+#### 2.1 Event Bus Architecture
+
+To enhance modularity and extensibility, the system uses a central **`EventBus`**. Components can publish events (e.g., `NewTasksCreated`) and subscribe to them, allowing for decoupled communication and making it easier to add new functionality without modifying core components.
+
+---
+
+### 3. Knowledge Representation (Implemented)
+
+#### 3.1 `Term`: The Immutable Vocabulary
+
+- **Purpose**: A unique, canonical, and *intelligent* representation of a concept or relationship.
+- **Structure**:
+    - `key: string`: The formal, Narsese-inspired syntax.
+    - `embedding: number[]`: A dense vector representation from the `LM`.
+    - `complexity: number`: A static measure of structural complexity.
+- **Intelligence**: The `Term` class is not just a data container. It parses its own key upon instantiation, caching its Narsese structure. This allows for efficient access to its components (e.g., `term.subject`, `term.predicate`) as full `Term` instances, making the rest of the system's code cleaner and more performant.
+
+#### 3.2 `Task`: The Stateful Cognitive Atom
+
+- **Purpose**: A specific, evidence-backed statement (belief, goal, or question) about a `Term`.
+- **Structure**:
+    - `id: string`: Unique identifier for this specific cognitive act.
+    - `termKey: string`: Foreign key pointing to a `Term`'s key.
+    - `punctuation: '.' | '!' | '?'`: Belief (Judgment), Goal, or Question.
+    - `state`:
+        - `priority: number`: The current attentional focus score.
+        - `truthValue: { frequency: number, confidence: number }`: Evidence-based belief strength.
+        - `stamp: { creationTime: number, occurrenceTime?: number }`: For temporal and causal reasoning.
+
+---
+
+### 4. The Constitution (Implemented)
+
+- **Purpose**: An immutable, pre-loaded set of `Task`s defining the system's foundational motivations and safety
+  constraints.
+- **Content**:
+    - **Drives (High-Priority, Permanent Goals)**:
+        - `AcquireKnowledge!`
+        - `ReduceUncertainty!`
+        - `MaintainCoherence!` (Resolve contradictions)
+        - **`MaintainCognitiveIntegrity!`**: The core meta-cognitive drive for self-improvement.
+    - **Constraints (High-Confidence Beliefs about Negative Outcomes)**:
+        - `((&, self, cause_harm) ==> NEGATIVE_OUTCOME).`
+
+---
+
+### 5. The Cycle (Core Loop) (Implemented)
+
+The cognitive cycle is implemented in `src/system/Cycle.js` and follows the specification:
+
+1. **Perception**: Ingest new information from the world (implemented in `src/system/Perception.js`).
+2. **Prioritization**: Apply economic attention to all tasks.
+3. **Inference**: Reason upon the most salient tasks.
+4. **Meta-Cognition**: Detect and analyze reasoning failures.
+5. **Semantic Enrichment & Action**: Process new terms and execute goals.
+
+---
+
+### 6. Core Mechanisms (Partially Implemented)
+
+#### 6.1 Dynamic Priority Calculation (Economic Attention)
+
+✅ Implemented in `src/system/Cycle.js`
+
+#### 6.2 Reasoner & Meta-Cognition
+
+✅ Basic inference rules (deduction, induction, abduction, analogy) implemented in `src/reasoner/`
+✅ Basic contradiction detection in `src/system/MetaCognition.js`
+
+#### 6.3 The LM (Neuro-Symbolic Engine)
+
+✅ Integration with transformer models via ` @xenova/transformers` in `src/lm/LM.js`
+✅ Term embedding generation implemented
+
+---
+
 ## Development Roadmap
 
 ### Track 1: Core Cognition & Self-Improvement
@@ -137,3 +262,133 @@ The `Constitution` (`src/system/Constitution.js`) serves as the system's immutab
     - **Action:** The system will maintain and update its model of the user's context and goals. It will use this model to proactively fetch relevant information, identify potential flaws or biases in the user's stated plans, and offer suggestions and insights *before* being explicitly asked.
     - **Benefit:** The ultimate vision of a cognitive partner: an AI that acts as a true extension and enhancement of the user's own mind.
     - **Key Question:** How can the system provide proactive assistance without becoming intrusive or making incorrect assumptions about the user's intent?
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v14 or higher)
+- npm
+
+### Installation
+
+```bash
+npm install
+```
+
+### Running the Interactive Demo Runner
+
+To explore the system's capabilities, use the interactive demo runner:
+
+```bash
+npm run start:demo
+```
+
+This command will present you with a list of available demos. You can choose to run a specific demo or all of them sequentially. This is the best way to see the system in action.
+
+### Running Tests
+
+```bash
+npm test
+```
+
+---
+
+## Usage as a Library
+
+You can easily integrate the SeNARS system into your own projects.
+
+```javascript
+const { System } = require('./src'); // Assuming you have an index.js in src
+const { Task } = require('./src/core/Task');
+const { parseTerm } = require('./src/parser/narseseParser');
+
+async function runSystem() {
+    // 1. Initialize the system
+    const system = new System();
+    await system.initialize();
+
+    // 2. Add knowledge to the system
+    const belief = new Task(
+        parseTerm('<cat --> animal>.'),
+        '.',
+        { frequency: 1.0, confidence: 0.9 }
+    );
+    await system.addTasks([belief]);
+
+    console.log('System initialized and belief added.');
+
+    // 3. Run the cognitive cycle
+    for (let i = 0; i < 10; i++) {
+        const output = await system.runCycle();
+        console.log(`Cycle ${i+1} complete. Derived ${output.derivedTasks} new tasks.`);
+    }
+
+    system.stop();
+}
+
+runSystem();
+```
+
+---
+
+## Contributing
+
+We welcome contributions from the community! To contribute, please follow these guidelines:
+
+1.  **Fork the repository.**
+2.  **Create a new branch** for your feature or bug fix.
+3.  **Follow the coding style:** Adhere to the principles outlined in `AGENTS.md`. The code should be clean, self-documenting, and elegant.
+4.  **Write tests** for any new functionality.
+5.  **Submit a pull request** with a clear description of your changes.
+
+### Project Structure
+
+```
+senars8/
+├── src/
+│   ├── core/          # Core classes (Term, Task, TaskFactory)
+│   ├── memory/        # Memory management (Memory)
+│   ├── parser/        # Narsese lexer and parser
+│   ├── reasoner/      # Inference engine and strategies
+│   ├── lm/            # Language model integration
+│   ├── system/        # High-level system components (System, Cycle, etc.)
+│   └── utils/         # Utility functions
+├── demos/             # Demonstration scripts (including interactive-runner.js)
+├── tests/             # Test suite
+├── package.json       # Project dependencies
+└── README.md          # This file
+```
+
+---
+
+## Features
+
+- **Symbolic Reasoning**: Formal inference with deduction, induction, abduction, and analogy
+- **Neuro-Symbolic Integration**: Embedding-based semantic similarity and term grounding
+- **Attention Mechanism**: Economic attention model for task prioritization
+- **Meta-Cognition**: Contradiction detection with an extensible, strategy-pattern-based resolution system.
+- **Planning**: A sophisticated, graph-integrated Hierarchical Task Network (HTN) planner that decomposes complex goals by querying planning knowledge stored directly in the knowledge graph.
+- **Temporal Reasoning**: Time-aware task processing
+
+---
+
+## Demos
+
+1. **Math Inference Demo**: Tests logical inference with mathematical relationships
+2. **Planning Demo**: Demonstrates goal-directed behavior and planning
+3. **Comprehensive System Demo**: Full system demonstration with complex knowledge
+4. **NLP Integration Demo**: Shows natural language processing capabilities
+5. **Contradiction Resolution Demo**: Demonstrates meta-cognitive capabilities
+
+---
+
+## Future Work
+
+- Enhanced meta-cognition with more sophisticated contradiction resolution
+- Advanced LM capabilities (hypothesis generation, explanation)
+- More complex perception interfaces
+- Extended action execution system
+- Improved temporal reasoning capabilities
