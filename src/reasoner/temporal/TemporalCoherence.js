@@ -1,8 +1,6 @@
 const Task = require('../../core/Task');
 const {parseTerm} = require('../../parser/narseseParser');
-const {
-    calculateTemporalCoherence
-} = require('../../utils/temporal-reasoning');
+const { calculateTemporalCoherence } = require('../../utils/temporal/summary');
 const {debug} = require('../../utils/logger');
 const {handleErrorWithDefault} = require('../../utils/error-handler');
 const config = require('../../config');

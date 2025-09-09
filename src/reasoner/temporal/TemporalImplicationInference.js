@@ -1,6 +1,4 @@
-const {
-    inferTemporalImplications
-} = require('../../utils/temporal-reasoning');
+const { inferTemporalImplications } = require('../../utils/temporal/implication');
 const {debug} = require('../../utils/logger');
 const {handleErrorWithDefault} = require('../../utils/error-handler');
 const config = require('../../config');

@@ -10,6 +10,13 @@ const {LM: LM_CONFIG} = require('../config');
 const HypothesisGenerator = require('./HypothesisGenerator');
 const {handleError, handleErrorWithDefault} = require('../utils/error-handler');
 const {info, error, debug, warn} = require('../utils/logger');
+const zod = require('zod');
+
+const PIPELINE_TYPES = {
+    FEATURE_EXTRACTION: 'feature-extraction',
+    TEXT_GENERATION: 'text-generation',
+    QUESTION_ANSWERING: 'question-answering',
+};
 
 class PipelineFactory {
     constructor() {
@@ -25,8 +32,8 @@ class PipelineFactory {
         }
         return this._pipelines.get(key);
     }
-    
-    async dispose() {
+
+    dispose() {
         info('Disposing all pipelines');
         this._pipelines.clear();
     }
@@ -52,15 +59,14 @@ class LM {
         debug('Memory set for LM');
     }
 
-    // Pipeline management methods
     async _getFeaturePipeline() {
         debug('Getting feature extraction pipeline');
-        return this.pipelineFactory.get('feature-extraction', LM_CONFIG.FEATURE_EXTRACTION_MODEL);
+        return this.pipelineFactory.get(PIPELINE_TYPES.FEATURE_EXTRACTION, LM_CONFIG.FEATURE_EXTRACTION_MODEL);
     }
 
     async _getGenerationPipeline() {
         debug('Getting text generation pipeline');
-        const pipeline = await this.pipelineFactory.get('text-generation', LM_CONFIG.TEXT_GENERATION_MODEL, {useCache: false});
+        const pipeline = await this.pipelineFactory.get(PIPELINE_TYPES.TEXT_GENERATION, LM_CONFIG.TEXT_GENERATION_MODEL, {useCache: false});
         if (!this.llm) {
             info('Initializing XenovaLLM');
             this.llm = new XenovaLLM(pipeline);
@@ -70,15 +76,14 @@ class LM {
 
     async _getQAPipeline() {
         debug('Getting QA pipeline');
-        return this.pipelineFactory.get('question-answering', LM_CONFIG.QA_MODEL, {maxLength: 512});
+        return this.pipelineFactory.get(PIPELINE_TYPES.QUESTION_ANSWERING, LM_CONFIG.QA_MODEL, {maxLength: 512});
     }
 
-    // Core generation methods
     async _generate(prompt, options = {}) {
         if (!prompt || typeof prompt !== 'string') {
             throw new Error('Prompt must be a non-empty string');
         }
-        
+
         try {
             debug('Generating text with prompt length:', prompt.length);
             await this._getGenerationPipeline();
@@ -95,7 +100,7 @@ class LM {
         if (!promptTemplate || !outputSchema) {
             throw new Error('Prompt template and output schema are required');
         }
-        
+
         debug('Creating structured chain');
         const parser = StructuredOutputParser.fromZodSchema(outputSchema);
         const prompt = new PromptTemplate({
@@ -110,7 +115,7 @@ class LM {
         if (!resultText || typeof resultText !== 'string') {
             return null;
         }
-        
+
         try {
             debug('Parsing structured result');
             const match = resultText.match(/```json\n(.*)\n```/s);
@@ -121,17 +126,15 @@ class LM {
             return result;
         } catch (e) {
             error('Error parsing structured result:', e);
-            // Silently fail for structured result parsing
             return null;
         }
     }
 
-    // Term management methods
     async bootstrapTerm(termKey) {
         if (typeof termKey !== 'string' || termKey.length === 0) {
             throw new Error('termKey must be a non-empty string.');
         }
-        
+
         try {
             debug(`Bootstrapping term: ${termKey}`);
             const extractor = await this._getFeaturePipeline();
@@ -147,15 +150,9 @@ class LM {
         }
     }
 
-    // Hypothesis generation methods (delegated to HypothesisGenerator)
     async generateHypotheses(tasks, config = {}) {
         debug(`Generating hypotheses for ${tasks.length} tasks`);
         return this.hypothesisGenerator.generateHypotheses(tasks, config);
-    }
-
-    async generateHypothesis(task, config = {}) {
-        debug('Generating hypothesis for task');
-        return this.hypothesisGenerator.generateHypothesis(task, config);
     }
 
     async evaluateAndRankHypotheses(tasks, hypotheses) {
@@ -168,7 +165,6 @@ class LM {
         return this.hypothesisGenerator.refineHypothesis(hypothesis, refinementType);
     }
 
-    // Explanation methods
     async explain(termKey, config = {}) {
         const {type = 'simple', context = null, promptTemplate = null} = config;
         if (!promptTemplate && (!termKey || typeof termKey !== 'string')) {
@@ -203,12 +199,11 @@ class LM {
         return prompts[type] || prompts.simple;
     }
 
-    // Question answering methods
     async answerQuestion(question, context = null) {
         if (!question || typeof question !== 'string') {
             return "Cannot answer an empty question.";
         }
-        
+
         try {
             debug(`Answering question: ${question.substring(0, 50)}...`);
             if (context) {
@@ -219,7 +214,7 @@ class LM {
                     return result.answer;
                 }
             }
-            
+
             const prompt = context ? `Context: ${context}\nQuestion: ${question}\nAnswer:` : `Question: ${question}\nAnswer:`;
             const answer = await this._generate(prompt);
             debug('Question answered using generation');
@@ -230,33 +225,31 @@ class LM {
         }
     }
 
-    // Planning methods
-    async suggestPlanRepair(goalTask, failedPlan) {
-        if (!goalTask) {
-            throw new Error('Goal task is required');
-        }
-        
-        try {
-            debug(`Suggesting plan repair for goal: ${goalTask.termKey}`);
-            await this._getGenerationPipeline();
-
-            const goal = goalTask.termKey;
-            const failedPlanSteps = failedPlan ? failedPlan.map(t => t.key).join(', ') : 'None';
-
-            const context = `
+    _createPlanRepairContext(goal, failedPlan) {
+        const failedPlanSteps = failedPlan ? failedPlan.map(t => t.key).join(', ') : 'None';
+        return `
 Goal: ${goal}
 Failed Plan: ${failedPlanSteps}
 The previous attempt to achieve the goal failed. Please suggest a new sequence of primitive actions to achieve the goal.
 The new plan should be a list of Narsese terms.
 `;
+    }
 
+    async suggestPlanRepair(goalTask, failedPlan) {
+        if (!goalTask) throw new Error('Goal task is required');
+
+        try {
+            debug(`Suggesting plan repair for goal: ${goalTask.termKey}`);
+            await this._getGenerationPipeline();
+
+            const context = this._createPlanRepairContext(goalTask.termKey, failedPlan);
             const chain = this._createStructuredChain(
                 context + "New creative plan:",
-                require('zod').object({plan: require('zod').array(require('zod').string()).describe("A list of Narsese terms for the new plan.")}),
+                zod.object({plan: zod.array(zod.string()).describe("A list of Narsese terms for the new plan.")}),
                 {}
             );
 
-            const result = await chain.call({context: ""}); // context is already in the prompt template
+            const result = await chain.call({context: ""});
             const parsed = this._parseStructuredResult(result.text);
 
             if (!parsed || !parsed.plan) {
@@ -273,30 +266,34 @@ The new plan should be a list of Narsese terms.
         }
     }
 
-    // Proactive enrichment methods with improved error handling and logging
+    _createProactiveEnrichmentContext(tasks) {
+        const newBeliefs = Task.getBeliefTasks(tasks).filter(t => t.state.truthValue.confidence > 0.8);
+        if (newBeliefs.length === 0) return null;
+
+        debug(`Found ${newBeliefs.length} high-confidence beliefs for enrichment`);
+        return "Given the following new beliefs:\n" + newBeliefs.map(t => t.termKey).join('\n');
+    }
+
     async proactiveEnrichment(tasks) {
         if (!tasks || tasks.length === 0) {
             debug('No tasks for proactive enrichment');
             return [];
         }
-        
+
         try {
             debug(`Performing proactive enrichment on ${tasks.length} tasks`);
             await this._getGenerationPipeline();
 
-            const newBeliefs = Task.getBeliefTasks(tasks).filter(t => t.state.truthValue.confidence > 0.8);
-            if (newBeliefs.length === 0) {
+            const context = this._createProactiveEnrichmentContext(tasks);
+            if (!context) {
                 debug('No high-confidence beliefs for enrichment');
                 return [];
             }
 
-            debug(`Found ${newBeliefs.length} high-confidence beliefs for enrichment`);
-            const context = "Given the following new beliefs:\n" + newBeliefs.map(t => t.termKey).join('\n');
             const prompt = context + "\n\nWhat are some interesting implications or related concepts? Generate new knowledge in Narsese format.";
-
             const chain = this._createStructuredChain(
                 prompt,
-                require('zod').object({new_knowledge: require('zod').array(require('zod').string()).describe("A list of new Narsese statements.")}),
+                zod.object({new_knowledge: zod.array(zod.string()).describe("A list of new Narsese statements.")}),
                 {}
             );
 
@@ -320,21 +317,17 @@ The new plan should be a list of Narsese terms.
             return handleErrorWithDefault(err, 'Proactive enrichment error', []);
         }
     }
-    
-    // Get the current pipeline factory statistics
+
     getPipelineStatistics() {
         return {
             pipelineCount: this.pipelineFactory._pipelines.size
         };
     }
-    
-    /**
-     * Cleanup method
-     */
+
     async dispose() {
         info('Disposing LM resources');
         if (this.pipelineFactory) {
-            await this.pipelineFactory.dispose();
+            this.pipelineFactory.dispose();
         }
         this.llm = null;
         this.reasoner = null;

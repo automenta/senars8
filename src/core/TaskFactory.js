@@ -1,5 +1,5 @@
 const Task = require('./Task');
-const {createTemporalTask} = require('../utils/temporal-reasoning');
+const {createTemporalTask} = require('../utils/temporal/task-creation');
 const {parseTerm} = require('../parser/narseseParser');
 const config = require('../config');
 const {handleErrorWithDefault} = require('../utils/error-handler');

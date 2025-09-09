@@ -144,7 +144,7 @@ class System {
     }
 
     findTasksByTermKey(termKey) {
-        return this.memory.findTasksByTermKey(termKey);
+        return this.memory.queryTasks({ termKey });
     }
 
     getHighPriorityTasks(threshold = 0.5) {

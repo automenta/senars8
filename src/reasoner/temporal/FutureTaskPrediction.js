@@ -1,6 +1,4 @@
-const {
-    advancedPredictFutureTasks
-} = require('../../utils/temporal-reasoning');
+const { advancedPredictFutureTasks } = require('../../utils/temporal/prediction');
 const {debug} = require('../../utils/logger');
 const {handleErrorWithDefault} = require('../../utils/error-handler');
 

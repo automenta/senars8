@@ -1,8 +1,6 @@
 const Task = require('../../core/Task');
 const {parseTerm} = require('../../parser/narseseParser');
-const {
-    detectTemporalAnomalies
-} = require('../../utils/temporal-reasoning');
+const { detectTemporalAnomalies } = require('../../utils/temporal/pattern-detection');
 const {debug} = require('../../utils/logger');
 const {handleErrorWithDefault} = require('../../utils/error-handler');
 const config = require('../../config');

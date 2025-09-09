@@ -1,7 +1,5 @@
-const {
-    determineTemporalRelationship,
-    createTemporalRelationshipTask
-} = require('../../utils/temporal-reasoning');
+const { determineTemporalRelationship } = require('../../utils/temporal/query');
+const { createTemporalRelationshipTask } = require('../../utils/temporal/task-creation');
 const {debug} = require('../../utils/logger');
 const {handleErrorWithDefault} = require('../../utils/error-handler');
 const config = require('../../config');

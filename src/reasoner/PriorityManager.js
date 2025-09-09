@@ -1,5 +1,5 @@
 const {cosineSimilarity} = require('../utils/math');
-const {calculateTemporalPriority} = require('../utils/temporal-reasoning');
+const {calculateTemporalPriority} = require('../utils/temporal/priority');
 const config = require('../config');
 
 class PriorityManager {
