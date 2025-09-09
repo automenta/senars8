@@ -17,14 +17,7 @@ power of Large Language Models (LMs).
 
 ---
 
-## **Current Implementation Status**
-
-This repository contains a working implementation of the SeNARS cognitive system as specified in the full specification.
-The system includes all core components and demonstrates the key principles of neuro-symbolic cognition.
-
----
-
-### **1. Core Principles (Implemented)**
+## **Conceptual Overview**
 
 1. **Unified Knowledge Hypergraph**: ✅ Implemented with `Term` and `Task` classes
 2. **Term/Task Distinction**: ✅ Strictly maintained in the implementation
@@ -35,7 +28,7 @@ The system includes all core components and demonstrates the key principles of n
 
 ---
 
-### **2. System Architecture (Implemented)**
+## **System Architecture**
 
 ```mermaid
 graph TD
@@ -66,7 +59,7 @@ graph TD
     end
 ```
 
-#### **2.1 Event Bus Architecture**
+### **Event Bus Architecture**
 
 To enhance modularity and extensibility, the system uses a central **`EventBus`**. Components can publish events (e.g.,
 `NewTasksCreated`) and subscribe to them, allowing for decoupled communication and making it easier to add new
@@ -74,9 +67,25 @@ functionality without modifying core components.
 
 ---
 
-### **3. Knowledge Representation (Implemented)**
+## **Features**
 
-#### **3.1 `Term`: The Immutable Vocabulary**
+- **Symbolic Reasoning**: Formal inference with deduction, induction, abduction, and analogy
+- **Neuro-Symbolic Integration**: Embedding-based semantic similarity and term grounding
+- **Attention Mechanism**: Economic attention model for task prioritization
+- **Meta-Cognition**: Contradiction detection with an extensible, strategy-pattern-based resolution system.
+- **Planning**: A sophisticated, graph-integrated Hierarchical Task Network (HTN) planner that decomposes complex goals
+  by querying planning knowledge stored directly in the knowledge graph.
+- **Temporal Reasoning**: Time-aware task processing
+
+---
+
+## **Implementation Details**
+
+This repository contains a working implementation of the SeNARS cognitive system. The system includes all core components and demonstrates the key principles of neuro-symbolic cognition.
+
+### **Knowledge Representation**
+
+#### **`Term`: The Immutable Vocabulary**
 
 - **Purpose**: A unique, canonical, and *intelligent* representation of a concept or relationship.
 - **Structure**:
@@ -87,7 +96,7 @@ functionality without modifying core components.
   Narsese structure. This allows for efficient access to its components (e.g., `term.subject`, `term.predicate`) as full
   `Term` instances, making the rest of the system's code cleaner and more performant.
 
-#### **3.2 `Task`: The Stateful Cognitive Atom**
+#### **`Task`: The Stateful Cognitive Atom**
 
 - **Purpose**: A specific, evidence-backed statement (belief, goal, or question) about a `Term`.
 - **Structure**:
@@ -99,9 +108,7 @@ functionality without modifying core components.
         - `truthValue: { frequency: number, confidence: number }`: Evidence-based belief strength.
         - `stamp: { creationTime: number, occurrenceTime?: number }`: For temporal and causal reasoning.
 
----
-
-### **4. The Constitution (Implemented)**
+### **The Constitution**
 
 - **Purpose**: An immutable, pre-loaded set of `Task`s defining the system's foundational motivations and safety
   constraints.
@@ -114,9 +121,7 @@ functionality without modifying core components.
     - **Constraints (High-Confidence Beliefs about Negative Outcomes)**:
         - `((&, self, cause_harm) ==> NEGATIVE_OUTCOME).`
 
----
-
-### **5. The Cycle (Core Loop) (Implemented)**
+### **The Cycle (Core Loop)**
 
 The cognitive cycle is implemented in `src/system/Cycle.js` and follows the specification:
 
@@ -126,27 +131,21 @@ The cognitive cycle is implemented in `src/system/Cycle.js` and follows the spec
 4. **Meta-Cognition**: Detect and analyze reasoning failures.
 5. **Semantic Enrichment & Action**: Process new terms and execute goals.
 
----
+### **Core Mechanisms**
 
-### **6. Core Mechanisms (Partially Implemented)**
+- **Dynamic Priority Calculation (Economic Attention)**: Implemented in `src/system/Cycle.js`
+- **Reasoner & Meta-Cognition**: Basic inference rules (deduction, induction, abduction, analogy) implemented in `src/reasoner/`. Basic contradiction detection in `src/system/MetaCognition.js`
+- **The LM (Neuro-Symbolic Engine)**: Integration with transformer models via `@xenova/transformers` in `src/lm/LM.js`. Term embedding generation implemented.
 
-#### **6.1 Dynamic Priority Calculation (Economic Attention)**
-
-✅ Implemented in `src/system/Cycle.js`
-
-#### **6.2 Reasoner & Meta-Cognition**
-
-✅ Basic inference rules (deduction, induction, abduction, analogy) implemented in `src/reasoner/`
-✅ Basic contradiction detection in `src/system/MetaCognition.js`
-
-#### **6.3 The LM (Neuro-Symbolic Engine)**
-
-✅ Integration with transformer models via `@xenova/transformers` in `src/lm/LM.js`
-✅ Term embedding generation implemented
+### **Recent Refactoring**
+The codebase has undergone significant refactoring to improve modularity and stability. Key improvements include:
+- **Stabilized Core System**: Fixed integration test failures in the Reasoner and Cycle.
+- **Refactored Key Modules**: `Cycle.js`, `MetaCognition.js`, `Perception.js`, `Planner.js`, `ActionExecutor.js`, and `LM.js` have been refactored to extract logic into more focused modules (e.g., `PriorityManager`, `ContradictionAnalyzer`).
+- **Suppressed ONNX Runtime Warnings**: Cleaned up console output by suppressing ignorable warnings from the underlying ONNX runtime.
 
 ---
 
-## **Getting Started**
+## **Getting Started & Usage**
 
 ### **Prerequisites**
 
@@ -159,26 +158,28 @@ The cognitive cycle is implemented in `src/system/Cycle.js` and follows the spec
 npm install
 ```
 
-### **Running the Interactive Demo Runner**
+### **Running Demos and Tests**
 
 To explore the system's capabilities, use the interactive demo runner:
 
 ```bash
 npm run start:demo
 ```
+This command will present you with a list of available demos. You can choose to run a specific demo or all of them sequentially. This is the best way to see the system in action.
 
-This command will present you with a list of available demos. You can choose to run a specific demo or all of them
-sequentially. This is the best way to see the system in action.
+Available demos include:
+1. **Math Inference Demo**: Tests logical inference with mathematical relationships
+2. **Planning Demo**: Demonstrates goal-directed behavior and planning
+3. **Comprehensive System Demo**: Full system demonstration with complex knowledge
+4. **NLP Integration Demo**: Shows natural language processing capabilities
+5. **Contradiction Resolution Demo**: Demonstrates meta-cognitive capabilities
 
-### **Running Tests**
-
+To run the full test suite:
 ```bash
 npm test
 ```
 
----
-
-## **Usage as a Library**
+### **Usage as a Library**
 
 You can easily integrate the SeNARS system into your own projects.
 
@@ -218,63 +219,14 @@ runSystem();
 
 ---
 
-## **Contributing**
+## **Roadmap**
 
-We welcome contributions from the community! To contribute, please follow these guidelines:
+### **Advanced Capabilities**
 
-1. **Fork the repository.**
-2. **Create a new branch** for your feature or bug fix.
-3. **Follow the coding style:** Adhere to the principles outlined in `AGENTS.md`. The code should be clean,
-   self-documenting, and elegant.
-4. **Write tests** for any new functionality.
-5. **Submit a pull request** with a clear description of your changes.
+- **Systematic Evaluation and Benchmarking**: Develop a comprehensive cognitive test suite and track performance metrics for speed, knowledge acquisition, and goal achievement.
+- **Advanced Meta-Cognition and Self-Improvement**: Implement automated bug-fixing and dynamic resource management.
+- **Richer Interfaces and Embodiment**: Integrate with robotic platforms and develop sophisticated conversational interfaces.
+- **Long-Term Memory and Learning**: Implement forgetting mechanisms and memory consolidation.
 
-### **Project Structure**
-
-```
-senars8/
-├── src/
-│   ├── core/          # Core classes (Term, Task, TaskFactory)
-│   ├── memory/        # Memory management (Memory)
-│   ├── parser/        # Narsese lexer and parser
-│   ├── reasoner/      # Inference engine and strategies
-│   ├── lm/            # Language model integration
-│   ├── system/        # High-level system components (System, Cycle, etc.)
-│   └── utils/         # Utility functions
-├── demos/             # Demonstration scripts (including interactive-runner.js)
-├── tests/             # Test suite
-├── package.json       # Project dependencies
-└── README.md          # This file
-```
-
----
-
-## **Features**
-
-- **Symbolic Reasoning**: Formal inference with deduction, induction, abduction, and analogy
-- **Neuro-Symbolic Integration**: Embedding-based semantic similarity and term grounding
-- **Attention Mechanism**: Economic attention model for task prioritization
-- **Meta-Cognition**: Contradiction detection with an extensible, strategy-pattern-based resolution system.
-- **Planning**: A sophisticated, graph-integrated Hierarchical Task Network (HTN) planner that decomposes complex goals
-  by querying planning knowledge stored directly in the knowledge graph.
-- **Temporal Reasoning**: Time-aware task processing
-
----
-
-## **Demos**
-
-1. **Math Inference Demo**: Tests logical inference with mathematical relationships
-2. **Planning Demo**: Demonstrates goal-directed behavior and planning
-3. **Comprehensive System Demo**: Full system demonstration with complex knowledge
-4. **NLP Integration Demo**: Shows natural language processing capabilities
-5. **Contradiction Resolution Demo**: Demonstrates meta-cognitive capabilities
-
----
-
-## **Future Work**
-
-- Enhanced meta-cognition with more sophisticated contradiction resolution
-- Advanced LM capabilities (hypothesis generation, explanation)
-- More complex perception interfaces
-- Extended action execution system
-- Improved temporal reasoning capabilities
+### **Community and Growth**
+- **Foster an Open-Source Community**: Create comprehensive documentation, tutorials, and encourage collaboration.
