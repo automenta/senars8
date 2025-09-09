@@ -85,6 +85,48 @@ class Task {
         return new Task(this.term, this.punctuation, {...this.state.truthValue}, {...this.state.stamp});
     }
 
+    toJSON() {
+        // Convert BigInts to strings for serialization
+        const serializableStamp = { ...this.state.stamp };
+        for (const key in serializableStamp) {
+            if (typeof serializableStamp[key] === 'bigint') {
+                serializableStamp[key] = serializableStamp[key].toString();
+            }
+        }
+
+        return {
+            id: this.id,
+            termKey: this.termKey,
+            punctuation: this.punctuation,
+            state: {
+                ...this.state,
+                stamp: serializableStamp
+            }
+        };
+    }
+
+    static fromJSON(json, memory) {
+        if (!json || !json.termKey || !memory) return null;
+
+        const term = memory.getTerm(json.termKey);
+        if (!term) return null;
+
+        // Convert stamp strings back to BigInts
+        const deserializedStamp = { ...json.state.stamp };
+        for (const key in deserializedStamp) {
+            // A simple check if the string represents a number
+            if (typeof deserializedStamp[key] === 'string' && /^\d+$/.test(deserializedStamp[key])) {
+                deserializedStamp[key] = BigInt(deserializedStamp[key]);
+            }
+        }
+
+        const task = new Task(term, json.punctuation, json.state.truthValue, deserializedStamp);
+        task.id = json.id; // Preserve original ID
+        task.state.priority = json.state.priority;
+
+        return task;
+    }
+
     static isBelief(task) {
         return task?.punctuation === '.';
     }

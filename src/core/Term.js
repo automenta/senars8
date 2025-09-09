@@ -154,6 +154,19 @@ class Term {
             term1.embedding.every((v, i) => Math.abs(v - term2.embedding[i]) < 1e-6);
     }
 
+    toJSON() {
+        return {
+            key: this.key,
+            embedding: this.embedding,
+            complexity: this.complexity,
+        };
+    }
+
+    static fromJSON(json) {
+        if (!json || !json.key) return null;
+        return new Term(json.key, json.embedding, json.complexity);
+    }
+
     static buildTermKey(pTerm) {
         if (!pTerm || !pTerm.type) return '';
 

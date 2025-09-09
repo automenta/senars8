@@ -12,11 +12,11 @@ const _ = require('lodash');
 const { handleError } = require('../utils/error-handler');
 const { info, error, debug, warn } = require('../utils/logger');
 const { normalizeToArray } = require('../utils/array-utils');
-const { importMemoryState, exportMemoryState } = require('../memory/memoryUtils');
 const TruthValueManager = require('../reasoner/TruthValueManager');
 const { forwardMethods } = require('../utils/method-forwarding');
 
 class System {
+    // Private constructor, use System.create() instead
     constructor(userConfig = {}) {
         this.config = _.merge({}, config, userConfig);
         this.memory = new Memory();
@@ -26,42 +26,32 @@ class System {
         this.cycle = new Cycle(this.memory, this.reasoner, this.lm, this.actionExecutor, this.config);
 
         registerDefaultActions(this.actionExecutor);
+        this._forwardMemoryMethods();
 
         this.isRunning = false;
         this.cycleCount = 0;
-        this.initialized = false;
 
-        this._forwardMemoryMethods();
-        this._wrapMethodsWithInitialization();
-
-        info('System initialized with config', this.config);
+        info('System components created');
     }
 
-    _forwardMemoryMethods() {
-        const memoryMethods = [
-            'getMemoryStatistics', 'findTasksByTermKey', 'getHighPriorityTasks',
-            'getTask', 'getTerm', 'getAllTasks', 'getAllTerms', 'getBeliefs',
-            'getGoals', 'getQuestions', 'getTopPriorityTasks', 'getRecentTasks',
-            'queryTasks', 'removeTask'
-        ];
-        forwardMethods(this, this.memory, memoryMethods);
-    }
-
-    _wrapMethodsWithInitialization() {
-        const methodsToWrap = [
-            'runCycle', 'start', 'addTasks', 'reviseTaskTruthValue',
-            'importMemoryState'
-        ];
-        for (const methodName of methodsToWrap) {
-            this[methodName] = this._withInitialization(this[methodName]);
+    static async create(userConfig = {}) {
+        const system = new System(userConfig);
+        try {
+            info('Initializing system...');
+            system.memory.addTasks(CONSTITUTION_TASKS);
+            await system._bootstrapTerms(CONSTITUTION_TASKS);
+            await system.cycle.bootstrap();
+            info('System initialized successfully');
+            return system;
+        } catch (err) {
+            error('Error during system initialization:', err);
+            throw handleError(err, 'System initialization failed');
         }
     }
 
-    _withInitialization(fn) {
-        return async (...args) => {
-            await this._ensureInitialized();
-            return fn.apply(this, args);
-        };
+    _forwardMemoryMethods() {
+        const memoryMethods = Memory.getForwardableMethods();
+        forwardMethods(this, this.memory, memoryMethods);
     }
 
     async _bootstrapTerms(tasks) {
@@ -78,20 +68,6 @@ class System {
         } catch (err) {
             error('Error during term bootstrapping:', err);
             throw handleError(err, 'Term bootstrapping failed');
-        }
-    }
-
-    async _ensureInitialized() {
-        if (this.initialized) return;
-        try {
-            this.memory.addTasks(CONSTITUTION_TASKS);
-            await this._bootstrapTerms(CONSTITUTION_TASKS);
-            await this.cycle.bootstrap();
-            this.initialized = true;
-            info('System initialized successfully');
-        } catch (err) {
-            error('Error during system initialization:', err);
-            throw handleError(err, 'System initialization failed');
         }
     }
 
@@ -176,14 +152,6 @@ class System {
         }
     }
 
-    exportMemoryState() {
-        return exportMemoryState(this.memory);
-    }
-
-    async importMemoryState(state) {
-        await importMemoryState(this.memory, state);
-    }
-
     getAvailableRules() {
         return this.reasoner.getRuleNames();
     }
@@ -199,7 +167,6 @@ class System {
 
     getStatus() {
         return {
-            initialized: this.initialized,
             isRunning: this.isRunning,
             cycleCount: this.cycleCount,
             memory: this.memory.getStatistics(),

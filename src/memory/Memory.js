@@ -13,6 +13,15 @@ const {
 } = require('./memoryUtils');
 
 class Memory {
+    static getForwardableMethods() {
+        return [
+            'getMemoryStatistics', 'findTasksByTermKey', 'getHighPriorityTasks',
+            'getTask', 'getTerm', 'getAllTasks', 'getAllTerms', 'getBeliefs',
+            'getGoals', 'getQuestions', 'getTopPriorityTasks', 'getRecentTasks',
+            'queryTasks', 'removeTask', 'exportState', 'importState'
+        ];
+    }
+
     constructor() {
         this.terms = new Map();
         this.shortTermTasks = new Map();
@@ -232,6 +241,51 @@ class Memory {
         }
 
         return tasks;
+    }
+
+    exportState() {
+        return JSON.stringify({
+            terms: Array.from(this.terms.values()),
+            shortTermTasks: Array.from(this.shortTermTasks.values()),
+            longTermTasks: Array.from(this.longTermTasks.values()),
+        }, null, 2);
+    }
+
+    importState(jsonState) {
+        const state = JSON.parse(jsonState);
+
+        this.clear();
+
+        if (state.terms) {
+            for (const termData of state.terms) {
+                const term = Term.fromJSON(termData);
+                if (term) {
+                    this.addTerm(term);
+                }
+            }
+        }
+
+        if (state.shortTermTasks) {
+            for (const taskData of state.shortTermTasks) {
+                const task = Task.fromJSON(taskData, this);
+                if (task) {
+                    this.shortTermTasks.set(task.id, task);
+                    this._indexTask(task);
+                }
+            }
+        }
+
+        if (state.longTermTasks) {
+            for (const taskData of state.longTermTasks) {
+                const task = Task.fromJSON(taskData, this);
+                if (task) {
+                    this.longTermTasks.set(task.id, task);
+                    this._indexTask(task);
+                }
+            }
+        }
+
+        this._invalidateTaskCache();
     }
 }
 
