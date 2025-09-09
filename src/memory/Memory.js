@@ -90,6 +90,10 @@ class Memory {
         return this.terms.get(key);
     }
 
+    getAllTerms() {
+        return Array.from(this.terms.values());
+    }
+
     _indexTask(task) {
         this.beliefIndex = indexTask(task, this.beliefIndex);
         this.costIndex = updateCostIndex(task.term, this.costIndex, 'add');

@@ -107,4 +107,58 @@ function createBinaryInheritanceRule(name, termBuilder, truthValueFunction) {
     });
 }
 
-module.exports = {createRule, createBinaryInheritanceRule};
+function createTransitiveInheritanceRule(name, termBuilder, truthValueFunction) {
+    return createRule({
+        name,
+        arity: 2,
+        operands: [
+            Task.isBelief,
+            Task.isBelief,
+        ],
+        condition: (parsed1, parsed2) =>
+            parsed1?.type === 'Inheritance' &&
+            parsed2?.type === 'Inheritance' &&
+            Term.buildTermKey(parsed1.predicate) === Term.buildTermKey(parsed2.subject),
+        action: (parsed1, parsed2, task1, task2) => ({
+            newTermKey: termBuilder(parsed1, parsed2),
+            newTruthValue: truthValueFunction(task1.state.truthValue, task2.state.truthValue)
+        }),
+    });
+}
+
+function createUnaryInheritanceRule(name, termBuilder, truthValueFunction) {
+    return createRule({
+        name,
+        arity: 1,
+        operands: [
+            Task.isBelief,
+        ],
+        condition: (parsed1) =>
+            parsed1?.type === 'Inheritance',
+        action: (parsed1, task1) => ({
+            newTermKey: termBuilder(parsed1),
+            newTruthValue: truthValueFunction(task1.state.truthValue)
+        }),
+    });
+}
+
+function createModusPonensRule(name, termBuilder, truthValueFunction) {
+    return createRule({
+        name,
+        arity: 2,
+        operands: [
+            Task.isBelief,
+            Task.isBelief,
+        ],
+        condition: (parsed1, parsed2) =>
+            parsed1?.type === 'Implication' &&
+            parsed2?.type === 'Atomic' &&
+            Term.buildTermKey(parsed1.subject) === Term.buildTermKey(parsed2),
+        action: (parsed1, parsed2, task1, task2) => ({
+            newTermKey: termBuilder(parsed1, parsed2),
+            newTruthValue: truthValueFunction(task1.state.truthValue, task2.state.truthValue)
+        }),
+    });
+}
+
+module.exports = {createRule, createBinaryInheritanceRule, createTransitiveInheritanceRule, createUnaryInheritanceRule, createModusPonensRule};

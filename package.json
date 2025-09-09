@@ -9,7 +9,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "start:demo": "node demos/interactive-runner.js",
+    "start:demo": "node -r ./scripts/set-env.js demos/interactive-runner.js",
+    "start:advanced-demo": "node -r ./scripts/set-env.js demos/advanced-lm-demo.js",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "repository": {
