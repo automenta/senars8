@@ -2,6 +2,8 @@ const Term = require('../core/Term');
 const Task = require('../core/Task');
 const EventBus = require('../system/EventBus');
 const config = require('../config');
+const {normalizeToArray} = require('../utils/array-utils');
+const {MinPriorityQueue} = require('@datastructures-js/priority-queue');
 
 class Memory {
     constructor() {
@@ -120,7 +122,6 @@ class Memory {
             return;
         }
         
-        const {normalizeToArray} = require('../utils/array-utils');
         const tasksToAdd = normalizeToArray(tasks);
         
         for (const task of tasksToAdd) {
@@ -221,7 +222,6 @@ class Memory {
         const allTasks = this.getAllTasks();
         
         if (k < 50 && k < allTasks.length / 10) {
-            const {MinPriorityQueue} = require('@datastructures-js/priority-queue');
             const pq = new MinPriorityQueue({ priority: (task) => task.state.priority });
             
             for (const task of allTasks) {
@@ -292,6 +292,52 @@ class Memory {
         
         const allTasks = this.getAllTasks();
         return allTasks.filter(task => task.termKey === termKey);
+    }
+
+    getBeliefs() {
+        return this.findTasksByType('.');
+    }
+
+    getGoals() {
+        return this.findTasksByType('!');
+    }
+
+    getQuestions() {
+        return this.findTasksByType('?');
+    }
+
+    getRecentTasks(count = 10) {
+        const tasks = this.getAllTasks();
+        tasks.sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime));
+        return tasks.slice(0, count);
+    }
+
+    queryTasks(filters = {}) {
+        let tasks = this.getAllTasks();
+
+        if (filters.termKey) {
+            tasks = tasks.filter(task => task.termKey === filters.termKey);
+        }
+
+        if (filters.punctuation) {
+            tasks = tasks.filter(task => task.punctuation === filters.punctuation);
+        }
+
+        if (filters.minPriority !== undefined) {
+            tasks = tasks.filter(task => task.state.priority >= filters.minPriority);
+        }
+
+        if (filters.minConfidence !== undefined) {
+            tasks = tasks.filter(task => task.state.truthValue.confidence >= filters.minConfidence);
+        }
+
+        tasks.sort((a, b) => b.state.priority - a.state.priority);
+
+        if (filters.limit !== undefined) {
+            tasks = tasks.slice(0, filters.limit);
+        }
+
+        return tasks;
     }
 
     findTasksByType(type) {

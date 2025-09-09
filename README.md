@@ -183,9 +183,7 @@ npm test
 You can easily integrate the SeNARS system into your own projects.
 
 ```javascript
-const { System } = require('./src'); // Assuming you have an index.js in src
-const { Task } = require('./src/core/Task');
-const { parseTerm } = require('./src/parser/narseseParser');
+const { System, Task, parseTerm } = require('./src');
 
 async function runSystem() {
     // 1. Initialize the system
@@ -194,7 +192,7 @@ async function runSystem() {
 
     // 2. Add knowledge to the system
     const belief = new Task(
-        parseTerm('(cat --> animal).'),
+        parseTerm('(cat --> animal)'),
         '.',
         { frequency: 1.0, confidence: 0.9 }
     );

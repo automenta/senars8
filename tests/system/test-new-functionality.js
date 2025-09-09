@@ -1,4 +1,4 @@
-const { System, Task, parseTerm } = require('../src/index');
+const { System, Task, parseTerm } = require('../../src/index');
 
 async function testNewFunctionality() {
     console.log('Testing new System functionality...');

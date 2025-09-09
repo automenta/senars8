@@ -1,4 +1,3 @@
-// Suppress ONNX Runtime warnings about unused initializers
 process.env.ORT_LOGGING_LEVEL = 'ERROR';
 
 const Memory = require('../memory/Memory');
@@ -10,8 +9,10 @@ const CONSTITUTION_TASKS = require('./Constitution');
 const registerDefaultActions = require('./default-actions');
 const config = require('../config');
 const _ = require('lodash');
-const {handleError, handleErrorWithDefault} = require('../utils/error-handler');
+const {handleError} = require('../utils/error-handler');
 const {info, error, debug, warn} = require('../utils/logger');
+const {normalizeToArray} = require('../utils/array-utils');
+const { importMemoryState, exportMemoryState } = require('../memory/memoryUtils');
 
 class System {
     constructor(userConfig = {}) {
@@ -126,7 +127,6 @@ class System {
     async addTasks(tasks) {
         try {
             await this._ensureInitialized();
-            const {normalizeToArray} = require('../utils/array-utils');
             const tasksToAdd = normalizeToArray(tasks);
             debug(`Adding ${tasksToAdd.length} tasks to system`);
             await this._bootstrapTerms(tasksToAdd);
@@ -137,6 +137,7 @@ class System {
             throw handleError(err, 'Task addition failed');
         }
     }
+
 
     getMemoryStatistics() {
         return this.memory.getStatistics();
@@ -167,15 +168,15 @@ class System {
     }
 
     getBeliefs() {
-        return this.memory.findTasksByType('.');
+        return this.memory.getBeliefs();
     }
 
     getGoals() {
-        return this.memory.findTasksByType('!');
+        return this.memory.getGoals();
     }
 
     getQuestions() {
-        return this.memory.findTasksByType('?');
+        return this.memory.getQuestions();
     }
 
     getTopPriorityTasks(count = 10) {
@@ -183,37 +184,11 @@ class System {
     }
 
     getRecentTasks(count = 10) {
-        const tasks = this.memory.getAllTasks();
-        tasks.sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime));
-        return tasks.slice(0, count);
+        return this.memory.getRecentTasks(count);
     }
 
     queryTasks(filters = {}) {
-        let tasks = this.memory.getAllTasks();
-
-        if (filters.termKey) {
-            tasks = tasks.filter(task => task.termKey === filters.termKey);
-        }
-        
-        if (filters.punctuation) {
-            tasks = tasks.filter(task => task.punctuation === filters.punctuation);
-        }
-        
-        if (filters.minPriority !== undefined) {
-            tasks = tasks.filter(task => task.state.priority >= filters.minPriority);
-        }
-        
-        if (filters.minConfidence !== undefined) {
-            tasks = tasks.filter(task => task.state.truthValue.confidence >= filters.minConfidence);
-        }
-        
-        tasks.sort((a, b) => b.state.priority - a.state.priority);
-        
-        if (filters.limit !== undefined) {
-            tasks = tasks.slice(0, filters.limit);
-        }
-        
-        return tasks;
+        return this.memory.queryTasks(filters);
     }
 
     async reviseTaskTruthValue(taskId, newEvidence, weight = 0.5) {
@@ -249,72 +224,12 @@ class System {
     }
 
     exportMemoryState() {
-        const terms = Array.from(this.memory.terms.entries()).map(([key, term]) => ({
-            key: term.key,
-            embedding: Array.from(term.embedding),
-            complexity: term.complexity
-        }));
-
-        const tasks = this.memory.getAllTasks().map(task => ({
-            id: task.id,
-            termKey: task.termKey,
-            punctuation: task.punctuation,
-            state: {
-                priority: task.state.priority,
-                truthValue: {...task.state.truthValue},
-                stamp: {
-                    creationTime: Number(task.state.stamp.creationTime),
-                    lastAccessed: Number(task.state.stamp.lastAccessed),
-                    ...(task.state.stamp.occurrenceTime && { occurrenceTime: Number(task.state.stamp.occurrenceTime) }),
-                    ...(task.state.stamp.endTime && { endTime: Number(task.state.stamp.endTime) })
-                }
-            }
-        }));
-
-        return {
-            terms,
-            tasks,
-            timestamp: Date.now()
-        };
+        return exportMemoryState(this.memory);
     }
 
     async importMemoryState(state) {
-        try {
-            await this._ensureInitialized();
-            
-            this.memory.clear();
-            
-            const Term = require('../core/Term');
-            for (const termData of state.terms) {
-                const term = new Term(termData.key, termData.embedding, termData.complexity);
-                this.memory.addTerm(term);
-            }
-            
-            const Task = require('../core/Task');
-            const { parseTerm } = require('../parser/narseseParser');
-            for (const taskData of state.tasks) {
-                try {
-                    const term = this.memory.getTerm(taskData.termKey) || parseTerm(taskData.termKey);
-                    if (term) {
-                        const task = new Task(term, taskData.punctuation, taskData.state.truthValue, {
-                            creationTime: BigInt(taskData.state.stamp.creationTime),
-                            lastAccessed: BigInt(taskData.state.stamp.lastAccessed),
-                            ...(taskData.state.stamp.occurrenceTime && { occurrenceTime: BigInt(taskData.state.stamp.occurrenceTime) }),
-                            ...(taskData.state.stamp.endTime && { endTime: BigInt(taskData.state.stamp.endTime) })
-                        });
-                        task.id = taskData.id;
-                        this.memory.addTasks([task]);
-                    }
-                } catch (err) {
-                    error(`Error importing task ${taskData.id}:`, err);
-                }
-            }
-            
-            info(`Successfully imported memory state with ${state.terms.length} terms and ${state.tasks.length} tasks`);
-        } catch (err) {
-            error('Error importing memory state:', err);
-            throw handleError(err, 'Memory state import failed');
-        }
+        await this._ensureInitialized();
+        await importMemoryState(this.memory, state);
     }
 
     getAvailableRules() {
