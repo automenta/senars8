@@ -1,6 +1,27 @@
 const lexer = require('./lexer');
 
 class NarseseParser {
+    static UNARY_OPERATOR_TYPES = {
+        'negation': 'Negation'
+    };
+
+    static TEMPORAL_OPERATOR_TYPES = {
+        'always': 'Always',
+        'eventually': 'Eventually',
+        'next': 'Next',
+        'previous': 'Previous'
+    };
+
+    static BINARY_OPERATOR_TYPES = {
+        'conjunction': 'Conjunction',
+        'sequentialConjunction': 'SequentialConjunction',
+        'parallelConjunction': 'ParallelConjunction',
+        'disjunction': 'Disjunction',
+        'extensionalDifference': 'ExtensionalDifference',
+        'intensionalDifference': 'IntensionalDifference',
+        'product': 'Product'
+    };
+
     constructor(input) {
         this.lexer = lexer.clone();
         this.lexer.reset(input);
@@ -161,10 +182,7 @@ class NarseseParser {
     }
 
     getUnaryOperatorType(operator) {
-        const mapping = {
-            'negation': 'Negation'
-        };
-        return mapping[operator] || operator;
+        return NarseseParser.UNARY_OPERATOR_TYPES[operator] || operator;
     }
 
     matchTemporalOperator() {
@@ -181,13 +199,7 @@ class NarseseParser {
     }
 
     getTemporalOperatorType(operator) {
-        const mapping = {
-            'always': 'Always',
-            'eventually': 'Eventually',
-            'next': 'Next',
-            'previous': 'Previous'
-        };
-        return mapping[operator] || operator;
+        return NarseseParser.TEMPORAL_OPERATOR_TYPES[operator] || operator;
     }
 
     matchBinaryOperator() {
@@ -208,93 +220,58 @@ class NarseseParser {
     }
 
     getBinaryOperatorType(operator) {
-        const mapping = {
-            'conjunction': 'Conjunction',
-            'sequentialConjunction': 'SequentialConjunction',
-            'parallelConjunction': 'ParallelConjunction',
-            'disjunction': 'Disjunction',
-            'extensionalDifference': 'ExtensionalDifference',
-            'intensionalDifference': 'IntensionalDifference',
-            'product': 'Product'
-        };
-        return mapping[operator] || operator;
+        return NarseseParser.BINARY_OPERATOR_TYPES[operator] || operator;
+    }
+
+    parseBinaryRelation(subject, tokenType, relationType) {
+        this.consume(tokenType);
+        const predicate = this.parseTerm();
+        this.consume('rparen');
+        return {type: relationType, subject, predicate};
     }
 
     parseInheritance(subject) {
-        this.consume('arrow');
-        const predicate = this.parseTerm();
-        this.consume('rparen');
-        return {type: 'Inheritance', subject, predicate};
+        return this.parseBinaryRelation(subject, 'arrow', 'Inheritance');
     }
 
     parseImplication(subject) {
-        this.consume('implies');
-        const predicate = this.parseTerm();
-        this.consume('rparen');
-        return {type: 'Implication', subject, predicate};
+        return this.parseBinaryRelation(subject, 'implies', 'Implication');
     }
 
     parseInstance(subject) {
-        this.consume('instance');
-        const predicate = this.parseTerm();
-        this.consume('rparen');
-        return {type: 'Instance', subject, predicate};
+        return this.parseBinaryRelation(subject, 'instance', 'Instance');
     }
 
     parseProperty(subject) {
-        this.consume('property');
-        const predicate = this.parseTerm();
-        this.consume('rparen');
-        return {type: 'Property', subject, predicate};
+        return this.parseBinaryRelation(subject, 'property', 'Property');
     }
 
     parseEquivalence(subject) {
-        this.consume('equivalence');
-        const predicate = this.parseTerm();
-        this.consume('rparen');
-        return {type: 'Equivalence', subject, predicate};
+        return this.parseBinaryRelation(subject, 'equivalence', 'Equivalence');
     }
 
     parseSimilarity(subject) {
-        this.consume('similarity');
-        const predicate = this.parseTerm();
-        this.consume('rparen');
-        return {type: 'Similarity', subject, predicate};
+        return this.parseBinaryRelation(subject, 'similarity', 'Similarity');
     }
 
     parseRetrospectiveImplication(subject) {
-        this.consume('retrospection');
-        const predicate = this.parseTerm();
-        this.consume('rparen');
-        return {type: 'RetrospectiveImplication', subject, predicate};
+        return this.parseBinaryRelation(subject, 'retrospection', 'RetrospectiveImplication');
     }
 
     parsePredictiveImplication(subject) {
-        this.consume('prediction');
-        const predicate = this.parseTerm();
-        this.consume('rparen');
-        return {type: 'PredictiveImplication', subject, predicate};
+        return this.parseBinaryRelation(subject, 'prediction', 'PredictiveImplication');
     }
 
     parseConcurrentImplication(subject) {
-        this.consume('concurrent');
-        const predicate = this.parseTerm();
-        this.consume('rparen');
-        return {type: 'ConcurrentImplication', subject, predicate};
+        return this.parseBinaryRelation(subject, 'concurrent', 'ConcurrentImplication');
     }
 
     parseUntil(subject) {
-        this.consume('until');
-        const predicate = this.parseTerm();
-        this.consume('rparen');
-        return {type: 'Until', subject, predicate};
+        return this.parseBinaryRelation(subject, 'until', 'Until');
     }
 
     parseSince(subject) {
-        this.consume('since');
-        const predicate = this.parseTerm();
-        this.consume('rparen');
-        return {type: 'Since', subject, predicate};
+        return this.parseBinaryRelation(subject, 'since', 'Since');
     }
 
     parseExtensionalSet() {
@@ -316,19 +293,21 @@ class NarseseParser {
         return {type: 'Atomic', key: identifier};
     }
 
+    parseVariable(tokenType, variableType) {
+        const variable = this.consume(tokenType);
+        return {type: variableType, name: variable};
+    }
+
     parseIndependentVariable() {
-        const variable = this.consume('independentVar');
-        return {type: 'IndependentVariable', name: variable};
+        return this.parseVariable('independentVar', 'IndependentVariable');
     }
 
     parseDependentVariable() {
-        const variable = this.consume('dependentVar');
-        return {type: 'DependentVariable', name: variable};
+        return this.parseVariable('dependentVar', 'DependentVariable');
     }
 
     parseQueryVariable() {
-        const variable = this.consume('queryVar');
-        return {type: 'QueryVariable', name: variable};
+        return this.parseVariable('queryVar', 'QueryVariable');
     }
 
     parseTermList() {

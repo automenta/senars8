@@ -39,17 +39,17 @@ function getPrioritizedGoals(memory, config) {
         .slice(0, config.MAX_GOALS_TO_EXECUTE);
 }
 
-/**
- * Gets actionable goals from memory
- * @param {Memory} memory - Memory instance
- * @param {object} config - Configuration object
- * @returns {Array} Array of actionable goals
- */
-function getActionableGoals(memory, config) {
-    return Task.getGoalTasks(memory.getAllTasks())
-        .filter(task => task.state.priority > config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
-        .slice(0, config.MAX_GOALS_TO_EXECUTE);
-}
+// Alias for getPrioritizedGoals to maintain API compatibility
+const getActionableGoals = getPrioritizedGoals;
+
+module.exports = {
+    getNewTermKeys,
+    bootstrapTerms,
+    getPrioritizedGoals,
+    getActionableGoals,
+    attemptPlanExecution,
+    executeGoalPlan
+};
 
 /**
  * Attempts to execute a plan
