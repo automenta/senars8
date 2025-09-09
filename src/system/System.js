@@ -13,6 +13,7 @@ const {handleError} = require('../utils/error-handler');
 const {info, error, debug, warn} = require('../utils/logger');
 const {normalizeToArray} = require('../utils/array-utils');
 const { importMemoryState, exportMemoryState } = require('../memory/memoryUtils');
+const TruthValueManager = require('../reasoner/TruthValueManager');
 
 class System {
     constructor(userConfig = {}) {
@@ -27,6 +28,21 @@ class System {
         this.cycleCount = 0;
         this.initialized = false;
         info('System initialized with config', this.config);
+
+        this.initialize = this._withInitialization(this.initialize);
+        this.runCycle = this._withInitialization(this.runCycle);
+        this.start = this._withInitialization(this.start);
+        this.addTasks = this._withInitialization(this.addTasks);
+        this.reviseTaskTruthValue = this._withInitialization(this.reviseTaskTruthValue);
+        this.removeTask = this._withInitialization(this.removeTask);
+        this.importMemoryState = this._withInitialization(this.importMemoryState);
+    }
+
+    _withInitialization(fn) {
+        return async (...args) => {
+            await this._ensureInitialized();
+            return fn.apply(this, args);
+        };
     }
 
     async _bootstrapTerms(tasks) {
@@ -61,7 +77,6 @@ class System {
 
     async initialize() {
         try {
-            await this._ensureInitialized();
             info('System initialization completed');
         } catch (err) {
             error('System initialization error:', err);
@@ -71,7 +86,6 @@ class System {
 
     async runCycle() {
         try {
-            await this._ensureInitialized();
             this.cycleCount++;
             debug(`Running cycle ${this.cycleCount}`);
             const result = await this.cycle.runOnce();
@@ -90,7 +104,6 @@ class System {
         }
         
         try {
-            await this._ensureInitialized();
             info(`Starting system with maxCycles=${maxCycles}`);
 
             this.isRunning = true;
@@ -126,7 +139,6 @@ class System {
 
     async addTasks(tasks) {
         try {
-            await this._ensureInitialized();
             const tasksToAdd = normalizeToArray(tasks);
             debug(`Adding ${tasksToAdd.length} tasks to system`);
             await this._bootstrapTerms(tasksToAdd);
@@ -193,13 +205,11 @@ class System {
 
     async reviseTaskTruthValue(taskId, newEvidence, weight = 0.5) {
         try {
-            await this._ensureInitialized();
             const task = this.memory.getTask(taskId);
             if (!task) {
                 throw new Error(`Task with ID ${taskId} not found`);
             }
 
-            const TruthValueManager = require('../reasoner/TruthValueManager');
             const truthValueManager = new TruthValueManager();
             const revisedTruthValue = truthValueManager.bayesianRevision(task, newEvidence, weight);
             
@@ -213,7 +223,6 @@ class System {
 
     async removeTask(taskId) {
         try {
-            await this._ensureInitialized();
             this.memory.removeTask(taskId);
             debug(`Removed task ${taskId}`);
             info(`Successfully removed task ${taskId}`);
@@ -228,7 +237,6 @@ class System {
     }
 
     async importMemoryState(state) {
-        await this._ensureInitialized();
         await importMemoryState(this.memory, state);
     }
 
