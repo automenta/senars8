@@ -2,7 +2,7 @@ const Term = require('../core/Term');
 const Task = require('../core/Task');
 const EventBus = require('../system/EventBus');
 const config = require('../config');
-const {normalizeToArray} = require('../utils/array-utils');
+const {normalizeToArray} = require('../utils/helpers');
 const {
     consolidateMemory,
     updateCostIndex,

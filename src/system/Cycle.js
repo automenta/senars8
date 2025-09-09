@@ -117,12 +117,7 @@ class Cycle {
     _runMetaCognitionPhase(context) {
         const { allTasks } = context;
         const contradictions = this.metaCognition.findContradictions(allTasks);
-
-        if (contradictions.length === 0) {
-            return { contradictions, metaTasks: [] };
-        }
-
-        const metaTasks = this._resolveContradictions(contradictions);
+        const metaTasks = contradictions.length > 0 ? this._resolveContradictions(contradictions) : [];
         return { contradictions, metaTasks };
     }
 

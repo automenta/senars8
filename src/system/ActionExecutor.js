@@ -1,7 +1,7 @@
 const {v4: uuidv4} = require('uuid');
 const config = require('../config');
 const {handleErrorWithDefault} = require('../utils/error-handler');
-const {isNonEmptyArray} = require('../utils/array-utils');
+const {isNonEmptyArray} = require('../utils/helpers');
 const Action = require('../core/Action');
 
 class ActionExecutor {

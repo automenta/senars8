@@ -3,5 +3,5 @@ const isNonEmptyArray = (input) => Array.isArray(input) && input.length > 0;
 
 module.exports = {
     normalizeToArray,
-    isNonEmptyArray
+    isNonEmptyArray,
 };

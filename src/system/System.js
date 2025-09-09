@@ -11,7 +11,7 @@ const config = require('../config');
 const _ = require('lodash');
 const { handleError } = require('../utils/error-handler');
 const { info, error, debug, warn } = require('../utils/logger');
-const { normalizeToArray } = require('../utils/array-utils');
+const { normalizeToArray } = require('../utils/helpers');
 const TruthValueManager = require('../reasoner/TruthValueManager');
 const { forwardMethods } = require('../utils/method-forwarding');
 

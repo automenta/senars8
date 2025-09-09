@@ -56,11 +56,7 @@ function updateCostIndex(term, costIndex, operation) {
     const actionKey = term.subject.key;
     const newCostIndex = new Map(costIndex);
 
-    if (operation === 'add') {
-        newCostIndex.set(actionKey, cost);
-    } else {
-        newCostIndex.delete(actionKey);
-    }
+    operation === 'add' ? newCostIndex.set(actionKey, cost) : newCostIndex.delete(actionKey);
 
     return newCostIndex;
 }
@@ -121,11 +117,7 @@ function unindexTask(task, beliefIndex) {
     
     if (index !== -1) {
         beliefs.splice(index, 1);
-        if (beliefs.length === 0) {
-            newBeliefIndex.delete(task.termKey);
-        } else {
-            newBeliefIndex.set(task.termKey, beliefs);
-        }
+        beliefs.length === 0 ? newBeliefIndex.delete(task.termKey) : newBeliefIndex.set(task.termKey, beliefs);
     }
     
     return newBeliefIndex;
