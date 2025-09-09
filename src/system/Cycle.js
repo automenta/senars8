@@ -79,16 +79,14 @@ class Cycle {
         context.metaTasks = metaTasks;
 
         // REASONING
-        const derivedTasks = await this._runReasoningPhase(context);
-        context.derivedTasks = derivedTasks;
+        context.derivedTasks = await this._runReasoningPhase(context);
 
         // ENRICHMENT
         const {proactiveTasks} = await this._runEnrichmentPhase(context);
         context.proactiveTasks = proactiveTasks;
 
         // ACTION
-        const executionResults = await this._runActionPhase();
-        context.executionResults = executionResults;
+        context.executionResults = await this._runActionPhase();
 
         EventBus.emit('SystemCycleEnded');
 
@@ -141,8 +139,7 @@ class Cycle {
         const newTermKeys = this._getNewTermKeys([...derivedTasks, ...metaTasks]);
         await this._bootstrapTerms(newTermKeys);
 
-        const proactiveTasks = await this._proactiveEnrichment();
-        return {proactiveTasks};
+        return {proactiveTasks: await this._proactiveEnrichment()};
     }
 
     async _runActionPhase() {

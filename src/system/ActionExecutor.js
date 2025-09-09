@@ -50,7 +50,7 @@ class ActionExecutor {
         });
 
         this.actionQueue.push({action, actionId});
-        this._processQueue();
+        await this._processQueue();
 
         return promise;
     }
