@@ -1,6 +1,5 @@
 const System = require('../src/system/System');
-const Task = require('../src/core/Task');
-const {parseTerm} = require('../src/parser/narseseParser');
+const {createTask} = require('../shared/demo-utils');
 
 /**
  * Action Execution Demo
@@ -17,21 +16,9 @@ async function actionExecutionDemo() {
 
     // Create tasks for parallel execution
     const parallelTasks = [
-        new Task(
-            parseTerm('(move_robot_kitchen)'),
-            '!',
-            {frequency: 0.9, confidence: 0.8}
-        ),
-        new Task(
-            parseTerm('(activate_lighting_system)'),
-            '!',
-            {frequency: 0.85, confidence: 0.75}
-        ),
-        new Task(
-            parseTerm('(monitor_temperature_sensors)'),
-            '!',
-            {frequency: 0.95, confidence: 0.9}
-        )
+        createTask('(move_robot_kitchen)', '!', {frequency: 0.9, confidence: 0.8}),
+        createTask('(activate_lighting_system)', '!', {frequency: 0.85, confidence: 0.75}),
+        createTask('(monitor_temperature_sensors)', '!', {frequency: 0.95, confidence: 0.9})
     ];
 
     // Register custom action handlers for our parallel tasks
@@ -63,11 +50,7 @@ async function actionExecutionDemo() {
     console.log("\n2. Testing conditional actions...\n");
 
     // Create a conditional task
-    const conditionalTask = new Task(
-        parseTerm('(battery_low ==> charge_robot)'),
-        '!',
-        {frequency: 0.9, confidence: 0.85}
-    );
+    const conditionalTask = createTask('(battery_low ==> charge_robot)', '!', {frequency: 0.9, confidence: 0.85});
 
     await system.addTasks([conditionalTask]);
 
@@ -80,11 +63,7 @@ async function actionExecutionDemo() {
     console.log("\n3. Testing hierarchical planning...\n");
 
     // Create a complex goal task
-    const complexGoalTask = new Task(
-        parseTerm('(&/, navigate_to_charging_station, charge_battery, return_to_patrol_route)'),
-        '!',
-        {frequency: 0.95, confidence: 0.9}
-    );
+    const complexGoalTask = createTask('(&/, navigate_to_charging_station, charge_battery, return_to_patrol_route)', '!', {frequency: 0.95, confidence: 0.9});
 
     await system.addTasks([complexGoalTask]);
 
@@ -97,11 +76,7 @@ async function actionExecutionDemo() {
     console.log("\n4. Testing choice actions...\n");
 
     // Create a choice task (try different approaches)
-    const choiceTask = new Task(
-        parseTerm('(|, approach_person_directly, approach_person_indirectly, wait_for_person_to_approach)'),
-        '!',
-        {frequency: 0.8, confidence: 0.7}
-    );
+    const choiceTask = createTask('(|, approach_person_directly, approach_person_indirectly, wait_for_person_to_approach)', '!', {frequency: 0.8, confidence: 0.7});
 
     await system.addTasks([choiceTask]);
 
@@ -114,11 +89,7 @@ async function actionExecutionDemo() {
     console.log("\n5. Testing rollback mechanism...\n");
 
     // Create a task that will fail to trigger rollback
-    const riskyTask = new Task(
-        parseTerm('(perform_risky_operation)'),
-        '!',
-        {frequency: 0.7, confidence: 0.6}
-    );
+    const riskyTask = createTask('(perform_risky_operation)', '!', {frequency: 0.7, confidence: 0.6});
 
     // Register a handler that will fail
     system.actionExecutor.registerActionHandler('perform_risky_operation', async (action) => {

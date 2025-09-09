@@ -1,12 +1,10 @@
 const { info } = require('../utils/logger');
 
 const defaultActionHandlers = {
-    // Core Actions
     'print_*': (action) => ({message: `PRINT ACTION: ${action.parameters.join(' ')}`}),
     'log': (action) => ({logged: true, parameters: action.parameters}),
     'achieve': (action) => ({achieved: action.parameters}),
 
-    // CRUD-style Actions
     'create_*': (action) => {
         const objectType = action.name.replace('create_', '');
         return {created: objectType, parameters: action.parameters};
@@ -24,7 +22,6 @@ const defaultActionHandlers = {
         return {queried: objectType, result: `Results for ${objectType}`};
     },
 
-    // Meta/Cognitive Actions
     'analyze': (action) => ({analyzed: action.parameters}),
     'plan': (action) => ({planned: action.parameters}),
     'execute_*': (action) => {
@@ -38,7 +35,6 @@ const defaultActionHandlers = {
     'adapt': (action) => ({adapted: true, changes: action.parameters}),
     'optimize': (action) => ({optimized: true, metrics: action.parameters}),
 
-    // "Embodied" or "Interactive" Actions
     'navigate_*': (action) => {
         const destination = action.name.replace('navigate_', '');
         return {navigated: destination, status: 'completed'};
@@ -61,14 +57,11 @@ function registerDefaultActions(actionExecutor) {
         });
     }
 
-    // Special handler for dynamic action registration
     actionExecutor.registerActionHandler('register_action', async (action) => {
         const [pattern, handlerName] = action.parameters;
         if (!pattern || !handlerName) {
             return {success: false, error: 'Pattern and handler name are required.'};
         }
-        // In a real system, the handlerName would be used to look up a function.
-        // For now, we'll just register a simple logger.
         actionExecutor.registerActionHandler(pattern, async (act) => {
             info(`Dynamically registered action ${pattern} executed.`, act.parameters);
             return {success: true, registered_action: pattern};

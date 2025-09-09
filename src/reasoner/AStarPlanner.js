@@ -92,7 +92,6 @@ class AStarPlanner extends BasePlanner {
 
         const confidenceCost = tasks.reduce((acc, task) => {
             const beliefs = this.memory.beliefIndex.get(task.key);
-            // Get the highest confidence belief if there are multiple beliefs
             const confidence = beliefs && beliefs.length > 0 
                 ? Math.max(...beliefs.map(b => b.state.truthValue.confidence))
                 : 0;

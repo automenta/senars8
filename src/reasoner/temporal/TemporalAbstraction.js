@@ -10,7 +10,6 @@ class TemporalAbstraction {
             debug(`Creating temporal abstractions for ${temporalFocusSet.length} tasks`);
             const abstractionTasks = [];
 
-            // Create abstraction for the entire set
             const overallAbstraction = createTemporalAbstraction(temporalFocusSet);
             if (overallAbstraction) {
                 abstractionTasks.push(overallAbstraction);

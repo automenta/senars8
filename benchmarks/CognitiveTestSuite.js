@@ -1,8 +1,6 @@
 // benchmarks/CognitiveTestSuite.js
 const System = require('../src/system/System');
-const Task = require('../src/core/Task');
-const Term = require('../src/core/Term');
-const {parseTerm} = require('../src/parser/narseseParser');
+const {createTask} = require('../shared/demo-utils');
 
 class CognitiveTestSuite {
     constructor() {
@@ -88,14 +86,7 @@ class CognitiveTestSuite {
         await testSystem.initialize();
         
         // Add premises
-        const premiseTasks = [];
-        for (const premise of premises) {
-            const term = parseTerm(premise);
-            if (term) {
-                const task = new Task(term, '.', {frequency: 1.0, confidence: 0.9});
-                premiseTasks.push(task);
-            }
-        }
+        const premiseTasks = premises.map(p => createTask(p, '.', {frequency: 1.0, confidence: 0.9})).filter(Boolean);
         await testSystem.addTasks(premiseTasks);
         
         // Run cycles to allow inference
@@ -149,21 +140,12 @@ class CognitiveTestSuite {
         await testSystem.initialize();
         
         // Add observations
-        const observationTasks = [];
-        for (const obs of observations) {
-            const term = parseTerm(obs);
-            if (term) {
-                const task = new Task(term, '.', {frequency: 1.0, confidence: 0.9});
-                observationTasks.push(task);
-            }
-        }
+        const observationTasks = observations.map(obs => createTask(obs, '.', {frequency: 1.0, confidence: 0.9})).filter(Boolean);
         await testSystem.addTasks(observationTasks);
         
         // Add hypothesis as question
-        const hypothesisTermStr = hypothesis.replace(/[.!?]$/, '');
-        const hypothesisTerm = parseTerm(hypothesisTermStr);
-        if (hypothesisTerm) {
-            const hypothesisTask = new Task(hypothesisTerm, '?');
+        const hypothesisTask = createTask(hypothesis.replace(/[.!?]$/, ''), '?');
+        if (hypothesisTask) {
             await testSystem.addTasks([hypothesisTask]);
         }
         
@@ -214,21 +196,12 @@ class CognitiveTestSuite {
         await testSystem.initialize();
         
         // Add scenario
-        const scenarioTasks = [];
-        for (const s of scenario) {
-            const term = parseTerm(s);
-            if (term) {
-                const task = new Task(term, '.', {frequency: 1.0, confidence: 0.9});
-                scenarioTasks.push(task);
-            }
-        }
+        const scenarioTasks = scenario.map(s => createTask(s, '.', {frequency: 1.0, confidence: 0.9})).filter(Boolean);
         await testSystem.addTasks(scenarioTasks);
         
         // Add action goal
-        const actionTermStr = action.replace(/[.!?]$/, '');
-        const actionTerm = parseTerm(actionTermStr);
-        if (actionTerm) {
-            const actionTask = new Task(actionTerm, '!');
+        const actionTask = createTask(action.replace(/[.!?]$/, ''), '!');
+        if (actionTask) {
             await testSystem.addTasks([actionTask]);
         }
         
@@ -274,17 +247,14 @@ class CognitiveTestSuite {
         await testSystem.initialize();
         
         // Add source knowledge
-        const sourceTerm = parseTerm(source);
-        if (sourceTerm) {
-            const sourceTask = new Task(sourceTerm, '.', {frequency: 1.0, confidence: 0.9});
+        const sourceTask = createTask(source, '.', {frequency: 1.0, confidence: 0.9});
+        if (sourceTask) {
             await testSystem.addTasks([sourceTask]);
         }
         
         // Add target as question
-        const targetTermStr = target.replace(/[.!?]$/, '');
-        const targetTerm = parseTerm(targetTermStr);
-        if (targetTerm) {
-            const targetTask = new Task(targetTerm, '?');
+        const targetTask = createTask(target.replace(/[.!?]$/, ''), '?');
+        if (targetTask) {
             await testSystem.addTasks([targetTask]);
         }
         

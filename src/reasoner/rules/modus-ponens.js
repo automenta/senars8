@@ -1,15 +1,15 @@
-const {buildTermKey} = require('../../utils/term-utils');
 const TruthValueManager = require('../TruthValueManager');
-const {createRule} = require('./rule-builder');
-const {isBelief} = require('../../utils/task-utils');
+const {createRule} = require('./rule-factories');
 const {createInferenceError} = require('../../utils/error-handler');
+const Task = require('../../core/Task');
+const Term = require('../../core/Term');
 
 module.exports = createRule({
     name: 'modus-ponens',
     arity: 2,
     operands: [
-        (task) => isBelief(task),
-        (task) => isBelief(task),
+        (task) => Task.isBelief(task),
+        (task) => Task.isBelief(task),
     ],
     condition: (parsed1, parsed2) => {
         if (!parsed1 || !parsed2) {
@@ -26,7 +26,7 @@ module.exports = createRule({
                 throw createInferenceError('Invalid term structure for modus-ponens rule');
             }
             
-            const newTermKey = buildTermKey(parsed1.predicate);
+            const newTermKey = Term.buildTermKey(parsed1.predicate);
             
             if (!newTermKey) {
                 throw createInferenceError('Failed to build term key for modus-ponens rule');

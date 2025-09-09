@@ -1,5 +1,5 @@
-const {buildTermKey} = require('./src/utils/term-utils');
-const {parseTerm} = require('./src/parser/narseseParser');
+const Term = require('../src/core/Term');
+const {parseTerm} = require('../src/parser/narseseParser');
 
 // Test the induction rule condition and action
 console.log('Testing induction rule...');
@@ -24,14 +24,14 @@ console.log('parsed2:', parsed2);
 const condition = 
     parsed1?.type === 'Inheritance' &&
     parsed2?.type === 'Inheritance' &&
-    buildTermKey(parsed1.predicate) === buildTermKey(parsed2.predicate) &&
-    buildTermKey(parsed1.subject) !== buildTermKey(parsed2.subject);
+    Term.buildTermKey(parsed1.predicate) === Term.buildTermKey(parsed2.predicate) &&
+    Term.buildTermKey(parsed1.subject) !== Term.buildTermKey(parsed2.subject);
 
 console.log('Condition result:', condition);
 
 // If condition is true, test the term builder
 if (condition) {
-    const newTermKey = buildTermKey({
+    const newTermKey = Term.buildTermKey({
         type: 'Inheritance',
         subject: parsed1.subject,
         predicate: parsed2.subject

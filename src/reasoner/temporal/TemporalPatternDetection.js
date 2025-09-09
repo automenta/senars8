@@ -39,7 +39,6 @@ class TemporalPatternDetection {
                     }
                 } catch (err) {
                     handleErrorWithDefault(err, `Error processing pattern of type ${pattern.type}`, null);
-                    // Continue with other patterns
                 }
             }
             

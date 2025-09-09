@@ -13,7 +13,6 @@ class TemporalRelationshipInference {
             const temporalTasks = [];
             let relationshipCount = 0;
             
-            // Limit the number of comparisons to prevent performance issues
             const maxComparisons = config.temporal.MAX_COMPARISONS;
             let comparisonCount = 0;
             

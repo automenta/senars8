@@ -1,21 +1,21 @@
-const {buildTermKey} = require('../../utils/term-utils');
 const TruthValueManager = require('../TruthValueManager');
-const {createRule} = require('./rule-builder');
-const {isBelief} = require('../../utils/task-utils');
+const {createRule} = require('./rule-factories');
+const Task = require('../../core/Task');
+const Term = require('../../core/Term');
 
 module.exports = createRule({
     name: 'decomposition',
     arity: 2,
     operands: [
-        (task) => isBelief(task),
-        (task) => isBelief(task),
+        (task) => Task.isBelief(task),
+        (task) => Task.isBelief(task),
     ],
     condition: (parsed1, parsed2) =>
         parsed1?.type === 'Inheritance' &&
         parsed2?.type === 'Inheritance' &&
-        buildTermKey(parsed1.subject) === buildTermKey(parsed2.predicate),
+        Term.buildTermKey(parsed1.subject) === Term.buildTermKey(parsed2.predicate),
     action: (parsed1, parsed2, task1, task2) => {
-        const newTermKey = buildTermKey({
+        const newTermKey = Term.buildTermKey({
             type: 'Inheritance',
             subject: parsed2.subject,
             predicate: parsed1.predicate

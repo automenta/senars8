@@ -1,4 +1,5 @@
-const { System, Task, Term, parseTerm } = require('../src/index');
+const { System } = require('../src/index');
+const {createTask} = require('../shared/demo-utils');
 
 async function runBasicDemo() {
     console.log('Starting basic demo...');
@@ -21,19 +22,7 @@ async function runBasicDemo() {
     ];
     
     // Create tasks using proper parsing
-    const tasks = taskDefs.map(def => {
-        try {
-            const parsedTerm = parseTerm(def.termKey);
-            if (parsedTerm) {
-                return new Task(parsedTerm, def.punctuation, def.truthValue);
-            }
-            console.warn(`Failed to parse term: ${def.termKey}`);
-            return null;
-        } catch (error) {
-            console.warn(`Error parsing term ${def.termKey}:`, error.message);
-            return null;
-        }
-    }).filter(Boolean);
+    const tasks = taskDefs.map(def => createTask(def.termKey, def.punctuation, def.truthValue)).filter(Boolean);
     
     await system.addTasks(tasks);
     console.log('Added initial tasks');

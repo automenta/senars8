@@ -1,6 +1,6 @@
-const {parseTerm} = require('./src/parser/narseseParser');
-const Task = require('./src/core/Task');
-const Term = require('./src/core/Term');
+const {parseTerm} = require('../src/parser/narseseParser');
+const Task = require('../src/core/Task');
+const Term = require('../src/core/Term');
 
 // Test the exact scenario from the test with our fix
 async function debugTest() {

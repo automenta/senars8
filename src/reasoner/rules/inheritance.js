@@ -1,15 +1,15 @@
-const {buildTermKey} = require('../../utils/term-utils');
 const TruthValueManager = require('../TruthValueManager');
-const {createRule} = require('./rule-builder');
-const {isBelief} = require('../../utils/task-utils');
+const {createRule} = require('./rule-factories');
 const {createInferenceError} = require('../../utils/error-handler');
+const Task = require('../../core/Task');
+const Term = require('../../core/Term');
 
 module.exports = createRule({
     name: 'inheritance',
     arity: 2,
     operands: [
-        (task) => isBelief(task),
-        (task) => isBelief(task),
+        (task) => Task.isBelief(task),
+        (task) => Task.isBelief(task),
     ],
     condition: (parsed1, parsed2) => {
         if (!parsed1 || !parsed2) {
@@ -26,7 +26,7 @@ module.exports = createRule({
                 throw createInferenceError('Invalid term structure for inheritance rule');
             }
             
-            const newTermKey = buildTermKey({
+            const newTermKey = Term.buildTermKey({
                 type: 'Inheritance',
                 subject: parsed1.subject,
                 predicate: parsed2.predicate

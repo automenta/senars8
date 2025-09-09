@@ -8,7 +8,6 @@ const {PromptTemplate} = require("@langchain/core/prompts");
 const {StructuredOutputParser} = require("@langchain/core/output_parsers");
 const {LM: LM_CONFIG} = require('../config');
 const HypothesisGenerator = require('./HypothesisGenerator');
-const {getBeliefTasks} = require('../utils/task-utils');
 const {handleError, handleErrorWithDefault} = require('../utils/error-handler');
 const {info, error, debug, warn} = require('../utils/logger');
 
@@ -28,7 +27,6 @@ class PipelineFactory {
     }
     
     async dispose() {
-        // Clear all pipelines to free up memory
         info('Disposing all pipelines');
         this._pipelines.clear();
     }
@@ -286,7 +284,7 @@ The new plan should be a list of Narsese terms.
             debug(`Performing proactive enrichment on ${tasks.length} tasks`);
             await this._getGenerationPipeline();
 
-            const newBeliefs = getBeliefTasks(tasks).filter(t => t.state.truthValue.confidence > 0.8);
+            const newBeliefs = Task.getBeliefTasks(tasks).filter(t => t.state.truthValue.confidence > 0.8);
             if (newBeliefs.length === 0) {
                 debug('No high-confidence beliefs for enrichment');
                 return [];

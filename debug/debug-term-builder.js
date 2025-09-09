@@ -1,5 +1,5 @@
-const {buildTermKey} = require('./src/utils/term-utils');
-const {parseTerm} = require('./src/parser/narseseParser');
+const Term = require('../src/core/Term');
+const {parseTerm} = require('../src/parser/narseseParser');
 
 // Test the term builder that's causing the issue
 try {
@@ -9,7 +9,7 @@ try {
         predicate: {key: 'animal'}
     };
     
-    const termKey = buildTermKey(testTerm);
+    const termKey = Term.buildTermKey(testTerm);
     console.log('Generated term key:', termKey);
     
     const parsed = parseTerm(termKey);

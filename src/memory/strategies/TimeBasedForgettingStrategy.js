@@ -3,9 +3,8 @@ const ForgettingStrategy = require('./ForgettingStrategy');
 class TimeBasedForgettingStrategy extends ForgettingStrategy {
     constructor(options = {}) {
         super(options);
-        // Default options can be stored here, but primary config will be passed to prune
         this.defaultOptions = {
-            expirationThreshold: BigInt(24) * BigInt(3600 * 1000), // 24 hours
+            expirationThreshold: BigInt(24) * BigInt(3600 * 1000),
             importanceThresholds: {
                 priority: 0.5,
                 confidence: 0.5,

@@ -12,7 +12,6 @@ function extractSubTasksFromMethod(methodTerm) {
 
 function isAchieved(term, memory, config) {
     const beliefs = memory.beliefIndex.get(term.key);
-    // Check if any belief meets the confidence threshold
     return !!(beliefs && beliefs.length > 0 && 
         beliefs.some(belief => belief.state.truthValue.confidence >= config.confidenceThreshold));
 }
@@ -20,7 +19,6 @@ function isAchieved(term, memory, config) {
 function arePreconditionsMet(preconditions, memory, config) {
     for (const precondition of preconditions) {
         const beliefs = memory.beliefIndex.get(precondition.key);
-        // Check if any belief meets the confidence threshold
         if (!beliefs || beliefs.length === 0 || 
             !beliefs.some(belief => belief.state.truthValue.confidence > config.preconditionConfidenceThreshold)) {
             return false;

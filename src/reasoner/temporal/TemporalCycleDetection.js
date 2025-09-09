@@ -26,7 +26,6 @@ class TemporalCycleDetection {
                     cycleTasks.push(cycleTask);
                 } catch (err) {
                     handleErrorWithDefault(err, `Error processing cycle for term ${cycle.termKey}`, null);
-                    // Continue with other cycles
                 }
             }
             

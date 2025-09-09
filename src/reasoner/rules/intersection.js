@@ -1,12 +1,12 @@
-const {buildTermKey} = require('../../utils/term-utils');
+const Term = require('../../core/Term');
 const TruthValueManager = require('../TruthValueManager');
-const {createBinaryInheritanceRule} = require('./rule-generator');
+const {createBinaryInheritanceRule} = require('./rule-factories');
 
 module.exports = createBinaryInheritanceRule(
     'intersection',
-    (parsed1, parsed2) => buildTermKey({
+    (parsed1, parsed2) => Term.buildTermKey({
         type: 'Inheritance',
-        subject: `(&, ${buildTermKey(parsed1.subject)}, ${buildTermKey(parsed2.subject)})`,
+        subject: `(&, ${Term.buildTermKey(parsed1.subject)}, ${Term.buildTermKey(parsed2.subject)})`,
         predicate: parsed1.predicate
     }),
     TruthValueManager.induce

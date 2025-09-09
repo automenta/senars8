@@ -1,8 +1,8 @@
 const {parseTerm} = require('../parser/narseseParser');
 const ContradictionAnalyzer = require('../reasoner/ContradictionAnalyzer');
 const ResolutionStrategy = require('../reasoner/strategies/ResolutionStrategy');
-const {getBeliefTasks} = require('../utils/task-utils');
 const {info, error, debug, warn} = require('../utils/logger');
+const Task = require('../core/Task');
 const {handleErrorWithDefault} = require('../utils/error-handler');
 
 class MetaCognition {
@@ -15,7 +15,7 @@ class MetaCognition {
     findContradictions(tasks) {
         try {
             debug(`Finding contradictions in ${tasks.length} tasks`);
-            const beliefTasks = getBeliefTasks(tasks);
+            const beliefTasks = Task.getBeliefTasks(tasks);
             debug(`Found ${beliefTasks.length} belief tasks`);
             
             const parsedBeliefs = beliefTasks.map(task => ({

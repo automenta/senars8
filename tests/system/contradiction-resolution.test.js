@@ -1,18 +1,18 @@
-const Cycle = require('../src/system/Cycle');
-const Memory = require('../src/memory/Memory');
-const Reasoner = require('../src/reasoner/Reasoner');
-const LM = require('../src/lm/LM');
-const ActionExecutor = require('../src/system/ActionExecutor');
-const Task = require('../src/core/Task');
-const Term = require('../src/core/Term');
+const Cycle = require('../../src/system/Cycle');
+const Memory = require('../../src/memory/Memory');
+const Reasoner = require('../../src/reasoner/Reasoner');
+const LM = require('../../src/lm/LM');
+const ActionExecutor = require('../../src/system/ActionExecutor');
+const Task = require('../../src/core/Task');
+const Term = require('../../src/core/Term');
 const {
     parseTerm
-} = require('../src/parser/narseseParser');
-const config = require('../src/config');
-const EventBus = require('../src/system/EventBus');
+} = require('../../src/parser/narseseParser');
+const config = require('../../src/config');
+const EventBus = require('../../src/system/EventBus');
 
 // Mock the LM to avoid loading heavy models
-jest.mock('../src/lm/LM');
+jest.mock('../../src/lm/LM');
 jest.mock('@xenova/transformers', () => {
     const transformers = jest.genMockFromModule('@xenova/transformers');
     transformers.pipeline = jest.fn(async () => {

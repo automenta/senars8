@@ -1,39 +1,42 @@
-const BaseParser = require('./BaseParser');
-const {handleErrorWithDefault, createParseError} = require('../utils/error-handler');
+const lexer = require('./lexer');
 
-// Import parser modules
-const unaryOperators = require('./modules/unary-operators');
-const temporalOperators = require('./modules/temporal-operators');
-const binaryOperators = require('./modules/binary-operators');
-const compoundTerms = require('./modules/compound-terms');
-const setTerms = require('./modules/set-terms');
-const atomicTerms = require('./modules/atomic-terms');
-
-class NarseseParser extends BaseParser {
+class NarseseParser {
     constructor(input) {
-        super(input);
+        this.lexer = lexer.clone();
+        this.lexer.reset(input);
+        this.current = null;
+        this.next();
     }
 
-    /**
-     * Parse the main input
-     * @returns {object} The parsed result
-     */
-    parseMain() {
-        try {
-            const result = this.parseStatement();
-            if (this.current) {
-                throw createParseError(`Unexpected token '${this.current.type}' at end of input`);
-            }
-            return result;
-        } catch (error) {
-            return handleErrorWithDefault(error, 'Narsese parsing error', null);
+    next() {
+        this.current = this.lexer.next();
+        while (this.current && this.current.type === 'whitespace') {
+            this.current = this.lexer.next();
         }
+        return this.current;
     }
 
-    /**
-     * Parse a statement
-     * @returns {object} The parsed statement
-     */
+    match(type) {
+        return this.current && this.current.type === type;
+    }
+
+    consume(type) {
+        if (this.match(type)) {
+            const value = this.current.value;
+            this.next();
+            return value;
+        }
+        throw new Error(`Expected token type '${type}', but found '${this.current ? this.current.type : 'EOF'}'`);
+    }
+
+    parseMain() {
+        const result = this.parseStatement();
+        if (this.current) {
+            throw new Error(`Unexpected token '${this.current.type}' at end of input`);
+        }
+        return result;
+    }
+
     parseStatement() {
         const term = this.parseTerm();
 
@@ -63,10 +66,6 @@ class NarseseParser extends BaseParser {
         return term;
     }
 
-    /**
-     * Parse a truth value
-     * @returns {object} The parsed truth value
-     */
     parseTruthValue() {
         this.consume('lparen');
         const frequency = this.parseNumber();
@@ -76,121 +75,277 @@ class NarseseParser extends BaseParser {
         return {frequency, confidence};
     }
 
-    /**
-     * Parse a number
-     * @returns {number} The parsed number
-     */
     parseNumber() {
         if (this.match('number')) {
             return this.consume('number');
         }
-        throw createParseError(`Expected a number, but found '${this.current ? this.current.type : 'EOF'}'`);
+        throw new Error(`Expected a number, but found '${this.current ? this.current.type : 'EOF'}'`);
     }
 
-    /**
-     * Parse a term
-     * @returns {object} The parsed term
-     */
     parseTerm() {
         if (this.match('lparen')) {
             return this.parseCompoundTerm();
         } else if (this.match('setExtension')) {
-            return setTerms.parseExtensionalSet(this);
+            return this.parseExtensionalSet();
         } else if (this.match('setIntension')) {
-            return setTerms.parseIntensionalSet(this);
+            return this.parseIntensionalSet();
         } else if (this.match('identifier')) {
-            return atomicTerms.parseAtomicTerm(this);
+            return this.parseAtomicTerm();
         } else if (this.match('independentVar')) {
-            return atomicTerms.parseIndependentVariable(this);
+            return this.parseIndependentVariable();
         } else if (this.match('dependentVar')) {
-            return atomicTerms.parseDependentVariable(this);
+            return this.parseDependentVariable();
         } else if (this.match('queryVar')) {
-            return atomicTerms.parseQueryVariable(this);
+            return this.parseQueryVariable();
         } else {
-            throw createParseError(`Unexpected token '${this.current ? this.current.type : 'EOF'}' when parsing term`);
+            throw new Error(`Unexpected token '${this.current ? this.current.type : 'EOF'}' when parsing term`);
         }
     }
 
-    /**
-     * Parse a compound term
-     * @returns {object} The parsed compound term
-     */
     parseCompoundTerm() {
         this.consume('lparen');
 
-        // Handle unary operators
-        if (unaryOperators.matchUnaryOperator(this)) {
-            return unaryOperators.parseUnaryOperator(this);
+        if (this.matchUnaryOperator()) {
+            return this.parseUnaryOperator();
         }
 
-        // Handle temporal operators
-        if (temporalOperators.matchTemporalOperator(this)) {
-            return temporalOperators.parseTemporalOperator(this);
+        if (this.matchTemporalOperator()) {
+            return this.parseTemporalOperator();
         }
 
-        // Handle binary operators
-        if (binaryOperators.matchBinaryOperator(this)) {
-            return binaryOperators.parseBinaryOperator(this);
+        if (this.matchBinaryOperator()) {
+            return this.parseBinaryOperator();
         }
 
-        // Handle special compound terms
         const firstTerm = this.parseTerm();
         
         if (this.match('arrow')) {
-            return compoundTerms.parseInheritance(this, firstTerm);
+            return this.parseInheritance(firstTerm);
         } else if (this.match('implies')) {
-            return compoundTerms.parseImplication(this, firstTerm);
+            return this.parseImplication(firstTerm);
         } else if (this.match('instance')) {
-            return compoundTerms.parseInstance(this, firstTerm);
+            return this.parseInstance(firstTerm);
         } else if (this.match('property')) {
-            return compoundTerms.parseProperty(this, firstTerm);
+            return this.parseProperty(firstTerm);
         } else if (this.match('equivalence')) {
-            return compoundTerms.parseEquivalence(this, firstTerm);
+            return this.parseEquivalence(firstTerm);
         } else if (this.match('similarity')) {
-            return compoundTerms.parseSimilarity(this, firstTerm);
+            return this.parseSimilarity(firstTerm);
         } else if (this.match('retrospection')) {
-            return compoundTerms.parseRetrospectiveImplication(this, firstTerm);
+            return this.parseRetrospectiveImplication(firstTerm);
         } else if (this.match('prediction')) {
-            return compoundTerms.parsePredictiveImplication(this, firstTerm);
+            return this.parsePredictiveImplication(firstTerm);
         } else if (this.match('concurrent')) {
-            return compoundTerms.parseConcurrentImplication(this, firstTerm);
+            return this.parseConcurrentImplication(firstTerm);
         } else if (this.match('until')) {
-            return compoundTerms.parseUntil(this, firstTerm);
+            return this.parseUntil(firstTerm);
         } else if (this.match('since')) {
-            return compoundTerms.parseSince(this, firstTerm);
+            return this.parseSince(firstTerm);
         } else {
             this.consume('rparen');
             return firstTerm;
         }
     }
-}
 
-/**
- * Parse a term from a string input
- * @param {string} input - The input string to parse
- * @returns {object|null} The parsed term or null if parsing fails
- */
-function parseTermString(input) {
-    if (typeof input !== 'string' || input.length === 0) {
-        return null;
+    matchUnaryOperator() {
+        return ['negation'].includes(this.current.type);
     }
 
-    try {
-        const parser = new NarseseParser(input);
-        const parsed = parser.parseMain();
-        if (parsed) {
-            // Attach the original string key to the parsed object.
-            if (typeof parsed === 'object' && !parsed.key) {
-                parsed.key = input;
+    parseUnaryOperator() {
+        const operatorToken = this.current;
+        this.next(); // Consume the operator token
+        this.consume('comma');
+        const term = this.parseTerm();
+        this.consume('rparen');
+        return {type: this.getUnaryOperatorType(operatorToken.type), term};
+    }
+
+    getUnaryOperatorType(operator) {
+        const mapping = {
+            'negation': 'Negation'
+        };
+        return mapping[operator] || operator;
+    }
+
+    matchTemporalOperator() {
+        return ['always', 'eventually', 'next', 'previous'].includes(this.current.type);
+    }
+
+    parseTemporalOperator() {
+        const operatorToken = this.current;
+        this.next(); // Consume the operator token
+        this.consume('comma');
+        const term = this.parseTerm();
+        this.consume('rparen');
+        return {type: this.getTemporalOperatorType(operatorToken.type), term};
+    }
+
+    getTemporalOperatorType(operator) {
+        const mapping = {
+            'always': 'Always',
+            'eventually': 'Eventually',
+            'next': 'Next',
+            'previous': 'Previous'
+        };
+        return mapping[operator] || operator;
+    }
+
+    matchBinaryOperator() {
+        return [
+            'conjunction', 'sequentialConjunction', 'parallelConjunction',
+            'disjunction', 'extensionalDifference', 'intensionalDifference',
+            'product'
+        ].includes(this.current.type);
+    }
+
+    parseBinaryOperator() {
+        const operatorToken = this.current;
+        this.next(); // Consume the operator token
+        this.consume('comma');
+        const terms = this.parseTermList();
+        this.consume('rparen');
+        return {type: this.getBinaryOperatorType(operatorToken.type), terms};
+    }
+
+    getBinaryOperatorType(operator) {
+        const mapping = {
+            'conjunction': 'Conjunction',
+            'sequentialConjunction': 'SequentialConjunction',
+            'parallelConjunction': 'ParallelConjunction',
+            'disjunction': 'Disjunction',
+            'extensionalDifference': 'ExtensionalDifference',
+            'intensionalDifference': 'IntensionalDifference',
+            'product': 'Product'
+        };
+        return mapping[operator] || operator;
+    }
+
+    parseInheritance(subject) {
+        this.consume('arrow');
+        const predicate = this.parseTerm();
+        this.consume('rparen');
+        return {type: 'Inheritance', subject, predicate};
+    }
+
+    parseImplication(subject) {
+        this.consume('implies');
+        const predicate = this.parseTerm();
+        this.consume('rparen');
+        return {type: 'Implication', subject, predicate};
+    }
+
+    parseInstance(subject) {
+        this.consume('instance');
+        const predicate = this.parseTerm();
+        this.consume('rparen');
+        return {type: 'Instance', subject, predicate};
+    }
+
+    parseProperty(subject) {
+        this.consume('property');
+        const predicate = this.parseTerm();
+        this.consume('rparen');
+        return {type: 'Property', subject, predicate};
+    }
+
+    parseEquivalence(subject) {
+        this.consume('equivalence');
+        const predicate = this.parseTerm();
+        this.consume('rparen');
+        return {type: 'Equivalence', subject, predicate};
+    }
+
+    parseSimilarity(subject) {
+        this.consume('similarity');
+        const predicate = this.parseTerm();
+        this.consume('rparen');
+        return {type: 'Similarity', subject, predicate};
+    }
+
+    parseRetrospectiveImplication(subject) {
+        this.consume('retrospection');
+        const predicate = this.parseTerm();
+        this.consume('rparen');
+        return {type: 'RetrospectiveImplication', subject, predicate};
+    }
+
+    parsePredictiveImplication(subject) {
+        this.consume('prediction');
+        const predicate = this.parseTerm();
+        this.consume('rparen');
+        return {type: 'PredictiveImplication', subject, predicate};
+    }
+
+    parseConcurrentImplication(subject) {
+        this.consume('concurrent');
+        const predicate = this.parseTerm();
+        this.consume('rparen');
+        return {type: 'ConcurrentImplication', subject, predicate};
+    }
+
+    parseUntil(subject) {
+        this.consume('until');
+        const predicate = this.parseTerm();
+        this.consume('rparen');
+        return {type: 'Until', subject, predicate};
+    }
+
+    parseSince(subject) {
+        this.consume('since');
+        const predicate = this.parseTerm();
+        this.consume('rparen');
+        return {type: 'Since', subject, predicate};
+    }
+
+    parseExtensionalSet() {
+        this.consume('setExtension');
+        const terms = this.parseTermList();
+        this.consume('rbrace');
+        return {type: 'ExtensionalSet', terms};
+    }
+
+    parseIntensionalSet() {
+        this.consume('setIntension');
+        const terms = this.parseTermList();
+        this.consume('rbracket');
+        return {type: 'IntensionalSet', terms};
+    }
+
+    parseAtomicTerm() {
+        const identifier = this.consume('identifier');
+        return {type: 'Atomic', key: identifier};
+    }
+
+    parseIndependentVariable() {
+        const variable = this.consume('independentVar');
+        return {type: 'IndependentVariable', name: variable};
+    }
+
+    parseDependentVariable() {
+        const variable = this.consume('dependentVar');
+        return {type: 'DependentVariable', name: variable};
+    }
+
+    parseQueryVariable() {
+        const variable = this.consume('queryVar');
+        return {type: 'QueryVariable', name: variable};
+    }
+
+    parseTermList() {
+        const terms = [];
+
+        if (!this.match('rparen') && !this.match('rbrace') && !this.match('rbracket')) {
+            terms.push(this.parseTerm());
+
+            while (this.match('comma')) {
+                this.consume('comma');
+                terms.push(this.parseTerm());
             }
         }
-        return parsed;
-    } catch (error) {
-        return handleErrorWithDefault(error, 'Narsese parsing error', null);
+
+        return terms;
     }
 }
-
-module.exports = {parseTerm: parseTermString};
 
 function parseTerm(input) {
     if (typeof input !== 'string' || input.length === 0) {
@@ -201,14 +356,13 @@ function parseTerm(input) {
         const parser = new NarseseParser(input);
         const parsed = parser.parseMain();
         if (parsed) {
-            // Attach the original string key to the parsed object.
             if (typeof parsed === 'object' && !parsed.key) {
                 parsed.key = input;
             }
         }
         return parsed;
     } catch (error) {
-        return handleErrorWithDefault(error, 'Narsese parsing error', null);
+        throw error;
     }
 }
 

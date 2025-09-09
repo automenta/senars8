@@ -1,20 +1,20 @@
-const {buildTermKey} = require('../../utils/term-utils');
 const TruthValueManager = require('../TruthValueManager');
-const {createRule} = require('./rule-builder');
-const {isBelief} = require('../../utils/task-utils');
+const {createRule} = require('./rule-factories');
 const config = require('../../config');
+const Task = require('../../core/Task');
+const Term = require('../../core/Term');
 
 module.exports = createRule({
     name: 'conversion',
     arity: 1,
     operands: [
-        (task) => isBelief(task),
+        (task) => Task.isBelief(task),
     ],
     condition: (parsed1) =>
         parsed1?.type === 'Inheritance',
     action: (parsed1, task1) => {
         // Conversion: (S --> P) |- (P --> S) with adjusted truth value
-        const newTermKey = buildTermKey({
+        const newTermKey = Term.buildTermKey({
             type: 'Inheritance',
             subject: parsed1.predicate,
             predicate: parsed1.subject

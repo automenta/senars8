@@ -67,10 +67,6 @@ class Perception {
         this.perceptionHistory = [];
     }
 
-    /**
-     * Get registered sensory modalities
-     * @returns {Array} Registered sensory modalities
-     */
     getSensoryModalities() {
         return Array.from(this.sensoryModalities.keys());
     }

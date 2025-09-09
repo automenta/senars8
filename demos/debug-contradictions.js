@@ -1,6 +1,5 @@
-const MetaCognition = require('./src/system/MetaCognition');
-const Task = require('./src/core/Task');
-const {parseTerm} = require('./src/parser/narseseParser');
+const MetaCognition = require('../src/system/MetaCognition');
+const {createTask} = require('../shared/demo-utils');
 
 async function debugContradictions() {
     console.log("=== Debugging Contradiction Detection ===\n");
@@ -18,20 +17,7 @@ async function debugContradictions() {
     ];
 
     // Create tasks
-    const tasks = [];
-    for (const def of taskDefs) {
-        const parsedTerm = parseTerm(def.termKey);
-        if (parsedTerm) {
-            const task = new Task(parsedTerm, def.punctuation, def.truthValue);
-            tasks.push(task);
-            console.log(`Created task: ${task.termKey}${task.punctuation}`);
-            console.log(`  Parsed term:`, parsedTerm);
-            console.log(`  Truth value: freq=${task.state.truthValue.frequency}, conf=${task.state.truthValue.confidence}`);
-            console.log();
-        } else {
-            console.log(`Failed to parse term: ${def.termKey}`);
-        }
-    }
+    const tasks = taskDefs.map(def => createTask(def.termKey, def.punctuation, def.truthValue)).filter(Boolean);
 
     // Find contradictions
     console.log("Finding contradictions...\n");

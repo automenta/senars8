@@ -1,6 +1,6 @@
-const {parseTerm} = require('./src/parser/narseseParser');
-const Task = require('./src/core/Task');
-const Term = require('./src/core/Term');
+const {parseTerm} = require('../src/parser/narseseParser');
+const Task = require('../src/core/Task');
+const Term = require('../src/core/Term');
 
 // Debug the Task constructor
 console.log('Testing Task constructor...');

@@ -1,11 +1,9 @@
 const moo = require('moo');
 
-// Define tokens in groups for better organization while maintaining correct order
 const WHITESPACE = {
     whitespace: {match: /\s+/, lineBreaks: true}
 };
 
-// Punctuation tokens - order matters for correct parsing
 const PUNCTUATION = {
     lparen: '(',
     rparen: ')',
@@ -14,9 +12,7 @@ const PUNCTUATION = {
     implies: '==>',
     instance: '{--',
     property: '--}',
-    // Must be before conjunction for correct parsing
     sequentialConjunction: '&&',
-    // Must be before conjunction for correct parsing
     parallelConjunction: '&|',
     negation: '--',
     conjunction: '&',
@@ -31,7 +27,6 @@ const PUNCTUATION = {
     concurrent: '=<>'
 };
 
-// Temporal operators
 const TEMPORAL = {
     always: 'always',
     eventually: 'eventually',
@@ -41,7 +36,6 @@ const TEMPORAL = {
     previous: 'previous'
 };
 
-// Set notation tokens
 const SETS = {
     setExtension: '{',
     setIntension: '[',
@@ -49,7 +43,6 @@ const SETS = {
     rbracket: ']'
 };
 
-// Statement punctuation
 const STATEMENT_PUNCTUATION = {
     colon: ':',
     question: '?',
@@ -57,18 +50,14 @@ const STATEMENT_PUNCTUATION = {
     belief: '.'
 };
 
-// Literals and variables
 const LITERALS = {
     identifier: /[a-zA-Z_][a-zA-Z0-9_]*/,
-    // Variables
     independentVar: /\w+/,
     dependentVar: /#\w+/,
     queryVar: /\?\w+/,
-    // Numbers
     number: /\d+(?:\.\d+)?/
 };
 
-// Combine all tokens in the exact same order as the original
 const lexer = moo.compile({
     ...WHITESPACE,
     ...PUNCTUATION,

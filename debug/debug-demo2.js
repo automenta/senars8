@@ -1,6 +1,6 @@
-const System = require('./src/system/System');
-const Task = require('./src/core/Task');
-const {parseTerm} = require('./src/parser/narseseParser');
+const System = require('../src/system/System');
+const Task = require('../src/core/Task');
+const {parseTerm} = require('../src/parser/narseseParser');
 
 /**
  * Action Execution Demo

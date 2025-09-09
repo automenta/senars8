@@ -41,10 +41,9 @@ class Planner {
                 const isAchieved = this.strategy._isAchieved(this.strategy.memory.getTerm(goalTask.termKey));
                 if (isAchieved) {
                     debug(`Goal already achieved: ${goalKey}`);
-                    return new Plan([], this.actionExecutor); // Goal already achieved
+                    return new Plan([], this.actionExecutor);
                 }
 
-                // If no plan found, try to use LM for a suggestion
                 if (this.lm) {
                     debug(`Requesting LM plan suggestion for goal: ${goalKey}`);
                     const lmSuggestion = await this.lm.suggestPlanRepair(goalTask, failedPlan ? failedPlan.steps : null);

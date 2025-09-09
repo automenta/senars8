@@ -27,7 +27,6 @@ class TemporalAnomalyDetection {
                     anomalyTasks.push(anomalyTask);
                 } catch (err) {
                     handleErrorWithDefault(err, `Error processing anomaly for term ${anomaly.termKey}`, null);
-                    // Continue with other anomalies
                 }
             }
             

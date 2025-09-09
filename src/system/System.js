@@ -98,7 +98,6 @@ class System {
             while (this.isRunning && (maxCycles === 0 || this.cycleCount < maxCycles)) {
                 try {
                     await this.runCycle();
-                    // Use a shorter delay for better responsiveness
                     await new Promise(resolve => setTimeout(resolve, 50));
                 } catch (error) {
                     error('Error during system cycle execution:', error);
@@ -139,124 +138,59 @@ class System {
         }
     }
 
-    /**
-     * Get the current memory statistics
-     * @returns {object} Memory statistics
-     */
     getMemoryStatistics() {
         return this.memory.getStatistics();
     }
 
-    /**
-     * Find tasks by term key
-     * @param {string} termKey - The term key to search for
-     * @returns {Task[]} Array of tasks with the specified term key
-     */
     findTasksByTermKey(termKey) {
         return this.memory.findTasksByTermKey(termKey);
     }
 
-    /**
-     * Get tasks with priority above a threshold
-     * @param {number} threshold - The priority threshold
-     * @returns {Task[]} Array of high-priority tasks
-     */
     getHighPriorityTasks(threshold = 0.5) {
         return this.memory.getHighPriorityTasks(threshold);
     }
 
-    /**
-     * Get a task by its ID
-     * @param {string} taskId - The ID of the task to retrieve
-     * @returns {Task|null} The task or null if not found
-     */
     getTask(taskId) {
         return this.memory.getTask(taskId);
     }
 
-    /**
-     * Get a term by its key
-     * @param {string} termKey - The key of the term to retrieve
-     * @returns {Term|null} The term or null if not found
-     */
     getTerm(termKey) {
         return this.memory.getTerm(termKey);
     }
 
-    /**
-     * Get all tasks in the system
-     * @returns {Task[]} Array of all tasks
-     */
     getAllTasks() {
         return this.memory.getAllTasks();
     }
 
-    /**
-     * Get all terms in the system
-     * @returns {Term[]} Array of all terms
-     */
     getAllTerms() {
         return Array.from(this.memory.terms.values());
     }
 
-    /**
-     * Get all belief tasks (. punctuation)
-     * @returns {Task[]} Array of belief tasks
-     */
     getBeliefs() {
         return this.memory.findTasksByType('.');
     }
 
-    /**
-     * Get all goal tasks (! punctuation)
-     * @returns {Task[]} Array of goal tasks
-     */
     getGoals() {
         return this.memory.findTasksByType('!');
     }
 
-    /**
-     * Get all question tasks (? punctuation)
-     * @returns {Task[]} Array of question tasks
-     */
     getQuestions() {
         return this.memory.findTasksByType('?');
     }
 
-    /**
-     * Get the highest priority tasks
-     * @param {number} count - The number of tasks to retrieve (default: 10)
-     * @returns {Task[]} Array of highest priority tasks
-     */
     getTopPriorityTasks(count = 10) {
         return this.memory.getHighestPriorityTasks(count);
     }
 
-    /**
-     * Get tasks sorted by creation time (newest first)
-     * @param {number} count - The number of tasks to retrieve (default: 10)
-     * @returns {Task[]} Array of recently created tasks
-     */
     getRecentTasks(count = 10) {
         const tasks = this.memory.getAllTasks();
         tasks.sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime));
         return tasks.slice(0, count);
     }
 
-    /**
-     * Query tasks using various filters
-     * @param {object} filters - Filter criteria
-     * @param {string} [filters.termKey] - Term key to match
-     * @param {string} [filters.punctuation] - Punctuation type ('.', '!', '?')
-     * @param {number} [filters.minPriority] - Minimum priority threshold
-     * @param {number} [filters.minConfidence] - Minimum confidence threshold
-     * @param {number} [filters.limit] - Maximum number of tasks to return
-     * @returns {Task[]} Array of matching tasks
-     */
     queryTasks(filters = {}) {
         let tasks = this.memory.getAllTasks();
 
-        // Apply filters
         if (filters.termKey) {
             tasks = tasks.filter(task => task.termKey === filters.termKey);
         }
@@ -273,10 +207,8 @@ class System {
             tasks = tasks.filter(task => task.state.truthValue.confidence >= filters.minConfidence);
         }
         
-        // Sort by priority (highest first)
         tasks.sort((a, b) => b.state.priority - a.state.priority);
         
-        // Apply limit
         if (filters.limit !== undefined) {
             tasks = tasks.slice(0, filters.limit);
         }
@@ -284,13 +216,6 @@ class System {
         return tasks;
     }
 
-    /**
-     * Revise a task's truth value using Bayesian updating
-     * @param {string} taskId - The ID of the task to revise
-     * @param {object} newEvidence - The new evidence truth value {frequency, confidence}
-     * @param {number} weight - Weight for the new evidence (0-1)
-     * @returns {object} The revised truth value
-     */
     async reviseTaskTruthValue(taskId, newEvidence, weight = 0.5) {
         try {
             await this._ensureInitialized();
@@ -311,10 +236,6 @@ class System {
         }
     }
 
-    /**
-     * Remove a task from the system
-     * @param {string} taskId - The ID of the task to remove
-     */
     async removeTask(taskId) {
         try {
             await this._ensureInitialized();
@@ -327,10 +248,6 @@ class System {
         }
     }
 
-    /**
-     * Export the current memory state to a JSON object
-     * @returns {object} Serializable representation of the memory state
-     */
     exportMemoryState() {
         const terms = Array.from(this.memory.terms.entries()).map(([key, term]) => ({
             key: term.key,
@@ -361,25 +278,18 @@ class System {
         };
     }
 
-    /**
-     * Import memory state from a JSON object
-     * @param {object} state - Serializable representation of the memory state
-     */
     async importMemoryState(state) {
         try {
             await this._ensureInitialized();
             
-            // Clear existing memory
             this.memory.clear();
             
-            // Import terms
             const Term = require('../core/Term');
             for (const termData of state.terms) {
                 const term = new Term(termData.key, termData.embedding, termData.complexity);
                 this.memory.addTerm(term);
             }
             
-            // Import tasks
             const Task = require('../core/Task');
             const { parseTerm } = require('../parser/narseseParser');
             for (const taskData of state.tasks) {
@@ -392,7 +302,6 @@ class System {
                             ...(taskData.state.stamp.occurrenceTime && { occurrenceTime: BigInt(taskData.state.stamp.occurrenceTime) }),
                             ...(taskData.state.stamp.endTime && { endTime: BigInt(taskData.state.stamp.endTime) })
                         });
-                        // Manually set the task ID to preserve it
                         task.id = taskData.id;
                         this.memory.addTasks([task]);
                     }
@@ -408,19 +317,10 @@ class System {
         }
     }
 
-    /**
-     * Get the list of available inference rules
-     * @returns {string[]} Array of rule names
-     */
     getAvailableRules() {
         return this.reasoner.getRuleNames();
     }
 
-    /**
-     * Get information about a specific inference rule
-     * @param {string} ruleName - The name of the rule
-     * @returns {object|null} Rule information or null if not found
-     */
     getRuleInfo(ruleName) {
         const rule = this.reasoner.getRule(ruleName);
         return rule ? {
@@ -430,10 +330,6 @@ class System {
         } : null;
     }
 
-    /**
-     * Get system status information
-     * @returns {object} System status information
-     */
     getStatus() {
         return {
             initialized: this.initialized,
@@ -444,10 +340,6 @@ class System {
         };
     }
 
-    /**
-     * Get system configuration
-     * @returns {object} Current system configuration
-     */
     getConfig() {
         return {...this.config};
     }

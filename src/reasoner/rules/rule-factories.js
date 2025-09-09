@@ -1,6 +1,8 @@
 const Task = require('../../core/Task');
 const {parseTerm} = require('../../parser/narseseParser');
 const {handleErrorWithDefault} = require('../../utils/error-handler');
+const TruthValueManager = require('../TruthValueManager');
+const Term = require('../../core/Term');
 
 function createRule(spec) {
     return {
@@ -98,4 +100,25 @@ function createRule(spec) {
     };
 }
 
-module.exports = {createRule};
+function createBinaryInheritanceRule(name, termBuilder, truthValueFunction) {
+    return createRule({
+        name,
+        arity: 2,
+        operands: [
+            (task) => Task.isBelief(task),
+            (task) => Task.isBelief(task),
+        ],
+        condition: (parsed1, parsed2) =>
+            parsed1?.type === 'Inheritance' &&
+            parsed2?.type === 'Inheritance' &&
+            Term.buildTermKey(parsed1.predicate) === Term.buildTermKey(parsed2.predicate) &&
+            Term.buildTermKey(parsed1.subject) !== Term.buildTermKey(parsed2.subject),
+        action: (parsed1, parsed2, task1, task2) => {
+            const newTermKey = termBuilder(parsed1, parsed2);
+            const newTruthValue = truthValueFunction(task1.state.truthValue, task2.state.truthValue);
+            return {newTermKey, newTruthValue};
+        },
+    });
+}
+
+module.exports = {createRule, createBinaryInheritanceRule};

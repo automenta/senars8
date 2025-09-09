@@ -1,5 +1,4 @@
 const {cosineSimilarity} = require('../utils/math');
-const {getBeliefTasks} = require('../utils/task-utils');
 const config = require('../config');
 const {handleErrorWithDefault} = require('../utils/error-handler');
 
@@ -417,7 +416,7 @@ class TruthValueManager {
      */
     async resolveConflicts(tasks) {
         const results = [];
-        const beliefTasks = getBeliefTasks(tasks);
+        const beliefTasks = Task.getBeliefTasks(tasks);
 
         // Check for conflicts between belief tasks
         for (let i = 0; i < beliefTasks.length; i++) {

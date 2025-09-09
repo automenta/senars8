@@ -12,7 +12,6 @@ class TemporalImplicationInference {
             const implicationTasks = [];
             let implicationCount = 0;
             
-            // Limit the number of comparisons to prevent performance issues
             const maxComparisons = config.temporal.MAX_COMPARISONS;
             let comparisonCount = 0;
             

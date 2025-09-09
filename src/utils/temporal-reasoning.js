@@ -127,95 +127,53 @@ function predictFutureTasks(tasks, predictionTime) {
 
 function createTemporalRelationshipTask(task1, task2, relationship) {
     const termKey = `(${task1.termKey} ${relationship} ${task2.termKey})`;
-    const parsedTerm = parseTerm(termKey);
-    if (!parsedTerm) {
-        return null; // Return null if parsing fails
-    }
-    return new Task(parsedTerm, '.', {
+    return createTemporalTask(termKey, '.', {
         frequency: 1.0,
         confidence: config.temporal.TEMPORAL_CONFIDENCE
-    }, {
-        creationTime: Date.now()
-    });
+    }, Date.now());
+}
+
+function _createImplicationTask(termKey, truthValue) {
+    const parsedTerm = parseTerm(termKey);
+    if (!parsedTerm) {
+        return null;
+    }
+    return new Task(parsedTerm, '.', truthValue);
 }
 
 function inferTemporalImplications(task1, task2) {
-    const implications = [];
-
     const relationship = determineTemporalRelationship(task1, task2);
-    if (!relationship) return implications;
+    if (!relationship) return [];
 
+    let implicationTask = null;
     switch (relationship) {
         case 'before':
-            if (task1.punctuation === '.') {
-                const termKey = `((&&, ${task1.termKey}, ${task2.termKey}) ==> ${task2.termKey})`;
-                const parsedTerm = parseTerm(termKey);
-                if (parsedTerm) {
-                    const implication = new Task(
-                        parsedTerm,
-                        '.',
-                        {
-                            frequency: task1.state.truthValue.frequency * config.temporal.TEMPORAL_RELATIONSHIP_FREQUENCY,
-                            confidence: task1.state.truthValue.confidence * config.temporal.TEMPORAL_RELATIONSHIP_CONFIDENCE
-                        }
-                    );
-                    implications.push(implication);
-                }
-            }
-            break;
-
         case 'after':
             if (task1.punctuation === '.') {
                 const termKey = `((&&, ${task1.termKey}, ${task2.termKey}) ==> ${task2.termKey})`;
-                const parsedTerm = parseTerm(termKey);
-                if (parsedTerm) {
-                    const implication = new Task(
-                        parsedTerm,
-                        '.',
-                        {
-                            frequency: task1.state.truthValue.frequency * config.temporal.TEMPORAL_RELATIONSHIP_FREQUENCY,
-                            confidence: task1.state.truthValue.confidence * config.temporal.TEMPORAL_RELATIONSHIP_CONFIDENCE
-                        }
-                    );
-                    implications.push(implication);
-                }
+                implicationTask = _createImplicationTask(termKey, {
+                    frequency: task1.state.truthValue.frequency * config.temporal.TEMPORAL_RELATIONSHIP_FREQUENCY,
+                    confidence: task1.state.truthValue.confidence * config.temporal.TEMPORAL_RELATIONSHIP_CONFIDENCE
+                });
             }
             break;
-
         case 'meets':
             const termKey = `((&&, ${task1.termKey}, ${task2.termKey}) ==> (temporal_continuity, ${task1.termKey}, ${task2.termKey}))`;
-            const parsedTerm = parseTerm(termKey);
-            if (parsedTerm) {
-                const meetsImplication = new Task(
-                    parsedTerm,
-                    '.',
-                    {
-                        frequency: config.temporal.MEETS_IMPLICATION_FREQUENCY,
-                        confidence: config.temporal.MEETS_IMPLICATION_CONFIDENCE
-                    }
-                );
-                implications.push(meetsImplication);
-            }
+            implicationTask = _createImplicationTask(termKey, {
+                frequency: config.temporal.MEETS_IMPLICATION_FREQUENCY,
+                confidence: config.temporal.MEETS_IMPLICATION_CONFIDENCE
+            });
             break;
-
         case 'overlaps':
             const overlapTermKey = `(temporal_overlap, ${task1.termKey}, ${task2.termKey})`;
-            const overlapParsedTerm = parseTerm(overlapTermKey);
-            if (overlapParsedTerm) {
-                const overlapImplication = new Task(
-                    overlapParsedTerm,
-                    '.',
-                    {
-                        frequency: config.temporal.OVERLAP_IMPLICATION_FREQUENCY,
-                        confidence: config.temporal.OVERLAP_IMPLICATION_CONFIDENCE
-                    }
-                );
-                implications.push(overlapImplication);
-            }
+            implicationTask = _createImplicationTask(overlapTermKey, {
+                frequency: config.temporal.OVERLAP_IMPLICATION_FREQUENCY,
+                confidence: config.temporal.OVERLAP_IMPLICATION_CONFIDENCE
+            });
             break;
     }
 
-    return implications;
+    return implicationTask ? [implicationTask] : [];
 }
 
 function createTemporalSequenceTask(tasks) {
@@ -280,11 +238,6 @@ function detectTemporalPatterns(tasks) {
     return patterns;
 }
 
-/**
- * Detects temporal cycles in a sequence of tasks.
- * @param {Array} tasks - Array of temporal tasks.
- * @returns {Array} Array of detected cycles.
- */
 function detectTemporalCycles(tasks) {
     const cycles = [];
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
@@ -293,26 +246,21 @@ function detectTemporalCycles(tasks) {
 
     const taskGroups = _groupTasksByTermKey(temporalTasks);
 
-    // For each group, check for cyclic patterns
     for (const [termKey, groupTasks] of Object.entries(taskGroups)) {
         if (groupTasks.length < 3) continue;
 
-        // Sort by occurrence time
         groupTasks.sort((a, b) => a.state.stamp.occurrenceTime - b.state.stamp.occurrenceTime);
 
-        // Calculate intervals
         const intervals = [];
         for (let i = 1; i < groupTasks.length; i++) {
             intervals.push(groupTasks[i].state.stamp.occurrenceTime - groupTasks[i - 1].state.stamp.occurrenceTime);
         }
 
-        // Check for regular intervals (potential cycle)
         if (intervals.length > 2) {
             const avgInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
             const variance = intervals.reduce((sum, interval) => sum + Math.pow(interval - avgInterval, 2), 0) / intervals.length;
             const stdDev = Math.sqrt(variance);
 
-            // If variance is low, we likely have a cycle
             if (stdDev / avgInterval < 0.1) {
                 cycles.push({
                     termKey: termKey,
@@ -328,27 +276,18 @@ function detectTemporalCycles(tasks) {
     return cycles;
 }
 
-/**
- * Creates a temporal abstraction of a sequence of tasks.
- * @param {Array} tasks - Array of temporal tasks.
- * @returns {object|null} Temporal abstraction or null if not enough tasks.
- */
 function createTemporalAbstraction(tasks) {
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
     if (temporalTasks.length < 2) return null;
 
-    // Sort by occurrence time
     temporalTasks.sort((a, b) => a.state.stamp.occurrenceTime - b.state.stamp.occurrenceTime);
 
-    // Calculate overall time span
     const startTime = temporalTasks[0].state.stamp.occurrenceTime;
     const endTime = temporalTasks[temporalTasks.length - 1].state.stamp.occurrenceTime ||
         temporalTasks[temporalTasks.length - 1].state.stamp.occurrenceTime;
 
-    // Calculate frequency of events
-    const frequency = temporalTasks.length / ((endTime - startTime) / (1000 * 60 * 60)); // Events per hour
+    const frequency = temporalTasks.length / ((endTime - startTime) / (1000 * 60 * 60));
 
-    // Calculate regularity
     const intervals = [];
     for (let i = 1; i < temporalTasks.length; i++) {
         intervals.push(temporalTasks[i].state.stamp.occurrenceTime - temporalTasks[i - 1].state.stamp.occurrenceTime);
@@ -359,11 +298,10 @@ function createTemporalAbstraction(tasks) {
     const stdDev = Math.sqrt(variance);
     const regularity = 1.0 / (1.0 + stdDev / avgInterval);
 
-    // Create abstraction term
     const termKey = `(temporal_abstraction_${temporalTasks.length}_events)`;
 
     return new Task(parseTerm(termKey), '.', {
-        frequency: Math.min(1.0, frequency / 10), // Normalize frequency
+        frequency: Math.min(1.0, frequency / 10),
         confidence: regularity
     }, {
         creationTime: Date.now(),
@@ -372,11 +310,6 @@ function createTemporalAbstraction(tasks) {
     });
 }
 
-/**
- * Detects temporal anomalies in a sequence of tasks.
- * @param {Array} tasks - Array of temporal tasks.
- * @returns {Array} Array of detected anomalies.
- */
 function detectTemporalAnomalies(tasks) {
     const anomalies = [];
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
@@ -385,25 +318,20 @@ function detectTemporalAnomalies(tasks) {
 
     const taskGroups = _groupTasksByTermKey(temporalTasks);
 
-    // For each group, check for anomalies
     for (const [termKey, groupTasks] of Object.entries(taskGroups)) {
         if (groupTasks.length < 3) continue;
 
-        // Sort by occurrence time
         groupTasks.sort((a, b) => a.state.stamp.occurrenceTime - b.state.stamp.occurrenceTime);
 
-        // Calculate intervals
         const intervals = [];
         for (let i = 1; i < groupTasks.length; i++) {
             intervals.push(groupTasks[i].state.stamp.occurrenceTime - groupTasks[i - 1].state.stamp.occurrenceTime);
         }
 
-        // Calculate mean and standard deviation
         const mean = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
         const variance = intervals.reduce((sum, interval) => sum + Math.pow(interval - mean, 2), 0) / intervals.length;
         const stdDev = Math.sqrt(variance);
 
-        // Detect anomalies (intervals more than 2 standard deviations from mean)
         for (let i = 0; i < intervals.length; i++) {
             if (Math.abs(intervals[i] - mean) > 2 * stdDev) {
                 anomalies.push({
@@ -421,12 +349,6 @@ function detectTemporalAnomalies(tasks) {
     return anomalies;
 }
 
-/**
- * Predicts future task occurrences based on temporal patterns.
- * @param {Array} tasks - Array of temporal tasks.
- * @param {number} predictionHorizon - Time horizon for predictions (in milliseconds).
- * @returns {Array} Array of predicted tasks.
- */
 function advancedPredictFutureTasks(tasks, predictionHorizon) {
     const predictions = [];
     const currentTime = Date.now();
@@ -437,23 +359,18 @@ function advancedPredictFutureTasks(tasks, predictionHorizon) {
 
     const taskGroups = _groupTasksByTermKey(temporalTasks);
 
-    // For each group, make predictions
     for (const [termKey, groupTasks] of Object.entries(taskGroups)) {
         if (groupTasks.length < 2) continue;
 
-        // Sort by occurrence time
         groupTasks.sort((a, b) => a.state.stamp.occurrenceTime - b.state.stamp.occurrenceTime);
 
-        // Calculate intervals
         const intervals = [];
         for (let i = 1; i < groupTasks.length; i++) {
             intervals.push(groupTasks[i].state.stamp.occurrenceTime - groupTasks[i - 1].state.stamp.occurrenceTime);
         }
 
-        // Calculate average interval and trend
         const avgInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
 
-        // Calculate trend in intervals
         let intervalTrend = 0;
         if (intervals.length > 1) {
             const firstHalf = intervals.slice(0, Math.floor(intervals.length / 2));
@@ -463,12 +380,10 @@ function advancedPredictFutureTasks(tasks, predictionHorizon) {
             intervalTrend = secondAvg - firstAvg;
         }
 
-        // Calculate confidence based on regularity
         const variance = intervals.reduce((sum, interval) => sum + Math.pow(interval - avgInterval, 2), 0) / intervals.length;
         const stdDev = Math.sqrt(variance);
         const regularity = 1.0 / (1.0 + stdDev / avgInterval);
 
-        // Predict future occurrences
         const lastOccurrence = groupTasks[groupTasks.length - 1].state.stamp.occurrenceTime;
         let nextOccurrence = lastOccurrence + avgInterval + intervalTrend;
 
@@ -484,7 +399,6 @@ function advancedPredictFutureTasks(tasks, predictionHorizon) {
             );
             predictions.push(predictionTask);
 
-            // Calculate next occurrence
             nextOccurrence += avgInterval + intervalTrend;
         }
     }
@@ -492,26 +406,16 @@ function advancedPredictFutureTasks(tasks, predictionHorizon) {
     return predictions;
 }
 
-/**
- * Creates a temporal summary of tasks within a time window.
- * @param {Array} tasks - Array of temporal tasks.
- * @param {number} startTime - Start time of the window.
- * @param {number} endTime - End time of the window.
- * @returns {object|null} Temporal summary or null if no tasks in window.
- */
 function createTemporalSummary(tasks, startTime, endTime) {
     const tasksInWindow = findTasksInTimeWindow(tasks, startTime, endTime);
     if (tasksInWindow.length === 0) return null;
 
-    // Calculate statistics
     const taskCount = tasksInWindow.length;
     const uniqueTerms = new Set(tasksInWindow.map(task => task.termKey)).size;
 
-    // Calculate density (tasks per unit time)
     const timeSpan = endTime - startTime;
-    const density = taskCount / (timeSpan / (1000 * 60)); // Tasks per minute
+    const density = taskCount / (timeSpan / (1000 * 60));
 
-    // Calculate most frequent terms
     const termCounts = {};
     tasksInWindow.forEach(task => {
         termCounts[task.termKey] = (termCounts[task.termKey] || 0) + 1;
@@ -522,11 +426,10 @@ function createTemporalSummary(tasks, startTime, endTime) {
         .slice(0, 3)
         .map(([termKey, count]) => ({termKey, count}));
 
-    // Create summary term
     const termKey = `(temporal_summary_${startTime}_to_${endTime})`;
 
     return new Task(parseTerm(termKey), '.', {
-        frequency: Math.min(1.0, density / 10), // Normalize density
+        frequency: Math.min(1.0, density / 10),
         confidence: config.temporal.TEMPORAL_SUMMARY_CONFIDENCE
     }, {
         creationTime: Date.now(),
@@ -535,17 +438,11 @@ function createTemporalSummary(tasks, startTime, endTime) {
     });
 }
 
-/**
- * Calculates temporal coherence between tasks
- * @param {Array} tasks - Array of temporal tasks
- * @returns {number} Coherence score between 0 and 1
- */
 function calculateTemporalCoherence(tasks) {
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
     if (temporalTasks.length < 2) return 1.0;
 
-    // Group tasks by time windows
-    const timeWindow = 60 * 60 * 1000; // 1 hour windows
+    const timeWindow = 60 * 60 * 1000;
     const windows = {};
 
     temporalTasks.forEach(task => {
@@ -556,7 +453,6 @@ function calculateTemporalCoherence(tasks) {
         windows[windowKey].push(task);
     });
 
-    // Calculate coherence as the regularity of task distribution across windows
     const windowCounts = Object.values(windows).map(window => window.length);
     const avgCount = windowCounts.reduce((sum, count) => sum + count, 0) / windowCounts.length;
 
@@ -568,31 +464,22 @@ function calculateTemporalCoherence(tasks) {
 
     const stdDev = Math.sqrt(variance);
 
-    // Coherence is inversely related to variance
     return 1.0 / (1.0 + stdDev / avgCount);
 }
 
-/**
- * Detects temporal clustering of tasks
- * @param {Array} tasks - Array of temporal tasks
- * @returns {Array} Array of detected clusters
- */
 function detectTemporalClusters(tasks) {
     const clusters = [];
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
 
     if (temporalTasks.length < 3) return clusters;
 
-    // Sort by occurrence time
     temporalTasks.sort((a, b) => a.state.stamp.occurrenceTime - b.state.stamp.occurrenceTime);
 
-    // Calculate intervals
     const intervals = [];
     for (let i = 1; i < temporalTasks.length; i++) {
         intervals.push(temporalTasks[i].state.stamp.occurrenceTime - temporalTasks[i - 1].state.stamp.occurrenceTime);
     }
 
-    // Calculate mean and std deviation of intervals
     const meanInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
     let variance = 0;
     intervals.forEach(interval => {
@@ -601,19 +488,16 @@ function detectTemporalClusters(tasks) {
     variance /= intervals.length;
     const stdDev = Math.sqrt(variance);
 
-    // Find clusters (intervals significantly shorter than average)
     const clusterThreshold = meanInterval - stdDev;
 
     let clusterStart = 0;
     for (let i = 0; i < intervals.length; i++) {
         if (intervals[i] <= clusterThreshold) {
-            // Start of a potential cluster
             let clusterEnd = i;
             while (clusterEnd < intervals.length && intervals[clusterEnd] <= clusterThreshold) {
                 clusterEnd++;
             }
 
-            // Create cluster if it contains at least 3 tasks
             if (clusterEnd - clusterStart >= 2) {
                 const clusterTasks = temporalTasks.slice(clusterStart, clusterEnd + 1);
                 clusters.push({
@@ -635,11 +519,6 @@ function detectTemporalClusters(tasks) {
     return clusters;
 }
 
-/**
- * Creates temporal abstraction tasks for detected clusters
- * @param {Array} clusters - Array of detected clusters
- * @returns {Array} Array of abstraction tasks
- */
 function createTemporalClusterAbstractions(clusters) {
     const abstractions = [];
 

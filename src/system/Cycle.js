@@ -9,8 +9,8 @@ const MetaCognition = require('./MetaCognition');
 const TemporalReasoner = require('../reasoner/TemporalReasoner');
 const PriorityManager = require('../reasoner/PriorityManager');
 const EventBus = require('./EventBus');
-const {getGoalTasks} = require('../utils/task-utils');
 const {handleErrorWithDefault} = require('../utils/error-handler');
+const Task = require('../core/Task');
 
 class Cycle {
     /**
@@ -117,7 +117,7 @@ class Cycle {
         focusSet.forEach(task => task.touch());
 
         // Get actionable goals
-        const goals = getGoalTasks(this.memory.getAllTasks())
+        const goals = Task.getGoalTasks(this.memory.getAllTasks())
             .filter(task => task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
             .slice(0, this.config.MAX_GOALS_TO_EXECUTE); // Limit the number of goals instead of sorting all
 
@@ -191,7 +191,7 @@ class Cycle {
      * @returns {Task[]} Array of actionable goals
      */
     _getActionableGoals() {
-        return getGoalTasks(this.memory.getAllTasks())
+        return Task.getGoalTasks(this.memory.getAllTasks())
             .filter(task => task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
             .slice(0, this.config.MAX_GOALS_TO_EXECUTE); // Limit first, then sort if needed
     }

@@ -30,7 +30,6 @@ class ResolutionStrategy {
         const executor = this.strategies[selectedStrategy] || this.strategies.monitoring;
 
         if (!executor) {
-            // Silently default to monitoring if strategy not found
             return this.strategies.monitoring ? this.strategies.monitoring(contradiction, {}) : [];
         }
 
