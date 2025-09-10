@@ -27,7 +27,7 @@ function arePreconditionsMet(preconditions, memory, config) {
     return true;
 }
 
-module.exports = {
+export {
     findDecompositionMethods,
     extractSubTasksFromMethod,
     isAchieved,

@@ -1,5 +1,5 @@
-const Task = require('../../../core/Task');
-const config = require('../../../config');
+import Task from '../../../core/Task.js';
+import config from '../../../config.js';
 
 function evidenceGathering(contradiction) {
     return contradiction.tasks.map(task => new Task(task.term, '?', {
@@ -8,4 +8,4 @@ function evidenceGathering(contradiction) {
     }));
 }
 
-module.exports = evidenceGathering;
+export default evidenceGathering;

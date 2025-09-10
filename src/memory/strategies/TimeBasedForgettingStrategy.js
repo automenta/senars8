@@ -1,4 +1,4 @@
-const ForgettingStrategy = require('./ForgettingStrategy');
+import ForgettingStrategy from './ForgettingStrategy.js';
 
 class TimeBasedForgettingStrategy extends ForgettingStrategy {
     constructor(options = {}) {
@@ -41,4 +41,4 @@ class TimeBasedForgettingStrategy extends ForgettingStrategy {
     }
 }
 
-module.exports = TimeBasedForgettingStrategy;
+export default TimeBasedForgettingStrategy;

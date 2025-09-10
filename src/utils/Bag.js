@@ -67,4 +67,4 @@ class Bag {
     }
 }
 
-module.exports = Bag;
+export default Bag;

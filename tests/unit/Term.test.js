@@ -1,4 +1,4 @@
-const Term = require('../../src/core/Term');
+import Term from '../../src/core/Term.js';
 
 describe('Term', () => {
     test('should create a new Term object', () => {

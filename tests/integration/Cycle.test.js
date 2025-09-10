@@ -1,15 +1,15 @@
-const Cycle = require('../../src/system/Cycle');
-const Memory = require('../../src/memory/Memory');
-const Reasoner = require('../../src/reasoner/Reasoner');
-const LM = require('../../src/lm/LM');
-const ActionExecutor = require('../../src/system/ActionExecutor');
-const EventBus = require('../../src/system/EventBus');
-const Task = require('../../src/core/Task');
-const Term = require('../../src/core/Term');
-const config = require('../../src/config');
-const {parseTerm} = require('../../src/parser/narseseParser');
+import Cycle from '../../src/system/Cycle.js';
+import Memory from '../../src/memory/Memory.js';
+import Reasoner from '../../src/reasoner/Reasoner.js';
+import LM from '../../src/lm/LM.js';
+import ActionExecutor from '../../src/system/ActionExecutor.js';
+import EventBus from '../../src/system/EventBus.js';
+import Task from '../../src/core/Task.js';
+import Term from '../../src/core/Term.js';
+import config from '../../src/config.js';
+import {parseTerm} from '../../src/parser/narseseParser.js';
 
-jest.mock('../../src/lm/LM');
+jest.mock('../../src/lm/LM.js');
 
 jest.mock('@xenova/transformers', () => {
     const transformers = jest.genMockFromModule('@xenova/transformers');
@@ -21,12 +21,13 @@ jest.mock('@xenova/transformers', () => {
     return transformers;
 });
 
+import BruteForceStrategy from '../../src/reasoner/strategies/BruteForceStrategy.js';
+
 describe('Cycle Integration Test', () => {
     let memory, reasoner, lm, cycle;
 
     beforeEach(() => {
         memory = new Memory();
-        const BruteForceStrategy = require('../../src/reasoner/strategies/BruteForceStrategy');
         reasoner = new Reasoner(new BruteForceStrategy());
         lm = new LM();
         const actionExecutor = new ActionExecutor(memory);

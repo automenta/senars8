@@ -1,6 +1,6 @@
-const {MinPriorityQueue} = require('@datastructures-js/priority-queue');
-const BasePlanner = require('./BasePlanner');
-const {cosineSimilarity} = require('../utils/math');
+import {MinPriorityQueue} from '@datastructures-js/priority-queue';
+import BasePlanner from './BasePlanner.js';
+import {cosineSimilarity} from '../utils/math.js';
 
 class AStarPlanner extends BasePlanner {
     constructor(memory, lm, config = {}) {
@@ -112,4 +112,4 @@ class AStarPlanner extends BasePlanner {
     }
 }
 
-module.exports = AStarPlanner;
+export default AStarPlanner;

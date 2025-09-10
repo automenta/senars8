@@ -1,7 +1,7 @@
-const Task = require('../../core/Task');
-const {parseTerm} = require('../../parser/narseseParser');
-const config = require('../../config');
-const {determineTemporalRelationship} = require('./query');
+import Task from '../../core/Task.js';
+import {parseTerm} from '../../parser/narseseParser.js';
+import config from '../../config.js';
+import {determineTemporalRelationship} from './query.js';
 
 function _createImplicationTask(termKey, truthValue) {
     const parsedTerm = parseTerm(termKey);
@@ -46,6 +46,6 @@ function inferTemporalImplications(task1, task2) {
     return implicationTask ? [implicationTask] : [];
 }
 
-module.exports = {
+export {
     inferTemporalImplications,
 };

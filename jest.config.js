@@ -1,5 +1,8 @@
-module.exports = {
+export default {
     testEnvironment: 'node',
     testMatch: ['**/tests/**/*.test.js'],
     collectCoverage: false,
+    transform: {
+        '^.+\\.js$': 'babel-jest',
+    },
 };

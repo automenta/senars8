@@ -1,7 +1,7 @@
-const AStarPlanner = require('../../src/reasoner/AStarPlanner');
-const Memory = require('../../src/memory/Memory');
-const Term = require('../../src/core/Term');
-const Task = require('../../src/core/Task');
+import AStarPlanner from '../../src/reasoner/AStarPlanner.js';
+import Memory from '../../src/memory/Memory.js';
+import Term from '../../src/core/Term.js';
+import Task from '../../src/core/Task.js';
 
 describe('AStarPlanner Integration Test', () => {
     let memory;

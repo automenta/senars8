@@ -1,4 +1,7 @@
-const Task = require('../core/Task');
+import Task from '../core/Task.js';
+import {
+    MinPriorityQueue
+} from '@datastructures-js/priority-queue';
 
 /**
  * Memory utilities for task and term management
@@ -130,8 +133,9 @@ function unindexTask(task, beliefIndex) {
  * @returns {Array} Highest priority tasks
  */
 function getHighestPriorityTasksWithPQ(tasks, k) {
-    const {MinPriorityQueue} = require('@datastructures-js/priority-queue');
-    const pq = new MinPriorityQueue({priority: (task) => task.state.priority});
+    const pq = new MinPriorityQueue({
+        priority: (task) => task.state.priority
+    });
 
     for (const task of tasks) {
         if (pq.size() < k) {
@@ -145,7 +149,7 @@ function getHighestPriorityTasksWithPQ(tasks, k) {
     return pq.toArray().map(item => item.element).sort((a, b) => b.state.priority - a.state.priority);
 }
 
-module.exports = {
+export {
     consolidateMemory,
     updateCostIndex,
     indexImplication,

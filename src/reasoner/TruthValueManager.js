@@ -1,6 +1,7 @@
-const {cosineSimilarity} = require('../utils/math');
-const config = require('../config');
-const {handleErrorWithDefault} = require('../utils/error-handler');
+import {cosineSimilarity} from '../utils/math.js';
+import config from '../config.js';
+import {handleErrorWithDefault} from '../utils/error-handler.js';
+import Task from '../core/Task.js';
 
 /**
  * Truth Value Manager
@@ -346,4 +347,4 @@ class TruthValueManager {
     }
 }
 
-module.exports = TruthValueManager;
+export default TruthValueManager;

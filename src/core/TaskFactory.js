@@ -1,8 +1,8 @@
-const Task = require('./Task');
-const {createTemporalTask} = require('../utils/temporal/task-creation');
-const {parseTerm} = require('../parser/narseseParser');
-const config = require('../config');
-const {handleErrorWithDefault} = require('../utils/error-handler');
+import Task from './Task.js';
+import {createTemporalTask} from '../utils/temporal/task-creation.js';
+import {parseTerm} from '../parser/narseseParser.js';
+import config from '../config.js';
+import {handleErrorWithDefault} from '../utils/error-handler.js';
 
 class TaskFactory {
     constructor(memory, lm) {
@@ -192,4 +192,4 @@ class TaskFactory {
     }
 }
 
-module.exports = TaskFactory;
+export default TaskFactory;

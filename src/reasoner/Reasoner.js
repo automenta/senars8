@@ -1,8 +1,8 @@
-const BagSamplingStrategy = require('./strategies/BagSamplingStrategy');
-const rules = require('./rules');
-const TemporalReasoner = require('./TemporalReasoner');
-const {info, debug, error: logError} = require('../utils/logger');
-const {handleError} = require('../utils/error-handler');
+import BagSamplingStrategy from './strategies/BagSamplingStrategy.js';
+import rules from './rules/index.js';
+import TemporalReasoner from './TemporalReasoner.js';
+import {info, debug, error as logError} from '../utils/logger.js';
+import {handleError} from '../utils/error-handler.js';
 
 class Reasoner {
     constructor({ strategy = new BagSamplingStrategy(), temporalReasoner = new TemporalReasoner() } = {}) {
@@ -154,4 +154,4 @@ class Reasoner {
     }
 }
 
-module.exports = Reasoner;
+export default Reasoner;

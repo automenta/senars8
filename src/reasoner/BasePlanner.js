@@ -1,6 +1,6 @@
-const CostManager = require('./CostManager');
-const PlannerUtils = require('./utils/PlannerUtils');
-const globalConfig = require('../config');
+import CostManager from './CostManager.js';
+import * as PlannerUtils from './utils/PlannerUtils.js';
+import globalConfig from '../config.js';
 
 class BasePlanner {
     constructor(memory, lm, config = {}) {
@@ -62,4 +62,4 @@ class BasePlanner {
     }
 }
 
-module.exports = BasePlanner;
+export default BasePlanner;

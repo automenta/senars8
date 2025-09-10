@@ -1,6 +1,6 @@
-const Task = require('../../../core/Task');
-const {createMetaTask} = require('../strategy-utils');
-const config = require('../../../config');
+import Task from '../../../core/Task.js';
+import {createMetaTask} from '../strategy-utils.js';
+import config from '../../../config.js';
 
 function reconciliation(contradiction) {
     const [task1, task2] = contradiction.tasks;
@@ -18,4 +18,4 @@ function reconciliation(contradiction) {
     return [reconciledTask, ...metaTasks];
 }
 
-module.exports = reconciliation;
+export default reconciliation;

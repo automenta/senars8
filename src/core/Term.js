@@ -1,6 +1,6 @@
-const {parseTerm} = require('../parser/narseseParser');
-const {cosineSimilarity} = require('../utils/math');
-const config = require('../config');
+import {parseTerm} from '../parser/narseseParser.js';
+import {cosineSimilarity} from '../utils/math.js';
+import config from '../config.js';
 
 class Term {
     constructor(key, embedding = [], complexity = 1) {
@@ -255,4 +255,4 @@ class Term {
     }
 }
 
-module.exports = Term;
+export default Term;

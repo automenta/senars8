@@ -1,17 +1,17 @@
-const Task = require('../core/Task');
-const {parseTerm} = require('../parser/narseseParser');
-const config = require('../config');
-const TemporalRelationshipInference = require('./temporal/TemporalRelationshipInference');
-const TemporalImplicationInference = require('./temporal/TemporalImplicationInference');
-const TemporalPatternDetection = require('./temporal/TemporalPatternDetection');
-const TemporalCycleDetection = require('./temporal/TemporalCycleDetection');
-const TemporalAbstraction = require('./temporal/TemporalAbstraction');
-const TemporalAnomalyDetection = require('./temporal/TemporalAnomalyDetection');
-const FutureTaskPrediction = require('./temporal/FutureTaskPrediction');
-const TemporalClusterDetection = require('./temporal/TemporalClusterDetection');
-const TemporalCoherence = require('./temporal/TemporalCoherence');
-const {debug} = require('../utils/logger');
-const {handleErrorWithDefault} = require('../utils/error-handler');
+import Task from '../core/Task.js';
+import {parseTerm} from '../parser/narseseParser.js';
+import config from '../config.js';
+import TemporalRelationshipInference from './temporal/TemporalRelationshipInference.js';
+import TemporalImplicationInference from './temporal/TemporalImplicationInference.js';
+import TemporalPatternDetection from './temporal/TemporalPatternDetection.js';
+import TemporalCycleDetection from './temporal/TemporalCycleDetection.js';
+import TemporalAbstraction from './temporal/TemporalAbstraction.js';
+import TemporalAnomalyDetection from './temporal/TemporalAnomalyDetection.js';
+import FutureTaskPrediction from './temporal/FutureTaskPrediction.js';
+import TemporalClusterDetection from './temporal/TemporalClusterDetection.js';
+import TemporalCoherence from './temporal/TemporalCoherence.js';
+import {debug} from '../utils/logger.js';
+import {handleErrorWithDefault} from '../utils/error-handler.js';
 
 class TemporalReasoner {
     infer(focusSet) {
@@ -43,4 +43,4 @@ class TemporalReasoner {
     }
 }
 
-module.exports = TemporalReasoner;
+export default TemporalReasoner;

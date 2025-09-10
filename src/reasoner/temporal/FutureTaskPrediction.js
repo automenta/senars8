@@ -1,6 +1,6 @@
-const {advancedPredictFutureTasks} = require('../../utils/temporal/prediction');
-const {debug} = require('../../utils/logger');
-const {handleErrorWithDefault} = require('../../utils/error-handler');
+import {advancedPredictFutureTasks} from '../../utils/temporal/prediction.js';
+import {debug} from '../../utils/logger.js';
+import {handleErrorWithDefault} from '../../utils/error-handler.js';
 
 class FutureTaskPrediction {
     static predict(temporalFocusSet) {
@@ -15,4 +15,4 @@ class FutureTaskPrediction {
     }
 }
 
-module.exports = FutureTaskPrediction;
+export default FutureTaskPrediction;

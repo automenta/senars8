@@ -1,9 +1,9 @@
-const TruthValueManager = require('../TruthValueManager');
-const {createRule} = require('./rule-factories');
-const Task = require('../../core/Task');
-const Term = require('../../core/Term');
+import TruthValueManager from '../TruthValueManager.js';
+import {createRule} from './rule-factories.js';
+import Task from '../../core/Task.js';
+import Term from '../../core/Term.js';
 
-module.exports = createRule({
+export default createRule({
     name: 'analogy',
     arity: 3,
     operands: [

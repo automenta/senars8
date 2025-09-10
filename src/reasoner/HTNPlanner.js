@@ -1,5 +1,5 @@
-const BasePlanner = require('./BasePlanner');
-const config = require('../config');
+import BasePlanner from './BasePlanner.js';
+import config from '../config.js';
 
 class HTNPlanner extends BasePlanner {
     constructor(memory, lm, config = {}) {
@@ -50,4 +50,4 @@ class HTNPlanner extends BasePlanner {
     }
 }
 
-module.exports = HTNPlanner;
+export default HTNPlanner;

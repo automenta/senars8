@@ -1,9 +1,9 @@
-const Task = require('../core/Task');
-const {parseTerm} = require('../parser/narseseParser');
-const TaskFactory = require('../core/TaskFactory');
-const PatternDetector = require('../reasoner/PatternDetector');
-const EventBus = require('./EventBus');
-const {handleErrorWithDefault} = require('../utils/error-handler');
+import Task from '../core/Task.js';
+import {parseTerm} from '../parser/narseseParser.js';
+import TaskFactory from '../core/TaskFactory.js';
+import PatternDetector from '../reasoner/PatternDetector.js';
+import EventBus from './EventBus.js';
+import {handleErrorWithDefault} from '../utils/error-handler.js';
 
 class Perception {
     constructor(memory, lm) {
@@ -72,4 +72,4 @@ class Perception {
     }
 }
 
-module.exports = Perception;
+export default Perception;

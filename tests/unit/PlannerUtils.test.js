@@ -1,9 +1,9 @@
-const PlannerUtils = require('../../src/reasoner/utils/PlannerUtils');
-const Term = require('../../src/core/Term');
-const Memory = require('../../src/memory/Memory');
+import * as PlannerUtils from '../../src/reasoner/utils/PlannerUtils.js';
+import Term from '../../src/core/Term.js';
+import Memory from '../../src/memory/Memory.js';
 
 // Mock Term and Memory for testing purposes
-jest.mock('../../src/core/Term', () => {
+jest.mock('../../src/core/Term.js', () => {
     return jest.fn().mockImplementation((key) => {
         const termInstance = {
             key: key,
@@ -21,15 +21,14 @@ jest.mock('../../src/core/Term', () => {
         });
     });
 });
-jest.mock('../../src/memory/Memory');
+jest.mock('../../src/memory/Memory.js');
 
 describe('PlannerUtils', () => {
     let memory;
     let config;
 
     beforeEach(() => {
-        Term.mockClear();
-        Memory.mockClear();
+        jest.clearAllMocks();
 
         memory = new Memory();
         memory.implicationIndex = new Map();

@@ -39,7 +39,7 @@ const debug = (message, ...args) => {
     }
 };
 
-module.exports = {
+export {
     error,
     warn,
     info,

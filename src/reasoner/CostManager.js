@@ -45,4 +45,4 @@ class CostManager {
     }
 }
 
-module.exports = CostManager;
+export default CostManager;

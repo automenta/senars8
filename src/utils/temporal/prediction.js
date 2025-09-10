@@ -1,6 +1,6 @@
-const {groupTasksByTermKey, calculateIntervalStats} = require('./helpers');
-const {createTemporalTask} = require('./task-creation');
-const config = require('../../config');
+import {groupTasksByTermKey, calculateIntervalStats} from './helpers.js';
+import {createTemporalTask} from './task-creation.js';
+import config from '../../config.js';
 
 function predictFutureTasks(tasks, predictionTime) {
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
@@ -79,7 +79,7 @@ function advancedPredictFutureTasks(tasks, predictionHorizon) {
     return predictions;
 }
 
-module.exports = {
+export {
     predictFutureTasks,
     advancedPredictFutureTasks,
 };

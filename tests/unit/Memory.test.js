@@ -1,7 +1,7 @@
-const Memory = require('../../src/memory/Memory');
-const Task = require('../../src/core/Task');
-const {parseTerm} = require('../../src/parser/narseseParser');
-const config = require('../../src/config');
+import Memory from '../../src/memory/Memory.js';
+import Task from '../../src/core/Task.js';
+import {parseTerm} from '../../src/parser/narseseParser.js';
+import config from '../../src/config.js';
 
 describe('Memory', () => {
     let memory;

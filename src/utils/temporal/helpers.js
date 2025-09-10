@@ -27,7 +27,7 @@ function calculateIntervalStats(tasks) {
     return {intervals, avgInterval, variance, stdDev};
 }
 
-module.exports = {
+export {
     groupTasksByTermKey,
     calculateIntervalStats,
 };

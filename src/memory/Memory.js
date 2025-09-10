@@ -1,16 +1,20 @@
-const Term = require('../core/Term');
-const Task = require('../core/Task');
-const EventBus = require('../system/EventBus');
-const config = require('../config');
-const {normalizeToArray} = require('../utils/helpers');
-const {
+import Term from '../core/Term.js';
+import Task from '../core/Task.js';
+import EventBus from '../system/EventBus.js';
+import config from '../config.js';
+import {
+    normalizeToArray
+} from '../utils/helpers.js';
+import {
     consolidateMemory,
     updateCostIndex,
     indexImplication,
     indexTask,
     unindexTask,
     getHighestPriorityTasksWithPQ
-} = require('./memoryUtils');
+} from './memoryUtils.js';
+import TimeBasedForgettingStrategy from './strategies/TimeBasedForgettingStrategy.js';
+
 
 class Memory {
     constructor() {
@@ -39,12 +43,13 @@ class Memory {
 
     _loadForgettingStrategy() {
         const strategyName = config.memory.FORGETTING_STRATEGY_NAME;
-        const strategies = {
-            'TimeBased': require('./strategies/TimeBasedForgettingStrategy'),
-        };
-
-        const StrategyClass = strategies[strategyName] || require('./strategies/TimeBasedForgettingStrategy');
-        this.forgettingStrategy = new StrategyClass();
+        // For now, we only support TimeBased, so we load it directly.
+        // This can be extended to support more strategies in the future.
+        if (strategyName === 'TimeBased') {
+            this.forgettingStrategy = new TimeBasedForgettingStrategy();
+        } else {
+            this.forgettingStrategy = new TimeBasedForgettingStrategy();
+        }
     }
 
     _registerEventListeners() {
@@ -204,15 +209,21 @@ class Memory {
     }
 
     getBeliefs() {
-        return this.queryTasks({punctuation: '.'});
+        return this.queryTasks({
+            punctuation: '.'
+        });
     }
 
     getGoals() {
-        return this.queryTasks({punctuation: '!'});
+        return this.queryTasks({
+            punctuation: '!'
+        });
     }
 
     getQuestions() {
-        return this.queryTasks({punctuation: '?'});
+        return this.queryTasks({
+            punctuation: '?'
+        });
     }
 
     getRecentTasks(count = 10) {
@@ -254,6 +265,29 @@ class Memory {
         }, null, 2);
     }
 
+    _createTaskFromJSON(json) {
+        if (!json || !json.termKey) return null;
+
+        const term = this.getTerm(json.termKey);
+        if (!term) return null;
+
+        // Convert stamp strings back to BigInts
+        const deserializedStamp = { ...json.state.stamp
+        };
+        for (const key in deserializedStamp) {
+            // A simple check if the string represents a number
+            if (typeof deserializedStamp[key] === 'string' && /^\d+$/.test(deserializedStamp[key])) {
+                deserializedStamp[key] = BigInt(deserializedStamp[key]);
+            }
+        }
+
+        const task = new Task(term, json.punctuation, json.state.truthValue, deserializedStamp);
+        task.id = json.id; // Preserve original ID
+        task.state.priority = json.state.priority;
+
+        return task;
+    }
+
     importState(jsonState) {
         const state = JSON.parse(jsonState);
 
@@ -270,7 +304,7 @@ class Memory {
 
         if (state.shortTermTasks) {
             for (const taskData of state.shortTermTasks) {
-                const task = Task.fromJSON(taskData, this);
+                const task = this._createTaskFromJSON(taskData);
                 if (task) {
                     this.shortTermTasks.set(task.id, task);
                     this._indexTask(task);
@@ -280,7 +314,7 @@ class Memory {
 
         if (state.longTermTasks) {
             for (const taskData of state.longTermTasks) {
-                const task = Task.fromJSON(taskData, this);
+                const task = this._createTaskFromJSON(taskData);
                 if (task) {
                     this.longTermTasks.set(task.id, task);
                     this._indexTask(task);
@@ -292,4 +326,4 @@ class Memory {
     }
 }
 
-module.exports = Memory;
+export default Memory;

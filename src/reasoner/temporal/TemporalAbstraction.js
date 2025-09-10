@@ -1,6 +1,6 @@
-const {createTemporalAbstraction} = require('../../utils/temporal/summary');
-const {debug} = require('../../utils/logger');
-const {handleErrorWithDefault} = require('../../utils/error-handler');
+import {createTemporalAbstraction} from '../../utils/temporal/summary.js';
+import {debug} from '../../utils/logger.js';
+import {handleErrorWithDefault} from '../../utils/error-handler.js';
 
 class TemporalAbstraction {
     static create(temporalFocusSet) {
@@ -21,4 +21,4 @@ class TemporalAbstraction {
     }
 }
 
-module.exports = TemporalAbstraction;
+export default TemporalAbstraction;

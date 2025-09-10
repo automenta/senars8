@@ -1,8 +1,8 @@
-const TruthValueManager = require('../TruthValueManager');
-const {createTransitiveInheritanceRule} = require('./rule-factories');
-const Term = require('../../core/Term');
+import TruthValueManager from '../TruthValueManager.js';
+import {createTransitiveInheritanceRule} from './rule-factories.js';
+import Term from '../../core/Term.js';
 
-module.exports = createTransitiveInheritanceRule(
+export default createTransitiveInheritanceRule(
     'inheritance',
     (parsed1, parsed2) => Term.buildTermKey({
         type: 'Inheritance',

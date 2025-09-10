@@ -24,4 +24,4 @@ function cosineSimilarity(vecA, vecB) {
     return divisor === 0 ? 0 : dotProduct / divisor;
 }
 
-module.exports = {cosineSimilarity};
+export {cosineSimilarity};

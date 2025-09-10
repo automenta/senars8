@@ -1,5 +1,5 @@
-const Task = require('../../src/core/Task');
-const {parseTerm} = require('../../src/parser/narseseParser');
+import Task from '../../src/core/Task.js';
+import {parseTerm} from '../../src/parser/narseseParser.js';
 
 test('should create a new Task object', () => {
     const term = parseTerm('cat');

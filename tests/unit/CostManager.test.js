@@ -1,9 +1,9 @@
-const CostManager = require('../../src/reasoner/CostManager');
-const Term = require('../../src/core/Term');
-const Memory = require('../../src/memory/Memory');
+import CostManager from '../../src/reasoner/CostManager.js';
+import Term from '../../src/core/Term.js';
+import Memory from '../../src/memory/Memory.js';
 
 // Mock Term and Memory for testing purposes
-jest.mock('../../src/core/Term', () => {
+jest.mock('../../src/core/Term.js', () => {
     return jest.fn().mockImplementation((key) => {
         const termInstance = {
             key: key,
@@ -24,7 +24,7 @@ jest.mock('../../src/core/Term', () => {
         });
     });
 });
-jest.mock('../../src/memory/Memory');
+jest.mock('../../src/memory/Memory.js');
 
 describe('CostManager', () => {
     let memory;
@@ -32,8 +32,7 @@ describe('CostManager', () => {
 
     beforeEach(() => {
         // Reset mocks before each test
-        Memory.mockClear();
-        Term.mockClear();
+        jest.clearAllMocks();
 
         // Setup mock memory
         memory = new Memory();

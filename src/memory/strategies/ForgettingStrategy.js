@@ -8,4 +8,4 @@ class ForgettingStrategy {
     }
 }
 
-module.exports = ForgettingStrategy;
+export default ForgettingStrategy;

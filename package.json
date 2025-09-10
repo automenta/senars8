@@ -9,9 +9,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "start:demo": "node -r ./scripts/set-env.js demos/interactive-runner.js",
-    "start:advanced-demo": "node -r ./scripts/set-env.js demos/advanced-lm-demo.js",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
+    "start:demo": "node --loader ./scripts/set-env.js demos/interactive-runner.js",
+    "start:advanced-demo": "node --loader ./scripts/set-env.js demos/advanced-lm-demo.js",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -28,7 +28,7 @@
   ],
   "author": "SeNARS Developers",
   "license": "AGPL-3.0-or-later",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/automenta/senars8/issues"
   },

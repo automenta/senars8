@@ -1,7 +1,7 @@
-const Planners = require('../reasoner');
-const Plan = require('./Plan');
-const {info, error, debug, warn} = require('../utils/logger');
-const {handleErrorWithDefault} = require('../utils/error-handler');
+import Planners from '../reasoner/index.js';
+import Plan from './Plan.js';
+import {info, error, debug, warn} from '../utils/logger.js';
+import {handleErrorWithDefault} from '../utils/error-handler.js';
 
 class Planner {
     constructor(memory, lm, actionExecutor, config = {}) {
@@ -91,4 +91,4 @@ class Planner {
     }
 }
 
-module.exports = Planner;
+export default Planner;

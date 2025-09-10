@@ -1,8 +1,8 @@
-const Term = require('../../core/Term');
-const TruthValueManager = require('../TruthValueManager');
-const {createBinaryInheritanceRule} = require('./rule-factories');
+import Term from '../../core/Term.js';
+import TruthValueManager from '../TruthValueManager.js';
+import {createBinaryInheritanceRule} from './rule-factories.js';
 
-module.exports = createBinaryInheritanceRule(
+export default createBinaryInheritanceRule(
     'induction',
     (parsed1, parsed2) => Term.buildTermKey({
         type: 'Inheritance',

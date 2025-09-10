@@ -1,28 +1,35 @@
-const fs = require('fs');
-const path = require('path');
-const Task = require('../../core/Task');
-const {parseTerm} = require('../../parser/narseseParser');
-const TruthValueManager = require('../TruthValueManager');
-const {createMetaTask} = require('./strategy-utils');
+import fs from 'fs';
+import path from 'path';
+import Task from '../../core/Task.js';
+import {parseTerm} from '../../parser/narseseParser.js';
+import TruthValueManager from '../TruthValueManager.js';
+import {createMetaTask} from './strategy-utils.js';
+import causal_analysis from './resolution/causal_analysis.js';
+import contextual_reconciliation from './resolution/contextual_reconciliation.js';
+import evidence_gathering from './resolution/evidence_gathering.js';
+import external_validation from './resolution/external_validation.js';
+import hierarchical_reconciliation from './resolution/hierarchical_reconciliation.js';
+import monitoring from './resolution/monitoring.js';
+import reconciliation from './resolution/reconciliation.js';
+import revision from './resolution/revision.js';
+import temporal_analysis from './resolution/temporal_analysis.js';
+import truth_value_revision from './resolution/truth_value_revision.js';
 
 class ResolutionStrategy {
     constructor() {
         this.truthValueManager = new TruthValueManager();
-        this.strategies = this._loadStrategies();
-    }
-
-    _loadStrategies() {
-        const strategies = {};
-        const strategyPath = path.join(__dirname, 'resolution');
-        const files = fs.readdirSync(strategyPath);
-
-        for (const file of files) {
-            if (file.endsWith('.js')) {
-                const strategyName = path.basename(file, '.js');
-                strategies[strategyName] = require(path.join(strategyPath, file));
-            }
-        }
-        return strategies;
+        this.strategies = {
+            causal_analysis,
+            contextual_reconciliation,
+            evidence_gathering,
+            external_validation,
+            hierarchical_reconciliation,
+            monitoring,
+            reconciliation,
+            revision,
+            temporal_analysis,
+            truth_value_revision
+        };
     }
 
     resolve(contradiction, strategy) {
@@ -51,4 +58,4 @@ class ResolutionStrategy {
     }
 }
 
-module.exports = ResolutionStrategy;
+export default ResolutionStrategy;

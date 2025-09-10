@@ -1,9 +1,9 @@
-const Task = require('../../core/Task');
-const {parseTerm} = require('../../parser/narseseParser');
-const {calculateTemporalCoherence} = require('../../utils/temporal/summary');
-const {debug} = require('../../utils/logger');
-const {handleErrorWithDefault} = require('../../utils/error-handler');
-const config = require('../../config');
+import Task from '../../core/Task.js';
+import {parseTerm} from '../../parser/narseseParser.js';
+import {calculateTemporalCoherence} from '../../utils/temporal/summary.js';
+import {debug} from '../../utils/logger.js';
+import {handleErrorWithDefault} from '../../utils/error-handler.js';
+import config from '../../config.js';
 
 class TemporalCoherence {
     static calculate(temporalFocusSet) {
@@ -26,4 +26,4 @@ class TemporalCoherence {
     }
 }
 
-module.exports = TemporalCoherence;
+export default TemporalCoherence;

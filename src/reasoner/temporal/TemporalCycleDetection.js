@@ -1,8 +1,8 @@
-const Task = require('../../core/Task');
-const {parseTerm} = require('../../parser/narseseParser');
-const {detectTemporalCycles} = require('../../utils/temporal/pattern-detection');
-const {debug} = require('../../utils/logger');
-const {handleErrorWithDefault} = require('../../utils/error-handler');
+import Task from '../../core/Task.js';
+import {parseTerm} from '../../parser/narseseParser.js';
+import {detectTemporalCycles} from '../../utils/temporal/pattern-detection.js';
+import {debug} from '../../utils/logger.js';
+import {handleErrorWithDefault} from '../../utils/error-handler.js';
 
 class TemporalCycleDetection {
     static detect(temporalFocusSet) {
@@ -35,4 +35,4 @@ class TemporalCycleDetection {
     }
 }
 
-module.exports = TemporalCycleDetection;
+export default TemporalCycleDetection;

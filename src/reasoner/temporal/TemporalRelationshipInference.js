@@ -1,8 +1,8 @@
-const {determineTemporalRelationship} = require('../../utils/temporal/query');
-const {createTemporalRelationshipTask} = require('../../utils/temporal/task-creation');
-const {debug} = require('../../utils/logger');
-const {handleErrorWithDefault} = require('../../utils/error-handler');
-const config = require('../../config');
+import {determineTemporalRelationship} from '../../utils/temporal/query.js';
+import {createTemporalRelationshipTask} from '../../utils/temporal/task-creation.js';
+import {debug} from '../../utils/logger.js';
+import {handleErrorWithDefault} from '../../utils/error-handler.js';
+import config from '../../config.js';
 
 class TemporalRelationshipInference {
     static infer(temporalFocusSet) {
@@ -38,4 +38,4 @@ class TemporalRelationshipInference {
     }
 }
 
-module.exports = TemporalRelationshipInference;
+export default TemporalRelationshipInference;

@@ -1,6 +1,6 @@
-const TimeBasedForgettingStrategy = require('../../src/memory/strategies/TimeBasedForgettingStrategy');
-const Task = require('../../src/core/Task');
-const {parseTerm} = require('../../src/parser/narseseParser');
+import TimeBasedForgettingStrategy from '../../src/memory/strategies/TimeBasedForgettingStrategy.js';
+import Task from '../../src/core/Task.js';
+import {parseTerm} from '../../src/parser/narseseParser.js';
 
 describe('TimeBasedForgettingStrategy', () => {
     let strategy;

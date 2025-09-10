@@ -29,7 +29,7 @@ function determineTemporalRelationship(task1, task2) {
     return null;
 }
 
-module.exports = {
+export {
     findTasksInTimeWindow,
     determineTemporalRelationship,
 };

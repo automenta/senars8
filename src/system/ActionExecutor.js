@@ -1,8 +1,8 @@
-const {v4: uuidv4} = require('uuid');
-const config = require('../config');
-const {handleErrorWithDefault} = require('../utils/error-handler');
-const {isNonEmptyArray} = require('../utils/helpers');
-const Action = require('../core/Action');
+import {v4 as uuidv4} from 'uuid';
+import config from '../config.js';
+import {handleErrorWithDefault} from '../utils/error-handler.js';
+import {isNonEmptyArray} from '../utils/helpers.js';
+import Action from '../core/Action.js';
 
 class ActionExecutor {
     constructor(memory) {
@@ -261,4 +261,4 @@ class ActionExecutor {
     }
 }
 
-module.exports = ActionExecutor;
+export default ActionExecutor;

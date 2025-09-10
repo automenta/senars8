@@ -16,6 +16,6 @@ function calculateTemporalPriority(task, currentTime) {
     }
 }
 
-module.exports = {
+export {
     calculateTemporalPriority,
 };

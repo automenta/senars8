@@ -36,4 +36,4 @@ class BruteForceStrategy {
     }
 }
 
-module.exports = BruteForceStrategy;
+export default BruteForceStrategy;

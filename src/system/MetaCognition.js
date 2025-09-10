@@ -1,9 +1,9 @@
-const {parseTerm} = require('../parser/narseseParser');
-const ContradictionAnalyzer = require('../reasoner/ContradictionAnalyzer');
-const ResolutionStrategy = require('../reasoner/strategies/ResolutionStrategy');
-const {info, error, debug, warn} = require('../utils/logger');
-const Task = require('../core/Task');
-const {handleErrorWithDefault} = require('../utils/error-handler');
+import {parseTerm} from '../parser/narseseParser.js';
+import ContradictionAnalyzer from '../reasoner/ContradictionAnalyzer.js';
+import ResolutionStrategy from '../reasoner/strategies/ResolutionStrategy.js';
+import {info, error, debug, warn} from '../utils/logger.js';
+import Task from '../core/Task.js';
+import {handleErrorWithDefault} from '../utils/error-handler.js';
 
 class MetaCognition {
     constructor() {
@@ -109,4 +109,4 @@ class MetaCognition {
     }
 }
 
-module.exports = MetaCognition;
+export default MetaCognition;

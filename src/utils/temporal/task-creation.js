@@ -1,6 +1,6 @@
-const Task = require('../../core/Task');
-const {parseTerm} = require('../../parser/narseseParser');
-const config = require('../../config');
+import Task from '../../core/Task.js';
+import {parseTerm} from '../../parser/narseseParser.js';
+import config from '../../config.js';
 
 function createTemporalTask(termKey, punctuation, truthValue, occurrenceTime, endTime = null) {
     const stamp = {
@@ -66,7 +66,7 @@ function createTemporalClusterAbstractions(clusters) {
     return abstractions;
 }
 
-module.exports = {
+export {
     createTemporalTask,
     createTemporalRelationshipTask,
     createTemporalSequenceTask,

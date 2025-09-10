@@ -1,8 +1,8 @@
-const {createUnaryInheritanceRule} = require('./rule-factories');
-const Term = require('../../core/Term');
-const config = require('../../config');
+import {createUnaryInheritanceRule} from './rule-factories.js';
+import Term from '../../core/Term.js';
+import config from '../../config.js';
 
-module.exports = createUnaryInheritanceRule(
+export default createUnaryInheritanceRule(
     'conversion',
     (parsed1) => Term.buildTermKey({
         type: 'Inheritance',

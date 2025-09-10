@@ -1,6 +1,7 @@
-const {v4: uuidv4} = require('uuid');
-const {parseTerm} = require('../parser/narseseParser');
-const config = require('../config');
+import {v4 as uuidv4} from 'uuid';
+import {parseTerm} from '../parser/narseseParser.js';
+import config from '../config.js';
+import TruthValueManager from '../reasoner/TruthValueManager.js';
 
 const DEFAULT_TRUTH_VALUE = config.DEFAULT_TRUTH_VALUE;
 
@@ -53,28 +54,6 @@ class Task {
         };
     }
 
-    static fromJSON(json, memory) {
-        if (!json || !json.termKey || !memory) return null;
-
-        const term = memory.getTerm(json.termKey);
-        if (!term) return null;
-
-        // Convert stamp strings back to BigInts
-        const deserializedStamp = {...json.state.stamp};
-        for (const key in deserializedStamp) {
-            // A simple check if the string represents a number
-            if (typeof deserializedStamp[key] === 'string' && /^\d+$/.test(deserializedStamp[key])) {
-                deserializedStamp[key] = BigInt(deserializedStamp[key]);
-            }
-        }
-
-        const task = new Task(term, json.punctuation, json.state.truthValue, deserializedStamp);
-        task.id = json.id; // Preserve original ID
-        task.state.priority = json.state.priority;
-
-        return task;
-    }
-
     static isBelief(task) {
         return task?.punctuation === '.';
     }
@@ -123,6 +102,12 @@ class Task {
         this.state.stamp.lastAccessed = BigInt(Date.now());
     }
 
+    reviseTruthValue(newEvidence, weight = 0.5) {
+        const revisedTruthValue = TruthValueManager.bayesianRevision(this.state.truthValue, newEvidence, weight);
+        this.state.truthValue = revisedTruthValue;
+        return revisedTruthValue;
+    }
+
     toString() {
         return `${this.termKey}${this.punctuation} (f: ${this.state.truthValue.frequency.toFixed(3)}, c: ${this.state.truthValue.confidence.toFixed(3)})`;
     }
@@ -156,4 +141,4 @@ class Task {
     }
 }
 
-module.exports = Task;
+export default Task;

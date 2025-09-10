@@ -1,5 +1,5 @@
-const {v4: uuidv4} = require('uuid');
-const Action = require('../core/Action');
+import {v4 as uuidv4} from 'uuid';
+import Action from '../core/Action.js';
 
 class Plan {
     constructor(steps, actionExecutor) {
@@ -50,4 +50,4 @@ class Plan {
     }
 }
 
-module.exports = Plan;
+export default Plan;

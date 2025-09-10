@@ -1,9 +1,9 @@
-const Task = require('../../core/Task');
-const {parseTerm} = require('../../parser/narseseParser');
-const {detectTemporalAnomalies} = require('../../utils/temporal/pattern-detection');
-const {debug} = require('../../utils/logger');
-const {handleErrorWithDefault} = require('../../utils/error-handler');
-const config = require('../../config');
+import Task from '../../core/Task.js';
+import {parseTerm} from '../../parser/narseseParser.js';
+import {detectTemporalAnomalies} from '../../utils/temporal/pattern-detection.js';
+import {debug} from '../../utils/logger.js';
+import {handleErrorWithDefault} from '../../utils/error-handler.js';
+import config from '../../config.js';
 
 class TemporalAnomalyDetection {
     static detect(temporalFocusSet) {
@@ -36,4 +36,4 @@ class TemporalAnomalyDetection {
     }
 }
 
-module.exports = TemporalAnomalyDetection;
+export default TemporalAnomalyDetection;

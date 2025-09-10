@@ -1,4 +1,4 @@
-const {info} = require('../utils/logger');
+import {info} from '../utils/logger.js';
 
 const defaultActionHandlers = {
     'print_*': (action) => ({message: `PRINT ACTION: ${action.parameters.join(' ')}`}),
@@ -71,4 +71,4 @@ function registerDefaultActions(actionExecutor) {
     });
 }
 
-module.exports = registerDefaultActions;
+export default registerDefaultActions;

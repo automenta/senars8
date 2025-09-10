@@ -1,15 +1,15 @@
-const modusPonens = require('./modus-ponens');
-const inheritance = require('./inheritance');
-const induction = require('./induction');
-const abduction = require('./abduction');
-const decomposition = require('./decomposition');
-const intersection = require('./intersection');
-const union = require('./union');
-const conversion = require('./conversion');
-const contraposition = require('./contraposition');
-const analogy = require('./analogy');
+import modusPonens from './modus-ponens.js';
+import inheritance from './inheritance.js';
+import induction from './induction.js';
+import abduction from './abduction.js';
+import decomposition from './decomposition.js';
+import intersection from './intersection.js';
+import union from './union.js';
+import conversion from './conversion.js';
+import contraposition from './contraposition.js';
+import analogy from './analogy.js';
 
-module.exports = [
+export default [
     modusPonens,
     inheritance,
     induction,

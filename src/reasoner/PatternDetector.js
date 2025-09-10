@@ -234,4 +234,4 @@ class PatternDetector {
     }
 }
 
-module.exports = PatternDetector;
+export default PatternDetector;

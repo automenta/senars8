@@ -1,5 +1,5 @@
-const {createMetaTask} = require('../strategy-utils');
-const config = require('../../../config');
+import {createMetaTask} from '../strategy-utils.js';
+import config from '../../../config.js';
 
 function revision(contradiction) {
     const [task1, task2] = contradiction.tasks;
@@ -16,4 +16,4 @@ function revision(contradiction) {
     return [createMetaTask('investigate_source', taskToRevise.termKey, contradiction.confidence)].filter(Boolean);
 }
 
-module.exports = revision;
+export default revision;

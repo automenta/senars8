@@ -1,7 +1,7 @@
-const {detectTemporalClusters} = require('../../utils/temporal/pattern-detection');
-const {createTemporalClusterAbstractions} = require('../../utils/temporal/task-creation');
-const {debug} = require('../../utils/logger');
-const {handleErrorWithDefault} = require('../../utils/error-handler');
+import {detectTemporalClusters} from '../../utils/temporal/pattern-detection.js';
+import {createTemporalClusterAbstractions} from '../../utils/temporal/task-creation.js';
+import {debug} from '../../utils/logger.js';
+import {handleErrorWithDefault} from '../../utils/error-handler.js';
 
 class TemporalClusterDetection {
     static detect(temporalFocusSet) {
@@ -19,4 +19,4 @@ class TemporalClusterDetection {
     }
 }
 
-module.exports = TemporalClusterDetection;
+export default TemporalClusterDetection;

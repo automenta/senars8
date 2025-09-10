@@ -1,7 +1,7 @@
-const {inferTemporalImplications} = require('../../utils/temporal/implication');
-const {debug} = require('../../utils/logger');
-const {handleErrorWithDefault} = require('../../utils/error-handler');
-const config = require('../../config');
+import {inferTemporalImplications} from '../../utils/temporal/implication.js';
+import {debug} from '../../utils/logger.js';
+import {handleErrorWithDefault} from '../../utils/error-handler.js';
+import config from '../../config.js';
 
 class TemporalImplicationInference {
     static infer(temporalFocusSet) {
@@ -32,4 +32,4 @@ class TemporalImplicationInference {
     }
 }
 
-module.exports = TemporalImplicationInference;
+export default TemporalImplicationInference;

@@ -1,8 +1,8 @@
-const TruthValueManager = require('../TruthValueManager');
-const {createModusPonensRule} = require('./rule-factories');
-const Term = require('../../core/Term');
+import TruthValueManager from '../TruthValueManager.js';
+import {createModusPonensRule} from './rule-factories.js';
+import Term from '../../core/Term.js';
 
-module.exports = createModusPonensRule(
+export default createModusPonensRule(
     'modus-ponens',
     (parsed1, parsed2) => Term.buildTermKey(parsed1.predicate),
     TruthValueManager.deduce

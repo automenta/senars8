@@ -1,14 +1,14 @@
-const Memory = require('../memory/Memory');
-const Reasoner = require('../reasoner/Reasoner');
-const LM = require('../lm/LM');
-const Planner = require('./Planner');
-const Perception = require('./Perception');
-const MetaCognition = require('./MetaCognition');
-const TemporalReasoner = require('../reasoner/TemporalReasoner');
-const PriorityManager = require('../reasoner/PriorityManager');
-const EventBus = require('./EventBus');
-const CONSTITUTION_TASKS = require('./Constitution');
-const Task = require('../core/Task');
+import Memory from '../memory/Memory.js';
+import Reasoner from '../reasoner/Reasoner.js';
+import LM from '../lm/LM.js';
+import Planner from './Planner.js';
+import Perception from './Perception.js';
+import MetaCognition from './MetaCognition.js';
+import TemporalReasoner from '../reasoner/TemporalReasoner.js';
+import PriorityManager from '../reasoner/PriorityManager.js';
+import EventBus from './EventBus.js';
+import CONSTITUTION_TASKS from './Constitution.js';
+import Task from '../core/Task.js';
 
 class Cycle {
     constructor(memory, reasoner, lm, actionExecutor, config) {
@@ -258,4 +258,4 @@ class Cycle {
     }
 }
 
-module.exports = Cycle;
+export default Cycle;

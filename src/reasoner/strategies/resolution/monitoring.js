@@ -2,4 +2,4 @@ function monitoring(contradiction) {
     return [];
 }
 
-module.exports = monitoring;
+export default monitoring;

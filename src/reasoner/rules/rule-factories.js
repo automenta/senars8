@@ -1,7 +1,7 @@
-const Task = require('../../core/Task');
-const {parseTerm} = require('../../parser/narseseParser');
-const {handleErrorWithDefault} = require('../../utils/error-handler');
-const Term = require('../../core/Term');
+import Task from '../../core/Task.js';
+import {parseTerm} from '../../parser/narseseParser.js';
+import {handleErrorWithDefault} from '../../utils/error-handler.js';
+import Term from '../../core/Term.js';
 
 function parseTaskTerm(task) {
     try {
@@ -161,7 +161,7 @@ function createModusPonensRule(name, termBuilder, truthValueFunction) {
     });
 }
 
-module.exports = {
+export {
     createRule,
     createBinaryInheritanceRule,
     createTransitiveInheritanceRule,

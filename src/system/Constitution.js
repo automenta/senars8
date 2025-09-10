@@ -1,5 +1,5 @@
-const Task = require('../core/Task');
-const {parseTerm} = require('../parser/narseseParser');
+import Task from '../core/Task.js';
+import {parseTerm} from '../parser/narseseParser.js';
 
 const DRIVES = [
     new Task(parseTerm('AcquireKnowledge'), '!'),
@@ -15,4 +15,4 @@ const CONSTITUTION_TASKS = Object.freeze([
     ...CONSTRAINTS,
 ]);
 
-module.exports = CONSTITUTION_TASKS;
+export default CONSTITUTION_TASKS;

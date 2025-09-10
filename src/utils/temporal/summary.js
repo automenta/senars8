@@ -1,8 +1,8 @@
-const Task = require('../../core/Task');
-const {parseTerm} = require('../../parser/narseseParser');
-const config = require('../../config');
-const {findTasksInTimeWindow} = require('./query');
-const {calculateIntervalStats} = require('./helpers');
+import Task from '../../core/Task.js';
+import {parseTerm} from '../../parser/narseseParser.js';
+import config from '../../config.js';
+import {findTasksInTimeWindow} from './query.js';
+import {calculateIntervalStats} from './helpers.js';
 
 function createTemporalSummary(tasks, startTime, endTime) {
     const tasksInWindow = findTasksInTimeWindow(tasks, startTime, endTime);
@@ -88,7 +88,7 @@ function calculateTemporalCoherence(tasks) {
     return 1.0 / (1.0 + stdDev / avgCount);
 }
 
-module.exports = {
+export {
     createTemporalSummary,
     createTemporalAbstraction,
     calculateTemporalCoherence,

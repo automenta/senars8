@@ -158,4 +158,4 @@ class ContradictionAnalyzer {
     }
 }
 
-module.exports = ContradictionAnalyzer;
+export default ContradictionAnalyzer;

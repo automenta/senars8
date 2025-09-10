@@ -1,7 +1,7 @@
-const {createUnaryInheritanceRule} = require('./rule-factories');
-const Term = require('../../core/Term');
+import {createUnaryInheritanceRule} from './rule-factories.js';
+import Term from '../../core/Term.js';
 
-module.exports = createUnaryInheritanceRule(
+export default createUnaryInheritanceRule(
     'contraposition',
     (parsed1) => Term.buildTermKey({
         type: 'Inheritance',

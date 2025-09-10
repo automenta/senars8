@@ -1,7 +1,7 @@
-const Task = require('../../src/core/Task');
-const Term = require('../../src/core/Term');
+import Task from '../../src/core/Task.js';
+import Term from '../../src/core/Term.js';
 
-jest.mock('../../src/core/Term', () => {
+jest.mock('../../src/core/Term.js', () => {
     return jest.fn().mockImplementation((key) => {
         return {key: key};
     });

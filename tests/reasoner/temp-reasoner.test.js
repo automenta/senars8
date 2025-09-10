@@ -1,6 +1,6 @@
-const BagSamplingStrategy = require('../../src/reasoner/strategies/BagSamplingStrategy');
-const Task = require('../../src/core/Task');
-const {parseTerm} = require('../../src/parser/narseseParser');
+import BagSamplingStrategy from '../../src/reasoner/strategies/BagSamplingStrategy.js';
+import Task from '../../src/core/Task.js';
+import {parseTerm} from '../../src/parser/narseseParser.js';
 
 describe('Reasoner Strategy Tests', () => {
     test('BagSamplingStrategy should select combinations of tasks', () => {

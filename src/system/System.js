@@ -1,19 +1,19 @@
 process.env.ORT_LOGGING_LEVEL = 'ERROR';
 
-const Memory = require('../memory/Memory');
-const Reasoner = require('../reasoner/Reasoner');
-const TemporalReasoner = require('../reasoner/TemporalReasoner');
-const LM = require('../lm/LM');
-const Cycle = require('./Cycle');
-const ActionExecutor = require('./ActionExecutor');
-const CONSTITUTION_TASKS = require('./Constitution');
-const registerDefaultActions = require('./default-actions');
-const config = require('../config');
-const _ = require('lodash');
-const {handleError} = require('../utils/error-handler');
-const {info, error, debug, warn} = require('../utils/logger');
-const {normalizeToArray} = require('../utils/helpers');
-const TruthValueManager = require('../reasoner/TruthValueManager');
+import Memory from '../memory/Memory.js';
+import Reasoner from '../reasoner/Reasoner.js';
+import TemporalReasoner from '../reasoner/TemporalReasoner.js';
+import LM from '../lm/LM.js';
+import Cycle from './Cycle.js';
+import ActionExecutor from './ActionExecutor.js';
+import CONSTITUTION_TASKS from './Constitution.js';
+import registerDefaultActions from './default-actions.js';
+import config from '../config.js';
+import _ from 'lodash';
+import {handleError} from '../utils/error-handler.js';
+import {info, error, debug, warn} from '../utils/logger.js';
+import {normalizeToArray} from '../utils/helpers.js';
+import TruthValueManager from '../reasoner/TruthValueManager.js';
 
 class System {
     // Private constructor, use System.create() instead
@@ -34,15 +34,15 @@ class System {
         info('System components created');
     }
 
-    static async create(userConfig = {}) {
+    static async create(userConfig = {}, dependencies = {}) {
         const mergedConfig = _.merge({}, config, userConfig);
 
-        const memory = new Memory();
-        const temporalReasoner = new TemporalReasoner();
-        const reasoner = new Reasoner({ temporalReasoner });
-        const lm = new LM();
-        const actionExecutor = new ActionExecutor(memory);
-        const cycle = new Cycle(memory, reasoner, lm, actionExecutor, mergedConfig);
+        const memory = dependencies.memory || new Memory();
+        const temporalReasoner = dependencies.temporalReasoner || new TemporalReasoner();
+        const reasoner = dependencies.reasoner || new Reasoner({ temporalReasoner });
+        const lm = dependencies.lm || new LM();
+        const actionExecutor = dependencies.actionExecutor || new ActionExecutor(memory);
+        const cycle = dependencies.cycle || new Cycle(memory, reasoner, lm, actionExecutor, mergedConfig);
 
         const system = new System(userConfig, { memory, reasoner, lm, actionExecutor, cycle });
 
@@ -147,22 +147,6 @@ class System {
         }
     }
 
-    async reviseTaskTruthValue(taskId, newEvidence, weight = 0.5) {
-        try {
-            const task = this.memory.getTask(taskId);
-            if (!task) {
-                throw new Error(`Task with ID ${taskId} not found`);
-            }
-            const revisedTruthValue = TruthValueManager.bayesianRevision(task.state.truthValue, newEvidence, weight);
-            task.state.truthValue = revisedTruthValue;
-            debug(`Revised truth value for task ${taskId}`);
-            return revisedTruthValue;
-        } catch (err) {
-            error('Error revising task truth value:', err);
-            throw handleError(err, 'Task truth value revision failed');
-        }
-    }
-
     getAvailableRules() {
         return this.reasoner.getRuleNames();
     }
@@ -190,4 +174,4 @@ class System {
     }
 }
 
-module.exports = System;
+export default System;

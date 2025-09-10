@@ -1,11 +1,12 @@
-const {groupTasksByTermKey, calculateIntervalStats} = require('./helpers');
+import {groupTasksByTermKey, calculateIntervalStats} from './helpers.js';
+import config from '../../config.js';
 
 function detectTemporalPatterns(tasks) {
     const patterns = [];
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
     if (temporalTasks.length < 3) return patterns;
 
-    const {stdDev, avgInterval} = calculateIntervalStats(temporalTasks);
+    const {intervals, stdDev, avgInterval} = calculateIntervalStats(temporalTasks);
 
     if (intervals.length > 1) {
         if (stdDev / avgInterval < 0.2) {
@@ -122,7 +123,7 @@ function detectTemporalClusters(tasks) {
     return clusters;
 }
 
-module.exports = {
+export {
     detectTemporalPatterns,
     detectTemporalCycles,
     detectTemporalAnomalies,

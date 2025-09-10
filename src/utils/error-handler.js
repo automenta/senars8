@@ -1,4 +1,4 @@
-const {error: logError} = require('./logger');
+import {error as logError} from './logger.js';
 
 // Error classes
 class ValidationError extends Error {
@@ -63,7 +63,7 @@ const createValidationError = (message) => new ValidationError(message);
 const createParseError = (message) => new ParseError(message);
 const createInferenceError = (message) => new InferenceError(message);
 
-module.exports = {
+export {
     handleError,
     handleErrorWithDefault,
     withErrorHandling,

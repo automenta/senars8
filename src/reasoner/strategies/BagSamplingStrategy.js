@@ -1,4 +1,4 @@
-const Bag = require('../../utils/Bag');
+import Bag from '../../utils/Bag.js';
 
 class BagSamplingStrategy {
     constructor(samplingFactor = 2) {
@@ -56,4 +56,4 @@ class BagSamplingStrategy {
     }
 }
 
-module.exports = BagSamplingStrategy;
+export default BagSamplingStrategy;
