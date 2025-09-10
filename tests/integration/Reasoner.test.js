@@ -5,6 +5,7 @@ const Term = require('../../src/core/Term');
 const {parseTerm} = require('../../src/parser/narseseParser');
 const LM = require('../../src/lm/LM');
 const BruteForceStrategy = require('../../src/reasoner/strategies/BruteForceStrategy');
+const TemporalReasoner = require('../../src/reasoner/TemporalReasoner');
 
 jest.mock('../../src/lm/LM');
 jest.mock('@xenova/transformers', () => {
@@ -22,7 +23,7 @@ describe('Reasoner Integration Test', () => {
 
     beforeEach(() => {
         // Use BruteForceStrategy for deterministic test results
-        reasoner = new Reasoner(new BruteForceStrategy());
+        reasoner = new Reasoner({ strategy: new BruteForceStrategy(), temporalReasoner: new TemporalReasoner() });
         memory = new Memory();
         lm = new LM();
 

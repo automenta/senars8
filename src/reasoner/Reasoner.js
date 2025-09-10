@@ -1,20 +1,20 @@
 const BagSamplingStrategy = require('./strategies/BagSamplingStrategy');
 const rules = require('./rules');
 const TemporalReasoner = require('./TemporalReasoner');
-const {info, debug} = require('../utils/logger');
-const {handleErrorWithDefault} = require('../utils/error-handler');
+const {info, debug, error: logError} = require('../utils/logger');
+const {handleError} = require('../utils/error-handler');
 
 class Reasoner {
-    constructor(strategy = new BagSamplingStrategy()) {
+    constructor({ strategy = new BagSamplingStrategy(), temporalReasoner = new TemporalReasoner() } = {}) {
         this.strategy = strategy;
         this.rules = rules;
-        this.temporalReasoner = new TemporalReasoner();
-        info('Reasoner initialized with strategy:', strategy.constructor.name);
+        this.temporalReasoner = temporalReasoner;
+        info('Reasoner initialized with strategy:', this.strategy.constructor.name);
     }
 
     performInference(focusSet, options = {}) {
         if (!Array.isArray(focusSet)) {
-            return handleErrorWithDefault(new Error('Focus set must be an array'), 'Reasoner.performInference', []);
+            return handleError(new Error('Focus set must be an array'), 'Reasoner.performInference', false);
         }
 
         const {maxDerivedTasks = Infinity} = options;
@@ -34,7 +34,7 @@ class Reasoner {
     }
 
     _performSymbolicInference(focusSet, maxDerivedTasks) {
-        const derivedTasks = [];
+        let derivedTasks = [];
         const processedCombinations = new Set();
 
         for (const rule of this.rules) {
@@ -43,14 +43,18 @@ class Reasoner {
                 debug(`Skipping rule ${rule.name} due to invalid arity`);
                 continue;
             }
-            this._applyRuleToCombinations(rule, focusSet, derivedTasks, processedCombinations, maxDerivedTasks);
+            const newTasks = this._applyRuleToCombinations(rule, focusSet, processedCombinations, maxDerivedTasks - derivedTasks.length);
+            if (newTasks.length > 0) {
+                derivedTasks = derivedTasks.concat(newTasks);
+            }
         }
 
         debug(`Symbolic inference produced ${derivedTasks.length} derived tasks`);
         return derivedTasks;
     }
 
-    _applyRuleToCombinations(rule, focusSet, derivedTasks, processedCombinations, maxDerivedTasks) {
+    _applyRuleToCombinations(rule, focusSet, processedCombinations, maxDerivedTasks) {
+        const derivedTasks = [];
         try {
             const combinations = this.strategy.selectCombinations(focusSet, rule.arity);
             for (const tasks of combinations) {
@@ -63,8 +67,9 @@ class Reasoner {
                 }
             }
         } catch (err) {
-            handleErrorWithDefault(err, `Error applying rule ${rule.name}`, null);
+            logError(`Error applying rule ${rule.name}:`, err);
         }
+        return derivedTasks;
     }
 
     _performTemporalInference(focusSet) {
@@ -76,13 +81,14 @@ class Reasoner {
             }
             return [];
         } catch (err) {
-            return handleErrorWithDefault(err, 'Error in temporal inference', []);
+            logError('Error in temporal inference:', err);
+            return [];
         }
     }
 
     _applyRule(rule, tasks, processedCombinations) {
         if (!rule || !Array.isArray(tasks) || !processedCombinations) {
-            return handleErrorWithDefault(new Error('Invalid arguments to _applyRule'), '_applyRule validation', null);
+            return handleError(new Error('Invalid arguments to _applyRule'), '_applyRule validation', false);
         }
 
         const taskIds = tasks.map(task => task.id).sort();
@@ -101,7 +107,8 @@ class Reasoner {
             }
             return null;
         } catch (err) {
-            return handleErrorWithDefault(err, `Error applying rule ${rule.name}`, null);
+            logError(`Error applying rule ${rule.name}:`, err);
+            return null;
         }
     }
 
@@ -113,13 +120,13 @@ class Reasoner {
         return tasks.every((task, index) => {
             const validator = rule.operands[index];
             if (typeof validator !== 'function') {
-                handleErrorWithDefault(new Error(`Operand validator at index ${index} is not a function`), `_areOperandsValid rule ${rule.name}`, false);
+                logError(`Operand validator at index ${index} for rule ${rule.name} is not a function.`);
                 return false;
             }
             try {
                 return validator(task);
             } catch (err) {
-                handleErrorWithDefault(err, `Error validating operand for rule ${rule.name}`, false);
+                logError(`Error validating operand for rule ${rule.name}:`, err);
                 return false;
             }
         });

@@ -2,6 +2,7 @@ process.env.ORT_LOGGING_LEVEL = 'ERROR';
 
 const Memory = require('../memory/Memory');
 const Reasoner = require('../reasoner/Reasoner');
+const TemporalReasoner = require('../reasoner/TemporalReasoner');
 const LM = require('../lm/LM');
 const Cycle = require('./Cycle');
 const ActionExecutor = require('./ActionExecutor');
@@ -13,20 +14,19 @@ const {handleError} = require('../utils/error-handler');
 const {info, error, debug, warn} = require('../utils/logger');
 const {normalizeToArray} = require('../utils/helpers');
 const TruthValueManager = require('../reasoner/TruthValueManager');
-const {forwardMethods} = require('../utils/method-forwarding');
 
 class System {
     // Private constructor, use System.create() instead
-    constructor(userConfig = {}) {
+    constructor(userConfig = {}, { memory, reasoner, lm, actionExecutor, cycle }) {
         this.config = _.merge({}, config, userConfig);
-        this.memory = new Memory();
-        this.reasoner = new Reasoner();
-        this.lm = new LM();
-        this.actionExecutor = new ActionExecutor(this.memory);
-        this.cycle = new Cycle(this.memory, this.reasoner, this.lm, this.actionExecutor, this.config);
+        this.memory = memory;
+        this.reasoner = reasoner;
+        this.lm = lm;
+        this.actionExecutor = actionExecutor;
+        this.cycle = cycle;
+
 
         registerDefaultActions(this.actionExecutor);
-        this._forwardMemoryMethods();
 
         this.isRunning = false;
         this.cycleCount = 0;
@@ -35,7 +35,17 @@ class System {
     }
 
     static async create(userConfig = {}) {
-        const system = new System(userConfig);
+        const mergedConfig = _.merge({}, config, userConfig);
+
+        const memory = new Memory();
+        const temporalReasoner = new TemporalReasoner();
+        const reasoner = new Reasoner({ temporalReasoner });
+        const lm = new LM();
+        const actionExecutor = new ActionExecutor(memory);
+        const cycle = new Cycle(memory, reasoner, lm, actionExecutor, mergedConfig);
+
+        const system = new System(userConfig, { memory, reasoner, lm, actionExecutor, cycle });
+
         try {
             info('Initializing system...');
             system.memory.addTasks(CONSTITUTION_TASKS);
@@ -49,10 +59,6 @@ class System {
         }
     }
 
-    _forwardMemoryMethods() {
-        const memoryMethods = Memory.getForwardableMethods();
-        forwardMethods(this, this.memory, memoryMethods);
-    }
 
     async _bootstrapTerms(tasks, options = { sync: false }) {
         try {
