@@ -365,6 +365,77 @@ senars8/
 
 ---
 
+## Conceptual Data Model
+
+### Term Structure
+- **Key Format**: Narsese-inspired syntax with atomic and compound terms
+- **Embedding Representation**: Dense vector representations from transformer models
+- **Complexity Calculation**: Structural complexity based on term composition
+
+### Task Structure
+- **Truth Value Model**: Frequency and confidence representation of belief strength
+- **Priority Calculation**: Economic attention model based on truth value, complexity, and relevance
+- **Temporal Stamping**: Creation and occurrence time tracking for temporal reasoning
+
+---
+
+## Inference Rules Overview
+
+### Deduction
+- Classical logical deduction with truth value propagation
+- Structure: `<M --> P>, <S --> M> |- <S --> P>`
+
+### Induction
+- Evidence-based generalization with uncertainty handling
+- Structure: `<M --> P>, <M --> S> |- <S --> P>`
+
+### Abduction
+- Hypothesis generation for explanation
+- Structure: `<P --> M>, <S --> M> |- <S --> P>`
+
+### Analogy
+- Structure-preserving inference between similar relations
+- Structure: `<M --> P>, <M <-> S> |- <S --> P>`
+
+---
+
+## Economic Attention Model
+
+### Priority Calculation Factors
+- **Truth Value**: Confidence and frequency of beliefs
+- **Complexity**: Structural complexity of terms
+- **Relevance**: Relationship to active goals and recent activities
+- **Temporal Factors**: Recency and urgency of tasks
+
+### Resource Allocation
+- Probabilistic task selection from priority-weighted bags
+- Forgetting mechanisms for low-priority tasks
+- Attention budget distribution across cognitive processes
+
+---
+
+## Implementation Considerations
+
+### Core Design Patterns
+- **Immutability**: Terms are immutable for consistency and caching
+- **Strategy Pattern**: Extensible contradiction resolution and planning
+- **Event-Driven Architecture**: Decoupled components via EventBus
+- **Factory Pattern**: Consistent object creation and validation
+
+### Performance Optimization
+- Efficient term parsing and caching mechanisms
+- Bag data structure for probabilistic priority selection
+- Lazy evaluation of complex term structures
+- Memory management for long-running systems
+
+### Extensibility Points
+- Adding new inference rules
+- Implementing additional contradiction resolution strategies
+- Extending LM services with new capabilities
+- Customizing the Constitution with domain-specific values
+
+---
+
 ## Demos
 
 1. **Math Inference Demo**: Tests logical inference with mathematical relationships
