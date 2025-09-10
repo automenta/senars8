@@ -34,7 +34,51 @@ class LM {
         this.qaService = new QAService(this._generate.bind(this), this._getQAPipeline.bind(this));
         this.planRepairer = new PlanRepairer(this._getGenerationPipeline.bind(this), this._createStructuredChain.bind(this), this._parseStructuredResult.bind(this));
         this.proactiveEnricher = new ProactiveEnricher(this._getGenerationPipeline.bind(this), this._createStructuredChain.bind(this), this._parseStructuredResult.bind(this));
+
+        this.embeddingQueue = [];
+        this.isProcessingEmbeddings = false;
+
         info('LM initialized');
+    }
+
+    startEmbeddingProcessor() {
+        if (this.isProcessingEmbeddings) {
+            warn('Embedding processor is already running.');
+            return;
+        }
+        info('Starting embedding processor.');
+        this.isProcessingEmbeddings = true;
+        this.processEmbeddingQueue(); // Fire-and-forget
+    }
+
+    stopEmbeddingProcessor() {
+        info('Stopping embedding processor.');
+        this.isProcessingEmbeddings = false;
+    }
+
+    async processEmbeddingQueue() {
+        const batchSize = LM_CONFIG.EMBEDDING_BATCH_SIZE;
+        const delay = LM_CONFIG.EMBEDDING_BATCH_DELAY_MS;
+
+        while (this.isProcessingEmbeddings) {
+            if (this.embeddingQueue.length === 0) {
+                await new Promise(resolve => setTimeout(resolve, delay));
+                continue;
+            }
+
+            const batch = this.embeddingQueue.splice(0, batchSize);
+            debug(`Processing embedding batch of size ${batch.length}`);
+
+            try {
+                await Promise.all(batch.map(term => this.#generateAndAssignEmbedding(term)));
+            } catch (err) {
+                error('Error processing embedding batch:', err);
+                // Put items back in the queue for retry? For now, we just log the error.
+            }
+
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+        debug('Embedding processing loop finished.');
     }
 
     setReasoner(reasoner) {
@@ -118,24 +162,37 @@ class LM {
         }
     }
 
-    async bootstrapTerm(termKey) {
+    async #generateAndAssignEmbedding(term) {
+        try {
+            debug(`Generating embedding for term: ${term.key}`);
+            const extractor = await this._getFeaturePipeline();
+            const output = await extractor(term.key, {pooling: 'mean', normalize: true});
+            const embeddingVector = Array.from(output.data);
+            term.setEmbedding(embeddingVector);
+            debug(`Embedding generated and assigned for term: ${term.key}`);
+        } catch (err) {
+            error(`Error generating embedding for term "${term.key}":`, err);
+            // In a real-world scenario, we might want to retry or mark the term as failed
+        }
+    }
+
+    async bootstrapTerm(termKey, options = { sync: false }) {
         if (typeof termKey !== 'string' || termKey.length === 0) {
             throw new Error('termKey must be a non-empty string.');
         }
 
-        try {
-            debug(`Bootstrapping term: ${termKey}`);
-            const extractor = await this._getFeaturePipeline();
-            const output = await extractor(termKey, {pooling: 'mean', normalize: true});
-            const embeddingVector = Array.from(output.data);
-            const complexity = termKey.split(/[(&,)/]/).filter(s => s.length > 0).length;
-            const term = new Term(termKey, embeddingVector, complexity);
-            debug(`Term bootstrapped successfully: ${termKey}`);
-            return term;
-        } catch (err) {
-            error(`Error bootstrapping term "${termKey}":`, err);
-            return handleError(err, `Failed to bootstrap term "${termKey}"`, true);
+        const complexity = termKey.split(/[(&,)/]/).filter(s => s.length > 0).length;
+        const term = new Term(termKey, [], complexity);
+
+        if (options.sync) {
+            debug(`Bootstrapping term synchronously: ${termKey}`);
+            await this.#generateAndAssignEmbedding(term);
+        } else {
+            debug(`Queueing term for embedding generation: ${termKey}`);
+            this.embeddingQueue.push(term);
         }
+
+        return term;
     }
 
     async generateHypotheses(tasks, config = {}) {
@@ -177,6 +234,7 @@ class LM {
 
     async dispose() {
         info('Disposing LM resources');
+        this.stopEmbeddingProcessor();
         if (this.pipelineFactory) {
             this.pipelineFactory.dispose();
         }

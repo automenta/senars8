@@ -9,10 +9,17 @@ class Term {
         }
 
         this.key = key;
-        this.embedding = Object.freeze([...embedding]);
+        this.embedding = [...embedding];
         this.complexity = complexity;
         this._structure = null;
         this._componentCache = new Map();
+    }
+
+    setEmbedding(embedding) {
+        if (this.embedding.length > 0) {
+            console.warn(`Overwriting existing embedding for term: ${this.key}`);
+        }
+        this.embedding = [...embedding];
     }
 
     get type() {

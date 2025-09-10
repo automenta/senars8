@@ -39,7 +39,7 @@ class System {
         try {
             info('Initializing system...');
             system.memory.addTasks(CONSTITUTION_TASKS);
-            await system._bootstrapTerms(CONSTITUTION_TASKS);
+            await system._bootstrapTerms(CONSTITUTION_TASKS, { sync: true });
             await system.cycle.bootstrap();
             info('System initialized successfully');
             return system;
@@ -54,14 +54,14 @@ class System {
         forwardMethods(this, this.memory, memoryMethods);
     }
 
-    async _bootstrapTerms(tasks) {
+    async _bootstrapTerms(tasks, options = { sync: false }) {
         try {
             const termKeys = [...new Set(tasks.map(task => task.termKey))];
             const newTermKeys = termKeys.filter(key => !this.memory.getTerm(key));
             if (newTermKeys.length === 0) return;
 
             debug(`Bootstrapping ${newTermKeys.length} new terms`);
-            const termPromises = newTermKeys.map(key => this.lm.bootstrapTerm(key));
+            const termPromises = newTermKeys.map(key => this.lm.bootstrapTerm(key, options));
             const newTerms = (await Promise.all(termPromises)).filter(Boolean);
             newTerms.forEach(term => this.memory.addTerm(term));
             info(`Successfully bootstrapped ${newTerms.length} terms`);
@@ -94,6 +94,7 @@ class System {
             info(`Starting system with maxCycles=${maxCycles}`);
             this.isRunning = true;
             this.cycleCount = 0;
+            this.lm.startEmbeddingProcessor();
 
             while (this.isRunning && (maxCycles === 0 || this.cycleCount < maxCycles)) {
                 try {
@@ -119,7 +120,11 @@ class System {
     }
 
     stop() {
+        if (!this.isRunning) {
+            return;
+        }
         this.isRunning = false;
+        this.lm.stopEmbeddingProcessor();
         info('System stopped');
     }
 

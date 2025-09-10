@@ -207,7 +207,8 @@ class Cycle {
         const batchSize = this.config.system.BATCH_SIZE;
         for (let i = 0; i < termKeys.length; i += batchSize) {
             const batch = termKeys.slice(i, i + batchSize);
-            const newTerms = await Promise.all(batch.map(termKey => this.lm.bootstrapTerm(termKey)));
+            const termPromises = batch.map(termKey => this.lm.bootstrapTerm(termKey));
+            const newTerms = await Promise.all(termPromises);
             newTerms.forEach(term => this.memory.addTerm(term));
         }
     }
