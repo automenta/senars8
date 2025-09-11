@@ -74,7 +74,7 @@ class Cycle {
         this._runPrioritizationPhase(context);
 
         // META-COGNITION
-        const {contradictions, metaTasks} = this._runMetaCognitionPhase(context);
+        const {contradictions, metaTasks} = await this._runMetaCognitionPhase(context);
         context.contradictions = contradictions;
         context.metaTasks = metaTasks;
 
@@ -112,10 +112,10 @@ class Cycle {
         });
     }
 
-    _runMetaCognitionPhase(context) {
+    async _runMetaCognitionPhase(context) {
         const {allTasks} = context;
-        const contradictions = this.metaCognition.findContradictions(allTasks);
-        const metaTasks = contradictions.length > 0 ? this._resolveContradictions(contradictions) : [];
+        const contradictions = (await EventBus.request('MetaCognition.findContradictions', allTasks)) || [];
+        const metaTasks = contradictions.length > 0 ? await this._resolveContradictions(contradictions) : [];
         return {contradictions, metaTasks};
     }
 
@@ -150,10 +150,16 @@ class Cycle {
 
     // --- Phase Helper Methods ---
 
-    _resolveContradictions(contradictions) {
-        const metaTasks = contradictions.flatMap(contradiction =>
-            this.metaCognition.resolve(contradiction, 'auto')
+    async _resolveContradictions(contradictions) {
+        const resolutionPromises = contradictions.map(contradiction =>
+            EventBus.request('MetaCognition.resolve', {
+                contradiction,
+                strategy: 'auto'
+            })
         );
+        const resolvedTasksArray = await Promise.all(resolutionPromises);
+        const metaTasks = resolvedTasksArray.flat().filter(Boolean);
+
         if (metaTasks.length > 0) {
             metaTasks.forEach(metaTask => metaTask.state.priority = this.config.META_TASK_PRIORITY);
             this.memory.addTasks(metaTasks);

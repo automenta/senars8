@@ -4,12 +4,16 @@ import ResolutionStrategy from '../reasoner/strategies/ResolutionStrategy.js';
 import {info, error, debug, warn} from '../utils/logger.js';
 import Task from '../core/Task.js';
 import {handleErrorWithDefault} from '../utils/error-handler.js';
+import EventBus from './EventBus.js';
 
 class MetaCognition {
     constructor() {
         this.contradictionAnalyzer = new ContradictionAnalyzer();
         this.resolutionStrategy = new ResolutionStrategy();
         info('MetaCognition initialized');
+
+        EventBus.handle('MetaCognition.findContradictions', this.findContradictions.bind(this));
+        EventBus.handle('MetaCognition.resolve', this.resolve.bind(this));
     }
 
     findContradictions(tasks) {
@@ -59,7 +63,7 @@ class MetaCognition {
         }
     }
 
-    resolve(contradiction, strategy) {
+    resolve({contradiction, strategy}) {
         try {
             debug(`Resolving contradiction of type: ${contradiction.type}`);
             const result = this.resolutionStrategy.resolve(contradiction, strategy);

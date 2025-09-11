@@ -28,6 +28,19 @@ function validateTermKey(termKey) {
         termKey.includes('( <-> )') || termKey.includes('( <=> )'));
 }
 
+/**
+ * A generic factory for creating inference rules.
+ * This function abstracts the common logic of parsing tasks, validating conditions,
+ * and creating the resulting Task object.
+ *
+ * @param {object} spec - The specification for the rule.
+ * @param {string} spec.name - The name of the rule.
+ * @param {number} spec.arity - The number of tasks the rule takes as input.
+ * @param {Array<Function>} spec.operands - An array of functions to validate the input tasks.
+ * @param {Function} spec.condition - A function that checks if the rule can be applied to the parsed tasks.
+ * @param {Function} spec.action - A function that performs the inference and returns the new term and truth value.
+ * @returns {object} The created inference rule.
+ */
 function createRule(spec) {
     return {
         name: spec.name,
@@ -35,14 +48,10 @@ function createRule(spec) {
         operands: spec.operands,
         condition: (...tasks) => {
             try {
-                // For each task, get the parsed structure of the term
                 const parsedTasks = tasks.map(parseTaskTerm);
-
-                // If any parsed task is null, don't proceed with the condition
                 if (parsedTasks.some(task => task === null)) {
                     return false;
                 }
-
                 return spec.condition(...parsedTasks);
             } catch (error) {
                 return false;
@@ -50,10 +59,7 @@ function createRule(spec) {
         },
         action: (...tasks) => {
             try {
-                // For each task, get the parsed structure of the term
                 const parsedTasks = tasks.map(parseTaskTerm);
-
-                // If any parsed task is null, don't proceed with the action
                 if (parsedTasks.some(task => task === null)) {
                     return null;
                 }
@@ -61,9 +67,11 @@ function createRule(spec) {
                 const result = spec.action(...parsedTasks, ...tasks);
                 if (!result) return null;
 
-                const {newTermKey, newTruthValue} = result;
+                const {
+                    newTermKey,
+                    newTruthValue
+                } = result;
 
-                // Validate the generated term key
                 if (!validateTermKey(newTermKey)) {
                     return null;
                 }
@@ -88,83 +96,99 @@ function createRule(spec) {
 }
 
 function createBinaryInheritanceRule(name, termBuilder, truthValueFunction) {
-    return createRule({
+    return createBinaryRule(
         name,
-        arity: 2,
-        operands: [
-            Task.isBelief,
-            Task.isBelief,
-        ],
-        condition: (parsed1, parsed2) =>
-            parsed1?.type === 'Inheritance' &&
-            parsed2?.type === 'Inheritance' &&
-            Term.buildTermKey(parsed1.predicate) === Term.buildTermKey(parsed2.predicate) &&
-            Term.buildTermKey(parsed1.subject) !== Term.buildTermKey(parsed2.subject),
-        action: (parsed1, parsed2, task1, task2) => ({
-            newTermKey: termBuilder(parsed1, parsed2),
-            newTruthValue: truthValueFunction(task1.state.truthValue, task2.state.truthValue)
-        }),
-    });
+        (parsed1, parsed2) =>
+        parsed1?.type === 'Inheritance' &&
+        parsed2?.type === 'Inheritance' &&
+        Term.buildTermKey(parsed1.predicate) === Term.buildTermKey(parsed2.predicate) &&
+        Term.buildTermKey(parsed1.subject) !== Term.buildTermKey(parsed2.subject),
+        termBuilder,
+        truthValueFunction
+    );
 }
 
 function createTransitiveInheritanceRule(name, termBuilder, truthValueFunction) {
-    return createRule({
+    return createBinaryRule(
         name,
-        arity: 2,
-        operands: [
-            Task.isBelief,
-            Task.isBelief,
-        ],
-        condition: (parsed1, parsed2) =>
-            parsed1?.type === 'Inheritance' &&
-            parsed2?.type === 'Inheritance' &&
-            Term.buildTermKey(parsed1.predicate) === Term.buildTermKey(parsed2.subject),
-        action: (parsed1, parsed2, task1, task2) => ({
-            newTermKey: termBuilder(parsed1, parsed2),
-            newTruthValue: truthValueFunction(task1.state.truthValue, task2.state.truthValue)
-        }),
-    });
+        (parsed1, parsed2) =>
+        parsed1?.type === 'Inheritance' &&
+        parsed2?.type === 'Inheritance' &&
+        Term.buildTermKey(parsed1.predicate) === Term.buildTermKey(parsed2.subject),
+        termBuilder,
+        truthValueFunction
+    );
 }
 
 function createUnaryInheritanceRule(name, termBuilder, truthValueFunction) {
+    return createUnaryRule(
+        name,
+        (parsed1) => parsed1?.type === 'Inheritance',
+        termBuilder,
+        truthValueFunction
+    );
+}
+
+function createModusPonensRule(name, termBuilder, truthValueFunction) {
+    return createBinaryRule(
+        name,
+        (parsed1, parsed2) =>
+        parsed1?.type === 'Implication' &&
+        parsed2?.type === 'Atomic' &&
+        Term.buildTermKey(parsed1.subject) === Term.buildTermKey(parsed2),
+        termBuilder,
+        truthValueFunction
+    );
+}
+
+/**
+ * Creates a generic binary inference rule.
+ * @param {string} name - The name of the rule.
+ * @param {Function} condition - The condition function to check against the parsed terms.
+ * @param {Function} termBuilder - A function to build the new term key.
+ * @param {Function} truthValueFunction - A function to calculate the new truth value.
+ * @returns {object} The created inference rule.
+ */
+function createBinaryRule(name, condition, termBuilder, truthValueFunction) {
     return createRule({
         name,
-        arity: 1,
-        operands: [
-            Task.isBelief,
-        ],
-        condition: (parsed1) =>
-            parsed1?.type === 'Inheritance',
-        action: (parsed1, task1) => ({
-            newTermKey: termBuilder(parsed1),
-            newTruthValue: truthValueFunction(task1.state.truthValue)
+        arity: 2,
+        operands: [Task.isBelief, Task.isBelief],
+        condition,
+        action: (parsed1, parsed2, task1, task2) => ({
+            newTermKey: termBuilder(parsed1, parsed2),
+            newTruthValue: truthValueFunction(task1.state.truthValue, task2.state.truthValue),
         }),
     });
 }
 
-function createModusPonensRule(name, termBuilder, truthValueFunction) {
+/**
+ * Creates a generic unary inference rule.
+ * @param {string} name - The name of the rule.
+ * @param {Function} condition - The condition function to check against the parsed term.
+ * @param {Function} termBuilder - A function to build the new term key.
+ * @param {Function} truthValueFunction - A function to calculate the new truth value.
+ * @returns {object} The created inference rule.
+ */
+function createUnaryRule(name, condition, termBuilder, truthValueFunction) {
     return createRule({
         name,
-        arity: 2,
-        operands: [
-            Task.isBelief,
-            Task.isBelief,
-        ],
-        condition: (parsed1, parsed2) =>
-            parsed1?.type === 'Implication' &&
-            parsed2?.type === 'Atomic' &&
-            Term.buildTermKey(parsed1.subject) === Term.buildTermKey(parsed2),
-        action: (parsed1, parsed2, task1, task2) => ({
-            newTermKey: termBuilder(parsed1, parsed2),
-            newTruthValue: truthValueFunction(task1.state.truthValue, task2.state.truthValue)
+        arity: 1,
+        operands: [Task.isBelief],
+        condition,
+        action: (parsed1, task1) => ({
+            newTermKey: termBuilder(parsed1),
+            newTruthValue: truthValueFunction(task1.state.truthValue),
         }),
     });
 }
 
 export {
     createRule,
+    createUnaryRule,
+    createBinaryRule,
     createBinaryInheritanceRule,
     createTransitiveInheritanceRule,
     createUnaryInheritanceRule,
-    createModusPonensRule
+    createModusPonensRule,
 };
