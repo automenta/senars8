@@ -102,7 +102,7 @@ css: |
   }
 ---
 
-# **SeNARS Cognitive System**
+# SeNARS Cognitive System
 
 Principled and Pragmatic Neuro-Symbolic Cognition
 
@@ -117,7 +117,7 @@ Principled and Pragmatic Neuro-Symbolic Cognition
 
 ---
 
-## **Welcome to SeNARS** 🧠
+## Welcome to SeNARS
 
 A complete cognitive architecture designed for a synergistic union of:
 - **Formal symbolic reasoning**
@@ -132,7 +132,7 @@ building understanding from foundational concepts to advanced capabilities.
 
 ---
 
-## **The Challenge with Modern AI** 🤔
+## The Challenge with Modern AI
 
 Today's powerful AI models often suffer from critical limitations:
 
@@ -148,7 +148,7 @@ These limitations create massive barriers to deploying AI in high-value, regulat
 
 ---
 
-## **What is Neuro-Symbolic AI?** 🧠
+## What is Neuro-Symbolic AI?
 
 Neuro-symbolic AI combines the best of both worlds:
 
@@ -159,7 +159,7 @@ Neuro-symbolic AI combines the best of both worlds:
 
 ---
 
-## **Benefits of Neuro-Symbolic Integration**
+## Benefits of Neuro-Symbolic Integration
 
 The integration creates systems that are:
 
@@ -183,7 +183,7 @@ The integration creates systems that are:
 
 ---
 
-## **Introducing SeNARS** 💡
+## Introducing SeNARS
 
 SeNARS is a **neuro-symbolic** architecture that delivers **explainable, robust, and adaptive AI**.
 
@@ -212,7 +212,7 @@ Key differentiators:
 
 ---
 
-## **Market Opportunity** 📈
+## Market Opportunity
 
 Explainable AI (XAI) is the key to unlocking high-value markets:
 
@@ -230,7 +230,7 @@ Explainable AI (XAI) is the key to unlocking high-value markets:
 
 ---
 
-## **SeNARS Competitive Edge** 🎯
+## SeNARS Competitive Edge
 
 | Feature | Pure LLMs | Traditional Symbolic AI | **SeNARS** |
 |---------|-----------|-------------------------|------------|
@@ -242,7 +242,7 @@ Explainable AI (XAI) is the key to unlocking high-value markets:
 
 ---
 
-## **Why SeNARS Stands Out**
+## Why SeNARS Stands Out
 
 <div class="center text-lg p-4 bg-gradient-to-r from-blue-500 to-purple-500 bg-opacity-20 rounded">
 SeNARS represents a fundamental advancement in AI architecture,
@@ -251,12 +251,12 @@ combining the best of symbolic and neural approaches.
 
 ---
 
-## **SeNARS Design Principles** 🏗️
+## SeNARS Design Principles
 
 SeNARS is built on five core design principles that ensure robust, transparent, and adaptive cognition:
 
-<div class="grid grid-cols-2 gap-4">
-  <div class="p-2 bg-blue-500 bg-opacity-20 rounded">
+<div class="grid grid-cols-3 gap-4">
+  <div class="p-2 bg-blue-500 bg-opacity-20 rounded text-center">
     <div class="font-bold">1. Modularity and Decoupling</div>
     <div class="text-sm">🧩</div>
     <ul class="text-xs">
@@ -264,7 +264,7 @@ SeNARS is built on five core design principles that ensure robust, transparent, 
       <li>Easier maintenance and extension</li>
     </ul>
   </div>
-  <div class="p-2 bg-green-500 bg-opacity-20 rounded">
+  <div class="p-2 bg-green-500 bg-opacity-20 rounded text-center">
     <div class="font-bold">2. Explicit State Management</div>
     <div class="text-sm">📦</div>
     <ul class="text-xs">
@@ -272,13 +272,6 @@ SeNARS is built on five core design principles that ensure robust, transparent, 
       <li>Single source of truth</li>
     </ul>
   </div>
-</div>
-
----
-
-## **Core Design Principles (Continued)**
-
-<div class="grid grid-cols-3 gap-4">
   <div class="p-2 bg-yellow-500 bg-opacity-20 rounded text-center">
     <div class="font-bold">3. Strategy over Implementation</div>
     <div class="text-sm">🎯</div>
@@ -287,6 +280,9 @@ SeNARS is built on five core design principles that ensure robust, transparent, 
       <li>Extensible without core changes</li>
     </ul>
   </div>
+</div>
+
+<div class="grid grid-cols-2 gap-4 mt-4">
   <div class="p-2 bg-purple-500 bg-opacity-20 rounded text-center">
     <div class="font-bold">4. Meta-Cognition</div>
     <div class="text-sm">🔄</div>
@@ -307,17 +303,13 @@ SeNARS is built on five core design principles that ensure robust, transparent, 
 
 ---
 
-## **Understanding the SeNARS Architecture** 🏗️
+## Understanding the SeNARS Architecture
 
 At its core, SeNARS is built on a **Unified Knowledge Hypergraph**:
 
 - **`Term`**: Immutable representations of concepts (e.g., `cat`, `(cat --> animal)`)
 - **`Task`**: Stateful cognitive atoms (beliefs, goals, questions) about Terms
 - **Memory**: Unified knowledge hypergraph managing Terms and Tasks
-
----
-
-## **SeNARS System Architecture**
 
 ```mermaid
 graph TD
@@ -343,7 +335,7 @@ graph TD
 
 ---
 
-## **How SeNARS "Thinks"** 🤔
+## How SeNARS "Thinks"
 
 Think of SeNARS as a **digital brain** with distinct yet synergistic components:
 
@@ -357,10 +349,6 @@ Think of SeNARS as a **digital brain** with distinct yet synergistic components:
     - Source of novel ideas and fluent language
     - Grounds symbolic knowledge in meaning
 
----
-
-## **SeNARS Cognitive Components (Continued)**
-
 3. **The Self-Awareness (Meta-Cognition)**
     - Constantly checks for errors
     - Improves thinking over time
@@ -368,7 +356,7 @@ Think of SeNARS as a **digital brain** with distinct yet synergistic components:
 
 ---
 
-## **SeNARS Cognitive Flow**
+## SeNARS Cognitive Flow
 
 ```mermaid
 graph TD
@@ -390,7 +378,7 @@ graph TD
 
 ---
 
-## **The Cognitive Cycle** 🔁
+## The Cognitive Cycle
 
 SeNARS operates in discrete cognitive cycles that emulate a stream of consciousness:
 
@@ -399,10 +387,6 @@ SeNARS operates in discrete cognitive cycles that emulate a stream of consciousn
 3. **Meta-Cognition** 🔍: Detect and analyze reasoning failures
 4. **Reasoning** 🧠: Perform inference on salient tasks
 5. **Enrichment** 🌱: Process new terms and execute goals
-
----
-
-## **Cognitive Cycle Visualization**
 
 ```mermaid
 flowchart TD
@@ -418,7 +402,7 @@ Each cycle is a complete reasoning loop, ensuring continuous learning and adapta
 
 ---
 
-## **Deep Dive: Core Components** 🧱
+## Deep Dive: Core Components
 
 Let's explore the three fundamental building blocks of SeNARS:
 
@@ -461,9 +445,9 @@ graph TD
 
 ---
 
-## **Core Component 1: Term** 🔤
+## Core Components: Term, Task, and Memory
 
-Immutable representations of concepts:
+**Term** - Immutable representations of concepts:
 - **Examples**: `cat`, `(cat --> animal)`, `(cat ==> furry)`
 - **Key Properties**:
   - Parses their own structure for efficiency
@@ -471,21 +455,13 @@ Immutable representations of concepts:
   - Serve as the stable vocabulary of the system
 - **Intelligence**: Not just data containers—parse their own Narsese key upon instantiation
 
----
-
-## **Term Implementation Example**
-
 ```javascript
 // Example Term creation
 const cat = new Term('cat');
 const inheritance = new Term('(cat --> animal)');
 ```
 
----
-
-## **Core Component 2: Task** 🎯
-
-Stateful cognitive atoms representing beliefs, goals, or questions:
+**Task** - Stateful cognitive atoms representing beliefs, goals, or questions:
 - **Structure**:
   - `id`: Unique identifier
   - `termKey`: Foreign key to a Term
@@ -494,10 +470,6 @@ Stateful cognitive atoms representing beliefs, goals, or questions:
   - Truth values (frequency, confidence)
   - Dynamic priorities for attention allocation
   - Temporal stamps (creation, occurrence times)
-
----
-
-## **Task Implementation Example**
 
 ```javascript
 // Example Task creation
@@ -508,11 +480,7 @@ const belief = new Task(
 );
 ```
 
----
-
-## **Core Component 3: Memory** 💾
-
-Unified knowledge hypergraph managing Terms and Tasks:
+**Memory** - Unified knowledge hypergraph managing Terms and Tasks:
 - **Dual Storage System**:
   - Short-term: Active tasks prioritized for immediate processing
   - Long-term: Consolidated tasks with high importance/confidence
@@ -524,7 +492,7 @@ Unified knowledge hypergraph managing Terms and Tasks:
 
 ---
 
-## **Economic Attention Model** 💰
+## Economic Attention Model and Formal Reasoning
 
 SeNARS implements a pragmatic attention mechanism that focuses computational resources like a stream of consciousness.
 
@@ -535,10 +503,6 @@ Priority calculation factors:
 | **Complexity** | Structural complexity | Lower complexity = higher priority |
 | **Relevance** | Relationship to active goals | More relevant = higher priority |
 | **Temporal Factors** | Recency and urgency | More recent/urgent = higher priority |
-
----
-
-## **Formal Reasoning with Inference Rules** 📐
 
 SeNARS implements rigorous, explainable reasoning through formal inference rules:
 
@@ -552,7 +516,7 @@ SeNARS implements rigorous, explainable reasoning through formal inference rules
 
 ---
 
-## **The Neuro-Symbolic Bridge** 🌉
+## The Neuro-Symbolic Bridge
 
 SeNARS integrates LMs as a suite of specialized services, not a black box:
 
@@ -561,10 +525,6 @@ SeNARS integrates LMs as a suite of specialized services, not a black box:
 - **ProactiveEnricher**: Expanding knowledge graph based on new info
 - **QAService**: Fluent natural language interaction
 - **ExplanationGenerator**: Translate formal reasoning into natural language
-
----
-
-## **Neuro-Symbolic Integration Benefits**
 
 This creates powerful synergy: the **Reasoner** provides rigor, while the **LM** provides creativity and grounding.
 
@@ -585,17 +545,13 @@ graph TD
 
 ---
 
-## **Meta-Cognition: Thinking About Thinking** 🔄
+## Meta-Cognition and Planning
 
 SeNARS is designed for **recursive self-improvement**:
 
 1. **Detection**: Constantly scans for contradictions between new conclusions and existing beliefs
 2. **Analysis**: Classifies conflicts and selects best resolution strategy
 3. **Correction**: Generates new Tasks (e.g., Questions) with high priority to resolve inconsistencies
-
----
-
-## **Contradiction Resolution Strategies**
 
 | Strategy | Approach | Use Case |
 |----------|----------|----------|
@@ -605,20 +561,12 @@ SeNARS is designed for **recursive self-improvement**:
 | **Temporal Analysis** | Time-based resolution | Temporal conflicts |
 | **Causal Analysis** | Examine causal relationships | Causal contradictions |
 
----
-
-## **Planning for Complex Goals** 🗺️
-
 SeNARS supports multiple planning strategies for goal achievement:
 
 | Strategy | Approach | Benefits |
 |----------|----------|----------|
 | **HTN (Hierarchical Task Network)** | Decompose complex goals into primitive actions | Structured, systematic planning |
 | **A* Search** | Graph-based pathfinding with heuristics | Optimal solutions with custom weights |
-
----
-
-## **Planning Features**
 
 Key features:
 - Plan cost calculation
@@ -628,7 +576,7 @@ Key features:
 
 ---
 
-## **Temporal Reasoning** ⏰
+## Temporal Reasoning
 
 SeNARS implements sophisticated temporal reasoning capabilities:
 
@@ -637,10 +585,6 @@ SeNARS implements sophisticated temporal reasoning capabilities:
 - **Future Prediction**: Forecast future task occurrences
 - **Anomaly Detection**: Identify temporal anomalies
 
----
-
-## **Temporal Term Types**
-
 Specialized temporal term types:
 - **Predictive Implication**: `(task1 => task2)` - task1 predicts task2
 - **Retrospective Implication**: `(task1 =/> task2)` - task1 implies task2 occurred after
@@ -648,7 +592,7 @@ Specialized temporal term types:
 
 ---
 
-## **The Constitution: Immutable Foundation** 🏛️
+## The Constitution: Immutable Foundation
 
 The **`Constitution`** defines the system's core motives and safety constraints:
 
@@ -658,10 +602,6 @@ The **`Constitution`** defines the system's core motives and safety constraints:
 - `MaintainCoherence!` - Drive to resolve contradictions and maintain consistency
 - `MaintainCognitiveIntegrity!` - Meta-cognitive drive for self-improvement
 
----
-
-## **Constitution Safety Constraints**
-
 **Safety Constraints** (Immutable beliefs about negative outcomes):
 - `((&, self, cause_harm) ==> NEGATIVE_OUTCOME).`
 
@@ -669,7 +609,7 @@ The `Constitution` bootstraps the attention mechanism and anchors behavior to fo
 
 ---
 
-## **Narsese: Formal Knowledge Representation** 🔤
+## Narsese: Formal Knowledge Representation
 
 SeNARS supports a comprehensive set of Narsese expressions:
 
@@ -681,13 +621,6 @@ SeNARS supports a comprehensive set of Narsese expressions:
 | **Negation** | `(--, term)` | `(--, cat)` |
 | **Conjunction** | `(&, term1, term2, ...)` | `(&, cat, dog)` |
 | **Disjunction** | `(||, term1, term2, ...)` | `(||, cat, dog)` |
-
----
-
-## **Additional Narsese Expressions**
-
-| Type | Syntax | Example |
-|------|--------|---------|
 | **Extensional Difference** | `(#, term1, term2)` | `(#, cat, dog)` |
 | **Intensional Difference** | `(\, term1, term2)` | `(\, cat, dog)` |
 | **Instance** | `(term {-- class)` | `(cat {-- animal)` |
@@ -698,7 +631,7 @@ This formal language enables precise knowledge representation and logical reason
 
 ---
 
-## **Implementation Details** ⚙️
+## Implementation Details
 
 SeNARS is implemented with modern software engineering practices:
 
@@ -709,10 +642,7 @@ SeNARS is implemented with modern software engineering practices:
 - **Testing**: Comprehensive unit and integration tests
 - **Documentation**: Self-documenting code with inline examples
 
----
-
-## **Key Implementation Features**
-
+Key implementation features:
 - Term parsing caching for performance optimization
 - Bag data structure for probabilistic priority selection
 - Lazy evaluation of complex term structures
@@ -723,7 +653,7 @@ These implementation details ensure SeNARS is both powerful and practical.
 
 ---
 
-## **Development Roadmap** 🛣️
+## Development Roadmap
 
 <div class="grid grid-cols-2 gap-4 mb-4">
   <div class="p-2 bg-blue-500 bg-opacity-20 rounded">
@@ -744,10 +674,6 @@ These implementation details ensure SeNARS is both powerful and practical.
   </div>
 </div>
 
----
-
-## **Development Roadmap (Continued)**
-
 <div class="grid grid-cols-2 gap-4 mb-4">
   <div class="p-2 bg-yellow-500 bg-opacity-20 rounded">
     <div class="font-bold">Track 3: Cognitive Tooling & Autonomous Development</div>
@@ -767,10 +693,6 @@ These implementation details ensure SeNARS is both powerful and practical.
   </div>
 </div>
 
----
-
-## **Future Enhancement Areas**
-
 <div class="p-2 bg-red-500 bg-opacity-20 rounded mb-4">
   <div class="font-bold">Track 5: Future Enhancements</div>
   <ul class="text-xs grid grid-cols-2 gap-2">
@@ -789,24 +711,20 @@ enhancing rather than replacing human intelligence.
 
 ---
 
-## **Getting Started with SeNARS** 🚀
+## Getting Started with SeNARS
 
 Ready to explore SeNARS? Here's how to get started:
 
-### **Prerequisites**
+### Prerequisites
 - Node.js (v14 or higher)
 - npm package manager
 
-### **Installation**
+### Installation
 ```bash
 npm install
 ```
 
----
-
-## **Running Demos and Tests**
-
-### **Running Demos**
+### Running Demos
 ```bash
 npm run start:demo
 ```
@@ -817,16 +735,12 @@ Explore various demos that showcase SeNARS capabilities:
 - NLP Integration Demo
 - Contradiction Resolution Demo
 
-### **Running Tests**
+### Running Tests
 ```bash
 npm test
 ```
 
----
-
-## **Usage as a Library**
-
-### **Library Usage**
+### Library Usage
 ```javascript
 const { System } = require('./src');
 const { Task } = require('./src/core/Task');
@@ -839,7 +753,7 @@ SeNARS is designed to be both a standalone system and an embeddable library.
 
 ---
 
-## **Investor-Ready Highlights** 💰
+## Investor-Ready Highlights
 
 SeNARS is designed from the ground up to deliver value and attract investment:
 
@@ -847,10 +761,6 @@ SeNARS is designed from the ground up to deliver value and attract investment:
 - 💰 **High-Value Markets**: Targeting lucrative opportunities in XAI, Cognitive Automation, and Safe AI
 - 👨‍💻 **Attracts Top Talent**: Clean, modular, well-documented design that developers love
 - 📊 **Clear Path to ROI**: Research agenda focused on delivering commercial value at every step
-
----
-
-## **Value Proposition**
 
 ```mermaid
 pie showData
@@ -868,7 +778,7 @@ of cutting-edge AI research and practical commercial applications.
 
 ---
 
-## **Verified Capabilities** ✅
+## Verified Capabilities
 
 All SeNARS functionality has been verified through comprehensive unit tests and runnable demos:
 
@@ -891,16 +801,12 @@ All SeNARS functionality has been verified through comprehensive unit tests and 
   </div>
 </div>
 
----
-
-## **Advanced Verified Capabilities**
-
-### **Advanced Features**
+### Advanced Features
 - Temporal reasoning with pattern detection and future prediction
 - Neuro-symbolic integration with hypothesis generation and explanation
 - Economic attention model with probabilistic task selection
 
-### **Demonstrated Capabilities**
+### Demonstrated Capabilities
 - Inheritance chaining and modus ponens inference
 - Contradiction detection and resolution
 - Multi-step planning with complex goal decomposition
@@ -910,7 +816,7 @@ These capabilities represent a solid foundation for building robust, explainable
 
 ---
 
-## **Our Team** 👨‍💻👩‍💻
+## Our Team
 
 <div class="grid grid-cols-3 gap-4">
   <div class="p-2 bg-blue-500 bg-opacity-20 rounded text-center">
@@ -939,7 +845,7 @@ We have the vision and expertise to make SeNARS the new standard for trustworthy
 
 ---
 
-## **Thank You** 🙏
+## Thank You
 
 <div class="grid grid-cols-3 gap-4 mt-4">
   <div class="text-center p-2">
