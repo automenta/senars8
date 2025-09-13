@@ -1,0 +1,47 @@
+/* @theme senars */
+
+@import 'uncover';
+
+section {
+  background-color: #1a1a1a;
+  color: #fff;
+  font-size: 1.2em;
+  line-height: 1.6;
+}
+
+h1, h2, h3 {
+  color: #4fc3f7; /* A vibrant light blue for headers */
+  text-align: center;
+}
+
+h1 {
+  font-size: 3.5em;
+}
+
+h2 {
+  font-size: 2.8em;
+}
+
+h3 {
+  font-size: 2.2em;
+}
+
+a {
+  color: #fdd835; /* A bright yellow for links */
+}
+
+strong {
+  color: #ff9800; /* A bold orange for emphasis */
+}
+
+code {
+  background-color: #333;
+  border-radius: 5px;
+  padding: 0.2em 0.4em;
+}
+
+pre code {
+  display: block;
+  padding: 1em;
+  border-radius: 8px;
+}
