@@ -1,46 +1,13 @@
 ---
 marp: true
-theme: uncover
+theme: senars
 class:
   - invert
   - lead
 paginate: true
 backgroundColor: #1a1a1a
 color: #fff
-style: |
-  h1, h2, h3 {
-    color: #4fc3f7; /* A vibrant light blue for headers */
-    text-align: center;
-  }
-  h1 {
-    font-size: 3.5em;
-  }
-  h2 {
-    font-size: 2.8em;
-  }
-  h3 {
-    font-size: 2.2em;
-  }
-  p, li, code {
-    font-size: 1.2em;
-    line-height: 1.6;
-  }
-  a {
-    color: #fdd835; /* A bright yellow for links */
-  }
-  strong {
-    color: #ff9800; /* A bold orange for emphasis */
-  }
-  code {
-    background-color: #333;
-    border-radius: 5px;
-    padding: 0.2em 0.4em;
-  }
-  pre code {
-    display: block;
-    padding: 1em;
-    border-radius: 8px;
-  }
+
 ---
 
 <!-- _class: invert -->
@@ -48,7 +15,7 @@ style: |
 
 # **SeNARS Cognitive System**
 
-A Blueprint for Principled and Pragmatic Neuro-Symbolic Cognition
+Principled and Pragmatic Neuro-Symbolic Cognition
 
 ---
 

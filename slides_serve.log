@@ -1,3 +1,0 @@
-
-> senars@1.1.0 slides:serve
-> marp --server . --allow-local-files
