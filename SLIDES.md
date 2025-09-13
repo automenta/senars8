@@ -1,21 +1,16 @@
 ---
-marp: true
-theme: senars
-class:
-  - invert
-  - lead
-paginate: true
-backgroundColor: #1a1a1a
-color: #fff
-
+theme: dracula
+title: 'SeNARS Cognitive System'
 ---
-
-<!-- _class: invert -->
-<!-- _header: 'SeNARS: Cutting-Edge Documentation for Tech Innovation 🚀' -->
 
 # **SeNARS Cognitive System**
 
 Principled and Pragmatic Neuro-Symbolic Cognition
+
+---
+
+## Table of Contents
+<Toc />
 
 ---
 
@@ -27,8 +22,7 @@ A complete cognitive architecture designed for a synergistic union of:
 
 Today we'll explore how SeNARS combines the best of both worlds to create a transparent, reliable, and adaptive AI system.
 
-<!-- class: small -->
-<div class="center">
+<div class="center text-sm">
 This presentation is designed to be educational and commercially persuasive,
 building understanding from foundational concepts to advanced capabilities.
 </div>
@@ -49,7 +43,7 @@ Today we'll explore how SeNARS combines the best of both worlds to create a tran
 
 Today's powerful AI models often suffer from critical limitations:
 
-- 📦 **Black Box Problem**: \"Why did it do that?\" is often unanswerable
+- 📦 **Black Box Problem**: "Why did it do that?" is often unanswerable
 - 📉 **Instability**: Minor input changes can cause catastrophic failures
 - 🧩 **Poor Abstract Reasoning**: Struggles with logic, causality, and long-term planning
 
@@ -98,7 +92,7 @@ Explainable AI (XAI) is the key to unlocking high-value markets:
 | **Healthcare & Life Sciences** | $15B+ | Medical diagnosis, drug discovery, personalized medicine |
 | **Autonomous Systems** | $20B+ | Self-driving vehicles, robotics, industrial automation |
 
-**SeNARS captures these markets where standard \"black-box\" solutions are too risky.**
+**SeNARS captures these markets where standard "black-box" solutions are too risky.**
 
 ---
 
@@ -112,8 +106,7 @@ Explainable AI (XAI) is the key to unlocking high-value markets:
 | **Logical Rigor** | 🟨 Medium | ✅ High | ✅ **High** |
 | **Verdict** | ✨ Creative but Unreliable | 🧱 Rigid but Explainable | ✅ **Transparent & Powerful** |
 
-<!-- class: large -->
-<div class="center">
+<div class="center text-lg">
 SeNARS represents a fundamental advancement in AI architecture,
 combining the best of symbolic and neural approaches.
 </div>
@@ -158,7 +151,7 @@ At its core, SeNARS is built on a **Unified Knowledge Hypergraph**:
 
 ```mermaid
 graph TD
-    subgraph \"SeNARS Cognitive Core\"
+    subgraph "SeNARS Cognitive Core"
         Reasoner[Reasoner Symbolic Inference & Meta-Cognition]
         Memory[MEMORY Term Hypergraph & Task Collection]
         LM[LM LM-Powered Engine]
@@ -168,12 +161,12 @@ graph TD
         LM -- Injects Knowledge --> Memory
     end
 
-    subgraph \"Interfaces\"
+    subgraph "Interfaces"
         Perception -- Creates Tasks --> Memory
         ActionSystem -- Executes Goals from --> Reasoner
     end
 
-    subgraph \"Foundational Layer\"
+    subgraph "Foundational Layer"
         Constitution[CONSTITUTION Immutable Drives & Constraints] -- Provides Salience Gradients --> Memory
     end
 ```
@@ -430,7 +423,7 @@ SeNARS implements sophisticated temporal reasoning capabilities:
 - **Anomaly Detection**: Identify temporal anomalies
 
 Specialized temporal term types:
-- **Predictive Implication**: `(task1 =\> task2)` - task1 predicts task2
+- **Predictive Implication**: `(task1 => task2)` - task1 predicts task2
 - **Retrospective Implication**: `(task1 =/> task2)` - task1 implies task2 occurred after
 - **Concurrent Implication**: `(task1 =<> task2)` - task1 and task2 occur concurrently
 
@@ -466,7 +459,7 @@ SeNARS supports a comprehensive set of Narsese expressions:
 | **Conjunction** | `(&, term1, term2, ...)` | `(&, cat, dog)` |
 | **Disjunction** | `(||, term1, term2, ...)` | `(||, cat, dog)` |
 | **Extensional Difference** | `(#, term1, term2)` | `(#, cat, dog)` |
-| **Intensional Difference** | `(\\, term1, term2)` | `(\\, cat, dog)` |
+| **Intensional Difference** | `(\, term1, term2)` | `(\, cat, dog)` |
 | **Instance** | `(term {-- class)` | `(cat {-- animal)` |
 | **Property** | `(term --} property)` | `(cat --} furry)` |
 | **Nested Expressions** | Complex combinations | `(cat --> (&, furry, intelligent))` |
@@ -530,8 +523,7 @@ These implementation details ensure SeNARS is both powerful and practical.
 - Extended action execution
 - Improved temporal reasoning
 
-<!-- class: small -->
-<div class="center">
+<div class="center text-sm">
 These tracks focus on making SeNARS a true cognitive partner that works symbiotically with humans,
 enhancing rather than replacing human intelligence.
 </div>
@@ -598,8 +590,7 @@ pie showData
     "Scalability" : 10
 ```
 
-<!-- class: large -->
-<div class="center">
+<div class="center text-lg">
 SeNARS represents a unique investment opportunity at the intersection
 of cutting-edge AI research and practical commercial applications.
 </div>
@@ -657,8 +648,6 @@ These implementation details ensure SeNARS is both powerful and practical.
 
 ---
 
-<!-- _class: invert -->
-
 ## **Our Team** 👨‍💻👩‍💻
 
 - **[Founder Name]** - CEO & Chief Architect
@@ -671,8 +660,6 @@ These implementation details ensure SeNARS is both powerful and practical.
 **We have the vision and expertise to make SeNARS the new standard for trustworthy AI.**
 
 ---
-
-<!-- _class: invert -->
 
 ## **Thank You** 🙏
 
