@@ -32,6 +32,21 @@ This creates a **massive barrier** to deploying AI in high-value, regulated indu
 
 ---
 
+## **What is Neuro-Symbolic AI?** 🧠
+
+Neuro-symbolic AI combines the best of both worlds:
+
+- **Neural Networks**: Excellent at pattern recognition, handling uncertainty, and processing unstructured data
+- **Symbolic AI**: Strong at logical reasoning, knowledge representation, and explainability
+
+The integration creates systems that are:
+- More interpretable than pure neural approaches
+- More flexible than purely symbolic systems
+- Better at generalizing from limited examples
+- Capable of both intuitive and logical reasoning
+
+---
+
 ## **The Solution: A Transparent, Reasoning Mind** 💡
 
 SeNARS is a **neuro-symbolic** architecture that delivers **explainable, robust, and adaptive AI**.
@@ -100,6 +115,27 @@ Three breakthroughs that define the SeNARS architecture:
 
 ---
 
+## **Core Components: Foundation of SeNARS** 🧱
+
+SeNARS is built on three fundamental components:
+
+- **`Term`**: Immutable representations of concepts (e.g., `cat`, `(cat --> animal)`)
+  - Parses their own structure for efficiency
+  - Grounded with semantic embeddings from LMs
+  - Serve as the stable vocabulary of the system
+
+- **`Task`**: Stateful cognitive atoms representing beliefs, goals, or questions about Terms
+  - Contain truth values (frequency, confidence)
+  - Have dynamic priorities for attention allocation
+  - Are temporal with creation and occurrence timestamps
+
+- **`Memory`**: Unified knowledge hypergraph managing Terms and Tasks
+  - Implements short-term and long-term storage
+  - Uses specialized indexes for efficient retrieval
+  - Applies forgetting mechanisms to manage resources
+
+---
+
 ## **Research History: A Journey of Innovation** 🕰️
 
 From a foundational blueprint to a powerful cognitive engine, SeNARS evolved through key architectural breakthroughs.
@@ -151,6 +187,20 @@ thinking over time.
 
 ---
 
+## **The Cognitive Cycle: Stream of Consciousness** 🔁
+
+SeNARS operates in discrete cognitive cycles that emulate a stream of consciousness:
+
+1. **Perception**: Ingest new information from the world
+2. **Prioritization**: Apply economic attention to all tasks
+3. **Meta-Cognition**: Detect and analyze reasoning failures
+4. **Reasoning**: Perform inference on salient tasks
+5. **Enrichment**: Process new terms and execute goals
+
+Each cycle is a complete reasoning loop, ensuring continuous learning and adaptation.
+
+---
+
 ## **System Design (Comprehensive)** 🛠️
 
 ### **High-Level Architecture**
@@ -179,16 +229,39 @@ graph TD
 
 ---
 
-## **System Design: The Knowledge Core** 🧠
+## **Event-Driven Architecture** 📡
 
-The foundation of SeNARS is a transparent and stable knowledge hypergraph.
+SeNARS uses a central **`EventBus`** for decoupled communication:
 
-- **`Term` (The Immutable Vocabulary)**: A unique, canonical representation of a concept (e.g., `cat`). They are *
-  *immutable and intelligent**, parsing their own structure for maximum efficiency.
-- **`Task` (The Stateful Cognitive Atom)**: A specific, evidence-backed belief, goal, or question about a `Term`. Its
-  state—including `truthValue` and `priority`—is constantly updated by the reasoning process.
+- **Components** publish events (e.g., `NewTasksCreated`)
+- **Components** subscribe to events they care about
+- Enables modular design without direct dependencies
+- Makes it easier to add new functionality without modifying core components
 
-This clean separation is key to the system's **stability and transparency**.
+This architecture enhances modularity and extensibility throughout the system.
+
+---
+
+## **Memory Management** 💾
+
+SeNARS implements a dual memory system for efficient knowledge management:
+
+### **Short-term Memory**
+- Active tasks prioritized for immediate processing
+- Probabilistic selection of high-priority tasks
+- Time-based pruning of expired, unimportant tasks
+
+### **Long-term Memory**
+- Consolidated tasks with high importance or confidence
+- Automatic transfer from short-term when importance thresholds are met
+- Persistent storage for accumulated knowledge
+
+### **Indexing Systems**
+- **Belief Index**: Tasks indexed by term keys for efficient retrieval
+- **Implication Index**: Planning knowledge for rapid access during planning
+- **Cost Index**: Action costs for planning efficiency
+
+This architecture enables both immediate processing and long-term knowledge retention.
 
 ---
 
@@ -208,6 +281,37 @@ salient tasks.
 
 ---
 
+## **Economic Attention Model** 💰
+
+The Economic Attention model prioritizes tasks based on:
+
+| Factor | Description | Impact |
+|:---|:---|:---|
+| **Truth Value** | Confidence and frequency of beliefs | Higher confidence = higher priority |
+| **Complexity** | Structural complexity of terms | Lower complexity = higher priority |
+| **Relevance** | Relationship to active goals | More relevant = higher priority |
+| **Temporal Factors** | Recency and urgency of tasks | More recent/urgent = higher priority |
+
+This ensures efficient allocation of limited computational resources, focusing on the most salient cognitive activities.
+
+---
+
+## **Inference Rules** 📐
+
+SeNARS implements formal inference rules for logical reasoning:
+
+| Rule | Structure | Purpose |
+|:---|:---|:---|
+| **Deduction** | `<M --> P>, <S --> M> ⊢ <S --> P>` | Classical logical deduction |
+| **Induction** | `<M --> P>, <M --> S> ⊢ <S --> P>` | Evidence-based generalization |
+| **Abduction** | `<P --> M>, <S --> M> ⊢ <S --> P>` | Hypothesis generation |
+| **Analogy** | `<M --> P>, <M <-> S> ⊢ <S --> P>` | Structure-preserving inference |
+| **Modus Ponens** | `<P ==> Q>, <P> ⊢ <Q>` | Conditional reasoning |
+
+These rules enable rigorous, explainable reasoning that can be traced and verified.
+
+---
+
 ## **System Design: The Neuro-Symbolic Bridge** 🌉
 
 SeNARS integrates LMs as a suite of specialized services, not a black box.
@@ -222,6 +326,49 @@ This creates a powerful synergy: the **Reasoner** provides rigor, while the **LM
 
 ---
 
+## **LM Services in Detail** 🤖
+
+SeNARS leverages LMs through specialized, auditable services:
+
+- **HypothesisGenerator**
+  - Creates creative hypotheses from observations
+  - Supports causal, predictive, and comprehensive hypothesis generation
+  - Evaluates and ranks hypotheses for plausibility
+
+- **PlanRepairer**
+  - Suggests alternative solutions when plans fail
+  - Analyzes failure causes to generate better approaches
+  - Integrates seamlessly with the planning system
+
+- **ProactiveEnricher**
+  - Automatically expands knowledge based on new information
+  - Proactively generates new knowledge to fill gaps
+  - Maintains consistency with existing knowledge
+
+- **QAService**
+  - Enables natural language interaction
+  - Answers questions based on system knowledge
+  - Provides context-aware responses
+
+---
+
+## **Planning System** 🗺️
+
+SeNARS supports multiple planning strategies for goal achievement:
+
+| Strategy | Approach | Benefits |
+|:---|:---|:---|
+| **HTN (Hierarchical Task Network)** | Decompose complex goals into primitive actions | Structured, systematic planning |
+| **A* Search** | Graph-based pathfinding with heuristics | Optimal solutions with custom weights |
+
+Key features:
+- **Plan Cost Calculation**: Estimate execution costs
+- **Task Difficulty Assessment**: Evaluate individual task difficulty
+- **Dynamic Strategy Selection**: Choose optimal approach per context
+- **Plan Validation**: Check if goals are already achieved
+
+---
+
 ## **System Design: The Meta-Cognitive Loop** 🔄
 
 SeNARS is designed for **recursive self-improvement**. It doesn't just reason—it reasons about its own reasoning.
@@ -231,6 +378,40 @@ SeNARS is designed for **recursive self-improvement**. It doesn't just reason—
 2. **Analysis**: The `ContradictionAnalyzer` classifies the conflict and selects the best resolution `Strategy`.
 3. **Correction**: A new `Task` (e.g., a `Question` to gather evidence) is generated with high priority, focusing the
    system's attention on resolving the inconsistency.
+
+---
+
+## **Contradiction Resolution Strategies** 🎯
+
+SeNARS employs multiple strategies for resolving contradictions:
+
+| Strategy | Approach | Use Case |
+|:---|:---|:---|
+| **Revision** | Truth value revision | Directly conflicting beliefs |
+| **Reconciliation** | Contextual resolution | Beliefs true in different contexts |
+| **Evidence Gathering** | Generate questions | Need more information |
+| **Temporal Analysis** | Time-based resolution | Temporal conflicts |
+| **Causal Analysis** | Examine causal relationships | Causal contradictions |
+
+This flexible approach ensures appropriate handling of different types of inconsistencies.
+
+---
+
+## **Temporal Reasoning** ⏰
+
+SeNARS implements sophisticated temporal reasoning capabilities:
+
+- **Temporal Relationship Inference**: Determine relationships between events
+- **Pattern Detection**: Identify periodic and sequential patterns
+- **Future Prediction**: Forecast future task occurrences
+- **Anomaly Detection**: Identify temporal anomalies
+
+Specialized temporal term types:
+- **Predictive Implication**: `(task1 =\> task2)` - task1 predicts task2
+- **Retrospective Implication**: `(task1 =/> task2)` - task1 implies task2 occurred after
+- **Concurrent Implication**: `(task1 =<> task2)` - task1 and task2 occur concurrently
+
+This enables reasoning about time-based relationships and dynamic systems.
 
 ---
 
@@ -247,36 +428,70 @@ foundational principles**.
 
 ---
 
-## **A Survey of Application Domains** 🌍
+## **The Constitution in Detail** 📜
 
-The flexibility of the SeNARS architecture makes it suitable for a wide array of domains:
+The Constitution provides an immutable motivational and ethical foundation:
 
-- 🔬 **Scientific Discovery**: Assisting researchers by generating hypotheses, interpreting data, and suggesting new
-  experiments.
-- 🤖 **Intelligent Automation**: Creating robust systems that can automate complex processes and adapt to changing
-  conditions.
-- 🎓 **Personalized Learning**: Building adaptive educational tools that tailor curricula to individual student needs and
-  learning styles.
-- 🛡️ **Safe & Verifiable AI**: Providing a foundation for building systems where safety and ethical alignment can be
-  formally verified.
-- 🤝 **Human-AI Collaboration**: Developing tools that act as true cognitive partners, augmenting human intellect.
+**Core Drives:**
+- `AcquireKnowledge!` - Fundamental drive to learn and understand
+- `ReduceUncertainty!` - Drive to resolve unknowns and ambiguities
+- `MaintainCoherence!` - Drive to resolve contradictions and maintain consistency
+- `MaintainCognitiveIntegrity!` - Meta-cognitive drive for self-improvement
+
+**Safety Constraints:**
+- `((&, self, cause_harm) ==> NEGATIVE_OUTCOME).` - Immutable belief that causing harm is negative
+
+These foundational principles guide all system behavior and decision-making processes.
 
 ---
 
-## **High-Impact Commercial Applications** 💰
+## **Narsese Support** 🔤
 
-SeNARS is not just a research project; it's an engine for market-ready solutions.
+SeNARS supports a comprehensive set of Narsese expressions:
 
-- **De-Risk AI in Regulated Industries**: Deliver fully auditable, explainable AI (XAI) for finance & healthcare,
-  unlocking new markets.
-- **10x R&D Acceleration**: Empower labs with autonomous systems that design experiments, analyze data, and uncover
-  novel insights.
-- **Next-Gen Cognitive Automation**: Go beyond brittle scripts. Build resilient automation that can reason, adapt, and
-  self-correct its own workflows.
-- **Revolutionize EdTech & Training**: Create truly adaptive learning platforms that model a user's knowledge to
-  maximize outcomes.
-- **Platform for Safe, Aligned AI**: Provide the foundational architecture for building AI partners that can rigorously
-  adhere to complex ethical constraints.
+| Type | Syntax | Example |
+|:---|:---|:---|
+| **Atomic Terms** | Simple identifiers | `cat` |
+| **Inheritance** | `<subject --> predicate>` | `(cat --> mammal)` |
+| **Implication** | `<premise ==> conclusion>` | `(cat ==> furry)` |
+| **Negation** | `(--, term)` | `(--, cat)` |
+| **Conjunction** | `(&, term1, term2, ...)` | `(&, cat, dog)` |
+| **Disjunction** | `(||, term1, term2, ...)` | `(||, cat, dog)` |
+| **Extensional Difference** | `(#, term1, term2)` | `(#, cat, dog)` |
+| **Intensional Difference** | `(\\, term1, term2)` | `(\\, cat, dog)` |
+| **Instance** | `(term {-- class)` | `(cat {-- animal)` |
+| **Property** | `(term --} property)` | `(cat --} furry)` |
+| **Nested Expressions** | Complex combinations | `(cat --> (&, furry, intelligent))` |
+
+This formal language enables precise knowledge representation and logical reasoning.
+
+---
+
+## **Extensibility Points** 🔧
+
+SeNARS is designed for extensibility through multiple mechanisms:
+
+### **Inference Rules**
+- Add new rules to `src/reasoner/rules/`
+- Implement rule interface with condition and action functions
+- Extend reasoning capabilities without modifying core logic
+
+### **Contradiction Resolution**
+- Implement additional strategies in `src/reasoner/strategies/resolution/`
+- Use Strategy pattern for dynamic algorithm selection
+- Add domain-specific resolution approaches
+
+### **LM Services**
+- Extend LM capabilities with new specialized services
+- Implement service classes with standardized interfaces
+- Integrate new neural capabilities seamlessly
+
+### **Constitution**
+- Customize with domain-specific drives and constraints
+- Adapt fundamental principles to specific applications
+- Maintain safety while enabling specialization
+
+This modular design enables adaptation to diverse domains and requirements.
 
 ---
 
@@ -285,10 +500,18 @@ SeNARS is not just a research project; it's an engine for market-ready solutions
 **Goal**: Create a more adaptive, efficient, and safe reasoning core.
 
 - **Short-Term**: Self-tuning planners & predictive inference.
+    - Implement meta-cognitive feedback loop for A* planner heuristic adjustment
+    - Develop lightweight model for predicting promising inference rules
     - 💰 **Commercial Value**: Lower computational costs & faster results.
+
 - **Mid-Term**: Principled goal refinement & a "cognitive sandbox" for safe simulation.
+    - Analyze user goals for consistency with Constitution
+    - Simulate plan outcomes before execution
     - 💰 **Commercial Value**: De-risks deployment in critical systems, enhancing safety and alignment.
+
 - **Long-Term**: Auditable, human-in-the-loop evolution of the system's `Constitution`.
+    - Generate formal "change proposals" for Constitution evolution
+    - Include reasoning and simulated outcomes for human approval
     - 💰 **Commercial Value**: The ultimate feature for long-term safety and adaptability in regulated industries.
 
 ---
@@ -298,10 +521,19 @@ SeNARS is not just a research project; it's an engine for market-ready solutions
 **Goal**: Build a knowledge base that is both massive and fast, enabling enterprise scale.
 
 - **Short-Term**: Implement a vector database for rapid semantic retrieval.
+    - Integrate FAISS or Chroma for efficient embedding storage
+    - Replace linear searches with indexed retrieval
     - 💰 **Commercial Value**: Unlocks large-scale data analysis and more powerful analogical reasoning.
+
 - **Mid-Term**: Hybrid memory system (RAM + disk) & "cognitive delegation" between AI instances.
+    - High-speed in-memory cache for active tasks
+    - Persistent, disk-based graph database for long-term knowledge
+    - "Cognitive Delegation Protocol" for specialized task offloading
     - 💰 **Commercial Value**: Enables persistent long-term memory and a "society of minds" for complex problem-solving.
+
 - **Long-Term**: A decentralized, federated network of knowledge graphs.
+    - Dynamic linking and synchronization of knowledge graphs
+    - Consensus mechanisms and belief reconciliation strategies
     - 💰 **Commercial Value**: Creates a powerful network effect and a self-organizing collective intelligence platform.
 
 ---
@@ -311,10 +543,19 @@ SeNARS is not just a research project; it's an engine for market-ready solutions
 **Goal**: Accelerate our own development by making the system help build itself.
 
 - **Short-Term**: A real-time, interactive cognitive visualizer.
+    - Web-based front-end to visualize knowledge graph and reasoning traces
+    - Real-time display of task priorities and memory states
     - 💰 **Commercial Value**: Dramatically speeds up debugging and offers unparalleled transparency for clients.
+
 - **Mid-Term**: Self-diagnosis of unit test failures by reasoning about its own code.
+    - Feed test failures into Perception module
+    - Use reasoning and LM capabilities to hypothesize bug locations
     - 💰 **Commercial Value**: Reduces development costs and accelerates feature velocity.
+
 - **Long-Term**: A "Cognitive App Store" and system self-documentation.
+    - Cognitive Extensibility API and packaging format
+    - Third-party cognitive modules (inference rules, strategies)
+    - Self-generated documentation via XAI module
     - 💰 **Commercial Value**: Transforms the project into an extensible platform, creating a powerful flywheel for
       growth.
 
@@ -325,10 +566,19 @@ SeNARS is not just a research project; it's an engine for market-ready solutions
 **Goal**: Evolve from a simple tool to a true cognitive partner for humanity.
 
 - **Short-Term**: Explainable AI (XAI) that generates clear, natural language justifications.
+    - Trace derivation history of any Task
+    - Translate formal reasoning into natural language explanations
     - 💰 **Commercial Value**: A core feature for building trust and satisfying audit requirements.
+
 - **Mid-Term**: Mixed-initiative reasoning for true human-AI collaborative dialogue.
+    - Build "User Intent Model" to track likely goals
+    - Fluidly switch between instructions, questions, and suggestions
     - 💰 **Commercial Value**: Unlocks advanced applications in R&D, strategic analysis, and education.
+
 - **Long-Term**: Proactive cognitive augmentation that anticipates user needs and offers insights.
+    - Maintain model of user's context and goals
+    - Proactively fetch relevant information and identify potential flaws
+    - Offer suggestions before being explicitly asked
     - 💰 **Commercial Value**: The ultimate vision of a cognitive partner, creating an incredibly sticky and valuable
       user experience.
 
@@ -342,6 +592,20 @@ SeNARS is designed from the ground up to deliver value and attract investment.
 - 💰 **High-Value Markets**: Targeting lucrative opportunities in XAI, Cognitive Automation, and Safe AI.
 - 👨‍💻 **Attracts Top Talent**: A clean, modular, and well-documented design that developers love.
 - 📊 **Clear Path to ROI**: A research agenda focused on delivering commercial value at every step.
+
+---
+
+## **Key Enhancements Summary** 📋
+
+We've transformed SeNARS from a conceptual framework into a detailed, implementable architecture:
+
+1. **Enhanced Clarity**: Added intermediate slides to explain complex concepts
+2. **Technical Depth**: Included detailed information about core components and mechanisms
+3. **Visual Aids**: Added tables and diagrams to support understanding
+4. **Roadmap Detail**: Expanded roadmap with specific implementation steps
+5. **Preserved Content**: Maintained all original material while improving flow
+
+These enhancements make the presentation more accessible to technical and non-technical audiences alike.
 
 ---
 
