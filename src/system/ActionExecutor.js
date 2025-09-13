@@ -2,7 +2,6 @@ import {v4 as uuidv4} from 'uuid';
 import config from '../config.js';
 import {handleErrorWithDefault} from '../utils/error-handler.js';
 import {isNonEmptyArray} from '../utils/helpers.js';
-import Action from '../core/Action.js';
 
 class ActionExecutor {
     constructor(memory) {

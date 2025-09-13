@@ -1,11 +1,11 @@
 import BagSamplingStrategy from './strategies/BagSamplingStrategy.js';
 import rules from './rules/index.js';
 import TemporalReasoner from './TemporalReasoner.js';
-import {info, debug, error as logError} from '../utils/logger.js';
+import {debug, error as logError, info} from '../utils/logger.js';
 import {handleError} from '../utils/error-handler.js';
 
 class Reasoner {
-    constructor({ strategy = new BagSamplingStrategy(), temporalReasoner = new TemporalReasoner() } = {}) {
+    constructor({strategy = new BagSamplingStrategy(), temporalReasoner = new TemporalReasoner()} = {}) {
         this.strategy = strategy;
         this.rules = rules;
         this.temporalReasoner = temporalReasoner;

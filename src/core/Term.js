@@ -15,13 +15,6 @@ class Term {
         this._componentCache = new Map();
     }
 
-    setEmbedding(embedding) {
-        if (this.embedding.length > 0) {
-            console.warn(`Overwriting existing embedding for term: ${this.key}`);
-        }
-        this.embedding = [...embedding];
-    }
-
     get type() {
         const structure = this._getStructure();
         return structure ? structure.type : 'Atomic';
@@ -188,6 +181,13 @@ class Term {
             default:
                 throw new Error(`buildTermKey does not support type: ${pTerm.type}`);
         }
+    }
+
+    setEmbedding(embedding) {
+        if (this.embedding.length > 0) {
+            console.warn(`Overwriting existing embedding for term: ${this.key}`);
+        }
+        this.embedding = [...embedding];
     }
 
     _getStructure() {

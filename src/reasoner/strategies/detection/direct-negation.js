@@ -1,4 +1,4 @@
-import { CONTRADICTION_TYPES } from '../../contradiction-types.js';
+import {CONTRADICTION_TYPES} from '../../contradiction-types.js';
 
 function analyzeDirectNegation(task1, task2, parsed1, parsed2) {
     const check = (p1, p2, t1, t2) => {

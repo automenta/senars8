@@ -1,5 +1,3 @@
-import Task from '../core/Task.js';
-import {parseTerm} from '../parser/narseseParser.js';
 import TaskFactory from '../core/TaskFactory.js';
 import PatternDetector from '../reasoner/PatternDetector.js';
 import EventBus from './EventBus.js';

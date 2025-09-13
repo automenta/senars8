@@ -1,6 +1,6 @@
 import Planners from '../reasoner/index.js';
 import Plan from './Plan.js';
-import {info, error, debug, warn} from '../utils/logger.js';
+import {debug, error, info, warn} from '../utils/logger.js';
 import {handleErrorWithDefault} from '../utils/error-handler.js';
 
 class Planner {

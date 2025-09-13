@@ -1,6 +1,5 @@
 import Task from '../../core/Task.js';
 import {parseTerm} from '../../parser/narseseParser.js';
-import {handleErrorWithDefault} from '../../utils/error-handler.js';
 import Term from '../../core/Term.js';
 
 function parseTaskTerm(task) {
@@ -99,10 +98,10 @@ function createBinaryInheritanceRule(name, termBuilder, truthValueFunction) {
     return createBinaryRule(
         name,
         (parsed1, parsed2) =>
-        parsed1?.type === 'Inheritance' &&
-        parsed2?.type === 'Inheritance' &&
-        Term.buildTermKey(parsed1.predicate) === Term.buildTermKey(parsed2.predicate) &&
-        Term.buildTermKey(parsed1.subject) !== Term.buildTermKey(parsed2.subject),
+            parsed1?.type === 'Inheritance' &&
+            parsed2?.type === 'Inheritance' &&
+            Term.buildTermKey(parsed1.predicate) === Term.buildTermKey(parsed2.predicate) &&
+            Term.buildTermKey(parsed1.subject) !== Term.buildTermKey(parsed2.subject),
         termBuilder,
         truthValueFunction
     );
@@ -112,9 +111,9 @@ function createTransitiveInheritanceRule(name, termBuilder, truthValueFunction) 
     return createBinaryRule(
         name,
         (parsed1, parsed2) =>
-        parsed1?.type === 'Inheritance' &&
-        parsed2?.type === 'Inheritance' &&
-        Term.buildTermKey(parsed1.predicate) === Term.buildTermKey(parsed2.subject),
+            parsed1?.type === 'Inheritance' &&
+            parsed2?.type === 'Inheritance' &&
+            Term.buildTermKey(parsed1.predicate) === Term.buildTermKey(parsed2.subject),
         termBuilder,
         truthValueFunction
     );
@@ -133,9 +132,9 @@ function createModusPonensRule(name, termBuilder, truthValueFunction) {
     return createBinaryRule(
         name,
         (parsed1, parsed2) =>
-        parsed1?.type === 'Implication' &&
-        parsed2?.type === 'Atomic' &&
-        Term.buildTermKey(parsed1.subject) === Term.buildTermKey(parsed2),
+            parsed1?.type === 'Implication' &&
+            parsed2?.type === 'Atomic' &&
+            Term.buildTermKey(parsed1.subject) === Term.buildTermKey(parsed2),
         termBuilder,
         truthValueFunction
     );

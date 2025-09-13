@@ -1,4 +1,4 @@
-import {groupTasksByTermKey, calculateIntervalStats} from './helpers.js';
+import {calculateIntervalStats, groupTasksByTermKey} from './helpers.js';
 import config from '../../config.js';
 
 function detectTemporalPatterns(tasks) {

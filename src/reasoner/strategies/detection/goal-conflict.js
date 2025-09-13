@@ -1,4 +1,4 @@
-import { CONTRADICTION_TYPES } from '../../contradiction-types.js';
+import {CONTRADICTION_TYPES} from '../../contradiction-types.js';
 import analyzeDirectNegation from './direct-negation.js';
 
 function analyzeGoalConflict(task1, task2, parsed1, parsed2) {

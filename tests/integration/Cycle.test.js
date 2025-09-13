@@ -3,11 +3,10 @@ import Memory from '../../src/memory/Memory.js';
 import Reasoner from '../../src/reasoner/Reasoner.js';
 import LM from '../../src/lm/LM.js';
 import ActionExecutor from '../../src/system/ActionExecutor.js';
-import EventBus from '../../src/system/EventBus.js';
 import Task from '../../src/core/Task.js';
 import Term from '../../src/core/Term.js';
 import config from '../../src/config.js';
-import {parseTerm} from '../../src/parser/narseseParser.js';
+import BruteForceStrategy from '../../src/reasoner/strategies/BruteForceStrategy.js';
 
 jest.mock('../../src/lm/LM.js');
 
@@ -20,8 +19,6 @@ jest.mock('@xenova/transformers', () => {
     });
     return transformers;
 });
-
-import BruteForceStrategy from '../../src/reasoner/strategies/BruteForceStrategy.js';
 
 describe('Cycle Integration Test', () => {
     let memory, reasoner, lm, cycle;

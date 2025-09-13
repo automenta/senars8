@@ -5,11 +5,8 @@ import LM from '../../src/lm/LM.js';
 import ActionExecutor from '../../src/system/ActionExecutor.js';
 import Task from '../../src/core/Task.js';
 import Term from '../../src/core/Term.js';
-import {
-    parseTerm
-} from '../../src/parser/narseseParser.js';
+import {parseTerm} from '../../src/parser/narseseParser.js';
 import config from '../../src/config.js';
-import EventBus from '../../src/system/EventBus.js';
 
 // Mock the LM to avoid loading heavy models
 jest.mock('../../src/lm/LM.js');

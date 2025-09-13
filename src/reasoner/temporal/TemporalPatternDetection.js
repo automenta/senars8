@@ -4,7 +4,6 @@ import {detectTemporalPatterns} from '../../utils/temporal/pattern-detection.js'
 import {createTemporalSequenceTask} from '../../utils/temporal/task-creation.js';
 import {debug} from '../../utils/logger.js';
 import {handleErrorWithDefault} from '../../utils/error-handler.js';
-import config from '../../config.js';
 
 class TemporalPatternDetection {
     static detect(temporalFocusSet) {

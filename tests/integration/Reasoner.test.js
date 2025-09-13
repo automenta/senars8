@@ -23,7 +23,7 @@ describe('Reasoner Integration Test', () => {
 
     beforeEach(() => {
         // Use BruteForceStrategy for deterministic test results
-        reasoner = new Reasoner({ strategy: new BruteForceStrategy(), temporalReasoner: new TemporalReasoner() });
+        reasoner = new Reasoner({strategy: new BruteForceStrategy(), temporalReasoner: new TemporalReasoner()});
         memory = new Memory();
         lm = new LM();
 

@@ -176,7 +176,7 @@ class LM {
         }
     }
 
-    async bootstrapTerm(termKey, options = { sync: false }) {
+    async bootstrapTerm(termKey, options = {sync: false}) {
         if (typeof termKey !== 'string' || termKey.length === 0) {
             throw new Error('termKey must be a non-empty string.');
         }

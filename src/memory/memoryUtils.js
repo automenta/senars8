@@ -1,7 +1,5 @@
 import Task from '../core/Task.js';
-import {
-    MinPriorityQueue
-} from '@datastructures-js/priority-queue';
+import {MinPriorityQueue} from '@datastructures-js/priority-queue';
 
 /**
  * Memory utilities for task and term management

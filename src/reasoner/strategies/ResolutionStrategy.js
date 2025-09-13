@@ -1,8 +1,5 @@
-import Task from '../../core/Task.js';
-import {parseTerm} from '../../parser/narseseParser.js';
 import TruthValueManager from '../TruthValueManager.js';
-import {createMetaTask} from './strategy-utils.js';
-import { resolutionStrategies } from './resolution/index.js';
+import {resolutionStrategies} from './resolution/index.js';
 
 class ResolutionStrategy {
     constructor() {

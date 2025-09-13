@@ -3,7 +3,6 @@ import {parseTerm} from '../../parser/narseseParser.js';
 import {detectTemporalAnomalies} from '../../utils/temporal/pattern-detection.js';
 import {debug} from '../../utils/logger.js';
 import {handleErrorWithDefault} from '../../utils/error-handler.js';
-import config from '../../config.js';
 
 class TemporalAnomalyDetection {
     static detect(temporalFocusSet) {

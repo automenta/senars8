@@ -11,13 +11,12 @@ import registerDefaultActions from './default-actions.js';
 import config from '../config.js';
 import _ from 'lodash';
 import {handleError} from '../utils/error-handler.js';
-import {info, error, debug, warn} from '../utils/logger.js';
+import {debug, error, info, warn} from '../utils/logger.js';
 import {normalizeToArray} from '../utils/helpers.js';
-import TruthValueManager from '../reasoner/TruthValueManager.js';
 
 class System {
     // Private constructor, use System.create() instead
-    constructor(userConfig = {}, { memory, reasoner, lm, actionExecutor, cycle }) {
+    constructor(userConfig = {}, {memory, reasoner, lm, actionExecutor, cycle}) {
         this.config = _.merge({}, config, userConfig);
         this.memory = memory;
         this.reasoner = reasoner;
@@ -39,17 +38,17 @@ class System {
 
         const memory = dependencies.memory || new Memory();
         const temporalReasoner = dependencies.temporalReasoner || new TemporalReasoner();
-        const reasoner = dependencies.reasoner || new Reasoner({ temporalReasoner });
+        const reasoner = dependencies.reasoner || new Reasoner({temporalReasoner});
         const lm = dependencies.lm || new LM();
         const actionExecutor = dependencies.actionExecutor || new ActionExecutor(memory);
         const cycle = dependencies.cycle || new Cycle(memory, reasoner, lm, actionExecutor, mergedConfig);
 
-        const system = new System(userConfig, { memory, reasoner, lm, actionExecutor, cycle });
+        const system = new System(userConfig, {memory, reasoner, lm, actionExecutor, cycle});
 
         try {
             info('Initializing system...');
             system.memory.addTasks(CONSTITUTION_TASKS);
-            await system._bootstrapTerms(CONSTITUTION_TASKS, { sync: true });
+            await system._bootstrapTerms(CONSTITUTION_TASKS, {sync: true});
             await system.cycle.bootstrap();
             info('System initialized successfully');
             return system;
@@ -60,7 +59,7 @@ class System {
     }
 
 
-    async _bootstrapTerms(tasks, options = { sync: false }) {
+    async _bootstrapTerms(tasks, options = {sync: false}) {
         try {
             const termKeys = [...new Set(tasks.map(task => task.termKey))];
             const newTermKeys = termKeys.filter(key => !this.memory.getTerm(key));

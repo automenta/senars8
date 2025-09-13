@@ -2,16 +2,14 @@ import Term from '../core/Term.js';
 import Task from '../core/Task.js';
 import EventBus from '../system/EventBus.js';
 import config from '../config.js';
-import {
-    normalizeToArray
-} from '../utils/helpers.js';
+import {normalizeToArray} from '../utils/helpers.js';
 import {
     consolidateMemory,
-    updateCostIndex,
+    getHighestPriorityTasksWithPQ,
     indexImplication,
     indexTask,
     unindexTask,
-    getHighestPriorityTasksWithPQ
+    updateCostIndex
 } from './memoryUtils.js';
 import TimeBasedForgettingStrategy from './strategies/TimeBasedForgettingStrategy.js';
 
@@ -272,7 +270,8 @@ class Memory {
         if (!term) return null;
 
         // Convert stamp strings back to BigInts
-        const deserializedStamp = { ...json.state.stamp
+        const deserializedStamp = {
+            ...json.state.stamp
         };
         for (const key in deserializedStamp) {
             // A simple check if the string represents a number

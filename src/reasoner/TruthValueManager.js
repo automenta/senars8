@@ -1,4 +1,3 @@
-import {cosineSimilarity} from '../utils/math.js';
 import config from '../config.js';
 import {handleErrorWithDefault} from '../utils/error-handler.js';
 import Task from '../core/Task.js';
