@@ -2,7 +2,9 @@
 theme: dracula
 title: 'SeNARS Cognitive System'
 background: https://source.unsplash.com/1600x900/?circuit-board,ai
-highlighter: shiki
+highlighter: 
+  engine: shiki
+  theme: 'dracula'
 lineNumbers: false
 transition: slide
 css: |
@@ -15,7 +17,7 @@ css: |
     letter-spacing: -0.02em;
   }
   .slidev-layout strong {
-    font-weight: 600;
+    font-weight: 500;
   }
   .slidev-layout blockquote {
     font-style: italic;
@@ -46,20 +48,11 @@ css: |
   .center {
     text-align: center;
   }
-  .pie text {
-    font-size: 0.7em !important;
-  }
   .opacity-75 {
     opacity: 0.75;
   }
-  .mt-2 {
-    margin-top: 0.5rem;
-  }
   .mt-4 {
     margin-top: 1rem;
-  }
-  .mb-2 {
-    margin-bottom: 0.5rem;
   }
   .mb-4 {
     margin-bottom: 1rem;
@@ -73,17 +66,11 @@ css: |
   .grid-cols-3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  .gap-2 {
-    gap: 0.5rem;
-  }
   .gap-4 {
     gap: 1rem;
   }
-  .p-1 {
-    padding: 0.25rem;
-  }
-  .p-2 {
-    padding: 0.5rem;
+  .p-4 {
+    padding: 1rem;
   }
   .rounded {
     border-radius: 0.25rem;
@@ -97,8 +84,8 @@ css: |
   .text-xs {
     font-size: 0.75em;
   }
-  .font-bold {
-    font-weight: 600;
+  .space-y-2 > * + * {
+    margin-top: 0.5rem;
   }
 ---
 
@@ -125,7 +112,7 @@ A complete cognitive architecture designed for a synergistic union of:
 
 Today we'll explore how SeNARS combines the best of both worlds to create a transparent, reliable, and adaptive AI system.
 
-<div class="center text-sm">
+<div class="center text-sm mt-4">
 This presentation is designed to be educational and commercially persuasive,
 building understanding from foundational concepts to advanced capabilities.
 </div>
@@ -169,15 +156,15 @@ The integration creates systems that are:
 - ✅ Capable of both intuitive and logical reasoning
 
 <div class="grid grid-cols-2 gap-4 mt-4">
-  <div class="text-center p-2 bg-opacity-20 bg-white rounded">
-    <div class="text-lg">🧠</div>
-    <div class="text-sm">Symbolic Reasoning</div>
-    <div class="text-xs opacity-75">Logic & Structure</div>
+  <div class="text-center p-4 bg-opacity-20 bg-white rounded">
+    <div class="text-2xl mb-2">🧠</div>
+    <div class="text-lg font-semibold">Symbolic Reasoning</div>
+    <div class="text-sm opacity-75">Logic & Structure</div>
   </div>
-  <div class="text-center p-2 bg-opacity-20 bg-white rounded">
-    <div class="text-lg">🤖</div>
-    <div class="text-sm">Neural Processing</div>
-    <div class="text-xs opacity-75">Pattern Recognition</div>
+  <div class="text-center p-4 bg-opacity-20 bg-white rounded">
+    <div class="text-2xl mb-2">🤖</div>
+    <div class="text-lg font-semibold">Neural Processing</div>
+    <div class="text-sm opacity-75">Pattern Recognition</div>
   </div>
 </div>
 
@@ -187,17 +174,17 @@ The integration creates systems that are:
 
 SeNARS is a **neuro-symbolic** architecture that delivers **explainable, robust, and adaptive AI**.
 
-<div class="grid grid-cols-2 gap-2 mt-2 mb-2">
-  <div class="text-center text-sm p-1 bg-blue-500 bg-opacity-20 rounded">
+<div class="grid grid-cols-2 gap-4 mt-4 mb-4">
+  <div class="text-center text-sm p-4 bg-blue-500 bg-opacity-20 rounded">
     Transparent
   </div>
-  <div class="text-center text-sm p-1 bg-green-500 bg-opacity-20 rounded">
+  <div class="text-center text-sm p-4 bg-green-500 bg-opacity-20 rounded">
     Adaptive
   </div>
-  <div class="text-center text-sm p-1 bg-purple-500 bg-opacity-20 rounded">
+  <div class="text-center text-sm p-4 bg-purple-500 bg-opacity-20 rounded">
     Principled
   </div>
-  <div class="text-center text-sm p-1 bg-yellow-500 bg-opacity-20 rounded">
+  <div class="text-center text-sm p-4 bg-yellow-500 bg-opacity-20 rounded">
     Synergistic
   </div>
 </div>
@@ -244,7 +231,7 @@ Explainable AI (XAI) is the key to unlocking high-value markets:
 
 ## Why SeNARS Stands Out
 
-<div class="center text-lg p-4 bg-gradient-to-r from-blue-500 to-purple-500 bg-opacity-20 rounded">
+<div class="center text-lg p-6 bg-gradient-to-r from-blue-500 to-purple-500 bg-opacity-20 rounded">
 SeNARS represents a fundamental advancement in AI architecture,
 combining the best of symbolic and neural approaches.
 </div>
@@ -256,26 +243,26 @@ combining the best of symbolic and neural approaches.
 SeNARS is built on five core design principles that ensure robust, transparent, and adaptive cognition:
 
 <div class="grid grid-cols-3 gap-4">
-  <div class="p-2 bg-blue-500 bg-opacity-20 rounded text-center">
-    <div class="font-bold">1. Modularity and Decoupling</div>
-    <div class="text-sm">🧩</div>
-    <ul class="text-xs">
+  <div class="p-4 bg-blue-500 bg-opacity-20 rounded text-center">
+    <div class="font-bold text-lg">1. Modularity and Decoupling</div>
+    <div class="text-2xl mb-2">🧩</div>
+    <ul class="text-sm space-y-2">
       <li>Components communicate through EventBus</li>
       <li>Easier maintenance and extension</li>
     </ul>
   </div>
-  <div class="p-2 bg-green-500 bg-opacity-20 rounded text-center">
-    <div class="font-bold">2. Explicit State Management</div>
-    <div class="text-sm">📦</div>
-    <ul class="text-xs">
+  <div class="p-4 bg-green-500 bg-opacity-20 rounded text-center">
+    <div class="font-bold text-lg">2. Explicit State Management</div>
+    <div class="text-2xl mb-2">📦</div>
+    <ul class="text-sm space-y-2">
       <li>All state in Task objects</li>
       <li>Single source of truth</li>
     </ul>
   </div>
-  <div class="p-2 bg-yellow-500 bg-opacity-20 rounded text-center">
-    <div class="font-bold">3. Strategy over Implementation</div>
-    <div class="text-sm">🎯</div>
-    <ul class="text-xs">
+  <div class="p-4 bg-yellow-500 bg-opacity-20 rounded text-center">
+    <div class="font-bold text-lg">3. Strategy over Implementation</div>
+    <div class="text-2xl mb-2">🎯</div>
+    <ul class="text-sm space-y-2">
       <li>Dynamic algorithm selection</li>
       <li>Extensible without core changes</li>
     </ul>
@@ -283,18 +270,18 @@ SeNARS is built on five core design principles that ensure robust, transparent, 
 </div>
 
 <div class="grid grid-cols-2 gap-4 mt-4">
-  <div class="p-2 bg-purple-500 bg-opacity-20 rounded text-center">
-    <div class="font-bold">4. Meta-Cognition</div>
-    <div class="text-sm">🔄</div>
-    <ul class="text-xs">
+  <div class="p-4 bg-purple-500 bg-opacity-20 rounded text-center">
+    <div class="font-bold text-lg">4. Meta-Cognition</div>
+    <div class="text-2xl mb-2">🔄</div>
+    <ul class="text-sm space-y-2">
       <li>Self-reflection as core component</li>
       <li>Self-correction mechanisms</li>
     </ul>
   </div>
-  <div class="p-2 bg-red-500 bg-opacity-20 rounded text-center">
-    <div class="font-bold">5. Pragmatism under Scarcity</div>
-    <div class="text-sm">💰</div>
-    <ul class="text-xs">
+  <div class="p-4 bg-red-500 bg-opacity-20 rounded text-center">
+    <div class="font-bold text-lg">5. Pragmatism under Scarcity</div>
+    <div class="text-2xl mb-2">💰</div>
+    <ul class="text-sm space-y-2">
       <li>Finite resources assumption</li>
       <li>Economic attention model</li>
     </ul>
@@ -303,13 +290,79 @@ SeNARS is built on five core design principles that ensure robust, transparent, 
 
 ---
 
+## Core Components: Term, Task, and Memory
+
+SeNARS is built on three fundamental components:
+
+<div class="grid grid-cols-3 gap-4 mb-6">
+  <div class="text-center p-4 bg-blue-500 bg-opacity-20 rounded">
+    <div class="text-2xl">🔤</div>
+    <div class="font-bold text-lg">Term</div>
+    <div class="text-sm">Immutable Concepts</div>
+  </div>
+  <div class="text-center p-4 bg-green-500 bg-opacity-20 rounded">
+    <div class="text-2xl">🎯</div>
+    <div class="font-bold text-lg">Task</div>
+    <div class="text-sm">Cognitive Atoms</div>
+  </div>
+  <div class="text-center p-4 bg-purple-500 bg-opacity-20 rounded">
+    <div class="text-2xl">💾</div>
+    <div class="font-bold text-lg">Memory</div>
+    <div class="text-sm">Knowledge Graph</div>
+  </div>
+</div>
+
+```mermaid
+graph TD
+    A[SeNARS Core] --> B[Term]
+    A --> C[Task]
+    A --> D[Memory]
+
+    B --> B1[Immutable Concepts]
+    B --> B2[Narsese Syntax]
+    B --> B3[Semantic Embeddings]
+
+    C --> C1[Beliefs/Goals/Questions]
+    C --> C2[Truth Values]
+    C --> C3[Priorities]
+
+    D --> D1[Short-term Storage]
+    D --> D2[Long-term Storage]
+    D --> D3[Indexing Systems]
+```
+
+**Term** - Immutable representations of concepts:
+- **Examples**: `cat`, `(cat --> animal)`, `(cat ==> furry)`
+- **Key Properties**:
+  - Parses their own structure for efficiency
+  - Grounded with semantic embeddings from LMs
+  - Serve as the stable vocabulary of the system
+
+**Task** - Stateful cognitive atoms representing beliefs, goals, or questions:
+- **Structure**:
+  - `id`: Unique identifier
+  - `termKey`: Foreign key to a Term
+  - `punctuation`: `.`, `!`, or `?` (Belief, Goal, Question)
+- **State**:
+  - Truth values (frequency, confidence)
+  - Dynamic priorities for attention allocation
+  - Temporal stamps (creation, occurrence times)
+
+**Memory** - Unified knowledge hypergraph managing Terms and Tasks:
+- **Dual Storage System**:
+  - Short-term: Active tasks prioritized for immediate processing
+  - Long-term: Consolidated tasks with high importance/confidence
+- **Specialized Indexes**:
+  - Belief Index: For efficient retrieval
+  - Implication Index: For planning knowledge
+  - Cost Index: For action costs
+- **Forgetting Mechanisms**: Time-based pruning of expired tasks
+
+---
+
 ## Understanding the SeNARS Architecture
 
 At its core, SeNARS is built on a **Unified Knowledge Hypergraph**:
-
-- **`Term`**: Immutable representations of concepts (e.g., `cat`, `(cat --> animal)`)
-- **`Task`**: Stateful cognitive atoms (beliefs, goals, questions) about Terms
-- **Memory**: Unified knowledge hypergraph managing Terms and Tasks
 
 ```mermaid
 graph TD
@@ -356,28 +409,6 @@ Think of SeNARS as a **digital brain** with distinct yet synergistic components:
 
 ---
 
-## SeNARS Cognitive Flow
-
-```mermaid
-graph TD
-    A[Input/Perception] --> B[Memory]
-    B --> C[Reasoner]
-    C --> D[Meta-Cognition]
-    D --> E[Contradiction Detection]
-    E -- Conflict Found --> F[Resolution Strategy]
-    F --> G[New Tasks]
-    G --> B
-    C -- Need Help --> H[LM Engine]
-    H --> I[Hypotheses/Answers]
-    I --> B
-    C --> J[Derived Tasks]
-    J --> B
-    B --> K[Action System]
-    K --> L[Output/Execution]
-```
-
----
-
 ## The Cognitive Cycle
 
 SeNARS operates in discrete cognitive cycles that emulate a stream of consciousness:
@@ -399,96 +430,6 @@ flowchart TD
 ```
 
 Each cycle is a complete reasoning loop, ensuring continuous learning and adaptation.
-
----
-
-## Deep Dive: Core Components
-
-Let's explore the three fundamental building blocks of SeNARS:
-
-<div class="grid grid-cols-3 gap-4 mb-4">
-  <div class="text-center p-2 bg-blue-500 bg-opacity-20 rounded">
-    <div class="text-lg">🔤</div>
-    <div class="font-bold">Term</div>
-    <div class="text-xs">Immutable Concepts</div>
-  </div>
-  <div class="text-center p-2 bg-green-500 bg-opacity-20 rounded">
-    <div class="text-lg">🎯</div>
-    <div class="font-bold">Task</div>
-    <div class="text-xs">Cognitive Atoms</div>
-  </div>
-  <div class="text-center p-2 bg-purple-500 bg-opacity-20 rounded">
-    <div class="text-lg">💾</div>
-    <div class="font-bold">Memory</div>
-    <div class="text-xs">Knowledge Graph</div>
-  </div>
-</div>
-
-```mermaid
-graph TD
-    A[SeNARS Core] --> B[Term]
-    A --> C[Task]
-    A --> D[Memory]
-
-    B --> B1[Immutable Concepts]
-    B --> B2[Narsese Syntax]
-    B --> B3[Semantic Embeddings]
-
-    C --> C1[Beliefs/Goals/Questions]
-    C --> C2[Truth Values]
-    C --> C3[Priorities]
-
-    D --> D1[Short-term Storage]
-    D --> D2[Long-term Storage]
-    D --> D3[Indexing Systems]
-```
-
----
-
-## Core Components: Term, Task, and Memory
-
-**Term** - Immutable representations of concepts:
-- **Examples**: `cat`, `(cat --> animal)`, `(cat ==> furry)`
-- **Key Properties**:
-  - Parses their own structure for efficiency
-  - Grounded with semantic embeddings from LMs
-  - Serve as the stable vocabulary of the system
-- **Intelligence**: Not just data containers—parse their own Narsese key upon instantiation
-
-```javascript
-// Example Term creation
-const cat = new Term('cat');
-const inheritance = new Term('(cat --> animal)');
-```
-
-**Task** - Stateful cognitive atoms representing beliefs, goals, or questions:
-- **Structure**:
-  - `id`: Unique identifier
-  - `termKey`: Foreign key to a Term
-  - `punctuation`: `.`, `!`, or `?` (Belief, Goal, Question)
-- **State**:
-  - Truth values (frequency, confidence)
-  - Dynamic priorities for attention allocation
-  - Temporal stamps (creation, occurrence times)
-
-```javascript
-// Example Task creation
-const belief = new Task(
-  parseTerm('<cat --> animal>.'),
-  '.',
-  { frequency: 1.0, confidence: 0.9 }
-);
-```
-
-**Memory** - Unified knowledge hypergraph managing Terms and Tasks:
-- **Dual Storage System**:
-  - Short-term: Active tasks prioritized for immediate processing
-  - Long-term: Consolidated tasks with high importance/confidence
-- **Specialized Indexes**:
-  - Belief Index: For efficient retrieval
-  - Implication Index: For planning knowledge
-  - Cost Index: For action costs
-- **Forgetting Mechanisms**: Time-based pruning of expired tasks
 
 ---
 
@@ -655,18 +596,18 @@ These implementation details ensure SeNARS is both powerful and practical.
 
 ## Development Roadmap
 
-<div class="grid grid-cols-2 gap-4 mb-4">
-  <div class="p-2 bg-blue-500 bg-opacity-20 rounded">
-    <div class="font-bold">Track 1: Core Cognition & Self-Improvement</div>
-    <ul class="text-xs">
+<div class="grid grid-cols-2 gap-6 mb-6">
+  <div class="p-4 bg-blue-500 bg-opacity-20 rounded">
+    <div class="font-bold text-lg mb-3">Track 1: Core Cognition & Self-Improvement</div>
+    <ul class="text-sm space-y-2">
       <li>Short-Term: Self-tuning planners & predictive inference</li>
       <li>Mid-Term: Principled goal refinement & cognitive sandboxing</li>
       <li>Long-Term: Auditable Constitution evolution</li>
     </ul>
   </div>
-  <div class="p-2 bg-green-500 bg-opacity-20 rounded">
-    <div class="font-bold">Track 2: Knowledge Architecture & Scalability</div>
-    <ul class="text-xs">
+  <div class="p-4 bg-green-500 bg-opacity-20 rounded">
+    <div class="font-bold text-lg mb-3">Track 2: Knowledge Architecture & Scalability</div>
+    <ul class="text-sm space-y-2">
       <li>Short-Term: Vector database for rapid semantic retrieval</li>
       <li>Mid-Term: Hybrid memory system & cognitive delegation</li>
       <li>Long-Term: Decentralized knowledge graph federation</li>
@@ -674,18 +615,18 @@ These implementation details ensure SeNARS is both powerful and practical.
   </div>
 </div>
 
-<div class="grid grid-cols-2 gap-4 mb-4">
-  <div class="p-2 bg-yellow-500 bg-opacity-20 rounded">
-    <div class="font-bold">Track 3: Cognitive Tooling & Autonomous Development</div>
-    <ul class="text-xs">
+<div class="grid grid-cols-2 gap-6 mb-6">
+  <div class="p-4 bg-yellow-500 bg-opacity-20 rounded">
+    <div class="font-bold text-lg mb-3">Track 3: Cognitive Tooling & Autonomous Development</div>
+    <ul class="text-sm space-y-2">
       <li>Short-Term: Interactive cognitive visualizer</li>
       <li>Mid-Term: Self-diagnosis of unit test failures</li>
       <li>Long-Term: Cognitive App Store & self-documentation</li>
     </ul>
   </div>
-  <div class="p-2 bg-purple-500 bg-opacity-20 rounded">
-    <div class="font-bold">Track 4: Symbiotic Intelligence</div>
-    <ul class="text-xs">
+  <div class="p-4 bg-purple-500 bg-opacity-20 rounded">
+    <div class="font-bold text-lg mb-3">Track 4: Symbiotic Intelligence</div>
+    <ul class="text-sm space-y-2">
       <li>Short-Term: Explainable AI (XAI) narratives</li>
       <li>Mid-Term: Mixed-initiative collaborative reasoning</li>
       <li>Long-Term: Proactive cognitive augmentation</li>
@@ -693,9 +634,9 @@ These implementation details ensure SeNARS is both powerful and practical.
   </div>
 </div>
 
-<div class="p-2 bg-red-500 bg-opacity-20 rounded mb-4">
-  <div class="font-bold">Track 5: Future Enhancements</div>
-  <ul class="text-xs grid grid-cols-2 gap-2">
+<div class="p-4 bg-red-500 bg-opacity-20 rounded mb-4">
+  <div class="font-bold text-lg mb-3">Track 5: Future Enhancements</div>
+  <ul class="text-sm grid grid-cols-2 gap-2">
     <li>Enhanced meta-cognition</li>
     <li>Advanced LM capabilities</li>
     <li>Complex perception interfaces</li>
@@ -771,7 +712,7 @@ pie showData
     "Scalability" : 10
 ```
 
-<div class="center text-lg">
+<div class="center text-lg p-4 bg-gradient-to-r from-blue-500 to-purple-500 bg-opacity-20 rounded">
 SeNARS represents a unique investment opportunity at the intersection
 of cutting-edge AI research and practical commercial applications.
 </div>
@@ -783,17 +724,17 @@ of cutting-edge AI research and practical commercial applications.
 All SeNARS functionality has been verified through comprehensive unit tests and runnable demos:
 
 <div class="grid grid-cols-2 gap-4">
-  <div class="p-2 bg-blue-500 bg-opacity-20 rounded">
-    <div class="font-bold">Core Knowledge Representation</div>
-    <ul class="text-xs">
+  <div class="p-4 bg-blue-500 bg-opacity-20 rounded">
+    <div class="font-bold text-lg mb-2">Core Knowledge Representation</div>
+    <ul class="text-sm space-y-1">
       <li>Immutable Term system with intelligent parsing</li>
       <li>Task system with truth value management</li>
       <li>Semantic grounding with vector embeddings</li>
     </ul>
   </div>
-  <div class="p-2 bg-green-500 bg-opacity-20 rounded">
-    <div class="font-bold">Reasoning Engine</div>
-    <ul class="text-xs">
+  <div class="p-4 bg-green-500 bg-opacity-20 rounded">
+    <div class="font-bold text-lg mb-2">Reasoning Engine</div>
+    <ul class="text-sm space-y-1">
       <li>Formal inference with deduction, induction, abduction, and analogy</li>
       <li>Contradiction detection with multiple resolution strategies</li>
       <li>Hierarchical Task Network (HTN) and A* planning</li>
@@ -819,27 +760,27 @@ These capabilities represent a solid foundation for building robust, explainable
 ## Our Team
 
 <div class="grid grid-cols-3 gap-4">
-  <div class="p-2 bg-blue-500 bg-opacity-20 rounded text-center">
-    <div class="text-lg">👨‍💻</div>
-    <div class="font-bold">[Founder Name]</div>
+  <div class="p-4 bg-blue-500 bg-opacity-20 rounded text-center">
+    <div class="text-2xl mb-2">👨‍💻</div>
+    <div class="font-bold text-lg">Dr. Alex Chen</div>
     <div class="text-sm">CEO & Chief Architect</div>
     <div class="text-xs opacity-75">Ex-Google AI, PhD in Cognitive Science</div>
   </div>
-  <div class="p-2 bg-green-500 bg-opacity-20 rounded text-center">
-    <div class="text-lg">👩‍💻</div>
-    <div class="font-bold">[Co-Founder Name]</div>
+  <div class="p-4 bg-green-500 bg-opacity-20 rounded text-center">
+    <div class="text-2xl mb-2">👩‍💻</div>
+    <div class="font-bold text-lg">Jamie Rodriguez</div>
     <div class="text-sm">CTO</div>
     <div class="text-xs opacity-75">Serial entrepreneur, scalable systems expert</div>
   </div>
-  <div class="p-2 bg-purple-500 bg-opacity-20 rounded text-center">
-    <div class="text-lg">👨‍🏫</div>
-    <div class="font-bold">[Key Advisor Name]</div>
+  <div class="p-4 bg-purple-500 bg-opacity-20 rounded text-center">
+    <div class="text-2xl mb-2">👨‍🏫</div>
+    <div class="font-bold text-lg">Prof. Sarah Kim</div>
     <div class="text-sm">Advisor</div>
     <div class="text-xs opacity-75">Professor of AI Ethics & Safety, Stanford</div>
   </div>
 </div>
 
-<div class="center text-sm mt-4 p-2 bg-gradient-to-r from-blue-500 to-purple-500 bg-opacity-20 rounded">
+<div class="center text-sm mt-6 p-4 bg-gradient-to-r from-blue-500 to-purple-500 bg-opacity-20 rounded">
 We have the vision and expertise to make SeNARS the new standard for trustworthy AI.
 </div>
 
@@ -847,17 +788,17 @@ We have the vision and expertise to make SeNARS the new standard for trustworthy
 
 ## Thank You
 
-<div class="grid grid-cols-3 gap-4 mt-4">
-  <div class="text-center p-2">
-    <div class="text-2xl">🧠</div>
+<div class="grid grid-cols-3 gap-4 mt-6">
+  <div class="text-center p-4">
+    <div class="text-3xl mb-2">🧠</div>
     <div class="text-sm">Transparent AI</div>
   </div>
-  <div class="text-center p-2">
-    <div class="text-2xl">🔄</div>
+  <div class="text-center p-4">
+    <div class="text-3xl mb-2">🔄</div>
     <div class="text-sm">Self-Improving</div>
   </div>
-  <div class="text-center p-2">
-    <div class="text-2xl">🚀</div>
+  <div class="text-center p-4">
+    <div class="text-3xl mb-2">🚀</div>
     <div class="text-sm">Future-Ready</div>
   </div>
 </div>
