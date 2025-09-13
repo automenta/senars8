@@ -1,3 +1,10 @@
 {
-  "themeSet": "marp-theme.css"
+  "themeSet": "marp-theme.css",
+  "html": true,
+  "engine": "bespoke",
+  "options": {
+    "mermaid": {
+      "theme": "neutral"
+    }
+  }
 }
