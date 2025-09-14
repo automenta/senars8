@@ -1,6 +1,6 @@
 import {v4 as uuidv4} from 'uuid';
 import {parseTerm} from '../parser/parse-utils.js';
-import config from '../config.js';
+import config from '../config/index.js';
 import TruthValueManager from '../reasoner/TruthValueManager.js';
 
 const DEFAULT_TRUTH_VALUE = config.DEFAULT_TRUTH_VALUE;

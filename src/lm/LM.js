@@ -6,7 +6,7 @@ import {cosineSimilarity} from '../utils/math.js';
 import {LLMChain} from "langchain/chains";
 import {PromptTemplate} from "@langchain/core/prompts";
 import {StructuredOutputParser} from "@langchain/core/output_parsers";
-import {LM as LM_CONFIG} from '../config.js';
+import config from '../config/index.js';
 import HypothesisGenerator from './HypothesisGenerator.js';
 import PipelineFactory from './PipelineFactory.js';
 import ExplanationGenerator from './ExplanationGenerator.js';
@@ -57,8 +57,8 @@ class LM {
     }
 
     async processEmbeddingQueue() {
-        const batchSize = LM_CONFIG.EMBEDDING_BATCH_SIZE;
-        const delay = LM_CONFIG.EMBEDDING_BATCH_DELAY_MS;
+        const batchSize = config.LM.EMBEDDING_BATCH_SIZE;
+        const delay = config.LM.EMBEDDING_BATCH_DELAY_MS;
 
         while (this.isProcessingEmbeddings) {
             if (this.embeddingQueue.length === 0) {
@@ -93,12 +93,12 @@ class LM {
 
     async _getFeaturePipeline() {
         debug('Getting feature extraction pipeline');
-        return this.pipelineFactory.get(PIPELINE_TYPES.FEATURE_EXTRACTION, LM_CONFIG.FEATURE_EXTRACTION_MODEL);
+        return this.pipelineFactory.get(PIPELINE_TYPES.FEATURE_EXTRACTION, config.LM.FEATURE_EXTRACTION_MODEL);
     }
 
     async _getGenerationPipeline() {
         debug('Getting text generation pipeline');
-        const pipeline = await this.pipelineFactory.get(PIPELINE_TYPES.TEXT_GENERATION, LM_CONFIG.TEXT_GENERATION_MODEL, {useCache: false});
+        const pipeline = await this.pipelineFactory.get(PIPELINE_TYPES.TEXT_GENERATION, config.LM.TEXT_GENERATION_MODEL, {useCache: false});
         if (!this.llm) {
             info('Initializing XenovaLLM');
             this.llm = new XenovaLLM(pipeline);
@@ -108,7 +108,7 @@ class LM {
 
     async _getQAPipeline() {
         debug('Getting QA pipeline');
-        return this.pipelineFactory.get(PIPELINE_TYPES.QUESTION_ANSWERING, LM_CONFIG.QA_MODEL, {maxLength: 512});
+        return this.pipelineFactory.get(PIPELINE_TYPES.QUESTION_ANSWERING, config.LM.QA_MODEL, {maxLength: 512});
     }
 
     async _generate(prompt, options = {}) {

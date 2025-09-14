@@ -1,7 +1,7 @@
 import Term from '../core/Term.js';
 import Task from '../core/Task.js';
 import EventBus from '../system/EventBus.js';
-import config from '../config.js';
+import config from '../config/index.js';
 import {normalizeToArray} from '../utils/helpers.js';
 import {
     consolidateMemory,

@@ -1,4 +1,5 @@
-import {parseTerm as narseseParseTerm} from './narseseParser.js';
+import {parseTerm as parseWithMoo} from './narseseParser.js';
+import {warn} from '../utils/logger.js';
 
 /**
  * Centralized parsing utility for Narsese terms
@@ -16,10 +17,10 @@ function parseTerm(termKey) {
     }
     
     try {
-        return narseseParseTerm(termKey);
+        return parseWithMoo(termKey);
     } catch (error) {
         // Log parsing errors but don't throw to maintain backward compatibility
-        console.warn(`Failed to parse term: ${termKey}`, error);
+        warn(`Failed to parse term: ${termKey}`, error);
         return null;
     }
 }

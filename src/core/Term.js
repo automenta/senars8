@@ -1,6 +1,7 @@
 import {parseTerm, validateTermKey} from '../parser/parse-utils.js';
 import {cosineSimilarity} from '../utils/math.js';
-import config from '../config.js';
+import config from '../config/index.js';
+import {warn} from '../utils/logger.js';
 
 /**
  * Term represents a concept or relationship in the knowledge graph.
@@ -230,7 +231,7 @@ class Term {
 
     setEmbedding(embedding) {
         if (this.embedding.length > 0) {
-            console.warn(`Overwriting existing embedding for term: ${this.key}`);
+            warn(`Overwriting existing embedding for term: ${this.key}`);
         }
         this.embedding = [...embedding];
     }
