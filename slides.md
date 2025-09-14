@@ -87,6 +87,33 @@ The integration creates systems that are:
 
 ---
 
+## SeNARS: The Neuro-Symbolic Bridge
+
+SeNARS creates a powerful synergy between formal symbolic reasoning and the semantic power of Large Language Models.
+
+```mermaid
+graph LR
+    A[Symbolic Reasoner<br/>NARS-based Logic] --> B[Memory<br/>Unified Knowledge Hypergraph]
+    B --> C[LM Engine<br/>Neural Processing]
+    C --> B
+    B --> A
+
+    style A fill:#4F86C6,stroke:#333,stroke-width:2px
+    style B fill:#8E6C88,stroke:#333,stroke-width:2px
+    style C fill:#64B6AC,stroke:#333,stroke-width:2px
+    
+    classDef cognitiveComponent fill:#4F86C6,stroke:#333,stroke-width:2px;
+    classDef knowledgeComponent fill:#8E6C88,stroke:#333,stroke-width:2px;
+    classDef neuralComponent fill:#64B6AC,stroke:#333,stroke-width:2px;
+```
+
+This integration enables:
+- **Rigorous logical reasoning** from the symbolic component
+- **Creative semantic understanding** from the neural component
+- **Bidirectional knowledge exchange** between both systems
+
+---
+
 ## Introducing SeNARS
 
 SeNARS is a **neuro-symbolic** architecture that delivers **explainable, robust, and adaptive AI**.
@@ -225,6 +252,70 @@ SeNARS is built on three fundamental components:
   </div>
 </div>
 
+---
+
+## Understanding Terms
+
+**Term** - Immutable representations of concepts:
+- **Examples**: `cat`, `(cat --> animal)`, `(cat ==> furry)`
+- **Key Properties**:
+  - Parses their own structure for efficiency
+  - Grounded with semantic embeddings from LMs
+  - Serve as the stable vocabulary of the system
+
+```javascript
+// Example Term structure
+const catTerm = new Term('cat');
+const inheritanceTerm = new Term('(cat --> animal)');
+```
+
+Terms are the building blocks of all knowledge in SeNARS, providing:
+- **Semantic Grounding**: Connected to meaning through LM embeddings
+- **Structural Intelligence**: Self-parsing for efficient access to components
+- **Stability**: Immutable nature ensures consistency across reasoning
+
+---
+
+## Understanding Tasks
+
+**Task** - Stateful cognitive atoms representing beliefs, goals, or questions:
+- **Structure**:
+  - `id`: Unique identifier
+  - `termKey`: Foreign key to a Term
+  - `punctuation`: `.`, `!`, or `?` (Belief, Goal, Question)
+- **State**:
+  - Truth values (frequency, confidence)
+  - Dynamic priorities for attention allocation
+  - Temporal stamps (creation, occurrence times)
+
+```javascript
+// Example Task structure
+const beliefTask = new Task(
+  '(cat --> animal)', 
+  '.', 
+  { frequency: 1.0, confidence: 0.9 }
+);
+```
+
+Tasks represent the dynamic aspects of cognition:
+- **Evidence-Based**: Truth values updated through Bayesian revision
+- **Attention-Aware**: Priority scores for economic attention model
+- **Time-Conscious**: Temporal stamps for reasoning about events
+
+---
+
+## Understanding Memory
+
+**Memory** - Unified knowledge hypergraph managing Terms and Tasks:
+- **Dual Storage System**:
+  - Short-term: Active tasks prioritized for immediate processing
+  - Long-term: Consolidated tasks with high importance/confidence
+- **Specialized Indexes**:
+  - Belief Index: For efficient retrieval
+  - Implication Index: For planning knowledge
+  - Cost Index: For action costs
+- **Forgetting Mechanisms**: Time-based pruning of expired tasks
+
 ```mermaid
 graph TD
     A[SeNARS Core] --> B[Term]
@@ -243,33 +334,6 @@ graph TD
     D --> D2[Long-term Storage]
     D --> D3[Indexing Systems]
 ```
-
-**Term** - Immutable representations of concepts:
-- **Examples**: `cat`, `(cat --> animal)`, `(cat ==> furry)`
-- **Key Properties**:
-  - Parses their own structure for efficiency
-  - Grounded with semantic embeddings from LMs
-  - Serve as the stable vocabulary of the system
-
-**Task** - Stateful cognitive atoms representing beliefs, goals, or questions:
-- **Structure**:
-  - `id`: Unique identifier
-  - `termKey`: Foreign key to a Term
-  - `punctuation`: `.`, `!`, or `?` (Belief, Goal, Question)
-- **State**:
-  - Truth values (frequency, confidence)
-  - Dynamic priorities for attention allocation
-  - Temporal stamps (creation, occurrence times)
-
-**Memory** - Unified knowledge hypergraph managing Terms and Tasks:
-- **Dual Storage System**:
-  - Short-term: Active tasks prioritized for immediate processing
-  - Long-term: Consolidated tasks with high importance/confidence
-- **Specialized Indexes**:
-  - Belief Index: For efficient retrieval
-  - Implication Index: For planning knowledge
-  - Cost Index: For action costs
-- **Forgetting Mechanisms**: Time-based pruning of expired tasks
 
 ---
 
