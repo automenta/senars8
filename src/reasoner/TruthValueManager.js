@@ -1,6 +1,7 @@
 import config from '../config.js';
 import {handleErrorWithDefault} from '../utils/error-handler.js';
 import Task from '../core/Task.js';
+import {getBeliefTasks} from '../utils/task-utils.js';
 
 /**
  * Truth Value Manager
@@ -477,7 +478,7 @@ class TruthValueManager {
      */
     async resolveConflicts(tasks) {
         const results = [];
-        const beliefTasks = Task.getBeliefTasks(tasks);
+        const beliefTasks = getBeliefTasks(tasks);
 
         for (let i = 0; i < beliefTasks.length; i++) {
             for (let j = i + 1; j < beliefTasks.length; j++) {

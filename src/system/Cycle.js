@@ -9,8 +9,17 @@ import PriorityManager from '../reasoner/PriorityManager.js';
 import EventBus from './EventBus.js';
 import CONSTITUTION_TASKS from './Constitution.js';
 import Task from '../core/Task.js';
+import {getGoalTasks} from '../utils/task-utils.js';
 import {safeAsync, safeSync, handleError} from '../utils/error-handler.js';
 import {error, debug} from '../utils/logger.js';
+import {
+    runPerceptionPhase,
+    runPrioritizationPhase,
+    runMetaCognitionPhase,
+    runReasoningPhase,
+    runEnrichmentPhase,
+    runActionPhase
+} from './cycle-phases.js';
 
 /**
  * Cycle represents a single iteration of the cognitive processing loop.
@@ -112,7 +121,7 @@ class Cycle {
      * 1. Processes incoming perception events
      * 2. Updates task priorities
      * 3. Detects and resolves contradictions
-     * 4. Performs reasoning to derive new tasks
+     * 4. Performs reasoning to derive new knowledge
      * 5. Enriches knowledge with proactive generation
      * 6. Executes action plans for high-priority goals
      * 
@@ -144,6 +153,12 @@ class Cycle {
 
             // REASONING: Apply inference rules to derive new knowledge
             context.derivedTasks = await this._runReasoningPhase(context);
+            
+            // Store derived tasks in memory
+            if (context.derivedTasks.length > 0) {
+                const focusSet = this._getFocusSet();
+                this._storeDerivedTasks(context.derivedTasks, focusSet);
+            }
 
             // ENRICHMENT: Generate new terms and proactive knowledge
             const {proactiveTasks} = await this._runEnrichmentPhase(context);
@@ -173,7 +188,7 @@ class Cycle {
      */
     async _runPerceptionPhase() {
         return await safeAsync(async () => {
-            await this.perception.processEvents();
+            await runPerceptionPhase(this.perception);
         }, 'Cycle._runPerceptionPhase');
     }
 
@@ -184,10 +199,7 @@ class Cycle {
      */
     _runPrioritizationPhase(context) {
         return safeSync(() => {
-            const {currentTime, driveEmbeddings} = context;
-            this.memory.getAllTasks().forEach(task => {
-                task.state.priority = this.priorityManager.calculatePriority(task, currentTime, driveEmbeddings);
-            });
+            runPrioritizationPhase(context, this.priorityManager, this.memory);
         }, 'Cycle._runPrioritizationPhase');
     }
 
@@ -199,10 +211,7 @@ class Cycle {
      */
     async _runMetaCognitionPhase(context) {
         return await safeAsync(async () => {
-            const {allTasks} = context;
-            const contradictions = (await EventBus.request('MetaCognition.findContradictions', allTasks)) || [];
-            const metaTasks = contradictions.length > 0 ? await this._resolveContradictions(contradictions) : [];
-            return {contradictions, metaTasks};
+            return await runMetaCognitionPhase(context, EventBus, this.config, this.memory);
         }, 'Cycle._runMetaCognitionPhase');
     }
 
@@ -214,17 +223,13 @@ class Cycle {
      */
     async _runReasoningPhase(context) {
         return await safeAsync(async () => {
-            const {contradictions} = context;
-            const focusSet = this._getFocusSet();
-            if (focusSet.length === 0) {
-                return [];
-            }
-
-            const goals = this._getPrioritizedGoals();
-            const derivedTasks = await this._performReasoning(focusSet, goals, contradictions);
-            this._storeDerivedTasks(derivedTasks, focusSet);
-
-            return derivedTasks;
+            return await runReasoningPhase(
+                context,
+                () => this._getFocusSet(),
+                () => this._getPrioritizedGoals(),
+                this.temporalReasoner,
+                (focusSet, goals, contradictions) => this._performReasoning(focusSet, goals, contradictions)
+            );
         }, 'Cycle._runReasoningPhase');
     }
 
@@ -236,12 +241,12 @@ class Cycle {
      */
     async _runEnrichmentPhase(context) {
         return await safeAsync(async () => {
-            const {derivedTasks, metaTasks} = context;
-
-            const newTermKeys = this._getNewTermKeys([...derivedTasks, ...metaTasks]);
-            await this._bootstrapTerms(newTermKeys);
-
-            return {proactiveTasks: await this._proactiveEnrichment()};
+            return await runEnrichmentPhase(
+                context,
+                (tasks) => this._getNewTermKeys(tasks),
+                (termKeys) => this._bootstrapTerms(termKeys),
+                () => this._proactiveEnrichment()
+            );
         }, 'Cycle._runEnrichmentPhase');
     }
 
@@ -252,9 +257,10 @@ class Cycle {
      */
     async _runActionPhase() {
         return await safeAsync(async () => {
-            const actionableGoals = this._getActionableGoals();
-            const executionPromises = actionableGoals.map(goal => this._executeGoalPlan(goal));
-            return Promise.all(executionPromises);
+            return await runActionPhase(
+                () => this._getActionableGoals(),
+                (goal) => this._executeGoalPlan(goal)
+            );
         }, 'Cycle._runActionPhase');
     }
 
@@ -402,7 +408,7 @@ class Cycle {
      */
     _getPrioritizedGoals() {
         return safeSync(() => {
-            return Task.getGoalTasks(this.memory.getAllTasks())
+            return getGoalTasks(this.memory.getAllTasks())
                 .filter(task => task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
                 .slice(0, this.config.MAX_GOALS_TO_EXECUTE);
         }, 'Cycle._getPrioritizedGoals', []);

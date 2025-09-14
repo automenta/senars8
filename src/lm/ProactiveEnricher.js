@@ -2,6 +2,7 @@ import {handleErrorWithDefault} from '../utils/error-handler.js';
 import {error, debug} from '../utils/logger.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import Task from '../core/Task.js';
+import {getBeliefTasks} from '../utils/task-utils.js';
 import zod from 'zod';
 
 class ProactiveEnricher {
@@ -56,7 +57,7 @@ class ProactiveEnricher {
     }
 
     _createProactiveEnrichmentContext(tasks) {
-        const newBeliefs = Task.getBeliefTasks(tasks).filter(t => t.state.truthValue.confidence > 0.8);
+        const newBeliefs = getBeliefTasks(tasks).filter(t => t.state.truthValue.confidence > 0.8);
         if (newBeliefs.length === 0) return null;
 
         debug(`Found ${newBeliefs.length} high-confidence beliefs for enrichment`);

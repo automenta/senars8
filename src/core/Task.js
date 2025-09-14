@@ -2,6 +2,15 @@ import {v4 as uuidv4} from 'uuid';
 import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
 import TruthValueManager from '../reasoner/TruthValueManager.js';
+import {
+    getTasksByType,
+    getBeliefTasks,
+    getGoalTasks,
+    getQuestionTasks,
+    isBelief,
+    isGoal,
+    isQuestion
+} from '../utils/task-utils.js';
 
 const DEFAULT_TRUTH_VALUE = config.DEFAULT_TRUTH_VALUE;
 
@@ -59,7 +68,7 @@ class Task {
      * @returns {boolean} True if the task is a belief
      */
     static isBelief(task) {
-        return task?.punctuation === '.';
+        return isBelief(task);
     }
 
     /**
@@ -68,7 +77,7 @@ class Task {
      * @returns {boolean} True if the task is a goal
      */
     static isGoal(task) {
-        return task?.punctuation === '!';
+        return isGoal(task);
     }
 
     /**
@@ -77,7 +86,7 @@ class Task {
      * @returns {boolean} True if the task is a question
      */
     static isQuestion(task) {
-        return task?.punctuation === '?';
+        return isQuestion(task);
     }
 
     /**
@@ -87,14 +96,7 @@ class Task {
      * @returns {Task[]} Array of filtered tasks
      */
     static getTasksByType(tasks, type) {
-        // Optimized filtering using for loop for better performance
-        const result = [];
-        for (let i = 0; i < tasks.length; i++) {
-            if (tasks[i]?.punctuation === type) {
-                result.push(tasks[i]);
-            }
-        }
-        return result;
+        return getTasksByType(tasks, type);
     }
 
     /**
@@ -103,7 +105,7 @@ class Task {
      * @returns {Task[]} Array of belief tasks
      */
     static getBeliefTasks(tasks) {
-        return Task.getTasksByType(tasks, '.');
+        return getBeliefTasks(tasks);
     }
 
     /**
@@ -112,7 +114,7 @@ class Task {
      * @returns {Task[]} Array of goal tasks
      */
     static getGoalTasks(tasks) {
-        return Task.getTasksByType(tasks, '!');
+        return getGoalTasks(tasks);
     }
 
     /**
@@ -121,7 +123,7 @@ class Task {
      * @returns {Task[]} Array of question tasks
      */
     static getQuestionTasks(tasks) {
-        return Task.getTasksByType(tasks, '?');
+        return getQuestionTasks(tasks);
     }
 
     /**
@@ -240,7 +242,12 @@ class Task {
      * @returns {Task} A new task instance with the same properties
      */
     clone() {
-        return new Task(this.#term, this.#punctuation, {...this.#state.truthValue}, {...this.#state.stamp});
+        return new Task(
+            this.#term, 
+            this.#punctuation, 
+            {...this.#state.truthValue}, 
+            {...this.#state.stamp}
+        );
     }
 
     /**

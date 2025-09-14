@@ -3,6 +3,7 @@ import ContradictionAnalyzer from '../reasoner/ContradictionAnalyzer.js';
 import ResolutionStrategy from '../reasoner/strategies/ResolutionStrategy.js';
 import {debug, error, info} from '../utils/logger.js';
 import Task from '../core/Task.js';
+import {getBeliefTasks} from '../utils/task-utils.js';
 import {handleErrorWithDefault} from '../utils/error-handler.js';
 import EventBus from './EventBus.js';
 
@@ -19,7 +20,7 @@ class MetaCognition {
     findContradictions(tasks) {
         try {
             debug(`Finding contradictions in ${tasks.length} tasks`);
-            const beliefTasks = Task.getBeliefTasks(tasks);
+            const beliefTasks = getBeliefTasks(tasks);
             debug(`Found ${beliefTasks.length} belief tasks`);
 
             const parsedBeliefs = beliefTasks.map(task => ({

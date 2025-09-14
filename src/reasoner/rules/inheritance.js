@@ -1,6 +1,7 @@
 import TruthValueManager from '../TruthValueManager.js';
 import {createTransitiveInheritanceRule} from './rule-factories.js';
 import Term from '../../core/Term.js';
+import {error} from '../../utils/logger.js';
 
 /**
  * Inheritance Rule
@@ -20,7 +21,7 @@ export default createTransitiveInheritanceRule(
                 predicate: parsed2.predicate
             });
         } catch (error) {
-            console.error('Error building inheritance term:', error);
+            error('Error building inheritance term:', error);
             return null;
         }
     },

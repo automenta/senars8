@@ -364,7 +364,7 @@ class Term {
         try {
             const componentKey = Term.buildTermKey(termStructure);
             if (componentKey) {
-                // Reuse existing terms when possible
+                // Create new term and cache it
                 const componentTerm = new Term(componentKey);
                 this.#componentCache[componentName] = componentTerm;
                 return componentTerm;
