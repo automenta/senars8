@@ -1,5 +1,5 @@
 import Task from '../../core/Task.js';
-import {parseTerm} from '../../parser/narseseParser.js';
+import {parseTerm, validateTermKey} from '../../parser/parse-utils.js';
 import Term from '../../core/Term.js';
 
 function parseTaskTerm(task) {
@@ -14,17 +14,6 @@ function parseTaskTerm(task) {
     } catch (error) {
         return null;
     }
-}
-
-function validateTermKey(termKey) {
-    // Validate the generated term key before parsing
-    if (!termKey || typeof termKey !== 'string' || termKey.length === 0) {
-        return false;
-    }
-
-    // Additional validation to catch invalid term keys that would cause parsing errors
-    return !(termKey.includes('( --> )') || termKey.includes('( ==> )') ||
-        termKey.includes('( <-> )') || termKey.includes('( <=> )'));
 }
 
 /**

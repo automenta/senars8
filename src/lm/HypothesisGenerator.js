@@ -1,7 +1,9 @@
-const Task = require('../core/Task');
-const {cosineSimilarity} = require('../utils/math');
-const {parseTerm} = require('../parser/narseseParser');
-const config = require('../config');
+import Task from '../core/Task.js';
+import {cosineSimilarity} from '../utils/math.js';
+import {parseTerm} from '../parser/parse-utils.js';
+import config from '../config.js';
+import zod from 'zod';
+import MetaCognition from '../system/MetaCognition.js';
 
 const HYPOTHESIS_TYPES = {
     GENERAL: 'general',
@@ -59,7 +61,7 @@ class HypothesisGenerator {
         const context = this._buildHypothesisContext(tasks, goals, contradictions);
         const selectedPrompt = this._createHypothesisPrompt(type, promptTemplate);
 
-        const chain = this.lm._createStructuredChain(selectedPrompt, require('zod').object({term: require('zod').string().describe("The generated hypothesis in valid Narsese format.")}), {});
+        const chain = this.lm._createStructuredChain(selectedPrompt, zod.object({term: zod.string().describe("The generated hypothesis in valid Narsese format.")}), {});
 
         const results = await Promise.all(Array(num).fill().map(() => chain.call({context})));
 
@@ -116,7 +118,6 @@ class HypothesisGenerator {
         if (this.lm.reasoner && this.lm.memory) {
             const tempMemory = this.lm.memory.clone();
             tempMemory.addTasks([refinedHypothesis]);
-            const MetaCognition = require('../system/MetaCognition');
             const metaCognition = new MetaCognition();
             const contradictions = metaCognition.findContradictions(tempMemory.getAllTasks());
             if (contradictions.some(c => c.severity > 0.8)) {
@@ -128,4 +129,4 @@ class HypothesisGenerator {
     }
 }
 
-module.exports = HypothesisGenerator;
+export default HypothesisGenerator;

@@ -1,5 +1,5 @@
 const Task = require('../src/core/Task');
-const {parseTerm} = require('../src/parser/narseseParser');
+const {parseTerm} = require('../src/parser/parse-utils');
 
 /**
  * Creates a new Task with the given parameters.

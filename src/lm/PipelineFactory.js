@@ -1,4 +1,4 @@
-const {info} = require('../utils/logger');
+import {info} from '../utils/logger.js';
 
 class PipelineFactory {
     constructor() {
@@ -21,4 +21,4 @@ class PipelineFactory {
     }
 }
 
-module.exports = PipelineFactory;
+export default PipelineFactory;

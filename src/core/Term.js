@@ -1,8 +1,18 @@
-import {parseTerm} from '../parser/narseseParser.js';
+import {parseTerm, validateTermKey} from '../parser/parse-utils.js';
 import {cosineSimilarity} from '../utils/math.js';
 import config from '../config.js';
 
+/**
+ * Term represents a concept or relationship in the knowledge graph.
+ * It is the immutable, canonical representation of a concept with its semantic embedding.
+ */
 class Term {
+    /**
+     * Creates a new Term instance.
+     * @param {string} key - The Narsese key representing the term
+     * @param {number[]} [embedding=[]] - The semantic embedding vector
+     * @param {number} [complexity=1] - The structural complexity of the term
+     */
     constructor(key, embedding = [], complexity = 1) {
         if (typeof key !== 'string' || key.length === 0) {
             throw new Error('Invalid key for Term constructor: key must be a non-empty string');
@@ -15,19 +25,35 @@ class Term {
         this._componentCache = new Map();
     }
 
+    /**
+     * Gets the type of the term (e.g., 'Atomic', 'Inheritance', etc.)
+     * @returns {string} The term type
+     */
     get type() {
         const structure = this._getStructure();
         return structure ? structure.type : 'Atomic';
     }
 
+    /**
+     * Gets the subject component of the term (for binary relations)
+     * @returns {Term|null} The subject term or null if not applicable
+     */
     get subject() {
         return this._getComponent('subject');
     }
 
+    /**
+     * Gets the predicate component of the term (for binary relations)
+     * @returns {Term|null} The predicate term or null if not applicable
+     */
     get predicate() {
         return this._getComponent('predicate');
     }
 
+    /**
+     * Gets the terms component of the term (for n-ary operators)
+     * @returns {Term[]|null} Array of term components or null if not applicable
+     */
     get terms() {
         if (this._componentCache.has('terms')) {
             return this._componentCache.get('terms');
@@ -51,6 +77,12 @@ class Term {
         }
     }
 
+    /**
+     * Calculates structural similarity between two term keys
+     * @param {string} termKey1 - First term key
+     * @param {string} termKey2 - Second term key
+     * @returns {number} Similarity score between 0 and 1
+     */
     static structuralSimilarity(termKey1, termKey2) {
         if (termKey1 === termKey2) return 1.0;
 
@@ -70,6 +102,13 @@ class Term {
         return totalLength > 0 ? (2 * intersection.size) / totalLength : 0;
     }
 
+    /**
+     * Finds similar terms based on semantic and structural similarity
+     * @param {Map<string, Term>} terms - Map of all terms
+     * @param {string} targetTermKey - Key of the target term
+     * @param {number} [maxResults=10] - Maximum number of results to return
+     * @returns {Array<{termKey: string, similarity: number}>} Array of similar terms with similarity scores
+     */
     static findSimilarTerms(terms, targetTermKey, maxResults = 10) {
         const targetTerm = terms.get(targetTermKey);
         if (!targetTerm || !targetTerm.embedding) return [];
@@ -91,6 +130,12 @@ class Term {
             .slice(0, maxResults);
     }
 
+    /**
+     * Checks if two terms are equal
+     * @param {Term} term1 - First term
+     * @param {Term} term2 - Second term
+     * @returns {boolean} True if terms are equal
+     */
     static termsEqual(term1, term2) {
         return term1.key === term2.key &&
             term1.complexity === term2.complexity &&

@@ -1,5 +1,5 @@
-const {handleError} = require('../utils/error-handler');
-const {error, debug} = require('../utils/logger');
+import {handleError} from '../utils/error-handler.js';
+import {error, debug} from '../utils/logger.js';
 
 class ExplanationGenerator {
     constructor(generateFunction) {
@@ -41,4 +41,4 @@ class ExplanationGenerator {
     }
 }
 
-module.exports = ExplanationGenerator;
+export default ExplanationGenerator;

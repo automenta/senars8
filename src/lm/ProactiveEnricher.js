@@ -1,8 +1,8 @@
-const {handleErrorWithDefault} = require('../utils/error-handler');
-const {error, debug} = require('../utils/logger');
-const {parseTerm} = require('../parser/narseseParser');
-const Task = require('../core/Task');
-const zod = require('zod');
+import {handleErrorWithDefault} from '../utils/error-handler.js';
+import {error, debug} from '../utils/logger.js';
+import {parseTerm} from '../parser/parse-utils.js';
+import Task from '../core/Task.js';
+import zod from 'zod';
 
 class ProactiveEnricher {
     constructor(getGenerationPipeline, createStructuredChain, parseStructuredResult) {
@@ -64,4 +64,4 @@ class ProactiveEnricher {
     }
 }
 
-module.exports = ProactiveEnricher;
+export default ProactiveEnricher;

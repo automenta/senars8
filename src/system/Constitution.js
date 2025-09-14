@@ -1,5 +1,5 @@
 import Task from '../core/Task.js';
-import {parseTerm} from '../parser/narseseParser.js';
+import {parseTerm} from '../parser/parse-utils.js';
 
 const DRIVES = [
     new Task(parseTerm('AcquireKnowledge'), '!'),

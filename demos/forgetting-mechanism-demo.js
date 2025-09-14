@@ -1,7 +1,7 @@
 const assert = require('assert');
 const {System} = require('../src');
 const Task = require('../src/core/Task');
-const {parseTerm} = require('../src/parser/narseseParser');
+const {parseTerm} = require('../src/parser/parse-utils');
 const config = require('../src/config');
 
 async function forgettingMechanismDemo() {

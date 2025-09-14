@@ -1,4 +1,4 @@
-import {parseTerm} from '../parser/narseseParser.js';
+import {parseTerm} from '../parser/parse-utils.js';
 import ContradictionAnalyzer from '../reasoner/ContradictionAnalyzer.js';
 import ResolutionStrategy from '../reasoner/strategies/ResolutionStrategy.js';
 import {debug, error, info} from '../utils/logger.js';

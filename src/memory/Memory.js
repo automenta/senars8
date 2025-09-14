@@ -13,8 +13,15 @@ import {
 } from './memoryUtils.js';
 import TimeBasedForgettingStrategy from './strategies/TimeBasedForgettingStrategy.js';
 
-
+/**
+ * Memory manages the knowledge graph, storing Terms and Tasks.
+ * It maintains both short-term and long-term memory, handles indexing,
+ * and implements forgetting strategies.
+ */
 class Memory {
+    /**
+     * Creates a new Memory instance.
+     */
     constructor() {
         this.terms = new Map();
         this.shortTermTasks = new Map();
@@ -22,6 +29,8 @@ class Memory {
         this.implicationIndex = new Map();
         this.beliefIndex = new Map();
         this.costIndex = new Map();
+        this.punctuationIndex = new Map(); // Index by punctuation type
+        this.priorityIndex = new Map(); // Index by priority ranges
         this.cycleCounter = 0;
         this.maintenanceFrequency = config.memory.MAINTENANCE_CYCLE_FREQUENCY;
         this._cachedAllTasks = null;
@@ -87,6 +96,11 @@ class Memory {
         this.implicationIndex = indexImplication(term, this.implicationIndex);
     }
 
+    /**
+     * Adds a term to memory
+     * @param {Term} term - The term to add
+     * @throws {Error} If the term is invalid or not a Term instance
+     */
     addTerm(term) {
         if (!term || !(term instanceof Term)) {
             throw new Error('Can only add valid Term instances to memory.');
@@ -97,6 +111,11 @@ class Memory {
         this._indexImplication(term);
     }
 
+    /**
+     * Gets a term by key
+     * @param {string} key - The term key
+     * @returns {Term|null} The term or null if not found
+     */
     getTerm(key) {
         return this.terms.get(key);
     }
@@ -108,13 +127,48 @@ class Memory {
     _indexTask(task) {
         this.beliefIndex = indexTask(task, this.beliefIndex);
         this.costIndex = updateCostIndex(task.term, this.costIndex, 'add');
+        
+        // Update punctuation index
+        if (!this.punctuationIndex.has(task.punctuation)) {
+            this.punctuationIndex.set(task.punctuation, new Set());
+        }
+        this.punctuationIndex.get(task.punctuation).add(task.id);
+        
+        // Update priority index (simple implementation - could be more sophisticated)
+        const priorityBucket = Math.floor(task.state.priority * 10); // 0-10 buckets
+        if (!this.priorityIndex.has(priorityBucket)) {
+            this.priorityIndex.set(priorityBucket, new Set());
+        }
+        this.priorityIndex.get(priorityBucket).add(task.id);
     }
 
     _unindexTask(task) {
         this.beliefIndex = unindexTask(task, this.beliefIndex);
         this.costIndex = updateCostIndex(task.term, this.costIndex, 'remove');
+        
+        // Update punctuation index
+        if (this.punctuationIndex.has(task.punctuation)) {
+            this.punctuationIndex.get(task.punctuation).delete(task.id);
+            if (this.punctuationIndex.get(task.punctuation).size === 0) {
+                this.punctuationIndex.delete(task.punctuation);
+            }
+        }
+        
+        // Update priority index
+        const priorityBucket = Math.floor(task.state.priority * 10);
+        if (this.priorityIndex.has(priorityBucket)) {
+            this.priorityIndex.get(priorityBucket).delete(task.id);
+            if (this.priorityIndex.get(priorityBucket).size === 0) {
+                this.priorityIndex.delete(priorityBucket);
+            }
+        }
     }
 
+    /**
+     * Adds tasks to memory
+     * @param {Task|Task[]} tasks - The task or array of tasks to add
+     * @throws {Error} If any task is invalid or not a Task instance
+     */
     addTasks(tasks) {
         const tasksToAdd = normalizeToArray(tasks);
         if (tasksToAdd.length === 0) return;
@@ -130,6 +184,11 @@ class Memory {
         this._invalidateTaskCache();
     }
 
+    /**
+     * Gets a task by ID
+     * @param {string} id - The task ID
+     * @returns {Task|null} The task or null if not found
+     */
     getTask(id) {
         return this.shortTermTasks.get(id) || this.longTermTasks.get(id);
     }
@@ -146,6 +205,10 @@ class Memory {
         }
     }
 
+    /**
+     * Gets all tasks in memory
+     * @returns {Task[]} Array of all tasks
+     */
     getAllTasks() {
         if (!this._cachedAllTasks) {
             this._cachedAllTasks = [...this.shortTermTasks.values(), ...this.longTermTasks.values()];
@@ -159,6 +222,11 @@ class Memory {
         return k < K_THRESHOLD && k < totalTasks / RATIO_THRESHOLD;
     }
 
+    /**
+     * Gets the highest priority tasks
+     * @param {number} [k=20] - The number of tasks to retrieve
+     * @returns {Task[]} Array of highest priority tasks
+     */
     getHighestPriorityTasks(k = 20) {
         if (k <= 0) return [];
 
@@ -178,6 +246,8 @@ class Memory {
         newMemory.implicationIndex = new Map(this.implicationIndex);
         newMemory.beliefIndex = new Map(Array.from(this.beliefIndex.entries()).map(([key, value]) => [key, [...value]]));
         newMemory.costIndex = new Map(this.costIndex);
+        newMemory.punctuationIndex = new Map(Array.from(this.punctuationIndex.entries()).map(([key, value]) => [key, new Set(value)]));
+        newMemory.priorityIndex = new Map(Array.from(this.priorityIndex.entries()).map(([key, value]) => [key, new Set(value)]));
         newMemory.forgettingStrategy = this.forgettingStrategy;
         newMemory.cycleCounter = this.cycleCounter;
         newMemory.maintenanceFrequency = this.maintenanceFrequency;
@@ -191,6 +261,8 @@ class Memory {
         this.implicationIndex.clear();
         this.beliefIndex.clear();
         this.costIndex.clear();
+        this.punctuationIndex.clear();
+        this.priorityIndex.clear();
         this.cycleCounter = 0;
         this._invalidateTaskCache();
     }
@@ -225,19 +297,35 @@ class Memory {
     }
 
     getRecentTasks(count = 10) {
-        return [...this.getAllTasks()]
-            .sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime))
-            .slice(0, count);
+        // Use a more efficient approach for getting recent tasks
+        const allTasks = this.getAllTasks();
+        if (allTasks.length <= count) {
+            // If we need most or all tasks, just sort them
+            return [...allTasks].sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime));
+        } else {
+            // For large collections, use a partial sort or heap-based approach
+            // This is a simple approach - could be further optimized with a min-heap
+            return [...allTasks]
+                .sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime))
+                .slice(0, count);
+        }
     }
 
     queryTasks(filters = {}) {
-        let tasks = this.getAllTasks();
+        let tasks;
+        
+        // Use indexes for common filters to improve performance
+        if (filters.punctuation && this.punctuationIndex.has(filters.punctuation)) {
+            // Use punctuation index for faster lookup
+            const taskIds = this.punctuationIndex.get(filters.punctuation);
+            tasks = Array.from(taskIds).map(id => this.getTask(id)).filter(Boolean);
+        } else {
+            // Fall back to full scan if no suitable index
+            tasks = this.getAllTasks();
+        }
 
         if (filters.termKey) {
             tasks = tasks.filter(task => task.termKey === filters.termKey);
-        }
-        if (filters.punctuation) {
-            tasks = tasks.filter(task => task.punctuation === filters.punctuation);
         }
         if (filters.minPriority !== undefined) {
             tasks = tasks.filter(task => task.state.priority >= filters.minPriority);

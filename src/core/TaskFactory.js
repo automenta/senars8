@@ -1,6 +1,6 @@
 import Task from './Task.js';
 import {createTemporalTask} from '../utils/temporal/task-creation.js';
-import {parseTerm} from '../parser/narseseParser.js';
+import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config.js';
 import {handleErrorWithDefault} from '../utils/error-handler.js';
 

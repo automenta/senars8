@@ -1,7 +1,7 @@
-const {handleErrorWithDefault} = require('../utils/error-handler');
-const {error, debug, warn} = require('../utils/logger');
-const {parseTerm} = require('../parser/narseseParser');
-const zod = require('zod');
+import {handleErrorWithDefault} from '../utils/error-handler.js';
+import {error, debug, warn} from '../utils/logger.js';
+import {parseTerm} from '../parser/parse-utils.js';
+import zod from 'zod';
 
 class PlanRepairer {
     constructor(getGenerationPipeline, createStructuredChain, parseStructuredResult) {
@@ -52,4 +52,4 @@ The new plan should be a list of Narsese terms.
     }
 }
 
-module.exports = PlanRepairer;
+export default PlanRepairer;

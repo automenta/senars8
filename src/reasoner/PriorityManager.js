@@ -1,6 +1,6 @@
-const {cosineSimilarity} = require('../utils/math');
-const {calculateTemporalPriority} = require('../utils/temporal/priority');
-const config = require('../config');
+import {cosineSimilarity} from '../utils/math.js';
+import {calculateTemporalPriority} from '../utils/temporal/priority.js';
+import config from '../config.js';
 
 class PriorityManager {
     constructor(memory) {
@@ -26,4 +26,4 @@ class PriorityManager {
     }
 }
 
-module.exports = PriorityManager;
+export default PriorityManager;

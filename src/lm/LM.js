@@ -1,21 +1,21 @@
-const Term = require("../core/Term");
-const Task = require("../core/Task");
-const XenovaLLM = require("./XenovaLLM");
-const {parseTerm} = require('../parser/narseseParser');
-const {cosineSimilarity} = require('../utils/math');
-const {LLMChain} = require("langchain/chains");
-const {PromptTemplate} = require("@langchain/core/prompts");
-const {StructuredOutputParser} = require("@langchain/core/output_parsers");
-const {LM: LM_CONFIG} = require('../config');
-const HypothesisGenerator = require('./HypothesisGenerator');
-const PipelineFactory = require('./PipelineFactory');
-const ExplanationGenerator = require('./ExplanationGenerator');
-const QAService = require('./QAService');
-const PlanRepairer = require('./PlanRepairer');
-const ProactiveEnricher = require('./ProactiveEnricher');
-const {handleError, handleErrorWithDefault} = require('../utils/error-handler');
-const {info, error, debug, warn} = require('../utils/logger');
-const zod = require('zod');
+import Term from "../core/Term.js";
+import Task from "../core/Task.js";
+import XenovaLLM from "./XenovaLLM.js";
+import {parseTerm} from '../parser/parse-utils.js';
+import {cosineSimilarity} from '../utils/math.js';
+import {LLMChain} from "langchain/chains";
+import {PromptTemplate} from "@langchain/core/prompts";
+import {StructuredOutputParser} from "@langchain/core/output_parsers";
+import {LM as LM_CONFIG} from '../config.js';
+import HypothesisGenerator from './HypothesisGenerator.js';
+import PipelineFactory from './PipelineFactory.js';
+import ExplanationGenerator from './ExplanationGenerator.js';
+import QAService from './QAService.js';
+import PlanRepairer from './PlanRepairer.js';
+import ProactiveEnricher from './ProactiveEnricher.js';
+import {handleError, handleErrorWithDefault} from '../utils/error-handler.js';
+import {info, error, debug, warn} from '../utils/logger.js';
+import zod from 'zod';
 
 const PIPELINE_TYPES = {
     FEATURE_EXTRACTION: 'feature-extraction',
@@ -245,4 +245,4 @@ class LM {
     }
 }
 
-module.exports = LM;
+export default LM;

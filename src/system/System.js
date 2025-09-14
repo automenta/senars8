@@ -14,8 +14,17 @@ import {handleError} from '../utils/error-handler.js';
 import {debug, error, info, warn} from '../utils/logger.js';
 import {normalizeToArray} from '../utils/helpers.js';
 
+/**
+ * System is the main entry point for the SeNARS cognitive architecture.
+ * It manages all components and orchestrates the cognitive cycle.
+ */
 class System {
-    // Private constructor, use System.create() instead
+    /**
+     * Private constructor, use System.create() instead
+     * @param {object} userConfig - User-provided configuration
+     * @param {object} dependencies - Dependency injection for testing
+     * @private
+     */
     constructor(userConfig = {}, {memory, reasoner, lm, actionExecutor, cycle}) {
         this.config = _.merge({}, config, userConfig);
         this.memory = memory;
@@ -33,6 +42,12 @@ class System {
         info('System components created');
     }
 
+    /**
+     * Creates and initializes a new System instance
+     * @param {object} [userConfig={}] - User-provided configuration
+     * @param {object} [dependencies={}] - Dependency injection for testing
+     * @returns {Promise<System>} A promise that resolves to the initialized system
+     */
     static async create(userConfig = {}, dependencies = {}) {
         const mergedConfig = _.merge({}, config, userConfig);
 
@@ -76,6 +91,10 @@ class System {
         }
     }
 
+    /**
+     * Runs a single cognitive cycle
+     * @returns {Promise<object>} A promise that resolves to cycle results
+     */
     async runCycle() {
         try {
             this.cycleCount++;
@@ -89,6 +108,11 @@ class System {
         }
     }
 
+    /**
+     * Starts the cognitive system and runs cycles
+     * @param {number} [maxCycles=0] - Maximum number of cycles to run (0 for infinite)
+     * @returns {Promise<void>} A promise that resolves when the system stops
+     */
     async start(maxCycles = 0) {
         if (this.isRunning) {
             warn('System is already running');
@@ -133,6 +157,11 @@ class System {
         info('System stopped');
     }
 
+    /**
+     * Adds tasks to the system
+     * @param {Task|Task[]} tasks - The task or array of tasks to add
+     * @returns {Promise<void>} A promise that resolves when tasks are added
+     */
     async addTasks(tasks) {
         try {
             const tasksToAdd = normalizeToArray(tasks);
@@ -159,6 +188,10 @@ class System {
         } : null;
     }
 
+    /**
+     * Gets the current system status
+     * @returns {object} System status information
+     */
     getStatus() {
         return {
             isRunning: this.isRunning,

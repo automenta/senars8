@@ -1,5 +1,5 @@
-const {handleErrorWithDefault} = require('../utils/error-handler');
-const {error, debug} = require('../utils/logger');
+import {handleErrorWithDefault} from '../utils/error-handler.js';
+import {error, debug} from '../utils/logger.js';
 
 class QAService {
     constructor(generateFunction, getQAPipelineFunction) {
@@ -34,4 +34,4 @@ class QAService {
     }
 }
 
-module.exports = QAService;
+export default QAService;

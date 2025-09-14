@@ -4,7 +4,17 @@ import TemporalReasoner from './TemporalReasoner.js';
 import {debug, error as logError, info} from '../utils/logger.js';
 import {handleError} from '../utils/error-handler.js';
 
+/**
+ * Reasoner performs symbolic inference and manages the rule application process.
+ * It uses various strategies to select task combinations and apply inference rules.
+ */
 class Reasoner {
+    /**
+     * Creates a new Reasoner instance.
+     * @param {object} [options] - Configuration options
+     * @param {object} [options.strategy] - The strategy for selecting task combinations
+     * @param {TemporalReasoner} [options.temporalReasoner] - The temporal reasoner instance
+     */
     constructor({strategy = new BagSamplingStrategy(), temporalReasoner = new TemporalReasoner()} = {}) {
         this.strategy = strategy;
         this.rules = rules;
@@ -12,6 +22,13 @@ class Reasoner {
         info('Reasoner initialized with strategy:', this.strategy.constructor.name);
     }
 
+    /**
+     * Performs inference on a focus set of tasks
+     * @param {Task[]} focusSet - Array of tasks to perform inference on
+     * @param {object} [options] - Configuration options
+     * @param {number} [options.maxDerivedTasks=Infinity] - Maximum number of derived tasks to generate
+     * @returns {Task[]} Array of derived tasks
+     */
     performInference(focusSet, options = {}) {
         if (!Array.isArray(focusSet)) {
             return handleError(new Error('Focus set must be an array'), 'Reasoner.performInference', false);
@@ -132,14 +149,27 @@ class Reasoner {
         });
     }
 
+    /**
+     * Gets the names of all available rules
+     * @returns {string[]} Array of rule names
+     */
     getRuleNames() {
         return this.rules.map(rule => rule.name);
     }
 
+    /**
+     * Gets a rule by name
+     * @param {string} name - The name of the rule to retrieve
+     * @returns {object|null} The rule object or null if not found
+     */
     getRule(name) {
         return this.rules.find(rule => rule.name === name) || null;
     }
 
+    /**
+     * Gets statistics about the available rules
+     * @returns {object} Rule statistics including total count, names, and arity grouping
+     */
     getRuleStatistics() {
         return {
             totalRules: this.rules.length,
