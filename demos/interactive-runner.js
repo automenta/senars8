@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
-const readline = require('readline');
+import fs from 'fs';
+import path from 'path';
+import readline from 'readline';
 
-const DEMO_DIR = __dirname;
+const DEMO_DIR = path.dirname(new URL(import.meta.url).pathname);
 
 function getDemoFiles() {
     return fs.readdirSync(DEMO_DIR)
@@ -14,7 +14,8 @@ function getDemoFiles() {
 async function runDemo(demoFile) {
     try {
         console.log(`\n=== Running ${demoFile} ===`);
-        const demo = require(path.join(DEMO_DIR, demoFile));
+        const demoModule = await import(path.join(DEMO_DIR, demoFile));
+        const demo = demoModule.default || demoModule;
         await demo();
         console.log(`\n=== Finished ${demoFile} ===`);
     } catch (error) {
@@ -61,11 +62,11 @@ async function main() {
     });
 }
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
     main().catch(err => {
         console.error("An unexpected error occurred:", err);
         process.exit(1);
     });
 }
 
-module.exports = {main, getDemoFiles, runDemo};
+export {main, getDemoFiles, runDemo};

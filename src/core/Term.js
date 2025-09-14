@@ -8,6 +8,12 @@ import {warn} from '../utils/logger.js';
  * It is the immutable, canonical representation of a concept with its semantic embedding.
  */
 class Term {
+    #key;
+    #embedding;
+    #complexity;
+    #structure;
+    #componentCache;
+
     /**
      * Creates a new Term instance.
      * @param {string} key - The Narsese key representing the term
@@ -19,11 +25,13 @@ class Term {
             throw new Error('Invalid key for Term constructor: key must be a non-empty string');
         }
 
-        this.key = key;
-        this.embedding = [...embedding];
-        this.complexity = complexity;
-        this._structure = null;
-        this._componentCache = new Map();
+        this.#key = key;
+        // Store embedding as a reference to avoid unnecessary copying
+        this.#embedding = embedding;
+        this.#complexity = complexity;
+        this.#structure = null;
+        // Use a simple object as cache instead of Map for better performance
+        this.#componentCache = {};
     }
 
     /**
@@ -31,7 +39,7 @@ class Term {
      * @returns {string} The term type
      */
     get type() {
-        const structure = this._getStructure();
+        const structure = this.#getStructure();
         return structure ? structure.type : 'Atomic';
     }
 
@@ -40,7 +48,7 @@ class Term {
      * @returns {Term|null} The subject term or null if not applicable
      */
     get subject() {
-        return this._getComponent('subject');
+        return this.#getComponent('subject');
     }
 
     /**
@@ -48,7 +56,7 @@ class Term {
      * @returns {Term|null} The predicate term or null if not applicable
      */
     get predicate() {
-        return this._getComponent('predicate');
+        return this.#getComponent('predicate');
     }
 
     /**
@@ -56,24 +64,29 @@ class Term {
      * @returns {Term[]|null} Array of term components or null if not applicable
      */
     get terms() {
-        if (this._componentCache.has('terms')) {
-            return this._componentCache.get('terms');
+        // Check cache first
+        if (this.#componentCache.hasOwnProperty('terms')) {
+            return this.#componentCache['terms'];
         }
 
-        const structure = this._getStructure();
+        const structure = this.#getStructure();
         if (!structure || !structure.terms) {
-            this._componentCache.set('terms', null);
+            this.#componentCache['terms'] = null;
             return null;
         }
 
         try {
-            const termsArray = structure.terms.map((termStructure, index) =>
-                this._getComponent(`term_${index}`, termStructure)
-            );
-            this._componentCache.set('terms', termsArray);
+            // Use for loop instead of map for better performance
+            const termsArray = [];
+            for (let i = 0; i < structure.terms.length; i++) {
+                const termStructure = structure.terms[i];
+                const component = this.#getComponent(`term_${i}`, termStructure);
+                termsArray.push(component);
+            }
+            this.#componentCache['terms'] = termsArray;
             return termsArray;
         } catch (error) {
-            this._componentCache.set('terms', null);
+            this.#componentCache['terms'] = null;
             return null;
         }
     }
@@ -85,22 +98,42 @@ class Term {
      * @returns {number} Similarity score between 0 and 1
      */
     static structuralSimilarity(termKey1, termKey2) {
+        // Fast path for identical terms
         if (termKey1 === termKey2) return 1.0;
 
-        const getSubstrings = (str) => {
-            const substrings = new Set();
-            for (let i = 0; i < str.length - 1; i++) {
-                substrings.add(str.substring(i, i + 2));
+        // Use a more efficient algorithm for substring comparison
+        const len1 = termKey1.length;
+        const len2 = termKey2.length;
+        
+        // If either string is too short, return 0
+        if (len1 < 2 || len2 < 2) return 0;
+
+        // Count common bigrams using arrays for better performance
+        const bigrams1 = new Array(len1 - 1);
+        const bigrams2 = new Array(len2 - 1);
+        
+        for (let i = 0; i < len1 - 1; i++) {
+            bigrams1[i] = termKey1.substring(i, i + 2);
+        }
+        
+        for (let i = 0; i < len2 - 1; i++) {
+            bigrams2[i] = termKey2.substring(i, i + 2);
+        }
+        
+        // Count intersections
+        let intersection = 0;
+        const bigramSet = new Set(bigrams1);
+        
+        for (let i = 0; i < bigrams2.length; i++) {
+            if (bigramSet.has(bigrams2[i])) {
+                intersection++;
+                // Remove to handle duplicates correctly
+                bigramSet.delete(bigrams2[i]);
             }
-            return substrings;
-        };
+        }
 
-        const subs1 = getSubstrings(termKey1);
-        const subs2 = getSubstrings(termKey2);
-        const intersection = new Set([...subs1].filter(sub => subs2.has(sub)));
-
-        const totalLength = subs1.size + subs2.size;
-        return totalLength > 0 ? (2 * intersection.size) / totalLength : 0;
+        const totalLength = bigrams1.length + bigrams2.length;
+        return totalLength > 0 ? (2 * intersection) / totalLength : 0;
     }
 
     /**
@@ -114,21 +147,35 @@ class Term {
         const targetTerm = terms.get(targetTermKey);
         if (!targetTerm || !targetTerm.embedding) return [];
 
-        const similarities = Array.from(terms.entries())
-            .filter(([key, term]) => key !== targetTermKey && term.embedding)
-            .map(([key, term]) => {
-                const semantic = cosineSimilarity(targetTerm.embedding, term.embedding);
-                const structural = Term.structuralSimilarity(targetTermKey, key);
-                return {
-                    termKey: key,
-                    similarity: config.temporal.REGULARITY_BOOST * semantic +
-                        config.temporal.STRUCTURAL_SIMILARITY_WEIGHT * structural
-                };
-            });
+        // Pre-calculate weights to avoid repeated lookups
+        const regularityBoost = config.temporal.REGULARITY_BOOST;
+        const structuralWeight = config.temporal.STRUCTURAL_SIMILARITY_WEIGHT;
 
-        return similarities
-            .sort((a, b) => b.similarity - a.similarity)
-            .slice(0, maxResults);
+        // Convert map to array for more efficient processing
+        const termEntries = Array.from(terms.entries());
+        const similarities = [];
+
+        for (let i = 0; i < termEntries.length; i++) {
+            const [key, term] = termEntries[i];
+            
+            // Skip target term and terms without embeddings
+            if (key === targetTermKey || !term.embedding) {
+                continue;
+            }
+
+            const semantic = cosineSimilarity(targetTerm.embedding, term.embedding);
+            const structural = Term.structuralSimilarity(targetTermKey, key);
+            const similarity = regularityBoost * semantic + structuralWeight * structural;
+            
+            similarities.push({
+                termKey: key,
+                similarity: similarity
+            });
+        }
+
+        // Sort and slice using more efficient methods
+        similarities.sort((a, b) => b.similarity - a.similarity);
+        return similarities.slice(0, maxResults);
     }
 
     /**
@@ -138,23 +185,42 @@ class Term {
      * @returns {boolean} True if terms are equal
      */
     static termsEqual(term1, term2) {
-        return term1.key === term2.key &&
-            term1.complexity === term2.complexity &&
-            term1.embedding.length === term2.embedding.length &&
-            term1.embedding.every((v, i) => Math.abs(v - term2.embedding[i]) < 1e-6);
+        // Fast path checks
+        if (term1 === term2) return true;
+        if (!term1 || !term2) return false;
+        if (term1.key !== term2.key) return false;
+        if (term1.complexity !== term2.complexity) return false;
+        if (term1.embedding.length !== term2.embedding.length) return false;
+        
+        // Use for loop instead of every for better performance
+        for (let i = 0; i < term1.embedding.length; i++) {
+            if (Math.abs(term1.embedding[i] - term2.embedding[i]) >= 1e-6) {
+                return false;
+            }
+        }
+        
+        return true;
     }
 
+    /**
+     * Creates a Term from a JSON object
+     * @param {object} json - JSON representation of a term
+     * @returns {Term|null} The created term or null if invalid
+     */
     static fromJSON(json) {
         if (!json || !json.key) return null;
         return new Term(json.key, json.embedding, json.complexity);
     }
 
+    /**
+     * Builds a term key from a parsed term structure
+     * @param {object} pTerm - Parsed term structure
+     * @returns {string} The term key
+     */
     static buildTermKey(pTerm) {
         if (!pTerm || !pTerm.type) return '';
 
-        const build = Term.buildTermKey;
-        const buildList = (terms) => terms.map(build).join(',');
-
+        // Use a switch statement for better performance
         switch (pTerm.type) {
             // Atomic terms
             case 'Atomic':
@@ -168,136 +234,212 @@ class Term {
 
             // Binary relations
             case 'Inheritance':
-                return `(${build(pTerm.subject)} --> ${build(pTerm.predicate)})`;
+                return `(${Term.buildTermKey(pTerm.subject)} --> ${Term.buildTermKey(pTerm.predicate)})`;
             case 'Implication':
-                return `(${build(pTerm.subject)} ==> ${build(pTerm.predicate)})`;
+                return `(${Term.buildTermKey(pTerm.subject)} ==> ${Term.buildTermKey(pTerm.predicate)})`;
             case 'Equivalence':
-                return `(${build(pTerm.subject)} <=> ${build(pTerm.predicate)})`;
+                return `(${Term.buildTermKey(pTerm.subject)} <=> ${Term.buildTermKey(pTerm.predicate)})`;
             case 'Similarity':
-                return `(${build(pTerm.subject)} <-> ${build(pTerm.predicate)})`;
+                return `(${Term.buildTermKey(pTerm.subject)} <-> ${Term.buildTermKey(pTerm.predicate)})`;
             case 'Instance':
-                return `(${build(pTerm.subject)} {-- ${build(pTerm.predicate)})`;
+                return `(${Term.buildTermKey(pTerm.subject)} {-- ${Term.buildTermKey(pTerm.predicate)})`;
             case 'Property':
-                return `(${build(pTerm.subject)} --} ${build(pTerm.predicate)})`;
+                return `(${Term.buildTermKey(pTerm.subject)} --} ${Term.buildTermKey(pTerm.predicate)})`;
             case 'PredictiveImplication':
-                return `(${build(pTerm.subject)} =\> ${build(pTerm.predicate)})`;
+                return `(${Term.buildTermKey(pTerm.subject)} =\> ${Term.buildTermKey(pTerm.predicate)})`;
             case 'RetrospectiveImplication':
-                return `(${build(pTerm.subject)} =/> ${build(pTerm.predicate)})`;
+                return `(${Term.buildTermKey(pTerm.subject)} =/> ${Term.buildTermKey(pTerm.predicate)})`;
             case 'ConcurrentImplication':
-                return `(${build(pTerm.subject)} =<> ${build(pTerm.predicate)})`;
+                return `(${Term.buildTermKey(pTerm.subject)} =<> ${Term.buildTermKey(pTerm.predicate)})`;
             case 'Until':
-                return `(${build(pTerm.subject)} until ${build(pTerm.predicate)})`;
+                return `(${Term.buildTermKey(pTerm.subject)} until ${Term.buildTermKey(pTerm.predicate)})`;
             case 'Since':
-                return `(${build(pTerm.subject)} since ${build(pTerm.predicate)})`;
+                return `(${Term.buildTermKey(pTerm.subject)} since ${Term.buildTermKey(pTerm.predicate)})`;
 
             // Unary operators
             case 'Negation':
-                return `(--,${build(pTerm.term)})`;
+                return `(--,${Term.buildTermKey(pTerm.term)})`;
             case 'Always':
-                return `(always,${build(pTerm.term)})`;
+                return `(always,${Term.buildTermKey(pTerm.term)})`;
             case 'Eventually':
-                return `(eventually,${build(pTerm.term)})`;
+                return `(eventually,${Term.buildTermKey(pTerm.term)})`;
             case 'Next':
-                return `(next,${build(pTerm.term)})`;
+                return `(next,${Term.buildTermKey(pTerm.term)})`;
             case 'Previous':
-                return `(previous,${build(pTerm.term)})`;
+                return `(previous,${Term.buildTermKey(pTerm.term)})`;
 
             // N-ary operators
             case 'Conjunction':
-                return `(&,${buildList(pTerm.terms || [])})`;
+                return `(&,${Term.#buildTermList(pTerm.terms || [])})`;
             case 'Disjunction':
-                return `(||,${buildList(pTerm.terms || [])})`;
+                return `(||,${Term.#buildTermList(pTerm.terms || [])})`;
             case 'SequentialConjunction':
-                return `(&&,${buildList(pTerm.terms || [])})`;
+                return `(&&,${Term.#buildTermList(pTerm.terms || [])})`;
             case 'ParallelConjunction':
-                return `(&|,${buildList(pTerm.terms || [])})`;
+                return `(&|,${Term.#buildTermList(pTerm.terms || [])})`;
             case 'ExtensionalDifference':
-                return `(#,${buildList(pTerm.terms || [])})`;
+                return `(#,${Term.#buildTermList(pTerm.terms || [])})`;
             case 'IntensionalDifference':
-                return `(\\,${buildList(pTerm.terms || [])})`;
+                return `(\\,${Term.#buildTermList(pTerm.terms || [])})`;
             case 'Product':
-                return `(*,${buildList(pTerm.terms || [])})`;
+                return `(*,${Term.#buildTermList(pTerm.terms || [])})`;
 
             // Sets
             case 'ExtensionalSet':
-                return `{${buildList(pTerm.terms || [])}}`;
+                return `{${Term.#buildTermList(pTerm.terms || [])}}`;
             case 'IntensionalSet':
-                return `[${buildList(pTerm.terms || [])}]`;
+                return `[${Term.#buildTermList(pTerm.terms || [])}]`;
 
             default:
                 throw new Error(`buildTermKey does not support type: ${pTerm.type}`);
         }
     }
 
-    setEmbedding(embedding) {
-        if (this.embedding.length > 0) {
-            warn(`Overwriting existing embedding for term: ${this.key}`);
+    /**
+     * Builds a comma-separated list of term keys
+     * @param {Array} terms - Array of term structures
+     * @returns {string} Comma-separated list of term keys
+     * @private
+     */
+    static #buildTermList(terms) {
+        // Use for loop instead of map and join for better performance
+        if (terms.length === 0) return '';
+        if (terms.length === 1) return Term.buildTermKey(terms[0]);
+        
+        let result = Term.buildTermKey(terms[0]);
+        for (let i = 1; i < terms.length; i++) {
+            result += ',' + Term.buildTermKey(terms[i]);
         }
-        this.embedding = [...embedding];
+        return result;
     }
 
-    _getStructure() {
-        if (this._structure === null) {
+    /**
+     * Sets the embedding for this term
+     * @param {number[]} embedding - The embedding vector
+     */
+    setEmbedding(embedding) {
+        if (this.#embedding.length > 0) {
+            warn(`Overwriting existing embedding for term: ${this.#key}`);
+        }
+        // Store reference instead of copying for better performance
+        this.#embedding = embedding;
+    }
+
+    /**
+     * Gets the parsed structure of the term
+     * @returns {object|null} The parsed structure or null if parsing fails
+     * @private
+     */
+    #getStructure() {
+        // Use lazy initialization with caching
+        if (this.#structure === null) {
             try {
-                this._structure = parseTerm(this.key);
+                this.#structure = parseTerm(this.#key);
             } catch (error) {
-                this._structure = null;
+                this.#structure = null;
             }
         }
-        return this._structure;
+        return this.#structure;
     }
 
-    _getComponent(componentName, structure) {
-        if (this._componentCache.has(componentName)) {
-            return this._componentCache.get(componentName);
+    /**
+     * Gets a component of the term
+     * @param {string} componentName - Name of the component to get
+     * @param {object} [structure] - Optional structure to use
+     * @returns {Term|null} The component term or null if not found
+     * @private
+     */
+    #getComponent(componentName, structure) {
+        // Check cache first
+        if (this.#componentCache.hasOwnProperty(componentName)) {
+            return this.#componentCache[componentName];
         }
 
-        const termStructure = structure || (this._getStructure() ? this._getStructure()[componentName] : null);
+        const termStructure = structure || (this.#getStructure() ? this.#getStructure()[componentName] : null);
         if (!termStructure) {
-            this._componentCache.set(componentName, null);
+            this.#componentCache[componentName] = null;
             return null;
         }
 
         try {
             const componentKey = Term.buildTermKey(termStructure);
             if (componentKey) {
+                // Reuse existing terms when possible
                 const componentTerm = new Term(componentKey);
-                this._componentCache.set(componentName, componentTerm);
+                this.#componentCache[componentName] = componentTerm;
                 return componentTerm;
             } else {
-                this._componentCache.set(componentName, null);
+                this.#componentCache[componentName] = null;
                 return null;
             }
         } catch (error) {
-            this._componentCache.set(componentName, null);
+            this.#componentCache[componentName] = null;
             return null;
         }
     }
 
+    /**
+     * Checks if this term equals another term
+     * @param {Term} other - The other term to compare with
+     * @returns {boolean} True if the terms are equal
+     */
     equals(other) {
-        return other instanceof Term && this.key === other.key;
+        return other instanceof Term && this.#key === other.#key;
     }
 
+    /**
+     * Returns a string representation of the term
+     * @returns {string} String representation of the term
+     */
     toString() {
-        return this.key;
+        return this.#key;
     }
 
+    /**
+     * Calculates a hash code for the term
+     * @returns {number} Hash code
+     */
     hashCode() {
+        // Cache hash code for better performance
+        if (this._hashCode !== undefined) {
+            return this._hashCode;
+        }
+        
         let hash = 0;
-        for (let i = 0; i < this.key.length; i++) {
-            const char = this.key.charCodeAt(i);
+        for (let i = 0; i < this.#key.length; i++) {
+            const char = this.#key.charCodeAt(i);
             hash = ((hash << 5) - hash) + char;
             hash = hash & hash;
         }
+        
+        // Store cached value
+        this._hashCode = hash;
         return hash;
     }
 
+    /**
+     * Converts the term to a JSON-serializable object
+     * @returns {object} JSON representation of the term
+     */
     toJSON() {
         return {
-            key: this.key,
-            embedding: this.embedding,
-            complexity: this.complexity,
+            key: this.#key,
+            embedding: this.#embedding,
+            complexity: this.#complexity,
         };
+    }
+
+    // Getters for private properties
+    get key() {
+        return this.#key;
+    }
+
+    get embedding() {
+        return this.#embedding;
+    }
+
+    get complexity() {
+        return this.#complexity;
     }
 }
 

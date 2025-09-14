@@ -35,7 +35,7 @@ describe('Task', () => {
         expect(task.state.truthValue).toEqual(truthValue);
         expect(task.state.stamp.creationTime).toEqual(stamp.creationTime);
         expect(task.state.stamp.occurrenceTime).toEqual(stamp.occurrenceTime);
-        expect(task.state.stamp.lastAccessed).toEqual(expect.any(BigInt));
+        expect(task.state.stamp.lastAccessed).toEqual(expect.any(Number));
     });
 
     test('should throw an error if term is invalid', () => {

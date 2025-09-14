@@ -1,5 +1,5 @@
-const Task = require('../src/core/Task');
-const {parseTerm} = require('../src/parser/parse-utils');
+import Task from '../src/core/Task.js';
+import {parseTerm} from '../src/parser/parse-utils.js';
 
 /**
  * Creates a new Task with the given parameters.
@@ -19,11 +19,12 @@ function createTask(termKey, punctuation, truthValue, stamp = {creationTime: Dat
 }
 
 async function runDemo(demoName, taskDefs, cycleCount = 5) {
-    const {System} = require('../src/index');
+    const {System} = await import('../src/index.js');
 
-    console.log(`\n--- Starting ${demoName} ---`);
+    console.log(`
+--- Starting ${demoName} ---`);
 
-    const system = new System();
+    const system = System.create();
     console.log('System created.');
 
     const tasks = taskDefs.map(def => createTask(def.termKey, def.punctuation, def.truthValue)).filter(Boolean);
@@ -46,11 +47,12 @@ async function runDemo(demoName, taskDefs, cycleCount = 5) {
         }
     }
 
-    console.log(`--- ${demoName} completed ---\n`);
+    console.log(`--- ${demoName} completed ---
+`);
     return system;
 }
 
-module.exports = {
+export {
     createTask,
     runDemo,
 };

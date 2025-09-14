@@ -1,4 +1,4 @@
-const {runDemo} = require('../shared/demo-utils');
+import {runDemo} from '../shared/demo-utils.js';
 
 async function runBasicDemo() {
     const taskDefs = [
@@ -14,3 +14,5 @@ async function runBasicDemo() {
 }
 
 runBasicDemo().catch(console.error);
+
+export {runBasicDemo};

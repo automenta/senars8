@@ -24,49 +24,61 @@ const PIPELINE_TYPES = {
 };
 
 class LM {
-    constructor() {
-        this.pipelineFactory = new PipelineFactory();
-        this.llm = null;
-        this.reasoner = null;
-        this.memory = null;
-        this.hypothesisGenerator = new HypothesisGenerator(this);
-        this.explanationGenerator = new ExplanationGenerator(this._generate.bind(this));
-        this.qaService = new QAService(this._generate.bind(this), this._getQAPipeline.bind(this));
-        this.planRepairer = new PlanRepairer(this._getGenerationPipeline.bind(this), this._createStructuredChain.bind(this), this._parseStructuredResult.bind(this));
-        this.proactiveEnricher = new ProactiveEnricher(this._getGenerationPipeline.bind(this), this._createStructuredChain.bind(this), this._parseStructuredResult.bind(this));
+    #pipelineFactory;
+    #llm;
+    #reasoner;
+    #memory;
+    #hypothesisGenerator;
+    #explanationGenerator;
+    #qaService;
+    #planRepairer;
+    #proactiveEnricher;
+    #embeddingQueue;
+    #isProcessingEmbeddings;
 
-        this.embeddingQueue = [];
-        this.isProcessingEmbeddings = false;
+    constructor() {
+        this.#pipelineFactory = new PipelineFactory();
+        this.#llm = null;
+        this.#reasoner = null;
+        this.#memory = null;
+        this.#hypothesisGenerator = new HypothesisGenerator(this);
+        this.#explanationGenerator = new ExplanationGenerator(this.#generate.bind(this));
+        this.#qaService = new QAService(this.#generate.bind(this), this.#getQAPipeline.bind(this));
+        this.#planRepairer = new PlanRepairer(this.#getGenerationPipeline.bind(this), this.#createStructuredChain.bind(this), this.#parseStructuredResult.bind(this));
+        this.#proactiveEnricher = new ProactiveEnricher(this.#getGenerationPipeline.bind(this), this.#createStructuredChain.bind(this), this.#parseStructuredResult.bind(this));
+
+        this.#embeddingQueue = [];
+        this.#isProcessingEmbeddings = false;
 
         info('LM initialized');
     }
 
     startEmbeddingProcessor() {
-        if (this.isProcessingEmbeddings) {
+        if (this.#isProcessingEmbeddings) {
             warn('Embedding processor is already running.');
             return;
         }
         info('Starting embedding processor.');
-        this.isProcessingEmbeddings = true;
+        this.#isProcessingEmbeddings = true;
         this.processEmbeddingQueue(); // Fire-and-forget
     }
 
     stopEmbeddingProcessor() {
         info('Stopping embedding processor.');
-        this.isProcessingEmbeddings = false;
+        this.#isProcessingEmbeddings = false;
     }
 
     async processEmbeddingQueue() {
         const batchSize = config.LM.EMBEDDING_BATCH_SIZE;
         const delay = config.LM.EMBEDDING_BATCH_DELAY_MS;
 
-        while (this.isProcessingEmbeddings) {
-            if (this.embeddingQueue.length === 0) {
+        while (this.#isProcessingEmbeddings) {
+            if (this.#embeddingQueue.length === 0) {
                 await new Promise(resolve => setTimeout(resolve, delay));
                 continue;
             }
 
-            const batch = this.embeddingQueue.splice(0, batchSize);
+            const batch = this.#embeddingQueue.splice(0, batchSize);
             debug(`Processing embedding batch of size ${batch.length}`);
 
             try {
@@ -82,44 +94,44 @@ class LM {
     }
 
     setReasoner(reasoner) {
-        this.reasoner = reasoner;
+        this.#reasoner = reasoner;
         debug('Reasoner set for LM');
     }
 
     setMemory(memory) {
-        this.memory = memory;
+        this.#memory = memory;
         debug('Memory set for LM');
     }
 
-    async _getFeaturePipeline() {
+    async #getFeaturePipeline() {
         debug('Getting feature extraction pipeline');
-        return this.pipelineFactory.get(PIPELINE_TYPES.FEATURE_EXTRACTION, config.LM.FEATURE_EXTRACTION_MODEL);
+        return this.#pipelineFactory.get(PIPELINE_TYPES.FEATURE_EXTRACTION, config.LM.FEATURE_EXTRACTION_MODEL);
     }
 
-    async _getGenerationPipeline() {
+    async #getGenerationPipeline() {
         debug('Getting text generation pipeline');
-        const pipeline = await this.pipelineFactory.get(PIPELINE_TYPES.TEXT_GENERATION, config.LM.TEXT_GENERATION_MODEL, {useCache: false});
-        if (!this.llm) {
+        const pipeline = await this.#pipelineFactory.get(PIPELINE_TYPES.TEXT_GENERATION, config.LM.TEXT_GENERATION_MODEL, {useCache: false});
+        if (!this.#llm) {
             info('Initializing XenovaLLM');
-            this.llm = new XenovaLLM(pipeline);
+            this.#llm = new XenovaLLM(pipeline);
         }
         return pipeline;
     }
 
-    async _getQAPipeline() {
+    async #getQAPipeline() {
         debug('Getting QA pipeline');
-        return this.pipelineFactory.get(PIPELINE_TYPES.QUESTION_ANSWERING, config.LM.QA_MODEL, {maxLength: 512});
+        return this.#pipelineFactory.get(PIPELINE_TYPES.QUESTION_ANSWERING, config.LM.QA_MODEL, {maxLength: 512});
     }
 
-    async _generate(prompt, options = {}) {
+    async #generate(prompt, options = {}) {
         if (!prompt || typeof prompt !== 'string') {
             throw new Error('Prompt must be a non-empty string');
         }
 
         try {
             debug('Generating text with prompt length:', prompt.length);
-            await this._getGenerationPipeline();
-            const result = await this.llm._call(prompt, options);
+            await this.#getGenerationPipeline();
+            const result = await this.#llm._call(prompt, options);
             debug('Text generation completed');
             return result;
         } catch (err) {
@@ -128,7 +140,7 @@ class LM {
         }
     }
 
-    _createStructuredChain(promptTemplate, outputSchema, generationOptions) {
+    #createStructuredChain(promptTemplate, outputSchema, generationOptions) {
         if (!promptTemplate || !outputSchema) {
             throw new Error('Prompt template and output schema are required');
         }
@@ -140,10 +152,10 @@ class LM {
             inputVariables: ["context"],
             partialVariables: {format_instructions: parser.getFormatInstructions()},
         });
-        return new LLMChain({llm: this.llm, prompt, ...generationOptions});
+        return new LLMChain({llm: this.#llm, prompt, ...generationOptions});
     }
 
-    _parseStructuredResult(resultText) {
+    #parseStructuredResult(resultText) {
         if (!resultText || typeof resultText !== 'string') {
             return null;
         }
@@ -165,7 +177,7 @@ class LM {
     async #generateAndAssignEmbedding(term) {
         try {
             debug(`Generating embedding for term: ${term.key}`);
-            const extractor = await this._getFeaturePipeline();
+            const extractor = await this.#getFeaturePipeline();
             const output = await extractor(term.key, {pooling: 'mean', normalize: true});
             const embeddingVector = Array.from(output.data);
             term.setEmbedding(embeddingVector);
@@ -177,6 +189,10 @@ class LM {
     }
 
     async bootstrapTerm(termKey, options = {sync: false}) {
+        return this.#bootstrapTerm(termKey, options);
+    }
+
+    async #bootstrapTerm(termKey, options = {sync: false}) {
         if (typeof termKey !== 'string' || termKey.length === 0) {
             throw new Error('termKey must be a non-empty string.');
         }
@@ -189,58 +205,78 @@ class LM {
             await this.#generateAndAssignEmbedding(term);
         } else {
             debug(`Queueing term for embedding generation: ${termKey}`);
-            this.embeddingQueue.push(term);
+            this.#embeddingQueue.push(term);
         }
 
         return term;
     }
 
+    async getGenerationPipeline() {
+        return this.#getGenerationPipeline();
+    }
+
+    createStructuredChain(promptTemplate, outputSchema, generationOptions) {
+        return this.#createStructuredChain(promptTemplate, outputSchema, generationOptions);
+    }
+
+    parseStructuredResult(resultText) {
+        return this.#parseStructuredResult(resultText);
+    }
+
+    async generate(prompt, options = {}) {
+        return this.#generate(prompt, options);
+    }
+
+    async getFeaturePipeline() {
+        return this.#getFeaturePipeline();
+    }
+
     async generateHypotheses(tasks, config = {}) {
         debug(`Generating hypotheses for ${tasks.length} tasks`);
-        return this.hypothesisGenerator.generateHypotheses(tasks, config);
+        return this.#hypothesisGenerator.generateHypotheses(tasks, config);
     }
 
     async evaluateAndRankHypotheses(tasks, hypotheses) {
         debug(`Evaluating and ranking ${hypotheses.length} hypotheses`);
-        return this.hypothesisGenerator.evaluateAndRankHypotheses(tasks, hypotheses);
+        return this.#hypothesisGenerator.evaluateAndRankHypotheses(tasks, hypotheses);
     }
 
     async refineHypothesis(hypothesis, refinementType) {
         debug(`Refining hypothesis with type: ${refinementType}`);
-        return this.hypothesisGenerator.refineHypothesis(hypothesis, refinementType);
+        return this.#hypothesisGenerator.refineHypothesis(hypothesis, refinementType);
     }
 
     async explain(termKey, config = {}) {
-        return this.explanationGenerator.explain(termKey, config);
+        return this.#explanationGenerator.explain(termKey, config);
     }
 
     async answerQuestion(question, context = null) {
-        return this.qaService.answerQuestion(question, context);
+        return this.#qaService.answerQuestion(question, context);
     }
 
     async suggestPlanRepair(goalTask, failedPlan) {
-        return this.planRepairer.suggestPlanRepair(goalTask, failedPlan);
+        return this.#planRepairer.suggestPlanRepair(goalTask, failedPlan);
     }
 
     async proactiveEnrichment(tasks) {
-        return this.proactiveEnricher.proactiveEnrichment(tasks);
+        return this.#proactiveEnricher.proactiveEnrichment(tasks);
     }
 
     getPipelineStatistics() {
         return {
-            pipelineCount: this.pipelineFactory._pipelines.size
+            pipelineCount: this.#pipelineFactory._pipelines.size
         };
     }
 
     async dispose() {
         info('Disposing LM resources');
         this.stopEmbeddingProcessor();
-        if (this.pipelineFactory) {
-            this.pipelineFactory.dispose();
+        if (this.#pipelineFactory) {
+            this.#pipelineFactory.dispose();
         }
-        this.llm = null;
-        this.reasoner = null;
-        this.memory = null;
+        this.#llm = null;
+        this.#reasoner = null;
+        this.#memory = null;
         info('LM resources disposed');
     }
 }

@@ -7,6 +7,12 @@ import {handleError} from '../utils/error-handler.js';
 /**
  * Reasoner performs symbolic inference and manages the rule application process.
  * It uses various strategies to select task combinations and apply inference rules.
+ * 
+ * The Reasoner is responsible for:
+ * 1. Applying inference rules to tasks
+ * 2. Managing different types of reasoning (symbolic, temporal)
+ * 3. Coordinating with strategies for task selection
+ * 4. Tracking and limiting the number of derived tasks
  */
 class Reasoner {
     /**
@@ -24,6 +30,12 @@ class Reasoner {
 
     /**
      * Performs inference on a focus set of tasks
+     * 
+     * This method orchestrates the entire inference process:
+     * 1. Performs symbolic inference using registered rules
+     * 2. Performs temporal inference if needed
+     * 3. Limits the number of derived tasks to maxDerivedTasks
+     * 
      * @param {Task[]} focusSet - Array of tasks to perform inference on
      * @param {object} [options] - Configuration options
      * @param {number} [options.maxDerivedTasks=Infinity] - Maximum number of derived tasks to generate
@@ -50,6 +62,17 @@ class Reasoner {
         return finalTasks;
     }
 
+    /**
+     * Performs symbolic inference on a focus set of tasks
+     * 
+     * Iterates through all registered rules and applies them to combinations
+     * of tasks selected by the strategy. Respects the maxDerivedTasks limit.
+     * 
+     * @param {Task[]} focusSet - Array of tasks to perform inference on
+     * @param {number} maxDerivedTasks - Maximum number of derived tasks to generate
+     * @returns {Task[]} Array of derived tasks
+     * @private
+     */
     _performSymbolicInference(focusSet, maxDerivedTasks) {
         let derivedTasks = [];
         const processedCombinations = new Set();
@@ -70,6 +93,19 @@ class Reasoner {
         return derivedTasks;
     }
 
+    /**
+     * Applies a rule to combinations of tasks
+     * 
+     * Uses the strategy to select combinations of tasks and applies
+     * the given rule to each combination, respecting the maxDerivedTasks limit.
+     * 
+     * @param {object} rule - The rule to apply
+     * @param {Task[]} focusSet - Array of tasks to select combinations from
+     * @param {Set} processedCombinations - Set of already processed combinations
+     * @param {number} maxDerivedTasks - Maximum number of derived tasks to generate
+     * @returns {Task[]} Array of derived tasks
+     * @private
+     */
     _applyRuleToCombinations(rule, focusSet, processedCombinations, maxDerivedTasks) {
         const derivedTasks = [];
         try {
@@ -89,6 +125,16 @@ class Reasoner {
         return derivedTasks;
     }
 
+    /**
+     * Performs temporal inference on a focus set of tasks
+     * 
+     * Delegates to the temporal reasoner to perform temporal reasoning
+     * on the given focus set of tasks.
+     * 
+     * @param {Task[]} focusSet - Array of tasks to perform temporal inference on
+     * @returns {Task[]} Array of derived tasks from temporal reasoning
+     * @private
+     */
     _performTemporalInference(focusSet) {
         try {
             const temporalTasks = this.temporalReasoner.infer(focusSet);
@@ -103,6 +149,18 @@ class Reasoner {
         }
     }
 
+    /**
+     * Applies a rule to a specific combination of tasks
+     * 
+     * Checks if the rule can be applied to the given tasks and,
+     * if so, executes the rule's action to generate new tasks.
+     * 
+     * @param {object} rule - The rule to apply
+     * @param {Task[]} tasks - Array of tasks to apply the rule to
+     * @param {Set} processedCombinations - Set of already processed combinations
+     * @returns {Task|null} The derived task or null if the rule cannot be applied
+     * @private
+     */
     _applyRule(rule, tasks, processedCombinations) {
         if (!rule || !Array.isArray(tasks) || !processedCombinations) {
             return handleError(new Error('Invalid arguments to _applyRule'), '_applyRule validation', false);
@@ -111,6 +169,7 @@ class Reasoner {
         const taskIds = tasks.map(task => task.id).sort();
         const combinationKey = `${rule.name}:${taskIds.join(',')}`;
 
+        // Avoid processing the same combination multiple times
         if (processedCombinations.has(combinationKey)) return null;
         processedCombinations.add(combinationKey);
 
@@ -129,6 +188,17 @@ class Reasoner {
         }
     }
 
+    /**
+     * Validates that all operands for a rule are valid
+     * 
+     * Checks that each task in the combination satisfies the
+     * corresponding operand validator function for the rule.
+     * 
+     * @param {object} rule - The rule to validate operands for
+     * @param {Task[]} tasks - Array of tasks to validate
+     * @returns {boolean} True if all operands are valid
+     * @private
+     */
     _areOperandsValid(rule, tasks) {
         if (!rule || !Array.isArray(rule.operands) || !Array.isArray(tasks) || tasks.length !== rule.operands.length) {
             return false;
@@ -168,6 +238,10 @@ class Reasoner {
 
     /**
      * Gets statistics about the available rules
+     * 
+     * Provides information about the total number of rules,
+     * their names, and how they are grouped by arity.
+     * 
      * @returns {object} Rule statistics including total count, names, and arity grouping
      */
     getRuleStatistics() {

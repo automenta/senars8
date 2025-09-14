@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     FOCUS_SET_SIZE: 20,
     META_TASK_PRIORITY: 0.9,
     ACTIONABLE_GOAL_PRIORITY_THRESHOLD: 0.1,

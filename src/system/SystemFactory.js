@@ -18,7 +18,7 @@ class SystemFactory {
         const actionExecutor = new ActionExecutor(memory);
         const cycle = new Cycle(memory, reasoner, lm, actionExecutor, mergedConfig);
 
-        return System.create(userConfig, {
+        return new System(userConfig, {
             memory,
             reasoner,
             lm,

@@ -47,7 +47,7 @@ class HypothesisGenerator {
 
     async generateHypotheses(tasks, config = {}) {
         if (!tasks || tasks.length === 0) return [];
-        await this.lm._getGenerationPipeline();
+        await this.lm.getGenerationPipeline();
 
         const {
             type = HYPOTHESIS_TYPES.GENERAL,
@@ -61,12 +61,12 @@ class HypothesisGenerator {
         const context = this._buildHypothesisContext(tasks, goals, contradictions);
         const selectedPrompt = this._createHypothesisPrompt(type, promptTemplate);
 
-        const chain = this.lm._createStructuredChain(selectedPrompt, zod.object({term: zod.string().describe("The generated hypothesis in valid Narsese format.")}), {});
+        const chain = this.lm.createStructuredChain(selectedPrompt, zod.object({term: zod.string().describe("The generated hypothesis in valid Narsese format.")}), {});
 
         const results = await Promise.all(Array(num).fill().map(() => chain.call({context})));
 
         const hypotheses = results.map(result => {
-            const parsed = this.lm._parseStructuredResult(result.text);
+            const parsed = this.lm.parseStructuredResult(result.text);
             if (!parsed || !parsed.term) return null;
             const parsedTerm = parseTerm(parsed.term);
             return parsedTerm ? new Task(parsedTerm, '.', {confidence: 0.5, frequency: 0.5}) : null;
@@ -82,7 +82,7 @@ class HypothesisGenerator {
 
     async evaluateAndRankHypotheses(tasks, hypotheses) {
         if (!hypotheses || hypotheses.length === 0) return [];
-        const extractor = await this.lm._getFeaturePipeline();
+        const extractor = await this.lm.getFeaturePipeline();
 
         const taskEmbeddings = await Promise.all(tasks.map(async task => {
             const output = await extractor(task.termKey, {pooling: 'mean', normalize: true});
@@ -107,7 +107,7 @@ class HypothesisGenerator {
             [REFINEMENT_TYPES.SIMPLIFY]: `Simplify into a more concise statement: ${hypothesis.termKey}`,
         };
         const prompt = prompts[refinementType] || prompts[REFINEMENT_TYPES.FORMALIZE];
-        const refinedText = await this.lm._generate(prompt, {max_new_tokens: 60});
+        const refinedText = await this.lm.generate(prompt, {max_new_tokens: 60});
         if (!refinedText) return hypothesis;
 
         const parsedTerm = parseTerm(refinedText);

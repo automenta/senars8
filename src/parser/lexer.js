@@ -1,4 +1,4 @@
-const moo = require('moo');
+import moo from 'moo';
 
 const WHITESPACE = {
     whitespace: {match: /\s+/, lineBreaks: true}
@@ -67,4 +67,4 @@ const lexer = moo.compile({
     ...LITERALS
 });
 
-module.exports = lexer;
+export default lexer;

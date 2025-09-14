@@ -17,20 +17,32 @@ import TimeBasedForgettingStrategy from './strategies/TimeBasedForgettingStrateg
  * Memory manages the knowledge graph, storing Terms and Tasks.
  * It maintains both short-term and long-term memory, handles indexing,
  * and implements forgetting strategies.
+ * 
+ * The Memory class is responsible for:
+ * 1. Storing and retrieving Terms and Tasks
+ * 2. Managing short-term and long-term memory separation
+ * 3. Indexing tasks for efficient querying
+ * 4. Implementing forgetting strategies to manage memory usage
+ * 5. Performing periodic maintenance operations
  */
 class Memory {
     /**
      * Creates a new Memory instance.
      */
     constructor() {
-        this.terms = new Map();
-        this.shortTermTasks = new Map();
-        this.longTermTasks = new Map();
-        this.implicationIndex = new Map();
-        this.beliefIndex = new Map();
-        this.costIndex = new Map();
-        this.punctuationIndex = new Map(); // Index by punctuation type
-        this.priorityIndex = new Map(); // Index by priority ranges
+        // Core data structures
+        this.terms = new Map(); // Term key -> Term
+        this.shortTermTasks = new Map(); // Task ID -> Task (recently accessed)
+        this.longTermTasks = new Map(); // Task ID -> Task (persisted)
+        
+        // Indexes for efficient querying
+        this.implicationIndex = new Map(); // Term key -> Set of implication terms
+        this.beliefIndex = new Map(); // Term key -> Set of belief tasks
+        this.costIndex = new Map(); // Term key -> cost information
+        this.punctuationIndex = new Map(); // Punctuation type -> Set of task IDs
+        this.priorityIndex = new Map(); // Priority bucket -> Set of task IDs
+        
+        // Maintenance state
         this.cycleCounter = 0;
         this.maintenanceFrequency = config.memory.MAINTENANCE_CYCLE_FREQUENCY;
         this._cachedAllTasks = null;
@@ -39,6 +51,10 @@ class Memory {
         this._registerEventListeners();
     }
 
+    /**
+     * Gets the names of methods that can be forwarded to this memory instance
+     * @returns {string[]} Array of method names
+     */
     static getForwardableMethods() {
         return [
             'getMemoryStatistics', 'findTasksByTermKey', 'getHighPriorityTasks',
@@ -48,6 +64,10 @@ class Memory {
         ];
     }
 
+    /**
+     * Loads the configured forgetting strategy
+     * @private
+     */
     _loadForgettingStrategy() {
         const strategyName = config.memory.FORGETTING_STRATEGY_NAME;
         // For now, we only support TimeBased, so we load it directly.
@@ -59,11 +79,19 @@ class Memory {
         }
     }
 
+    /**
+     * Registers event listeners for memory management
+     * @private
+     */
     _registerEventListeners() {
         EventBus.on('NewTasksCreated', (tasks) => this.addTasks(tasks));
         EventBus.on('SystemCycleEnded', () => this._performMaintenanceIfNeeded());
     }
 
+    /**
+     * Performs maintenance operations if needed based on cycle counter
+     * @private
+     */
     _performMaintenanceIfNeeded() {
         this.cycleCounter++;
         if (this.cycleCounter % this.maintenanceFrequency === 0) {
@@ -72,6 +100,10 @@ class Memory {
         }
     }
 
+    /**
+     * Consolidates memory by moving tasks between short-term and long-term storage
+     * @private
+     */
     _consolidateMemory() {
         const result = consolidateMemory(this.shortTermTasks, this.longTermTasks, config);
         this.shortTermTasks = result.shortTermTasks;
@@ -79,6 +111,10 @@ class Memory {
         this._invalidateTaskCache();
     }
 
+    /**
+     * Prunes memory using the configured forgetting strategy
+     * @private
+     */
     _pruneMemory() {
         if (!this.forgettingStrategy) return;
 
@@ -88,10 +124,19 @@ class Memory {
         this._invalidateTaskCache();
     }
 
+    /**
+     * Invalidates the cached all tasks array
+     * @private
+     */
     _invalidateTaskCache() {
         this._cachedAllTasks = null;
     }
 
+    /**
+     * Indexes implications for a term
+     * @param {Term} term - The term to index implications for
+     * @private
+     */
     _indexImplication(term) {
         this.implicationIndex = indexImplication(term, this.implicationIndex);
     }
@@ -120,10 +165,19 @@ class Memory {
         return this.terms.get(key);
     }
 
+    /**
+     * Gets all terms in memory
+     * @returns {Term[]} Array of all terms
+     */
     getAllTerms() {
         return Array.from(this.terms.values());
     }
 
+    /**
+     * Indexes a task for efficient querying
+     * @param {Task} task - The task to index
+     * @private
+     */
     _indexTask(task) {
         this.beliefIndex = indexTask(task, this.beliefIndex);
         this.costIndex = updateCostIndex(task.term, this.costIndex, 'add');
@@ -142,6 +196,11 @@ class Memory {
         this.priorityIndex.get(priorityBucket).add(task.id);
     }
 
+    /**
+     * Removes a task from indexes
+     * @param {Task} task - The task to unindex
+     * @private
+     */
     _unindexTask(task) {
         this.beliefIndex = unindexTask(task, this.beliefIndex);
         this.costIndex = updateCostIndex(task.term, this.costIndex, 'remove');
@@ -193,6 +252,10 @@ class Memory {
         return this.shortTermTasks.get(id) || this.longTermTasks.get(id);
     }
 
+    /**
+     * Removes a task from memory
+     * @param {string} taskId - The ID of the task to remove
+     */
     removeTask(taskId) {
         if (!taskId) return;
 
@@ -216,6 +279,13 @@ class Memory {
         return this._cachedAllTasks;
     }
 
+    /**
+     * Determines whether to use a priority queue for getting highest priority tasks
+     * @param {number} k - Number of tasks to retrieve
+     * @param {number} totalTasks - Total number of tasks
+     * @returns {boolean} True if priority queue should be used
+     * @private
+     */
     _shouldUsePriorityQueue(k, totalTasks) {
         const K_THRESHOLD = 50;
         const RATIO_THRESHOLD = 10;
@@ -238,6 +308,10 @@ class Memory {
         }
     }
 
+    /**
+     * Creates a deep copy of this memory instance
+     * @returns {Memory} A new memory instance with the same data
+     */
     clone() {
         const newMemory = new Memory();
         newMemory.terms = new Map(this.terms);
@@ -254,6 +328,9 @@ class Memory {
         return newMemory;
     }
 
+    /**
+     * Clears all data from memory
+     */
     clear() {
         this.terms.clear();
         this.shortTermTasks.clear();
@@ -267,6 +344,10 @@ class Memory {
         this._invalidateTaskCache();
     }
 
+    /**
+     * Gets statistics about memory usage
+     * @returns {object} Memory statistics
+     */
     getStatistics() {
         return {
             terms: this.terms.size,
@@ -278,24 +359,41 @@ class Memory {
         };
     }
 
+    /**
+     * Gets all belief tasks (punctuation '.')
+     * @returns {Task[]} Array of belief tasks
+     */
     getBeliefs() {
         return this.queryTasks({
             punctuation: '.'
         });
     }
 
+    /**
+     * Gets all goal tasks (punctuation '!')
+     * @returns {Task[]} Array of goal tasks
+     */
     getGoals() {
         return this.queryTasks({
             punctuation: '!'
         });
     }
 
+    /**
+     * Gets all question tasks (punctuation '?')
+     * @returns {Task[]} Array of question tasks
+     */
     getQuestions() {
         return this.queryTasks({
             punctuation: '?'
         });
     }
 
+    /**
+     * Gets the most recently created tasks
+     * @param {number} [count=10] - Number of recent tasks to retrieve
+     * @returns {Task[]} Array of recent tasks
+     */
     getRecentTasks(count = 10) {
         // Use a more efficient approach for getting recent tasks
         const allTasks = this.getAllTasks();
@@ -311,6 +409,16 @@ class Memory {
         }
     }
 
+    /**
+     * Queries tasks with various filters
+     * @param {object} [filters={}] - Query filters
+     * @param {string} [filters.punctuation] - Filter by punctuation type
+     * @param {string} [filters.termKey] - Filter by term key
+     * @param {number} [filters.minPriority] - Filter by minimum priority
+     * @param {number} [filters.minConfidence] - Filter by minimum confidence
+     * @param {number} [filters.limit] - Limit the number of results
+     * @returns {Task[]} Array of matching tasks
+     */
     queryTasks(filters = {}) {
         let tasks;
         
@@ -343,6 +451,10 @@ class Memory {
         return tasks;
     }
 
+    /**
+     * Exports the current memory state as JSON
+     * @returns {string} JSON representation of memory state
+     */
     exportState() {
         return JSON.stringify({
             terms: Array.from(this.terms.values()),
@@ -351,6 +463,12 @@ class Memory {
         }, null, 2);
     }
 
+    /**
+     * Creates a task from JSON data
+     * @param {object} json - JSON representation of a task
+     * @returns {Task|null} The created task or null if invalid
+     * @private
+     */
     _createTaskFromJSON(json) {
         if (!json || !json.termKey) return null;
 
@@ -375,6 +493,10 @@ class Memory {
         return task;
     }
 
+    /**
+     * Imports memory state from JSON
+     * @param {string} jsonState - JSON representation of memory state
+     */
     importState(jsonState) {
         const state = JSON.parse(jsonState);
 

@@ -10,6 +10,12 @@ const DEFAULT_TRUTH_VALUE = config.DEFAULT_TRUTH_VALUE;
  * It is a stateful entity with truth values, priority, and temporal information.
  */
 class Task {
+    #id;
+    #term;
+    #termKey;
+    #punctuation;
+    #state;
+
     /**
      * Creates a new Task instance.
      * @param {string|object} term - The term associated with this task (either as a string or parsed object)
@@ -18,48 +24,30 @@ class Task {
      * @param {object} [stamp={}] - The temporal stamp information
      */
     constructor(term, punctuation, truthValue = {}, stamp = {}) {
-        const isValidTerm = term && (typeof term === 'string' || (typeof term === 'object' && term.key));
-        const isValidPunctuation = typeof punctuation === 'string' && ['.', '!', '?'].includes(punctuation);
-
-        if (!isValidTerm || !isValidPunctuation) {
+        // Validate inputs
+        if (!this.#isValidTerm(term) || !this.#isValidPunctuation(punctuation)) {
             throw new Error('Invalid Task arguments: term and punctuation are required');
         }
 
         // Process term
-        let processedTerm;
-        let termKey;
-
-        if (typeof term === 'string') {
-            termKey = term;
-            processedTerm = parseTerm(term);
-            if (!processedTerm) {
-                throw new Error(`Failed to parse term: ${term}`);
-            }
-        } else {
-            // term is an object
-            termKey = term.key;
-            processedTerm = term.type ? term : parseTerm(term.key);
-            if (!processedTerm) {
-                throw new Error(`Failed to parse term: ${term.key}`);
-            }
-        }
-
+        const { processedTerm, termKey } = this.#processTerm(term);
+        
         // Validate truth value
-        const validatedTruthValue = this._validateTruthValue(truthValue);
+        const validatedTruthValue = this.#validateTruthValue(truthValue);
 
         // Initialize core properties
-        this.id = uuidv4();
-        this.term = processedTerm;
-        this.termKey = termKey;
-        this.punctuation = punctuation;
+        this.#id = uuidv4();
+        this.#term = processedTerm;
+        this.#termKey = termKey;
+        this.#punctuation = punctuation;
 
         // Initialize state with default values
-        this.state = {
+        this.#state = {
             priority: 0,
             truthValue: validatedTruthValue,
             stamp: {
-                creationTime: BigInt(Date.now()),
-                lastAccessed: BigInt(Date.now()),
+                creationTime: Date.now(), // Using number instead of BigInt for better performance
+                lastAccessed: Date.now(), // Using number instead of BigInt for better performance
                 ...stamp
             },
         };
@@ -99,7 +87,14 @@ class Task {
      * @returns {Task[]} Array of filtered tasks
      */
     static getTasksByType(tasks, type) {
-        return tasks.filter(task => task?.punctuation === type);
+        // Optimized filtering using for loop for better performance
+        const result = [];
+        for (let i = 0; i < tasks.length; i++) {
+            if (tasks[i]?.punctuation === type) {
+                result.push(tasks[i]);
+            }
+        }
+        return result;
     }
 
     /**
@@ -129,27 +124,82 @@ class Task {
         return Task.getTasksByType(tasks, '?');
     }
 
-    _validateTruthValue(truthValue) {
-        if (!truthValue || typeof truthValue !== 'object') {
-            return {...DEFAULT_TRUTH_VALUE};
+    /**
+     * Checks if a term is valid
+     * @param {any} term - The term to validate
+     * @returns {boolean} True if the term is valid
+     * @private
+     */
+    #isValidTerm(term) {
+        return term && (typeof term === 'string' || (typeof term === 'object' && term.key));
+    }
+
+    /**
+     * Checks if punctuation is valid
+     * @param {string} punctuation - The punctuation to validate
+     * @returns {boolean} True if the punctuation is valid
+     * @private
+     */
+    #isValidPunctuation(punctuation) {
+        return typeof punctuation === 'string' && 
+               (punctuation === '.' || punctuation === '!' || punctuation === '?');
+    }
+
+    /**
+     * Processes a term to extract the key and parsed structure
+     * @param {string|object} term - The term to process
+     * @returns {object} Object containing processedTerm and termKey
+     * @private
+     */
+    #processTerm(term) {
+        let processedTerm;
+        let termKey;
+
+        if (typeof term === 'string') {
+            termKey = term;
+            processedTerm = parseTerm(term);
+            if (!processedTerm) {
+                throw new Error(`Failed to parse term: ${term}`);
+            }
+        } else {
+            // term is an object
+            termKey = term.key;
+            processedTerm = term.type ? term : parseTerm(term.key);
+            if (!processedTerm) {
+                throw new Error(`Failed to parse term: ${term.key}`);
+            }
         }
 
-        const frequency = typeof truthValue.frequency === 'number'
-            ? Math.max(0, Math.min(1, truthValue.frequency))
-            : DEFAULT_TRUTH_VALUE.frequency;
+        return { processedTerm, termKey };
+    }
 
-        const confidence = typeof truthValue.confidence === 'number'
-            ? Math.max(0, Math.min(1, truthValue.confidence))
-            : DEFAULT_TRUTH_VALUE.confidence;
-
-        return {frequency, confidence};
+    /**
+     * Validates a truth value object
+     * @param {object} truthValue - The truth value to validate
+     * @returns {object} Validated truth value
+     * @private
+     */
+    #validateTruthValue(truthValue) {
+        // Fast path for valid truth values
+        if (truthValue && 
+            typeof truthValue === 'object' && 
+            typeof truthValue.frequency === 'number' &&
+            typeof truthValue.confidence === 'number') {
+            // Clamp values to valid range
+            const frequency = Math.max(0, Math.min(1, truthValue.frequency));
+            const confidence = Math.max(0, Math.min(1, truthValue.confidence));
+            return { frequency, confidence };
+        }
+        
+        // Return default if invalid
+        return { ...DEFAULT_TRUTH_VALUE };
     }
 
     /**
      * Updates the last accessed timestamp to the current time
      */
     touch() {
-        this.state.stamp.lastAccessed = BigInt(Date.now());
+        this.#state.stamp.lastAccessed = Date.now();
     }
 
     /**
@@ -159,8 +209,8 @@ class Task {
      * @returns {object} The revised truth value
      */
     reviseTruthValue(newEvidence, weight = 0.5) {
-        const revisedTruthValue = TruthValueManager.bayesianRevision(this.state.truthValue, newEvidence, weight);
-        this.state.truthValue = revisedTruthValue;
+        const revisedTruthValue = TruthValueManager.bayesianRevision(this.#state.truthValue, newEvidence, weight);
+        this.#state.truthValue = revisedTruthValue;
         return revisedTruthValue;
     }
 
@@ -169,7 +219,11 @@ class Task {
      * @returns {string} String representation of the task
      */
     toString() {
-        return `${this.termKey}${this.punctuation} (f: ${this.state.truthValue.frequency.toFixed(3)}, c: ${this.state.truthValue.confidence.toFixed(3)})`;
+        // Cache the formatted string for better performance if called multiple times
+        if (!this._toStringCache) {
+            this._toStringCache = `${this.#termKey}${this.#punctuation} (f: ${this.#state.truthValue.frequency.toFixed(3)}, c: ${this.#state.truthValue.confidence.toFixed(3)})`;
+        }
+        return this._toStringCache;
     }
 
     /**
@@ -178,7 +232,7 @@ class Task {
      * @returns {boolean} True if the tasks are equal
      */
     equals(other) {
-        return other instanceof Task && this.id === other.id;
+        return other instanceof Task && this.#id === other.#id;
     }
 
     /**
@@ -186,27 +240,43 @@ class Task {
      * @returns {Task} A new task instance with the same properties
      */
     clone() {
-        return new Task(this.term, this.punctuation, {...this.state.truthValue}, {...this.state.stamp});
+        return new Task(this.#term, this.#punctuation, {...this.#state.truthValue}, {...this.#state.stamp});
     }
 
+    /**
+     * Converts the task to a JSON-serializable object
+     * @returns {object} JSON representation of the task
+     */
     toJSON() {
-        // Convert BigInts to strings for serialization
-        const serializableStamp = {...this.state.stamp};
-        for (const key in serializableStamp) {
-            if (typeof serializableStamp[key] === 'bigint') {
-                serializableStamp[key] = serializableStamp[key].toString();
-            }
-        }
-
         return {
-            id: this.id,
-            termKey: this.termKey,
-            punctuation: this.punctuation,
+            id: this.#id,
+            termKey: this.#termKey,
+            punctuation: this.#punctuation,
             state: {
-                ...this.state,
-                stamp: serializableStamp
+                ...this.#state
             }
         };
+    }
+
+    // Getters for private properties
+    get id() {
+        return this.#id;
+    }
+
+    get term() {
+        return this.#term;
+    }
+
+    get termKey() {
+        return this.#termKey;
+    }
+
+    get punctuation() {
+        return this.#punctuation;
+    }
+
+    get state() {
+        return this.#state;
     }
 }
 

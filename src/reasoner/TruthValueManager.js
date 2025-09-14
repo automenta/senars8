@@ -7,53 +7,84 @@ import Task from '../core/Task.js';
  * Manages advanced truth value revision and updating mechanisms.
  */
 class TruthValueManager {
-    bayesianRevision = this._createRevisionMethod('bayesian', this.constructor.bayesianRevision, (newEvidence, weight) => ({
-        newEvidence,
-        weight
-    }));
-    consensusRevision = this._createRevisionMethod('consensus', this.constructor.consensusRevision, (evidenceSources) => ({evidenceSources}));
-    reinforcementUpdate = this._createRevisionMethod('reinforcement', this.constructor.reinforcementRevision, (reward, learningRate) => ({
-        reward,
-        learningRate
-    }));
-    entropyBasedUpdate = this._createRevisionMethod('entropy_based', this.constructor.entropyBasedRevision, (newInformation) => ({newInformation}));
-
     constructor() {
         this.revisionHistory = new Map();
         this.conflictSets = new Map();
         this.evidenceSources = new Map();
     }
 
+    // --- Core Inference Operations ---
+
+    /**
+     * Deduction operation for truth values
+     * @param {object} tv1 - First truth value
+     * @param {object} tv2 - Second truth value
+     * @returns {object} Resulting truth value
+     */
     static deduce(tv1, tv2) {
         const frequency = tv1.frequency * tv2.frequency;
         const confidence = tv1.confidence * tv2.confidence * config.DEFAULT_TRUTH_VALUE.confidence;
         return {frequency, confidence};
     }
 
+    /**
+     * Induction operation for truth values
+     * @param {object} tv1 - First truth value
+     * @param {object} tv2 - Second truth value
+     * @returns {object} Resulting truth value
+     */
     static induce(tv1, tv2) {
         const frequency = (tv1.frequency + tv2.frequency) / 2;
         const confidence = tv1.confidence * tv2.confidence * 0.5;
         return {frequency, confidence};
     }
 
+    /**
+     * Abduction operation for truth values
+     * @param {object} tv1 - First truth value
+     * @param {object} tv2 - Second truth value
+     * @returns {object} Resulting truth value
+     */
     static abduce(tv1, tv2) {
         const frequency = (tv1.frequency + tv2.frequency) / 2;
         const confidence = tv1.confidence * tv2.confidence * 0.3;
         return {frequency, confidence};
     }
 
+    /**
+     * Analogy operation for truth values
+     * @param {object} tv1 - First truth value
+     * @param {object} tv2 - Second truth value
+     * @param {object} tv3 - Third truth value
+     * @returns {object} Resulting truth value
+     */
     static analogize(tv1, tv2, tv3) {
         const frequency = (tv1.frequency + tv2.frequency + tv3.frequency) / 3;
         const confidence = tv1.confidence * tv2.confidence * tv3.confidence * 0.4;
         return {frequency, confidence};
     }
 
+    // --- Revision Methods ---
+
+    /**
+     * Bayesian revision of truth values
+     * @param {object} oldTruthValue - Current truth value
+     * @param {object} newEvidence - New evidence truth value
+     * @param {number} weight - Weight for new evidence (0-1)
+     * @returns {object} Revised truth value
+     */
     static bayesianRevision(oldTruthValue, newEvidence, weight = 0.5) {
         const revisedFrequency = (1 - weight) * oldTruthValue.frequency + weight * newEvidence.frequency;
         const revisedConfidence = Math.min(1.0, oldTruthValue.confidence + newEvidence.confidence * weight);
         return {frequency: revisedFrequency, confidence: revisedConfidence};
     }
 
+    /**
+     * Consensus revision based on multiple evidence sources
+     * @param {object} currentTruthValue - Current truth value
+     * @param {Array} evidenceSources - Array of evidence truth values
+     * @returns {object} Revised truth value
+     */
     static consensusRevision(currentTruthValue, evidenceSources) {
         if (!evidenceSources || evidenceSources.length === 0) {
             return currentTruthValue;
@@ -74,12 +105,26 @@ class TruthValueManager {
         return {frequency: revisedFrequency, confidence: revisedConfidence};
     }
 
+    /**
+     * Temporal decay of truth values over time
+     * @param {object} truthValue - Truth value to decay
+     * @param {number} currentTime - Current timestamp
+     * @param {number} creationTime - Creation timestamp
+     * @param {number} decayRate - Decay rate parameter
+     * @returns {object} Decayed truth value
+     */
     static temporalDecayRevision(truthValue, currentTime, creationTime, decayRate = 0.0001) {
         const age = currentTime - creationTime;
         const decayFactor = Math.exp(-decayRate * age);
         return {frequency: truthValue.frequency, confidence: truthValue.confidence * decayFactor};
     }
 
+    /**
+     * Conflict resolution between contradictory truth values
+     * @param {object} truthValue1 - First truth value
+     * @param {object} truthValue2 - Second truth value
+     * @returns {object} Resolved truth value
+     */
     static conflictResolutionRevision(truthValue1, truthValue2) {
         const totalConfidence = truthValue1.confidence + truthValue2.confidence;
         if (totalConfidence === 0) {
@@ -95,6 +140,13 @@ class TruthValueManager {
         return {frequency: revisedFrequency, confidence: revisedConfidence};
     }
 
+    /**
+     * Reinforcement learning update for truth values
+     * @param {object} truthValue - Current truth value
+     * @param {number} reward - Reward value
+     * @param {number} learningRate - Learning rate parameter
+     * @returns {object} Updated truth value
+     */
     static reinforcementRevision(truthValue, reward, learningRate = 0.1) {
         const delta = reward * learningRate;
         const revisedFrequency = Math.max(0.0, Math.min(1.0, truthValue.frequency + delta));
@@ -103,6 +155,12 @@ class TruthValueManager {
         return {frequency: revisedFrequency, confidence: revisedConfidence};
     }
 
+    /**
+     * Entropy-based revision of truth values
+     * @param {object} truthValue - Current truth value
+     * @param {number} newInformation - New information value
+     * @returns {object} Revised truth value
+     */
     static entropyBasedRevision(truthValue, newInformation) {
         const currentEntropy = -(truthValue.frequency * Math.log2(truthValue.frequency || 0.0001) +
             (1 - truthValue.frequency) * Math.log2((1 - truthValue.frequency) || 0.0001));
@@ -115,9 +173,16 @@ class TruthValueManager {
         return {frequency: revisedFrequency, confidence: revisedConfidence};
     }
 
+    /**
+     * Sophisticated revision combining multiple revision strategies
+     * @param {object} currentTruthValue - Current truth value
+     * @param {object} options - Revision options
+     * @returns {object} Revised truth value
+     */
     static sophisticatedRevision(currentTruthValue, options = {}) {
         let revisedTruthValue = {...currentTruthValue};
 
+        // Apply temporal decay if requested
         if (options.applyTemporalDecay && options.currentTime && options.creationTime) {
             revisedTruthValue = this.temporalDecayRevision(
                 revisedTruthValue,
@@ -127,6 +192,7 @@ class TruthValueManager {
             );
         }
 
+        // Apply Bayesian revision if new evidence provided
         if (options.newEvidence) {
             revisedTruthValue = this.bayesianRevision(
                 revisedTruthValue,
@@ -135,18 +201,22 @@ class TruthValueManager {
             );
         }
 
+        // Apply consensus revision if multiple evidence sources provided
         if (options.evidenceSources && options.evidenceSources.length > 0) {
             revisedTruthValue = this.consensusRevision(revisedTruthValue, options.evidenceSources);
         }
 
+        // Apply conflict resolution if contradictory evidence provided
         if (options.contradictoryEvidence) {
             revisedTruthValue = this.conflictResolutionRevision(revisedTruthValue, options.contradictoryEvidence);
         }
 
+        // Apply reinforcement update if reward provided
         if (typeof options.reward !== 'undefined') {
             revisedTruthValue = this.reinforcementRevision(revisedTruthValue, options.reward, options.learningRate);
         }
 
+        // Apply entropy-based revision if new information provided
         if (typeof options.newInformation !== 'undefined') {
             revisedTruthValue = this.entropyBasedRevision(revisedTruthValue, options.newInformation);
         }
@@ -154,23 +224,76 @@ class TruthValueManager {
         return revisedTruthValue;
     }
 
-    // Instance methods that delegate to static methods and record revisions
-    _createRevisionMethod(methodName, staticMethod, getAdditionalParams = () => ({})) {
-        return (task, ...args) => {
-            const oldTruthValue = {...task.state.truthValue};
-            const revisedTruthValue = staticMethod.call(this.constructor, oldTruthValue, ...args);
-            task.state.truthValue = revisedTruthValue;
+    // --- Instance Methods for Task Operations ---
 
-            const metadata = getAdditionalParams(...args);
-            this._recordRevision(task.id, methodName, oldTruthValue, revisedTruthValue, metadata);
+    /**
+     * Applies Bayesian revision to a task and records the revision
+     * @param {Task} task - Task to revise
+     * @param {object} newEvidence - New evidence truth value
+     * @param {number} weight - Weight for new evidence
+     * @returns {object} Revised truth value
+     */
+    bayesianRevision(task, newEvidence, weight = 0.5) {
+        const oldTruthValue = {...task.state.truthValue};
+        const revisedTruthValue = TruthValueManager.bayesianRevision(oldTruthValue, newEvidence, weight);
+        task.state.truthValue = revisedTruthValue;
 
-            return revisedTruthValue;
-        };
+        this._recordRevision(task.id, 'bayesian', oldTruthValue, revisedTruthValue, {
+            newEvidence,
+            weight
+        });
+
+        return revisedTruthValue;
     }
 
+    /**
+     * Applies consensus revision to a task and records the revision
+     * @param {Task} task - Task to revise
+     * @param {Array} evidenceSources - Array of evidence truth values
+     * @returns {object} Revised truth value
+     */
+    consensusRevision(task, evidenceSources) {
+        const oldTruthValue = {...task.state.truthValue};
+        const revisedTruthValue = TruthValueManager.consensusRevision(oldTruthValue, evidenceSources);
+        task.state.truthValue = revisedTruthValue;
+
+        this._recordRevision(task.id, 'consensus', oldTruthValue, revisedTruthValue, {
+            evidenceSources
+        });
+
+        return revisedTruthValue;
+    }
+
+    /**
+     * Applies reinforcement update to a task and records the revision
+     * @param {Task} task - Task to revise
+     * @param {number} reward - Reward value
+     * @param {number} learningRate - Learning rate parameter
+     * @returns {object} Revised truth value
+     */
+    reinforcementUpdate(task, reward, learningRate = 0.1) {
+        const oldTruthValue = {...task.state.truthValue};
+        const revisedTruthValue = TruthValueManager.reinforcementRevision(oldTruthValue, reward, learningRate);
+        task.state.truthValue = revisedTruthValue;
+
+        this._recordRevision(task.id, 'reinforcement', oldTruthValue, revisedTruthValue, {
+            reward,
+            learningRate
+        });
+
+        return revisedTruthValue;
+    }
+
+    /**
+     * Applies temporal decay to a task and records the revision
+     * @param {Task} task - Task to decay
+     * @param {number} currentTime - Current timestamp
+     * @param {number} decayRate - Decay rate parameter
+     * @returns {object} Decayed truth value
+     */
     temporalDecayRevision(task, currentTime, decayRate = 0.0001) {
         const oldTruthValue = {...task.state.truthValue};
-        const revisedTruthValue = this.constructor.temporalDecayRevision(
+        const revisedTruthValue = TruthValueManager.temporalDecayRevision(
             oldTruthValue,
             currentTime,
             task.state.stamp.creationTime,
@@ -186,11 +309,17 @@ class TruthValueManager {
         return revisedTruthValue;
     }
 
+    /**
+     * Resolves conflict between two tasks and records the revision
+     * @param {Task} task1 - First task
+     * @param {Task} task2 - Second task
+     * @returns {object} Resolved truth value
+     */
     resolveConflict(task1, task2) {
         const oldTruthValue1 = {...task1.state.truthValue};
         const oldTruthValue2 = {...task2.state.truthValue};
 
-        const resolvedTruthValue = this.constructor.conflictResolutionRevision(oldTruthValue1, oldTruthValue2);
+        const resolvedTruthValue = TruthValueManager.conflictResolutionRevision(oldTruthValue1, oldTruthValue2);
 
         task1.state.truthValue = resolvedTruthValue;
         task2.state.truthValue = resolvedTruthValue;
@@ -212,9 +341,15 @@ class TruthValueManager {
         return resolvedTruthValue;
     }
 
+    /**
+     * Applies sophisticated revision to a task and records the revision
+     * @param {Task} task - Task to revise
+     * @param {object} options - Revision options
+     * @returns {object} Revised truth value
+     */
     sophisticatedRevision(task, options = {}) {
         const oldTruthValue = {...task.state.truthValue};
-        const revisedTruthValue = this.constructor.sophisticatedRevision(oldTruthValue, {
+        const revisedTruthValue = TruthValueManager.sophisticatedRevision(oldTruthValue, {
             ...options,
             currentTime: options.currentTime || Date.now(),
             creationTime: options.creationTime || task.state.stamp.creationTime
@@ -226,6 +361,42 @@ class TruthValueManager {
         return revisedTruthValue;
     }
 
+    // --- Evidence Management ---
+
+    /**
+     * Adds an evidence source for a task
+     * @param {string} taskId - Task ID
+     * @param {string} sourceId - Source ID
+     * @param {object} truthValue - Truth value of the evidence
+     */
+    addEvidenceSource(taskId, sourceId, truthValue) {
+        if (!this.evidenceSources.has(taskId)) {
+            this.evidenceSources.set(taskId, new Map());
+        }
+
+        this.evidenceSources.get(taskId).set(sourceId, truthValue);
+    }
+
+    /**
+     * Gets evidence sources for a task
+     * @param {string} taskId - Task ID
+     * @returns {Map} Map of evidence sources
+     */
+    getEvidenceSources(taskId) {
+        return this.evidenceSources.get(taskId) || new Map();
+    }
+
+    // --- Revision History ---
+
+    /**
+     * Records a truth value revision
+     * @param {string} taskId - Task ID
+     * @param {string} revisionType - Type of revision
+     * @param {object} oldTruthValue - Old truth value
+     * @param {object} newTruthValue - New truth value
+     * @param {object} metadata - Additional metadata
+     * @private
+     */
     _recordRevision(taskId, revisionType, oldTruthValue, newTruthValue, metadata) {
         if (!this.revisionHistory.has(taskId)) {
             this.revisionHistory.set(taskId, []);
@@ -240,26 +411,30 @@ class TruthValueManager {
         });
     }
 
+    /**
+     * Gets revision history for a task
+     * @param {string} taskId - Task ID
+     * @returns {Array} Array of revision records
+     */
     getRevisionHistory(taskId) {
         return this.revisionHistory.get(taskId) || [];
     }
 
+    /**
+     * Clears all revision history
+     */
     clearRevisionHistory() {
         this.revisionHistory.clear();
     }
 
-    addEvidenceSource(taskId, sourceId, truthValue) {
-        if (!this.evidenceSources.has(taskId)) {
-            this.evidenceSources.set(taskId, new Map());
-        }
+    // --- Batch Operations ---
 
-        this.evidenceSources.get(taskId).set(sourceId, truthValue);
-    }
-
-    getEvidenceSources(taskId) {
-        return this.evidenceSources.get(taskId) || new Map();
-    }
-
+    /**
+     * Maintains truth values for multiple tasks
+     * @param {Array} tasks - Array of tasks
+     * @param {object} options - Maintenance options
+     * @returns {Array} Results array
+     */
     async maintainTruthValues(tasks, options = {}) {
         const currentTime = Date.now();
         const results = [];
@@ -295,6 +470,11 @@ class TruthValueManager {
         return results;
     }
 
+    /**
+     * Resolves conflicts between tasks
+     * @param {Array} tasks - Array of tasks
+     * @returns {Array} Results array
+     */
     async resolveConflicts(tasks) {
         const results = [];
         const beliefTasks = Task.getBeliefTasks(tasks);
@@ -334,15 +514,28 @@ class TruthValueManager {
         return results;
     }
 
+    // --- Utility Methods ---
+
+    /**
+     * Calculates semantic similarity between two tasks
+     * @param {Task} task1 - First task
+     * @param {Task} task2 - Second task
+     * @returns {number} Similarity score (0-1)
+     * @private
+     */
     _calculateSemanticSimilarity(task1, task2) {
         if (task1.termKey === task2.termKey) {
             return 1.0;
         }
 
-        const commonTerms = task1.termKey.split(' ').filter(term => task2.termKey.includes(term));
-        const maxTerms = Math.max(task1.termKey.split(' ').length, task2.termKey.split(' ').length);
+        // More sophisticated similarity calculation
+        const terms1 = task1.termKey.split(/[() ,]+/).filter(term => term.length > 0);
+        const terms2 = task2.termKey.split(/[() ,]+/).filter(term => term.length > 0);
+        
+        const commonTerms = terms1.filter(term => terms2.includes(term));
+        const maxTerms = Math.max(terms1.length, terms2.length);
 
-        return commonTerms.length / maxTerms;
+        return maxTerms > 0 ? commonTerms.length / maxTerms : 0;
     }
 }
 

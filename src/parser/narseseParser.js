@@ -1,4 +1,4 @@
-const lexer = require('./lexer');
+import lexer from './lexer.js';
 
 class NarseseParser {
     static UNARY_OPERATOR_TYPES = {
@@ -345,4 +345,4 @@ function parseTerm(input) {
     }
 }
 
-module.exports = {parseTerm};
+export { parseTerm };
