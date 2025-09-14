@@ -1,125 +1,27 @@
 ---
 theme: dracula
-title: 'SeNARS Cognitive System'
+title: 'SeNARS'
 background: https://source.unsplash.com/1600x900/?circuit-board,ai
 highlighter: 
   engine: shiki
   theme: 'dracula'
 lineNumbers: false
 transition: slide
-css: |
-  .slidev-layout {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    font-weight: 300;
-  }
-  .slidev-layout h1, .slidev-layout h2, .slidev-layout h3 {
-    font-weight: 600;
-    letter-spacing: -0.02em;
-  }
-  .slidev-layout strong {
-    font-weight: 500;
-  }
-  .slidev-layout blockquote {
-    font-style: italic;
-    font-weight: 300;
-  }
-  .slidev-layout table {
-    font-size: 0.85em;
-  }
-  .slidev-layout td, .slidev-layout th {
-    padding: 0.3rem 0.5rem;
-  }
-  .slidev-layout pre {
-    font-size: 0.75em;
-    line-height: 1.4;
-  }
-  .slidev-layout code {
-    font-size: 0.9em;
-  }
-  .slidev-layout ul, .slidev-layout ol {
-    font-size: 0.95em;
-  }
-  .text-sm {
-    font-size: 0.85em;
-  }
-  .text-lg {
-    font-size: 1.1em;
-  }
-  .center {
-    text-align: center;
-  }
-  .opacity-75 {
-    opacity: 0.75;
-  }
-  .mt-2 {
-    margin-top: 0.5rem;
-  }
-  .mt-4 {
-    margin-top: 1rem;
-  }
-  .mb-2 {
-    margin-bottom: 0.5rem;
-  }
-  .mb-4 {
-    margin-bottom: 1rem;
-  }
-  .grid {
-    display: grid;
-  }
-  .grid-cols-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .grid-cols-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .gap-2 {
-    gap: 0.5rem;
-  }
-  .gap-4 {
-    gap: 1rem;
-  }
-  .p-2 {
-    padding: 0.5rem;
-  }
-  .p-4 {
-    padding: 1rem;
-  }
-  .rounded {
-    border-radius: 0.25rem;
-  }
-  .bg-opacity-20 {
-    background-color: rgba(255, 255, 255, 0.2);
-  }
-  .text-center {
-    text-align: center;
-  }
-  .text-xs {
-    font-size: 0.75em;
-  }
-  .space-y-2 > * + * {
-    margin-top: 0.5rem;
-  }
-  .font-semibold {
-    font-weight: 500;
-  }
+zoom: 0.8
+
 ---
 
-# SeNARS Cognitive System
+# SeNARS
 
 Principled and Pragmatic Neuro-Symbolic Cognition
 
 <div class="center text-sm opacity-75">
-  Advancing Trustworthy AI Through Neuro-Symbolic Integration
+  Advancing AI Reliability and Power Through Neuro-Symbolic Integration
 </div>
 
 ---
 
-## Table of Contents
-<Toc />
-
----
-
-## Welcome to SeNARS
+## Introduction
 
 A complete cognitive architecture designed for a synergistic union of:
 - **Formal symbolic reasoning**
@@ -134,7 +36,7 @@ building understanding from foundational concepts to advanced capabilities.
 
 ---
 
-## The Challenge with Modern AI
+## The Challenge
 
 Today's powerful AI models often suffer from critical limitations:
 
@@ -204,7 +106,7 @@ SeNARS is a **neuro-symbolic** architecture that delivers **explainable, robust,
   </div>
 </div>
 
-Key differentiators:
+Key difference:
 - **Transparent Reasoning**: Trace every conclusion back to its premises
 - **Immutable Constitution**: Ensures alignment with core principles
 - **Self-Correction**: Reasons about its own failures and improves
@@ -223,10 +125,6 @@ Explainable AI (XAI) is the key to unlocking high-value markets:
 | **Financial Services** | $10B+ | Algorithmic trading, credit scoring, compliance |
 | **Healthcare & Life Sciences** | $15B+ | Medical diagnosis, drug discovery, personalized medicine |
 | **Autonomous Systems** | $20B+ | Self-driving vehicles, robotics, industrial automation |
-
-<div class="center text-sm opacity-75 mt-2">
-  Total Addressable Market: $45B+
-</div>
 
 **SeNARS captures these markets where standard "black-box" solutions are too risky.**
 
@@ -667,48 +565,6 @@ enhancing rather than replacing human intelligence.
 
 ---
 
-## Getting Started with SeNARS
-
-Ready to explore SeNARS? Here's how to get started:
-
-### Prerequisites
-- Node.js (v14 or higher)
-- npm package manager
-
-### Installation
-```bash
-npm install
-```
-
-### Running Demos
-```bash
-npm run start:demo
-```
-Explore various demos that showcase SeNARS capabilities:
-- Math Inference Demo
-- Planning Demo
-- Comprehensive System Demo
-- NLP Integration Demo
-- Contradiction Resolution Demo
-
-### Running Tests
-```bash
-npm test
-```
-
-### Library Usage
-```javascript
-const { System } = require('./src');
-const { Task } = require('./src/core/Task');
-const { parseTerm } = require('./src/parser/narseseParser');
-
-// Initialize system, add knowledge, run cycles
-```
-
-SeNARS is designed to be both a standalone system and an embeddable library.
-
----
-
 ## Investor-Ready Highlights
 
 SeNARS is designed from the ground up to deliver value and attract investment:
@@ -769,53 +625,3 @@ All SeNARS functionality has been verified through comprehensive unit tests and 
 - Self-reflection and self-improvement mechanisms
 
 These capabilities represent a solid foundation for building robust, explainable AI systems.
-
----
-
-## Our Team
-
-<div class="grid grid-cols-3 gap-4">
-  <div class="p-4 bg-blue-500 bg-opacity-20 rounded text-center">
-    <div class="text-2xl mb-2">👨‍💻</div>
-    <div class="font-bold text-lg">Dr. Alex Chen</div>
-    <div class="text-sm">CEO & Chief Architect</div>
-    <div class="text-xs opacity-75">Ex-Google AI, PhD in Cognitive Science</div>
-  </div>
-  <div class="p-4 bg-green-500 bg-opacity-20 rounded text-center">
-    <div class="text-2xl mb-2">👩‍💻</div>
-    <div class="font-bold text-lg">Jamie Rodriguez</div>
-    <div class="text-sm">CTO</div>
-    <div class="text-xs opacity-75">Serial entrepreneur, scalable systems expert</div>
-  </div>
-  <div class="p-4 bg-purple-500 bg-opacity-20 rounded text-center">
-    <div class="text-2xl mb-2">👨‍🏫</div>
-    <div class="font-bold text-lg">Prof. Sarah Kim</div>
-    <div class="text-sm">Advisor</div>
-    <div class="text-xs opacity-75">Professor of AI Ethics & Safety, Stanford</div>
-  </div>
-</div>
-
-<div class="center text-sm mt-4 p-4 bg-gradient-to-r from-blue-500 to-purple-500 bg-opacity-20 rounded">
-We have the vision and expertise to make SeNARS the new standard for trustworthy AI.
-</div>
-
----
-
-## Thank You
-
-<div class="grid grid-cols-3 gap-4 mt-4">
-  <div class="text-center p-4">
-    <div class="text-3xl mb-2">🧠</div>
-    <div class="text-sm">Transparent AI</div>
-  </div>
-  <div class="text-center p-4">
-    <div class="text-3xl mb-2">🔄</div>
-    <div class="text-sm">Self-Improving</div>
-  </div>
-  <div class="text-center p-4">
-    <div class="text-3xl mb-2">🚀</div>
-    <div class="text-sm">Future-Ready</div>
-  </div>
-</div>
-
-### Questions?
