@@ -19,5 +19,5 @@ export default [
     intersection,
     union,
     conversion,
-    contraposition,
+    contraposition
 ];

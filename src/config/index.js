@@ -13,7 +13,7 @@ const config = {
     planner,
     temporal,
     system,
-    ACTION_EXECUTOR: actionExecutor,
+    ACTION_EXECUTOR: actionExecutor
 };
 
 export default config;

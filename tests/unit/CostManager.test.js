@@ -4,16 +4,16 @@ import Memory from '../../src/memory/Memory.js';
 
 // Mock Term and Memory for testing purposes
 jest.mock('../../src/core/Term.js', () => {
-    return jest.fn().mockImplementation((key) => {
+    return jest.fn().mockImplementation(key => {
         const termInstance = {
-            key: key,
+            key,
             type: 'Atomic',
             subject: null,
             predicate: null,
             terms: [],
             equals: jest.fn(otherTerm => {
                 return otherTerm && termInstance.key === otherTerm.key;
-            }),
+            })
         };
         // Allow setting properties for more complex test cases
         return new Proxy(termInstance, {
@@ -75,10 +75,10 @@ describe('CostManager', () => {
             const precond1 = new Term('precond1'); // Believed, confidence 0.9
             const precond2 = new Term('precond2'); // Unknown, confidence 0
 
-            memory.beliefIndex.set(precond1.key, {state: {truthValue: {confidence: 0.9}}});
+            memory.beliefIndex.set(precond1.key, { state: { truthValue: { confidence: 0.9 } } });
 
             const method = new Term('method1');
-            method.subject = {type: 'SequentialConjunction', terms: [taskTerm, precond1, precond2]};
+            method.subject = { type: 'SequentialConjunction', terms: [taskTerm, precond1, precond2] };
 
             memory.implicationIndex.set(taskTerm.key, [method]);
 
@@ -92,18 +92,18 @@ describe('CostManager', () => {
             const precond2 = new Term('precond2'); // Conf 0.8 -> Diff 0.2
             const precond3 = new Term('precond3'); // Conf 0.5 -> Diff 0.5
 
-            memory.beliefIndex.set(precond1.key, {state: {truthValue: {confidence: 0.9}}});
-            memory.beliefIndex.set(precond2.key, {state: {truthValue: {confidence: 0.8}}});
-            memory.beliefIndex.set(precond3.key, {state: {truthValue: {confidence: 0.5}}});
+            memory.beliefIndex.set(precond1.key, { state: { truthValue: { confidence: 0.9 } } });
+            memory.beliefIndex.set(precond2.key, { state: { truthValue: { confidence: 0.8 } } });
+            memory.beliefIndex.set(precond3.key, { state: { truthValue: { confidence: 0.5 } } });
 
             const method1 = new Term('method1');
-            method1.subject = {type: 'SequentialConjunction', terms: [taskTerm, precond1, precond3]};
+            method1.subject = { type: 'SequentialConjunction', terms: [taskTerm, precond1, precond3] };
 
             const method2 = new Term('method2');
-            method2.subject = {type: 'SequentialConjunction', terms: [taskTerm, precond2, precond3]};
+            method2.subject = { type: 'SequentialConjunction', terms: [taskTerm, precond2, precond3] };
 
             const method3 = new Term('method3');
-            method3.subject = {type: 'SequentialConjunction', terms: [taskTerm, precond1, precond2]};
+            method3.subject = { type: 'SequentialConjunction', terms: [taskTerm, precond1, precond2] };
 
             memory.implicationIndex.set(taskTerm.key, [method1, method2, method3]);
 
@@ -120,9 +120,9 @@ describe('CostManager', () => {
 
             // Mock getActionCost to return specific values
             jest.spyOn(costManager, 'getActionCost').mockImplementation(action => {
-                if (action.key === 'action1') return 1;
-                if (action.key === 'action2') return 5;
-                if (action.key === 'action3') return 2;
+                if (action.key === 'action1') { return 1; }
+                if (action.key === 'action2') { return 5; }
+                if (action.key === 'action3') { return 2; }
                 return 0;
             });
 

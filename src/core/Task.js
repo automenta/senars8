@@ -1,5 +1,5 @@
-import {v4 as uuidv4} from 'uuid';
-import {parseTerm} from '../parser/parse-utils.js';
+import { v4 as uuidv4 } from 'uuid';
+import { parseTerm } from '../parser/parse-utils.js';
 import config from '../config/index.js';
 import TruthValueManager from '../reasoner/TruthValueManager.js';
 import {
@@ -12,7 +12,7 @@ import {
     isQuestion
 } from '../utils/task-utils.js';
 
-const DEFAULT_TRUTH_VALUE = config.DEFAULT_TRUTH_VALUE;
+const { DEFAULT_TRUTH_VALUE } = config;
 
 /**
  * Task represents a specific cognitive act concerning a Term.
@@ -40,7 +40,7 @@ class Task {
 
         // Process term
         const { processedTerm, termKey } = this.#processTerm(term);
-        
+
         // Validate truth value
         const validatedTruthValue = this.#validateTruthValue(truthValue);
 
@@ -58,7 +58,7 @@ class Task {
                 creationTime: Date.now(), // Using number instead of BigInt for better performance
                 lastAccessed: Date.now(), // Using number instead of BigInt for better performance
                 ...stamp
-            },
+            }
         };
     }
 
@@ -143,7 +143,7 @@ class Task {
      * @private
      */
     #isValidPunctuation(punctuation) {
-        return typeof punctuation === 'string' && 
+        return typeof punctuation === 'string' &&
                (punctuation === '.' || punctuation === '!' || punctuation === '?');
     }
 
@@ -183,8 +183,8 @@ class Task {
      */
     #validateTruthValue(truthValue) {
         // Fast path for valid truth values
-        if (truthValue && 
-            typeof truthValue === 'object' && 
+        if (truthValue &&
+            typeof truthValue === 'object' &&
             typeof truthValue.frequency === 'number' &&
             typeof truthValue.confidence === 'number') {
             // Clamp values to valid range
@@ -192,7 +192,7 @@ class Task {
             const confidence = Math.max(0, Math.min(1, truthValue.confidence));
             return { frequency, confidence };
         }
-        
+
         // Return default if invalid
         return { ...DEFAULT_TRUTH_VALUE };
     }
@@ -243,10 +243,10 @@ class Task {
      */
     clone() {
         return new Task(
-            this.#term, 
-            this.#punctuation, 
-            {...this.#state.truthValue}, 
-            {...this.#state.stamp}
+            this.#term,
+            this.#punctuation,
+            { ...this.#state.truthValue },
+            { ...this.#state.stamp }
         );
     }
 

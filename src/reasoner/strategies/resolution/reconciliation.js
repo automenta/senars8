@@ -1,5 +1,5 @@
 import Task from '../../../core/Task.js';
-import {createMetaTask} from '../strategy-utils.js';
+import { createMetaTask } from '../strategy-utils.js';
 import config from '../../../config.js';
 
 function reconciliation(contradiction) {

@@ -7,7 +7,7 @@ class TimeBasedForgettingStrategy extends ForgettingStrategy {
             expirationThreshold: 24 * 3600 * 1000, // 24 hours in milliseconds
             importanceThresholds: {
                 priority: 0.5,
-                confidence: 0.5,
+                confidence: 0.5
             }
         };
     }
@@ -19,11 +19,11 @@ class TimeBasedForgettingStrategy extends ForgettingStrategy {
         const {
             expirationThreshold,
             importanceThresholds
-        } = {...this.defaultOptions, ...options};
+        } = { ...this.defaultOptions, ...options };
 
         for (const [id, task] of tasks.entries()) {
             const lastAccessed = task.state.stamp.lastAccessed || task.state.stamp.creationTime;
-            
+
             // Handle both BigInt and number timestamps
             const lastAccessedTime = typeof lastAccessed === 'bigint' ? Number(lastAccessed) : lastAccessed;
             const isExpired = (now - lastAccessedTime) >= expirationThreshold;

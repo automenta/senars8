@@ -86,7 +86,7 @@ class MCP {
     log(event) {
         this.history.push({
             timestamp: new Date().toISOString(),
-            ...event,
+            ...event
         });
     }
 }

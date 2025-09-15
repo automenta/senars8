@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { safeAsync } from '../utils/error-handler.js';
-import { info, debug } from '../utils/logger.js';
+import { info } from '../utils/logger.js';
 
 import Memory from '../memory/Memory.js';
 import Reasoner from '../reasoner/Reasoner.js';
@@ -20,7 +20,7 @@ class SystemFactory {
      * @returns {Promise<System>} A promise that resolves to the initialized system
      */
     async createSystem(userConfig = {}, dependencies = {}) {
-        return await safeAsync(async () => {
+        return await safeAsync(async() => {
             info('SystemFactory: Creating new system...');
             const mergedConfig = _.merge({}, config, userConfig);
 

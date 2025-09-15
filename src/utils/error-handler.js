@@ -1,4 +1,4 @@
-import {error as logError} from './logger.js';
+import { error as logError } from './logger.js';
 
 // Error classes
 class ValidationError extends Error {
@@ -46,8 +46,8 @@ function logAndThrow(error, context) {
     logError(`${context}:`, error);
 
     // Preserve specific error types or create a generic one
-    if (error instanceof ValidationError || 
-        error instanceof ParseError || 
+    if (error instanceof ValidationError ||
+        error instanceof ParseError ||
         error instanceof InferenceError ||
         error instanceof PlanningError ||
         error instanceof MemoryError) {
@@ -67,7 +67,7 @@ function handleErrorWithDefault(error, context, defaultValue = null) {
 }
 
 function withErrorHandling(fn, context, defaultValue = null) {
-    return async (...args) => {
+    return async(...args) => {
         try {
             return await fn(...args);
         } catch (error) {
@@ -95,18 +95,18 @@ function safeSync(operation, context, defaultValue = null) {
 }
 
 // Factory functions for specific error types
-const createValidationError = (message) => new ValidationError(message);
-const createParseError = (message) => new ParseError(message);
-const createInferenceError = (message) => new InferenceError(message);
-const createPlanningError = (message) => new PlanningError(message);
-const createMemoryError = (message) => new MemoryError(message);
+const createValidationError = message => new ValidationError(message);
+const createParseError = message => new ParseError(message);
+const createInferenceError = message => new InferenceError(message);
+const createPlanningError = message => new PlanningError(message);
+const createMemoryError = message => new MemoryError(message);
 
 // Error type checking functions
-const isValidationError = (error) => error instanceof ValidationError;
-const isParseError = (error) => error instanceof ParseError;
-const isInferenceError = (error) => error instanceof InferenceError;
-const isPlanningError = (error) => error instanceof PlanningError;
-const isMemoryError = (error) => error instanceof MemoryError;
+const isValidationError = error => error instanceof ValidationError;
+const isParseError = error => error instanceof ParseError;
+const isInferenceError = error => error instanceof InferenceError;
+const isPlanningError = error => error instanceof PlanningError;
+const isMemoryError = error => error instanceof MemoryError;
 
 export {
     handleError,

@@ -2,7 +2,7 @@ import Term from '../core/Term.js';
 import Task from '../core/Task.js';
 import EventBus from '../system/EventBus.js';
 import config from '../config/index.js';
-import {normalizeToArray} from '../utils/helpers.js';
+import { normalizeToArray } from '../utils/helpers.js';
 import {
     consolidateMemory,
     getHighestPriorityTasksWithPQ,
@@ -17,7 +17,7 @@ import TimeBasedForgettingStrategy from './strategies/TimeBasedForgettingStrateg
  * Memory manages the knowledge graph, storing Terms and Tasks.
  * It maintains both short-term and long-term memory, handles indexing,
  * and implements forgetting strategies.
- * 
+ *
  * The Memory class is responsible for:
  * 1. Storing and retrieving Terms and Tasks
  * 2. Managing short-term and long-term memory separation
@@ -34,14 +34,14 @@ class Memory {
         this.terms = new Map(); // Term key -> Term
         this.shortTermTasks = new Map(); // Task ID -> Task (recently accessed)
         this.longTermTasks = new Map(); // Task ID -> Task (persisted)
-        
+
         // Indexes for efficient querying
         this.implicationIndex = new Map(); // Term key -> Set of implication terms
         this.beliefIndex = new Map(); // Term key -> Set of belief tasks
         this.costIndex = new Map(); // Term key -> cost information
         this.punctuationIndex = new Map(); // Punctuation type -> Set of task IDs
         this.priorityIndex = new Map(); // Priority bucket -> Set of task IDs
-        
+
         // Maintenance state
         this.cycleCounter = 0;
         this.maintenanceFrequency = config.memory.MAINTENANCE_CYCLE_FREQUENCY;
@@ -84,7 +84,7 @@ class Memory {
      * @private
      */
     _registerEventListeners() {
-        EventBus.on('NewTasksCreated', (tasks) => this.addTasks(tasks));
+        EventBus.on('NewTasksCreated', tasks => this.addTasks(tasks));
         EventBus.on('SystemCycleEnded', () => this._performMaintenanceIfNeeded());
     }
 
@@ -116,7 +116,7 @@ class Memory {
      * @private
      */
     _pruneMemory() {
-        if (!this.forgettingStrategy) return;
+        if (!this.forgettingStrategy) { return; }
 
         const options = config.memory.FORGETTING_STRATEGY_OPTIONS || {};
         this.shortTermTasks = this.forgettingStrategy.prune(this.shortTermTasks, options.shortTerm);
@@ -150,7 +150,7 @@ class Memory {
         if (!term || !(term instanceof Term)) {
             throw new Error('Can only add valid Term instances to memory.');
         }
-        if (this.terms.has(term.key)) return;
+        if (this.terms.has(term.key)) { return; }
 
         this.terms.set(term.key, term);
         this._indexImplication(term);
@@ -181,13 +181,13 @@ class Memory {
     _indexTask(task) {
         this.beliefIndex = indexTask(task, this.beliefIndex);
         this.costIndex = updateCostIndex(task.term, this.costIndex, 'add');
-        
+
         // Update punctuation index
         if (!this.punctuationIndex.has(task.punctuation)) {
             this.punctuationIndex.set(task.punctuation, new Set());
         }
         this.punctuationIndex.get(task.punctuation).add(task.id);
-        
+
         // Update priority index (simple implementation - could be more sophisticated)
         const priorityBucket = Math.floor(task.state.priority * 10); // 0-10 buckets
         if (!this.priorityIndex.has(priorityBucket)) {
@@ -204,7 +204,7 @@ class Memory {
     _unindexTask(task) {
         this.beliefIndex = unindexTask(task, this.beliefIndex);
         this.costIndex = updateCostIndex(task.term, this.costIndex, 'remove');
-        
+
         // Update punctuation index
         if (this.punctuationIndex.has(task.punctuation)) {
             this.punctuationIndex.get(task.punctuation).delete(task.id);
@@ -212,7 +212,7 @@ class Memory {
                 this.punctuationIndex.delete(task.punctuation);
             }
         }
-        
+
         // Update priority index
         const priorityBucket = Math.floor(task.state.priority * 10);
         if (this.priorityIndex.has(priorityBucket)) {
@@ -230,7 +230,7 @@ class Memory {
      */
     addTasks(tasks) {
         const tasksToAdd = normalizeToArray(tasks);
-        if (tasksToAdd.length === 0) return;
+        if (tasksToAdd.length === 0) { return; }
 
         for (const task of tasksToAdd) {
             if (!task || !(task instanceof Task)) {
@@ -257,7 +257,7 @@ class Memory {
      * @param {string} taskId - The ID of the task to remove
      */
     removeTask(taskId) {
-        if (!taskId) return;
+        if (!taskId) { return; }
 
         const task = this.getTask(taskId);
         if (task) {
@@ -298,14 +298,13 @@ class Memory {
      * @returns {Task[]} Array of highest priority tasks
      */
     getHighestPriorityTasks(k = 20) {
-        if (k <= 0) return [];
+        if (k <= 0) { return []; }
 
         const allTasks = this.getAllTasks();
         if (this._shouldUsePriorityQueue(k, allTasks.length)) {
             return getHighestPriorityTasksWithPQ(allTasks, k);
-        } else {
-            return [...allTasks].sort((a, b) => b.state.priority - a.state.priority).slice(0, k);
         }
+        return [...allTasks].sort((a, b) => b.state.priority - a.state.priority).slice(0, k);
     }
 
     /**
@@ -355,7 +354,7 @@ class Memory {
             longTermTasks: this.longTermTasks.size,
             implications: this.implicationIndex.size,
             beliefs: this.beliefIndex.size,
-            costs: this.costIndex.size,
+            costs: this.costIndex.size
         };
     }
 
@@ -400,13 +399,12 @@ class Memory {
         if (allTasks.length <= count) {
             // If we need most or all tasks, just sort them
             return [...allTasks].sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime));
-        } else {
-            // For large collections, use a partial sort or heap-based approach
-            // This is a simple approach - could be further optimized with a min-heap
-            return [...allTasks]
-                .sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime))
-                .slice(0, count);
         }
+        // For large collections, use a partial sort or heap-based approach
+        // This is a simple approach - could be further optimized with a min-heap
+        return [...allTasks]
+            .sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime))
+            .slice(0, count);
     }
 
     /**
@@ -421,7 +419,7 @@ class Memory {
      */
     queryTasks(filters = {}) {
         let tasks;
-        
+
         // Use indexes for common filters to improve performance
         if (filters.punctuation && this.punctuationIndex.has(filters.punctuation)) {
             // Use punctuation index for faster lookup
@@ -459,7 +457,7 @@ class Memory {
         return JSON.stringify({
             terms: Array.from(this.terms.values()),
             shortTermTasks: Array.from(this.shortTermTasks.values()),
-            longTermTasks: Array.from(this.longTermTasks.values()),
+            longTermTasks: Array.from(this.longTermTasks.values())
         }, null, 2);
     }
 
@@ -470,10 +468,10 @@ class Memory {
      * @private
      */
     _createTaskFromJSON(json) {
-        if (!json || !json.termKey) return null;
+        if (!json || !json.termKey) { return null; }
 
         const term = this.getTerm(json.termKey);
-        if (!term) return null;
+        if (!term) { return null; }
 
         // Convert stamp strings back to BigInts
         const deserializedStamp = {

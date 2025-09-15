@@ -1,11 +1,8 @@
-import Term from "../core/Term.js";
-import Task from "../core/Task.js";
-import XenovaLLM from "./XenovaLLM.js";
-import {parseTerm} from '../parser/parse-utils.js';
-import {cosineSimilarity} from '../utils/math.js';
-import {LLMChain} from "langchain/chains";
-import {PromptTemplate} from "@langchain/core/prompts";
-import {StructuredOutputParser} from "@langchain/core/output_parsers";
+import Term from '../core/Term.js';
+import XenovaLLM from './XenovaLLM.js';
+import { LLMChain } from 'langchain/chains';
+import { PromptTemplate } from '@langchain/core/prompts';
+import { StructuredOutputParser } from '@langchain/core/output_parsers';
 import config from '../config/index.js';
 import HypothesisGenerator from './HypothesisGenerator.js';
 import PipelineFactory from './PipelineFactory.js';
@@ -13,14 +10,13 @@ import ExplanationGenerator from './ExplanationGenerator.js';
 import QAService from './QAService.js';
 import PlanRepairer from './PlanRepairer.js';
 import ProactiveEnricher from './ProactiveEnricher.js';
-import {handleError, handleErrorWithDefault} from '../utils/error-handler.js';
-import {info, error, debug, warn} from '../utils/logger.js';
-import zod from 'zod';
+import { handleError } from '../utils/error-handler.js';
+import { info, error, debug, warn } from '../utils/logger.js';
 
 const PIPELINE_TYPES = {
     FEATURE_EXTRACTION: 'feature-extraction',
     TEXT_GENERATION: 'text-generation',
-    QUESTION_ANSWERING: 'question-answering',
+    QUESTION_ANSWERING: 'question-answering'
 };
 
 class LM {
@@ -110,7 +106,7 @@ class LM {
 
     async #getGenerationPipeline() {
         debug('Getting text generation pipeline');
-        const pipeline = await this.#pipelineFactory.get(PIPELINE_TYPES.TEXT_GENERATION, config.LM.TEXT_GENERATION_MODEL, {useCache: false});
+        const pipeline = await this.#pipelineFactory.get(PIPELINE_TYPES.TEXT_GENERATION, config.LM.TEXT_GENERATION_MODEL, { useCache: false });
         if (!this.#llm) {
             info('Initializing XenovaLLM');
             this.#llm = new XenovaLLM(pipeline);
@@ -120,7 +116,7 @@ class LM {
 
     async #getQAPipeline() {
         debug('Getting QA pipeline');
-        return this.#pipelineFactory.get(PIPELINE_TYPES.QUESTION_ANSWERING, config.LM.QA_MODEL, {maxLength: 512});
+        return this.#pipelineFactory.get(PIPELINE_TYPES.QUESTION_ANSWERING, config.LM.QA_MODEL, { maxLength: 512 });
     }
 
     async #generate(prompt, options = {}) {
@@ -149,10 +145,10 @@ class LM {
         const parser = StructuredOutputParser.fromZodSchema(outputSchema);
         const prompt = new PromptTemplate({
             template: `${promptTemplate}\n{format_instructions}\n`,
-            inputVariables: ["context"],
-            partialVariables: {format_instructions: parser.getFormatInstructions()},
+            inputVariables: ['context'],
+            partialVariables: { format_instructions: parser.getFormatInstructions() }
         });
-        return new LLMChain({llm: this.#llm, prompt, ...generationOptions});
+        return new LLMChain({ llm: this.#llm, prompt, ...generationOptions });
     }
 
     #parseStructuredResult(resultText) {
@@ -178,7 +174,7 @@ class LM {
         try {
             debug(`Generating embedding for term: ${term.key}`);
             const extractor = await this.#getFeaturePipeline();
-            const output = await extractor(term.key, {pooling: 'mean', normalize: true});
+            const output = await extractor(term.key, { pooling: 'mean', normalize: true });
             const embeddingVector = Array.from(output.data);
             term.setEmbedding(embeddingVector);
             debug(`Embedding generated and assigned for term: ${term.key}`);
@@ -188,11 +184,11 @@ class LM {
         }
     }
 
-    async bootstrapTerm(termKey, options = {sync: false}) {
+    async bootstrapTerm(termKey, options = { sync: false }) {
         return this.#bootstrapTerm(termKey, options);
     }
 
-    async #bootstrapTerm(termKey, options = {sync: false}) {
+    async #bootstrapTerm(termKey, options = { sync: false }) {
         if (typeof termKey !== 'string' || termKey.length === 0) {
             throw new Error('termKey must be a non-empty string.');
         }
@@ -231,9 +227,9 @@ class LM {
         return this.#getFeaturePipeline();
     }
 
-    async generateHypotheses(tasks, config = {}) {
+    async generateHypotheses(tasks, options = {}) {
         debug(`Generating hypotheses for ${tasks.length} tasks`);
-        return this.#hypothesisGenerator.generateHypotheses(tasks, config);
+        return this.#hypothesisGenerator.generateHypotheses(tasks, options);
     }
 
     async evaluateAndRankHypotheses(tasks, hypotheses) {
@@ -246,8 +242,8 @@ class LM {
         return this.#hypothesisGenerator.refineHypothesis(hypothesis, refinementType);
     }
 
-    async explain(termKey, config = {}) {
-        return this.#explanationGenerator.explain(termKey, config);
+    async explain(termKey, options = {}) {
+        return this.#explanationGenerator.explain(termKey, options);
     }
 
     async answerQuestion(question, context = null) {

@@ -1,12 +1,12 @@
 import Task from '../../core/Task.js';
-import {parseTerm} from '../../parser/narseseParser.js';
+import { parseTerm } from '../../parser/narseseParser.js';
 import config from '../../config.js';
 
 function createTemporalTask(termKey, punctuation, truthValue, occurrenceTime, endTime = null) {
     const stamp = {
         creationTime: Date.now(),
-        occurrenceTime: occurrenceTime,
-        endTime: endTime
+        occurrenceTime,
+        endTime
     };
     return new Task(parseTerm(termKey), punctuation, truthValue, stamp);
 }
@@ -20,7 +20,7 @@ function createTemporalRelationshipTask(task1, task2, relationship) {
 }
 
 function createTemporalSequenceTask(tasks) {
-    if (tasks.length < 2) return null;
+    if (tasks.length < 2) { return null; }
 
     const termKeys = tasks.map(task => task.termKey);
     const termKey = `(&/, ${termKeys.join(', ')})`;
@@ -70,5 +70,5 @@ export {
     createTemporalTask,
     createTemporalRelationshipTask,
     createTemporalSequenceTask,
-    createTemporalClusterAbstractions,
+    createTemporalClusterAbstractions
 };

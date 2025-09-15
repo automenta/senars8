@@ -1,7 +1,7 @@
 import TaskFactory from '../core/TaskFactory.js';
 import PatternDetector from '../reasoner/PatternDetector.js';
 import EventBus from './EventBus.js';
-import {handleErrorWithDefault} from '../utils/error-handler.js';
+import { handleErrorWithDefault } from '../utils/error-handler.js';
 
 class Perception {
     constructor(memory, lm) {
@@ -24,7 +24,7 @@ class Perception {
         }
         try {
             const tasks = await processor(input);
-            this.perceptionHistory.push({modality: modalityName, input, timestamp: Date.now(), tasks: tasks.length});
+            this.perceptionHistory.push({ modality: modalityName, input, timestamp: Date.now(), tasks: tasks.length });
             return tasks;
         } catch (error) {
             return handleErrorWithDefault(error, 'Perception processing error', []);

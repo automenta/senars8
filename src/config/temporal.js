@@ -12,5 +12,5 @@ export default {
     PERIODIC_CONFIDENCE: 0.8,
     TEMPORAL_SUMMARY_CONFIDENCE: 0.9,
     PREDICTION_CONFIDENCE: 0.5,
-    MAX_COMPARISONS: 1000, // Maximum number of comparisons for temporal reasoning
+    MAX_COMPARISONS: 1000 // Maximum number of comparisons for temporal reasoning
 };

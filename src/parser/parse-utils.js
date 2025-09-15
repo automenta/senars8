@@ -1,5 +1,5 @@
-import {parseTerm as parseWithMoo} from './narseseParser.js';
-import {warn} from '../utils/logger.js';
+import { parseTerm as parseWithMoo } from './narseseParser.js';
+import { warn } from '../utils/logger.js';
 
 /**
  * Centralized parsing utility for Narsese terms
@@ -15,7 +15,7 @@ function parseTerm(termKey) {
     if (typeof termKey !== 'string' || termKey.length === 0) {
         return null;
     }
-    
+
     try {
         return parseWithMoo(termKey);
     } catch (error) {
@@ -34,7 +34,7 @@ function validateTermKey(termKey) {
     if (!termKey || typeof termKey !== 'string' || termKey.length === 0) {
         return false;
     }
-    
+
     // Additional validation to catch invalid term keys that would cause parsing errors
     return !(termKey.includes('( --> )') || termKey.includes('( ==> )') ||
         termKey.includes('( <-> )') || termKey.includes('( <=> )'));

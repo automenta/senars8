@@ -1,8 +1,7 @@
 import Task from '../../core/Task.js';
-import {parseTerm, validateTermKey} from '../../parser/parse-utils.js';
+import { parseTerm, validateTermKey } from '../../parser/parse-utils.js';
 import Term from '../../core/Term.js';
-import {handleErrorWithDefault} from '../../utils/error-handler.js';
-import {debug, error as logError} from '../../utils/logger.js';
+import { debug, error as logError } from '../../utils/logger.js';
 
 /**
  * Parses a task to extract its term structure
@@ -57,19 +56,19 @@ function createRule(spec) {
     if (!spec.name || typeof spec.name !== 'string') {
         throw new Error('Rule specification must include a valid name');
     }
-    
+
     if (!spec.arity || typeof spec.arity !== 'number' || spec.arity < 1) {
         throw new Error('Rule specification must include a valid arity (positive number)');
     }
-    
+
     if (!Array.isArray(spec.operands)) {
         throw new Error('Rule specification must include an array of operand validators');
     }
-    
+
     if (typeof spec.condition !== 'function') {
         throw new Error('Rule specification must include a condition function');
     }
-    
+
     if (typeof spec.action !== 'function') {
         throw new Error('Rule specification must include an action function');
     }
@@ -79,7 +78,7 @@ function createRule(spec) {
         arity: spec.arity,
         operands: spec.operands,
         description: spec.description || `Rule for ${spec.name}`,
-        
+
         /**
          * Checks if the rule can be applied to the given tasks
          * @param {...Task} tasks - The tasks to check
@@ -92,14 +91,14 @@ function createRule(spec) {
                     debug(`Rule ${spec.name}: Incorrect number of tasks. Expected ${spec.arity}, got ${tasks.length}`);
                     return false;
                 }
-                
+
                 // Parse tasks
                 const parsedTasks = tasks.map(parseTaskTerm);
                 if (!validateParsedTasks(parsedTasks)) {
                     debug(`Rule ${spec.name}: Failed to parse tasks`);
                     return false;
                 }
-                
+
                 // Apply rule-specific condition
                 const result = spec.condition(...parsedTasks);
                 debug(`Rule ${spec.name}: Condition check result: ${result}`);
@@ -109,7 +108,7 @@ function createRule(spec) {
                 return false;
             }
         },
-        
+
         /**
          * Applies the rule to the given tasks and generates a new task
          * @param {...Task} tasks - The tasks to apply the rule to
@@ -122,29 +121,29 @@ function createRule(spec) {
                     logError(`Rule ${spec.name}: Incorrect number of tasks. Expected ${spec.arity}, got ${tasks.length}`);
                     return null;
                 }
-                
+
                 // Parse tasks
                 const parsedTasks = tasks.map(parseTaskTerm);
                 if (!validateParsedTasks(parsedTasks)) {
                     logError(`Rule ${spec.name}: Failed to parse tasks`);
                     return null;
                 }
-                
+
                 // Apply rule action
                 const result = spec.action(...parsedTasks, ...tasks);
                 if (!result) {
                     debug(`Rule ${spec.name}: Action returned no result`);
                     return null;
                 }
-                
+
                 const { newTermKey, newTruthValue } = result;
-                
+
                 // Validate term key
                 if (!validateTermKey(newTermKey)) {
                     logError(`Rule ${spec.name}: Invalid term key generated: ${newTermKey}`);
                     return null;
                 }
-                
+
                 // Parse the new term
                 let parsedTerm;
                 try {
@@ -153,20 +152,20 @@ function createRule(spec) {
                     logError(`Rule ${spec.name}: Failed to parse generated term key: ${newTermKey}`, parseErr);
                     return null;
                 }
-                
+
                 if (!parsedTerm) {
                     logError(`Rule ${spec.name}: Parsing generated term key returned null: ${newTermKey}`);
                     return null;
                 }
-                
+
                 // Validate truth value
-                if (!newTruthValue || 
-                    typeof newTruthValue.frequency !== 'number' || 
+                if (!newTruthValue ||
+                    typeof newTruthValue.frequency !== 'number' ||
                     typeof newTruthValue.confidence !== 'number') {
                     logError(`Rule ${spec.name}: Invalid truth value generated:`, newTruthValue);
                     return null;
                 }
-                
+
                 // Create and return new task
                 const newTask = new Task(parsedTerm, '.', newTruthValue);
                 debug(`Rule ${spec.name}: Successfully created new task: ${newTask.toString()}`);
@@ -175,7 +174,7 @@ function createRule(spec) {
                 logError(`Error in rule ${spec.name} action:`, err);
                 return null;
             }
-        },
+        }
     };
 }
 
@@ -194,13 +193,13 @@ function createBinaryInheritanceRule(name, termBuilder, truthValueFunction) {
             if (parsed1?.type !== 'Inheritance' || parsed2?.type !== 'Inheritance') {
                 return false;
             }
-            
+
             // Check if predicates match and subjects are different
             const predicate1 = Term.buildTermKey(parsed1.predicate);
             const predicate2 = Term.buildTermKey(parsed2.predicate);
             const subject1 = Term.buildTermKey(parsed1.subject);
             const subject2 = Term.buildTermKey(parsed2.subject);
-            
+
             return predicate1 === predicate2 && subject1 !== subject2;
         },
         termBuilder,
@@ -223,11 +222,11 @@ function createTransitiveInheritanceRule(name, termBuilder, truthValueFunction) 
             if (parsed1?.type !== 'Inheritance' || parsed2?.type !== 'Inheritance') {
                 return false;
             }
-            
+
             // Check if the predicate of the first matches the subject of the second
             const predicate1 = Term.buildTermKey(parsed1.predicate);
             const subject2 = Term.buildTermKey(parsed2.subject);
-            
+
             return predicate1 === subject2;
         },
         termBuilder,
@@ -245,7 +244,7 @@ function createTransitiveInheritanceRule(name, termBuilder, truthValueFunction) 
 function createUnaryInheritanceRule(name, termBuilder, truthValueFunction) {
     return createUnaryRule(
         name,
-        (parsed1) => parsed1?.type === 'Inheritance',
+        parsed1 => parsed1?.type === 'Inheritance',
         termBuilder,
         truthValueFunction
     );
@@ -266,15 +265,15 @@ function createModusPonensRule(name, termBuilder, truthValueFunction) {
             if (parsed1?.type !== 'Implication') {
                 return false;
             }
-            
+
             // Second task must be an atomic term that matches the implication's subject
             if (parsed2?.type !== 'Atomic') {
                 return false;
             }
-            
+
             const subject1 = Term.buildTermKey(parsed1.subject);
             const term2 = Term.buildTermKey(parsed2);
-            
+
             return subject1 === term2;
         },
         termBuilder,
@@ -294,15 +293,15 @@ function createBinaryRule(name, condition, termBuilder, truthValueFunction) {
     if (typeof condition !== 'function') {
         throw new Error('Condition must be a function');
     }
-    
+
     if (typeof termBuilder !== 'function') {
         throw new Error('Term builder must be a function');
     }
-    
+
     if (typeof truthValueFunction !== 'function') {
         throw new Error('Truth value function must be a function');
     }
-    
+
     return createRule({
         name,
         arity: 2,
@@ -310,8 +309,8 @@ function createBinaryRule(name, condition, termBuilder, truthValueFunction) {
         condition,
         action: (parsed1, parsed2, task1, task2) => ({
             newTermKey: termBuilder(parsed1, parsed2),
-            newTruthValue: truthValueFunction(task1.state.truthValue, task2.state.truthValue),
-        }),
+            newTruthValue: truthValueFunction(task1.state.truthValue, task2.state.truthValue)
+        })
     });
 }
 
@@ -327,15 +326,15 @@ function createUnaryRule(name, condition, termBuilder, truthValueFunction) {
     if (typeof condition !== 'function') {
         throw new Error('Condition must be a function');
     }
-    
+
     if (typeof termBuilder !== 'function') {
         throw new Error('Term builder must be a function');
     }
-    
+
     if (typeof truthValueFunction !== 'function') {
         throw new Error('Truth value function must be a function');
     }
-    
+
     return createRule({
         name,
         arity: 1,
@@ -343,8 +342,8 @@ function createUnaryRule(name, condition, termBuilder, truthValueFunction) {
         condition,
         action: (parsed1, task1) => ({
             newTermKey: termBuilder(parsed1),
-            newTruthValue: truthValueFunction(task1.state.truthValue),
-        }),
+            newTruthValue: truthValueFunction(task1.state.truthValue)
+        })
     });
 }
 
@@ -355,5 +354,5 @@ export {
     createBinaryInheritanceRule,
     createTransitiveInheritanceRule,
     createUnaryInheritanceRule,
-    createModusPonensRule,
+    createModusPonensRule
 };

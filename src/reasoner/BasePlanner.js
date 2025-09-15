@@ -9,7 +9,7 @@ class BasePlanner {
         this.costManager = new CostManager(memory, config);
         this.config = {
             confidenceThreshold: config.confidenceThreshold || globalConfig.DEFAULT_TRUTH_VALUE.confidence,
-            preconditionConfidenceThreshold: config.preconditionConfidenceThreshold || 0.8,
+            preconditionConfidenceThreshold: config.preconditionConfidenceThreshold || 0.8
         };
     }
 
@@ -32,18 +32,18 @@ class BasePlanner {
     _getExpansions(task) {
         if (task.type === 'SequentialConjunction') {
             const subTasks = this._getSubTasks(task);
-            return subTasks ? [{subTasks, method: null, preconditions: []}] : [];
+            return subTasks ? [{ subTasks, method: null, preconditions: [] }] : [];
         }
 
         const decompositionMethods = this._getDecompositionMethods(task);
 
         if (decompositionMethods.length === 0) {
-            return [{subTasks: [task], method: null, preconditions: []}];
+            return [{ subTasks: [task], method: null, preconditions: [] }];
         }
 
         const expansions = [];
         for (const method of decompositionMethods) {
-            const subject = method.subject;
+            const { subject } = method;
             let preconditions = [];
 
             if (subject.type === 'SequentialConjunction') {
@@ -53,7 +53,7 @@ class BasePlanner {
             if (this._arePreconditionsMet(preconditions)) {
                 const subTasks = this._getSubTasks(method.predicate);
                 if (subTasks) {
-                    expansions.push({subTasks, method, preconditions});
+                    expansions.push({ subTasks, method, preconditions });
                 }
             }
         }

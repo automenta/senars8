@@ -1,5 +1,5 @@
 import { pipeline, env } from '@xenova/transformers';
-import {info, warn} from '../utils/logger.js';
+import { info, warn } from '../utils/logger.js';
 
 // Suppress ONNX runtime warnings
 env.logLevel = 'error';
@@ -19,9 +19,9 @@ class PipelineFactory {
                 // Create the pipeline promise and store it immediately.
                 pipelinePromise = pipeline(type, model, {
                     ...options,
-                    progress_callback: (progress) => {
-                        // console.log(progress);
-                    },
+                    progress_callback: _progress => {
+                        // console.log(_progress);
+                    }
                 });
                 this._pipelines.set(key, pipelinePromise);
             } catch (error) {

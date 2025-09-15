@@ -1,5 +1,5 @@
-import {handleErrorWithDefault} from '../utils/error-handler.js';
-import {error, debug} from '../utils/logger.js';
+import { handleErrorWithDefault } from '../utils/error-handler.js';
+import { error, debug } from '../utils/logger.js';
 
 class QAService {
     constructor(generateFunction, getQAPipelineFunction) {
@@ -9,7 +9,7 @@ class QAService {
 
     async answerQuestion(question, context = null) {
         if (!question || typeof question !== 'string') {
-            return "Cannot answer an empty question.";
+            return 'Cannot answer an empty question.';
         }
 
         try {

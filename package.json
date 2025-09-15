@@ -12,6 +12,8 @@
     "start:demo": "node --loader ./scripts/set-env.js demos/interactive-runner.js",
     "start:advanced-demo": "node --loader ./scripts/set-env.js demos/advanced-lm-demo.js",
     "test": "jest",
+    "lint": "eslint src tests",
+    "lint:fix": "eslint src tests --fix",
     "slides:dev": "slidev",
     "slides:build": "slidev build",
     "slides:export": "slidev export"
@@ -53,6 +55,12 @@
     "@babel/preset-env": "^7.28.3",
     "babel-jest": "^30.1.2",
     "babel-plugin-transform-import-meta": "^2.3.3",
+    "eslint": "^8.57.1",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^7.2.1",
+    "eslint-plugin-standard": "^4.1.0",
     "jest": "^30.1.3"
   }
 }

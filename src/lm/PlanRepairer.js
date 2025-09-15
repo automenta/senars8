@@ -1,6 +1,6 @@
-import {handleErrorWithDefault} from '../utils/error-handler.js';
-import {error, debug, warn} from '../utils/logger.js';
-import {parseTerm} from '../parser/parse-utils.js';
+import { handleErrorWithDefault } from '../utils/error-handler.js';
+import { error, debug, warn } from '../utils/logger.js';
+import { parseTerm } from '../parser/parse-utils.js';
 import zod from 'zod';
 
 class PlanRepairer {
@@ -11,7 +11,7 @@ class PlanRepairer {
     }
 
     async suggestPlanRepair(goalTask, failedPlan) {
-        if (!goalTask) throw new Error('Goal task is required');
+        if (!goalTask) { throw new Error('Goal task is required'); }
 
         try {
             debug(`Suggesting plan repair for goal: ${goalTask.termKey}`);
@@ -19,12 +19,12 @@ class PlanRepairer {
 
             const context = this._createPlanRepairContext(goalTask.termKey, failedPlan);
             const chain = this._createStructuredChain(
-                context + "New creative plan:",
-                zod.object({plan: zod.array(zod.string()).describe("A list of Narsese terms for the new plan.")}),
+                `${context}New creative plan:`,
+                zod.object({ plan: zod.array(zod.string()).describe('A list of Narsese terms for the new plan.') }),
                 {}
             );
 
-            const result = await chain.call({context: ""});
+            const result = await chain.call({ context: '' });
             const parsed = this._parseStructuredResult(result.text);
 
             if (!parsed || !parsed.plan) {

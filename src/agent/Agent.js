@@ -1,8 +1,6 @@
 import SystemFactory from '../system/SystemFactory.js';
 import { parseTerm } from '../parser/narseseParser.js';
-import Task from '../core/Task.js';
 import { handleError } from '../utils/error-handler.js';
-import EventBus from '../system/EventBus.js';
 import MCP from './MCP.js';
 
 /**
@@ -64,7 +62,7 @@ class Agent {
      * @param {Array} history - The interaction history from the MCP.
      * @returns {Promise<object|null>} A promise that resolves with the decided action or null.
      */
-    async decideNextAction(goalString, history) {
+    async decideNextAction(goalString, _history) {
         if (!this.isInitialized) {
             throw new Error('Agent not initialized. Call initialize() first.');
         }
@@ -93,7 +91,7 @@ class Agent {
         if (!this.tools[action.tool]) {
             throw new Error(`Tool not found: ${action.tool}`);
         }
-        const handler = this.tools[action.tool].handler;
+        const { handler } = this.tools[action.tool];
         const params = action.parameters.reduce((obj, param, index) => {
             const paramName = Object.keys(this.tools[action.tool].parameters.properties)[index];
             obj[paramName] = param;
@@ -123,8 +121,8 @@ class Agent {
                 goal: goalString,
                 steps: [{
                     tool: goalAction,
-                    parameters: goalParams,
-                }],
+                    parameters: goalParams
+                }]
             };
         }
 

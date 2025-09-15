@@ -1,14 +1,13 @@
 import Term from '../../core/Term.js';
 import TruthValueManager from '../TruthValueManager.js';
-import {createBinaryInheritanceRule} from './rule-factories.js';
-import {error} from '../../utils/logger.js';
+import { createBinaryInheritanceRule } from './rule-factories.js';
 
 /**
  * Induction Rule
- * 
+ *
  * Performs inductive inference:
  * If M --> P and M --> S, then S --> P
- * 
+ *
  * Truth value is calculated using induction.
  */
 export default createBinaryInheritanceRule(
@@ -20,8 +19,8 @@ export default createBinaryInheritanceRule(
                 subject: parsed1.subject,
                 predicate: parsed2.subject
             });
-        } catch (error) {
-            error('Error building induction term:', error);
+        } catch (err) {
+            console.error('Error building induction term:', err);
             return null;
         }
     },

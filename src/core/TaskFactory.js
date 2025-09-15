@@ -1,8 +1,8 @@
 import Task from './Task.js';
-import {createTemporalTask} from '../utils/temporal/task-creation.js';
-import {parseTerm} from '../parser/parse-utils.js';
+import { createTemporalTask } from '../utils/temporal/task-creation.js';
+import { parseTerm } from '../parser/parse-utils.js';
 import config from '../config/index.js';
-import {handleErrorWithDefault} from '../errors/error-handler.js';
+import { handleErrorWithDefault } from '../errors/error-handler.js';
 
 class TaskFactory {
     constructor(memory, lm) {
@@ -26,7 +26,7 @@ class TaskFactory {
 
     _initializeEventHandlers() {
         return {
-            'observation': async (e) => {
+            observation: async e => {
                 try {
                     return await this._createTask(e.content || `observed_${Date.now()}`, '.', {
                         frequency: e.confidence || 1.0,
@@ -37,7 +37,7 @@ class TaskFactory {
                     return null;
                 }
             },
-            'user_input': async (e) => {
+            user_input: async e => {
                 try {
                     return await this._createTask(e.content || `user_input_${Date.now()}`, '?', {
                         frequency: 1.0,
@@ -48,7 +48,7 @@ class TaskFactory {
                     return null;
                 }
             },
-            'sensor_data': async (e) => {
+            sensor_data: async e => {
                 try {
                     return await this._createTask(e.sensorType ? `(sensor_type_${e.sensorType}_value_${e.value})` : `sensor_data_${Date.now()}`, '.', {
                         frequency: 1.0,
@@ -59,7 +59,7 @@ class TaskFactory {
                     return null;
                 }
             },
-            'temporal_event': async (e) => {
+            temporal_event: async e => {
                 try {
                     return await this._createTemporalEventTask(e);
                 } catch (error) {
@@ -67,7 +67,7 @@ class TaskFactory {
                     return null;
                 }
             },
-            'communication': async (e) => {
+            communication: async e => {
                 try {
                     return await this._createTask(e.content ? `(communication_${e.sender}_to_${e.recipient}_${e.content})` : `communication_${Date.now()}`, '.', {
                         frequency: e.confidence || 1.0,
@@ -78,7 +78,7 @@ class TaskFactory {
                     return null;
                 }
             },
-            'action_feedback': async (e) => {
+            action_feedback: async e => {
                 try {
                     return await this._createTask(e.action ? `(action_feedback_${e.action}_${e.result})` : `action_feedback_${Date.now()}`, '.', {
                         frequency: e.success ? 1.0 : 0.0,
@@ -89,7 +89,7 @@ class TaskFactory {
                     return null;
                 }
             },
-            'goal_achievement': async (e) => {
+            goal_achievement: async e => {
                 try {
                     return await this._createTask(e.goal ? `(goal_achieved_${e.goal})` : `goal_achieved_${Date.now()}`, '.', {
                         frequency: 1.0,
@@ -100,7 +100,7 @@ class TaskFactory {
                     return null;
                 }
             },
-            'social_interaction': async (e) => {
+            social_interaction: async e => {
                 try {
                     return await this._createSocialInteractionTask(e);
                 } catch (error) {
@@ -108,7 +108,7 @@ class TaskFactory {
                     return null;
                 }
             },
-            'environmental_change': async (e) => {
+            environmental_change: async e => {
                 try {
                     return await this._createEnvironmentalChangeTask(e);
                 } catch (error) {
@@ -116,7 +116,7 @@ class TaskFactory {
                     return null;
                 }
             },
-            'learning_experience': async (e) => {
+            learning_experience: async e => {
                 try {
                     return await this._createLearningExperienceTask(e);
                 } catch (error) {
@@ -124,7 +124,7 @@ class TaskFactory {
                     return null;
                 }
             },
-            'default': async (e) => {
+            default: async e => {
                 try {
                     return await this._createTask(e.description || `event_${Date.now()}`, e.punctuation || '.', {
                         frequency: e.frequency || 1.0,
@@ -134,12 +134,12 @@ class TaskFactory {
                     handleErrorWithDefault(error, 'Error processing default event', null);
                     return null;
                 }
-            },
+            }
         };
     }
 
     async convertEventToTask(event) {
-        if (!event || !event.type) return null;
+        if (!event || !event.type) { return null; }
         const handler = this.eventHandlers[event.type] || this.eventHandlers.default;
         try {
             return await handler(event);
@@ -155,14 +155,14 @@ class TaskFactory {
         return createTemporalTask(
             termKey,
             '.',
-            {frequency: event.confidence || 1.0, confidence: event.confidence || 0.9},
+            { frequency: event.confidence || 1.0, confidence: event.confidence || 0.9 },
             event.occurrenceTime || Date.now(),
             event.endTime
         );
     }
 
     async _createSocialInteractionTask(event) {
-        const {participants = [], interactionType = 'unknown', emotionalTone = 'neutral'} = event;
+        const { participants = [], interactionType = 'unknown', emotionalTone = 'neutral' } = event;
         const termKey = `(social_interaction_${interactionType}_${participants.join('_')}_${emotionalTone})`;
         await this._ensureTermExists(termKey);
         // Additional related tasks could be created here too
@@ -173,15 +173,15 @@ class TaskFactory {
     }
 
     async _createEnvironmentalChangeTask(event) {
-        const {description = 'change', location = 'unknown_location'} = event;
+        const { description = 'change', location = 'unknown_location' } = event;
         const termKey = `(environmental_change_${description}_${location})`;
         await this._ensureTermExists(termKey);
         // Additional related tasks could be created here too
-        return this._createTask(termKey, '.', {frequency: event.magnitude || 1.0, confidence: event.confidence || 0.9});
+        return this._createTask(termKey, '.', { frequency: event.magnitude || 1.0, confidence: event.confidence || 0.9 });
     }
 
     async _createLearningExperienceTask(event) {
-        const {topic = 'unknown_topic', method = 'unknown_method'} = event;
+        const { topic = 'unknown_topic', method = 'unknown_method' } = event;
         const termKey = `(learning_experience_${topic}_${method})`;
         await this._ensureTermExists(termKey);
         // Additional related tasks could be created here too

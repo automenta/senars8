@@ -7,7 +7,7 @@ const LOG_LEVELS = {
 
 const currentLogLevel = LOG_LEVELS[process.env.LOG_LEVEL] || LOG_LEVELS.INFO;
 
-const shouldLog = (level) => level <= currentLogLevel;
+const shouldLog = level => level <= currentLogLevel;
 
 const formatLog = (level, message, ...args) => {
     const timestamp = new Date().toISOString();

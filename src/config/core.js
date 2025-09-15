@@ -9,5 +9,5 @@ export default {
     DEFAULT_TRUTH_VALUE: {
         frequency: 1.0,
         confidence: 0.9
-    },
+    }
 };

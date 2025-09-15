@@ -9,7 +9,7 @@ class Bag {
 
     put(item, priority) {
         if (typeof priority === 'number' && priority > 0) {
-            this.items.push({item, priority});
+            this.items.push({ item, priority });
             this.isDirty = true;
         }
     }

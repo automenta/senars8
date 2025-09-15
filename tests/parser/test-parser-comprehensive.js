@@ -1,4 +1,4 @@
-const {parseTerm} = require('../src/parser/narseseParser');
+const { parseTerm } = require('../src/parser/narseseParser');
 
 // Test that the parser output matches what the Reasoner expects
 console.log('Testing parser output compatibility with Reasoner:');
@@ -6,34 +6,34 @@ console.log('Testing parser output compatibility with Reasoner:');
 // Test cases that match the Reasoner's expectations
 const testCases = [
     // Atomic terms
-    {input: 'cat', expectedType: 'Atomic'},
+    { input: 'cat', expectedType: 'Atomic' },
 
     // Inheritance terms
-    {input: '(cat --> mammal)', expectedType: 'Inheritance'},
+    { input: '(cat --> mammal)', expectedType: 'Inheritance' },
 
     // Implication terms
-    {input: '(cat ==> furry)', expectedType: 'Implication'},
+    { input: '(cat ==> furry)', expectedType: 'Implication' },
 
     // Negation terms
-    {input: '(--, cat)', expectedType: 'Negation'},
+    { input: '(--, cat)', expectedType: 'Negation' },
 
     // Conjunction terms
-    {input: '(&, cat, dog)', expectedType: 'Conjunction'},
+    { input: '(&, cat, dog)', expectedType: 'Conjunction' },
 
     // Disjunction terms
-    {input: '(||, cat, dog)', expectedType: 'Disjunction'},
+    { input: '(||, cat, dog)', expectedType: 'Disjunction' },
 
     // Extensional difference terms
-    {input: '(#, cat, dog)', expectedType: 'ExtensionalDifference'},
+    { input: '(#, cat, dog)', expectedType: 'ExtensionalDifference' },
 
     // Intensional difference terms
-    {input: '(\\, cat, dog)', expectedType: 'IntensionalDifference'},
+    { input: '(\\, cat, dog)', expectedType: 'IntensionalDifference' },
 
     // Instance terms
-    {input: '(cat {-- animal)', expectedType: 'Instance'},
+    { input: '(cat {-- animal)', expectedType: 'Instance' },
 
     // Property terms
-    {input: '(cat --} furry)', expectedType: 'Property'}
+    { input: '(cat --} furry)', expectedType: 'Property' }
 ];
 
 testCases.forEach(testCase => {
@@ -48,10 +48,10 @@ testCases.forEach(testCase => {
         // Additional checks for specific types
         if (result.type === 'Inheritance' || result.type === 'Implication' ||
             result.type === 'Instance' || result.type === 'Property') {
-            console.log(`  Has subject: ${!!result.subject ? '✓' : '✗'}`);
-            console.log(`  Has predicate: ${!!result.predicate ? '✓' : '✗'}`);
+            console.log(`  Has subject: ${Boolean(result.subject) ? '✓' : '✗'}`);
+            console.log(`  Has predicate: ${Boolean(result.predicate) ? '✓' : '✗'}`);
         } else if (result.type === 'Negation') {
-            console.log(`  Has term: ${!!result.term ? '✓' : '✗'}`);
+            console.log(`  Has term: ${Boolean(result.term) ? '✓' : '✗'}`);
         } else if (result.type === 'Conjunction' || result.type === 'Disjunction' ||
             result.type === 'ExtensionalDifference' || result.type === 'IntensionalDifference') {
             console.log(`  Has terms array: ${Array.isArray(result.terms) ? '✓' : '✗'}`);

@@ -5,17 +5,17 @@ import LM from '../../src/lm/LM.js';
 import ActionExecutor from '../../src/system/ActionExecutor.js';
 import Task from '../../src/core/Task.js';
 import Term from '../../src/core/Term.js';
-import {parseTerm} from '../../src/parser/narseseParser.js';
+import { parseTerm } from '../../src/parser/narseseParser.js';
 import config from '../../src/config.js';
 
 // Mock the LM to avoid loading heavy models
 jest.mock('../../src/lm/LM.js');
 jest.mock('@xenova/transformers', () => {
     const transformers = jest.createMockFromModule('@xenova/transformers');
-    transformers.pipeline = jest.fn(async () => {
+    transformers.pipeline = jest.fn(async() => {
         // Return a mock function for feature extraction
-        return jest.fn((term) => ({
-            data: new Float32Array(term.length), // Return a dummy embedding
+        return jest.fn(term => ({
+            data: new Float32Array(term.length) // Return a dummy embedding
         }));
     });
     return transformers;
@@ -25,7 +25,7 @@ jest.mock('@xenova/transformers', () => {
 describe('Contradiction Resolution in Cycle', () => {
     let memory, reasoner, lm, cycle;
 
-    beforeEach(async () => {
+    beforeEach(async() => {
         memory = new Memory();
         reasoner = new Reasoner();
         lm = new LM();
@@ -34,8 +34,8 @@ describe('Contradiction Resolution in Cycle', () => {
 
         // Mock LM methods
         lm.generateHypotheses.mockResolvedValue([]);
-        lm.evaluateAndRankHypotheses.mockImplementation(async (tasks, hypotheses) => hypotheses);
-        lm.bootstrapTerm.mockImplementation(async (termKey) => {
+        lm.evaluateAndRankHypotheses.mockImplementation(async(tasks, hypotheses) => hypotheses);
+        lm.bootstrapTerm.mockImplementation(async termKey => {
             const term = new Term(termKey, [1, 2, 3], 1);
             memory.addTerm(term);
             return term;
@@ -46,7 +46,7 @@ describe('Contradiction Resolution in Cycle', () => {
         await cycle.bootstrap();
     });
 
-    test('should apply revision strategy for high-severity contradictions', async () => {
+    test('should apply revision strategy for high-severity contradictions', async() => {
         // 1. Setup: Add two directly contradictory beliefs with different confidences
         const termKey1 = '(bird --> fly)';
         const termKey2 = '(--, (bird --> fly))';
@@ -88,7 +88,7 @@ describe('Contradiction Resolution in Cycle', () => {
         expect(metaTask.state.priority).toBe(0.9); // META_TASK_PRIORITY
     });
 
-    test('should apply evidence gathering strategy for moderate-severity contradictions', async () => {
+    test('should apply evidence gathering strategy for moderate-severity contradictions', async() => {
         // 1. Setup: Add a belief and its negated inheritance counterpart
         const termKey1 = '(swan --> white)';
         const termKey2 = '(swan --> (--, white))'; // This is an inheritance conflict

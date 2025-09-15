@@ -1,7 +1,7 @@
 import moo from 'moo';
 
 const WHITESPACE = {
-    whitespace: {match: /\s+/, lineBreaks: true}
+    whitespace: { match: /\s+/, lineBreaks: true }
 };
 
 const PUNCTUATION = {

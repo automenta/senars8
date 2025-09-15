@@ -6,7 +6,7 @@ export default {
         heuristicWeights: {
             complexity: 0.4,
             confidence: 0.3,
-            semantic: 0.3,
-        },
+            semantic: 0.3
+        }
     }
 };

@@ -1,6 +1,4 @@
-import {safeAsync, safeSync} from '../utils/error-handler.js';
-import {debug} from '../utils/logger.js';
-import Task from '../core/Task.js';
+import { safeAsync, safeSync } from '../utils/error-handler.js';
 
 /**
  * Module containing the phase execution logic for the cognitive cycle
@@ -12,7 +10,7 @@ import Task from '../core/Task.js';
  * @returns {Promise<void>}
  */
 export async function runPerceptionPhase(perception) {
-    return await safeAsync(async () => {
+    return await safeAsync(async() => {
         await perception.processEvents();
     }, 'Cycle.runPerceptionPhase');
 }
@@ -26,7 +24,7 @@ export async function runPerceptionPhase(perception) {
  */
 export function runPrioritizationPhase(context, priorityManager, memory) {
     return safeSync(() => {
-        const {currentTime, driveEmbeddings} = context;
+        const { currentTime, driveEmbeddings } = context;
         memory.getAllTasks().forEach(task => {
             task.state.priority = priorityManager.calculatePriority(task, currentTime, driveEmbeddings);
         });
@@ -42,7 +40,7 @@ export function runPrioritizationPhase(context, priorityManager, memory) {
  * @returns {Promise<Task[]>} Array of meta tasks
  */
 async function resolveContradictions(contradictions, eventBus, config, memory) {
-    return await safeAsync(async () => {
+    return await safeAsync(async() => {
         const resolutionPromises = contradictions.map(contradiction =>
             eventBus.request('MetaCognition.resolve', {
                 contradiction,
@@ -69,11 +67,11 @@ async function resolveContradictions(contradictions, eventBus, config, memory) {
  * @returns {Promise<object>} Object containing contradictions and meta tasks
  */
 export async function runMetaCognitionPhase(context, eventBus, config, memory) {
-    return await safeAsync(async () => {
-        const {allTasks} = context;
+    return await safeAsync(async() => {
+        const { allTasks } = context;
         const contradictions = (await eventBus.request('MetaCognition.findContradictions', allTasks)) || [];
         const metaTasks = contradictions.length > 0 ? await resolveContradictions(contradictions, eventBus, config, memory) : [];
-        return {contradictions, metaTasks};
+        return { contradictions, metaTasks };
     }, 'Cycle.runMetaCognitionPhase');
 }
 
@@ -87,8 +85,8 @@ export async function runMetaCognitionPhase(context, eventBus, config, memory) {
  * @returns {Promise<Task[]>} Array of derived tasks
  */
 export async function runReasoningPhase(context, getFocusSet, getPrioritizedGoals, temporalReasoner, performReasoning) {
-    return await safeAsync(async () => {
-        const {contradictions} = context;
+    return await safeAsync(async() => {
+        const { contradictions } = context;
         const focusSet = getFocusSet();
         if (focusSet.length === 0) {
             return [];
@@ -111,13 +109,13 @@ export async function runReasoningPhase(context, getFocusSet, getPrioritizedGoal
  * @returns {Promise<object>} Object containing proactive tasks
  */
 export async function runEnrichmentPhase(context, getNewTermKeys, bootstrapTerms, proactiveEnrichment) {
-    return await safeAsync(async () => {
-        const {derivedTasks, metaTasks} = context;
+    return await safeAsync(async() => {
+        const { derivedTasks, metaTasks } = context;
 
         const newTermKeys = getNewTermKeys([...derivedTasks, ...metaTasks]);
         await bootstrapTerms(newTermKeys);
 
-        return {proactiveTasks: await proactiveEnrichment()};
+        return { proactiveTasks: await proactiveEnrichment() };
     }, 'Cycle.runEnrichmentPhase');
 }
 
@@ -128,7 +126,7 @@ export async function runEnrichmentPhase(context, getNewTermKeys, bootstrapTerms
  * @returns {Promise<any[]>} Array of execution results
  */
 export async function runActionPhase(getActionableGoals, executeGoalPlan) {
-    return await safeAsync(async () => {
+    return await safeAsync(async() => {
         const actionableGoals = getActionableGoals();
         const executionPromises = actionableGoals.map(goal => executeGoalPlan(goal));
         return Promise.all(executionPromises);

@@ -1,4 +1,4 @@
-import {error as logError} from '../utils/logger.js';
+import { error as logError } from '../utils/logger.js';
 
 // Error classes
 class ValidationError extends Error {
@@ -49,7 +49,7 @@ function handleErrorWithDefault(error, context, defaultValue = null) {
 }
 
 function withErrorHandling(fn, context, defaultValue = null) {
-    return async (...args) => {
+    return async(...args) => {
         try {
             return await fn(...args);
         } catch (error) {
@@ -59,9 +59,9 @@ function withErrorHandling(fn, context, defaultValue = null) {
 }
 
 // Factory functions for specific error types
-const createValidationError = (message) => new ValidationError(message);
-const createParseError = (message) => new ParseError(message);
-const createInferenceError = (message) => new InferenceError(message);
+const createValidationError = message => new ValidationError(message);
+const createParseError = message => new ParseError(message);
+const createInferenceError = message => new InferenceError(message);
 
 export {
     handleError,

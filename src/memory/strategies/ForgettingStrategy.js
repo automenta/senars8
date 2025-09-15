@@ -3,7 +3,7 @@ class ForgettingStrategy {
         this.options = options;
     }
 
-    prune(tasks) {
+    prune(_tasks) {
         throw new Error('ForgettingStrategy subclasses must implement a prune() method.');
     }
 }

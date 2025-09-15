@@ -19,5 +19,5 @@ export const detectionStrategies = [
     analyzeConjunctionConflict,
     analyzeDisjunctionConflict,
     analyzeFrequencyConflict,
-    analyzeGoalConflict,
+    analyzeGoalConflict
 ];

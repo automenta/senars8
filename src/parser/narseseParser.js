@@ -2,24 +2,24 @@ import lexer from './lexer.js';
 
 class NarseseParser {
     static UNARY_OPERATOR_TYPES = {
-        'negation': 'Negation'
+        negation: 'Negation'
     };
 
     static TEMPORAL_OPERATOR_TYPES = {
-        'always': 'Always',
-        'eventually': 'Eventually',
-        'next': 'Next',
-        'previous': 'Previous'
+        always: 'Always',
+        eventually: 'Eventually',
+        next: 'Next',
+        previous: 'Previous'
     };
 
     static BINARY_OPERATOR_TYPES = {
-        'conjunction': 'Conjunction',
-        'sequentialConjunction': 'SequentialConjunction',
-        'parallelConjunction': 'ParallelConjunction',
-        'disjunction': 'Disjunction',
-        'extensionalDifference': 'ExtensionalDifference',
-        'intensionalDifference': 'IntensionalDifference',
-        'product': 'Product'
+        conjunction: 'Conjunction',
+        sequentialConjunction: 'SequentialConjunction',
+        parallelConjunction: 'ParallelConjunction',
+        disjunction: 'Disjunction',
+        extensionalDifference: 'ExtensionalDifference',
+        intensionalDifference: 'IntensionalDifference',
+        product: 'Product'
     };
 
     constructor(input) {
@@ -43,7 +43,7 @@ class NarseseParser {
 
     consume(type) {
         if (this.match(type)) {
-            const value = this.current.value;
+            const { value } = this.current;
             this.next();
             return value;
         }
@@ -78,9 +78,9 @@ class NarseseParser {
         if (punctuation || truthValue) {
             return {
                 type: 'Statement',
-                term: term,
-                punctuation: punctuation,
-                truthValue: truthValue
+                term,
+                punctuation,
+                truthValue
             };
         }
 
@@ -93,7 +93,7 @@ class NarseseParser {
         this.consume('comma');
         const confidence = this.parseNumber();
         this.consume('rparen');
-        return {frequency, confidence};
+        return { frequency, confidence };
     }
 
     parseNumber() {
@@ -118,9 +118,8 @@ class NarseseParser {
             return this.parseDependentVariable();
         } else if (this.match('queryVar')) {
             return this.parseQueryVariable();
-        } else {
-            throw new Error(`Unexpected token '${this.current ? this.current.type : 'EOF'}' when parsing term`);
         }
+        throw new Error(`Unexpected token '${this.current ? this.current.type : 'EOF'}' when parsing term`);
     }
 
     parseCompoundTerm() {
@@ -162,10 +161,9 @@ class NarseseParser {
             return this.parseUntil(firstTerm);
         } else if (this.match('since')) {
             return this.parseSince(firstTerm);
-        } else {
-            this.consume('rparen');
-            return firstTerm;
         }
+        this.consume('rparen');
+        return firstTerm;
     }
 
     matchUnaryOperator() {
@@ -178,7 +176,7 @@ class NarseseParser {
         this.consume('comma');
         const term = this.parseTerm();
         this.consume('rparen');
-        return {type: this.getUnaryOperatorType(operatorToken.type), term};
+        return { type: this.getUnaryOperatorType(operatorToken.type), term };
     }
 
     getUnaryOperatorType(operator) {
@@ -195,7 +193,7 @@ class NarseseParser {
         this.consume('comma');
         const term = this.parseTerm();
         this.consume('rparen');
-        return {type: this.getTemporalOperatorType(operatorToken.type), term};
+        return { type: this.getTemporalOperatorType(operatorToken.type), term };
     }
 
     getTemporalOperatorType(operator) {
@@ -216,7 +214,7 @@ class NarseseParser {
         this.consume('comma');
         const terms = this.parseTermList();
         this.consume('rparen');
-        return {type: this.getBinaryOperatorType(operatorToken.type), terms};
+        return { type: this.getBinaryOperatorType(operatorToken.type), terms };
     }
 
     getBinaryOperatorType(operator) {
@@ -227,7 +225,7 @@ class NarseseParser {
         this.consume(tokenType);
         const predicate = this.parseTerm();
         this.consume('rparen');
-        return {type: relationType, subject, predicate};
+        return { type: relationType, subject, predicate };
     }
 
     parseInheritance(subject) {
@@ -278,25 +276,25 @@ class NarseseParser {
         this.consume('setExtension');
         const terms = this.parseTermList();
         this.consume('rbrace');
-        return {type: 'ExtensionalSet', terms};
+        return { type: 'ExtensionalSet', terms };
     }
 
     parseIntensionalSet() {
         this.consume('setIntension');
         const terms = this.parseTermList();
         this.consume('rbracket');
-        return {type: 'IntensionalSet', terms};
+        return { type: 'IntensionalSet', terms };
     }
 
     parseAtomicTerm() {
         const token = this.current;
         this.next(); // consume token
-        return {type: 'Atomic', key: token.value};
+        return { type: 'Atomic', key: token.value };
     }
 
     parseVariable(tokenType, variableType) {
         const variable = this.consume(tokenType);
-        return {type: variableType, name: variable};
+        return { type: variableType, name: variable };
     }
 
     parseIndependentVariable() {

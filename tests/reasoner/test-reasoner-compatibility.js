@@ -1,4 +1,4 @@
-const {parseTerm} = require('../src/parser/narseseParser');
+const { parseTerm } = require('../src/parser/narseseParser');
 
 // Test that the parser output works with the Reasoner's expectations
 console.log('Testing Reasoner compatibility:');

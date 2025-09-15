@@ -11,11 +11,10 @@ function calculateTemporalPriority(task, currentTime) {
 
     if (task.state.stamp.occurrenceTime > currentTime) {
         return ongoingBoost * 1.0 / (1.0 + timeDifference / 1000);
-    } else {
-        return ongoingBoost * 1.0 / (1.0 + timeDifference / 5000);
     }
+    return ongoingBoost * 1.0 / (1.0 + timeDifference / 5000);
 }
 
 export {
-    calculateTemporalPriority,
+    calculateTemporalPriority
 };

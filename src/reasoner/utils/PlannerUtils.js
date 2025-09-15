@@ -3,7 +3,7 @@ function findDecompositionMethods(goalTerm, memory) {
 }
 
 function extractSubTasksFromMethod(methodTerm) {
-    if (!methodTerm) return null;
+    if (!methodTerm) { return null; }
     if (methodTerm.type === 'SequentialConjunction') {
         return methodTerm.terms;
     }
@@ -12,7 +12,7 @@ function extractSubTasksFromMethod(methodTerm) {
 
 function isAchieved(term, memory, config) {
     const beliefs = memory.beliefIndex.get(term.key);
-    return !!(beliefs && beliefs.length > 0 &&
+    return Boolean(beliefs && beliefs.length > 0 &&
         beliefs.some(belief => belief.state.truthValue.confidence >= config.confidenceThreshold));
 }
 
@@ -31,5 +31,5 @@ export {
     findDecompositionMethods,
     extractSubTasksFromMethod,
     isAchieved,
-    arePreconditionsMet,
+    arePreconditionsMet
 };

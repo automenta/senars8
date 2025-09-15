@@ -11,18 +11,18 @@ export default {
         confidence: 0.9
     },
     LM_HYPOTHESIS_CONFIGS: [
-        {type: 'general', num: 2},
-        {type: 'creative', num: 1},
-        {type: 'sophisticated', num: 1},
+        { type: 'general', num: 2 },
+        { type: 'creative', num: 1 },
+        { type: 'sophisticated', num: 1 }
     ],
     ACTION_EXECUTOR: {
         RESOURCES: [
-            {name: 'cpu', total: 100, unit: 'percent'},
-            {name: 'memory', total: 8192, unit: 'MB'},
-            {name: 'network', total: 1000, unit: 'Mbps'},
+            { name: 'cpu', total: 100, unit: 'percent' },
+            { name: 'memory', total: 8192, unit: 'MB' },
+            { name: 'network', total: 1000, unit: 'Mbps' }
         ],
         CONSTRAINTS: {
-            resource_limit: function (action) {
+            resource_limit(action) {
                 if (!action.resource_requirements) {
                     return true;
                 }
@@ -38,18 +38,18 @@ export default {
                 }
                 return true;
             },
-            safety: function (action) {
+            safety(action) {
                 const dangerousActions = ['delete_system', 'format_disk', 'shutdown_system'];
                 return !dangerousActions.includes(action.name);
-            },
-        },
+            }
+        }
     },
     LM: {
         FEATURE_EXTRACTION_MODEL: 'Xenova/all-MiniLM-L6-v2',
         TEXT_GENERATION_MODEL: 'Xenova/distilgpt2',
         QA_MODEL: 'Xenova/distilbert-base-uncased-distilled-squad',
         EMBEDDING_BATCH_SIZE: 10,
-        EMBEDDING_BATCH_DELAY_MS: 100,
+        EMBEDDING_BATCH_DELAY_MS: 100
     },
     planner: {
         strategy: 'HTN', // Can be 'AStar' or 'HTN'
@@ -59,8 +59,8 @@ export default {
             heuristicWeights: {
                 complexity: 0.4,
                 confidence: 0.3,
-                semantic: 0.3,
-            },
+                semantic: 0.3
+            }
         }
     },
     memory: {
@@ -70,20 +70,20 @@ export default {
                 expirationThreshold: BigInt(24) * BigInt(3600 * 1000), // 1 day
                 importanceThresholds: {
                     priority: 0.7,
-                    confidence: 0.7,
+                    confidence: 0.7
                 }
             },
             longTerm: {
                 expirationThreshold: BigInt(30) * BigInt(24) * BigInt(3600 * 1000), // 30 days
                 importanceThresholds: {
                     priority: 0.8,
-                    confidence: 0.8,
+                    confidence: 0.8
                 }
             }
         },
         MAINTENANCE_CYCLE_FREQUENCY: 10,
         CONSOLIDATION_PRIORITY_THRESHOLD: 0.8,
-        CONSOLIDATION_CONFIDENCE_THRESHOLD: 0.9,
+        CONSOLIDATION_CONFIDENCE_THRESHOLD: 0.9
     },
     temporal: {
         REGULARITY_BOOST: 0.7,
@@ -99,10 +99,10 @@ export default {
         PERIODIC_CONFIDENCE: 0.8,
         TEMPORAL_SUMMARY_CONFIDENCE: 0.9,
         PREDICTION_CONFIDENCE: 0.5,
-        MAX_COMPARISONS: 1000, // Maximum number of comparisons for temporal reasoning
+        MAX_COMPARISONS: 1000 // Maximum number of comparisons for temporal reasoning
     },
     system: {
         BATCH_SIZE: 10, // Batch size for term bootstrapping
-        CONFIDENCE_REDUCTION_FACTOR: 0.1, // Factor by which to reduce confidence during revision
+        CONFIDENCE_REDUCTION_FACTOR: 0.1 // Factor by which to reduce confidence during revision
     }
 };

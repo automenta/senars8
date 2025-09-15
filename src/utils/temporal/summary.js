@@ -1,15 +1,15 @@
 import Task from '../../core/Task.js';
-import {parseTerm} from '../../parser/narseseParser.js';
+import { parseTerm } from '../../parser/narseseParser.js';
 import config from '../../config.js';
-import {findTasksInTimeWindow} from './query.js';
-import {calculateIntervalStats} from './helpers.js';
+import { findTasksInTimeWindow } from './query.js';
+import { calculateIntervalStats } from './helpers.js';
 
 function createTemporalSummary(tasks, startTime, endTime) {
     const tasksInWindow = findTasksInTimeWindow(tasks, startTime, endTime);
-    if (tasksInWindow.length === 0) return null;
+    if (tasksInWindow.length === 0) { return null; }
 
     const taskCount = tasksInWindow.length;
-    const uniqueTerms = new Set(tasksInWindow.map(task => task.termKey)).size;
+    const _uniqueTerms = new Set(tasksInWindow.map(task => task.termKey)).size;
 
     const timeSpan = endTime - startTime;
     const density = taskCount / (timeSpan / (1000 * 60));
@@ -19,10 +19,10 @@ function createTemporalSummary(tasks, startTime, endTime) {
         termCounts[task.termKey] = (termCounts[task.termKey] || 0) + 1;
     });
 
-    const mostFrequentTerms = Object.entries(termCounts)
+    const _mostFrequentTerms = Object.entries(termCounts)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 3)
-        .map(([termKey, count]) => ({termKey, count}));
+        .map(([termKey, count]) => ({ termKey, count }));
 
     const termKey = `(temporal_summary_${startTime}_to_${endTime})`;
 
@@ -32,15 +32,15 @@ function createTemporalSummary(tasks, startTime, endTime) {
     }, {
         creationTime: Date.now(),
         occurrenceTime: startTime,
-        endTime: endTime
+        endTime
     });
 }
 
 function createTemporalAbstraction(tasks) {
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
-    if (temporalTasks.length < 2) return null;
+    if (temporalTasks.length < 2) { return null; }
 
-    const {avgInterval, stdDev} = calculateIntervalStats(temporalTasks);
+    const { avgInterval, stdDev } = calculateIntervalStats(temporalTasks);
     const regularity = 1.0 / (1.0 + stdDev / avgInterval);
 
     const startTime = temporalTasks[0].state.stamp.occurrenceTime;
@@ -55,13 +55,13 @@ function createTemporalAbstraction(tasks) {
     }, {
         creationTime: Date.now(),
         occurrenceTime: startTime,
-        endTime: endTime
+        endTime
     });
 }
 
 function calculateTemporalCoherence(tasks) {
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
-    if (temporalTasks.length < 2) return 1.0;
+    if (temporalTasks.length < 2) { return 1.0; }
 
     const timeWindow = 60 * 60 * 1000;
     const windows = {};
@@ -91,5 +91,5 @@ function calculateTemporalCoherence(tasks) {
 export {
     createTemporalSummary,
     createTemporalAbstraction,
-    calculateTemporalCoherence,
+    calculateTemporalCoherence
 };

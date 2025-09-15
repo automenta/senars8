@@ -1,18 +1,25 @@
 process.env.ORT_LOGGING_LEVEL = 'FATAL';
 
+// eslint-disable-next-line no-unused-vars
 import Memory from '../memory/Memory.js';
+// eslint-disable-next-line no-unused-vars
 import Reasoner from '../reasoner/Reasoner.js';
+// eslint-disable-next-line no-unused-vars
 import TemporalReasoner from '../reasoner/TemporalReasoner.js';
+// eslint-disable-next-line no-unused-vars
 import LM from '../lm/LM.js';
+// eslint-disable-next-line no-unused-vars
 import Cycle from './Cycle.js';
+// eslint-disable-next-line no-unused-vars
 import ActionExecutor from './ActionExecutor.js';
+// eslint-disable-next-line no-unused-vars
 import CONSTITUTION_TASKS from './Constitution.js';
 import registerDefaultActions from './default-actions.js';
 import config from '../config.js';
 import _ from 'lodash';
-import {handleError, safeAsync} from '../utils/error-handler.js';
-import {debug, error, info, warn} from '../utils/logger.js';
-import {normalizeToArray} from '../utils/helpers.js';
+import { handleError, safeAsync, safeSync } from '../utils/error-handler.js';
+import { debug, error, info, warn } from '../utils/logger.js';
+import { normalizeToArray } from '../utils/helpers.js';
 
 /**
  * System is the main entry point for the SeNARS cognitive architecture.
@@ -25,7 +32,7 @@ class System {
      * @param {object} dependencies - Dependency injection for testing
      * @private
      */
-    constructor(userConfig = {}, {memory, reasoner, lm, actionExecutor, cycle}) {
+    constructor(userConfig = {}, { memory, reasoner, lm, actionExecutor, cycle }) {
         this.config = _.merge({}, config, userConfig);
         this.memory = memory;
         this.reasoner = reasoner;
@@ -41,11 +48,11 @@ class System {
         info('System components created');
     }
 
-    async _bootstrapTerms(tasks, options = {sync: false}) {
-        return await safeAsync(async () => {
+    async _bootstrapTerms(tasks, options = { sync: false }) {
+        return await safeAsync(async() => {
             const termKeys = [...new Set(tasks.map(task => task.termKey))];
             const newTermKeys = termKeys.filter(key => !this.memory.getTerm(key));
-            if (newTermKeys.length === 0) return;
+            if (newTermKeys.length === 0) { return; }
 
             debug(`Bootstrapping ${newTermKeys.length} new terms`);
             const termPromises = newTermKeys.map(key => this.lm.bootstrapTerm(key, options));
@@ -60,7 +67,7 @@ class System {
      * @returns {Promise<object>} A promise that resolves to cycle results
      */
     async runCycle() {
-        return await safeAsync(async () => {
+        return await safeAsync(async() => {
             this.cycleCount++;
             debug(`Running cycle ${this.cycleCount}`);
             const result = await this.cycle.runOnce();
@@ -75,7 +82,7 @@ class System {
      * @returns {Promise<void>} A promise that resolves when the system stops
      */
     async start(maxCycles = 0) {
-        return await safeAsync(async () => {
+        return await safeAsync(async() => {
             if (this.isRunning) {
                 warn('System is already running');
                 return;
@@ -123,7 +130,7 @@ class System {
      * @returns {Promise<void>} A promise that resolves when tasks are added
      */
     async addTasks(tasks) {
-        return await safeAsync(async () => {
+        return await safeAsync(async() => {
             const tasksToAdd = normalizeToArray(tasks);
             debug(`Adding ${tasksToAdd.length} tasks to system`);
             await this._bootstrapTerms(tasksToAdd);
@@ -166,7 +173,7 @@ class System {
 
     getConfig() {
         return safeSync(() => {
-            return {...this.config};
+            return { ...this.config };
         }, 'System.getConfig', {});
     }
 }

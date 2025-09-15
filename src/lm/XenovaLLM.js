@@ -1,4 +1,4 @@
-import {LLM} from "@langchain/core/language_models/llms";
+import { LLM } from '@langchain/core/language_models/llms';
 
 class XenovaLLM extends LLM {
     constructor(pipeline, options = {}) {
@@ -13,7 +13,7 @@ class XenovaLLM extends LLM {
             temperature: 0.7,
             do_sample: true,
             ...this.options,
-            ...options,
+            ...options
         };
 
         const result = await this.pipeline(prompt, generationOptions);
@@ -21,7 +21,7 @@ class XenovaLLM extends LLM {
     }
 
     _llmType() {
-        return "xenova";
+        return 'xenova';
     }
 }
 

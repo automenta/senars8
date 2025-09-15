@@ -1,4 +1,4 @@
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import Action from '../core/Action.js';
 
 class Plan {
@@ -18,19 +18,19 @@ class Plan {
             results.push(result);
 
             if (!result.success) {
-                return {success: false, planId: this.id, error: `Plan failed at action ${step.key}`, results};
+                return { success: false, planId: this.id, error: `Plan failed at action ${step.key}`, results };
             }
         }
-        return {success: true, planId: this.id, results};
+        return { success: true, planId: this.id, results };
     }
 
     async _executeStep(term) {
         const action = this._parseAction(term);
         if (!action) {
-            return {success: false, error: `Could not parse action: ${term.key}`};
+            return { success: false, error: `Could not parse action: ${term.key}` };
         }
         const result = await this.actionExecutor.execute(action);
-        return {...result, action: action.name};
+        return { ...result, action: action.name };
     }
 
     _parseAction(term) {

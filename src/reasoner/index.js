@@ -3,5 +3,5 @@ import HTNPlanner from './HTNPlanner.js';
 
 export default {
     AStarPlanner,
-    HTNPlanner,
+    HTNPlanner
 };

@@ -14,7 +14,7 @@ class BruteForceStrategy {
         if (arity === 2) {
             for (let i = 0; i < focusSet.length; i++) {
                 for (let j = 0; j < focusSet.length; j++) {
-                    if (i === j) continue;
+                    if (i === j) { continue; }
                     yield [focusSet[i], focusSet[j]];
                 }
             }
@@ -24,14 +24,13 @@ class BruteForceStrategy {
         if (arity === 3) {
             for (let i = 0; i < focusSet.length; i++) {
                 for (let j = 0; j < focusSet.length; j++) {
-                    if (i === j) continue;
+                    if (i === j) { continue; }
                     for (let k = 0; k < focusSet.length; k++) {
-                        if (k === i || k === j) continue;
+                        if (k === i || k === j) { continue; }
                         yield [focusSet[i], focusSet[j], focusSet[k]];
                     }
                 }
             }
-            return;
         }
     }
 }

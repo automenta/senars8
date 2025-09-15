@@ -1,7 +1,7 @@
 import Planners from '../reasoner/index.js';
 import Plan from './Plan.js';
-import {debug, error, info, warn} from '../utils/logger.js';
-import {handleErrorWithDefault} from '../utils/error-handler.js';
+import { debug, error, info, warn } from '../utils/logger.js';
+import { handleErrorWithDefault } from '../utils/error-handler.js';
 
 class Planner {
     constructor(memory, lm, actionExecutor, config = {}) {
@@ -10,7 +10,7 @@ class Planner {
         }
 
         const strategyName = config.strategy || 'HTN';
-        const PlannerClass = Planners[strategyName + 'Planner'];
+        const PlannerClass = Planners[`${strategyName}Planner`];
         if (!PlannerClass) {
             throw new Error(`Unknown planner strategy: ${strategyName}`);
         }
@@ -83,9 +83,8 @@ class Planner {
             if (lmSuggestion && lmSuggestion.length > 0) {
                 debug(`LM provided ${lmSuggestion.length} plan steps`);
                 return lmSuggestion;
-            } else {
-                warn(`LM failed to provide plan suggestion for goal: ${goalTask.termKey}`);
             }
+            warn(`LM failed to provide plan suggestion for goal: ${goalTask.termKey}`);
         }
         return null;
     }

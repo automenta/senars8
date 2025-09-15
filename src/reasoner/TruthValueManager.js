@@ -1,7 +1,6 @@
 import config from '../config.js';
-import {handleErrorWithDefault} from '../utils/error-handler.js';
-import Task from '../core/Task.js';
-import {getBeliefTasks} from '../utils/task-utils.js';
+import { handleErrorWithDefault } from '../utils/error-handler.js';
+import { getBeliefTasks } from '../utils/task-utils.js';
 
 /**
  * Truth Value Manager
@@ -25,7 +24,7 @@ class TruthValueManager {
     static deduce(tv1, tv2) {
         const frequency = tv1.frequency * tv2.frequency;
         const confidence = tv1.confidence * tv2.confidence * config.DEFAULT_TRUTH_VALUE.confidence;
-        return {frequency, confidence};
+        return { frequency, confidence };
     }
 
     /**
@@ -37,7 +36,7 @@ class TruthValueManager {
     static induce(tv1, tv2) {
         const frequency = (tv1.frequency + tv2.frequency) / 2;
         const confidence = tv1.confidence * tv2.confidence * 0.5;
-        return {frequency, confidence};
+        return { frequency, confidence };
     }
 
     /**
@@ -49,7 +48,7 @@ class TruthValueManager {
     static abduce(tv1, tv2) {
         const frequency = (tv1.frequency + tv2.frequency) / 2;
         const confidence = tv1.confidence * tv2.confidence * 0.3;
-        return {frequency, confidence};
+        return { frequency, confidence };
     }
 
     /**
@@ -62,7 +61,7 @@ class TruthValueManager {
     static analogize(tv1, tv2, tv3) {
         const frequency = (tv1.frequency + tv2.frequency + tv3.frequency) / 3;
         const confidence = tv1.confidence * tv2.confidence * tv3.confidence * 0.4;
-        return {frequency, confidence};
+        return { frequency, confidence };
     }
 
     // --- Revision Methods ---
@@ -77,7 +76,7 @@ class TruthValueManager {
     static bayesianRevision(oldTruthValue, newEvidence, weight = 0.5) {
         const revisedFrequency = (1 - weight) * oldTruthValue.frequency + weight * newEvidence.frequency;
         const revisedConfidence = Math.min(1.0, oldTruthValue.confidence + newEvidence.confidence * weight);
-        return {frequency: revisedFrequency, confidence: revisedConfidence};
+        return { frequency: revisedFrequency, confidence: revisedConfidence };
     }
 
     /**
@@ -103,7 +102,7 @@ class TruthValueManager {
 
         const revisedFrequency = totalWeightedFrequency / totalWeight;
         const revisedConfidence = Math.min(1.0, maxConfidence);
-        return {frequency: revisedFrequency, confidence: revisedConfidence};
+        return { frequency: revisedFrequency, confidence: revisedConfidence };
     }
 
     /**
@@ -117,7 +116,7 @@ class TruthValueManager {
     static temporalDecayRevision(truthValue, currentTime, creationTime, decayRate = 0.0001) {
         const age = currentTime - creationTime;
         const decayFactor = Math.exp(-decayRate * age);
-        return {frequency: truthValue.frequency, confidence: truthValue.confidence * decayFactor};
+        return { frequency: truthValue.frequency, confidence: truthValue.confidence * decayFactor };
     }
 
     /**
@@ -129,7 +128,7 @@ class TruthValueManager {
     static conflictResolutionRevision(truthValue1, truthValue2) {
         const totalConfidence = truthValue1.confidence + truthValue2.confidence;
         if (totalConfidence === 0) {
-            return {frequency: 0.5, confidence: 0.0};
+            return { frequency: 0.5, confidence: 0.0 };
         }
 
         const weight1 = truthValue1.confidence / totalConfidence;
@@ -138,7 +137,7 @@ class TruthValueManager {
         const revisedFrequency = weight1 * truthValue1.frequency + weight2 * truthValue2.frequency;
         const confidenceReduction = Math.abs(truthValue1.frequency - truthValue2.frequency);
         const revisedConfidence = Math.max(0.1, (weight1 * truthValue1.confidence + weight2 * truthValue2.confidence) * (1 - confidenceReduction));
-        return {frequency: revisedFrequency, confidence: revisedConfidence};
+        return { frequency: revisedFrequency, confidence: revisedConfidence };
     }
 
     /**
@@ -153,7 +152,7 @@ class TruthValueManager {
         const revisedFrequency = Math.max(0.0, Math.min(1.0, truthValue.frequency + delta));
         const confidenceAdjustment = Math.abs(reward) * learningRate;
         const revisedConfidence = Math.min(1.0, truthValue.confidence + confidenceAdjustment);
-        return {frequency: revisedFrequency, confidence: revisedConfidence};
+        return { frequency: revisedFrequency, confidence: revisedConfidence };
     }
 
     /**
@@ -171,7 +170,7 @@ class TruthValueManager {
 
         const revisedConfidence = Math.min(1.0, truthValue.confidence + entropyReduction);
         const revisedFrequency = Math.max(0.0, Math.min(1.0, truthValue.frequency + (newInformation * 0.05)));
-        return {frequency: revisedFrequency, confidence: revisedConfidence};
+        return { frequency: revisedFrequency, confidence: revisedConfidence };
     }
 
     /**
@@ -181,7 +180,7 @@ class TruthValueManager {
      * @returns {object} Revised truth value
      */
     static sophisticatedRevision(currentTruthValue, options = {}) {
-        let revisedTruthValue = {...currentTruthValue};
+        let revisedTruthValue = { ...currentTruthValue };
 
         // Apply temporal decay if requested
         if (options.applyTemporalDecay && options.currentTime && options.creationTime) {
@@ -235,7 +234,7 @@ class TruthValueManager {
      * @returns {object} Revised truth value
      */
     bayesianRevision(task, newEvidence, weight = 0.5) {
-        const oldTruthValue = {...task.state.truthValue};
+        const oldTruthValue = { ...task.state.truthValue };
         const revisedTruthValue = TruthValueManager.bayesianRevision(oldTruthValue, newEvidence, weight);
         task.state.truthValue = revisedTruthValue;
 
@@ -254,7 +253,7 @@ class TruthValueManager {
      * @returns {object} Revised truth value
      */
     consensusRevision(task, evidenceSources) {
-        const oldTruthValue = {...task.state.truthValue};
+        const oldTruthValue = { ...task.state.truthValue };
         const revisedTruthValue = TruthValueManager.consensusRevision(oldTruthValue, evidenceSources);
         task.state.truthValue = revisedTruthValue;
 
@@ -273,7 +272,7 @@ class TruthValueManager {
      * @returns {object} Revised truth value
      */
     reinforcementUpdate(task, reward, learningRate = 0.1) {
-        const oldTruthValue = {...task.state.truthValue};
+        const oldTruthValue = { ...task.state.truthValue };
         const revisedTruthValue = TruthValueManager.reinforcementRevision(oldTruthValue, reward, learningRate);
         task.state.truthValue = revisedTruthValue;
 
@@ -293,7 +292,7 @@ class TruthValueManager {
      * @returns {object} Decayed truth value
      */
     temporalDecayRevision(task, currentTime, decayRate = 0.0001) {
-        const oldTruthValue = {...task.state.truthValue};
+        const oldTruthValue = { ...task.state.truthValue };
         const revisedTruthValue = TruthValueManager.temporalDecayRevision(
             oldTruthValue,
             currentTime,
@@ -317,8 +316,8 @@ class TruthValueManager {
      * @returns {object} Resolved truth value
      */
     resolveConflict(task1, task2) {
-        const oldTruthValue1 = {...task1.state.truthValue};
-        const oldTruthValue2 = {...task2.state.truthValue};
+        const oldTruthValue1 = { ...task1.state.truthValue };
+        const oldTruthValue2 = { ...task2.state.truthValue };
 
         const resolvedTruthValue = TruthValueManager.conflictResolutionRevision(oldTruthValue1, oldTruthValue2);
 
@@ -349,7 +348,7 @@ class TruthValueManager {
      * @returns {object} Revised truth value
      */
     sophisticatedRevision(task, options = {}) {
-        const oldTruthValue = {...task.state.truthValue};
+        const oldTruthValue = { ...task.state.truthValue };
         const revisedTruthValue = TruthValueManager.sophisticatedRevision(oldTruthValue, {
             ...options,
             currentTime: options.currentTime || Date.now(),
@@ -532,7 +531,7 @@ class TruthValueManager {
         // More sophisticated similarity calculation
         const terms1 = task1.termKey.split(/[() ,]+/).filter(term => term.length > 0);
         const terms2 = task2.termKey.split(/[() ,]+/).filter(term => term.length > 0);
-        
+
         const commonTerms = terms1.filter(term => terms2.includes(term));
         const maxTerms = Math.max(terms1.length, terms2.length);
 

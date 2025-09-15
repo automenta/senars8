@@ -1,62 +1,62 @@
-const {parseTerm} = require('../src/parser/narseseParser');
+const { parseTerm } = require('../src/parser/narseseParser');
 
 // Test cases for the enhanced parser
 const testCases = [
     // Basic atomic term
-    "cat",
+    'cat',
 
     // Inheritance
-    "(cat --> animal)",
+    '(cat --> animal)',
 
     // Implication
-    "(cat ==> mammal)",
+    '(cat ==> mammal)',
 
     // Conjunction
-    "(&, cat, dog)",
+    '(&, cat, dog)',
 
     // Sequential conjunction
-    "(&/, cat, dog)",
+    '(&/, cat, dog)',
 
     // Parallel conjunction
-    "(&|, cat, dog)",
+    '(&|, cat, dog)',
 
     // Negation
-    "(--, cat)",
+    '(--, cat)',
 
     // Extensional set
-    "{cat, dog, bird}",
+    '{cat, dog, bird}',
 
     // Intensional set
-    "[furry, mammal, pet]",
+    '[furry, mammal, pet]',
 
     // Statement with punctuation
-    "cat.",
-    "(cat --> animal)!",
+    'cat.',
+    '(cat --> animal)!',
 
     // Complex nested structure
-    "(&/, (cat --> animal), (dog --> mammal))",
+    '(&/, (cat --> animal), (dog --> mammal))',
 
     // Temporal operators
-    "(cat =/> dog)",  // Retrospective implication
-    "(cat =\\> dog)",  // Predictive implication
-    "(cat =<> dog)",  // Concurrent implication
+    '(cat =/> dog)', // Retrospective implication
+    '(cat =\\> dog)', // Predictive implication
+    '(cat =<> dog)', // Concurrent implication
 
     // Equivalence and similarity
-    "(cat <=> dog)",  // Equivalence
-    "(cat <-> dog)",  // Similarity
+    '(cat <=> dog)', // Equivalence
+    '(cat <-> dog)' // Similarity
 ];
 
-console.log("Testing enhanced Narsese parser:\n");
+console.log('Testing enhanced Narsese parser:\n');
 
 for (const testCase of testCases) {
     try {
         const result = parseTerm(testCase);
         console.log(`Input:  ${testCase}`);
         console.log(`Output: ${JSON.stringify(result, null, 2)}`);
-        console.log("---");
+        console.log('---');
     } catch (error) {
         console.log(`Input:  ${testCase}`);
         console.log(`Error:  ${error.message}`);
-        console.log("---");
+        console.log('---');
     }
 }

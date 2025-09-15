@@ -1,4 +1,4 @@
-function monitoring(contradiction) {
+function monitoring(_contradiction) {
     return [];
 }
 

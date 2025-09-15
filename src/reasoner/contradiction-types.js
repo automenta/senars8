@@ -17,5 +17,5 @@ export const CONTRADICTION_TYPES = {
     VARIABLE_CONFLICT: 'variable_conflict',
     TEMPORAL_CONFLICT: 'temporal_conflict',
     GOAL_CONFLICT: 'goal_conflict',
-    FREQUENCY_CONFLICT: 'frequency_conflict',
+    FREQUENCY_CONFLICT: 'frequency_conflict'
 };

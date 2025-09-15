@@ -1,6 +1,6 @@
-import {MinPriorityQueue} from '@datastructures-js/priority-queue';
+import { MinPriorityQueue } from '@datastructures-js/priority-queue';
 import BasePlanner from './BasePlanner.js';
-import {cosineSimilarity} from '../utils/math.js';
+import { cosineSimilarity } from '../utils/math.js';
 
 class AStarPlanner extends BasePlanner {
     constructor(memory, lm, config = {}) {
@@ -8,21 +8,21 @@ class AStarPlanner extends BasePlanner {
         this.config.heuristicWeights = config.heuristicWeights || {
             complexity: 0.4,
             confidence: 0.3,
-            semantic: 0.3,
+            semantic: 0.3
         };
     }
 
     async findPlan(goalTask, maxIterations = 100) {
         const goalTerm = this.memory.getTerm(goalTask.termKey);
-        if (!goalTerm) return null;
+        if (!goalTerm) { return null; }
 
-        const openSet = new MinPriorityQueue((node) => node.g + node.h);
+        const openSet = new MinPriorityQueue(node => node.g + node.h);
 
         const initialState = {
             plan: [],
             tasks: [goalTerm],
             g: 0,
-            h: await this._calculateHeuristic([goalTerm], goalTerm),
+            h: await this._calculateHeuristic([goalTerm], goalTerm)
         };
 
         openSet.enqueue(initialState);
@@ -50,7 +50,7 @@ class AStarPlanner extends BasePlanner {
                     plan: currentNode.plan,
                     tasks: remainingTasks,
                     g: currentNode.g,
-                    h: await this._calculateHeuristic(remainingTasks, goalTerm),
+                    h: await this._calculateHeuristic(remainingTasks, goalTerm)
                 };
                 openSet.enqueue(newNode);
                 continue;
@@ -66,7 +66,7 @@ class AStarPlanner extends BasePlanner {
                         plan: newPlanKeys,
                         tasks: remainingTasks,
                         g: this.costManager.getPlanCost(newPlanTerms),
-                        h: await this._calculateHeuristic(remainingTasks, goalTerm),
+                        h: await this._calculateHeuristic(remainingTasks, goalTerm)
                     };
                     openSet.enqueue(newNode);
                 } else {
@@ -75,7 +75,7 @@ class AStarPlanner extends BasePlanner {
                         plan: currentNode.plan,
                         tasks: newTasks,
                         g: currentNode.g,
-                        h: await this._calculateHeuristic(newTasks, goalTerm),
+                        h: await this._calculateHeuristic(newTasks, goalTerm)
                     };
                     openSet.enqueue(newNode);
                 }
@@ -86,15 +86,15 @@ class AStarPlanner extends BasePlanner {
     }
 
     async _calculateHeuristic(tasks, goalTerm) {
-        if (tasks.length === 0) return 0;
+        if (tasks.length === 0) { return 0; }
 
         const complexityCost = tasks.reduce((acc, task) => acc + this.costManager.getTaskDifficulty(task), 0);
 
         const confidenceCost = tasks.reduce((acc, task) => {
             const beliefs = this.memory.beliefIndex.get(task.key);
-            const confidence = beliefs && beliefs.length > 0
-                ? Math.max(...beliefs.map(b => b.state.truthValue.confidence))
-                : 0;
+            const confidence = beliefs && beliefs.length > 0 ?
+                Math.max(...beliefs.map(b => b.state.truthValue.confidence)) :
+                0;
             return acc + (1 - confidence);
         }, 0);
 
@@ -107,7 +107,7 @@ class AStarPlanner extends BasePlanner {
             }
         }
 
-        const {complexity, confidence, semantic} = this.config.heuristicWeights;
+        const { complexity, confidence, semantic } = this.config.heuristicWeights;
         return (complexityCost * complexity) + (confidenceCost * confidence) + (semanticCost * semantic);
     }
 }

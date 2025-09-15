@@ -1,9 +1,9 @@
-import {warn, error} from '../utils/logger.js';
+import { warn, error } from '../utils/logger.js';
 
 /**
  * EventBus provides a centralized event handling system for decoupled communication
  * between different components of the system.
- * 
+ *
  * Events can be emitted with data, and listeners can be registered to handle specific events.
  * Additionally, request-response patterns are supported for synchronous communication.
  */
@@ -14,7 +14,7 @@ class EventBus {
          * @type {Object.<string, Function[]>}
          */
         this.listeners = {};
-        
+
         /**
          * Map of request types to handler functions
          * @type {Object.<string, Function>}
@@ -44,7 +44,7 @@ class EventBus {
             return;
         }
         this.listeners[event] = this.listeners[event].filter(
-            (listener) => listener !== callback
+            listener => listener !== callback
         );
     }
 
@@ -57,7 +57,7 @@ class EventBus {
         if (!this.listeners[event]) {
             return;
         }
-        this.listeners[event].forEach((listener) => listener(data));
+        this.listeners[event].forEach(listener => listener(data));
     }
 
     /**

@@ -1,11 +1,11 @@
 export default {
     RESOURCES: [
-        {name: 'cpu', total: 100, unit: 'percent'},
-        {name: 'memory', total: 8192, unit: 'MB'},
-        {name: 'network', total: 1000, unit: 'Mbps'},
+        { name: 'cpu', total: 100, unit: 'percent' },
+        { name: 'memory', total: 8192, unit: 'MB' },
+        { name: 'network', total: 1000, unit: 'Mbps' }
     ],
     CONSTRAINTS: {
-        resource_limit: function (action) {
+        resource_limit(action) {
             if (!action.resource_requirements) {
                 return true;
             }
@@ -21,9 +21,9 @@ export default {
             }
             return true;
         },
-        safety: function (action) {
+        safety(action) {
             const dangerousActions = ['delete_system', 'format_disk', 'shutdown_system'];
             return !dangerousActions.includes(action.name);
-        },
-    },
+        }
+    }
 };
