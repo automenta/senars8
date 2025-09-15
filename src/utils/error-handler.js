@@ -96,23 +96,23 @@ function safeSync(operation, context, defaultValue = null) {
 
 // Enhanced error handling with more options
 async function safeAsyncWithLogging(operation, context, options = {}) {
-    const { 
-        defaultValue = null, 
+    const {
+        defaultValue = null,
         logSuccess = false,
         logStart = false
     } = options;
-    
+
     try {
         if (logStart) {
             logError(`${context}: Starting operation`);
         }
-        
+
         const result = await operation();
-        
+
         if (logSuccess) {
             logError(`${context}: Operation completed successfully`);
         }
-        
+
         return result;
     } catch (error) {
         return handleErrorWithDefault(error, context, defaultValue);
@@ -120,23 +120,23 @@ async function safeAsyncWithLogging(operation, context, options = {}) {
 }
 
 function safeSyncWithLogging(operation, context, options = {}) {
-    const { 
+    const {
         defaultValue = null,
         logSuccess = false,
         logStart = false
     } = options;
-    
+
     try {
         if (logStart) {
             logError(`${context}: Starting operation`);
         }
-        
+
         const result = operation();
-        
+
         if (logSuccess) {
             logError(`${context}: Operation completed successfully`);
         }
-        
+
         return result;
     } catch (error) {
         return handleErrorWithDefault(error, context, defaultValue);
@@ -160,13 +160,13 @@ const isMemoryError = error => error instanceof MemoryError;
 // Utility to create a standardized error handler for modules
 function createModuleErrorHandler(moduleName) {
     return {
-        handle: (error, context, shouldThrow = true) => 
+        handle: (error, context, shouldThrow = true) =>
             handleError(error, `${moduleName}.${context}`, shouldThrow),
-        handleWithDefault: (error, context, defaultValue = null) => 
+        handleWithDefault: (error, context, defaultValue = null) =>
             handleErrorWithDefault(error, `${moduleName}.${context}`, defaultValue),
-        safeAsync: (operation, context, defaultValue = null) => 
+        safeAsync: (operation, context, defaultValue = null) =>
             safeAsync(operation, `${moduleName}.${context}`, defaultValue),
-        safeSync: (operation, context, defaultValue = null) => 
+        safeSync: (operation, context, defaultValue = null) =>
             safeSync(operation, `${moduleName}.${context}`, defaultValue)
     };
 }

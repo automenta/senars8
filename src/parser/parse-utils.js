@@ -40,13 +40,13 @@ function validateTermKey(termKey) {
         termKey.includes('( =<> )')) {
         return false;
     }
-    
+
     // Check for malformed unary operators with empty components
-    if (termKey.includes('(--,') && termKey.includes(')') && 
+    if (termKey.includes('(--,') && termKey.includes(')') &&
         termKey.indexOf(')') - termKey.indexOf('(--,') <= 4) {
         return false;
     }
-    
+
     // Check for other common malformed patterns
     if (termKey.includes('()') || termKey.includes('(,)') || termKey.includes(',)')) {
         return false;

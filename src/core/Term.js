@@ -338,7 +338,7 @@ class Term {
         if (!terms || terms.length === 0) {
             return '';
         }
-        
+
         // Use map and join for better readability while maintaining performance
         return terms.map(term => Term.buildTermKey(term)).join(',');
     }

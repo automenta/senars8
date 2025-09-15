@@ -252,8 +252,8 @@ class ActionExecutor {
                     return handler;
                 }
             } catch (error) {
-            return errorHandler.handleWithDefault(error, '_getActionHandler', null);
-        }
+                return errorHandler.handleWithDefault(error, '_getActionHandler', null);
+            }
         }
         return null;
     }
