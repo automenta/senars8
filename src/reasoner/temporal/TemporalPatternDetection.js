@@ -1,9 +1,9 @@
 import Task from '../../core/Task.js';
-import { parseTerm } from '../../parser/narseseParser.js';
-import { detectTemporalPatterns } from '../../utils/temporal/pattern-detection.js';
-import { createTemporalSequenceTask } from '../../utils/temporal/task-creation.js';
-import { debug } from '../../utils/logger.js';
-import { handleErrorWithDefault } from '../../utils/error-handler.js';
+import {parseTerm} from '../../parser/narseseParser.js';
+import {detectTemporalPatterns} from '../../utils/temporal/pattern-detection.js';
+import {createTemporalSequenceTask} from '../../utils/temporal/task-creation.js';
+import {debug} from '../../utils/logger.js';
+import {handleErrorWithDefault} from '../../utils/error-handler.js';
 
 class TemporalPatternDetection {
     static detect(temporalFocusSet) {

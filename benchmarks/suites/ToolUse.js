@@ -1,18 +1,18 @@
 export default {
     name: 'Simple Tool Use',
-    async run({ agent, metrics, assert }) {
+    async run({agent, metrics, assert}) {
         const tool = {
             name: 'greet',
             description: 'Generates a greeting for a given name.',
             parameters: {
                 type: 'object',
                 properties: {
-                    name: { type: 'string', description: 'The name of the person to greet.' },
+                    name: {type: 'string', description: 'The name of the person to greet.'},
                 },
                 required: ['name'],
             },
-            handler: async ({ name }) => {
-                metrics.steps.push({ name: 'greet', name });
+            handler: async ({name}) => {
+                metrics.steps.push({name: 'greet', name});
                 return `Hello, ${name}!`;
             },
         };

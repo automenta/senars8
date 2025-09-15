@@ -1,8 +1,8 @@
 export default {
     LM_HYPOTHESIS_CONFIGS: [
-        { type: 'general', num: 2 },
-        { type: 'creative', num: 1 },
-        { type: 'sophisticated', num: 1 }
+        {type: 'general', num: 2},
+        {type: 'creative', num: 1},
+        {type: 'sophisticated', num: 1}
     ],
     FEATURE_EXTRACTION_MODEL: 'Xenova/all-MiniLM-L6-v2',
     TEXT_GENERATION_MODEL: 'Xenova/distilgpt2',

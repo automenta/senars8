@@ -1,4 +1,4 @@
-const { parseTerm } = require('../src/parser/narseseParser');
+const {parseTerm} = require('../src/parser/narseseParser');
 
 // Test cases for the enhanced parser
 const testCases = [

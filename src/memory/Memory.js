@@ -2,7 +2,7 @@ import Term from '../core/Term.js';
 import Task from '../core/Task.js';
 import EventBus from '../system/EventBus.js';
 import config from '../config/index.js';
-import { normalizeToArray } from '../utils/helpers.js';
+import {normalizeToArray} from '../utils/helpers.js';
 import {
     consolidateMemory,
     getHighestPriorityTasksWithPQ,
@@ -116,7 +116,9 @@ class Memory {
      * @private
      */
     _pruneMemory() {
-        if (!this.forgettingStrategy) { return; }
+        if (!this.forgettingStrategy) {
+            return;
+        }
 
         const options = config.memory.FORGETTING_STRATEGY_OPTIONS || {};
         this.shortTermTasks = this.forgettingStrategy.prune(this.shortTermTasks, options.shortTerm);
@@ -150,7 +152,9 @@ class Memory {
         if (!term || !(term instanceof Term)) {
             throw new Error('Can only add valid Term instances to memory.');
         }
-        if (this.terms.has(term.key)) { return; }
+        if (this.terms.has(term.key)) {
+            return;
+        }
 
         this.terms.set(term.key, term);
         this._indexImplication(term);
@@ -230,7 +234,9 @@ class Memory {
      */
     addTasks(tasks) {
         const tasksToAdd = normalizeToArray(tasks);
-        if (tasksToAdd.length === 0) { return; }
+        if (tasksToAdd.length === 0) {
+            return;
+        }
 
         for (const task of tasksToAdd) {
             if (!task || !(task instanceof Task)) {
@@ -257,7 +263,9 @@ class Memory {
      * @param {string} taskId - The ID of the task to remove
      */
     removeTask(taskId) {
-        if (!taskId) { return; }
+        if (!taskId) {
+            return;
+        }
 
         const task = this.getTask(taskId);
         if (task) {
@@ -298,7 +306,9 @@ class Memory {
      * @returns {Task[]} Array of highest priority tasks
      */
     getHighestPriorityTasks(k = 20) {
-        if (k <= 0) { return []; }
+        if (k <= 0) {
+            return [];
+        }
 
         const allTasks = this.getAllTasks();
         if (this._shouldUsePriorityQueue(k, allTasks.length)) {
@@ -468,10 +478,14 @@ class Memory {
      * @private
      */
     _createTaskFromJSON(json) {
-        if (!json || !json.termKey) { return null; }
+        if (!json || !json.termKey) {
+            return null;
+        }
 
         const term = this.getTerm(json.termKey);
-        if (!term) { return null; }
+        if (!term) {
+            return null;
+        }
 
         // Convert stamp strings back to BigInts
         const deserializedStamp = {

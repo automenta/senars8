@@ -1,5 +1,5 @@
 import TruthValueManager from '../TruthValueManager.js';
-import { createTransitiveInheritanceRule } from './rule-factories.js';
+import {createTransitiveInheritanceRule} from './rule-factories.js';
 import Term from '../../core/Term.js';
 
 /**

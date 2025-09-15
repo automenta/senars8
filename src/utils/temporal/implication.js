@@ -1,7 +1,7 @@
 import Task from '../../core/Task.js';
-import { parseTerm } from '../../parser/narseseParser.js';
+import {parseTerm} from '../../parser/narseseParser.js';
 import config from '../../config.js';
-import { determineTemporalRelationship } from './query.js';
+import {determineTemporalRelationship} from './query.js';
 
 function _createImplicationTask(termKey, truthValue) {
     const parsedTerm = parseTerm(termKey);
@@ -13,7 +13,9 @@ function _createImplicationTask(termKey, truthValue) {
 
 function inferTemporalImplications(task1, task2) {
     const relationship = determineTemporalRelationship(task1, task2);
-    if (!relationship) { return []; }
+    if (!relationship) {
+        return [];
+    }
 
     let implicationTask = null;
     switch (relationship) {

@@ -30,7 +30,7 @@ class MCP {
             await this.agent.initialize();
         }
         this.goal = goal;
-        this.log({ type: 'start', goal });
+        this.log({type: 'start', goal});
     }
 
     /**
@@ -45,7 +45,7 @@ class MCP {
         // In a real implementation, this would involve adding the observation
         // to the agent's memory or triggering a perception event.
         // For now, we'll just log it.
-        this.log({ type: 'perception', content: observation });
+        this.log({type: 'perception', content: observation});
         // This is a placeholder for the agent processing the observation.
         await Promise.resolve();
     }
@@ -62,7 +62,7 @@ class MCP {
         // The `achieve` method in the agent will be refactored to support this.
         const action = await this.agent.decideNextAction(this.goal, this.history);
         if (action) {
-            this.log({ type: 'action', content: action });
+            this.log({type: 'action', content: action});
         }
         return action;
     }
@@ -76,7 +76,7 @@ class MCP {
             return;
         }
         this.isTerminated = true;
-        this.log({ type: 'end', reason });
+        this.log({type: 'end', reason});
     }
 
     /**

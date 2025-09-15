@@ -1,12 +1,14 @@
-import { calculateIntervalStats, groupTasksByTermKey } from './helpers.js';
+import {calculateIntervalStats, groupTasksByTermKey} from './helpers.js';
 import config from '../../config.js';
 
 function detectTemporalPatterns(tasks) {
     const patterns = [];
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
-    if (temporalTasks.length < 3) { return patterns; }
+    if (temporalTasks.length < 3) {
+        return patterns;
+    }
 
-    const { intervals, stdDev, avgInterval } = calculateIntervalStats(temporalTasks);
+    const {intervals, stdDev, avgInterval} = calculateIntervalStats(temporalTasks);
 
     if (intervals.length > 1) {
         if (stdDev / avgInterval < 0.2) {
@@ -33,14 +35,18 @@ function detectTemporalPatterns(tasks) {
 function detectTemporalCycles(tasks) {
     const cycles = [];
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
-    if (temporalTasks.length < 4) { return cycles; }
+    if (temporalTasks.length < 4) {
+        return cycles;
+    }
 
     const taskGroups = groupTasksByTermKey(temporalTasks);
 
     for (const [termKey, groupTasks] of Object.entries(taskGroups)) {
-        if (groupTasks.length < 3) { continue; }
+        if (groupTasks.length < 3) {
+            continue;
+        }
 
-        const { stdDev, avgInterval } = calculateIntervalStats(groupTasks);
+        const {stdDev, avgInterval} = calculateIntervalStats(groupTasks);
 
         if (stdDev / avgInterval < 0.1) {
             cycles.push({
@@ -59,14 +65,18 @@ function detectTemporalCycles(tasks) {
 function detectTemporalAnomalies(tasks) {
     const anomalies = [];
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
-    if (temporalTasks.length < 5) { return anomalies; }
+    if (temporalTasks.length < 5) {
+        return anomalies;
+    }
 
     const taskGroups = groupTasksByTermKey(temporalTasks);
 
     for (const [termKey, groupTasks] of Object.entries(taskGroups)) {
-        if (groupTasks.length < 3) { continue; }
+        if (groupTasks.length < 3) {
+            continue;
+        }
 
-        const { intervals, avgInterval, stdDev } = calculateIntervalStats(groupTasks);
+        const {intervals, avgInterval, stdDev} = calculateIntervalStats(groupTasks);
 
         for (let i = 0; i < intervals.length; i++) {
             if (Math.abs(intervals[i] - avgInterval) > 2 * stdDev) {
@@ -89,9 +99,11 @@ function detectTemporalClusters(tasks) {
     const clusters = [];
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
 
-    if (temporalTasks.length < 3) { return clusters; }
+    if (temporalTasks.length < 3) {
+        return clusters;
+    }
 
-    const { intervals, avgInterval, stdDev } = calculateIntervalStats(temporalTasks);
+    const {intervals, avgInterval, stdDev} = calculateIntervalStats(temporalTasks);
     const clusterThreshold = avgInterval - stdDev;
 
     let clusterStart = 0;

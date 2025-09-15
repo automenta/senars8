@@ -1,6 +1,6 @@
 import SystemFactory from '../system/SystemFactory.js';
-import { parseTerm } from '../parser/narseseParser.js';
-import { handleError } from '../utils/error-handler.js';
+import {parseTerm} from '../parser/narseseParser.js';
+import {handleError} from '../utils/error-handler.js';
 import MCP from './MCP.js';
 
 /**
@@ -91,7 +91,7 @@ class Agent {
         if (!this.tools[action.tool]) {
             throw new Error(`Tool not found: ${action.tool}`);
         }
-        const { handler } = this.tools[action.tool];
+        const {handler} = this.tools[action.tool];
         const params = action.parameters.reduce((obj, param, index) => {
             const paramName = Object.keys(this.tools[action.tool].parameters.properties)[index];
             obj[paramName] = param;

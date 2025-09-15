@@ -7,7 +7,7 @@ const modifiedContent = `${initialContent} This is a test.`;
 
 export default {
     name: 'Read, Modify, and Write File',
-    async run({ agent, metrics, assert }) {
+    async run({agent, metrics, assert}) {
         // Setup: Create the input file
         await fs.writeFile(inputFile, initialContent);
 
@@ -18,12 +18,12 @@ export default {
             parameters: {
                 type: 'object',
                 properties: {
-                    path: { type: 'string', description: 'The path to the file.' },
+                    path: {type: 'string', description: 'The path to the file.'},
                 },
                 required: ['path'],
             },
-            handler: async ({ path }) => {
-                metrics.steps.push({ name: 'readFile', path });
+            handler: async ({path}) => {
+                metrics.steps.push({name: 'readFile', path});
                 return await fs.readFile(path, 'utf-8');
             },
         });
@@ -34,15 +34,15 @@ export default {
             parameters: {
                 type: 'object',
                 properties: {
-                    path: { type: 'string', description: 'The path to the file.' },
-                    content: { type: 'string', description: 'The content to write.' },
+                    path: {type: 'string', description: 'The path to the file.'},
+                    content: {type: 'string', description: 'The content to write.'},
                 },
                 required: ['path', 'content'],
             },
-            handler: async ({ path, content }) => {
-                metrics.steps.push({ name: 'writeFile', path, content });
+            handler: async ({path, content}) => {
+                metrics.steps.push({name: 'writeFile', path, content});
                 await fs.writeFile(path, content);
-                return { success: true };
+                return {success: true};
             },
         });
 
@@ -78,8 +78,14 @@ export default {
         } finally {
             // Cleanup
             await agent.mcp.end('Benchmark finished.');
-            try { await fs.unlink(inputFile); } catch (e) { /* ignore */ }
-            try { await fs.unlink(outputFile); } catch (e) { /* ignore */ }
+            try {
+                await fs.unlink(inputFile);
+            } catch (e) { /* ignore */
+            }
+            try {
+                await fs.unlink(outputFile);
+            } catch (e) { /* ignore */
+            }
         }
     },
 };

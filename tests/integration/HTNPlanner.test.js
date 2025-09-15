@@ -12,7 +12,7 @@ describe('HTNPlanner Integration Test', () => {
         planner = new HTNPlanner(memory);
     });
 
-    test('should find a simple plan with one level of decomposition', async() => {
+    test('should find a simple plan with one level of decomposition', async () => {
         // Simplified test case
         const goalKey = 'a';
         const action1Key = 'b';
@@ -30,7 +30,7 @@ describe('HTNPlanner Integration Test', () => {
         memory.addTerm(action2Term);
         memory.addTerm(methodTerm);
 
-        const goalTask = new Task(goalTerm, '!', { frequency: 1.0, confidence: 0.9 });
+        const goalTask = new Task(goalTerm, '!', {frequency: 1.0, confidence: 0.9});
         const plan = await planner.findPlan(goalTask);
 
         expect(plan).not.toBeNull();

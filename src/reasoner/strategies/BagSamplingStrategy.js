@@ -7,7 +7,9 @@ class BagSamplingStrategy {
     }
 
     * selectCombinations(focusSet, arity) {
-        if (!Array.isArray(focusSet) || focusSet.length < arity) { return; }
+        if (!Array.isArray(focusSet) || focusSet.length < arity) {
+            return;
+        }
 
         const focusSetIds = focusSet.map(task => task.id).sort().join(',');
         const cacheKey = `${focusSetIds}:${arity}`;
@@ -27,7 +29,9 @@ class BagSamplingStrategy {
             }
         }
 
-        if (bag.size() < arity) { return; }
+        if (bag.size() < arity) {
+            return;
+        }
 
         const numSamples = Math.ceil(focusSet.length * this.samplingFactor);
 

@@ -37,7 +37,7 @@ async function runEvaluation(benchmark, agent) {
     };
 
     try {
-        await benchmark.run({ agent, metrics, assert });
+        await benchmark.run({agent, metrics, assert});
         metrics.success = true;
         console.log(`--- ✅ SUCCESS: ${benchmark.name} ---`);
     } catch (error) {
@@ -61,7 +61,7 @@ async function runEvaluation(benchmark, agent) {
  */
 async function saveResults(benchmarkName, metrics) {
     try {
-        await fs.mkdir(RESULTS_DIR, { recursive: true });
+        await fs.mkdir(RESULTS_DIR, {recursive: true});
         const timestamp = new Date().toISOString().replace(/:/g, '-');
         const filename = `${benchmarkName.replace(/\s/g, '_')}_${timestamp}.json`;
         const filepath = path.join(RESULTS_DIR, filename);
@@ -88,7 +88,7 @@ async function main() {
         if (file.endsWith('.js')) {
             const suitePath = path.join(process.cwd(), suitesDir, file);
             try {
-                const { default: benchmark } = await import(`file://${suitePath}`);
+                const {default: benchmark} = await import(`file://${suitePath}`);
                 if (benchmark && benchmark.name && benchmark.run) {
                     await runEvaluation(benchmark, agent);
                 } else {

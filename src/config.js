@@ -11,15 +11,15 @@ export default {
         confidence: 0.9
     },
     LM_HYPOTHESIS_CONFIGS: [
-        { type: 'general', num: 2 },
-        { type: 'creative', num: 1 },
-        { type: 'sophisticated', num: 1 }
+        {type: 'general', num: 2},
+        {type: 'creative', num: 1},
+        {type: 'sophisticated', num: 1}
     ],
     ACTION_EXECUTOR: {
         RESOURCES: [
-            { name: 'cpu', total: 100, unit: 'percent' },
-            { name: 'memory', total: 8192, unit: 'MB' },
-            { name: 'network', total: 1000, unit: 'Mbps' }
+            {name: 'cpu', total: 100, unit: 'percent'},
+            {name: 'memory', total: 8192, unit: 'MB'},
+            {name: 'network', total: 1000, unit: 'Mbps'}
         ],
         CONSTRAINTS: {
             resource_limit(action) {

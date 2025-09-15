@@ -32,15 +32,15 @@ describe('Term', () => {
 
 describe('Term.buildTermKey', () => {
     test('should build a key for an atomic term', () => {
-        const parsedTerm = { type: 'Atomic', key: 'cat' };
+        const parsedTerm = {type: 'Atomic', key: 'cat'};
         expect(Term.buildTermKey(parsedTerm)).toBe('cat');
     });
 
     test('should build a key for an inheritance term', () => {
         const parsedTerm = {
             type: 'Inheritance',
-            subject: { type: 'Atomic', key: 'cat' },
-            predicate: { type: 'Atomic', key: 'animal' }
+            subject: {type: 'Atomic', key: 'cat'},
+            predicate: {type: 'Atomic', key: 'animal'}
         };
         expect(Term.buildTermKey(parsedTerm)).toBe('(cat --> animal)');
     });
@@ -50,10 +50,10 @@ describe('Term.buildTermKey', () => {
             type: 'Inheritance',
             subject: {
                 type: 'Inheritance',
-                subject: { type: 'Atomic', key: 'cat' },
-                predicate: { type: 'Atomic', key: 'mammal' }
+                subject: {type: 'Atomic', key: 'cat'},
+                predicate: {type: 'Atomic', key: 'mammal'}
             },
-            predicate: { type: 'Atomic', key: 'animal' }
+            predicate: {type: 'Atomic', key: 'animal'}
         };
         expect(Term.buildTermKey(parsedTerm)).toBe('((cat --> mammal) --> animal)');
     });
@@ -64,7 +64,7 @@ describe('Term.buildTermKey', () => {
     });
 
     test('should throw an error for unsupported types', () => {
-        const parsedTerm = { type: 'Unsupported', key: 'test' };
+        const parsedTerm = {type: 'Unsupported', key: 'test'};
         expect(() => Term.buildTermKey(parsedTerm)).toThrow('buildTermKey does not support type: Unsupported');
     });
 });

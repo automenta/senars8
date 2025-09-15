@@ -8,15 +8,15 @@ import TemporalReasoner from '../reasoner/TemporalReasoner.js';
 import PriorityManager from '../reasoner/PriorityManager.js';
 import EventBus from './EventBus.js';
 import CONSTITUTION_TASKS from './Constitution.js';
-import { getGoalTasks } from '../utils/task-utils.js';
-import { safeAsync, safeSync } from '../utils/error-handler.js';
+import {getGoalTasks} from '../utils/task-utils.js';
+import {safeAsync, safeSync} from '../utils/error-handler.js';
 import {
+    runActionPhase,
+    runEnrichmentPhase,
+    runMetaCognitionPhase,
     runPerceptionPhase,
     runPrioritizationPhase,
-    runMetaCognitionPhase,
-    runReasoningPhase,
-    runEnrichmentPhase,
-    runActionPhase
+    runReasoningPhase
 } from './cycle-phases.js';
 
 /**
@@ -103,7 +103,7 @@ class Cycle {
      * @returns {Promise<void>}
      */
     async bootstrap() {
-        return await safeAsync(async() => {
+        return await safeAsync(async () => {
             const driveTerms = CONSTITUTION_TASKS
                 .filter(task => task.punctuation === '!')
                 .map(task => this.memory.getTerm(task.termKey))
@@ -126,7 +126,7 @@ class Cycle {
      * @returns {Promise<object>} Results of the cycle including counts of various operations
      */
     async runOnce() {
-        return await safeAsync(async() => {
+        return await safeAsync(async () => {
             const context = {
                 currentTime: Date.now(),
                 driveEmbeddings: this.driveEmbeddings,
@@ -145,7 +145,7 @@ class Cycle {
             this._runPrioritizationPhase(context);
 
             // META-COGNITION: Detect and resolve contradictions
-            const { contradictions, metaTasks } = await this._runMetaCognitionPhase(context);
+            const {contradictions, metaTasks} = await this._runMetaCognitionPhase(context);
             context.contradictions = contradictions;
             context.metaTasks = metaTasks;
 
@@ -159,7 +159,7 @@ class Cycle {
             }
 
             // ENRICHMENT: Generate new terms and proactive knowledge
-            const { proactiveTasks } = await this._runEnrichmentPhase(context);
+            const {proactiveTasks} = await this._runEnrichmentPhase(context);
             context.proactiveTasks = proactiveTasks;
 
             // ACTION: Execute plans for high-priority goals
@@ -185,7 +185,7 @@ class Cycle {
      * @private
      */
     async _runPerceptionPhase() {
-        return await safeAsync(async() => {
+        return await safeAsync(async () => {
             await runPerceptionPhase(this.perception);
         }, 'Cycle._runPerceptionPhase');
     }
@@ -208,7 +208,7 @@ class Cycle {
      * @private
      */
     async _runMetaCognitionPhase(context) {
-        return await safeAsync(async() => {
+        return await safeAsync(async () => {
             return await runMetaCognitionPhase(context, EventBus, this.config, this.memory);
         }, 'Cycle._runMetaCognitionPhase');
     }
@@ -220,7 +220,7 @@ class Cycle {
      * @private
      */
     async _runReasoningPhase(context) {
-        return await safeAsync(async() => {
+        return await safeAsync(async () => {
             return await runReasoningPhase(
                 context,
                 () => this._getFocusSet(),
@@ -238,7 +238,7 @@ class Cycle {
      * @private
      */
     async _runEnrichmentPhase(context) {
-        return await safeAsync(async() => {
+        return await safeAsync(async () => {
             return await runEnrichmentPhase(
                 context,
                 tasks => this._getNewTermKeys(tasks),
@@ -254,7 +254,7 @@ class Cycle {
      * @private
      */
     async _runActionPhase() {
-        return await safeAsync(async() => {
+        return await safeAsync(async () => {
             return await runActionPhase(
                 () => this._getActionableGoals(),
                 goal => this._executeGoalPlan(goal)
@@ -271,7 +271,7 @@ class Cycle {
      * @private
      */
     async _resolveContradictions(contradictions) {
-        return await safeAsync(async() => {
+        return await safeAsync(async () => {
             const resolutionPromises = contradictions.map(contradiction =>
                 EventBus.request('MetaCognition.resolve', {
                     contradiction,
@@ -311,7 +311,7 @@ class Cycle {
      * @private
      */
     async _performReasoning(focusSet, goals, contradictions) {
-        return await safeAsync(async() => {
+        return await safeAsync(async () => {
             const [symbolicTasks, temporalTasks, lmTasks] = await Promise.all([
                 Promise.resolve(this.reasoner.performInference(focusSet)),
                 Promise.resolve(this.temporalReasoner.infer(focusSet)),
@@ -330,9 +330,9 @@ class Cycle {
      * @private
      */
     async _generateLmHypotheses(focusSet, goals, contradictions) {
-        return await safeAsync(async() => {
+        return await safeAsync(async () => {
             const lmHypothesesPromises = this.config.LM_HYPOTHESIS_CONFIGS.map(hypothesisConfig =>
-                this.lm.generateHypotheses(focusSet, { ...hypothesisConfig, goals, contradictions })
+                this.lm.generateHypotheses(focusSet, {...hypothesisConfig, goals, contradictions})
             );
             const lmHypotheses = (await Promise.all(lmHypothesesPromises)).flat();
             return this.lm.evaluateAndRankHypotheses(focusSet, lmHypotheses);
@@ -360,7 +360,7 @@ class Cycle {
      * @private
      */
     async _proactiveEnrichment() {
-        return await safeAsync(async() => {
+        return await safeAsync(async () => {
             const proactiveTasks = await this.lm.proactiveEnrichment(this.memory.getAllTasks());
             this.memory.addTasks(proactiveTasks);
             return proactiveTasks;
@@ -388,7 +388,7 @@ class Cycle {
      * @private
      */
     async _bootstrapTerms(termKeys) {
-        return await safeAsync(async() => {
+        return await safeAsync(async () => {
             const batchSize = this.config.system.BATCH_SIZE;
             for (let i = 0; i < termKeys.length; i += batchSize) {
                 const batch = termKeys.slice(i, i + batchSize);
@@ -431,8 +431,8 @@ class Cycle {
      * @private
      */
     async _executeGoalPlan(goal, maxAttempts = 3) {
-        return await safeAsync(async() => {
-            let result = { success: false };
+        return await safeAsync(async () => {
+            let result = {success: false};
             let attempts = 0;
             let lastFailedPlan = null;
 
@@ -459,7 +459,7 @@ class Cycle {
      * @private
      */
     async _attemptPlanExecution(plan, goal) {
-        return await safeAsync(async() => {
+        return await safeAsync(async () => {
             if (plan && plan.steps.length > 0) {
                 return await plan.execute().catch(err => ({
                     success: false,
@@ -469,9 +469,9 @@ class Cycle {
                 }));
             }
             if (plan) {
-                return { success: true, planId: plan.id, results: ['Goal already achieved'] };
+                return {success: true, planId: plan.id, results: ['Goal already achieved']};
             }
-            return { success: false, error: `No plan found for ${goal.termKey}` };
+            return {success: false, error: `No plan found for ${goal.termKey}`};
         }, 'Cycle._attemptPlanExecution');
     }
 }

@@ -1,5 +1,5 @@
 import TruthValueManager from '../TruthValueManager.js';
-import { resolutionStrategies } from './resolution/index.js';
+import {resolutionStrategies} from './resolution/index.js';
 
 class ResolutionStrategy {
     constructor() {
@@ -23,12 +23,24 @@ class ResolutionStrategy {
     }
 
     _selectOptimalResolutionStrategy(contradiction) {
-        if (contradiction.severity > 0.8) { return 'revision'; }
-        if (contradiction.severity > 0.6) { return 'reconciliation'; }
-        if (contradiction.tasks.some(t => t.state.stamp?.occurrenceTime)) { return 'temporal_analysis'; }
-        if (['inheritance_conflict', 'implication_conflict'].includes(contradiction.type)) { return 'causal_analysis'; }
-        if (contradiction.type === 'transitive_inheritance_conflict') { return 'hierarchical_reconciliation'; }
-        if (contradiction.severity > 0.4) { return 'contextual_reconciliation'; }
+        if (contradiction.severity > 0.8) {
+            return 'revision';
+        }
+        if (contradiction.severity > 0.6) {
+            return 'reconciliation';
+        }
+        if (contradiction.tasks.some(t => t.state.stamp?.occurrenceTime)) {
+            return 'temporal_analysis';
+        }
+        if (['inheritance_conflict', 'implication_conflict'].includes(contradiction.type)) {
+            return 'causal_analysis';
+        }
+        if (contradiction.type === 'transitive_inheritance_conflict') {
+            return 'hierarchical_reconciliation';
+        }
+        if (contradiction.severity > 0.4) {
+            return 'contextual_reconciliation';
+        }
         return 'evidence_gathering';
     }
 }

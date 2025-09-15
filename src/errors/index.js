@@ -1,13 +1,13 @@
 import {
+    createInferenceError,
+    createParseError,
+    createValidationError,
     handleError,
     handleErrorWithDefault,
-    withErrorHandling,
-    createValidationError,
-    createParseError,
-    createInferenceError,
-    ValidationError,
+    InferenceError,
     ParseError,
-    InferenceError
+    ValidationError,
+    withErrorHandling
 } from './error-handler.js';
 
 export {

@@ -1,6 +1,6 @@
 import TimeBasedForgettingStrategy from '../../src/memory/strategies/TimeBasedForgettingStrategy.js';
 import Task from '../../src/core/Task.js';
-import { parseTerm } from '../../src/parser/narseseParser.js';
+import {parseTerm} from '../../src/parser/narseseParser.js';
 
 describe('TimeBasedForgettingStrategy', () => {
     let strategy;
@@ -31,7 +31,7 @@ describe('TimeBasedForgettingStrategy', () => {
         const tasks = new Map([[task1.id, task1], [task2.id, task2]]);
         const options = {
             expirationThreshold: BigInt(24 * 3600 * 1000),
-            importanceThresholds: { priority: 0.5, confidence: 0.5 }
+            importanceThresholds: {priority: 0.5, confidence: 0.5}
         };
         const prunedTasks = strategy.prune(tasks, options);
 
@@ -44,7 +44,7 @@ describe('TimeBasedForgettingStrategy', () => {
         const tasks = new Map([[task3.id, task3], [task2.id, task2]]);
         const options = {
             expirationThreshold: BigInt(24 * 3600 * 1000),
-            importanceThresholds: { priority: 0.5, confidence: 0.5 }
+            importanceThresholds: {priority: 0.5, confidence: 0.5}
         };
         const prunedTasks = strategy.prune(tasks, options);
 

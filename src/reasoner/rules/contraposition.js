@@ -1,4 +1,4 @@
-import { createUnaryInheritanceRule } from './rule-factories.js';
+import {createUnaryInheritanceRule} from './rule-factories.js';
 import Term from '../../core/Term.js';
 
 export default createUnaryInheritanceRule(

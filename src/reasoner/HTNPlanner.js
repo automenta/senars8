@@ -8,17 +8,25 @@ class HTNPlanner extends BasePlanner {
 
     async findPlan(goalTask, maxDepth = config.planner.maxDepth) {
         const goalTerm = this.memory.getTerm(goalTask.termKey);
-        if (!goalTerm) { return null; }
+        if (!goalTerm) {
+            return null;
+        }
 
         const planOfKeys = await this._findPlanRecursive([goalTerm], [], 0, maxDepth);
-        if (!planOfKeys) { return null; }
+        if (!planOfKeys) {
+            return null;
+        }
 
         return planOfKeys.map(key => this.memory.getTerm(key));
     }
 
     async _findPlanRecursive(tasksToDo, planSoFar, depth, maxDepth) {
-        if (depth > maxDepth) { return null; }
-        if (tasksToDo.length === 0) { return planSoFar; }
+        if (depth > maxDepth) {
+            return null;
+        }
+        if (tasksToDo.length === 0) {
+            return planSoFar;
+        }
 
         const [currentTask, ...remainingTasks] = tasksToDo;
 
@@ -38,11 +46,15 @@ class HTNPlanner extends BasePlanner {
             if (expansion.method === null && expansion.subTasks.length > 0) {
                 const newPlan = [...planSoFar, ...expansion.subTasks.map(t => t.key)];
                 const result = await this._findPlanRecursive(remainingTasks, newPlan, depth + 1, maxDepth);
-                if (result !== null) { return result; }
+                if (result !== null) {
+                    return result;
+                }
             } else { // Decomposed into sub-tasks
                 const newTasksToDo = [...expansion.subTasks, ...remainingTasks];
                 const result = await this._findPlanRecursive(newTasksToDo, planSoFar, depth + 1, maxDepth);
-                if (result !== null) { return result; }
+                if (result !== null) {
+                    return result;
+                }
             }
         }
 

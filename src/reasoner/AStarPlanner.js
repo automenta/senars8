@@ -1,6 +1,6 @@
-import { MinPriorityQueue } from '@datastructures-js/priority-queue';
+import {MinPriorityQueue} from '@datastructures-js/priority-queue';
 import BasePlanner from './BasePlanner.js';
-import { cosineSimilarity } from '../utils/math.js';
+import {cosineSimilarity} from '../utils/math.js';
 
 class AStarPlanner extends BasePlanner {
     constructor(memory, lm, config = {}) {
@@ -14,7 +14,9 @@ class AStarPlanner extends BasePlanner {
 
     async findPlan(goalTask, maxIterations = 100) {
         const goalTerm = this.memory.getTerm(goalTask.termKey);
-        if (!goalTerm) { return null; }
+        if (!goalTerm) {
+            return null;
+        }
 
         const openSet = new MinPriorityQueue(node => node.g + node.h);
 
@@ -86,7 +88,9 @@ class AStarPlanner extends BasePlanner {
     }
 
     async _calculateHeuristic(tasks, goalTerm) {
-        if (tasks.length === 0) { return 0; }
+        if (tasks.length === 0) {
+            return 0;
+        }
 
         const complexityCost = tasks.reduce((acc, task) => acc + this.costManager.getTaskDifficulty(task), 0);
 
@@ -107,7 +111,7 @@ class AStarPlanner extends BasePlanner {
             }
         }
 
-        const { complexity, confidence, semantic } = this.config.heuristicWeights;
+        const {complexity, confidence, semantic} = this.config.heuristicWeights;
         return (complexityCost * complexity) + (confidenceCost * confidence) + (semanticCost * semantic);
     }
 }

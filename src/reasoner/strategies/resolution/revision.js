@@ -1,4 +1,4 @@
-import { createMetaTask } from '../strategy-utils.js';
+import {createMetaTask} from '../strategy-utils.js';
 import config from '../../../config.js';
 
 function revision(contradiction) {

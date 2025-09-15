@@ -1,6 +1,8 @@
 class PatternDetector {
     async detectAdvancedPatterns(eventStream) {
-        if (eventStream.length <= 5) { return []; }
+        if (eventStream.length <= 5) {
+            return [];
+        }
         const temporalPatterns = this.detectComplexTemporalPatterns(eventStream);
         const causalPatterns = await this.detectCausalPatterns(eventStream);
         const hierarchicalPatterns = this.detectHierarchicalPatterns(eventStream);
@@ -12,7 +14,9 @@ class PatternDetector {
             const type = event.type || 'unknown';
             const timeBucket = Math.floor((event.timestamp || Date.now()) / 10000);
             const key = `${type}_${timeBucket}`;
-            if (!groups[key]) { groups[key] = []; }
+            if (!groups[key]) {
+                groups[key] = [];
+            }
             groups[key].push(event);
             return groups;
         }, {});
@@ -32,10 +36,14 @@ class PatternDetector {
         const patterns = [];
         for (const type1 of eventTypes) {
             for (const type2 of eventTypes) {
-                if (type1 === type2) { continue; }
+                if (type1 === type2) {
+                    continue;
+                }
                 const events1 = eventStream.filter(e => (e.type || 'unknown') === type1);
                 const events2 = eventStream.filter(e => (e.type || 'unknown') === type2);
-                if (events1.length === 0) { continue; }
+                if (events1.length === 0) {
+                    continue;
+                }
 
                 const causalCount = events1.reduce((count, e1) =>
                     count + events2.filter(e2 => {
@@ -63,7 +71,9 @@ class PatternDetector {
     detectHierarchicalPatterns(eventStream) {
         const clusters = eventStream.reduce((cls, event) => {
             const key = event.category || event.type || 'unknown';
-            if (!cls[key]) { cls[key] = []; }
+            if (!cls[key]) {
+                cls[key] = [];
+            }
             cls[key].push(event);
             return cls;
         }, {});

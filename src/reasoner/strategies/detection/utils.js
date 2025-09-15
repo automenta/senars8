@@ -15,7 +15,9 @@ export function analyzeBinaryStatementConflict(task1, task2, parsed1, parsed2, s
 }
 
 export function analyzeSetLikeConflict(task1, task2, parsed1, parsed2, setType, conflictType, conflictDetailsPrefix) {
-    if (parsed1.type !== setType || parsed2.type !== setType) { return null; }
+    if (parsed1.type !== setType || parsed2.type !== setType) {
+        return null;
+    }
     const terms1 = new Set((parsed1.terms || []).map(t => t.key));
     const terms2 = (parsed2.terms || []).map(t => t.key);
 
@@ -31,7 +33,9 @@ export function analyzeSetLikeConflict(task1, task2, parsed1, parsed2, setType, 
 }
 
 export function analyzeCompoundTermConflict(task1, task2, parsed1, parsed2, expectedType, conflictType) {
-    if (parsed1.type !== expectedType || parsed2.type !== expectedType) { return null; }
+    if (parsed1.type !== expectedType || parsed2.type !== expectedType) {
+        return null;
+    }
     const terms1 = new Map((parsed1.terms || []).map(t => [t.key.replace('--', ''), t]));
     const terms2 = new Map((parsed2.terms || []).map(t => [t.key.replace('--', ''), t]));
 

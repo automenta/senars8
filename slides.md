@@ -2,7 +2,7 @@
 theme: dracula
 title: 'SeNARS'
 background: https://source.unsplash.com/1600x900/?circuit-board,ai
-highlighter: 
+highlighter:
   engine: shiki
   theme: 'dracula'
 lineNumbers: false
@@ -24,10 +24,12 @@ Principled and Pragmatic Neuro-Symbolic Cognition
 ## Introduction
 
 A complete cognitive architecture designed for a synergistic union of:
+
 - **Formal symbolic reasoning**
 - **Semantic power of Large Language Models (LMs)**
 
-Today we'll explore how SeNARS combines the best of both worlds to create a transparent, reliable, and adaptive AI system.
+Today we'll explore how SeNARS combines the best of both worlds to create a transparent, reliable, and adaptive AI
+system.
 
 <div class="center text-sm mt-4">
 This presentation is designed to be educational and commercially persuasive,
@@ -56,10 +58,10 @@ These limitations create massive barriers to deploying AI in high-value, regulat
 
 Neuro-symbolic AI combines the best of both worlds:
 
-| Approach | Strengths | Limitations |
-|---------|-----------|-------------|
+| Approach            | Strengths                                                    | Limitations                               |
+|---------------------|--------------------------------------------------------------|-------------------------------------------|
 | **Neural Networks** | Pattern recognition, uncertainty handling, unstructured data | Opaque, unstable, poor abstract reasoning |
-| **Symbolic AI** | Logical reasoning, knowledge representation, explainability | Rigid, limited creativity, brittle |
+| **Symbolic AI**     | Logical reasoning, knowledge representation, explainability  | Rigid, limited creativity, brittle        |
 
 ---
 
@@ -108,6 +110,7 @@ graph LR
 ```
 
 This integration enables:
+
 - **Rigorous logical reasoning** from the symbolic component
 - **Creative semantic understanding** from the neural component
 - **Bidirectional knowledge exchange** between both systems
@@ -134,6 +137,7 @@ SeNARS is a **neuro-symbolic** architecture that delivers **explainable, robust,
 </div>
 
 Key difference:
+
 - **Transparent Reasoning**: Trace every conclusion back to its premises
 - **Immutable Constitution**: Ensures alignment with core principles
 - **Self-Correction**: Reasons about its own failures and improves
@@ -147,11 +151,11 @@ Key difference:
 
 Explainable AI (XAI) is the key to unlocking high-value markets:
 
-| Market | Value | Why XAI Matters |
-|--------|-------|-----------------|
-| **Financial Services** | $10B+ | Algorithmic trading, credit scoring, compliance |
+| Market                         | Value | Why XAI Matters                                          |
+|--------------------------------|-------|----------------------------------------------------------|
+| **Financial Services**         | $10B+ | Algorithmic trading, credit scoring, compliance          |
 | **Healthcare & Life Sciences** | $15B+ | Medical diagnosis, drug discovery, personalized medicine |
-| **Autonomous Systems** | $20B+ | Self-driving vehicles, robotics, industrial automation |
+| **Autonomous Systems**         | $20B+ | Self-driving vehicles, robotics, industrial automation   |
 
 **SeNARS captures these markets where standard "black-box" solutions are too risky.**
 
@@ -159,13 +163,13 @@ Explainable AI (XAI) is the key to unlocking high-value markets:
 
 ## SeNARS Competitive Edge
 
-| Feature | Pure LLMs | Traditional Symbolic AI | **SeNARS** |
-|---------|-----------|-------------------------|------------|
-| **Explainability** | ⬛️ Low | ✅ High | ✅ **High** |
-| **Adaptability** | 🟨 Medium | ⬛️ Low | ✅ **High** |
-| **Creativity** | ✅ High | ⬛️ Low | ✅ **High** |
-| **Logical Rigor** | 🟨 Medium | ✅ High | ✅ **High** |
-| **Verdict** | ✨ Creative but Unreliable | 🧱 Rigid but Explainable | ✅ **Transparent & Powerful** |
+| Feature            | Pure LLMs                 | Traditional Symbolic AI  | **SeNARS**                   |
+|--------------------|---------------------------|--------------------------|------------------------------|
+| **Explainability** | ⬛️ Low                    | ✅ High                   | ✅ **High**                   |
+| **Adaptability**   | 🟨 Medium                 | ⬛️ Low                   | ✅ **High**                   |
+| **Creativity**     | ✅ High                    | ⬛️ Low                   | ✅ **High**                   |
+| **Logical Rigor**  | 🟨 Medium                 | ✅ High                   | ✅ **High**                   |
+| **Verdict**        | ✨ Creative but Unreliable | 🧱 Rigid but Explainable | ✅ **Transparent & Powerful** |
 
 ---
 
@@ -257,11 +261,12 @@ SeNARS is built on three fundamental components:
 ## Understanding Terms
 
 **Term** - Immutable representations of concepts:
+
 - **Examples**: `cat`, `(cat --> animal)`, `(cat ==> furry)`
 - **Key Properties**:
-  - Parses their own structure for efficiency
-  - Grounded with semantic embeddings from LMs
-  - Serve as the stable vocabulary of the system
+    - Parses their own structure for efficiency
+    - Grounded with semantic embeddings from LMs
+    - Serve as the stable vocabulary of the system
 
 ```javascript
 // Example Term structure
@@ -270,6 +275,7 @@ const inheritanceTerm = new Term('(cat --> animal)');
 ```
 
 Terms are the building blocks of all knowledge in SeNARS, providing:
+
 - **Semantic Grounding**: Connected to meaning through LM embeddings
 - **Structural Intelligence**: Self-parsing for efficient access to components
 - **Stability**: Immutable nature ensures consistency across reasoning
@@ -279,25 +285,27 @@ Terms are the building blocks of all knowledge in SeNARS, providing:
 ## Understanding Tasks
 
 **Task** - Stateful cognitive atoms representing beliefs, goals, or questions:
+
 - **Structure**:
-  - `id`: Unique identifier
-  - `termKey`: Foreign key to a Term
-  - `punctuation`: `.`, `!`, or `?` (Belief, Goal, Question)
+    - `id`: Unique identifier
+    - `termKey`: Foreign key to a Term
+    - `punctuation`: `.`, `!`, or `?` (Belief, Goal, Question)
 - **State**:
-  - Truth values (frequency, confidence)
-  - Dynamic priorities for attention allocation
-  - Temporal stamps (creation, occurrence times)
+    - Truth values (frequency, confidence)
+    - Dynamic priorities for attention allocation
+    - Temporal stamps (creation, occurrence times)
 
 ```javascript
 // Example Task structure
 const beliefTask = new Task(
-  '(cat --> animal)', 
-  '.', 
-  { frequency: 1.0, confidence: 0.9 }
+    '(cat --> animal)',
+    '.',
+    {frequency: 1.0, confidence: 0.9}
 );
 ```
 
 Tasks represent the dynamic aspects of cognition:
+
 - **Evidence-Based**: Truth values updated through Bayesian revision
 - **Attention-Aware**: Priority scores for economic attention model
 - **Time-Conscious**: Temporal stamps for reasoning about events
@@ -307,13 +315,14 @@ Tasks represent the dynamic aspects of cognition:
 ## Understanding Memory
 
 **Memory** - Unified knowledge hypergraph managing Terms and Tasks:
+
 - **Dual Storage System**:
-  - Short-term: Active tasks prioritized for immediate processing
-  - Long-term: Consolidated tasks with high importance/confidence
+    - Short-term: Active tasks prioritized for immediate processing
+    - Long-term: Consolidated tasks with high importance/confidence
 - **Specialized Indexes**:
-  - Belief Index: For efficient retrieval
-  - Implication Index: For planning knowledge
-  - Cost Index: For action costs
+    - Belief Index: For efficient retrieval
+    - Implication Index: For planning knowledge
+    - Cost Index: For action costs
 - **Forgetting Mechanisms**: Time-based pruning of expired tasks
 
 ```mermaid
@@ -424,13 +433,13 @@ Priority calculation factors:
 
 SeNARS implements rigorous, explainable reasoning through formal inference rules:
 
-| Rule | Structure | Purpose |
-|------|-----------|---------|
-| **Deduction** | `<M --> P>, <S --> M> ⊢ <S --> P>` | Classical logical deduction |
-| **Induction** | `<M --> P>, <M --> S> ⊢ <S --> P>` | Evidence-based generalization |
-| **Abduction** | `<P --> M>, <S --> M> ⊢ <S --> P>` | Hypothesis generation |
-| **Analogy** | `<M --> P>, <M <-> S> ⊢ <S --> P>` | Structure-preserving inference |
-| **Modus Ponens** | `<P ==> Q>, <P> ⊢ <Q>` | Conditional reasoning |
+| Rule             | Structure                          | Purpose                        |
+|------------------|------------------------------------|--------------------------------|
+| **Deduction**    | `<M --> P>, <S --> M> ⊢ <S --> P>` | Classical logical deduction    |
+| **Induction**    | `<M --> P>, <M --> S> ⊢ <S --> P>` | Evidence-based generalization  |
+| **Abduction**    | `<P --> M>, <S --> M> ⊢ <S --> P>` | Hypothesis generation          |
+| **Analogy**      | `<M --> P>, <M <-> S> ⊢ <S --> P>` | Structure-preserving inference |
+| **Modus Ponens** | `<P ==> Q>, <P> ⊢ <Q>`             | Conditional reasoning          |
 
 ---
 
@@ -471,22 +480,23 @@ SeNARS is designed for **recursive self-improvement**:
 2. **Analysis**: Classifies conflicts and selects best resolution strategy
 3. **Correction**: Generates new Tasks (e.g., Questions) with high priority to resolve inconsistencies
 
-| Strategy | Approach | Use Case |
-|----------|----------|----------|
-| **Revision** | Truth value revision | Directly conflicting beliefs |
-| **Reconciliation** | Contextual resolution | Beliefs true in different contexts |
-| **Evidence Gathering** | Generate questions | Need more information |
-| **Temporal Analysis** | Time-based resolution | Temporal conflicts |
-| **Causal Analysis** | Examine causal relationships | Causal contradictions |
+| Strategy               | Approach                     | Use Case                           |
+|------------------------|------------------------------|------------------------------------|
+| **Revision**           | Truth value revision         | Directly conflicting beliefs       |
+| **Reconciliation**     | Contextual resolution        | Beliefs true in different contexts |
+| **Evidence Gathering** | Generate questions           | Need more information              |
+| **Temporal Analysis**  | Time-based resolution        | Temporal conflicts                 |
+| **Causal Analysis**    | Examine causal relationships | Causal contradictions              |
 
 SeNARS supports multiple planning strategies for goal achievement:
 
-| Strategy | Approach | Benefits |
-|----------|----------|----------|
-| **HTN (Hierarchical Task Network)** | Decompose complex goals into primitive actions | Structured, systematic planning |
-| **A* Search** | Graph-based pathfinding with heuristics | Optimal solutions with custom weights |
+| Strategy                            | Approach                                       | Benefits                              |
+|-------------------------------------|------------------------------------------------|---------------------------------------|
+| **HTN (Hierarchical Task Network)** | Decompose complex goals into primitive actions | Structured, systematic planning       |
+| **A* Search**                       | Graph-based pathfinding with heuristics        | Optimal solutions with custom weights |
 
 Key features:
+
 - Plan cost calculation
 - Task difficulty assessment
 - Dynamic strategy selection
@@ -504,6 +514,7 @@ SeNARS implements sophisticated temporal reasoning capabilities:
 - **Anomaly Detection**: Identify temporal anomalies
 
 Specialized temporal term types:
+
 - **Predictive Implication**: `(task1 => task2)` - task1 predicts task2
 - **Retrospective Implication**: `(task1 =/> task2)` - task1 implies task2 occurred after
 - **Concurrent Implication**: `(task1 =<> task2)` - task1 and task2 occur concurrently
@@ -515,12 +526,14 @@ Specialized temporal term types:
 The **`Constitution`** defines the system's core motives and safety constraints:
 
 **Core Drives** (High-priority, permanent goals):
+
 - `AcquireKnowledge!` - Fundamental drive to learn and understand
 - `ReduceUncertainty!` - Drive to resolve unknowns and ambiguities
 - `MaintainCoherence!` - Drive to resolve contradictions and maintain consistency
 - `MaintainCognitiveIntegrity!` - Meta-cognitive drive for self-improvement
 
 **Safety Constraints** (Immutable beliefs about negative outcomes):
+
 - `((&, self, cause_harm) ==> NEGATIVE_OUTCOME).`
 
 The `Constitution` bootstraps the attention mechanism and anchors behavior to foundational principles.
@@ -531,19 +544,19 @@ The `Constitution` bootstraps the attention mechanism and anchors behavior to fo
 
 SeNARS supports a comprehensive set of Narsese expressions:
 
-| Type | Syntax | Example |
-|------|--------|---------|
-| **Atomic Terms** | Simple identifiers | `cat` |
-| **Inheritance** | `<subject --> predicate>` | `(cat --> mammal)` |
-| **Implication** | `<premise ==> conclusion>` | `(cat ==> furry)` |
-| **Negation** | `(--, term)` | `(--, cat)` |
-| **Conjunction** | `(&, term1, term2, ...)` | `(&, cat, dog)` |
-| **Disjunction** | `(||, term1, term2, ...)` | `(||, cat, dog)` |
-| **Extensional Difference** | `(#, term1, term2)` | `(#, cat, dog)` |
-| **Intensional Difference** | `(\, term1, term2)` | `(\, cat, dog)` |
-| **Instance** | `(term {-- class)` | `(cat {-- animal)` |
-| **Property** | `(term --} property)` | `(cat --} furry)` |
-| **Nested Expressions** | Complex combinations | `(cat --> (&, furry, intelligent))` |
+| Type                       | Syntax                     | Example                             |
+|----------------------------|----------------------------|-------------------------------------|
+| **Atomic Terms**           | Simple identifiers         | `cat`                               |
+| **Inheritance**            | `<subject --> predicate>`  | `(cat --> mammal)`                  |
+| **Implication**            | `<premise ==> conclusion>` | `(cat ==> furry)`                   |
+| **Negation**               | `(--, term)`               | `(--, cat)`                         |
+| **Conjunction**            | `(&, term1, term2, ...)`   | `(&, cat, dog)`                     |
+| **Disjunction**            | `(                         |                                     |, term1, term2, ...)` | `(||, cat, dog)` |
+| **Extensional Difference** | `(#, term1, term2)`        | `(#, cat, dog)`                     |
+| **Intensional Difference** | `(\, term1, term2)`        | `(\, cat, dog)`                     |
+| **Instance**               | `(term {-- class)`         | `(cat {-- animal)`                  |
+| **Property**               | `(term --} property)`      | `(cat --} furry)`                   |
+| **Nested Expressions**     | Complex combinations       | `(cat --> (&, furry, intelligent))` |
 
 This formal language enables precise knowledge representation and logical reasoning.
 
@@ -561,6 +574,7 @@ SeNARS is implemented with modern software engineering practices:
 - **Documentation**: Self-documenting code with inline examples
 
 Key implementation features:
+
 - Term parsing caching for performance optimization
 - Bag data structure for probabilistic priority selection
 - Lazy evaluation of complex term structures
@@ -678,11 +692,13 @@ All SeNARS functionality has been verified through comprehensive unit tests and 
 </div>
 
 ### Advanced Features
+
 - Temporal reasoning with pattern detection and future prediction
 - Neuro-symbolic integration with hypothesis generation and explanation
 - Economic attention model with probabilistic task selection
 
 ### Demonstrated Capabilities
+
 - Inheritance chaining and modus ponens inference
 - Contradiction detection and resolution
 - Multi-step planning with complex goal decomposition

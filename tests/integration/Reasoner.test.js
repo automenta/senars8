@@ -2,7 +2,7 @@ import Reasoner from '../../src/reasoner/Reasoner.js';
 import Memory from '../../src/memory/Memory.js';
 import Task from '../../src/core/Task.js';
 import Term from '../../src/core/Term.js';
-import { parseTerm } from '../../src/parser/narseseParser.js';
+import {parseTerm} from '../../src/parser/narseseParser.js';
 import LM from '../../src/lm/LM.js';
 import BruteForceStrategy from '../../src/reasoner/strategies/BruteForceStrategy.js';
 import TemporalReasoner from '../../src/reasoner/TemporalReasoner.js';
@@ -10,7 +10,7 @@ import TemporalReasoner from '../../src/reasoner/TemporalReasoner.js';
 jest.mock('../../src/lm/LM.js');
 jest.mock('@xenova/transformers', () => {
     const transformers = jest.createMockFromModule('@xenova/transformers');
-    transformers.pipeline = jest.fn(async() => {
+    transformers.pipeline = jest.fn(async () => {
         return jest.fn(() => ({
             data: new Float32Array([1, 2, 3])
         }));
@@ -23,7 +23,7 @@ describe('Reasoner Integration Test', () => {
 
     beforeEach(() => {
         // Use BruteForceStrategy for deterministic test results
-        reasoner = new Reasoner({ strategy: new BruteForceStrategy(), temporalReasoner: new TemporalReasoner() });
+        reasoner = new Reasoner({strategy: new BruteForceStrategy(), temporalReasoner: new TemporalReasoner()});
         memory = new Memory();
         lm = new LM();
 
@@ -32,7 +32,7 @@ describe('Reasoner Integration Test', () => {
         });
     });
 
-    test('should perform modus ponens', async() => {
+    test('should perform modus ponens', async () => {
         const termA = await lm.bootstrapTerm('cat');
         const termB = await lm.bootstrapTerm('mammal');
         memory.addTerm(termA);
@@ -46,7 +46,7 @@ describe('Reasoner Integration Test', () => {
         expect(derivedTask).toBeDefined();
     });
 
-    test('should perform inheritance chaining', async() => {
+    test('should perform inheritance chaining', async () => {
         const termA = await lm.bootstrapTerm('cat');
         const termB = await lm.bootstrapTerm('mammal');
         const termC = await lm.bootstrapTerm('animal');

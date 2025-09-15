@@ -1,5 +1,5 @@
-import { handleErrorWithDefault } from '../utils/error-handler.js';
-import { error, debug } from '../utils/logger.js';
+import {handleErrorWithDefault} from '../utils/error-handler.js';
+import {debug, error} from '../utils/logger.js';
 
 class QAService {
     constructor(generateFunction, getQAPipelineFunction) {

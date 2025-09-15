@@ -1,5 +1,5 @@
 import Task from '../../core/Task.js';
-import { parseTerm } from '../../parser/narseseParser.js';
+import {parseTerm} from '../../parser/narseseParser.js';
 import config from '../../config.js';
 
 function createTemporalTask(termKey, punctuation, truthValue, occurrenceTime, endTime = null) {
@@ -20,7 +20,9 @@ function createTemporalRelationshipTask(task1, task2, relationship) {
 }
 
 function createTemporalSequenceTask(tasks) {
-    if (tasks.length < 2) { return null; }
+    if (tasks.length < 2) {
+        return null;
+    }
 
     const termKeys = tasks.map(task => task.termKey);
     const termKey = `(&/, ${termKeys.join(', ')})`;

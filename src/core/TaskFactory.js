@@ -1,8 +1,8 @@
 import Task from './Task.js';
-import { createTemporalTask } from '../utils/temporal/task-creation.js';
-import { parseTerm } from '../parser/parse-utils.js';
+import {createTemporalTask} from '../utils/temporal/task-creation.js';
+import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
-import { handleErrorWithDefault } from '../errors/error-handler.js';
+import {handleErrorWithDefault} from '../errors/error-handler.js';
 
 class TaskFactory {
     constructor(memory, lm) {
@@ -139,7 +139,9 @@ class TaskFactory {
     }
 
     async convertEventToTask(event) {
-        if (!event || !event.type) { return null; }
+        if (!event || !event.type) {
+            return null;
+        }
         const handler = this.eventHandlers[event.type] || this.eventHandlers.default;
         try {
             return await handler(event);
@@ -155,14 +157,14 @@ class TaskFactory {
         return createTemporalTask(
             termKey,
             '.',
-            { frequency: event.confidence || 1.0, confidence: event.confidence || 0.9 },
+            {frequency: event.confidence || 1.0, confidence: event.confidence || 0.9},
             event.occurrenceTime || Date.now(),
             event.endTime
         );
     }
 
     async _createSocialInteractionTask(event) {
-        const { participants = [], interactionType = 'unknown', emotionalTone = 'neutral' } = event;
+        const {participants = [], interactionType = 'unknown', emotionalTone = 'neutral'} = event;
         const termKey = `(social_interaction_${interactionType}_${participants.join('_')}_${emotionalTone})`;
         await this._ensureTermExists(termKey);
         // Additional related tasks could be created here too
@@ -173,15 +175,15 @@ class TaskFactory {
     }
 
     async _createEnvironmentalChangeTask(event) {
-        const { description = 'change', location = 'unknown_location' } = event;
+        const {description = 'change', location = 'unknown_location'} = event;
         const termKey = `(environmental_change_${description}_${location})`;
         await this._ensureTermExists(termKey);
         // Additional related tasks could be created here too
-        return this._createTask(termKey, '.', { frequency: event.magnitude || 1.0, confidence: event.confidence || 0.9 });
+        return this._createTask(termKey, '.', {frequency: event.magnitude || 1.0, confidence: event.confidence || 0.9});
     }
 
     async _createLearningExperienceTask(event) {
-        const { topic = 'unknown_topic', method = 'unknown_method' } = event;
+        const {topic = 'unknown_topic', method = 'unknown_method'} = event;
         const termKey = `(learning_experience_${topic}_${method})`;
         await this._ensureTermExists(termKey);
         // Additional related tasks could be created here too

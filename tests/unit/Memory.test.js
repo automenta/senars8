@@ -1,6 +1,6 @@
 import Memory from '../../src/memory/Memory.js';
 import Task from '../../src/core/Task.js';
-import { parseTerm } from '../../src/parser/narseseParser.js';
+import {parseTerm} from '../../src/parser/narseseParser.js';
 import config from '../../src/config.js';
 
 describe('Memory', () => {
@@ -9,17 +9,17 @@ describe('Memory', () => {
 
     beforeEach(() => {
         // Manually backup and modify config for tests
-        originalMemoryConfig = { ...config.memory };
+        originalMemoryConfig = {...config.memory};
         config.memory = {
             ...config.memory,
             FORGETTING_STRATEGY_OPTIONS: {
                 shortTerm: {
                     expirationThreshold: BigInt(24 * 3600 * 1000), // 1 day
-                    importanceThresholds: { priority: 0.5, confidence: 0.5 }
+                    importanceThresholds: {priority: 0.5, confidence: 0.5}
                 },
                 longTerm: {
                     expirationThreshold: BigInt(30 * 24 * 3600 * 1000), // 30 days
-                    importanceThresholds: { priority: 0.8, confidence: 0.8 }
+                    importanceThresholds: {priority: 0.8, confidence: 0.8}
                 }
             }
         };
@@ -31,7 +31,7 @@ describe('Memory', () => {
         config.memory = originalMemoryConfig;
     });
 
-    it('should prune expired, unimportant tasks during maintenance', async() => {
+    it('should prune expired, unimportant tasks during maintenance', async () => {
         const now = BigInt(Date.now());
         const longAgo = now - (BigInt(24 * 3600 * 1000) * BigInt(2)); // 2 days ago
 
@@ -53,7 +53,7 @@ describe('Memory', () => {
         expect(memory.shortTermTasks.has(task2.id)).toBe(true);
     });
 
-    it('should NOT prune expired but important tasks', async() => {
+    it('should NOT prune expired but important tasks', async () => {
         const now = BigInt(Date.now());
         const longAgo = now - (BigInt(24 * 3600 * 1000) * BigInt(2)); // 2 days ago
 

@@ -1,6 +1,6 @@
 import Memory from '../../src/memory/Memory.js';
 import Task from '../../src/core/Task.js';
-import { parseTerm } from '../../src/parser/narseseParser.js';
+import {parseTerm} from '../../src/parser/narseseParser.js';
 
 describe('Memory Indexing', () => {
     let memory;
@@ -10,7 +10,7 @@ describe('Memory Indexing', () => {
     });
 
     describe('punctuationIndex', () => {
-        test('should index tasks by punctuation type', async() => {
+        test('should index tasks by punctuation type', async () => {
             const beliefTask = new Task(parseTerm('(cat --> animal)'), '.');
             const goalTask = new Task(parseTerm('find_food'), '!');
             const questionTask = new Task(parseTerm('(bird --> flies)'), '?');
@@ -43,7 +43,7 @@ describe('Memory Indexing', () => {
             expect(memory.punctuationIndex.has('.') && memory.punctuationIndex.get('.').has(beliefTask.id)).toBe(false);
         });
 
-        test('should query tasks by punctuation using index', async() => {
+        test('should query tasks by punctuation using index', async () => {
             const beliefTask1 = new Task(parseTerm('(cat --> animal)'), '.');
             const beliefTask2 = new Task(parseTerm('(bird --> animal)'), '.');
             const goalTask = new Task(parseTerm('find_food'), '!');
@@ -51,7 +51,7 @@ describe('Memory Indexing', () => {
             await memory.addTasks([beliefTask1, beliefTask2, goalTask]);
 
             // Query beliefs using the index
-            const beliefs = memory.queryTasks({ punctuation: '.' });
+            const beliefs = memory.queryTasks({punctuation: '.'});
 
             // Should return only belief tasks
             expect(beliefs).toHaveLength(2);
@@ -62,7 +62,7 @@ describe('Memory Indexing', () => {
     });
 
     describe('priorityIndex', () => {
-        test('should index tasks by priority buckets', async() => {
+        test('should index tasks by priority buckets', async () => {
             const lowPriorityTask = new Task(parseTerm('(low_priority --> property)'), '.');
             lowPriorityTask.state.priority = 0.2;
 
@@ -103,7 +103,7 @@ describe('Memory Indexing', () => {
     });
 
     describe('queryTasks optimization', () => {
-        test('should use punctuation index for faster queries', async() => {
+        test('should use punctuation index for faster queries', async () => {
             // Create many tasks to demonstrate performance difference
             const tasks = [];
             for (let i = 0; i < 100; i++) {
@@ -118,7 +118,7 @@ describe('Memory Indexing', () => {
 
             // Query beliefs - should use index
             const _startTime = Date.now();
-            const beliefs = memory.queryTasks({ punctuation: '.' });
+            const beliefs = memory.queryTasks({punctuation: '.'});
             const _endTime = Date.now();
 
             // Should return only belief tasks
@@ -130,7 +130,7 @@ describe('Memory Indexing', () => {
             expect(memory.punctuationIndex.get('.').size).toBe(50);
         });
 
-        test('should fall back to full scan for complex queries', async() => {
+        test('should fall back to full scan for complex queries', async () => {
             const task1 = new Task(parseTerm('(test --> property)'), '.');
             task1.state.priority = 0.9;
             task1.state.truthValue.confidence = 0.8;

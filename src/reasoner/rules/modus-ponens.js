@@ -1,5 +1,5 @@
 import TruthValueManager from '../TruthValueManager.js';
-import { createModusPonensRule } from './rule-factories.js';
+import {createModusPonensRule} from './rule-factories.js';
 import Term from '../../core/Term.js';
 
 /**

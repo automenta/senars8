@@ -1,5 +1,5 @@
 import Task from '../core/Task.js';
-import { MinPriorityQueue } from '@datastructures-js/priority-queue';
+import {MinPriorityQueue} from '@datastructures-js/priority-queue';
 
 /**
  * Memory utilities for task and term management
@@ -52,7 +52,9 @@ function updateCostIndex(term, costIndex, operation) {
     }
 
     const cost = parseFloat(term.predicate.terms[0].key);
-    if (isNaN(cost)) { return costIndex; }
+    if (isNaN(cost)) {
+        return costIndex;
+    }
 
     const actionKey = term.subject.key;
     const newCostIndex = new Map(costIndex);
@@ -69,7 +71,9 @@ function updateCostIndex(term, costIndex, operation) {
  * @returns {Map} Updated implication index
  */
 function indexImplication(term, implicationIndex) {
-    if (term.type !== 'Implication' || !term.subject) { return implicationIndex; }
+    if (term.type !== 'Implication' || !term.subject) {
+        return implicationIndex;
+    }
 
     const goalTerm = (term.subject.type === 'SequentialConjunction' && term.subject.terms.length > 0) ?
         term.subject.terms[0] :
@@ -94,7 +98,9 @@ function indexImplication(term, implicationIndex) {
  * @returns {Map} Updated belief index
  */
 function indexTask(task, beliefIndex) {
-    if (!Task.isBelief(task)) { return beliefIndex; }
+    if (!Task.isBelief(task)) {
+        return beliefIndex;
+    }
 
     const newBeliefIndex = new Map(beliefIndex);
     const currentBeliefs = newBeliefIndex.get(task.termKey) || [];
@@ -110,7 +116,9 @@ function indexTask(task, beliefIndex) {
  * @returns {Map} Updated belief index
  */
 function unindexTask(task, beliefIndex) {
-    if (!Task.isBelief(task) || !beliefIndex.has(task.termKey)) { return beliefIndex; }
+    if (!Task.isBelief(task) || !beliefIndex.has(task.termKey)) {
+        return beliefIndex;
+    }
 
     const newBeliefIndex = new Map(beliefIndex);
     const beliefs = [...newBeliefIndex.get(task.termKey)];

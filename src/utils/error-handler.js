@@ -1,4 +1,4 @@
-import { error as logError } from './logger.js';
+import {error as logError} from './logger.js';
 
 // Error classes
 class ValidationError extends Error {
@@ -67,7 +67,7 @@ function handleErrorWithDefault(error, context, defaultValue = null) {
 }
 
 function withErrorHandling(fn, context, defaultValue = null) {
-    return async(...args) => {
+    return async (...args) => {
         try {
             return await fn(...args);
         } catch (error) {

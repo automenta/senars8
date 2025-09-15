@@ -43,7 +43,7 @@ class NarseseParser {
 
     consume(type) {
         if (this.match(type)) {
-            const { value } = this.current;
+            const {value} = this.current;
             this.next();
             return value;
         }
@@ -93,7 +93,7 @@ class NarseseParser {
         this.consume('comma');
         const confidence = this.parseNumber();
         this.consume('rparen');
-        return { frequency, confidence };
+        return {frequency, confidence};
     }
 
     parseNumber() {
@@ -176,7 +176,7 @@ class NarseseParser {
         this.consume('comma');
         const term = this.parseTerm();
         this.consume('rparen');
-        return { type: this.getUnaryOperatorType(operatorToken.type), term };
+        return {type: this.getUnaryOperatorType(operatorToken.type), term};
     }
 
     getUnaryOperatorType(operator) {
@@ -193,7 +193,7 @@ class NarseseParser {
         this.consume('comma');
         const term = this.parseTerm();
         this.consume('rparen');
-        return { type: this.getTemporalOperatorType(operatorToken.type), term };
+        return {type: this.getTemporalOperatorType(operatorToken.type), term};
     }
 
     getTemporalOperatorType(operator) {
@@ -214,7 +214,7 @@ class NarseseParser {
         this.consume('comma');
         const terms = this.parseTermList();
         this.consume('rparen');
-        return { type: this.getBinaryOperatorType(operatorToken.type), terms };
+        return {type: this.getBinaryOperatorType(operatorToken.type), terms};
     }
 
     getBinaryOperatorType(operator) {
@@ -225,7 +225,7 @@ class NarseseParser {
         this.consume(tokenType);
         const predicate = this.parseTerm();
         this.consume('rparen');
-        return { type: relationType, subject, predicate };
+        return {type: relationType, subject, predicate};
     }
 
     parseInheritance(subject) {
@@ -276,25 +276,25 @@ class NarseseParser {
         this.consume('setExtension');
         const terms = this.parseTermList();
         this.consume('rbrace');
-        return { type: 'ExtensionalSet', terms };
+        return {type: 'ExtensionalSet', terms};
     }
 
     parseIntensionalSet() {
         this.consume('setIntension');
         const terms = this.parseTermList();
         this.consume('rbracket');
-        return { type: 'IntensionalSet', terms };
+        return {type: 'IntensionalSet', terms};
     }
 
     parseAtomicTerm() {
         const token = this.current;
         this.next(); // consume token
-        return { type: 'Atomic', key: token.value };
+        return {type: 'Atomic', key: token.value};
     }
 
     parseVariable(tokenType, variableType) {
         const variable = this.consume(tokenType);
-        return { type: variableType, name: variable };
+        return {type: variableType, name: variable};
     }
 
     parseIndependentVariable() {
@@ -344,4 +344,4 @@ function parseTerm(input) {
     }
 }
 
-export { parseTerm };
+export {parseTerm};

@@ -1,5 +1,5 @@
 import TruthValueManager from '../TruthValueManager.js';
-import { createRule } from './rule-factories.js';
+import {createRule} from './rule-factories.js';
 import Task from '../../core/Task.js';
 import Term from '../../core/Term.js';
 
@@ -28,6 +28,6 @@ export default createRule({
             task2.state.truthValue,
             task3.state.truthValue
         );
-        return { newTermKey, newTruthValue };
+        return {newTermKey, newTruthValue};
     }
 });

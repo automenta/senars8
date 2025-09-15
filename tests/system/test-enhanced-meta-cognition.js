@@ -1,6 +1,6 @@
 const MetaCognition = require('../src/system/MetaCognition');
 const Task = require('../src/core/Task');
-const { parseTerm } = require('../src/parser/narseseParser');
+const {parseTerm} = require('../src/parser/narseseParser');
 
 async function testEnhancedMetaCognition() {
     console.log('=== Testing Enhanced Meta-Cognition ===\n');
@@ -10,38 +10,38 @@ async function testEnhancedMetaCognition() {
     // Create tasks with various types of contradictions
     const taskDefs = [
         // Direct negation
-        { termKey: 'bird', punctuation: '.', truthValue: { frequency: 0.9, confidence: 0.9 } },
-        { termKey: '(--, bird)', punctuation: '.', truthValue: { frequency: 0.9, confidence: 0.8 } },
+        {termKey: 'bird', punctuation: '.', truthValue: {frequency: 0.9, confidence: 0.9}},
+        {termKey: '(--, bird)', punctuation: '.', truthValue: {frequency: 0.9, confidence: 0.8}},
 
         // Inheritance conflict
-        { termKey: '(robin --> bird)', punctuation: '.', truthValue: { frequency: 1.0, confidence: 0.95 } },
-        { termKey: '(robin --> (--, bird))', punctuation: '.', truthValue: { frequency: 0.9, confidence: 0.9 } },
+        {termKey: '(robin --> bird)', punctuation: '.', truthValue: {frequency: 1.0, confidence: 0.95}},
+        {termKey: '(robin --> (--, bird))', punctuation: '.', truthValue: {frequency: 0.9, confidence: 0.9}},
 
         // Conjunction conflict
-        { termKey: '(&, bird, can_fly)', punctuation: '.', truthValue: { frequency: 0.8, confidence: 0.85 } },
-        { termKey: '(&, bird, (--, can_fly))', punctuation: '.', truthValue: { frequency: 0.7, confidence: 0.8 } },
+        {termKey: '(&, bird, can_fly)', punctuation: '.', truthValue: {frequency: 0.8, confidence: 0.85}},
+        {termKey: '(&, bird, (--, can_fly))', punctuation: '.', truthValue: {frequency: 0.7, confidence: 0.8}},
 
         // Disjunction conflict
-        { termKey: '(|, bird, mammal)', punctuation: '.', truthValue: { frequency: 0.6, confidence: 0.7 } },
-        { termKey: '(|, (--, bird), mammal)', punctuation: '.', truthValue: { frequency: 0.65, confidence: 0.75 } },
+        {termKey: '(|, bird, mammal)', punctuation: '.', truthValue: {frequency: 0.6, confidence: 0.7}},
+        {termKey: '(|, (--, bird), mammal)', punctuation: '.', truthValue: {frequency: 0.65, confidence: 0.75}},
 
         // Temporal conflict
         {
             termKey: 'flies',
             punctuation: '.',
-            truthValue: { frequency: 0.9, confidence: 0.9 },
-            stamp: { creationTime: Date.now(), occurrenceTime: Date.now() - 10000 }
+            truthValue: {frequency: 0.9, confidence: 0.9},
+            stamp: {creationTime: Date.now(), occurrenceTime: Date.now() - 10000}
         },
         {
             termKey: 'flies',
             punctuation: '.',
-            truthValue: { frequency: 0.2, confidence: 0.85 },
-            stamp: { creationTime: Date.now(), occurrenceTime: Date.now() - 5000 }
+            truthValue: {frequency: 0.2, confidence: 0.85},
+            stamp: {creationTime: Date.now(), occurrenceTime: Date.now() - 5000}
         },
 
         // Goal conflict
-        { termKey: 'stay_alive', punctuation: '!', truthValue: { frequency: 1.0, confidence: 0.95 } },
-        { termKey: '(--, stay_alive)', punctuation: '!', truthValue: { frequency: 1.0, confidence: 0.9 } }
+        {termKey: 'stay_alive', punctuation: '!', truthValue: {frequency: 1.0, confidence: 0.95}},
+        {termKey: '(--, stay_alive)', punctuation: '!', truthValue: {frequency: 1.0, confidence: 0.9}}
     ];
 
     // Create tasks
@@ -53,7 +53,7 @@ async function testEnhancedMetaCognition() {
                 parsedTerm,
                 def.punctuation,
                 def.truthValue,
-                def.stamp || { creationTime: Date.now() }
+                def.stamp || {creationTime: Date.now()}
             );
             tasks.push(task);
             console.log(`Created task: ${task.termKey}${task.punctuation}`);

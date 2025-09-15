@@ -1,5 +1,6 @@
 import Task from '../src/core/Task.js';
 import {parseTerm} from '../src/parser/parse-utils.js';
+import SystemFactory from '../src/system/SystemFactory.js';
 
 /**
  * Creates a new Task with the given parameters.
@@ -17,8 +18,6 @@ function createTask(termKey, punctuation, truthValue, stamp = {creationTime: Dat
     }
     return new Task(parsedTerm, punctuation, truthValue, stamp);
 }
-
-import SystemFactory from '../src/system/SystemFactory.js';
 
 async function runDemo(demoName, taskDefs, cycleCount = 5) {
     console.log(`

@@ -1,5 +1,5 @@
-import { parseTerm as parseWithMoo } from './narseseParser.js';
-import { warn } from '../utils/logger.js';
+import {parseTerm as parseWithMoo} from './narseseParser.js';
+import {warn} from '../utils/logger.js';
 
 /**
  * Centralized parsing utility for Narsese terms

@@ -1,6 +1,6 @@
 const LM = require('../src/lm/LM');
 const Task = require('../src/core/Task');
-const { parseTerm } = require('../src/parser/narseseParser');
+const {parseTerm} = require('../src/parser/narseseParser');
 
 async function testLMEnhancements() {
     console.log('=== Testing Enhanced LM Capabilities ===\n');
@@ -9,9 +9,9 @@ async function testLMEnhancements() {
 
     // Create some sample tasks
     const taskDefs = [
-        { termKey: '(bird --> can_fly)', punctuation: '.', truthValue: { frequency: 0.95, confidence: 0.95 } },
-        { termKey: '(penguin --> bird)', punctuation: '.', truthValue: { frequency: 1.0, confidence: 0.95 } },
-        { termKey: '(penguin --> (--, can_fly))', punctuation: '.', truthValue: { frequency: 0.95, confidence: 0.95 } }
+        {termKey: '(bird --> can_fly)', punctuation: '.', truthValue: {frequency: 0.95, confidence: 0.95}},
+        {termKey: '(penguin --> bird)', punctuation: '.', truthValue: {frequency: 1.0, confidence: 0.95}},
+        {termKey: '(penguin --> (--, can_fly))', punctuation: '.', truthValue: {frequency: 0.95, confidence: 0.95}}
     ];
 
     const tasks = taskDefs.map(def => {

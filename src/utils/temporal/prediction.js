@@ -1,5 +1,5 @@
-import { calculateIntervalStats, groupTasksByTermKey } from './helpers.js';
-import { createTemporalTask } from './task-creation.js';
+import {calculateIntervalStats, groupTasksByTermKey} from './helpers.js';
+import {createTemporalTask} from './task-creation.js';
 import config from '../../config.js';
 
 function predictFutureTasks(tasks, predictionTime) {
@@ -8,9 +8,11 @@ function predictFutureTasks(tasks, predictionTime) {
     const predictions = [];
 
     for (const [termKey, groupTasks] of Object.entries(taskGroups)) {
-        if (groupTasks.length < 2) { continue; }
+        if (groupTasks.length < 2) {
+            continue;
+        }
 
-        const { avgInterval, stdDev } = calculateIntervalStats(groupTasks);
+        const {avgInterval, stdDev} = calculateIntervalStats(groupTasks);
         const regularity = 1.0 / (1.0 + stdDev / avgInterval);
         const lastOccurrence = groupTasks[groupTasks.length - 1].state.stamp.occurrenceTime;
         const predictedOccurrence = lastOccurrence + avgInterval;
@@ -38,14 +40,18 @@ function advancedPredictFutureTasks(tasks, predictionHorizon) {
     const predictionEndTime = currentTime + predictionHorizon;
 
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
-    if (temporalTasks.length < 3) { return predictions; }
+    if (temporalTasks.length < 3) {
+        return predictions;
+    }
 
     const taskGroups = groupTasksByTermKey(temporalTasks);
 
     for (const [termKey, groupTasks] of Object.entries(taskGroups)) {
-        if (groupTasks.length < 2) { continue; }
+        if (groupTasks.length < 2) {
+            continue;
+        }
 
-        const { intervals, avgInterval, stdDev } = calculateIntervalStats(groupTasks);
+        const {intervals, avgInterval, stdDev} = calculateIntervalStats(groupTasks);
         const regularity = 1.0 / (1.0 + stdDev / avgInterval);
 
         let intervalTrend = 0;

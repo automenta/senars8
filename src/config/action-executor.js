@@ -1,8 +1,8 @@
 export default {
     RESOURCES: [
-        { name: 'cpu', total: 100, unit: 'percent' },
-        { name: 'memory', total: 8192, unit: 'MB' },
-        { name: 'network', total: 1000, unit: 'Mbps' }
+        {name: 'cpu', total: 100, unit: 'percent'},
+        {name: 'memory', total: 8192, unit: 'MB'},
+        {name: 'network', total: 1000, unit: 'Mbps'}
     ],
     CONSTRAINTS: {
         resource_limit(action) {

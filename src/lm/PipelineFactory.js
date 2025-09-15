@@ -1,5 +1,5 @@
-import { pipeline, env } from '@xenova/transformers';
-import { info, warn } from '../utils/logger.js';
+import {env, pipeline} from '@xenova/transformers';
+import {info, warn} from '../utils/logger.js';
 
 // Suppress ONNX runtime warnings
 env.logLevel = 'error';

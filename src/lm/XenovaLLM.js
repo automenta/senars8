@@ -1,4 +1,4 @@
-import { LLM } from '@langchain/core/language_models/llms';
+import {LLM} from '@langchain/core/language_models/llms';
 
 class XenovaLLM extends LLM {
     constructor(pipeline, options = {}) {

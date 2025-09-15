@@ -1,4 +1,4 @@
-const { parseTerm } = require('../src/parser/narseseParser');
+const {parseTerm} = require('../src/parser/narseseParser');
 
 // Test the nested disjunction
 const testCase = '(||,, cat, dog)';

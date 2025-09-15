@@ -1,4 +1,4 @@
-import { error, debug } from '../utils/logger.js';
+import {debug, error} from '../utils/logger.js';
 
 class ExplanationGenerator {
     constructor(generateFunction) {
@@ -6,9 +6,9 @@ class ExplanationGenerator {
     }
 
     async explain(termKey, config = {}) {
-        const { type = 'simple', context = null, promptTemplate = null } = config;
+        const {type = 'simple', context = null, promptTemplate = null} = config;
         if (!promptTemplate && (!termKey || typeof termKey !== 'string')) {
-            return { error: 'Cannot explain an empty term.' };
+            return {error: 'Cannot explain an empty term.'};
         }
 
         debug(`Explaining term: ${termKey} with type: ${type}`);
@@ -16,20 +16,20 @@ class ExplanationGenerator {
         const fullPrompt = context ? `Context: ${context}\n${finalPrompt}` : finalPrompt;
 
         try {
-            const explanationText = await this._generate(fullPrompt, { max_new_tokens: 300 });
+            const explanationText = await this._generate(fullPrompt, {max_new_tokens: 300});
             if (!explanationText) {
                 error('Explanation generation failed');
-                return { error: 'Explanation generation failed.' };
+                return {error: 'Explanation generation failed.'};
             }
             debug('Explanation generated successfully');
-            return { term: termKey, explanation: explanationText };
+            return {term: termKey, explanation: explanationText};
         } catch (err) {
             error('Error generating explanation:', err);
-            return { error: `Failed to generate explanation: ${err.message}` };
+            return {error: `Failed to generate explanation: ${err.message}`};
         }
     }
 
-    _getExplanationPrompt(termKey, { type, relatedTerms = [], _audience = 'intermediate' }) {
+    _getExplanationPrompt(termKey, {type, relatedTerms = [], _audience = 'intermediate'}) {
         debug(`Getting explanation prompt for: ${termKey}`);
         const prompts = {
             simple: `Explain what "${termKey}" means.`,

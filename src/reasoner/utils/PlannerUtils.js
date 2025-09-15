@@ -3,7 +3,9 @@ function findDecompositionMethods(goalTerm, memory) {
 }
 
 function extractSubTasksFromMethod(methodTerm) {
-    if (!methodTerm) { return null; }
+    if (!methodTerm) {
+        return null;
+    }
     if (methodTerm.type === 'SequentialConjunction') {
         return methodTerm.terms;
     }

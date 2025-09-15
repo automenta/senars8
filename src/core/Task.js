@@ -1,18 +1,18 @@
-import { v4 as uuidv4 } from 'uuid';
-import { parseTerm } from '../parser/parse-utils.js';
+import {v4 as uuidv4} from 'uuid';
+import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
 import TruthValueManager from '../reasoner/TruthValueManager.js';
 import {
-    getTasksByType,
     getBeliefTasks,
     getGoalTasks,
     getQuestionTasks,
+    getTasksByType,
     isBelief,
     isGoal,
     isQuestion
 } from '../utils/task-utils.js';
 
-const { DEFAULT_TRUTH_VALUE } = config;
+const {DEFAULT_TRUTH_VALUE} = config;
 
 /**
  * Task represents a specific cognitive act concerning a Term.
@@ -39,7 +39,7 @@ class Task {
         }
 
         // Process term
-        const { processedTerm, termKey } = this.#processTerm(term);
+        const {processedTerm, termKey} = this.#processTerm(term);
 
         // Validate truth value
         const validatedTruthValue = this.#validateTruthValue(truthValue);
@@ -60,6 +60,27 @@ class Task {
                 ...stamp
             }
         };
+    }
+
+    // Getters for private properties
+    get id() {
+        return this.#id;
+    }
+
+    get term() {
+        return this.#term;
+    }
+
+    get termKey() {
+        return this.#termKey;
+    }
+
+    get punctuation() {
+        return this.#punctuation;
+    }
+
+    get state() {
+        return this.#state;
     }
 
     /**
@@ -144,7 +165,7 @@ class Task {
      */
     #isValidPunctuation(punctuation) {
         return typeof punctuation === 'string' &&
-               (punctuation === '.' || punctuation === '!' || punctuation === '?');
+            (punctuation === '.' || punctuation === '!' || punctuation === '?');
     }
 
     /**
@@ -172,7 +193,7 @@ class Task {
             }
         }
 
-        return { processedTerm, termKey };
+        return {processedTerm, termKey};
     }
 
     /**
@@ -190,11 +211,11 @@ class Task {
             // Clamp values to valid range
             const frequency = Math.max(0, Math.min(1, truthValue.frequency));
             const confidence = Math.max(0, Math.min(1, truthValue.confidence));
-            return { frequency, confidence };
+            return {frequency, confidence};
         }
 
         // Return default if invalid
-        return { ...DEFAULT_TRUTH_VALUE };
+        return {...DEFAULT_TRUTH_VALUE};
     }
 
     /**
@@ -245,8 +266,8 @@ class Task {
         return new Task(
             this.#term,
             this.#punctuation,
-            { ...this.#state.truthValue },
-            { ...this.#state.stamp }
+            {...this.#state.truthValue},
+            {...this.#state.stamp}
         );
     }
 
@@ -263,27 +284,6 @@ class Task {
                 ...this.#state
             }
         };
-    }
-
-    // Getters for private properties
-    get id() {
-        return this.#id;
-    }
-
-    get term() {
-        return this.#term;
-    }
-
-    get termKey() {
-        return this.#termKey;
-    }
-
-    get punctuation() {
-        return this.#punctuation;
-    }
-
-    get state() {
-        return this.#state;
     }
 }
 

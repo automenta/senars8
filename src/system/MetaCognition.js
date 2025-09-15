@@ -1,9 +1,9 @@
-import { parseTerm } from '../parser/parse-utils.js';
+import {parseTerm} from '../parser/parse-utils.js';
 import ContradictionAnalyzer from '../reasoner/ContradictionAnalyzer.js';
 import ResolutionStrategy from '../reasoner/strategies/ResolutionStrategy.js';
-import { debug, error, info } from '../utils/logger.js';
-import { getBeliefTasks } from '../utils/task-utils.js';
-import { handleErrorWithDefault } from '../utils/error-handler.js';
+import {debug, error, info} from '../utils/logger.js';
+import {getBeliefTasks} from '../utils/task-utils.js';
+import {handleErrorWithDefault} from '../utils/error-handler.js';
 import EventBus from './EventBus.js';
 
 class MetaCognition {
@@ -34,7 +34,9 @@ class MetaCognition {
                     return parsedBeliefs.slice(i + 1).map(item2 => {
                         try {
                             const contradictionType = this.contradictionAnalyzer.analyze(item1.task, item2.task, item1.parsed, item2.parsed);
-                            if (!contradictionType) { return null; }
+                            if (!contradictionType) {
+                                return null;
+                            }
 
                             contradictionCount++;
                             return {
@@ -63,7 +65,7 @@ class MetaCognition {
         }
     }
 
-    resolve({ contradiction, strategy }) {
+    resolve({contradiction, strategy}) {
         try {
             debug(`Resolving contradiction of type: ${contradiction.type}`);
             const result = this.resolutionStrategy.resolve(contradiction, strategy);

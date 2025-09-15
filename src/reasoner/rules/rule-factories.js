@@ -1,7 +1,7 @@
 import Task from '../../core/Task.js';
-import { parseTerm, validateTermKey } from '../../parser/parse-utils.js';
+import {parseTerm, validateTermKey} from '../../parser/parse-utils.js';
 import Term from '../../core/Term.js';
-import { debug, error as logError } from '../../utils/logger.js';
+import {debug, error as logError} from '../../utils/logger.js';
 
 /**
  * Parses a task to extract its term structure
@@ -136,7 +136,7 @@ function createRule(spec) {
                     return null;
                 }
 
-                const { newTermKey, newTruthValue } = result;
+                const {newTermKey, newTruthValue} = result;
 
                 // Validate term key
                 if (!validateTermKey(newTermKey)) {

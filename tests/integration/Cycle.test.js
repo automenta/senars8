@@ -12,7 +12,7 @@ jest.mock('../../src/lm/LM.js');
 
 jest.mock('@xenova/transformers', () => {
     const transformers = jest.createMockFromModule('@xenova/transformers');
-    transformers.pipeline = jest.fn(async() => {
+    transformers.pipeline = jest.fn(async () => {
         return jest.fn(() => ({
             data: new Float32Array([1, 2, 3])
         }));
@@ -31,14 +31,14 @@ describe('Cycle Integration Test', () => {
         cycle = new Cycle(memory, reasoner, lm, actionExecutor, config);
 
         lm.generateHypotheses.mockResolvedValue([]);
-        lm.evaluateAndRankHypotheses.mockImplementation(async(tasks, hypotheses) => hypotheses);
+        lm.evaluateAndRankHypotheses.mockImplementation(async (tasks, hypotheses) => hypotheses);
         lm.bootstrapTerm.mockImplementation(async termKey => {
             return new Term(termKey, [], 1);
         });
         lm.proactiveEnrichment.mockResolvedValue([]);
     });
 
-    test('should run a cycle without errors', async() => {
+    test('should run a cycle without errors', async () => {
         await expect(cycle.runOnce()).resolves.not.toThrow();
     });
 
@@ -67,7 +67,7 @@ describe('Cycle Integration Test', () => {
     //     expect(derivedTask).toBeDefined();
     // });
 
-    test('should prioritize tasks based on relevance to the constitution', async() => {
+    test('should prioritize tasks based on relevance to the constitution', async () => {
         const term1 = new Term('AcquireKnowledge', [1, 0, 0], 1);
         const term2 = new Term('cat', [0, 1, 0], 1);
         await memory.addTerm(term1);

@@ -1,7 +1,7 @@
-import { parseTerm } from '../parser/parse-utils.js';
-import { cosineSimilarity } from '../utils/math.js';
+import {parseTerm} from '../parser/parse-utils.js';
+import {cosineSimilarity} from '../utils/math.js';
 import config from '../config/index.js';
-import { warn } from '../utils/logger.js';
+import {warn} from '../utils/logger.js';
 
 /**
  * Term represents a concept or relationship in the knowledge graph.
@@ -91,6 +91,19 @@ class Term {
         }
     }
 
+    // Getters for private properties
+    get key() {
+        return this.#key;
+    }
+
+    get embedding() {
+        return this.#embedding;
+    }
+
+    get complexity() {
+        return this.#complexity;
+    }
+
     /**
      * Calculates structural similarity between two term keys
      * @param {string} termKey1 - First term key
@@ -99,14 +112,18 @@ class Term {
      */
     static structuralSimilarity(termKey1, termKey2) {
         // Fast path for identical terms
-        if (termKey1 === termKey2) { return 1.0; }
+        if (termKey1 === termKey2) {
+            return 1.0;
+        }
 
         // Use a more efficient algorithm for substring comparison
         const len1 = termKey1.length;
         const len2 = termKey2.length;
 
         // If either string is too short, return 0
-        if (len1 < 2 || len2 < 2) { return 0; }
+        if (len1 < 2 || len2 < 2) {
+            return 0;
+        }
 
         // Count common bigrams using arrays for better performance
         const bigrams1 = new Array(len1 - 1);
@@ -145,7 +162,9 @@ class Term {
      */
     static findSimilarTerms(terms, targetTermKey, maxResults = 10) {
         const targetTerm = terms.get(targetTermKey);
-        if (!targetTerm || !targetTerm.embedding) { return []; }
+        if (!targetTerm || !targetTerm.embedding) {
+            return [];
+        }
 
         // Pre-calculate weights to avoid repeated lookups
         const regularityBoost = config.temporal.REGULARITY_BOOST;
@@ -186,11 +205,21 @@ class Term {
      */
     static termsEqual(term1, term2) {
         // Fast path checks
-        if (term1 === term2) { return true; }
-        if (!term1 || !term2) { return false; }
-        if (term1.key !== term2.key) { return false; }
-        if (term1.complexity !== term2.complexity) { return false; }
-        if (term1.embedding.length !== term2.embedding.length) { return false; }
+        if (term1 === term2) {
+            return true;
+        }
+        if (!term1 || !term2) {
+            return false;
+        }
+        if (term1.key !== term2.key) {
+            return false;
+        }
+        if (term1.complexity !== term2.complexity) {
+            return false;
+        }
+        if (term1.embedding.length !== term2.embedding.length) {
+            return false;
+        }
 
         // Use for loop instead of every for better performance
         for (let i = 0; i < term1.embedding.length; i++) {
@@ -208,7 +237,9 @@ class Term {
      * @returns {Term|null} The created term or null if invalid
      */
     static fromJSON(json) {
-        if (!json || !json.key) { return null; }
+        if (!json || !json.key) {
+            return null;
+        }
         return new Term(json.key, json.embedding, json.complexity);
     }
 
@@ -218,7 +249,9 @@ class Term {
      * @returns {string} The term key
      */
     static buildTermKey(pTerm) {
-        if (!pTerm || !pTerm.type) { return ''; }
+        if (!pTerm || !pTerm.type) {
+            return '';
+        }
 
         // Use a switch statement for better performance
         switch (pTerm.type) {
@@ -303,8 +336,12 @@ class Term {
      */
     static #buildTermList(terms) {
         // Use for loop instead of map and join for better performance
-        if (terms.length === 0) { return ''; }
-        if (terms.length === 1) { return Term.buildTermKey(terms[0]); }
+        if (terms.length === 0) {
+            return '';
+        }
+        if (terms.length === 1) {
+            return Term.buildTermKey(terms[0]);
+        }
 
         let result = Term.buildTermKey(terms[0]);
         for (let i = 1; i < terms.length; i++) {
@@ -426,19 +463,6 @@ class Term {
             embedding: this.#embedding,
             complexity: this.#complexity
         };
-    }
-
-    // Getters for private properties
-    get key() {
-        return this.#key;
-    }
-
-    get embedding() {
-        return this.#embedding;
-    }
-
-    get complexity() {
-        return this.#complexity;
     }
 }
 

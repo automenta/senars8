@@ -1,4 +1,4 @@
-import { warn, error } from '../utils/logger.js';
+import {error, warn} from '../utils/logger.js';
 
 /**
  * EventBus provides a centralized event handling system for decoupled communication

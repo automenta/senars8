@@ -1,8 +1,8 @@
 import BagSamplingStrategy from './strategies/BagSamplingStrategy.js';
 import rules from './rules/index.js';
 import TemporalReasoner from './TemporalReasoner.js';
-import { debug, error as logError, info } from '../utils/logger.js';
-import { handleError } from '../utils/error-handler.js';
+import {debug, error as logError, info} from '../utils/logger.js';
+import {handleError} from '../utils/error-handler.js';
 
 /**
  * Reasoner performs symbolic inference and manages the rule application process.
@@ -21,7 +21,7 @@ class Reasoner {
      * @param {object} [options.strategy] - The strategy for selecting task combinations
      * @param {TemporalReasoner} [options.temporalReasoner] - The temporal reasoner instance
      */
-    constructor({ strategy = new BagSamplingStrategy(), temporalReasoner = new TemporalReasoner() } = {}) {
+    constructor({strategy = new BagSamplingStrategy(), temporalReasoner = new TemporalReasoner()} = {}) {
         this.strategy = strategy;
         this.rules = rules;
         this.temporalReasoner = temporalReasoner;
@@ -46,7 +46,7 @@ class Reasoner {
             return handleError(new Error('Focus set must be an array'), 'Reasoner.performInference', false);
         }
 
-        const { maxDerivedTasks = Infinity } = options;
+        const {maxDerivedTasks = Infinity} = options;
         debug(`Performing inference on ${focusSet.length} tasks`);
 
         let derivedTasks = this._performSymbolicInference(focusSet, maxDerivedTasks);
@@ -78,7 +78,9 @@ class Reasoner {
         const processedCombinations = new Set();
 
         for (const rule of this.rules) {
-            if (derivedTasks.length >= maxDerivedTasks) { break; }
+            if (derivedTasks.length >= maxDerivedTasks) {
+                break;
+            }
             if (!rule.arity || rule.arity < 1) {
                 debug(`Skipping rule ${rule.name} due to invalid arity`);
                 continue;
@@ -111,8 +113,12 @@ class Reasoner {
         try {
             const combinations = this.strategy.selectCombinations(focusSet, rule.arity);
             for (const tasks of combinations) {
-                if (derivedTasks.length >= maxDerivedTasks) { break; }
-                if (!Array.isArray(tasks) || tasks.length !== rule.arity) { continue; }
+                if (derivedTasks.length >= maxDerivedTasks) {
+                    break;
+                }
+                if (!Array.isArray(tasks) || tasks.length !== rule.arity) {
+                    continue;
+                }
 
                 const derived = this._applyRule(rule, tasks, processedCombinations);
                 if (derived) {
@@ -170,7 +176,9 @@ class Reasoner {
         const combinationKey = `${rule.name}:${taskIds.join(',')}`;
 
         // Avoid processing the same combination multiple times
-        if (processedCombinations.has(combinationKey)) { return null; }
+        if (processedCombinations.has(combinationKey)) {
+            return null;
+        }
         processedCombinations.add(combinationKey);
 
         try {

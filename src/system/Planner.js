@@ -1,7 +1,7 @@
 import Planners from '../reasoner/index.js';
 import Plan from './Plan.js';
-import { debug, error, info, warn } from '../utils/logger.js';
-import { handleErrorWithDefault } from '../utils/error-handler.js';
+import {debug, error, info, warn} from '../utils/logger.js';
+import {handleErrorWithDefault} from '../utils/error-handler.js';
 
 class Planner {
     constructor(memory, lm, actionExecutor, config = {}) {

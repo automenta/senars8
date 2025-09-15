@@ -19,13 +19,13 @@ async function runAllTests() {
             console.log('='.repeat(50));
 
             require(path.join(testsDir, testFile));
-            results.push({ test: testFile, success: true });
+            results.push({test: testFile, success: true});
 
             console.log('='.repeat(50));
             console.log(`✓ ${testFile} completed\n`);
         } catch (error) {
             console.error(`✗ ${testFile} failed:`, error.message);
-            results.push({ test: testFile, success: false, error: error.message });
+            results.push({test: testFile, success: false, error: error.message});
         }
     }
 
