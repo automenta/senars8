@@ -1,5 +1,8 @@
-import {pipeline} from '@xenova/transformers';
+import { pipeline, env } from '@xenova/transformers';
 import {info, warn} from '../utils/logger.js';
+
+// Suppress ONNX runtime warnings
+env.logLevel = 'error';
 
 class PipelineFactory {
     constructor() {

@@ -1,109 +1,104 @@
 import Agent from '../src/agent/Agent.js';
 import fs from 'fs/promises';
+import path from 'path';
 import assert from 'assert';
-import { parseTerm } from '../src/parser/narseseParser.js';
-import Task from '../src/core/Task.js';
 
-const agent = new Agent();
+const RESULTS_DIR = 'results';
 
 /**
- * A generic function to run an evaluation test case.
- * @param {string} description - A description of the test.
- * @param {Function} setup - An async function to set up the test conditions.
- * @param {Function} verify - An async function to verify the outcome.
+ * A generic function to run an evaluation benchmark.
+ * @param {object} benchmark - The benchmark to run.
+ * @param {string} benchmark.name - The name of the benchmark.
+ * @param {Function} benchmark.run - The function that executes the benchmark.
+ * @param {Agent} agent - The agent instance to use for the benchmark.
  */
-async function runEvaluation(description, setup, verify) {
-    console.log(`\n--- Running Evaluation: ${description} ---`);
-    const cleanupCallbacks = [];
-    const addCleanup = (callback) => cleanupCallbacks.push(callback);
+async function runEvaluation(benchmark, agent) {
+    console.log(`\n--- Running Benchmark: ${benchmark.name} ---`);
+    const metrics = {
+        startTime: Date.now(),
+        success: false,
+        steps: [],
+        error: null,
+        performance: {
+            duration: 0,
+            taskCompletionRate: 0,
+            timeToCompletion: 0,
+        },
+        agentInternal: {
+            reasoningCycles: 0,
+            knowledgeBaseSize: 0,
+            contradictionsDetected: 0,
+        },
+        tokenomics: {
+            inputTokens: 0,
+            outputTokens: 0,
+            totalTokens: 0,
+        },
+    };
 
     try {
-        await setup(addCleanup);
-        await verify(addCleanup);
-        console.log(`--- ✅ SUCCESS: ${description} ---`);
+        await benchmark.run({ agent, metrics, assert });
+        metrics.success = true;
+        console.log(`--- ✅ SUCCESS: ${benchmark.name} ---`);
     } catch (error) {
-        console.error(`--- ❌ FAILED: ${description} ---`);
+        metrics.error = {
+            message: error.message,
+            stack: error.stack,
+        };
+        console.error(`--- ❌ FAILED: ${benchmark.name} ---`);
         console.error(error);
-        process.exit(1); // Exit with error code on failure
     } finally {
-        console.log('Running cleanup...');
-        for (const callback of cleanupCallbacks.reverse()) {
-            try {
-                await callback();
-            } catch (err) {
-                console.error('Error during cleanup:', err);
-            }
-        }
+        metrics.endTime = Date.now();
+        metrics.duration = metrics.endTime - metrics.startTime;
+        await saveResults(benchmark.name, metrics);
     }
 }
 
+/**
+ * Saves the evaluation results to a JSON file.
+ * @param {string} benchmarkName - The name of the benchmark.
+ * @param {object} metrics - The metrics to save.
+ */
+async function saveResults(benchmarkName, metrics) {
+    try {
+        await fs.mkdir(RESULTS_DIR, { recursive: true });
+        const timestamp = new Date().toISOString().replace(/:/g, '-');
+        const filename = `${benchmarkName.replace(/\s/g, '_')}_${timestamp}.json`;
+        const filepath = path.join(RESULTS_DIR, filename);
+        await fs.writeFile(filepath, JSON.stringify(metrics, null, 2));
+        console.log(`Results saved to ${filepath}`);
+    } catch (error) {
+        console.error('Error saving results:', error);
+    }
+}
+
+/**
+ * Dynamically loads and runs all benchmarks from the benchmarks/suites directory.
+ */
 async function main() {
+    const agent = new Agent();
     console.log('Initializing agent...');
     await agent.initialize();
     console.log('Agent initialized.');
 
-    // Setup File I/O capabilities
-    agent.addAction('readFile', async (action) => {
-        const [filePathTerm] = action.parameters;
-        const filePath = filePathTerm.key.replace(/"/g, '');
-        console.log(`Agent action: readFile(${filePath})`);
-        const content = await fs.readFile(filePath, 'utf-8');
-        const belief = new Task(parseTerm(`(${filePathTerm.key} has_content "${content}")`), '.');
-        await agent.system.addTasks([belief]);
-        return { success: true, content };
-    });
+    const suitesDir = path.join('benchmarks', 'suites');
+    const files = await fs.readdir(suitesDir);
 
-    agent.addAction('writeFile', async (action) => {
-        const [filePathTerm, contentTerm] = action.parameters;
-        const filePath = filePathTerm.key.replace(/"/g, '');
-        const content = contentTerm.key.replace(/"/g, '');
-        console.log(`Agent action: writeFile(${filePath}, "${content}")`);
-        await fs.writeFile(filePath, content);
-        return { success: true };
-    });
-    console.log('Core I/O actions registered.');
-
-    // The harness is now ready to be used.
-    await runReadModifyWriteBenchmark();
-}
-
-async function runReadModifyWriteBenchmark() {
-    const inputFile = 'input.txt';
-    const outputFile = 'output.txt';
-    const initialContent = 'Hello, SeNARS!';
-    const modifiedContent = `${initialContent} This is a test.`;
-
-    await runEvaluation(
-        'Read, Modify, and Write File',
-        async (addCleanup) => {
-            // Setup: Create the input file
-            await fs.writeFile(inputFile, initialContent);
-            addCleanup(async () => {
-                try { await fs.unlink(inputFile); } catch (e) { /* ignore */ }
-            });
-            addCleanup(async () => {
-                try { await fs.unlink(outputFile); } catch (e) { /* ignore */ }
-            });
-        },
-        async () => {
-            // Step 1: Read the file
-            console.log('Giving agent goal to read file...');
-            const readResult = await agent.achieve(`(*, readFile, "${inputFile}")`);
-            assert.strictEqual(readResult.success, true, 'Read action should succeed');
-            assert.strictEqual(readResult.content, initialContent, 'Read content should match initial content');
-            console.log('Agent successfully read the file.');
-
-            // Step 2: Write the modified file
-            console.log('Giving agent goal to write modified file...');
-            const writeResult = await agent.achieve(`(*, writeFile, "${outputFile}", "${modifiedContent}")`);
-            assert.strictEqual(writeResult.success, true, 'Write action should succeed');
-            console.log('Agent successfully wrote the file.');
-
-            // Verify the final output
-            const finalContent = await fs.readFile(outputFile, 'utf-8');
-            assert.strictEqual(finalContent, modifiedContent, 'Final content should match modified content');
+    for (const file of files) {
+        if (file.endsWith('.js')) {
+            const suitePath = path.join(process.cwd(), suitesDir, file);
+            try {
+                const { default: benchmark } = await import(`file://${suitePath}`);
+                if (benchmark && benchmark.name && benchmark.run) {
+                    await runEvaluation(benchmark, agent);
+                } else {
+                    console.warn(`Skipping invalid benchmark file: ${file}`);
+                }
+            } catch (error) {
+                console.error(`Error loading benchmark from ${file}:`, error);
+            }
         }
-    );
+    }
 }
 
 main().catch(error => {
