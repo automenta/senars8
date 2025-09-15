@@ -253,6 +253,8 @@ class Term {
             return '';
         }
 
+        let termKey = '';
+
         // Use a switch statement for better performance
         switch (pTerm.type) {
             // Atomic terms
@@ -303,38 +305,53 @@ class Term {
 
             // N-ary operators
             case 'Conjunction':
-                return `(&,${Term.#buildTermList(pTerm.terms || [])})`;
+                return `(&,${Term.buildTermList(pTerm.terms || [])})`;
             case 'Disjunction':
-                return `(||,${Term.#buildTermList(pTerm.terms || [])})`;
+                return `(||,${Term.buildTermList(pTerm.terms || [])})`;
             case 'SequentialConjunction':
-                return `(&&,${Term.#buildTermList(pTerm.terms || [])})`;
+                return `(&&,${Term.buildTermList(pTerm.terms || [])})`;
             case 'ParallelConjunction':
-                return `(&|,${Term.#buildTermList(pTerm.terms || [])})`;
+                return `(&|,${Term.buildTermList(pTerm.terms || [])})`;
             case 'ExtensionalDifference':
-                return `(#,${Term.#buildTermList(pTerm.terms || [])})`;
+                return `(#,${Term.buildTermList(pTerm.terms || [])})`;
             case 'IntensionalDifference':
-                return `(\\,${Term.#buildTermList(pTerm.terms || [])})`;
+                return `(\\\\,${Term.buildTermList(pTerm.terms || [])})`;
             case 'Product':
-                return `(*,${Term.#buildTermList(pTerm.terms || [])})`;
+                return `(*,${Term.buildTermList(pTerm.terms || [])})`;
 
             // Sets
             case 'ExtensionalSet':
-                return `{${Term.#buildTermList(pTerm.terms || [])}}`;
+                return `{${Term.buildTermList(pTerm.terms || [])}}`;
             case 'IntensionalSet':
-                return `[${Term.#buildTermList(pTerm.terms || [])}]`;
+                return `[${Term.buildTermList(pTerm.terms || [])}]`;
 
             default:
                 throw new Error(`buildTermKey does not support type: ${pTerm.type}`);
         }
+        
+        // Validate the generated term key to prevent malformed terms
+        // This is a safety check to ensure we don't create invalid terms
+        if (termKey && termKey.length > 0) {
+            // Check for common malformed patterns
+            if (termKey.includes('( --> )') || termKey.includes('( ==> )') ||
+                termKey.includes('( <-> )') || termKey.includes('( <=> )') ||
+                termKey.includes('( {-- )') || termKey.includes('( --} )') ||
+                termKey.includes('( =\\> )') || termKey.includes('( =/> )') ||
+                termKey.includes('( =<> )') || termKey.includes('()') ||
+                termKey.includes('(,)') || termKey.includes(',)')) {
+                return '';
+            }
+        }
+        
+        return termKey;
     }
 
     /**
      * Builds a comma-separated list of term keys
      * @param {Array} terms - Array of term structures
      * @returns {string} Comma-separated list of term keys
-     * @private
      */
-    static #buildTermList(terms) {
+    static buildTermList(terms) {
         // Use for loop instead of map and join for better performance
         if (terms.length === 0) {
             return '';
