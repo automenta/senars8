@@ -1,6 +1,7 @@
 import Task from '../src/core/Task.js';
 import {parseTerm} from '../src/parser/parse-utils.js';
 import SystemFactory from '../src/system/SystemFactory.js';
+import {info, warn} from '../src/utils/logger.js';
 
 /**
  * Creates a new Task with the given parameters.
@@ -13,31 +14,31 @@ import SystemFactory from '../src/system/SystemFactory.js';
 function createTask(termKey, punctuation, truthValue, stamp = {creationTime: Date.now()}) {
     const parsedTerm = parseTerm(termKey);
     if (!parsedTerm) {
-        console.warn(`Failed to parse term: ${termKey}`);
+        warn(`Failed to parse term: ${termKey}`);
         return null;
     }
     return new Task(parsedTerm, punctuation, truthValue, stamp);
 }
 
-async function runDemo(demoName, taskDefs, cycleCount = 5) {
-    console.log(`
+async function runDemo(demoName, taskDefs, {cycleCount = 5, config = {}} = {}) {
+    info(`
 --- Starting ${demoName} ---`);
 
-    const system = await SystemFactory.createSystem();
-    console.log('System created.');
+    const system = await SystemFactory.createSystem(config);
+    info('System created.');
 
     const tasks = taskDefs.map(def => createTask(def.termKey, def.punctuation, def.truthValue)).filter(Boolean);
 
     if (tasks.length > 0) {
         await system.addTasks(tasks);
-        console.log(`Added ${tasks.length} initial tasks.`);
+        info(`Added ${tasks.length} initial tasks.`);
     }
 
     if (cycleCount > 0) {
-        console.log(`Running ${cycleCount} system cycles...`);
+        info(`Running ${cycleCount} system cycles...`);
         for (let i = 0; i < cycleCount; i++) {
             const result = await system.runCycle();
-            console.log(`Cycle ${i + 1} completed:`, {
+            info(`Cycle ${i + 1} completed:`, {
                 derivedTasks: result.derivedTasks,
                 contradictions: result.contradictions,
                 metaTasks: result.metaTasks,
@@ -46,7 +47,7 @@ async function runDemo(demoName, taskDefs, cycleCount = 5) {
         }
     }
 
-    console.log(`--- ${demoName} completed ---
+    info(`--- ${demoName} completed ---
 `);
     return system;
 }

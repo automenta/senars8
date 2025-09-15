@@ -159,32 +159,37 @@ npm test
 Integrate the SeNARS system into your own projects.
 
 ```javascript
-import { System } from 'senars'; // or require('senars')
-import { Task } from 'senars/src/core/Task.js';
-import { parseTerm } from 'senars/src/parser/narseseParser.js';
+import { SystemFactory, Task, parseTerm } from 'senars';
 
 async function runSystem() {
-    // 1. Initialize the system
-    const system = new System();
-    await system.initialize();
+    // 1. Create a system instance using the factory
+    // The factory handles the creation of all system components.
+    console.log('Creating and initializing system...');
+    const system = await SystemFactory.createSystem();
+    console.log('System created and initialized.');
 
-    // 2. Add knowledge
+    // 2. Add knowledge to the system
+    // We create a Task, which is a piece of knowledge with a truth value.
+    const beliefTerm = parseTerm('<cat --> animal>');
     const belief = new Task(
-        parseTerm('<cat --> animal>'),
-        '.', // Belief (Judgment)
+        beliefTerm,
+        '.', // '.' indicates a belief (judgment)
         { frequency: 1.0, confidence: 0.9 }
     );
     await system.addTasks([belief]);
-
-    console.log('System initialized and belief added.');
+    console.log('Belief "<cat --> animal>" added to the system.');
 
     // 3. Run the cognitive cycle
+    // The cognitive cycle is the "heartbeat" of the system, where reasoning happens.
+    console.log('Running 10 cognitive cycles...');
     for (let i = 0; i < 10; i++) {
-        const output = await system.runCycle();
-        console.log(`Cycle ${i+1}: Derived ${output.derivedTasks} new tasks.`);
+        const result = await system.runCycle();
+        console.log(`Cycle ${i + 1} completed. Derived ${result.derivedTasks.length} new tasks.`);
     }
 
+    // 4. Stop the system
     system.stop();
+    console.log('System stopped.');
 }
 
 runSystem();

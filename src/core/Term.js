@@ -85,7 +85,7 @@ class Term {
             }
             this.#componentCache['terms'] = termsArray;
             return termsArray;
-        } catch (error) {
+        } catch {
             this.#componentCache['terms'] = null;
             return null;
         }
@@ -365,7 +365,7 @@ class Term {
         if (this.#structure === null) {
             try {
                 this.#structure = parseTerm(this.#key);
-            } catch (error) {
+            } catch {
                 this.#structure = null;
             }
         }
@@ -401,7 +401,7 @@ class Term {
             }
             this.#componentCache[componentName] = null;
             return null;
-        } catch (error) {
+        } catch {
             this.#componentCache[componentName] = null;
             return null;
         }

@@ -3,7 +3,7 @@ import {parseTerm} from '../../parser/narseseParser.js';
 import {calculateTemporalCoherence} from '../../utils/temporal/summary.js';
 import {debug} from '../../utils/logger.js';
 import {handleErrorWithDefault} from '../../utils/error-handler.js';
-import config from '../../config.js';
+import config from '../../config/index.js';
 
 class TemporalCoherence {
     static calculate(temporalFocusSet) {

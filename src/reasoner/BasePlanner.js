@@ -1,6 +1,6 @@
 import CostManager from './CostManager.js';
 import * as PlannerUtils from './utils/PlannerUtils.js';
-import globalConfig from '../config.js';
+import globalConfig from '../config/index.js';
 
 class BasePlanner {
     constructor(memory, lm, config = {}) {

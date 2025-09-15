@@ -9,5 +9,10 @@ export default {
     DEFAULT_TRUTH_VALUE: {
         frequency: 1.0,
         confidence: 0.9
-    }
+    },
+    LM_HYPOTHESIS_CONFIGS: [
+        {type: 'general', num: 2},
+        {type: 'creative', num: 1},
+        {type: 'sophisticated', num: 1}
+    ]
 };

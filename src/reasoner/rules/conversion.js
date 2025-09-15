@@ -1,6 +1,6 @@
 import {createUnaryInheritanceRule} from './rule-factories.js';
 import Term from '../../core/Term.js';
-import config from '../../config.js';
+import config from '../../config/index.js';
 
 export default createUnaryInheritanceRule(
     'conversion',

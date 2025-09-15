@@ -10,7 +10,7 @@ import Cycle from './Cycle.js';
 import ActionExecutor from './ActionExecutor.js';
 import System from './System.js';
 import CONSTITUTION_TASKS from './Constitution.js';
-import config from '../config.js';
+import config from '../config/index.js';
 
 class SystemFactory {
     /**
@@ -31,14 +31,11 @@ class SystemFactory {
             const actionExecutor = dependencies.actionExecutor || new ActionExecutor(memory);
             const cycle = dependencies.cycle || new Cycle(memory, reasoner, lm, actionExecutor, mergedConfig);
 
-            const system = new System(userConfig, {memory, reasoner, lm, actionExecutor, cycle});
+            const system = new System(mergedConfig, {memory, reasoner, lm, actionExecutor, cycle});
 
             info('SystemFactory: Initializing system...');
-            system.memory.addTasks(CONSTITUTION_TASKS);
-            // The `_bootstrapTerms` method is private to System, so we access it this way for initialization
-            await system._bootstrapTerms(CONSTITUTION_TASKS, {sync: true});
-            await system.cycle.bootstrap();
-            info('SystemFactory: System initialized successfully');
+            await system.initialize(CONSTITUTION_TASKS);
+            info('SystemFactory: System creation complete');
             return system;
         }, 'SystemFactory.createSystem');
     }

@@ -1,7 +1,7 @@
 import Memory from '../../src/memory/Memory.js';
 import Task from '../../src/core/Task.js';
 import {parseTerm} from '../../src/parser/narseseParser.js';
-import config from '../../src/config.js';
+import config from '../../src/config/index.js';
 
 describe('Memory', () => {
     let memory;

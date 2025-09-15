@@ -1,6 +1,6 @@
 import Task from '../../core/Task.js';
 import {parseTerm} from '../../parser/narseseParser.js';
-import config from '../../config.js';
+import config from '../../config/index.js';
 
 function createTemporalTask(termKey, punctuation, truthValue, occurrenceTime, endTime = null) {
     const stamp = {

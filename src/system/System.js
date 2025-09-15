@@ -1,8 +1,6 @@
 process.env.ORT_LOGGING_LEVEL = 'FATAL';
 
 import registerDefaultActions from './default-actions.js';
-import config from '../config.js';
-import _ from 'lodash';
 import {createModuleErrorHandler} from '../utils/error-handler.js';
 import {debug, error, info, warn} from '../utils/logger.js';
 import {normalizeToArray} from '../utils/helpers.js';
@@ -21,8 +19,8 @@ class System {
      * @param {object} dependencies - Dependency injection for testing
      * @private
      */
-    constructor(userConfig = {}, {memory, reasoner, lm, actionExecutor, cycle}) {
-        this.config = _.merge({}, config, userConfig);
+    constructor(config = {}, {memory, reasoner, lm, actionExecutor, cycle}) {
+        this.config = config;
         this.memory = memory;
         this.reasoner = reasoner;
         this.lm = lm;
@@ -35,6 +33,20 @@ class System {
         this.cycleCount = 0;
 
         info('System components created');
+    }
+
+    async initialize(constitutionTasks) {
+        return await errorHandler.safeAsync(async () => {
+            info('System: Initializing...');
+            if (constitutionTasks) {
+                this.memory.addTasks(constitutionTasks);
+                await this._bootstrapTerms(constitutionTasks, {
+                    sync: true
+                });
+            }
+            await this.cycle.bootstrap();
+            info('System: Initialized successfully');
+        }, 'initialize');
     }
 
     async _bootstrapTerms(tasks, options = {sync: false}) {

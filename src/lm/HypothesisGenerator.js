@@ -1,7 +1,7 @@
 import Task from '../core/Task.js';
 import {cosineSimilarity} from '../utils/math.js';
 import {parseTerm} from '../parser/parse-utils.js';
-import config from '../config.js';
+import config from '../config/index.js';
 import zod from 'zod';
 import MetaCognition from '../system/MetaCognition.js';
 

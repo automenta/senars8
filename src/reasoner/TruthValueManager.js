@@ -1,4 +1,4 @@
-import config from '../config.js';
+import config from '../config/index.js';
 import {handleErrorWithDefault} from '../utils/error-handler.js';
 import {getBeliefTasks} from '../utils/task-utils.js';
 

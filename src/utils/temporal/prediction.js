@@ -1,6 +1,6 @@
 import {calculateIntervalStats, groupTasksByTermKey} from './helpers.js';
 import {createTemporalTask} from './task-creation.js';
-import config from '../../config.js';
+import config from '../../config/index.js';
 
 function predictFutureTasks(tasks, predictionTime) {
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);

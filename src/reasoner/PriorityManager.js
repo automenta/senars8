@@ -1,6 +1,6 @@
 import {cosineSimilarity} from '../utils/math.js';
 import {calculateTemporalPriority} from '../utils/temporal/priority.js';
-import config from '../config.js';
+import config from '../config/index.js';
 
 class PriorityManager {
     constructor(memory) {

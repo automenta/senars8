@@ -1,5 +1,5 @@
 import {createMetaTask} from '../strategy-utils.js';
-import config from '../../../config.js';
+import config from '../../../config/index.js';
 
 function revision(contradiction) {
     const [task1, task2] = contradiction.tasks;

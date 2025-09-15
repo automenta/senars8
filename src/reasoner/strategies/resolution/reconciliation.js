@@ -1,6 +1,6 @@
 import Task from '../../../core/Task.js';
 import {createMetaTask} from '../strategy-utils.js';
-import config from '../../../config.js';
+import config from '../../../config/index.js';
 
 function reconciliation(contradiction) {
     const [task1, task2] = contradiction.tasks;

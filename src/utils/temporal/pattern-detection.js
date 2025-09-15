@@ -1,5 +1,5 @@
 import {calculateIntervalStats, groupTasksByTermKey} from './helpers.js';
-import config from '../../config.js';
+import config from '../../config/index.js';
 
 function detectTemporalPatterns(tasks) {
     const patterns = [];

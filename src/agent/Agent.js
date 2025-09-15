@@ -2,6 +2,8 @@ import SystemFactory from '../system/SystemFactory.js';
 import {parseTerm} from '../parser/narseseParser.js';
 import {handleError} from '../utils/error-handler.js';
 import MCP from './MCP.js';
+import {debug, warn} from '../utils/logger.js';
+import Task from '../core/Task.js';
 
 /**
  * Agent class provides a high-level interface for controlling the SeNARS system.
@@ -67,18 +69,18 @@ class Agent {
             throw new Error('Agent not initialized. Call initialize() first.');
         }
 
-        console.log('Available tools:', this.tools);
+        debug('Available tools:', Object.keys(this.tools));
         const plan = await this.createPlan(goalString);
-        console.log('Created plan:', plan);
+        debug('Created plan:', plan);
 
         if (plan && plan.steps.length > 0) {
-            // For now, we'll just execute the first step of the plan.
-            // A more advanced agent would have a plan execution module.
-            console.log('Next action:', plan.steps[0]);
-            return plan.steps[0];
+            const nextStepTerm = plan.steps[0];
+            const action = this._parseTermToAction(nextStepTerm);
+            debug('Next action:', action);
+            return action;
         }
 
-        console.log('No action decided.');
+        debug('No action decided.');
         return null;
     }
 
@@ -88,48 +90,78 @@ class Agent {
      * @returns {Promise<any>} The result of the action.
      */
     async executeAction(action) {
-        if (!this.tools[action.tool]) {
+        const tool = this.tools[action.tool];
+        if (!tool) {
             throw new Error(`Tool not found: ${action.tool}`);
         }
-        const {handler} = this.tools[action.tool];
-        const params = action.parameters.reduce((obj, param, index) => {
-            const paramName = Object.keys(this.tools[action.tool].parameters.properties)[index];
-            obj[paramName] = param;
+
+        const {
+            handler,
+            parameters: toolParamsDef
+        } = tool;
+        if (!toolParamsDef || !toolParamsDef.properties) {
+            return await handler({}); // Tool has no parameters
+        }
+
+        const paramNames = Object.keys(toolParamsDef.properties);
+        const params = action.parameters.reduce((obj, paramValue, index) => {
+            const paramName = paramNames[index];
+            if (paramName) {
+                obj[paramName] = paramValue;
+            }
             return obj;
         }, {});
+
         return await handler(params);
     }
 
+    _parseTermToAction(term) {
+        if (!term) {
+            return null;
+        }
+        switch (term.type) {
+            case 'Atomic':
+                return {
+                    tool: term.key,
+                    parameters: []
+                };
+            case 'SequentialConjunction':
+            case 'Conjunction':
+                if (term.terms.length > 0) {
+                    const [nameTerm, ...paramTerms] = term.terms;
+                    return {
+                        tool: nameTerm.key,
+                        parameters: paramTerms.map(t => t.key.replace(/"/g, ''))
+                    };
+                }
+                return null;
+            default:
+                return null;
+        }
+    }
+
+
     /**
-     * Creates a plan to achieve a given goal using a simple forward-chaining planner.
+     * Creates a plan to achieve a given goal using the system's planner.
      * @param {string} goalString - The Narsese string representing the goal.
      * @returns {Promise<object|null>} A promise that resolves with a plan or null.
      */
     async createPlan(goalString) {
         const goalTerm = parseTerm(goalString);
         if (!goalTerm) {
+            warn(`Could not parse goal string: ${goalString}`);
             return null;
         }
 
-        const goalAction = goalTerm.terms[0].key;
-        const goalParams = goalTerm.terms.slice(1).map(t => t.key.replace(/"/g, ''));
+        const goalTask = new Task(goalTerm, '!');
+        const plan = await this.system.reasoner.planner.createPlan(goalTask);
 
-        // For now, we will keep the simple planner for the simple benchmarks.
-        // A more advanced planner would be needed for more complex tasks.
-        if (this.tools[goalAction]) {
-            return {
-                goal: goalString,
-                steps: [{
-                    tool: goalAction,
-                    parameters: goalParams
-                }]
-            };
+        if (!plan || plan.steps.length === 0) {
+            warn(`No plan could be created for goal: ${goalString}`);
+            return null;
         }
 
-        // A more advanced planner would search for a sequence of tools.
-        // This is a placeholder for that logic.
-        console.warn('Advanced planning not implemented. Falling back to simple planner.');
-        return null;
+        return plan;
     }
 }
 

@@ -5,7 +5,7 @@ import LM from '../../src/lm/LM.js';
 import ActionExecutor from '../../src/system/ActionExecutor.js';
 import Task from '../../src/core/Task.js';
 import Term from '../../src/core/Term.js';
-import config from '../../src/config.js';
+import config from '../../src/config/index.js';
 import BruteForceStrategy from '../../src/reasoner/strategies/BruteForceStrategy.js';
 
 jest.mock('../../src/lm/LM.js');

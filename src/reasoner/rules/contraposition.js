@@ -53,7 +53,7 @@ export default createUnaryInheritanceRule(
             }
 
             return result;
-        } catch (e) {
+        } catch {
             // If building the term key fails, return null
             return null;
         }

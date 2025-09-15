@@ -1,5 +1,5 @@
 import Task from '../../../core/Task.js';
-import config from '../../../config.js';
+import config from '../../../config/index.js';
 
 function evidenceGathering(contradiction) {
     return contradiction.tasks.map(task => new Task(task.term, '?', {
