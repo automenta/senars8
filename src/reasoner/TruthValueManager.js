@@ -5,6 +5,15 @@ import {getBeliefTasks} from '../utils/task-utils.js';
 /**
  * Truth Value Manager
  * Manages advanced truth value revision and updating mechanisms.
+ * 
+ * The TruthValueManager handles various operations for revising and updating
+ * truth values based on new evidence, temporal decay, conflict resolution,
+ * and other cognitive processes. It maintains revision history and evidence
+ * sources for auditing and debugging purposes.
+ * 
+ * Truth values in SeNARS consist of:
+ * - frequency: The frequency of occurrence (0.0 to 1.0)
+ * - confidence: The confidence level in the frequency estimate (0.0 to 1.0)
  */
 class TruthValueManager {
     constructor() {
@@ -17,9 +26,14 @@ class TruthValueManager {
 
     /**
      * Deduction operation for truth values
-     * @param {object} tv1 - First truth value
-     * @param {object} tv2 - Second truth value
-     * @returns {object} Resulting truth value
+     * Performs logical deduction between two truth values using multiplication.
+     * 
+     * In deduction, if A implies B with truth value tv1, and B implies C with truth value tv2,
+     * then A implies C with the deduced truth value.
+     * 
+     * @param {object} tv1 - First truth value {frequency, confidence}
+     * @param {object} tv2 - Second truth value {frequency, confidence}
+     * @returns {object} Resulting truth value {frequency, confidence}
      */
     static deduce(tv1, tv2) {
         const frequency = tv1.frequency * tv2.frequency;
@@ -29,9 +43,14 @@ class TruthValueManager {
 
     /**
      * Induction operation for truth values
-     * @param {object} tv1 - First truth value
-     * @param {object} tv2 - Second truth value
-     * @returns {object} Resulting truth value
+     * Performs logical induction between two truth values by averaging.
+     * 
+     * In induction, if A is observed to be associated with B, we induce a relationship
+     * between them. The resulting truth value represents the strength of this induced relationship.
+     * 
+     * @param {object} tv1 - First truth value {frequency, confidence}
+     * @param {object} tv2 - Second truth value {frequency, confidence}
+     * @returns {object} Resulting truth value {frequency, confidence}
      */
     static induce(tv1, tv2) {
         const frequency = (tv1.frequency + tv2.frequency) / 2;
@@ -41,9 +60,14 @@ class TruthValueManager {
 
     /**
      * Abduction operation for truth values
-     * @param {object} tv1 - First truth value
-     * @param {object} tv2 - Second truth value
-     * @returns {object} Resulting truth value
+     * Performs logical abduction between two truth values by averaging.
+     * 
+     * In abduction, given an observation and a rule, we infer a possible cause.
+     * The resulting truth value represents the strength of this abduced explanation.
+     * 
+     * @param {object} tv1 - First truth value {frequency, confidence}
+     * @param {object} tv2 - Second truth value {frequency, confidence}
+     * @returns {object} Resulting truth value {frequency, confidence}
      */
     static abduce(tv1, tv2) {
         const frequency = (tv1.frequency + tv2.frequency) / 2;
@@ -68,10 +92,16 @@ class TruthValueManager {
 
     /**
      * Bayesian revision of truth values
-     * @param {object} oldTruthValue - Current truth value
-     * @param {object} newEvidence - New evidence truth value
-     * @param {number} weight - Weight for new evidence (0-1)
-     * @returns {object} Revised truth value
+     * Updates a truth value based on new evidence using Bayesian reasoning.
+     * 
+     * This method combines the current truth value with new evidence, weighted
+     * by the evidenceWeight parameter. A weight of 0.0 means fully trust the
+     * current value, while a weight of 1.0 means fully trust the new evidence.
+     * 
+     * @param {object} oldTruthValue - Current truth value {frequency, confidence}
+     * @param {object} newEvidence - New evidence truth value {frequency, confidence}
+     * @param {number} weight - Weight for new evidence (0-1), default 0.5
+     * @returns {object} Revised truth value {frequency, confidence}
      */
     static bayesianRevision(oldTruthValue, newEvidence, weight = 0.5) {
         const revisedFrequency = (1 - weight) * oldTruthValue.frequency + weight * newEvidence.frequency;
@@ -121,9 +151,15 @@ class TruthValueManager {
 
     /**
      * Conflict resolution between contradictory truth values
-     * @param {object} truthValue1 - First truth value
-     * @param {object} truthValue2 - Second truth value
-     * @returns {object} Resolved truth value
+     * Resolves conflicts between two contradictory truth values.
+     * 
+     * When two beliefs contradict each other (e.g., high frequency vs low frequency
+     * for the same term), this method computes a compromise truth value that
+     * takes into account the confidence of each belief.
+     * 
+     * @param {object} truthValue1 - First truth value {frequency, confidence}
+     * @param {object} truthValue2 - Second truth value {frequency, confidence}
+     * @returns {object} Resolved truth value {frequency, confidence}
      */
     static conflictResolutionRevision(truthValue1, truthValue2) {
         const totalConfidence = truthValue1.confidence + truthValue2.confidence;

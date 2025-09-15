@@ -1,18 +1,14 @@
 process.env.ORT_LOGGING_LEVEL = 'FATAL';
 
-// eslint-disable-next-line no-unused-vars
-// eslint-disable-next-line no-unused-vars
-// eslint-disable-next-line no-unused-vars
-// eslint-disable-next-line no-unused-vars
-// eslint-disable-next-line no-unused-vars
-// eslint-disable-next-line no-unused-vars
-// eslint-disable-next-line no-unused-vars
 import registerDefaultActions from './default-actions.js';
 import config from '../config.js';
 import _ from 'lodash';
-import {handleError, safeAsync, safeSync} from '../utils/error-handler.js';
+import {createModuleErrorHandler} from '../utils/error-handler.js';
 import {debug, error, info, warn} from '../utils/logger.js';
 import {normalizeToArray} from '../utils/helpers.js';
+
+// Create a module-specific error handler
+const errorHandler = createModuleErrorHandler('System');
 
 /**
  * System is the main entry point for the SeNARS cognitive architecture.
@@ -42,7 +38,7 @@ class System {
     }
 
     async _bootstrapTerms(tasks, options = {sync: false}) {
-        return await safeAsync(async () => {
+        return await errorHandler.safeAsync(async () => {
             const termKeys = [...new Set(tasks.map(task => task.termKey))];
             const newTermKeys = termKeys.filter(key => !this.memory.getTerm(key));
             if (newTermKeys.length === 0) {
@@ -54,7 +50,7 @@ class System {
             const newTerms = (await Promise.all(termPromises)).filter(Boolean);
             newTerms.forEach(term => this.memory.addTerm(term));
             info(`Successfully bootstrapped ${newTerms.length} terms`);
-        }, 'System._bootstrapTerms');
+        }, '_bootstrapTerms');
     }
 
     /**
@@ -62,13 +58,13 @@ class System {
      * @returns {Promise<object>} A promise that resolves to cycle results
      */
     async runCycle() {
-        return await safeAsync(async () => {
+        return await errorHandler.safeAsync(async () => {
             this.cycleCount++;
             debug(`Running cycle ${this.cycleCount}`);
             const result = await this.cycle.runOnce();
             debug(`Cycle ${this.cycleCount} completed`, result);
             return result;
-        }, 'System.runCycle');
+        }, 'runCycle');
     }
 
     /**
@@ -77,7 +73,7 @@ class System {
      * @returns {Promise<void>} A promise that resolves when the system stops
      */
     async start(maxCycles = 0) {
-        return await safeAsync(async () => {
+        return await errorHandler.safeAsync(async () => {
             if (this.isRunning) {
                 warn('System is already running');
                 return;
@@ -95,7 +91,7 @@ class System {
                 } catch (err) {
                     error('Error during system cycle execution:', err);
                     this.stop();
-                    throw handleError(err, 'System cycle execution failed');
+                    throw errorHandler.handle(err, 'start', true);
                 }
             }
 
@@ -104,19 +100,18 @@ class System {
             }
 
             info(`System stopped after ${this.cycleCount} cycles`);
-        }, 'System.start');
+        }, 'start');
     }
 
     stop() {
-        // Synchronous operation, using safeSync
-        return safeSync(() => {
+        return errorHandler.safeSync(() => {
             if (!this.isRunning) {
                 return;
             }
             this.isRunning = false;
             this.lm.stopEmbeddingProcessor();
             info('System stopped');
-        }, 'System.stop');
+        }, 'stop');
     }
 
     /**
@@ -125,30 +120,30 @@ class System {
      * @returns {Promise<void>} A promise that resolves when tasks are added
      */
     async addTasks(tasks) {
-        return await safeAsync(async () => {
+        return await errorHandler.safeAsync(async () => {
             const tasksToAdd = normalizeToArray(tasks);
             debug(`Adding ${tasksToAdd.length} tasks to system`);
             await this._bootstrapTerms(tasksToAdd);
             this.memory.addTasks(tasksToAdd);
             info(`Successfully added ${tasksToAdd.length} tasks`);
-        }, 'System.addTasks');
+        }, 'addTasks');
     }
 
     getAvailableRules() {
-        return safeSync(() => {
+        return errorHandler.safeSync(() => {
             return this.reasoner.getRuleNames();
-        }, 'System.getAvailableRules', []);
+        }, 'getAvailableRules', []);
     }
 
     getRuleInfo(ruleName) {
-        return safeSync(() => {
+        return errorHandler.safeSync(() => {
             const rule = this.reasoner.getRule(ruleName);
             return rule ? {
                 name: rule.name,
                 arity: rule.arity,
                 description: rule.description || 'No description available'
             } : null;
-        }, 'System.getRuleInfo', null);
+        }, 'getRuleInfo', null);
     }
 
     /**
@@ -156,20 +151,20 @@ class System {
      * @returns {object} System status information
      */
     getStatus() {
-        return safeSync(() => {
+        return errorHandler.safeSync(() => {
             return {
                 isRunning: this.isRunning,
                 cycleCount: this.cycleCount,
                 memory: this.memory.getStatistics(),
                 rules: this.reasoner.getRuleNames().length
             };
-        }, 'System.getStatus', {});
+        }, 'getStatus', {});
     }
 
     getConfig() {
-        return safeSync(() => {
+        return errorHandler.safeSync(() => {
             return {...this.config};
-        }, 'System.getConfig', {});
+        }, 'getConfig', {});
     }
 }
 

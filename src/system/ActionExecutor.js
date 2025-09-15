@@ -1,8 +1,11 @@
 import {v4 as uuidv4} from 'uuid';
 import config from '../config.js';
-import {handleErrorWithDefault} from '../utils/error-handler.js';
+import {createModuleErrorHandler} from '../utils/error-handler.js';
 import {isNonEmptyArray} from '../utils/helpers.js';
 import EventBus from './EventBus.js';
+
+// Create a module-specific error handler
+const errorHandler = createModuleErrorHandler('ActionExecutor');
 
 class ActionExecutor {
     constructor(memory) {
@@ -229,14 +232,16 @@ class ActionExecutor {
         }
     }
 
-    _checkConstraints(action) {
-        return Array.from(this.constraints.values()).every(constraint => {
-            try {
-                return constraint(action);
-            } catch (error) {
-                return handleErrorWithDefault(error, 'Constraint check failed', false);
+    async _checkConstraint(name, action) {
+        try {
+            const constraint = this.constraints.get(name);
+            if (!constraint) {
+                return true;
             }
-        });
+            return await constraint(action);
+        } catch (error) {
+            return errorHandler.handleWithDefault(error, '_checkConstraint', false);
+        }
     }
 
     _findHandler(actionName) {
@@ -247,8 +252,8 @@ class ActionExecutor {
                     return handler;
                 }
             } catch (error) {
-                return handleErrorWithDefault(error, `Invalid regex pattern in action handler: ${pattern}`, false);
-            }
+            return errorHandler.handleWithDefault(error, '_getActionHandler', null);
+        }
         }
         return null;
     }

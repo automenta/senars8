@@ -2,7 +2,10 @@ import BagSamplingStrategy from './strategies/BagSamplingStrategy.js';
 import rules from './rules/index.js';
 import TemporalReasoner from './TemporalReasoner.js';
 import {debug, error as logError, info} from '../utils/logger.js';
-import {handleError} from '../utils/error-handler.js';
+import {createModuleErrorHandler} from '../utils/error-handler.js';
+
+// Create a module-specific error handler
+const errorHandler = createModuleErrorHandler('Reasoner');
 
 /**
  * Reasoner performs symbolic inference and manages the rule application process.
@@ -43,7 +46,7 @@ class Reasoner {
      */
     performInference(focusSet, options = {}) {
         if (!Array.isArray(focusSet)) {
-            return handleError(new Error('Focus set must be an array'), 'Reasoner.performInference', false);
+            return errorHandler.handle(new Error('Focus set must be an array'), 'performInference', false);
         }
 
         const {maxDerivedTasks = Infinity} = options;
@@ -169,7 +172,7 @@ class Reasoner {
      */
     _applyRule(rule, tasks, processedCombinations) {
         if (!rule || !Array.isArray(tasks) || !processedCombinations) {
-            return handleError(new Error('Invalid arguments to _applyRule'), '_applyRule validation', false);
+            return errorHandler.handle(new Error('Invalid arguments to _applyRule'), '_applyRule validation', false);
         }
 
         const taskIds = tasks.map(task => task.id).sort();

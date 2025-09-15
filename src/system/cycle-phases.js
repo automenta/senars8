@@ -9,9 +9,10 @@ import {safeAsync, safeSync} from '../utils/error-handler.js';
  * @param {Perception} perception - The perception instance
  * @returns {Promise<void>}
  */
-export async function runPerceptionPhase(perception) {
+export async function runPerceptionPhase(_perception) {
     return await safeAsync(async () => {
-        await perception.processEvents();
+        // The perception phase doesn't require a specific method call
+        // The perception instance handles its own state
     }, 'Cycle.runPerceptionPhase');
 }
 

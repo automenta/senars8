@@ -1,7 +1,9 @@
 import TaskFactory from '../core/TaskFactory.js';
 import PatternDetector from '../reasoner/PatternDetector.js';
-import EventBus from './EventBus.js';
-import {handleErrorWithDefault} from '../utils/error-handler.js';
+import {createModuleErrorHandler} from '../utils/error-handler.js';
+
+// Create a module-specific error handler
+const errorHandler = createModuleErrorHandler('Perception');
 
 class Perception {
     constructor(memory, lm) {
@@ -27,18 +29,19 @@ class Perception {
             this.perceptionHistory.push({modality: modalityName, input, timestamp: Date.now(), tasks: tasks.length});
             return tasks;
         } catch (error) {
-            return handleErrorWithDefault(error, 'Perception processing error', []);
+            return errorHandler.handleWithDefault(error, 'processSensoryInput', []);
         }
     }
 
-    async processEvents(events = []) {
-        const taskPromises = events.map(event =>
-            this.taskFactory.convertEventToTask(event).catch(() => null)
-        );
-        const newTasks = (await Promise.all(taskPromises)).filter(Boolean);
-
-        if (newTasks.length > 0) {
-            EventBus.emit('NewTasksCreated', newTasks);
+    async process(events) {
+        try {
+            const patternTasks = await this.patternDetector.detectPatterns(events);
+            const eventTasks = await Promise.all(
+                events.map(event => this.taskFactory.convertEventToTask(event))
+            );
+            return [...patternTasks, ...eventTasks].filter(Boolean);
+        } catch (error) {
+            return errorHandler.handleWithDefault(error, 'process', []);
         }
     }
 

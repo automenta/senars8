@@ -94,6 +94,55 @@ function safeSync(operation, context, defaultValue = null) {
     }
 }
 
+// Enhanced error handling with more options
+async function safeAsyncWithLogging(operation, context, options = {}) {
+    const { 
+        defaultValue = null, 
+        logSuccess = false,
+        logStart = false
+    } = options;
+    
+    try {
+        if (logStart) {
+            logError(`${context}: Starting operation`);
+        }
+        
+        const result = await operation();
+        
+        if (logSuccess) {
+            logError(`${context}: Operation completed successfully`);
+        }
+        
+        return result;
+    } catch (error) {
+        return handleErrorWithDefault(error, context, defaultValue);
+    }
+}
+
+function safeSyncWithLogging(operation, context, options = {}) {
+    const { 
+        defaultValue = null,
+        logSuccess = false,
+        logStart = false
+    } = options;
+    
+    try {
+        if (logStart) {
+            logError(`${context}: Starting operation`);
+        }
+        
+        const result = operation();
+        
+        if (logSuccess) {
+            logError(`${context}: Operation completed successfully`);
+        }
+        
+        return result;
+    } catch (error) {
+        return handleErrorWithDefault(error, context, defaultValue);
+    }
+}
+
 // Factory functions for specific error types
 const createValidationError = message => new ValidationError(message);
 const createParseError = message => new ParseError(message);
@@ -108,12 +157,29 @@ const isInferenceError = error => error instanceof InferenceError;
 const isPlanningError = error => error instanceof PlanningError;
 const isMemoryError = error => error instanceof MemoryError;
 
+// Utility to create a standardized error handler for modules
+function createModuleErrorHandler(moduleName) {
+    return {
+        handle: (error, context, shouldThrow = true) => 
+            handleError(error, `${moduleName}.${context}`, shouldThrow),
+        handleWithDefault: (error, context, defaultValue = null) => 
+            handleErrorWithDefault(error, `${moduleName}.${context}`, defaultValue),
+        safeAsync: (operation, context, defaultValue = null) => 
+            safeAsync(operation, `${moduleName}.${context}`, defaultValue),
+        safeSync: (operation, context, defaultValue = null) => 
+            safeSync(operation, `${moduleName}.${context}`, defaultValue)
+    };
+}
+
 export {
     handleError,
     handleErrorWithDefault,
     withErrorHandling,
     safeAsync,
     safeSync,
+    safeAsyncWithLogging,
+    safeSyncWithLogging,
+    createModuleErrorHandler,
     createValidationError,
     createParseError,
     createInferenceError,

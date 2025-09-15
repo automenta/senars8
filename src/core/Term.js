@@ -253,8 +253,6 @@ class Term {
             return '';
         }
 
-        let termKey = '';
-
         // Use a switch statement for better performance
         switch (pTerm.type) {
             // Atomic terms
@@ -328,22 +326,6 @@ class Term {
             default:
                 throw new Error(`buildTermKey does not support type: ${pTerm.type}`);
         }
-        
-        // Validate the generated term key to prevent malformed terms
-        // This is a safety check to ensure we don't create invalid terms
-        if (termKey && termKey.length > 0) {
-            // Check for common malformed patterns
-            if (termKey.includes('( --> )') || termKey.includes('( ==> )') ||
-                termKey.includes('( <-> )') || termKey.includes('( <=> )') ||
-                termKey.includes('( {-- )') || termKey.includes('( --} )') ||
-                termKey.includes('( =\\> )') || termKey.includes('( =/> )') ||
-                termKey.includes('( =<> )') || termKey.includes('()') ||
-                termKey.includes('(,)') || termKey.includes(',)')) {
-                return '';
-            }
-        }
-        
-        return termKey;
     }
 
     /**
@@ -352,19 +334,13 @@ class Term {
      * @returns {string} Comma-separated list of term keys
      */
     static buildTermList(terms) {
-        // Use for loop instead of map and join for better performance
-        if (terms.length === 0) {
+        // Handle edge cases
+        if (!terms || terms.length === 0) {
             return '';
         }
-        if (terms.length === 1) {
-            return Term.buildTermKey(terms[0]);
-        }
-
-        let result = Term.buildTermKey(terms[0]);
-        for (let i = 1; i < terms.length; i++) {
-            result += `,${Term.buildTermKey(terms[i])}`;
-        }
-        return result;
+        
+        // Use map and join for better readability while maintaining performance
+        return terms.map(term => Term.buildTermKey(term)).join(',');
     }
 
     /**
