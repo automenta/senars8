@@ -1,6 +1,35 @@
+import Task from '../core/Task.js';
+
 /**
  * Utility functions for working with Task objects
  */
+
+/**
+ * Checks if a task is a belief (punctuation '.')
+ * @param {Task} task - The task to check
+ * @returns {boolean} True if the task is a belief
+ */
+function isBelief(task) {
+    return task?.punctuation === '.';
+}
+
+/**
+ * Checks if a task is a goal (punctuation '!')
+ * @param {Task} task - The task to check
+ * @returns {boolean} True if the task is a goal
+ */
+function isGoal(task) {
+    return task?.punctuation === '!';
+}
+
+/**
+ * Checks if a task is a question (punctuation '?')
+ * @param {Task} task - The task to check
+ * @returns {boolean} True if the task is a question
+ */
+function isQuestion(task) {
+    return task?.punctuation === '?';
+}
 
 /**
  * Filters tasks by punctuation type
@@ -47,30 +76,12 @@ function getQuestionTasks(tasks) {
 }
 
 /**
- * Checks if a task is a belief (punctuation '.')
- * @param {Task} task - The task to check
- * @returns {boolean} True if the task is a belief
+ * Checks if an object is a valid Task instance
+ * @param {any} obj - The object to check
+ * @returns {boolean} True if the object is a valid Task instance
  */
-function isBelief(task) {
-    return task?.punctuation === '.';
-}
-
-/**
- * Checks if a task is a goal (punctuation '!')
- * @param {Task} task - The task to check
- * @returns {boolean} True if the task is a goal
- */
-function isGoal(task) {
-    return task?.punctuation === '!';
-}
-
-/**
- * Checks if a task is a question (punctuation '?')
- * @param {Task} task - The task to check
- * @returns {boolean} True if the task is a question
- */
-function isQuestion(task) {
-    return task?.punctuation === '?';
+function isTask(obj) {
+    return obj instanceof Task;
 }
 
 export {
@@ -80,5 +91,6 @@ export {
     getQuestionTasks,
     isBelief,
     isGoal,
-    isQuestion
+    isQuestion,
+    isTask
 };

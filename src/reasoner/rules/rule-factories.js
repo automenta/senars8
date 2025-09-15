@@ -1,4 +1,5 @@
 import Task from '../../core/Task.js';
+import {isBelief} from '../../utils/task-utils.js';
 import {parseTerm, validateTermKey} from '../../parser/parse-utils.js';
 import Term from '../../core/Term.js';
 import {debug, error as logError} from '../../utils/logger.js';
@@ -305,7 +306,7 @@ function createBinaryRule(name, condition, termBuilder, truthValueFunction) {
     return createRule({
         name,
         arity: 2,
-        operands: [Task.isBelief, Task.isBelief],
+        operands: [isBelief, isBelief],
         condition,
         action: (parsed1, parsed2, task1, task2) => ({
             newTermKey: termBuilder(parsed1, parsed2),
@@ -338,7 +339,7 @@ function createUnaryRule(name, condition, termBuilder, truthValueFunction) {
     return createRule({
         name,
         arity: 1,
-        operands: [Task.isBelief],
+        operands: [isBelief],
         condition,
         action: (parsed1, task1) => ({
             newTermKey: termBuilder(parsed1),

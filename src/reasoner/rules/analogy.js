@@ -1,15 +1,15 @@
 import TruthValueManager from '../TruthValueManager.js';
 import {createRule} from './rule-factories.js';
-import Task from '../../core/Task.js';
+import {isBelief} from '../../utils/task-utils.js';
 import Term from '../../core/Term.js';
 
 export default createRule({
     name: 'analogy',
     arity: 3,
     operands: [
-        task => Task.isBelief(task),
-        task => Task.isBelief(task),
-        task => Task.isBelief(task)
+        task => isBelief(task),
+        task => isBelief(task),
+        task => isBelief(task)
     ],
     condition: (parsed1, parsed2, parsed3) =>
         parsed1?.type === 'Inheritance' &&

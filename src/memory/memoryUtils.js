@@ -1,4 +1,4 @@
-import Task from '../core/Task.js';
+import {isBelief} from '../utils/task-utils.js';
 import {MinPriorityQueue} from '@datastructures-js/priority-queue';
 
 /**
@@ -98,7 +98,7 @@ function indexImplication(term, implicationIndex) {
  * @returns {Map} Updated belief index
  */
 function indexTask(task, beliefIndex) {
-    if (!Task.isBelief(task)) {
+    if (!isBelief(task)) {
         return beliefIndex;
     }
 
@@ -116,7 +116,7 @@ function indexTask(task, beliefIndex) {
  * @returns {Map} Updated belief index
  */
 function unindexTask(task, beliefIndex) {
-    if (!Task.isBelief(task) || !beliefIndex.has(task.termKey)) {
+    if (!isBelief(task) || !beliefIndex.has(task.termKey)) {
         return beliefIndex;
     }
 

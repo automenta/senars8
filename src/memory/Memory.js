@@ -3,6 +3,7 @@ import Task from '../core/Task.js';
 import EventBus from '../system/EventBus.js';
 import config from '../config/index.js';
 import {normalizeToArray} from '../utils/helpers.js';
+import {isTask} from '../utils/task-utils.js';
 import {
     consolidateMemory,
     getHighestPriorityTasksWithPQ,
@@ -239,7 +240,7 @@ class Memory {
         }
 
         for (const task of tasksToAdd) {
-            if (!task || !(task instanceof Task)) {
+            if (!task || !isTask(task)) {
                 throw new Error('Can only add valid Task instances to memory.');
             }
             this.shortTermTasks.set(task.id, task);

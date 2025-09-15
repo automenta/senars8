@@ -2,15 +2,7 @@ import {v4 as uuidv4} from 'uuid';
 import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
 import TruthValueManager from '../reasoner/TruthValueManager.js';
-import {
-    getBeliefTasks,
-    getGoalTasks,
-    getQuestionTasks,
-    getTasksByType,
-    isBelief,
-    isGoal,
-    isQuestion
-} from '../utils/task-utils.js';
+import {isTask} from '../utils/task-utils.js';
 
 const {DEFAULT_TRUTH_VALUE} = config;
 
@@ -81,70 +73,6 @@ class Task {
 
     get state() {
         return this.#state;
-    }
-
-    /**
-     * Checks if a task is a belief (punctuation '.')
-     * @param {Task} task - The task to check
-     * @returns {boolean} True if the task is a belief
-     */
-    static isBelief(task) {
-        return isBelief(task);
-    }
-
-    /**
-     * Checks if a task is a goal (punctuation '!')
-     * @param {Task} task - The task to check
-     * @returns {boolean} True if the task is a goal
-     */
-    static isGoal(task) {
-        return isGoal(task);
-    }
-
-    /**
-     * Checks if a task is a question (punctuation '?')
-     * @param {Task} task - The task to check
-     * @returns {boolean} True if the task is a question
-     */
-    static isQuestion(task) {
-        return isQuestion(task);
-    }
-
-    /**
-     * Filters tasks by punctuation type
-     * @param {Task[]} tasks - Array of tasks to filter
-     * @param {string} type - The punctuation type to filter by
-     * @returns {Task[]} Array of filtered tasks
-     */
-    static getTasksByType(tasks, type) {
-        return getTasksByType(tasks, type);
-    }
-
-    /**
-     * Gets all belief tasks from an array of tasks
-     * @param {Task[]} tasks - Array of tasks
-     * @returns {Task[]} Array of belief tasks
-     */
-    static getBeliefTasks(tasks) {
-        return getBeliefTasks(tasks);
-    }
-
-    /**
-     * Gets all goal tasks from an array of tasks
-     * @param {Task[]} tasks - Array of tasks
-     * @returns {Task[]} Array of goal tasks
-     */
-    static getGoalTasks(tasks) {
-        return getGoalTasks(tasks);
-    }
-
-    /**
-     * Gets all question tasks from an array of tasks
-     * @param {Task[]} tasks - Array of tasks
-     * @returns {Task[]} Array of question tasks
-     */
-    static getQuestionTasks(tasks) {
-        return getQuestionTasks(tasks);
     }
 
     /**
@@ -255,7 +183,7 @@ class Task {
      * @returns {boolean} True if the tasks are equal
      */
     equals(other) {
-        return other instanceof Task && this.#id === other.#id;
+        return isTask(other) && this.#id === other.#id;
     }
 
     /**
