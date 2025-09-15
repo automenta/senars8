@@ -2,6 +2,7 @@ import {v4 as uuidv4} from 'uuid';
 import config from '../config.js';
 import {handleErrorWithDefault} from '../utils/error-handler.js';
 import {isNonEmptyArray} from '../utils/helpers.js';
+import EventBus from './EventBus.js';
 
 class ActionExecutor {
     constructor(memory) {
@@ -123,6 +124,7 @@ class ActionExecutor {
         } finally {
             this._releaseResources(action);
             this.pendingActions.delete(actionId);
+            EventBus.emit('ActionExecuted', actionRecord);
         }
     }
 

@@ -37,7 +37,7 @@ class LM {
     #isProcessingEmbeddings;
 
     constructor() {
-        this.#pipelineFactory = new PipelineFactory();
+        this.#pipelineFactory = PipelineFactory;
         this.#llm = null;
         this.#reasoner = null;
         this.#memory = null;

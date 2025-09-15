@@ -110,7 +110,7 @@ class NarseseParser {
             return this.parseExtensionalSet();
         } else if (this.match('setIntension')) {
             return this.parseIntensionalSet();
-        } else if (this.match('identifier')) {
+        } else if (this.match('identifier') || this.match('string')) {
             return this.parseAtomicTerm();
         } else if (this.match('independentVar')) {
             return this.parseIndependentVariable();
@@ -289,8 +289,9 @@ class NarseseParser {
     }
 
     parseAtomicTerm() {
-        const identifier = this.consume('identifier');
-        return {type: 'Atomic', key: identifier};
+        const token = this.current;
+        this.next(); // consume token
+        return {type: 'Atomic', key: token.value};
     }
 
     parseVariable(tokenType, variableType) {

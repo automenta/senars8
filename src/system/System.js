@@ -1,4 +1,4 @@
-process.env.ORT_LOGGING_LEVEL = 'ERROR';
+process.env.ORT_LOGGING_LEVEL = 'FATAL';
 
 import Memory from '../memory/Memory.js';
 import Reasoner from '../reasoner/Reasoner.js';
