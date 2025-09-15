@@ -1,4 +1,4 @@
-import System from '../system/System.js';
+import SystemFactory from '../system/SystemFactory.js';
 import { parseTerm } from '../parser/narseseParser.js';
 import Task from '../core/Task.js';
 import { handleError } from '../utils/error-handler.js';
@@ -31,7 +31,7 @@ class Agent {
             return;
         }
         try {
-            this.system = await System.create(this.config);
+            this.system = await SystemFactory.createSystem(this.config);
             this.isInitialized = true;
         } catch (error) {
             handleError(error, 'Failed to initialize agent');

@@ -41,34 +41,6 @@ class System {
         info('System components created');
     }
 
-    /**
-     * Creates and initializes a new System instance
-     * @param {object} [userConfig={}] - User-provided configuration
-     * @param {object} [dependencies={}] - Dependency injection for testing
-     * @returns {Promise<System>} A promise that resolves to the initialized system
-     */
-    static async create(userConfig = {}, dependencies = {}) {
-        return await safeAsync(async () => {
-            const mergedConfig = _.merge({}, config, userConfig);
-
-            const memory = dependencies.memory || new Memory();
-            const temporalReasoner = dependencies.temporalReasoner || new TemporalReasoner();
-            const reasoner = dependencies.reasoner || new Reasoner({temporalReasoner});
-            const lm = dependencies.lm || new LM();
-            const actionExecutor = dependencies.actionExecutor || new ActionExecutor(memory);
-            const cycle = dependencies.cycle || new Cycle(memory, reasoner, lm, actionExecutor, mergedConfig);
-
-            const system = new System(userConfig, {memory, reasoner, lm, actionExecutor, cycle});
-
-            info('Initializing system...');
-            system.memory.addTasks(CONSTITUTION_TASKS);
-            await system._bootstrapTerms(CONSTITUTION_TASKS, {sync: true});
-            await system.cycle.bootstrap();
-            info('System initialized successfully');
-            return system;
-        }, 'System.create');
-    }
-
     async _bootstrapTerms(tasks, options = {sync: false}) {
         return await safeAsync(async () => {
             const termKeys = [...new Set(tasks.map(task => task.termKey))];

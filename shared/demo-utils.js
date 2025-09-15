@@ -18,13 +18,13 @@ function createTask(termKey, punctuation, truthValue, stamp = {creationTime: Dat
     return new Task(parsedTerm, punctuation, truthValue, stamp);
 }
 
-async function runDemo(demoName, taskDefs, cycleCount = 5) {
-    const {System} = await import('../src/index.js');
+import SystemFactory from '../src/system/SystemFactory.js';
 
+async function runDemo(demoName, taskDefs, cycleCount = 5) {
     console.log(`
 --- Starting ${demoName} ---`);
 
-    const system = System.create();
+    const system = await SystemFactory.createSystem();
     console.log('System created.');
 
     const tasks = taskDefs.map(def => createTask(def.termKey, def.punctuation, def.truthValue)).filter(Boolean);

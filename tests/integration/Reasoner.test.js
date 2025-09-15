@@ -9,7 +9,7 @@ import TemporalReasoner from '../../src/reasoner/TemporalReasoner.js';
 
 jest.mock('../../src/lm/LM.js');
 jest.mock('@xenova/transformers', () => {
-    const transformers = jest.genMockFromModule('@xenova/transformers');
+    const transformers = jest.createMockFromModule('@xenova/transformers');
     transformers.pipeline = jest.fn(async () => {
         return jest.fn(() => ({
             data: new Float32Array([1, 2, 3]),
