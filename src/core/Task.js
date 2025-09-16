@@ -1,4 +1,4 @@
-import {v4 as uuidv4} from 'uuid';
+import {generateOptimizedId} from '../utils/IdGenerator.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
 import TruthValueManager from '../reasoner/TruthValueManager.js';
@@ -34,7 +34,7 @@ class Task {
         const {processedTerm, termKey} = this.#processTerm(term);
 
         // Initialize core properties
-        this.#id = uuidv4();
+        this.#id = generateOptimizedId(`${termKey}${punctuation}`);
         this.#term = processedTerm;
         this.#termKey = termKey;
         this.#punctuation = punctuation;
@@ -75,7 +75,16 @@ class Task {
      * @private
      */
     #isValidTerm(term) {
-        return term && (typeof term === 'string' || (typeof term === 'object' && term.key));
+        if (!term) {
+            return false;
+        }
+        if (typeof term === 'string') {
+            return term.length > 0;
+        }
+        if (typeof term === 'object') {
+            return term.key && typeof term.key === 'string' && term.key.length > 0;
+        }
+        return false;
     }
 
     /**
@@ -85,8 +94,10 @@ class Task {
      * @private
      */
     #isValidPunctuation(punctuation) {
-        return typeof punctuation === 'string' &&
-            (punctuation === '.' || punctuation === '!' || punctuation === '?');
+        if (typeof punctuation !== 'string') {
+            return false;
+        }
+        return punctuation === '.' || punctuation === '!' || punctuation === '?';
     }
 
     /**
@@ -96,24 +107,44 @@ class Task {
      * @private
      */
     #processTerm(term) {
-        let processedTerm;
-        let termKey;
-
         if (typeof term === 'string') {
-            termKey = term;
-            processedTerm = parseTerm(term);
-            if (!processedTerm) {
-                throw new Error(`Failed to parse term: ${term}`);
-            }
+            return this.#processStringTerm(term);
         } else {
-            // term is an object
-            termKey = term.key;
-            processedTerm = term.type ? term : parseTerm(term.key);
-            if (!processedTerm) {
-                throw new Error(`Failed to parse term: ${term.key}`);
-            }
+            return this.#processObjectTerm(term);
         }
+    }
 
+    /**
+     * Processes a string term to extract the key and parsed structure
+     * @param {string} term - The term string to process
+     * @returns {object} Object containing processedTerm and termKey
+     * @private
+     */
+    #processStringTerm(term) {
+        const termKey = term;
+        const processedTerm = parseTerm(term);
+        
+        if (!processedTerm) {
+            throw new Error(`Failed to parse term: '${term}'. Please check the term syntax.`);
+        }
+        
+        return {processedTerm, termKey};
+    }
+
+    /**
+     * Processes an object term to extract the key and parsed structure
+     * @param {object} term - The term object to process
+     * @returns {object} Object containing processedTerm and termKey
+     * @private
+     */
+    #processObjectTerm(term) {
+        const termKey = term.key;
+        const processedTerm = term.type ? term : parseTerm(term.key);
+        
+        if (!processedTerm) {
+            throw new Error(`Failed to parse term: '${term.key}'. Please check the term syntax.`);
+        }
+        
         return {processedTerm, termKey};
     }
 
@@ -125,18 +156,45 @@ class Task {
      */
     #normalizeTruthValue(truthValue) {
         // Fast path for valid truth values
-        if (truthValue &&
-            typeof truthValue === 'object' &&
-            typeof truthValue.frequency === 'number' &&
-            typeof truthValue.confidence === 'number') {
-            // Clamp values to valid range
-            const frequency = Math.max(0, Math.min(1, truthValue.frequency));
-            const confidence = Math.max(0, Math.min(1, truthValue.confidence));
+        if (this.#isValidTruthValue(truthValue)) {
+            // Clamp values to valid range with descriptive messages
+            let frequency = truthValue.frequency;
+            let confidence = truthValue.confidence;
+
+            // Handle NaN values
+            if (isNaN(frequency) || isNaN(confidence)) {
+                console.warn(`[Task] Invalid truth value with NaN values detected, falling back to defaults`);
+                return {...DEFAULT_TRUTH_VALUE};
+            }
+
+            if (frequency < 0 || frequency > 1 || !isFinite(frequency)) {
+                frequency = Math.max(0, Math.min(1, frequency));
+                console.warn(`[Task] Frequency value clamped to valid range [0,1]: ${truthValue.frequency}`);
+            }
+
+            if (confidence < 0 || confidence > 1 || !isFinite(confidence)) {
+                confidence = Math.max(0, Math.min(1, confidence));
+                console.warn(`[Task] Confidence value clamped to valid range [0,1]: ${truthValue.confidence}`);
+            }
+
             return {frequency, confidence};
         }
 
         // Return default if invalid
         return {...DEFAULT_TRUTH_VALUE};
+    }
+
+    /**
+     * Checks if a truth value object is valid
+     * @param {object} truthValue - The truth value to validate
+     * @returns {boolean} True if the truth value is valid
+     * @private
+     */
+    #isValidTruthValue(truthValue) {
+        return truthValue &&
+            typeof truthValue === 'object' &&
+            typeof truthValue.frequency === 'number' &&
+            typeof truthValue.confidence === 'number';
     }
 
     /**
@@ -146,18 +204,28 @@ class Task {
      * @private
      */
     #createStamp(stamp) {
+        const now = this.#getCurrentTimestamp();
         return {
-            creationTime: Date.now(),
-            lastAccessed: Date.now(),
+            creationTime: now,
+            lastAccessed: now,
             ...stamp
         };
+    }
+
+    /**
+     * Gets the current timestamp
+     * @returns {number} Current timestamp in milliseconds
+     * @private
+     */
+    #getCurrentTimestamp() {
+        return Date.now();
     }
 
     /**
      * Updates the last accessed timestamp to the current time
      */
     touch() {
-        this.#state.stamp.lastAccessed = Date.now();
+        this.#state.stamp.lastAccessed = this.#getCurrentTimestamp();
     }
 
     /**
@@ -179,9 +247,20 @@ class Task {
     toString() {
         // Cache the formatted string for better performance if called multiple times
         if (!this._toStringCache) {
-            this._toStringCache = `${this.#termKey}${this.#punctuation} (f: ${this.#state.truthValue.frequency.toFixed(3)}, c: ${this.#state.truthValue.confidence.toFixed(3)})`;
+            this._toStringCache = this.#formatTaskString();
         }
         return this._toStringCache;
+    }
+
+    /**
+     * Formats the task as a string
+     * @returns {string} Formatted task string
+     * @private
+     */
+    #formatTaskString() {
+        const frequency = this.#state.truthValue.frequency.toFixed(3);
+        const confidence = this.#state.truthValue.confidence.toFixed(3);
+        return `${this.#termKey}${this.#punctuation} (f: ${frequency}, c: ${confidence})`;
     }
 
     /**
@@ -198,12 +277,15 @@ class Task {
      * @returns {Task} A new task instance with the same properties
      */
     clone() {
-        return new Task(
+        const clonedTask = new Task(
             this.#term,
             this.#punctuation,
             {...this.#state.truthValue},
             {...this.#state.stamp}
         );
+        // Preserve the same ID for cloned tasks
+        clonedTask.#id = this.#id;
+        return clonedTask;
     }
 
     /**

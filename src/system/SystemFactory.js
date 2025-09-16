@@ -1,5 +1,6 @@
 import {safeAsync} from '../utils/errorHandler.js';
 import {info} from '../utils/logger.js';
+import ConfigManager from '../config/ConfigManager.js';
 
 // Core Components
 import System from './System.js';
@@ -22,7 +23,6 @@ import ResolutionStrategy from '../reasoner/strategies/ResolutionStrategy.js';
 
 
 // Configuration and initial data
-import defaultConfig from '../config/default-config.js';
 import CONSTITUTION_TASKS from './Constitution.js';
 
 /**
@@ -53,25 +53,14 @@ class SystemFactory {
      *   return system;
      * }
      */
-    deepMerge(target, ...sources) {
-        for (const source of sources) {
-            for (const key in source) {
-                if (source[key] instanceof Object && key in target) {
-                    Object.assign(source[key], this.deepMerge(target[key], source[key]));
-                }
-            }
-        }
-        Object.assign(target || {}, ...sources);
-        return target;
-    }
-
     async createSystem(userConfig = {}, components = {}) {
         return await safeAsync(async () => {
             info('SystemFactory: Creating new system...');
 
             // 1. Configure
             info('SystemFactory: Merging configurations...');
-            const config = this.deepMerge({}, defaultConfig, userConfig);
+            const configManager = new ConfigManager(userConfig);
+            const config = configManager.getAll();
             info('SystemFactory: Configuration merged.');
 
             // 2. Assemble Components
@@ -85,6 +74,7 @@ class SystemFactory {
             // Cycle-specific components
             const perception = components.perception || new Perception(memory, lm);
             const planner = components.planner || new Planner(memory, lm, actionExecutor, config.planner);
+            const priorityManager = components.priorityManager || new PriorityManager(memory);
 
             // MetaCognition and its dependencies
             const contradictionAnalyzer = components.contradictionAnalyzer || new ContradictionAnalyzer();
@@ -93,8 +83,6 @@ class SystemFactory {
                 contradictionAnalyzer,
                 resolutionStrategy
             });
-
-            const priorityManager = components.priorityManager || new PriorityManager(memory);
 
             const cycle = components.cycle || new Cycle(config, {
                 memory,

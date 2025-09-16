@@ -11,7 +11,6 @@ import ExplanationGenerator from './ExplanationGenerator.js';
 import QAService from './QAService.js';
 import PlanRepairer from './PlanRepairer.js';
 import ProactiveEnricher from './ProactiveEnricher.js';
-import {handleError} from '../utils/errorHandler.js';
 import {debug, error, info, warn} from '../utils/logger.js';
 import defaultConfig from '../config/default-config.js';
 
@@ -23,7 +22,21 @@ const PIPELINE_TYPES = {
 
 class LM {
     constructor(config = defaultConfig.LM) {
-        this.config = config;
+        // Validate and set configuration with defaults
+        this.config = {
+            LLM_PROVIDER: typeof config.LLM_PROVIDER === 'string' ? config.LLM_PROVIDER : 'ollama',
+            OLLAMA_BASE_URL: typeof config.OLLAMA_BASE_URL === 'string' ? config.OLLAMA_BASE_URL : 'http://127.0.0.1:11434',
+            FEATURE_EXTRACTION_MODEL: typeof config.FEATURE_EXTRACTION_MODEL === 'string' ?
+                config.FEATURE_EXTRACTION_MODEL : 'Xenova/all-MiniLM-L6-v2',
+            TEXT_GENERATION_MODEL: typeof config.TEXT_GENERATION_MODEL === 'string' ?
+                config.TEXT_GENERATION_MODEL : 'Xenova/distilgpt2',
+            QA_MODEL: typeof config.QA_MODEL === 'string' ? config.QA_MODEL : 'Xenova/distilbert-base-uncased-distilled-squad',
+            EMBEDDING_BATCH_SIZE: typeof config.EMBEDDING_BATCH_SIZE === 'number' ?
+                Math.max(1, Math.min(100, config.EMBEDDING_BATCH_SIZE)) : 10,
+            EMBEDDING_BATCH_DELAY_MS: typeof config.EMBEDDING_BATCH_DELAY_MS === 'number' ?
+                Math.max(0, Math.min(10000, config.EMBEDDING_BATCH_DELAY_MS)) : 100
+        };
+
         this._pipelineFactory = PipelineFactory;
         this._llm = null;
         this._reasoner = null;
@@ -145,7 +158,7 @@ class LM {
             return result;
         } catch (err) {
             error('Text generation error:', err);
-            return handleError(err, 'Generation error', true);
+            throw err;
         }
     }
 

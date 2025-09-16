@@ -1,3 +1,30 @@
+/**
+ * Default configuration for the SeNARS cognitive system.
+ *
+ * This configuration object defines all system parameters with their default values.
+ * Each section corresponds to a specific system component or functionality.
+ *
+ * @typedef {Object} DefaultConfig
+ * @property {number} FOCUS_SET_SIZE - Number of high-priority tasks to focus on during reasoning
+ * @property {number} META_TASK_PRIORITY - Priority level for meta-cognitive tasks
+ * @property {number} ACTIONABLE_GOAL_PRIORITY_THRESHOLD - Minimum priority for goals to be executed
+ * @property {number} MAX_GOALS_TO_EXECUTE - Maximum number of goals to execute per cycle
+ * @property {number} RECENCY_DECAY_FACTOR - Factor for decaying task priority based on age
+ * @property {number} SIMILARITY_OFFSET - Offset for similarity calculations
+ * @property {number} SIMILARITY_SCALE - Scale factor for similarity calculations
+ * @property {Object} DEFAULT_TRUTH_VALUE - Default truth value for new beliefs
+ * @property {number} DEFAULT_TRUTH_VALUE.frequency - Default frequency value
+ * @property {number} DEFAULT_TRUTH_VALUE.confidence - Default confidence value
+ * @property {Array} LM_HYPOTHESIS_CONFIGS - Configuration for LM hypothesis generation
+ * @property {Object} system - System-level configuration
+ * @property {Object} LM - Language Model configuration
+ * @property {Object} memory - Memory subsystem configuration
+ * @property {Object} reasoner - Reasoner subsystem configuration
+ * @property {Object} planner - Planner subsystem configuration
+ * @property {Object} temporal - Temporal reasoning configuration
+ * @property {Object} ACTION_EXECUTOR - Action executor configuration
+ */
+
 export default {
     // Core settings
     FOCUS_SET_SIZE: 20,

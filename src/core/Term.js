@@ -1,7 +1,7 @@
 import {parseTerm} from '../parser/parse-utils.js';
 import {cosineSimilarity} from '../utils/math.js';
 import config from '../config/index.js';
-import {warn} from '../utils/logger.js';
+import EmbeddingStore from '../utils/EmbeddingStore.js';
 
 /**
  * Term represents a concept or relationship in the knowledge graph.
@@ -9,7 +9,7 @@ import {warn} from '../utils/logger.js';
  */
 class Term {
     #key;
-    #embedding;
+    #embeddingRef; // Reference to embedding in EmbeddingStore instead of direct storage
     #complexity;
     #structure;
     #componentCache;
@@ -26,8 +26,12 @@ class Term {
         }
 
         this.#key = key;
-        // Store embedding as a reference to avoid unnecessary copying
-        this.#embedding = embedding;
+        // Store reference to embedding instead of copying the array
+        if (embedding && Array.isArray(embedding) && embedding.length > 0) {
+            this.#embeddingRef = EmbeddingStore.store(key, embedding);
+        } else {
+            this.#embeddingRef = null;
+        }
         this.#complexity = complexity;
         this.#structure = null;
         // Use a simple object as cache instead of Map for better performance
@@ -40,7 +44,8 @@ class Term {
     }
 
     get embedding() {
-        return this.#embedding;
+        // Retrieve embedding from shared store
+        return this.#embeddingRef ? EmbeddingStore.get(this.#embeddingRef) || [] : [];
     }
 
     get complexity() {
@@ -105,123 +110,6 @@ class Term {
     }
 
     /**
-     * Sets the embedding for this term
-     * @param {number[]} embedding - The embedding vector
-     */
-    setEmbedding(embedding) {
-        if (this.#embedding.length > 0) {
-            warn(`Overwriting existing embedding for term: ${this.#key}`);
-        }
-        // Store reference instead of copying for better performance
-        this.#embedding = embedding;
-    }
-
-    /**
-     * Checks if this term equals another term
-     * @param {Term} other - The other term to compare with
-     * @returns {boolean} True if the terms are equal
-     */
-    equals(other) {
-        return other instanceof Term && this.#key === other.#key;
-    }
-
-    /**
-     * Returns a string representation of the term
-     * @returns {string} String representation of the term
-     */
-    toString() {
-        return this.#key;
-    }
-
-    /**
-     * Calculates a hash code for the term
-     * @returns {number} Hash code
-     */
-    hashCode() {
-        // Cache hash code for better performance
-        if (this._hashCode !== undefined) {
-            return this._hashCode;
-        }
-
-        let hash = 0;
-        for (let i = 0; i < this.#key.length; i++) {
-            const char = this.#key.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash;
-        }
-
-        // Store cached value
-        this._hashCode = hash;
-        return hash;
-    }
-
-    /**
-     * Converts the term to a JSON-serializable object
-     * @returns {object} JSON representation of the term
-     */
-    toJSON() {
-        return {
-            key: this.#key,
-            embedding: this.#embedding,
-            complexity: this.#complexity
-        };
-    }
-
-    /**
-     * Gets the parsed structure of the term
-     * @returns {object|null} The parsed structure or null if parsing fails
-     * @private
-     */
-    #getStructure() {
-        // Use lazy initialization with caching
-        if (this.#structure === null) {
-            try {
-                this.#structure = parseTerm(this.#key);
-            } catch {
-                this.#structure = null;
-            }
-        }
-        return this.#structure;
-    }
-
-    /**
-     * Gets a component of the term
-     * @param {string} componentName - Name of the component to get
-     * @param {object} [structure] - Optional structure to use
-     * @returns {Term|null} The component term or null if not found
-     * @private
-     */
-    #getComponent(componentName, structure) {
-        // Check cache first
-        if (this.#componentCache.hasOwnProperty(componentName)) {
-            return this.#componentCache[componentName];
-        }
-
-        const termStructure = structure || (this.#getStructure() ? this.#getStructure()[componentName] : null);
-        if (!termStructure) {
-            this.#componentCache[componentName] = null;
-            return null;
-        }
-
-        try {
-            const componentKey = Term.buildTermKey(termStructure);
-            if (componentKey) {
-                // Create new term and cache it
-                const componentTerm = new Term(componentKey);
-                this.#componentCache[componentName] = componentTerm;
-                return componentTerm;
-            }
-            this.#componentCache[componentName] = null;
-            return null;
-        } catch {
-            this.#componentCache[componentName] = null;
-            return null;
-        }
-    }
-
-    /* STATIC METHODS */
-
-    /**
      * Checks if two terms are equal
      * @param {Term} term1 - First term
      * @param {Term} term2 - Second term
@@ -241,13 +129,18 @@ class Term {
         if (term1.complexity !== term2.complexity) {
             return false;
         }
-        if (term1.embedding.length !== term2.embedding.length) {
+
+        // Use getters to access embeddings
+        const embedding1 = term1.embedding;
+        const embedding2 = term2.embedding;
+
+        if (embedding1.length !== embedding2.length) {
             return false;
         }
 
         // Use for loop instead of every for better performance
-        for (let i = 0; i < term1.embedding.length; i++) {
-            if (Math.abs(term1.embedding[i] - term2.embedding[i]) >= 1e-6) {
+        for (let i = 0; i < embedding1.length; i++) {
+            if (Math.abs(embedding1[i] - embedding2[i]) >= 1e-6) {
                 return false;
             }
         }
@@ -385,6 +278,17 @@ class Term {
 
         // If either string is too short, return 0
         if (len1 < 2 || len2 < 2) {
+            // Special case for very short strings with some overlap
+            if (len1 > 0 && len2 > 0 && len1 <= 2 && len2 <= 2) {
+                // For strings of length 1 or 2, check character overlap
+                let commonChars = 0;
+                for (let i = 0; i < len1; i++) {
+                    if (termKey2.includes(termKey1[i])) {
+                        commonChars++;
+                    }
+                }
+                return Math.min(commonChars / Math.max(len1, len2), 1.0);
+            }
             return 0;
         }
 
@@ -458,6 +362,138 @@ class Term {
         // Sort and slice using more efficient methods
         similarities.sort((a, b) => b.similarity - a.similarity);
         return similarities.slice(0, maxResults);
+    }
+
+    /**
+     * Sets the embedding for this term
+     * @param {number[]} embedding - The embedding vector
+     */
+    setEmbedding(embedding) {
+        if (this.#embeddingRef) {
+            EmbeddingStore.release(this.#embeddingRef);
+        }
+        if (embedding.length > 0) {
+            this.#embeddingRef = EmbeddingStore.store(this.#key, embedding);
+        } else {
+            this.#embeddingRef = null;
+        }
+    }
+
+    /**
+     * Checks if this term equals another term
+     * @param {Term} other - The other term to compare with
+     * @returns {boolean} True if the terms are equal
+     */
+    equals(other) {
+        return other instanceof Term && this.#key === other.#key;
+    }
+
+    /* STATIC METHODS */
+
+    /**
+     * Returns a string representation of the term
+     * @returns {string} String representation of the term
+     */
+    toString() {
+        return this.#key;
+    }
+
+    /**
+     * Calculates a hash code for the term
+     * @returns {number} Hash code
+     */
+    hashCode() {
+        // Cache hash code for better performance
+        if (this._hashCode !== undefined) {
+            return this._hashCode;
+        }
+
+        let hash = 0;
+        for (let i = 0; i < this.#key.length; i++) {
+            const char = this.#key.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+        }
+
+        // Store cached value
+        this._hashCode = hash;
+        return hash;
+    }
+
+    /**
+     * Releases resources held by this term
+     */
+    destroy() {
+        if (this.#embeddingRef) {
+            EmbeddingStore.release(this.#embeddingRef);
+            this.#embeddingRef = null;
+        }
+        this.#componentCache = {};
+        this.#structure = null;
+    }
+
+    /**
+     * Converts the term to a JSON-serializable object
+     * @returns {object} JSON representation of the term
+     */
+    toJSON() {
+        return {
+            key: this.#key,
+            embedding: this.embedding, // Get embedding from shared store
+            complexity: this.#complexity
+        };
+    }
+
+    /**
+     * Gets the parsed structure of the term
+     * @returns {object|null} The parsed structure or null if parsing fails
+     * @private
+     */
+    #getStructure() {
+        // Use lazy initialization with caching
+        if (this.#structure === null) {
+            try {
+                this.#structure = parseTerm(this.#key);
+            } catch {
+                this.#structure = null;
+            }
+        }
+        return this.#structure;
+    }
+
+    /**
+     * Gets a component of the term
+     * @param {string} componentName - Name of the component to get
+     * @param {object} [structure] - Optional structure to use
+     * @returns {Term|null} The component term or null if not found
+     * @private
+     */
+    #getComponent(componentName, structure) {
+        // Check cache first
+        if (this.#componentCache.hasOwnProperty(componentName)) {
+            return this.#componentCache[componentName];
+        }
+
+        const termStructure = structure || (this.#getStructure() ? this.#getStructure()[componentName] : null);
+        if (!termStructure) {
+            this.#componentCache[componentName] = null;
+            return null;
+        }
+
+        try {
+            const componentKey = Term.buildTermKey(termStructure);
+            if (componentKey) {
+                // Create new term and cache it
+                const componentTerm = new Term(componentKey);
+                this.#componentCache[componentName] = componentTerm;
+                return componentTerm;
+            }
+            this.#componentCache[componentName] = null;
+            return null;
+        } catch {
+            this.#componentCache[componentName] = null;
+            return null;
+        }
     }
 }
 

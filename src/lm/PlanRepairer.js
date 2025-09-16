@@ -1,5 +1,5 @@
-import {handleErrorWithDefault} from '../utils/errorHandler.js';
-import {debug, error, warn} from '../utils/logger.js';
+import {safeAsync} from '../utils/errorHandler.js';
+import {debug, warn} from '../utils/logger.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import zod from 'zod';
 
@@ -15,7 +15,7 @@ class PlanRepairer {
             throw new Error('Goal task is required');
         }
 
-        try {
+        return await safeAsync(async () => {
             debug(`Suggesting plan repair for goal: ${goalTask.termKey}`);
             await this._getGenerationPipeline();
 
@@ -37,10 +37,7 @@ class PlanRepairer {
             const planTerms = parsed.plan.map(termKey => parseTerm(termKey)).filter(Boolean);
             debug(`Plan repair suggested ${planTerms.length} terms`);
             return planTerms;
-        } catch (err) {
-            error('Error in plan repair suggestion:', err);
-            return handleErrorWithDefault(err, 'Plan repair error', null);
-        }
+        }, 'Plan repair error', null);
     }
 
     _createPlanRepairContext(goal, failedPlan) {

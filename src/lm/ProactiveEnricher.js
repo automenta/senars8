@@ -1,5 +1,5 @@
-import {handleErrorWithDefault} from '../utils/errorHandler.js';
-import {debug, error} from '../utils/logger.js';
+import {safeAsync} from '../utils/errorHandler.js';
+import {debug} from '../utils/logger.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import Task from '../core/Task.js';
 import {getBeliefTasks} from '../utils/task-utils.js';
@@ -18,7 +18,7 @@ class ProactiveEnricher {
             return [];
         }
 
-        try {
+        return await safeAsync(async () => {
             debug(`Performing proactive enrichment on ${tasks.length} tasks`);
             await this._getGenerationPipeline();
 
@@ -50,10 +50,7 @@ class ProactiveEnricher {
 
             debug(`Proactive enrichment generated ${newTasks.length} new tasks`);
             return newTasks;
-        } catch (err) {
-            error('Error in proactive enrichment:', err);
-            return handleErrorWithDefault(err, 'Proactive enrichment error', []);
-        }
+        }, 'Proactive enrichment error', []);
     }
 
     _createProactiveEnrichmentContext(tasks) {

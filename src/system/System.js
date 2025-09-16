@@ -3,7 +3,7 @@ import '../utils/onnxSuppression.js';
 
 import registerDefaultActions from './default-actions.js';
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
-import {debug, error, info, warn} from '../utils/logger.js';
+import {debug, error as logError, info, warn} from '../utils/logger.js';
 import {normalizeToArray} from '../utils/helpers.js';
 import Introspection from './Introspection.js';
 
@@ -123,7 +123,7 @@ class System {
                     await this.runCycle();
                     await new Promise(resolve => setTimeout(resolve, this.config.cycle?.TICK_DELAY_MS || 50));
                 } catch (err) {
-                    error('Fatal error during system cycle execution:', err);
+                    logError('Fatal error during system cycle execution:', err);
                     this.stop(); // Halt on critical error
                     throw errorHandler.handle(err, 'start', true);
                 }

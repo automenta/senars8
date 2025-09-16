@@ -11,12 +11,12 @@ export default createUnaryInheritanceRule(
         }
 
         // Create negated terms properly
-        const negatedSubject = { 
-            type: 'Negation', 
+        const negatedSubject = {
+            type: 'Negation',
             term: parsed1.predicate  // Use the original parsed predicate
         };
-        const negatedPredicate = { 
-            type: 'Negation', 
+        const negatedPredicate = {
+            type: 'Negation',
             term: parsed1.subject    // Use the original parsed subject
         };
 

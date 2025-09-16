@@ -1,5 +1,5 @@
-import {handleErrorWithDefault} from '../utils/errorHandler.js';
-import {debug, error} from '../utils/logger.js';
+import {safeAsync} from '../utils/errorHandler.js';
+import {debug} from '../utils/logger.js';
 
 class QAService {
     constructor(generateFunction, getQAPipelineFunction) {
@@ -12,7 +12,7 @@ class QAService {
             return 'Cannot answer an empty question.';
         }
 
-        try {
+        return await safeAsync(async () => {
             debug(`Answering question: ${question.substring(0, 50)}...`);
             if (context) {
                 const qaPipeline = await this._getQAPipeline();
@@ -27,10 +27,7 @@ class QAService {
             const answer = await this._generate(prompt);
             debug('Question answered using generation');
             return answer;
-        } catch (err) {
-            error('Error answering question:', err);
-            return handleErrorWithDefault(err, 'Question answering error', `Failed to answer question: ${err.message}`);
-        }
+        }, 'Question answering error', `Failed to answer question: ${question}`);
     }
 }
 

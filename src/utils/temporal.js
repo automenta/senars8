@@ -24,7 +24,7 @@ function calculateIntervalStats(tasks) {
     // Use a single pass algorithm for better performance
     const sortedTasks = [...tasks].sort((a, b) => a.state.stamp.occurrenceTime - b.state.stamp.occurrenceTime);
     const intervals = new Array(sortedTasks.length - 1);
-    
+
     // Calculate intervals in a single loop
     for (let i = 1; i < sortedTasks.length; i++) {
         intervals[i - 1] = sortedTasks[i].state.stamp.occurrenceTime - sortedTasks[i - 1].state.stamp.occurrenceTime;

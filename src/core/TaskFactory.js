@@ -2,7 +2,7 @@ import Task from './Task.js';
 import {createTemporalTask} from '../utils/temporal.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
-import {handleErrorWithDefault} from '../utils/errorHandler.js';
+import {safeAsync} from '../utils/errorHandler.js';
 
 class TaskFactory {
     constructor(memory, lm) {
@@ -27,113 +27,80 @@ class TaskFactory {
     _initializeEventHandlers() {
         return {
             observation: async e => {
-                try {
+                return await safeAsync(async () => {
                     return await this._createTask(e.content || `observed_${Date.now()}`, '.', {
                         frequency: e.confidence || 1.0,
                         confidence: e.confidence || config.DEFAULT_TRUTH_VALUE.confidence
                     });
-                } catch (error) {
-                    handleErrorWithDefault(error, 'Error processing observation event', null);
-                    return null;
-                }
+                }, 'Error processing observation event', null);
             },
             user_input: async e => {
-                try {
+                return await safeAsync(async () => {
                     return await this._createTask(e.content || `user_input_${Date.now()}`, '?', {
                         frequency: 1.0,
                         confidence: 0.8
                     });
-                } catch (error) {
-                    handleErrorWithDefault(error, 'Error processing user_input event', null);
-                    return null;
-                }
+                }, 'Error processing user_input event', null);
             },
             sensor_data: async e => {
-                try {
+                return await safeAsync(async () => {
                     return await this._createTask(e.sensorType ? `(sensor_type_${e.sensorType}_value_${e.value})` : `sensor_data_${Date.now()}`, '.', {
                         frequency: 1.0,
                         confidence: e.accuracy || 0.95
                     });
-                } catch (error) {
-                    handleErrorWithDefault(error, 'Error processing sensor_data event', null);
-                    return null;
-                }
+                }, 'Error processing sensor_data event', null);
             },
             temporal_event: async e => {
-                try {
+                return await safeAsync(async () => {
                     return await this._createTemporalEventTask(e);
-                } catch (error) {
-                    handleErrorWithDefault(error, 'Error processing temporal_event', null);
-                    return null;
-                }
+                }, 'Error processing temporal_event', null);
             },
             communication: async e => {
-                try {
+                return await safeAsync(async () => {
                     return await this._createTask(e.content ? `(communication_${e.sender}_to_${e.recipient}_${e.content})` : `communication_${Date.now()}`, '.', {
                         frequency: e.confidence || 1.0,
                         confidence: e.confidence || config.DEFAULT_TRUTH_VALUE.confidence
                     });
-                } catch (error) {
-                    handleErrorWithDefault(error, 'Error processing communication event', null);
-                    return null;
-                }
+                }, 'Error processing communication event', null);
             },
             action_feedback: async e => {
-                try {
+                return await safeAsync(async () => {
                     return await this._createTask(e.action ? `(action_feedback_${e.action}_${e.result})` : `action_feedback_${Date.now()}`, '.', {
                         frequency: e.success ? 1.0 : 0.0,
                         confidence: e.confidence || config.DEFAULT_TRUTH_VALUE.confidence
                     });
-                } catch (error) {
-                    handleErrorWithDefault(error, 'Error processing action_feedback event', null);
-                    return null;
-                }
+                }, 'Error processing action_feedback event', null);
             },
             goal_achievement: async e => {
-                try {
+                return await safeAsync(async () => {
                     return await this._createTask(e.goal ? `(goal_achieved_${e.goal})` : `goal_achieved_${Date.now()}`, '.', {
                         frequency: 1.0,
                         confidence: e.confidence || 0.95
                     });
-                } catch (error) {
-                    handleErrorWithDefault(error, 'Error processing goal_achievement event', null);
-                    return null;
-                }
+                }, 'Error processing goal_achievement event', null);
             },
             social_interaction: async e => {
-                try {
+                return await safeAsync(async () => {
                     return await this._createSocialInteractionTask(e);
-                } catch (error) {
-                    handleErrorWithDefault(error, 'Error processing social_interaction event', null);
-                    return null;
-                }
+                }, 'Error processing social_interaction event', null);
             },
             environmental_change: async e => {
-                try {
+                return await safeAsync(async () => {
                     return await this._createEnvironmentalChangeTask(e);
-                } catch (error) {
-                    handleErrorWithDefault(error, 'Error processing environmental_change event', null);
-                    return null;
-                }
+                }, 'Error processing environmental_change event', null);
             },
             learning_experience: async e => {
-                try {
+                return await safeAsync(async () => {
                     return await this._createLearningExperienceTask(e);
-                } catch (error) {
-                    handleErrorWithDefault(error, 'Error processing learning_experience event', null);
-                    return null;
-                }
+                }, 'Error processing learning_experience event', null);
             },
             default: async e => {
-                try {
+                return await safeAsync(async () => {
                     return await this._createTask(e.description || `event_${Date.now()}`, e.punctuation || '.', {
                         frequency: e.frequency || 1.0,
                         confidence: e.confidence || config.DEFAULT_TRUTH_VALUE.confidence
                     });
-                } catch (error) {
-                    handleErrorWithDefault(error, 'Error processing default event', null);
-                    return null;
-                }
+                }, 'Error processing default event', null);
             }
         };
     }
@@ -143,12 +110,9 @@ class TaskFactory {
             return null;
         }
         const handler = this.eventHandlers[event.type] || this.eventHandlers.default;
-        try {
+        return await safeAsync(async () => {
             return await handler(event);
-        } catch (error) {
-            handleErrorWithDefault(error, 'Error converting event to task', null);
-            return null;
-        }
+        }, 'Error converting event to task', null);
     }
 
     async _createTemporalEventTask(event) {
