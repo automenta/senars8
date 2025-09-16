@@ -1,4 +1,4 @@
-import {safeAsync} from '../utils/error-handler.js';
+import {safeAsync} from '../utils/errorHandler.js';
 import {info} from '../utils/logger.js';
 
 // Core Components

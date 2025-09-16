@@ -1,6 +1,6 @@
-import {inferTemporalImplications} from '../../utils/temporal/implication.js';
+import {inferTemporalImplications} from '../../utils/temporal.js';
 import {debug} from '../../utils/logger.js';
-import {handleErrorWithDefault} from '../../utils/error-handler.js';
+import {handleErrorWithDefault} from '../../utils/errorHandler.js';
 import config from '../../config/index.js';
 
 class TemporalImplicationInference {

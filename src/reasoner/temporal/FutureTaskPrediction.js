@@ -1,6 +1,6 @@
-import {advancedPredictFutureTasks} from '../../utils/temporal/prediction.js';
+import {advancedPredictFutureTasks} from '../../utils/temporal.js';
 import {debug} from '../../utils/logger.js';
-import {handleErrorWithDefault} from '../../utils/error-handler.js';
+import {handleErrorWithDefault} from '../../utils/errorHandler.js';
 
 class FutureTaskPrediction {
     static predict(temporalFocusSet) {

@@ -1,5 +1,5 @@
 import {v4 as uuidv4} from 'uuid';
-import {createModuleErrorHandler} from '../utils/error-handler.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
 import {isNonEmptyArray} from '../utils/helpers.js';
 import EventBus from './EventBus.js';
 import defaultConfig from '../config/default-config.js';

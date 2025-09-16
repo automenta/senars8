@@ -4,6 +4,7 @@ import BasePlanner from './BasePlanner.js';
 class AStarPlanner extends BasePlanner {
     constructor(memory, lm, config = {}) {
         super(memory, lm, config);
+        this.heuristicCache = new Map();
     }
 
     async findPlan(goalTask, maxIterations = 1000) {
@@ -58,11 +59,12 @@ class AStarPlanner extends BasePlanner {
                 let newTasks;
 
                 if (expansion.method === null) { // Primitive action
-                    newG += await this.costManager.getActionCost(currentTask);
+                    newG += this.costManager.getActionCost(currentTask);
                     newPlan = [...currentNode.plan, currentTask.key];
                     newTasks = remainingTasks;
                 } else { // Decomposition
-                    newG += this.costManager.getTaskDifficulty(expansion.method);
+                    // The cost of a decomposition is the cost of its subtasks, which is handled by the heuristic.
+                    // The g-value should only reflect the cost of the actions taken so far.
                     newTasks = [...expansion.subTasks, ...remainingTasks];
                 }
 
@@ -82,37 +84,53 @@ class AStarPlanner extends BasePlanner {
 
     _getStateKey(node) {
         // A unique key for a state is the combination of remaining tasks and the current plan
-        const taskKey = node.tasks.map(t => t.key).join(',');
-        const planKey = node.plan.join(',');
+        const taskKey = node.tasks.map(t => t.key).sort().join(',');
+        const planKey = node.plan.sort().join(',');
         return `${taskKey}|${planKey}`;
     }
 
-    async _calculateHeuristic(tasks) {
+    async _calculateHeuristic(tasks, visited = new Set()) {
         if (!tasks || tasks.length === 0) {
             return 0;
         }
-        // Heuristic is the sum of the minimum costs to achieve each remaining task
-        const costs = await Promise.all(tasks.map(task => this._getMinTaskCost(task)));
-        return costs.reduce((sum, cost) => sum + cost, 0);
+
+        let totalCost = 0;
+        for (const task of tasks) {
+            if (visited.has(task.key)) {
+                // Found a cycle, return infinity to avoid infinite loops
+                return Infinity;
+            }
+            visited.add(task.key);
+            totalCost += await this._getMinTaskCost(task, visited);
+            visited.delete(task.key);
+        }
+        return totalCost;
     }
 
-    async _getMinTaskCost(task) {
-        if (this._isPrimitive(task)) {
-            return this.costManager.getActionCost(task);
+    async _getMinTaskCost(task, visited) {
+        if (this.heuristicCache.has(task.key)) {
+            return this.heuristicCache.get(task.key);
         }
+
+        if (this._isPrimitive(task)) {
+            const cost = this.costManager.getActionCost(task);
+            this.heuristicCache.set(task.key, cost);
+            return cost;
+        }
+
         const expansions = this._getExpansions(task);
         if (expansions.length === 0) {
             return Infinity; // No way to solve this task
         }
 
-        const expansionCosts = await Promise.all(expansions.map(async (exp) => {
-            const subTaskCosts = await Promise.all(exp.subTasks.map(st => this._getMinTaskCost(st)));
-            const totalSubTaskCost = subTaskCosts.reduce((s, c) => s + c, 0);
-            const decompCost = exp.method ? this.costManager.getTaskDifficulty(exp.method) : 0;
-            return decompCost + totalSubTaskCost;
-        }));
+        let minCost = Infinity;
+        for (const expansion of expansions) {
+            const subTaskCosts = await this._calculateHeuristic(expansion.subTasks, new Set(visited));
+            minCost = Math.min(minCost, subTaskCosts);
+        }
 
-        return Math.min(...expansionCosts);
+        this.heuristicCache.set(task.key, minCost);
+        return minCost;
     }
 }
 

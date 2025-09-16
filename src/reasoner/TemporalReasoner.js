@@ -8,7 +8,7 @@ import FutureTaskPrediction from './temporal/FutureTaskPrediction.js';
 import TemporalClusterDetection from './temporal/TemporalClusterDetection.js';
 import TemporalCoherence from './temporal/TemporalCoherence.js';
 import {debug} from '../utils/logger.js';
-import {handleErrorWithDefault} from '../utils/error-handler.js';
+import {handleErrorWithDefault} from '../utils/errorHandler.js';
 import defaultConfig from '../config/default-config.js';
 
 class TemporalReasoner {

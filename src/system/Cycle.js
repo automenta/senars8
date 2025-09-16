@@ -1,4 +1,4 @@
-import {safeAsync} from '../utils/error-handler.js';
+import {safeAsync} from '../utils/errorHandler.js';
 import {getGoalTasks} from '../utils/task-utils.js';
 import EventBus from './EventBus.js';
 

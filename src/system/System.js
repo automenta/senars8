@@ -1,7 +1,7 @@
 process.env.ORT_LOGGING_LEVEL = 'FATAL';
 
 import registerDefaultActions from './default-actions.js';
-import { createModuleErrorHandler } from '../utils/error-handler.js';
+import { createModuleErrorHandler } from '../utils/errorHandler.js';
 import { debug, error, info, warn } from '../utils/logger.js';
 import { normalizeToArray } from '../utils/helpers.js';
 import Introspection from './Introspection.js';

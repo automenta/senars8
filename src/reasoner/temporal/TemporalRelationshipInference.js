@@ -1,7 +1,6 @@
-import {determineTemporalRelationship} from '../../utils/temporal/query.js';
-import {createTemporalRelationshipTask} from '../../utils/temporal/task-creation.js';
+import {determineTemporalRelationship, createTemporalRelationshipTask} from '../../utils/temporal.js';
 import {debug} from '../../utils/logger.js';
-import {handleErrorWithDefault} from '../../utils/error-handler.js';
+import {handleErrorWithDefault} from '../../utils/errorHandler.js';
 import config from '../../config/index.js';
 
 class TemporalRelationshipInference {

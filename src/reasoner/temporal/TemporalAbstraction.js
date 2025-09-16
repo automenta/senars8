@@ -1,6 +1,6 @@
-import {createTemporalAbstraction} from '../../utils/temporal/summary.js';
+import {createTemporalAbstraction} from '../../utils/temporal.js';
 import {debug} from '../../utils/logger.js';
-import {handleErrorWithDefault} from '../../utils/error-handler.js';
+import {handleErrorWithDefault} from '../../utils/errorHandler.js';
 
 class TemporalAbstraction {
     static create(temporalFocusSet) {

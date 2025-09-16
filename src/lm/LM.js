@@ -9,7 +9,7 @@ import ExplanationGenerator from './ExplanationGenerator.js';
 import QAService from './QAService.js';
 import PlanRepairer from './PlanRepairer.js';
 import ProactiveEnricher from './ProactiveEnricher.js';
-import {handleError} from '../utils/error-handler.js';
+import {handleError} from '../utils/errorHandler.js';
 import {debug, error, info, warn} from '../utils/logger.js';
 import defaultConfig from '../config/default-config.js';
 

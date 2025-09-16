@@ -1,8 +1,8 @@
 import Task from './Task.js';
-import {createTemporalTask} from '../utils/temporal/task-creation.js';
+import {createTemporalTask} from '../utils/temporal.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
-import {handleErrorWithDefault} from '../errors/error-handler.js';
+import {handleErrorWithDefault} from '../utils/errorHandler.js';
 
 class TaskFactory {
     constructor(memory, lm) {

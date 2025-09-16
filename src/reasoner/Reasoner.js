@@ -3,7 +3,7 @@ import BruteForceStrategy from './strategies/BruteForceStrategy.js';
 import rules from './rules/index.js';
 import TemporalReasoner from './TemporalReasoner.js';
 import {debug, error as logError, info} from '../utils/logger.js';
-import {createModuleErrorHandler} from '../utils/error-handler.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
 import defaultConfig from '../config/default-config.js';
 
 const errorHandler = createModuleErrorHandler('Reasoner');

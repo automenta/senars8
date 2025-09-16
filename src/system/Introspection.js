@@ -1,5 +1,5 @@
 import EventBus from './EventBus.js';
-import {safeSync} from '../utils/error-handler.js';
+import {safeSync} from '../utils/errorHandler.js';
 
 /**
  * Provides a comprehensive API for observing and querying the internal state

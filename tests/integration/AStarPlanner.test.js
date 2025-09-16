@@ -35,7 +35,9 @@ describe('AStarPlanner Integration Test', () => {
         // Path 2 (longer, but cheaper): goal ==> (&&, action_cheap1, action_cheap2)
         addTermToMemory('(goal ==> (&&, action_cheap1, action_cheap2))');
         addTermToMemory('action_cheap1');
+        addCostToMemory('action_cheap1', 2);
         addTermToMemory('action_cheap2');
+        addCostToMemory('action_cheap2', 2);
 
         const goalTerm = addTermToMemory('goal');
 
@@ -123,5 +125,38 @@ describe('AStarPlanner Integration Test', () => {
 
         expect(plan).not.toBeNull();
         expect(plan.map(p => p.key)).toEqual(['action']);
+    });
+
+    test('should handle cyclic dependencies and not get stuck in a loop', async () => {
+        // Cyclic dependency: a ==> b, b ==> a
+        addTermToMemory('(a ==> b)');
+        addTermToMemory('(b ==> a)');
+        const goalTerm = addTermToMemory('a');
+        addTermToMemory('b');
+
+        const goalTask = new Task(goalTerm, '!', {confidence: 0.9});
+        const plan = await planner.findPlan(goalTask);
+
+        // There is no path to a primitive action, so no plan should be found.
+        expect(plan).toBeNull();
+    });
+
+    test('should not use a path if preconditions are not met', async () => {
+        // Path 1 (with unmet precondition): goal ==> (&&, precondition, action1)
+        addTermToMemory('(goal ==> (&&, precondition, action1))');
+        addTermToMemory('precondition');
+        addTermToMemory('action1');
+
+        // Path 2 (without precondition): goal ==> action2
+        addTermToMemory('(goal ==> action2)');
+        addTermToMemory('action2');
+
+        const goalTerm = addTermToMemory('goal');
+        const goalTask = new Task(goalTerm, '!', {confidence: 0.9});
+        const plan = await planner.findPlan(goalTask);
+
+        // The planner should choose action2 because the precondition for action1 is not met.
+        expect(plan).not.toBeNull();
+        expect(plan.map(p => p.key)).toEqual(['action2']);
     });
 });

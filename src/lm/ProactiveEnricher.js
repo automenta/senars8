@@ -1,4 +1,4 @@
-import {handleErrorWithDefault} from '../utils/error-handler.js';
+import {handleErrorWithDefault} from '../utils/errorHandler.js';
 import {debug, error} from '../utils/logger.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import Task from '../core/Task.js';

@@ -1,7 +1,6 @@
-import {detectTemporalClusters} from '../../utils/temporal/pattern-detection.js';
-import {createTemporalClusterAbstractions} from '../../utils/temporal/task-creation.js';
+import {detectTemporalClusters, createTemporalClusterAbstractions} from '../../utils/temporal.js';
 import {debug} from '../../utils/logger.js';
-import {handleErrorWithDefault} from '../../utils/error-handler.js';
+import {handleErrorWithDefault} from '../../utils/errorHandler.js';
 
 class TemporalClusterDetection {
     static detect(temporalFocusSet) {
