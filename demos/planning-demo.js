@@ -1,10 +1,6 @@
 import {runDemo} from '../shared/demo-utils.js';
 
-/**
- * Planning Demo
- * Demonstrates the system's goal-directed behavior and planning capabilities,
- * showcasing the ability to switch between different planning strategies.
- */
+// Description: A demonstration of the system's planning capabilities.
 async function planningDemo() {
     const taskDefs = [{
         termKey: '((&&, make_coffee, water) ==> coffee_made)',

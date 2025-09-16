@@ -1,32 +1,14 @@
-#!/usr/bin/env node
+// Description: A demo of the main system runner, showing the cognitive cycle in action.
+const { runDemo } = require('./demo-utils');
 
-/**
- * SeNARS Cognitive System Main Entry Point
- * Initializes and runs the complete cognitive system.
- */
-
-const System = require('../src/system/System');
-
-async function main() {
-    console.log("=== SeNARS Cognitive System ===\n");
-
-    try {
-        // Create and start the system
-        const system = new System();
-
-        // Run for a limited number of cycles for demonstration
-        await system.start(5); // Run 5 cycles then stop
-
-        console.log("\n=== System Execution Complete ===");
-    } catch (error) {
-        console.error("System failed to start:", error);
-        process.exit(1);
-    }
+async function systemRunnerDemo() {
+    await runDemo('System Runner Demo', [], {
+        cycleCount: 5
+    });
 }
 
-// Only run if this file is executed directly
+module.exports = systemRunnerDemo;
+
 if (require.main === module) {
-    main();
+    systemRunnerDemo().catch(console.error);
 }
-
-module.exports = main;

@@ -4,18 +4,7 @@ const BagSamplingStrategy = require('../src/reasoner/strategies/BagSamplingStrat
 const {createTask} = require('./demo-utils');
 const rules = require('../src/reasoner/rules');
 
-/**
- * Strategy Comparison Demo
- *
- * This demo showcases the difference between the BruteForceStrategy and the BagSamplingStrategy.
- *
- * - BruteForceStrategy: Considers all possible combinations of tasks.
- * - BagSamplingStrategy: Samples tasks based on their priority, making it more likely
- *   to select high-priority tasks for reasoning.
- *
- * The demo will create a set of tasks with varying priorities and show which combinations
- * each strategy chooses to form premises for inference rules.
- */
+// Description: Compares different reasoning and planning strategies.
 function strategyComparisonDemo() {
     console.log("=== Strategy Comparison Demo ===\n");
 

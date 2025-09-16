@@ -1,3 +1,4 @@
+// Description: A basic demonstration of the system's reasoning capabilities.
 import {runDemo} from '../shared/demo-utils.js';
 
 async function runBasicDemo() {

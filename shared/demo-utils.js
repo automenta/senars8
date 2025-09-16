@@ -20,12 +20,29 @@ function createTask(termKey, punctuation, truthValue, stamp = {creationTime: Dat
     return new Task(parsedTerm, punctuation, truthValue, stamp);
 }
 
-async function runDemo(demoName, taskDefs, {cycleCount = 5, config = {}} = {}) {
+async function runDemo(demoName, taskDefs, {
+    cycleCount = 5,
+    config = {},
+    actionHandlers = [],
+    preCycleCallback = null,
+    postCycleCallback = null
+} = {}) {
     info(`
 --- Starting ${demoName} ---`);
 
     const system = await SystemFactory.createSystem(config);
     info('System created.');
+
+    if (actionHandlers.length > 0) {
+        actionHandlers.forEach(handler => {
+            system.actionExecutor.registerActionHandler(handler.name, handler.handler);
+        });
+        info(`Registered ${actionHandlers.length} custom action handlers.`);
+    }
+
+    if (preCycleCallback) {
+        await preCycleCallback(system);
+    }
 
     const tasks = taskDefs.map(def => createTask(def.termKey, def.punctuation, def.truthValue)).filter(Boolean);
 
@@ -45,6 +62,10 @@ async function runDemo(demoName, taskDefs, {cycleCount = 5, config = {}} = {}) {
                 proactiveTasks: result.proactiveTasks
             });
         }
+    }
+
+    if (postCycleCallback) {
+        await postCycleCallback(system, tasks);
     }
 
     info(`--- ${demoName} completed ---

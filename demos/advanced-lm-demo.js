@@ -1,3 +1,4 @@
+// Description: Demonstrates advanced capabilities of the Language Model (LM) integration.
 const {runDemo, createTask} = require('../shared/demo-utils');
 const LM = require('../src/lm/LM');
 
