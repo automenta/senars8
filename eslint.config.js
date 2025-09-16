@@ -1,4 +1,9 @@
+import js from '@eslint/js';
+import promise from 'eslint-plugin-promise';
+
 export default [
+    js.configs.recommended,
+    promise.configs['flat/recommended'],
     {
         files: ['**/*.js'],
         languageOptions: {
@@ -29,8 +34,6 @@ export default [
             }
         },
         rules: {
-            // Only the most critical rules for now
-            'no-undef': 'error',
             'no-unused-vars': ['error', {
                 argsIgnorePattern: '^_',
                 varsIgnorePattern: '^_'
