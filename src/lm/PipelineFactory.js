@@ -1,8 +1,12 @@
 import {env, pipeline} from '@xenova/transformers';
 import {info, warn} from '../utils/logger.js';
+import onnxSuppression from '../utils/onnxSuppression.js';
 
 // Suppress ONNX runtime warnings
 env.logLevel = 'error';
+
+// Apply additional suppression
+onnxSuppression.suppressOnnxWarnings();
 
 class PipelineFactory {
     constructor() {

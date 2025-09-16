@@ -1,4 +1,5 @@
-process.env.ORT_LOGGING_LEVEL = 'FATAL';
+// Import ONNX warning suppression at the very beginning
+import '../utils/onnxSuppression.js';
 
 import registerDefaultActions from './default-actions.js';
 import { createModuleErrorHandler } from '../utils/errorHandler.js';
