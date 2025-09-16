@@ -34,6 +34,19 @@ class Term {
         this.#componentCache = {};
     }
 
+    // Getters for private properties
+    get key() {
+        return this.#key;
+    }
+
+    get embedding() {
+        return this.#embedding;
+    }
+
+    get complexity() {
+        return this.#complexity;
+    }
+
     /**
      * Gets the type of the term (e.g., 'Atomic', 'Inheritance', etc.)
      * @returns {string} The term type
@@ -91,111 +104,122 @@ class Term {
         }
     }
 
-    // Getters for private properties
-    get key() {
+    /**
+     * Sets the embedding for this term
+     * @param {number[]} embedding - The embedding vector
+     */
+    setEmbedding(embedding) {
+        if (this.#embedding.length > 0) {
+            warn(`Overwriting existing embedding for term: ${this.#key}`);
+        }
+        // Store reference instead of copying for better performance
+        this.#embedding = embedding;
+    }
+
+    /**
+     * Checks if this term equals another term
+     * @param {Term} other - The other term to compare with
+     * @returns {boolean} True if the terms are equal
+     */
+    equals(other) {
+        return other instanceof Term && this.#key === other.#key;
+    }
+
+    /**
+     * Returns a string representation of the term
+     * @returns {string} String representation of the term
+     */
+    toString() {
         return this.#key;
     }
 
-    get embedding() {
-        return this.#embedding;
-    }
+    /**
+     * Calculates a hash code for the term
+     * @returns {number} Hash code
+     */
+    hashCode() {
+        // Cache hash code for better performance
+        if (this._hashCode !== undefined) {
+            return this._hashCode;
+        }
 
-    get complexity() {
-        return this.#complexity;
+        let hash = 0;
+        for (let i = 0; i < this.#key.length; i++) {
+            const char = this.#key.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+        }
+
+        // Store cached value
+        this._hashCode = hash;
+        return hash;
     }
 
     /**
-     * Calculates structural similarity between two term keys
-     * @param {string} termKey1 - First term key
-     * @param {string} termKey2 - Second term key
-     * @returns {number} Similarity score between 0 and 1
+     * Converts the term to a JSON-serializable object
+     * @returns {object} JSON representation of the term
      */
-    static structuralSimilarity(termKey1, termKey2) {
-        // Fast path for identical terms
-        if (termKey1 === termKey2) {
-            return 1.0;
-        }
-
-        // Use a more efficient algorithm for substring comparison
-        const len1 = termKey1.length;
-        const len2 = termKey2.length;
-
-        // If either string is too short, return 0
-        if (len1 < 2 || len2 < 2) {
-            return 0;
-        }
-
-        // Count common bigrams using arrays for better performance
-        const bigrams1 = new Array(len1 - 1);
-        const bigrams2 = new Array(len2 - 1);
-
-        for (let i = 0; i < len1 - 1; i++) {
-            bigrams1[i] = termKey1.substring(i, i + 2);
-        }
-
-        for (let i = 0; i < len2 - 1; i++) {
-            bigrams2[i] = termKey2.substring(i, i + 2);
-        }
-
-        // Count intersections
-        let intersection = 0;
-        const bigramSet = new Set(bigrams1);
-
-        for (let i = 0; i < bigrams2.length; i++) {
-            if (bigramSet.has(bigrams2[i])) {
-                intersection++;
-                // Remove to handle duplicates correctly
-                bigramSet.delete(bigrams2[i]);
-            }
-        }
-
-        const totalLength = bigrams1.length + bigrams2.length;
-        return totalLength > 0 ? (2 * intersection) / totalLength : 0;
+    toJSON() {
+        return {
+            key: this.#key,
+            embedding: this.#embedding,
+            complexity: this.#complexity
+        };
     }
 
     /**
-     * Finds similar terms based on semantic and structural similarity
-     * @param {Map<string, Term>} terms - Map of all terms
-     * @param {string} targetTermKey - Key of the target term
-     * @param {number} [maxResults=10] - Maximum number of results to return
-     * @returns {Array<{termKey: string, similarity: number}>} Array of similar terms with similarity scores
+     * Gets the parsed structure of the term
+     * @returns {object|null} The parsed structure or null if parsing fails
+     * @private
      */
-    static findSimilarTerms(terms, targetTermKey, maxResults = 10) {
-        const targetTerm = terms.get(targetTermKey);
-        if (!targetTerm || !targetTerm.embedding) {
-            return [];
-        }
-
-        // Pre-calculate weights to avoid repeated lookups
-        const regularityBoost = config.temporal.REGULARITY_BOOST;
-        const structuralWeight = config.temporal.STRUCTURAL_SIMILARITY_WEIGHT;
-
-        // Convert map to array for more efficient processing
-        const termEntries = Array.from(terms.entries());
-        const similarities = [];
-
-        for (let i = 0; i < termEntries.length; i++) {
-            const [key, term] = termEntries[i];
-
-            // Skip target term and terms without embeddings
-            if (key === targetTermKey || !term.embedding) {
-                continue;
+    #getStructure() {
+        // Use lazy initialization with caching
+        if (this.#structure === null) {
+            try {
+                this.#structure = parseTerm(this.#key);
+            } catch {
+                this.#structure = null;
             }
+        }
+        return this.#structure;
+    }
 
-            const semantic = cosineSimilarity(targetTerm.embedding, term.embedding);
-            const structural = Term.structuralSimilarity(targetTermKey, key);
-            const similarity = regularityBoost * semantic + structuralWeight * structural;
-
-            similarities.push({
-                termKey: key,
-                similarity
-            });
+    /**
+     * Gets a component of the term
+     * @param {string} componentName - Name of the component to get
+     * @param {object} [structure] - Optional structure to use
+     * @returns {Term|null} The component term or null if not found
+     * @private
+     */
+    #getComponent(componentName, structure) {
+        // Check cache first
+        if (this.#componentCache.hasOwnProperty(componentName)) {
+            return this.#componentCache[componentName];
         }
 
-        // Sort and slice using more efficient methods
-        similarities.sort((a, b) => b.similarity - a.similarity);
-        return similarities.slice(0, maxResults);
+        const termStructure = structure || (this.#getStructure() ? this.#getStructure()[componentName] : null);
+        if (!termStructure) {
+            this.#componentCache[componentName] = null;
+            return null;
+        }
+
+        try {
+            const componentKey = Term.buildTermKey(termStructure);
+            if (componentKey) {
+                // Create new term and cache it
+                const componentTerm = new Term(componentKey);
+                this.#componentCache[componentName] = componentTerm;
+                return componentTerm;
+            }
+            this.#componentCache[componentName] = null;
+            return null;
+        } catch {
+            this.#componentCache[componentName] = null;
+            return null;
+        }
     }
+
+    /* STATIC METHODS */
 
     /**
      * Checks if two terms are equal
@@ -344,118 +368,96 @@ class Term {
     }
 
     /**
-     * Sets the embedding for this term
-     * @param {number[]} embedding - The embedding vector
+     * Calculates structural similarity between two term keys
+     * @param {string} termKey1 - First term key
+     * @param {string} termKey2 - Second term key
+     * @returns {number} Similarity score between 0 and 1
      */
-    setEmbedding(embedding) {
-        if (this.#embedding.length > 0) {
-            warn(`Overwriting existing embedding for term: ${this.#key}`);
+    static structuralSimilarity(termKey1, termKey2) {
+        // Fast path for identical terms
+        if (termKey1 === termKey2) {
+            return 1.0;
         }
-        // Store reference instead of copying for better performance
-        this.#embedding = embedding;
-    }
 
-    /**
-     * Gets the parsed structure of the term
-     * @returns {object|null} The parsed structure or null if parsing fails
-     * @private
-     */
-    #getStructure() {
-        // Use lazy initialization with caching
-        if (this.#structure === null) {
-            try {
-                this.#structure = parseTerm(this.#key);
-            } catch {
-                this.#structure = null;
+        // Use a more efficient algorithm for substring comparison
+        const len1 = termKey1.length;
+        const len2 = termKey2.length;
+
+        // If either string is too short, return 0
+        if (len1 < 2 || len2 < 2) {
+            return 0;
+        }
+
+        // Count common bigrams using arrays for better performance
+        const bigrams1 = new Array(len1 - 1);
+        const bigrams2 = new Array(len2 - 1);
+
+        for (let i = 0; i < len1 - 1; i++) {
+            bigrams1[i] = termKey1.substring(i, i + 2);
+        }
+
+        for (let i = 0; i < len2 - 1; i++) {
+            bigrams2[i] = termKey2.substring(i, i + 2);
+        }
+
+        // Count intersections
+        let intersection = 0;
+        const bigramSet = new Set(bigrams1);
+
+        for (let i = 0; i < bigrams2.length; i++) {
+            if (bigramSet.has(bigrams2[i])) {
+                intersection++;
+                // Remove to handle duplicates correctly
+                bigramSet.delete(bigrams2[i]);
             }
         }
-        return this.#structure;
+
+        const totalLength = bigrams1.length + bigrams2.length;
+        return totalLength > 0 ? (2 * intersection) / totalLength : 0;
     }
 
     /**
-     * Gets a component of the term
-     * @param {string} componentName - Name of the component to get
-     * @param {object} [structure] - Optional structure to use
-     * @returns {Term|null} The component term or null if not found
-     * @private
+     * Finds similar terms based on semantic and structural similarity
+     * @param {Map<string, Term>} terms - Map of all terms
+     * @param {string} targetTermKey - Key of the target term
+     * @param {number} [maxResults=10] - Maximum number of results to return
+     * @returns {Array<{termKey: string, similarity: number}>} Array of similar terms with similarity scores
      */
-    #getComponent(componentName, structure) {
-        // Check cache first
-        if (this.#componentCache.hasOwnProperty(componentName)) {
-            return this.#componentCache[componentName];
+    static findSimilarTerms(terms, targetTermKey, maxResults = 10) {
+        const targetTerm = terms.get(targetTermKey);
+        if (!targetTerm || !targetTerm.embedding) {
+            return [];
         }
 
-        const termStructure = structure || (this.#getStructure() ? this.#getStructure()[componentName] : null);
-        if (!termStructure) {
-            this.#componentCache[componentName] = null;
-            return null;
-        }
+        // Pre-calculate weights to avoid repeated lookups
+        const regularityBoost = config.temporal.REGULARITY_BOOST;
+        const structuralWeight = config.temporal.STRUCTURAL_SIMILARITY_WEIGHT;
 
-        try {
-            const componentKey = Term.buildTermKey(termStructure);
-            if (componentKey) {
-                // Create new term and cache it
-                const componentTerm = new Term(componentKey);
-                this.#componentCache[componentName] = componentTerm;
-                return componentTerm;
+        // Convert map to array for more efficient processing
+        const termEntries = Array.from(terms.entries());
+        const similarities = [];
+
+        for (let i = 0; i < termEntries.length; i++) {
+            const [key, term] = termEntries[i];
+
+            // Skip target term and terms without embeddings
+            if (key === targetTermKey || !term.embedding) {
+                continue;
             }
-            this.#componentCache[componentName] = null;
-            return null;
-        } catch {
-            this.#componentCache[componentName] = null;
-            return null;
-        }
-    }
 
-    /**
-     * Checks if this term equals another term
-     * @param {Term} other - The other term to compare with
-     * @returns {boolean} True if the terms are equal
-     */
-    equals(other) {
-        return other instanceof Term && this.#key === other.#key;
-    }
+            const semantic = cosineSimilarity(targetTerm.embedding, term.embedding);
+            const structural = Term.structuralSimilarity(targetTermKey, key);
+            const similarity = regularityBoost * semantic + structuralWeight * structural;
 
-    /**
-     * Returns a string representation of the term
-     * @returns {string} String representation of the term
-     */
-    toString() {
-        return this.#key;
-    }
-
-    /**
-     * Calculates a hash code for the term
-     * @returns {number} Hash code
-     */
-    hashCode() {
-        // Cache hash code for better performance
-        if (this._hashCode !== undefined) {
-            return this._hashCode;
+            similarities.push({
+                termKey: key,
+                similarity
+            });
         }
 
-        let hash = 0;
-        for (let i = 0; i < this.#key.length; i++) {
-            const char = this.#key.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash;
-        }
-
-        // Store cached value
-        this._hashCode = hash;
-        return hash;
-    }
-
-    /**
-     * Converts the term to a JSON-serializable object
-     * @returns {object} JSON representation of the term
-     */
-    toJSON() {
-        return {
-            key: this.#key,
-            embedding: this.#embedding,
-            complexity: this.#complexity
-        };
+        // Sort and slice using more efficient methods
+        similarities.sort((a, b) => b.similarity - a.similarity);
+        return similarities.slice(0, maxResults);
     }
 }
 

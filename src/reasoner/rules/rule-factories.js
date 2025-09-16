@@ -59,19 +59,24 @@ function createRule(spec) {
     }
 
     if (!spec.arity || typeof spec.arity !== 'number' || spec.arity < 1) {
-        throw new Error('Rule specification must include a valid arity (positive number)');
+        throw new Error(`Rule ${spec.name}: Rule specification must include a valid arity (positive number)`);
     }
 
     if (!Array.isArray(spec.operands)) {
-        throw new Error('Rule specification must include an array of operand validators');
+        throw new Error(`Rule ${spec.name}: Rule specification must include an array of operand validators`);
     }
 
     if (typeof spec.condition !== 'function') {
-        throw new Error('Rule specification must include a condition function');
+        throw new Error(`Rule ${spec.name}: Rule specification must include a condition function`);
     }
 
     if (typeof spec.action !== 'function') {
-        throw new Error('Rule specification must include an action function');
+        throw new Error(`Rule ${spec.name}: Rule specification must include an action function`);
+    }
+
+    // Validate operands array length matches arity
+    if (spec.operands.length !== spec.arity) {
+        throw new Error(`Rule ${spec.name}: Number of operand validators (${spec.operands.length}) must match rule arity (${spec.arity})`);
     }
 
     return {
@@ -105,7 +110,7 @@ function createRule(spec) {
                 debug(`Rule ${spec.name}: Condition check result: ${result}`);
                 return Boolean(result);
             } catch (err) {
-                logError(`Error in rule ${spec.name} condition check:`, err);
+                logError(`Rule ${spec.name}: Error in condition check:`, err);
                 return false;
             }
         },
@@ -140,6 +145,11 @@ function createRule(spec) {
                 const {newTermKey, newTruthValue} = result;
 
                 // Validate term key
+                if (!newTermKey || typeof newTermKey !== 'string') {
+                    logError(`Rule ${spec.name}: Term builder must return a string, got ${typeof newTermKey}`);
+                    return null;
+                }
+
                 if (!validateTermKey(newTermKey)) {
                     logError(`Rule ${spec.name}: Invalid term key generated: ${newTermKey}`);
                     return null;
@@ -167,12 +177,23 @@ function createRule(spec) {
                     return null;
                 }
 
+                // Validate truth value ranges
+                if (newTruthValue.frequency < 0 || newTruthValue.frequency > 1) {
+                    logError(`Rule ${spec.name}: Frequency must be between 0 and 1, got ${newTruthValue.frequency}`);
+                    return null;
+                }
+
+                if (newTruthValue.confidence < 0 || newTruthValue.confidence > 1) {
+                    logError(`Rule ${spec.name}: Confidence must be between 0 and 1, got ${newTruthValue.confidence}`);
+                    return null;
+                }
+
                 // Create and return new task
                 const newTask = new Task(parsedTerm, '.', newTruthValue);
                 debug(`Rule ${spec.name}: Successfully created new task: ${newTask.toString()}`);
                 return newTask;
             } catch (err) {
-                logError(`Error in rule ${spec.name} action:`, err);
+                logError(`Rule ${spec.name}: Error in action:`, err);
                 return null;
             }
         }
@@ -291,16 +312,20 @@ function createModusPonensRule(name, termBuilder, truthValueFunction) {
  * @returns {object} The created inference rule.
  */
 function createBinaryRule(name, condition, termBuilder, truthValueFunction) {
+    if (typeof name !== 'string' || name.length === 0) {
+        throw new Error('Rule name must be a non-empty string');
+    }
+
     if (typeof condition !== 'function') {
-        throw new Error('Condition must be a function');
+        throw new Error(`Rule ${name}: Condition must be a function`);
     }
 
     if (typeof termBuilder !== 'function') {
-        throw new Error('Term builder must be a function');
+        throw new Error(`Rule ${name}: Term builder must be a function`);
     }
 
     if (typeof truthValueFunction !== 'function') {
-        throw new Error('Truth value function must be a function');
+        throw new Error(`Rule ${name}: Truth value function must be a function`);
     }
 
     return createRule({
@@ -324,16 +349,20 @@ function createBinaryRule(name, condition, termBuilder, truthValueFunction) {
  * @returns {object} The created inference rule.
  */
 function createUnaryRule(name, condition, termBuilder, truthValueFunction) {
+    if (typeof name !== 'string' || name.length === 0) {
+        throw new Error('Rule name must be a non-empty string');
+    }
+
     if (typeof condition !== 'function') {
-        throw new Error('Condition must be a function');
+        throw new Error(`Rule ${name}: Condition must be a function`);
     }
 
     if (typeof termBuilder !== 'function') {
-        throw new Error('Term builder must be a function');
+        throw new Error(`Rule ${name}: Term builder must be a function`);
     }
 
     if (typeof truthValueFunction !== 'function') {
-        throw new Error('Truth value function must be a function');
+        throw new Error(`Rule ${name}: Truth value function must be a function`);
     }
 
     return createRule({

@@ -10,29 +10,15 @@ export default createUnaryInheritanceRule(
             return null;
         }
 
-        const subjectKey = Term.buildTermKey(parsed1.subject);
-        const predicateKey = Term.buildTermKey(parsed1.predicate);
-
-        // Check if the generated keys are valid and non-empty
-        if (!subjectKey || !predicateKey || subjectKey.length === 0 || predicateKey.length === 0) {
-            return null;
-        }
-
-        // Prevent generating invalid contrapositives where the components would be malformed
-        // Check if subject or predicate are simple atomic terms (most common case)
-        // For atomic terms like "a", the negation `(--,a)` is valid
-        // But for complex terms, we need to be more careful
-
-        // If the subject or predicate is an atomic term, we can negate it safely
-        // Otherwise, we need to check if negating it would create a valid term
-        const negatedSubject = `(--,${predicateKey})`;
-        const negatedPredicate = `(--,${subjectKey})`;
-
-        // Validate that our negated terms are non-trivial
-        // A valid negation should have more than just the negation operator
-        if (negatedSubject.length <= 5 || negatedPredicate.length <= 5) { // 5 is length of "(--,)"
-            return null;
-        }
+        // Create negated terms properly
+        const negatedSubject = { 
+            type: 'Negation', 
+            term: parsed1.predicate  // Use the original parsed predicate
+        };
+        const negatedPredicate = { 
+            type: 'Negation', 
+            term: parsed1.subject    // Use the original parsed subject
+        };
 
         // Try to build the term key and validate it
         try {

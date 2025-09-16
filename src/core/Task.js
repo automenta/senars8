@@ -33,9 +33,6 @@ class Task {
         // Process term
         const {processedTerm, termKey} = this.#processTerm(term);
 
-        // Validate truth value
-        const validatedTruthValue = this.#validateTruthValue(truthValue);
-
         // Initialize core properties
         this.#id = uuidv4();
         this.#term = processedTerm;
@@ -45,12 +42,8 @@ class Task {
         // Initialize state with default values
         this.#state = {
             priority: 0,
-            truthValue: validatedTruthValue,
-            stamp: {
-                creationTime: Date.now(), // Using number instead of BigInt for better performance
-                lastAccessed: Date.now(), // Using number instead of BigInt for better performance
-                ...stamp
-            }
+            truthValue: this.#normalizeTruthValue(truthValue),
+            stamp: this.#createStamp(stamp)
         };
     }
 
@@ -125,12 +118,12 @@ class Task {
     }
 
     /**
-     * Validates a truth value object
-     * @param {object} truthValue - The truth value to validate
-     * @returns {object} Validated truth value
+     * Normalizes a truth value object to ensure it has valid frequency and confidence values
+     * @param {object} truthValue - The truth value to normalize
+     * @returns {object} Normalized truth value
      * @private
      */
-    #validateTruthValue(truthValue) {
+    #normalizeTruthValue(truthValue) {
         // Fast path for valid truth values
         if (truthValue &&
             typeof truthValue === 'object' &&
@@ -144,6 +137,20 @@ class Task {
 
         // Return default if invalid
         return {...DEFAULT_TRUTH_VALUE};
+    }
+
+    /**
+     * Creates a stamp object with creation time and last accessed time
+     * @param {object} stamp - The stamp data to merge with defaults
+     * @returns {object} The created stamp object
+     * @private
+     */
+    #createStamp(stamp) {
+        return {
+            creationTime: Date.now(),
+            lastAccessed: Date.now(),
+            ...stamp
+        };
     }
 
     /**

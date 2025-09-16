@@ -5,12 +5,14 @@ import config from '../config/index.js';
 // From helpers.js
 function groupTasksByTermKey(tasks) {
     const taskGroups = {};
-    tasks.forEach(task => {
+    // Use for loop instead of forEach for better performance
+    for (let i = 0; i < tasks.length; i++) {
+        const task = tasks[i];
         if (!taskGroups[task.termKey]) {
             taskGroups[task.termKey] = [];
         }
         taskGroups[task.termKey].push(task);
-    });
+    }
     return taskGroups;
 }
 
@@ -19,18 +21,32 @@ function calculateIntervalStats(tasks) {
         return {intervals: [], avgInterval: 0, variance: 0, stdDev: 0};
     }
 
+    // Use a single pass algorithm for better performance
     const sortedTasks = [...tasks].sort((a, b) => a.state.stamp.occurrenceTime - b.state.stamp.occurrenceTime);
-    const intervals = [];
+    const intervals = new Array(sortedTasks.length - 1);
+    
+    // Calculate intervals in a single loop
     for (let i = 1; i < sortedTasks.length; i++) {
-        intervals.push(sortedTasks[i].state.stamp.occurrenceTime - sortedTasks[i - 1].state.stamp.occurrenceTime);
+        intervals[i - 1] = sortedTasks[i].state.stamp.occurrenceTime - sortedTasks[i - 1].state.stamp.occurrenceTime;
     }
 
     if (intervals.length === 0) {
         return {intervals, avgInterval: 0, variance: 0, stdDev: 0};
     }
 
-    const avgInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
-    const variance = intervals.reduce((sum, interval) => sum + Math.pow(interval - avgInterval, 2), 0) / intervals.length;
+    // Calculate average in a single loop
+    let sum = 0;
+    for (let i = 0; i < intervals.length; i++) {
+        sum += intervals[i];
+    }
+    const avgInterval = sum / intervals.length;
+
+    // Calculate variance in a single loop
+    let varianceSum = 0;
+    for (let i = 0; i < intervals.length; i++) {
+        varianceSum += Math.pow(intervals[i] - avgInterval, 2);
+    }
+    const variance = varianceSum / intervals.length;
     const stdDev = Math.sqrt(variance);
 
     return {intervals, avgInterval, variance, stdDev};
@@ -38,16 +54,22 @@ function calculateIntervalStats(tasks) {
 
 // From query.js
 function findTasksInTimeWindow(tasks, startTime, endTime) {
-    return tasks.filter(task => {
+    const result = [];
+    // Use for loop instead of filter for better performance
+    for (let i = 0; i < tasks.length; i++) {
+        const task = tasks[i];
         const {occurrenceTime} = task.state.stamp;
         if (!occurrenceTime) {
-            return false;
+            continue;
         }
 
         const taskEndTime = task.state.stamp.endTime || occurrenceTime;
 
-        return startTime <= taskEndTime && endTime >= occurrenceTime;
-    });
+        if (startTime <= taskEndTime && endTime >= occurrenceTime) {
+            result.push(task);
+        }
+    }
+    return result;
 }
 
 function determineTemporalRelationship(task1, task2) {
