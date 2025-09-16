@@ -45,7 +45,7 @@ class MemoryError extends Error {
 function logAndReturn(error, context, returnValue = null) {
     // Normalize and prepare error for logging
     const preparedError = prepareErrorForLogging(error);
-    
+
     // Add context to error message
     const fullContext = context ? `[${context}] ` : '';
     const errorMessage = `${fullContext}${preparedError.message}`;
@@ -58,7 +58,7 @@ function logAndReturn(error, context, returnValue = null) {
 function logAndThrow(error, context) {
     // Normalize and prepare error for logging
     const preparedError = prepareErrorForLogging(error);
-    
+
     // Add context to error message
     const fullContext = context ? `[${context}] ` : '';
     preparedError.message = `${fullContext}${preparedError.message}`;
@@ -94,7 +94,7 @@ function prepareErrorForLogging(error) {
     if (error.stack && !error.originalStack) {
         error.originalStack = error.stack;
     }
-    
+
     return error;
 }
 

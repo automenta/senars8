@@ -123,11 +123,11 @@ class Task {
     #processStringTerm(term) {
         const termKey = term;
         const processedTerm = parseTerm(term);
-        
+
         if (!processedTerm) {
             throw new Error(`Failed to parse term: '${term}'. Please check the term syntax.`);
         }
-        
+
         return {processedTerm, termKey};
     }
 
@@ -140,11 +140,11 @@ class Task {
     #processObjectTerm(term) {
         const termKey = term.key;
         const processedTerm = term.type ? term : parseTerm(term.key);
-        
+
         if (!processedTerm) {
             throw new Error(`Failed to parse term: '${term.key}'. Please check the term syntax.`);
         }
-        
+
         return {processedTerm, termKey};
     }
 
