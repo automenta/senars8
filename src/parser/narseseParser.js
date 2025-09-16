@@ -1,4 +1,44 @@
-const lexer = require('./lexer');
+import lexer from './lexer.js';
+
+const UNARY_OPERATORS = {
+    negation: 'Negation',
+    always: 'Always',
+    eventually: 'Eventually',
+    next: 'Next',
+    previous: 'Previous'
+};
+
+const BINARY_OPERATORS = {
+    conjunction: 'Conjunction',
+    sequentialConjunction: 'SequentialConjunction',
+    parallelConjunction: 'ParallelConjunction',
+    disjunction: 'Disjunction',
+    extensionalDifference: 'ExtensionalDifference',
+    intensionalDifference: 'IntensionalDifference',
+    product: 'Product'
+};
+
+const BINARY_RELATIONS = {
+    arrow: 'Inheritance',
+    implies: 'Implication',
+    instance: 'Instance',
+    property: 'Property',
+    equivalence: 'Equivalence',
+    similarity: 'Similarity',
+    retrospection: 'RetrospectiveImplication',
+    prediction: 'PredictiveImplication',
+    concurrent: 'ConcurrentImplication',
+    until: 'Until',
+    since: 'Since',
+};
+
+const VARIABLE_TYPES = {
+    independentVar: 'IndependentVariable',
+    dependentVar: 'DependentVariable',
+    queryVar: 'QueryVariable',
+};
+
+const PUNCTUATION_TYPES = ['belief', 'goal', 'question'];
 
 class NarseseParser {
     constructor(input) {
@@ -8,39 +48,10 @@ class NarseseParser {
         this.next();
     }
 
-    termParsers = {
-        lparen: () => {
-            this.consume('lparen');
-            const operatorToken = this.current.type;
-            this.consume(operatorToken);
-            this.consume('comma');
-            const terms = this.parseTermList();
-            this.consume('rparen');
-            return {type: operatorToken, terms};
-        },
-        setExtension: () => {
-            this.consume('setExtension');
-            const terms = this.parseTermList();
-            this.consume('rbrace');
-            return {type: 'ExtensionalSet', terms};
-        },
-        setIntension: () => {
-            this.consume('setIntension');
-            const terms = this.parseTermList();
-            this.consume('rbracket');
-            return {type: 'IntensionalSet', terms};
-        },
-        identifier: () => ({type: 'Atomic', key: this.consume('identifier')}),
-        independentVar: () => ({type: 'IndependentVariable', name: this.consume('independentVar')}),
-        dependentVar: () => ({type: 'DependentVariable', name: this.consume('dependentVar')}),
-        queryVar: () => ({type: 'QueryVariable', name: this.consume('queryVar')}),
-    };
-
     next() {
-        this.current = this.lexer.next();
-        while (this.current && this.current.type === 'whitespace') {
+        do {
             this.current = this.lexer.next();
-        }
+        } while (this.current && this.current.type === 'whitespace');
         return this.current;
     }
 
@@ -50,7 +61,9 @@ class NarseseParser {
 
     consume(type) {
         if (this.match(type)) {
-            const value = this.current.value;
+            const {
+                value
+            } = this.current;
             this.next();
             return value;
         }
@@ -67,31 +80,15 @@ class NarseseParser {
 
     parseStatement() {
         const term = this.parseTerm();
+        const punctuation = PUNCTUATION_TYPES.includes(this.current?.type) ? this.consume(this.current.type) : null;
+        const truthValue = this.match('lparen') ? this.parseTruthValue() : null;
 
-        let punctuation = null;
-        if (this.match('belief')) {
-            punctuation = this.consume('belief');
-        } else if (this.match('goal')) {
-            punctuation = this.consume('goal');
-        } else if (this.match('question')) {
-            punctuation = this.consume('question');
-        }
-
-        let truthValue = null;
-        if (this.match('lparen')) {
-            truthValue = this.parseTruthValue();
-        }
-
-        if (punctuation || truthValue) {
-            return {
-                type: 'Statement',
-                term: term,
-                punctuation: punctuation,
-                truthValue: truthValue
-            };
-        }
-
-        return term;
+        return punctuation || truthValue ? {
+            type: 'Statement',
+            term,
+            punctuation,
+            truthValue
+        } : term;
     }
 
     parseTruthValue() {
@@ -100,218 +97,152 @@ class NarseseParser {
         this.consume('comma');
         const confidence = this.parseNumber();
         this.consume('rparen');
-        return {frequency, confidence};
-    }
-
-    parseNumber() {
-        if (this.match('number')) {
-            return this.consume('number');
-        }
-        throw new Error(`Expected a number, but found '${this.current ? this.current.type : 'EOF'}'`);
+        return {
+            frequency,
+            confidence
+        };
     }
 
     parseTerm() {
-        if (this.match('lparen')) {
-            this.consume('lparen');
+        const tokenType = this.current?.type;
+        const termParser = {
+            'lparen': () => this.parseCompoundTerm(),
+            'lbrace': () => this.parseSet('ExtensionalSet', 'lbrace', 'rbrace'),
+            'lbracket': () => this.parseIntensionalSet('IntensionalSet', 'lbracket', 'rbracket'),
+            'identifier': () => this.parseAtomicTerm(),
+            'string': () => this.parseAtomicTerm(),
+            'number': () => this.parseNumber(),
+            ...Object.fromEntries(Object.keys(VARIABLE_TYPES).map(type => [type, () => this.parseVariable(type)])),
+        } [tokenType];
 
-            if (this.match('negation')) {
-                this.consume('negation');
-                this.consume('comma');
-                const term = this.parseTerm();
-                this.consume('rparen');
-                return {type: 'Negation', term};
-            } else if (this.match('conjunction')) {
-                this.consume('conjunction');
-                this.consume('comma');
-                const terms = this.parseTermList();
-                this.consume('rparen');
-                return {type: 'Conjunction', terms};
-            } else if (this.match('sequentialConjunction')) {
-                this.consume('sequentialConjunction');
-                this.consume('comma');
-                const terms = this.parseTermList();
-                this.consume('rparen');
-                return {type: 'SequentialConjunction', terms};
-            } else if (this.match('parallelConjunction')) {
-                this.consume('parallelConjunction');
-                this.consume('comma');
-                const terms = this.parseTermList();
-                this.consume('rparen');
-                return {type: 'ParallelConjunction', terms};
-            } else if (this.match('product')) {
-                this.consume('product');
-                this.consume('comma');
-                const terms = this.parseTermList();
-                this.consume('rparen');
-                return {type: 'Product', terms};
-            } else if (this.match('disjunction')) {
-                this.consume('disjunction');
-                this.consume('comma');
-                const terms = this.parseTermList();
-                this.consume('rparen');
-                return {type: 'Disjunction', terms};
-            } else if (this.match('extensionalDifference')) {
-                this.consume('extensionalDifference');
-                this.consume('comma');
-                const terms = this.parseTermList();
-                this.consume('rparen');
-                return {type: 'ExtensionalDifference', terms};
-            } else if (this.match('intensionalDifference')) {
-                this.consume('intensionalDifference');
-                this.consume('comma');
-                const terms = this.parseTermList();
-                this.consume('rparen');
-                return {type: 'IntensionalDifference', terms};
-            } else if (this.match('always')) {
-                this.consume('always');
-                this.consume('comma');
-                const term = this.parseTerm();
-                this.consume('rparen');
-                return {type: 'Always', term};
-            } else if (this.match('eventually')) {
-                this.consume('eventually');
-                this.consume('comma');
-                const term = this.parseTerm();
-                this.consume('rparen');
-                return {type: 'Eventually', term};
-            } else if (this.match('next')) {
-                this.consume('next');
-                this.consume('comma');
-                const term = this.parseTerm();
-                this.consume('rparen');
-                return {type: 'Next', term};
-            } else if (this.match('previous')) {
-                this.consume('previous');
-                this.consume('comma');
-                const term = this.parseTerm();
-                this.consume('rparen');
-                return {type: 'Previous', term};
-            } else {
-                const firstTerm = this.parseTerm();
-
-                if (this.match('arrow')) {
-                    this.consume('arrow');
-                    const predicate = this.parseTerm();
-                    this.consume('rparen');
-                    return {type: 'Inheritance', subject: firstTerm, predicate};
-                } else if (this.match('implies')) {
-                    this.consume('implies');
-                    const predicate = this.parseTerm();
-                    this.consume('rparen');
-                    return {type: 'Implication', subject: firstTerm, predicate};
-                } else if (this.match('instance')) {
-                    this.consume('instance');
-                    const predicate = this.parseTerm();
-                    this.consume('rparen');
-                    return {type: 'Instance', subject: firstTerm, predicate};
-                } else if (this.match('property')) {
-                    this.consume('property');
-                    const predicate = this.parseTerm();
-                    this.consume('rparen');
-                    return {type: 'Property', subject: firstTerm, predicate};
-                } else if (this.match('equivalence')) {
-                    this.consume('equivalence');
-                    const predicate = this.parseTerm();
-                    this.consume('rparen');
-                    return {type: 'Equivalence', subject: firstTerm, predicate};
-                } else if (this.match('similarity')) {
-                    this.consume('similarity');
-                    const predicate = this.parseTerm();
-                    this.consume('rparen');
-                    return {type: 'Similarity', subject: firstTerm, predicate};
-                } else if (this.match('retrospection')) {
-                    this.consume('retrospection');
-                    const predicate = this.parseTerm();
-                    this.consume('rparen');
-                    return {type: 'RetrospectiveImplication', subject: firstTerm, predicate};
-                } else if (this.match('prediction')) {
-                    this.consume('prediction');
-                    const predicate = this.parseTerm();
-                    this.consume('rparen');
-                    return {type: 'PredictiveImplication', subject: firstTerm, predicate};
-                } else if (this.match('concurrent')) {
-                    this.consume('concurrent');
-                    const predicate = this.parseTerm();
-                    this.consume('rparen');
-                    return {type: 'ConcurrentImplication', subject: firstTerm, predicate};
-                } else if (this.match('until')) {
-                    this.consume('until');
-                    const predicate = this.parseTerm();
-                    this.consume('rparen');
-                    return {type: 'Until', subject: firstTerm, predicate};
-                } else if (this.match('since')) {
-                    this.consume('since');
-                    const predicate = this.parseTerm();
-                    this.consume('rparen');
-                    return {type: 'Since', subject: firstTerm, predicate};
-                } else {
-                    this.consume('rparen');
-                    return firstTerm;
-                }
-            }
-        } else if (this.match('setExtension')) {
-            this.consume('setExtension');
-            const terms = this.parseTermList();
-            this.consume('rbrace');
-            return {type: 'ExtensionalSet', terms};
-        } else if (this.match('setIntension')) {
-            this.consume('setIntension');
-            const terms = this.parseTermList();
-            this.consume('rbracket');
-            return {type: 'IntensionalSet', terms};
-        } else if (this.match('identifier')) {
-            const identifier = this.consume('identifier');
-            return {type: 'Atomic', key: identifier};
-        } else if (this.match('independentVar')) {
-            const variable = this.consume('independentVar');
-            return {type: 'IndependentVariable', name: variable};
-        } else if (this.match('dependentVar')) {
-            const variable = this.consume('dependentVar');
-            return {type: 'DependentVariable', name: variable};
-        } else if (this.match('queryVar')) {
-            const variable = this.consume('queryVar');
-            return {type: 'QueryVariable', name: variable};
-        } else {
-            throw new Error(`Unexpected token '${this.current ? this.current.type : 'EOF'}' when parsing term`);
+        if (termParser) {
+            return termParser();
         }
+        throw new Error(`Unexpected token '${tokenType || 'EOF'}' when parsing term`);
     }
 
-    parseTermList() {
+    parseNumber() {
+        const value = this.consume('number');
+        return {
+            type: 'Number',
+            value: parseFloat(value)
+        };
+    }
+
+    parseCompoundTerm() {
+        this.consume('lparen');
+        const operatorType = this.current?.type;
+
+        if (UNARY_OPERATORS[operatorType]) {
+            return this.parseUnaryOperator(operatorType);
+        }
+        if (BINARY_OPERATORS[operatorType]) {
+            return this.parseBinaryOperator(operatorType);
+        }
+
+        const firstTerm = this.parseTerm();
+        const relationType = BINARY_RELATIONS[this.current?.type];
+
+        if (relationType) {
+            return this.parseBinaryRelation(firstTerm, this.current.type, relationType);
+        }
+
+        this.consume('rparen');
+        return firstTerm;
+    }
+
+    parseUnaryOperator(operator) {
+        this.consume(operator);
+        this.consume('comma');
+        const term = this.parseTerm();
+        this.consume('rparen');
+        return {
+            type: UNARY_OPERATORS[operator],
+            term
+        };
+    }
+
+    parseBinaryOperator(operator) {
+        this.consume(operator);
+        this.consume('comma');
+        const terms = this.parseTermList();
+        this.consume('rparen');
+        return {
+            type: BINARY_OPERATORS[operator],
+            terms
+        };
+    }
+
+    parseBinaryRelation(subject, tokenType, relationType) {
+        this.consume(tokenType);
+        const predicate = this.parseTerm();
+        this.consume('rparen');
+        return {
+            type: relationType,
+            subject,
+            predicate
+        };
+    }
+
+    parseSet(type, open, close) {
+        this.consume(open);
+        const terms = this.parseTermList(close);
+        this.consume(close);
+        return {
+            type,
+            terms
+        };
+    }
+
+    parseExtensionalSet() {
+        return this.parseSet('ExtensionalSet', 'lbrace', 'rbrace');
+    }
+
+    parseIntensionalSet() {
+        return this.parseSet('IntensionalSet', 'lbracket', 'rbracket');
+    }
+
+    parseAtomicTerm() {
+        const token = this.current;
+        this.next();
+        return {
+            type: 'Atomic',
+            key: token.value
+        };
+    }
+
+    parseVariable(tokenType) {
+        const name = this.consume(tokenType);
+        return {
+            type: VARIABLE_TYPES[tokenType],
+            name
+        };
+    }
+
+    parseTermList(closingToken = 'rparen') {
         const terms = [];
-
-        if (!this.match('rparen') && !this.match('rbrace') && !this.match('rbracket')) {
+        if (!this.match(closingToken)) {
             terms.push(this.parseTerm());
-
             while (this.match('comma')) {
                 this.consume('comma');
                 terms.push(this.parseTerm());
             }
         }
-
         return terms;
     }
 }
 
 function parseTerm(input) {
-    if (typeof input !== 'string' || input.length === 0) {
+    if (typeof input !== 'string' || !input.length) {
         return null;
     }
 
-    try {
-        const parser = new NarseseParser(input);
-        const parsed = parser.parseMain();
-        if (parsed) {
-            // Attach the original string key to the parsed object.
-            // This is crucial for the Task constructor, which needs a consistent way to get the term key.
-            if (typeof parsed === 'object' && !parsed.key) {
-                parsed.key = input;
-            }
-        }
-        return parsed;
-    } catch (error) {
-        // console.error('Parsing error:', error.message); // This can be noisy, disable for now
-        return null;
+    const parser = new NarseseParser(input);
+    const parsed = parser.parseMain();
+    if (parsed && typeof parsed === 'object' && !parsed.key) {
+        parsed.key = input;
     }
+    return parsed;
 }
 
-module.exports = {parseTerm};
+export {parseTerm};

@@ -1,25 +1,26 @@
-const {buildTermKey} = require('../../utils/term-utils');
-const TruthValueManager = require('../TruthValueManager');
-const {createRule} = require('./rule-builder');
+import TruthValueManager from '../TruthValueManager.js';
+import {createRule} from './rule-factories.js';
+import {isBelief} from '../../utils/index.js';
+import Term from '../../core/Term.js';
 
-module.exports = createRule({
+export default createRule({
     name: 'decomposition',
     arity: 2,
     operands: [
-        (task) => task.punctuation === '.',
-        (task) => task.punctuation === '.',
+        task => isBelief(task),
+        task => isBelief(task)
     ],
     condition: (parsed1, parsed2) =>
         parsed1?.type === 'Inheritance' &&
         parsed2?.type === 'Inheritance' &&
-        buildTermKey(parsed1.subject) === buildTermKey(parsed2.predicate),
+        Term.buildTermKey(parsed1.subject) === Term.buildTermKey(parsed2.predicate),
     action: (parsed1, parsed2, task1, task2) => {
-        const newTermKey = buildTermKey({
+        const newTermKey = Term.buildTermKey({
             type: 'Inheritance',
             subject: parsed2.subject,
             predicate: parsed1.predicate
         });
         const newTruthValue = TruthValueManager.deduce(task1.state.truthValue, task2.state.truthValue);
         return {newTermKey, newTruthValue};
-    },
+    }
 });

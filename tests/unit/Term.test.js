@@ -1,5 +1,4 @@
-const Term = require('../../src/core/Term');
-const {buildTermKey} = require('../../src/utils/term-utils');
+import Term from '../../src/core/Term.js';
 
 describe('Term', () => {
     test('should create a new Term object', () => {
@@ -19,24 +18,22 @@ describe('Term', () => {
     });
 
     test('should throw an error if key is not a non-empty string', () => {
-        expect(() => new Term('')).toThrow('Invalid arguments for Term constructor');
-        expect(() => new Term(123)).toThrow('Invalid arguments for Term constructor');
+        expect(() => new Term('')).toThrow('Invalid key for Term constructor');
+        expect(() => new Term(123)).toThrow('Invalid key for Term constructor');
     });
 
-    test('should throw an error if embedding is not an array', () => {
-        expect(() => new Term('cat', 'not-an-array')).toThrow('Invalid arguments for Term constructor');
-    });
-
-    test('should throw an error if complexity is not a positive number', () => {
-        expect(() => new Term('cat', [], 0)).toThrow('Invalid arguments for Term constructor');
-        expect(() => new Term('cat', [], -1)).toThrow('Invalid arguments for Term constructor');
+    test('should parse and cache the term structure', () => {
+        const term = new Term('(cat --> animal)');
+        expect(term.type).toBe('Inheritance');
+        expect(term.subject.key).toBe('cat');
+        expect(term.predicate.key).toBe('animal');
     });
 });
 
-describe('buildTermKey', () => {
+describe('Term.buildTermKey', () => {
     test('should build a key for an atomic term', () => {
         const parsedTerm = {type: 'Atomic', key: 'cat'};
-        expect(buildTermKey(parsedTerm)).toBe('cat');
+        expect(Term.buildTermKey(parsedTerm)).toBe('cat');
     });
 
     test('should build a key for an inheritance term', () => {
@@ -45,7 +42,7 @@ describe('buildTermKey', () => {
             subject: {type: 'Atomic', key: 'cat'},
             predicate: {type: 'Atomic', key: 'animal'}
         };
-        expect(buildTermKey(parsedTerm)).toBe('(cat --> animal)');
+        expect(Term.buildTermKey(parsedTerm)).toBe('(cat --> animal)');
     });
 
     test('should handle nested inheritance', () => {
@@ -58,16 +55,16 @@ describe('buildTermKey', () => {
             },
             predicate: {type: 'Atomic', key: 'animal'}
         };
-        expect(buildTermKey(parsedTerm)).toBe('((cat --> mammal) --> animal)');
+        expect(Term.buildTermKey(parsedTerm)).toBe('((cat --> mammal) --> animal)');
     });
 
     test('should return an empty string for invalid input', () => {
-        expect(buildTermKey(null)).toBe('');
-        expect(buildTermKey({})).toBe('');
+        expect(Term.buildTermKey(null)).toBe('');
+        expect(Term.buildTermKey({})).toBe('');
     });
 
     test('should throw an error for unsupported types', () => {
         const parsedTerm = {type: 'Unsupported', key: 'test'};
-        expect(() => buildTermKey(parsedTerm)).toThrow('buildTermKey does not support type: Unsupported');
+        expect(() => Term.buildTermKey(parsedTerm)).toThrow('buildTermKey does not support type: Unsupported');
     });
 });

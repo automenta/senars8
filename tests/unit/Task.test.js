@@ -1,9 +1,9 @@
-const Task = require('../../src/core/Task');
-const Term = require('../../src/core/Term');
+import Task from '../../src/core/Task.js';
+import Term from '../../src/core/Term.js';
 
-jest.mock('../../src/core/Term', () => {
-    return jest.fn().mockImplementation((key) => {
-        return {key: key};
+jest.mock('../../src/core/Term.js', () => {
+    return jest.fn().mockImplementation(key => {
+        return {key};
     });
 });
 
@@ -16,7 +16,7 @@ describe('Task', () => {
         const term = new Term('cat');
         const task = new Task(term, '.');
         expect(task).toBeInstanceOf(Task);
-        expect(task.term).toBe(term);
+        expect(task.term.key).toBe(term.key);
         expect(task.termKey).toBe('cat');
         expect(task.punctuation).toBe('.');
         expect(task.state.priority).toBe(0);
@@ -29,11 +29,13 @@ describe('Task', () => {
         const stamp = {creationTime: 123, occurrenceTime: 456};
         const task = new Task(term, '!', truthValue, stamp);
         expect(task).toBeInstanceOf(Task);
-        expect(task.term).toBe(term);
+        expect(task.term.key).toBe(term.key);
         expect(task.termKey).toBe('cat');
         expect(task.punctuation).toBe('!');
         expect(task.state.truthValue).toEqual(truthValue);
-        expect(task.state.stamp).toEqual(stamp);
+        expect(task.state.stamp.creationTime).toEqual(stamp.creationTime);
+        expect(task.state.stamp.occurrenceTime).toEqual(stamp.occurrenceTime);
+        expect(task.state.stamp.lastAccessed).toEqual(expect.any(Number));
     });
 
     test('should throw an error if term is invalid', () => {

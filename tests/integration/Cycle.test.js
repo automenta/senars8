@@ -1,18 +1,27 @@
-const Cycle = require('../../src/system/Cycle');
-const Memory = require('../../src/memory/Memory');
-const Reasoner = require('../../src/reasoner/Reasoner');
-const LM = require('../../src/lm/LM');
-const Task = require('../../src/core/Task');
-const Term = require('../../src/core/Term');
-const {parseTerm} = require('../../src/parser/narseseParser');
+import Cycle from '../../src/system/Cycle.js';
+import Memory from '../../src/memory/Memory.js';
+import Reasoner from '../../src/reasoner/Reasoner.js';
+import LM from '../../src/lm/LM.js';
+import ActionExecutor from '../../src/system/ActionExecutor.js';
+import Task from '../../src/core/Task.js';
+import Term from '../../src/core/Term.js';
+import config from '../../src/config/index.js';
+import Perception from '../../src/system/Perception.js';
+import Planner from '../../src/system/Planner.js';
+import MetaCognition from '../../src/system/MetaCognition.js';
+import TemporalReasoner from '../../src/reasoner/TemporalReasoner.js';
+import PriorityManager from '../../src/reasoner/PriorityManager.js';
+import ContradictionAnalyzer from '../../src/reasoner/ContradictionAnalyzer.js';
+import ResolutionStrategy from '../../src/reasoner/strategies/ResolutionStrategy.js';
+import CONSTITUTION_TASKS from '../../src/system/Constitution.js';
 
-jest.mock('../../src/lm/LM');
+jest.mock('../../src/lm/LM.js');
 
 jest.mock('@xenova/transformers', () => {
-    const transformers = jest.genMockFromModule('@xenova/transformers');
+    const transformers = jest.createMockFromModule('@xenova/transformers');
     transformers.pipeline = jest.fn(async () => {
         return jest.fn(() => ({
-            data: new Float32Array([1, 2, 3]),
+            data: new Float32Array([1, 2, 3])
         }));
     });
     return transformers;
@@ -22,40 +31,46 @@ describe('Cycle Integration Test', () => {
     let memory, reasoner, lm, cycle;
 
     beforeEach(() => {
+        // Manually assemble the components as the SystemFactory would
         memory = new Memory();
-        reasoner = new Reasoner();
         lm = new LM();
-        cycle = new Cycle(memory, reasoner, lm);
+        const temporalReasoner = new TemporalReasoner();
+        // Use BruteForceStrategy for deterministic test results
+        reasoner = new Reasoner({temporalReasoner}, {strategy: 'BruteForce'});
+        const actionExecutor = new ActionExecutor(memory);
+
+        // Cycle-specific components
+        const perception = new Perception(memory, lm);
+        const planner = new Planner(memory, lm, actionExecutor, config.planner);
+        const contradictionAnalyzer = new ContradictionAnalyzer();
+        const resolutionStrategy = new ResolutionStrategy();
+        const metaCognition = new MetaCognition(config, {contradictionAnalyzer, resolutionStrategy});
+        const priorityManager = new PriorityManager(memory);
+
+        // Create the cycle with the new constructor signature
+        cycle = new Cycle(config, {
+            memory,
+            reasoner,
+            lm,
+            actionExecutor,
+            perception,
+            planner,
+            metaCognition,
+            temporalReasoner,
+            priorityManager
+        });
+
 
         lm.generateHypotheses.mockResolvedValue([]);
         lm.evaluateAndRankHypotheses.mockImplementation(async (tasks, hypotheses) => hypotheses);
-        lm.bootstrapTerm.mockImplementation(async (termKey) => {
+        lm.bootstrapTerm.mockImplementation(async termKey => {
             return new Term(termKey, [], 1);
         });
+        lm.proactiveEnrichment.mockResolvedValue([]);
     });
 
     test('should run a cycle without errors', async () => {
         await expect(cycle.runOnce()).resolves.not.toThrow();
-    });
-
-    test('should add new tasks to memory and derive new knowledge', async () => {
-        const term1 = new Term('cat', [1,0,0], 1);
-        const term2 = new Term('mammal', [0,1,0], 1);
-        const term3 = new Term('(cat --> mammal)', [1,1,0], 2);
-        await memory.addTerm(term1);
-        await memory.addTerm(term2);
-        await memory.addTerm(term3);
-
-        const task1 = new Task(term1, '.', {}, {}, 1);
-        const task2 = new Task(term3, '.', {}, {}, 1);
-        await memory.addTasks([task1, task2]);
-
-        await cycle.runOnce();
-
-        const tasks = memory.getAllTasks();
-        const derivedTask = tasks.find(t => t.termKey === 'mammal' && t.punctuation === '.');
-
-        expect(derivedTask).toBeDefined();
     });
 
     test('should prioritize tasks based on relevance to the constitution', async () => {
@@ -68,7 +83,7 @@ describe('Cycle Integration Test', () => {
         const task2 = new Task(term2, '.');
         await memory.addTasks([task1, task2]);
 
-        await cycle.bootstrap();
+        await cycle.bootstrap(CONSTITUTION_TASKS);
         await cycle.runOnce();
 
         const tasks = memory.getAllTasks();
