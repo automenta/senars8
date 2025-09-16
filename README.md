@@ -74,7 +74,7 @@ To explore the system's capabilities, use the interactive demo runner:
 ```bash
 npm run start:demo
 ```
-This will present a list of available demos, providing the best way to see the system in action. The `comprehensive-system-demo.js` serves as a blueprint for how to use the system's API.
+This will present a categorized list of available demos, providing the best way to see the system in action. The `showcase-demo.js` is the recommended starting point for new users.
 
 ### Running Tests
 ```bash

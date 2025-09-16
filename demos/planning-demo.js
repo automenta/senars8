@@ -1,68 +1,44 @@
-import {runDemo} from '../shared/demo-utils.js';
+// Category: Action & Planning
+// Description: A demonstration of the system's planning capabilities using the Hierarchical Task Network (HTN) planner.
 
-// Description: A demonstration of the system's planning capabilities.
+import { runDemo } from '../shared/demo-utils.js';
+
 async function planningDemo() {
-    const taskDefs = [{
-        termKey: '((&&, make_coffee, water) ==> coffee_made)',
-        punctuation: '.',
-        truthValue: {
-            frequency: 0.9,
-            confidence: 0.9
-        }
-    }, {
-        termKey: '((&&, make_coffee, coffee_beans) ==> coffee_made)',
-        punctuation: '.',
-        truthValue: {
-            frequency: 0.9,
-            confidence: 0.9
-        }
-    }, {
-        termKey: '(tap --> water_source)',
-        punctuation: '.',
-        truthValue: {
-            frequency: 1.0,
-            confidence: 0.95
-        }
-    }, {
-        termKey: '(buy --> obtain_coffee_beans)',
-        punctuation: '.',
-        truthValue: {
-            frequency: 0.8,
-            confidence: 0.9
-        }
-    }, {
-        termKey: 'make_coffee',
-        punctuation: '!',
-        truthValue: {
-            frequency: 1.0,
-            confidence: 0.9
-        }
-    }, {
-        termKey: 'obtain_water',
-        punctuation: '!',
-        truthValue: {
-            frequency: 1.0,
-            confidence: 0.8
-        }
-    }, ];
+    const taskDefs = [
+        // Knowledge about how to make coffee
+        { sentence: '((make_coffee & has_water & has_beans) ==> coffee_made).', truth: [1.0, 0.9] },
+        { sentence: '(get_water ==> has_water).', truth: [1.0, 0.9] },
+        { sentence: '(get_beans ==> has_beans).', truth: [1.0, 0.9] },
+        // The goal is to have coffee
+        { sentence: 'coffee_made!', truth: [1.0, 0.9] }
+    ];
 
-    await runDemo('Planning Demo (HTN)', taskDefs, {
-        cycleCount: 5
-    });
+    const actionHandlers = [
+        { name: 'get_water', handler: async () => console.log("Action: Getting water.") },
+        { name: 'get_beans', handler: async () => console.log("Action: Getting coffee beans.") },
+        { name: 'make_coffee', handler: async () => console.log("Action: Making coffee.") },
+    ];
 
-    const aStarConfig = {
-        planner: {
-            strategy: 'AStar'
+    const postCycleCallback = (system) => {
+        console.log("\nInspecting the generated plan...");
+        const plan = system.introspection.getPlan();
+        if (plan && plan.steps.length > 0) {
+            console.log("Found a plan to make coffee:");
+            plan.steps.forEach((step, i) => console.log(`  Step ${i + 1}: ${step.key}`));
+        } else {
+            console.log("No plan was generated.");
         }
     };
-    await runDemo('Planning Demo (AStar)', taskDefs, {
-        cycleCount: 5,
-        config: aStarConfig
+
+    await runDemo('Planning Demo (HTN)', taskDefs, {
+        cycleCount: 10,
+        actionHandlers,
+        postCycleCallback
     });
 }
 
-planningDemo().catch(console.error);
+export default planningDemo;
 
-export {
-    planningDemo
-};
+if (import.meta.url.startsWith('file:')) {
+    planningDemo().catch(console.error);
+}

@@ -1,19 +1,31 @@
-// Description: A basic demonstration of the system's reasoning capabilities.
-import {runDemo} from '../shared/demo-utils.js';
+// Category: Core Reasoning
+// Description: A basic demonstration of the system's core reasoning capabilities, including deduction and inheritance.
 
-async function runBasicDemo() {
+import { runDemo } from '../shared/demo-utils.js';
+
+async function basicDemo() {
     const taskDefs = [
-        {termKey: 'bird', punctuation: '.', truthValue: {frequency: 0.9, confidence: 0.8}},
-        {termKey: 'flies', punctuation: '.', truthValue: {frequency: 0.8, confidence: 0.7}},
-        {termKey: '(bird --> flies)', punctuation: '.', truthValue: {frequency: 0.9, confidence: 0.8}},
-        {termKey: '(bird --> animal)', punctuation: '.', truthValue: {frequency: 1.0, confidence: 0.9}},
-        {termKey: '(animal --> living)', punctuation: '.', truthValue: {frequency: 1.0, confidence: 0.95}},
-        {termKey: '((&,bird,living) --> animal)', punctuation: '!', truthValue: {frequency: 0.9, confidence: 0.8}}
+        { sentence: '(bird --> animal).', truth: [1.0, 0.9] },
+        { sentence: '(animal --> living).', truth: [1.0, 0.9] },
+        { sentence: 'bird.', truth: [1.0, 0.9] },
+        { sentence: '(living --> ?)?' }
     ];
 
-    await runDemo('Basic Demo', taskDefs, 5);
+    const postCycleCallback = async (system) => {
+        console.log("\nQuerying for inferred knowledge...");
+        const inferred = system.introspection.queryTasks({ term: 'living', punctuation: '.' });
+        if (inferred.length > 0) {
+            console.log("Inferred that 'bird' is 'living'.");
+        } else {
+            console.log("Inference not yet made.");
+        }
+    };
+
+    await runDemo('Basic Demo', taskDefs, { cycleCount: 5, postCycleCallback });
 }
 
-runBasicDemo().catch(console.error);
+export default basicDemo;
 
-export {runBasicDemo};
+if (import.meta.url.startsWith('file:')) {
+    basicDemo().catch(console.error);
+}

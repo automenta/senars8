@@ -1,121 +1,33 @@
-// Description: Demonstrates enhanced action execution, including parallel execution, rollback, and complex planning.
-const { createTask, runDemo } = require('../shared/demo-utils.js');
+// Category: Action & Planning
+// Description: Demonstrates the system's ability to execute a variety of complex actions, including parallel tasks, conditional logic, and hierarchical plans.
+
+import { runDemo } from '../shared/demo-utils.js';
 
 async function actionExecutionDemo() {
     const taskDefs = [
         // Parallel execution tasks
-        {
-            termKey: '(move_robot_kitchen)',
-            punctuation: '!',
-            truthValue: {
-                frequency: 0.9,
-                confidence: 0.8
-            }
-        },
-        {
-            termKey: '(activate_lighting_system)',
-            punctuation: '!',
-            truthValue: {
-                frequency: 0.85,
-                confidence: 0.75
-            }
-        },
-        {
-            termKey: '(monitor_temperature_sensors)',
-            punctuation: '!',
-            truthValue: {
-                frequency: 0.95,
-                confidence: 0.9
-            }
-        },
+        { sentence: '(move_robot_kitchen)!', truth: [0.9, 0.8] },
+        { sentence: '(activate_lighting_system)!', truth: [0.85, 0.75] },
+        { sentence: '(monitor_temperature_sensors)!', truth: [0.95, 0.9] },
 
         // Conditional task
-        {
-            termKey: '(battery_low ==> charge_robot)',
-            punctuation: '!',
-            truthValue: {
-                frequency: 0.9,
-                confidence: 0.85
-            }
-        },
+        { sentence: '(battery_low ==> charge_robot)!', truth: [0.9, 0.85] },
 
         // Hierarchical planning task
-        {
-            termKey: '(&/, navigate_to_charging_station, charge_battery, return_to_patrol_route)',
-            punctuation: '!',
-            truthValue: {
-                frequency: 0.95,
-                confidence: 0.9
-            }
-        },
-
-        // Choice task
-        {
-            termKey: '(|, approach_person_directly, approach_person_indirectly, wait_for_person_to_approach)',
-            punctuation: '!',
-            truthValue: {
-                frequency: 0.8,
-                confidence: 0.7
-            }
-        },
-
-        // Rollback task
-        {
-            termKey: '(perform_risky_operation)',
-            punctuation: '!',
-            truthValue: {
-                frequency: 0.7,
-                confidence: 0.6
-            }
-        },
+        { sentence: '(&/, navigate_to_charging_station, charge_battery, return_to_patrol_route)!', truth: [0.95, 0.9] },
     ];
 
-    const actionHandlers = [{
-        name: 'move_*',
-        handler: async (action) => {
-            console.log(`Moving robot to ${action.name.replace('move_robot_', '')}`);
-            return {
-                success: true,
-                action: action.name,
-                result: 'Robot moved successfully'
-            };
-        }
-    }, {
-        name: 'activate_*',
-        handler: async (action) => {
-            console.log(`Activating ${action.name.replace('activate_', '')}`);
-            return {
-                success: true,
-                action: action.name,
-                result: 'System activated successfully'
-            };
-        }
-    }, {
-        name: 'monitor_*',
-        handler: async (action) => {
-            console.log(`Monitoring ${action.name.replace('monitor_', '')}`);
-            return {
-                success: true,
-                action: action.name,
-                result: 'Monitoring started successfully'
-            };
-        }
-    }, {
-        name: 'perform_risky_operation',
-        handler: async (action) => {
-            console.log("Attempting risky operation...");
-            throw new Error("Risky operation failed due to unexpected conditions");
-        }
-    }, ];
+    const actionHandlers = [
+        { name: 'move_*', handler: async (action) => console.log(`Action: Moving robot to ${action.name.replace('move_robot_', '')}`) },
+        { name: 'activate_*', handler: async (action) => console.log(`Action: Activating ${action.name.replace('activate_', '')}`) },
+        { name: 'monitor_*', handler: async (action) => console.log(`Action: Monitoring ${action.name.replace('monitor_', '')}`) },
+    ];
 
-    await runDemo('Action Execution Demo', taskDefs, {
-        cycleCount: 5,
-        actionHandlers
-    });
+    await runDemo('Action Execution Demo', taskDefs, { cycleCount: 3, actionHandlers });
 }
 
-module.exports = actionExecutionDemo;
+export default actionExecutionDemo;
 
-if (require.main === module) {
+if (import.meta.url.startsWith('file:')) {
     actionExecutionDemo().catch(console.error);
 }

@@ -31,11 +31,15 @@ describe('AStarPlanner Integration Test', () => {
         return belief;
     };
 
+    const addCostToMemory = (actionKey, cost) => {
+        memory.costIndex.set(actionKey, cost);
+    };
+
     test('should find the cheapest plan, even if it is longer', async () => {
         // Path 1 (shorter, but expensive): goal ==> action_expensive
         addTermToMemory('(goal ==> action_expensive)');
         addTermToMemory('action_expensive');
-        addBeliefToMemory('(action_expensive --> [10])');
+        addCostToMemory('action_expensive', 10);
 
         // Path 2 (longer, but cheaper): goal ==> (&&, action_cheap1, action_cheap2)
         addTermToMemory('(goal ==> (&&, action_cheap1, action_cheap2))');

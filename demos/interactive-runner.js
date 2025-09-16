@@ -6,76 +6,82 @@ import readline from 'readline';
 
 const DEMO_DIR = path.dirname(new URL(import.meta.url).pathname);
 
-function getDemoFiles() {
-    const files = fs.readdirSync(DEMO_DIR)
-        .filter(file => file.endsWith('-demo.js') && file !== 'run-all.js' && file !== 'interactive-runner.js');
-
-    return files.map(file => {
-        const content = fs.readFileSync(path.join(DEMO_DIR, file), 'utf-8');
-        const match = content.match(/\/\/\s*Description:\s*(.*)/);
-        const description = match ? match[1].trim() : 'No description available.';
-        return {
-            file,
-            description
-        };
-    });
-}
-
-async function runDemo(demoFile) {
-    try {
-        console.log(`\n=== Running ${demoFile} ===`);
-        const demoModule = await import(path.join(DEMO_DIR, demoFile));
-        const demo = demoModule.default || demoModule;
-        await demo();
-        console.log(`\n=== Finished ${demoFile} ===`);
-    } catch (error) {
-        console.error(`Error running ${demoFile}:`, error.message);
-    }
-}
-
 const anside = {
     reset: "\x1b[0m",
     bright: "\x1b[1m",
     dim: "\x1b[2m",
     underscore: "\x1b[4m",
-    blink: "\x1b[5m",
-    reverse: "\x1b[7m",
-    hidden: "\x1b[8m",
-
     fg: {
-        black: "\x1b[30m",
         red: "\x1b[31m",
         green: "\x1b[32m",
         yellow: "\x1b[33m",
         blue: "\x1b[34m",
         magenta: "\x1b[35m",
         cyan: "\x1b[36m",
-        white: "\x1b[37m",
     },
-    bg: {
-        black: "\x1b[40m",
-        red: "\x1b[41m",
-        green: "\x1b[42m",
-        yellow: "\x1b[43m",
-        blue: "\x1b[44m",
-        magenta: "\x1b[45m",
-        cyan: "\x1b[46m",
-        white: "\x1b[47m",
-    }
 };
 
-function displayMenu(demoFiles) {
-    console.clear();
-    console.log(anside.bright + anside.fg.cyan + "=== SeNARS Cognitive System Demo Runner ===" + anside.reset);
-    console.log(anside.dim + "Select a demo to run:" + anside.reset);
+function getDemoFiles() {
+    const files = fs.readdirSync(DEMO_DIR)
+        .filter(file => file.endsWith('-demo.js') && file !== 'run-all.js' && file !== 'interactive-runner.js');
 
-    demoFiles.forEach((demo, index) => {
-        console.log(`${anside.fg.yellow}${index + 1}:${anside.reset} ${anside.bright}${demo.file}${anside.reset} - ${anside.dim}${demo.description}${anside.reset}`);
+    const demos = files.map(file => {
+        const content = fs.readFileSync(path.join(DEMO_DIR, file), 'utf-8');
+        const descriptionMatch = content.match(/\/\/\s*Description:\s*(.*)/);
+        const categoryMatch = content.match(/\/\/\s*Category:\s*(.*)/);
+        return {
+            file,
+            description: descriptionMatch ? descriptionMatch[1].trim() : 'No description.',
+            category: categoryMatch ? categoryMatch[1].trim() : 'Other',
+        };
     });
 
+    // Group demos by category
+    return demos.reduce((acc, demo) => {
+        (acc[demo.category] = acc[demo.category] || []).push(demo);
+        return acc;
+    }, {});
+}
+
+async function runDemo(demoFile) {
+    try {
+        console.log(`\n${anside.bright}${anside.fg.cyan}=== Running ${demoFile} ===${anside.reset}`);
+        const demoPath = path.join(DEMO_DIR, demoFile);
+        const demoModule = await import(demoPath);
+        const demoFunction = demoModule.default || (Object.values(demoModule)[0]);
+        await demoFunction();
+        console.log(`\n${anside.bright}${anside.fg.cyan}=== Finished ${demoFile} ===${anside.reset}`);
+    } catch (error) {
+        console.error(`${anside.fg.red}Error running ${demoFile}:${anside.reset}`, error.message);
+    }
+}
+
+function displayMenu(categorizedDemos) {
+    console.clear();
+    console.log(`${anside.bright}${anside.fg.cyan}╔═════════════════════════════════════════╗`);
+    console.log(`║ ${anside.bright}${anside.fg.yellow} SeNARS Cognitive System Demo Runner ${anside.fg.cyan}║`);
+    console.log(`╚═════════════════════════════════════════╝${anside.reset}`);
+
+    let demoIndex = 1;
+    const demoMap = new Map();
+
+    for (const category in categorizedDemos) {
+        console.log(`\n${anside.bright}${anside.fg.magenta}--- ${category} ---${anside.reset}`);
+        categorizedDemos[category].forEach(demo => {
+            console.log(`${anside.fg.yellow}${demoIndex}:${anside.reset} ${anside.bright}${demo.file}${anside.reset}`);
+            console.log(`   ${anside.dim}${demo.description}${anside.reset}`);
+            demoMap.set(demoIndex, demo.file);
+            demoIndex++;
+        });
+    }
+
+    console.log(`\n${anside.bright}${anside.fg.magenta}--- Other ---${anside.reset}`);
     console.log(`${anside.fg.yellow}0:${anside.reset} ${anside.bright}Run all demos${anside.reset}`);
     console.log(`${anside.fg.red}q:${anside.reset} ${anside.bright}Exit${anside.reset}`);
+
+    return demoMap;
 }
+
 
 async function main() {
     const rl = readline.createInterface({
@@ -85,14 +91,15 @@ async function main() {
 
     let keepRunning = true;
     while (keepRunning) {
-        const demoFiles = getDemoFiles();
+        const categorizedDemos = getDemoFiles();
+        const demoFiles = Object.values(categorizedDemos).flat();
+
         if (demoFiles.length === 0) {
             console.log("No demos found.");
-            keepRunning = false;
             break;
         }
 
-        displayMenu(demoFiles);
+        const demoMap = displayMenu(categorizedDemos);
 
         const answer = await new Promise(resolve => {
             rl.question(`\n${anside.fg.green}Enter your choice: ${anside.reset}`, resolve);
@@ -100,7 +107,7 @@ async function main() {
 
         if (answer.toLowerCase() === 'q') {
             keepRunning = false;
-            break;
+            continue;
         }
 
         const choice = parseInt(answer, 10);
@@ -116,7 +123,14 @@ async function main() {
                 await runDemo(demo.file);
             }
         } else {
-            await runDemo(demoFiles[choice - 1].file);
+            const demoFile = demoMap.get(choice);
+            if (demoFile) {
+                await runDemo(demoFile);
+            } else {
+                console.log(anside.fg.red + "Invalid choice. Please try again." + anside.reset);
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                continue;
+            }
         }
 
         await new Promise(resolve => {
@@ -125,14 +139,18 @@ async function main() {
     }
 
     rl.close();
-    console.log(anside.fg.cyan + "Exiting Demo Runner. Goodbye!" + anside.reset);
+    console.log(`\n${anside.fg.cyan}Exiting Demo Runner. Goodbye!${anside.reset}`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url.startsWith('file:') && process.argv[1] === path.basename(import.meta.url.pathname)) {
     main().catch(err => {
         console.error("An unexpected error occurred:", err);
         process.exit(1);
     });
 }
 
-export {main, getDemoFiles, runDemo};
+export {
+    main,
+    getDemoFiles,
+    runDemo
+};

@@ -1,170 +1,40 @@
-const {
-    runDemo,
-    createTask
-} = require('./demo-utils');
-const MetaCognition = require('../src/system/MetaCognition');
+// Category: Reasoning
+// Description: Showcases enhanced contradiction resolution strategies, such as asking clarifying questions or seeking more context.
 
-// Description: Showcases enhanced contradiction resolution, like asking clarifying questions.
+import { runDemo } from '../shared/demo-utils.js';
+
 async function enhancedContradictionResolutionDemo() {
     const taskDefs = [
-        // Direct negation contradiction
-        {
-            termKey: '(bird --> can_fly)',
-            punctuation: '.',
-            truthValue: {
-                frequency: 0.95,
-                confidence: 0.9
-            }
-        },
-        {
-            termKey: '(bird --> (--, can_fly))',
-            punctuation: '.',
-            truthValue: {
-                frequency: 0.85,
-                confidence: 0.85
-            }
-        },
-
-        // Inheritance contradiction
-        {
-            termKey: '(penguin --> bird)',
-            punctuation: '.',
-            truthValue: {
-                frequency: 1.0,
-                confidence: 0.95
-            }
-        },
-        {
-            termKey: '(penguin --> can_fly)',
-            punctuation: '.',
-            truthValue: {
-                frequency: 0.2,
-                confidence: 0.9
-            }
-        },
-        {
-            termKey: '(penguin --> (--, can_fly))',
-            punctuation: '.',
-            truthValue: {
-                frequency: 0.95,
-                confidence: 0.95
-            }
-        },
-
-        // Temporal contradiction
-        {
-            termKey: '(meeting_attendance)',
-            punctuation: '.',
-            truthValue: {
-                frequency: 0.9,
-                confidence: 0.85
-            },
-            stamp: {
-                creationTime: Date.now(),
-                occurrenceTime: Date.now() - 3600000
-            }
-        }, // 1 hour ago
-        {
-            termKey: '(meeting_attendance)',
-            punctuation: '.',
-            truthValue: {
-                frequency: 0.3,
-                confidence: 0.8
-            },
-            stamp: {
-                creationTime: Date.now(),
-                occurrenceTime: Date.now() - 1800000
-            }
-        }, // 30 minutes ago
-
-        // Frequency conflict
-        {
-            termKey: '(project_completion)',
-            punctuation: '.',
-            truthValue: {
-                frequency: 0.9,
-                confidence: 0.9
-            }
-        },
-        {
-            termKey: '(project_completion)',
-            punctuation: '.',
-            truthValue: {
-                frequency: 0.1,
-                confidence: 0.85
-            }
-        },
-
-        // Goal to resolve contradictions
-        {
-            termKey: 'resolve_all_contradictions',
-            punctuation: '!',
-            truthValue: {
-                frequency: 1.0,
-                confidence: 0.9
-            }
-        }
+        // A belief that is likely to be challenged
+        { sentence: '(all_swans --> white).', truth: [0.9, 0.8] },
+        // A surprising, contradictory observation
+        { sentence: '(<black_swan> --> swan).', truth: [1.0, 0.95] },
+        { sentence: '(<black_swan> --> black).', truth: [1.0, 0.95] },
+        // A goal that encourages the system to investigate the contradiction
+        { sentence: 'investigate_swan_color!', truth: [1.0, 0.9] }
     ];
 
-    const postCycleCallback = (system, tasks) => {
-        // Direct MetaCognition testing
-        console.log("\n=== Direct MetaCognition Testing ===");
-        const metaCognition = new MetaCognition();
-
-        // Test contradiction detection
-        console.log("\n1. Contradiction detection:");
-        try {
-            const contradictions = metaCognition.findContradictions(tasks);
-            console.log(`  Found ${contradictions.length} contradictions:`);
-            contradictions.forEach((contradiction, index) => {
-                console.log(`    ${index + 1}. Type: ${contradiction.type}`);
-                console.log(`       Severity: ${contradiction.severity.toFixed(3)}`);
-                console.log(`       Details: ${contradiction.details}`);
+    const postCycleCallback = (system) => {
+        console.log("\nChecking for meta-cognitive tasks (e.g., questions for clarification)...");
+        const metaTasks = system.introspection.queryTasks({ isMeta: true });
+        if (metaTasks.length > 0) {
+            console.log(`Found ${metaTasks.length} meta-tasks:`);
+            metaTasks.forEach(task => {
+                console.log(`  - ${task.termKey}${task.punctuation}`);
             });
-        } catch (error) {
-            console.log("  Error:", error.message);
-        }
-
-        // Test auto strategy selection
-        console.log("\n2. Auto strategy selection:");
-        try {
-            const contradictions = metaCognition.findContradictions(tasks);
-            if (contradictions.length > 0) {
-                const sampleContradiction = contradictions[0];
-                const strategy = metaCognition._selectOptimalResolutionStrategy(sampleContradiction);
-                console.log(`  For contradiction type '${sampleContradiction.type}' with severity ${sampleContradiction.severity.toFixed(3)}:`);
-                console.log(`  Recommended strategy: ${strategy}`);
-            }
-        } catch (error) {
-            console.log("  Error:", error.message);
-        }
-
-        // Test different resolution strategies
-        console.log("\n3. Different resolution strategies:");
-        try {
-            const contradictions = metaCognition.findContradictions(tasks);
-            if (contradictions.length > 0) {
-                const sampleContradiction = contradictions[Math.min(1, contradictions.length - 1)]; // Get a different contradiction
-
-                const strategies = ['revision', 'reconciliation', 'temporal_analysis', 'contextual_reconciliation'];
-                for (const strategy of strategies) {
-                    const resolutionTasks = metaCognition.resolve(sampleContradiction, strategy);
-                    console.log(`  Strategy '${strategy}' generated ${resolutionTasks.length} tasks`);
-                }
-            }
-        } catch (error) {
-            console.log("  Error:", error.message);
+        } else {
+            console.log("No meta-tasks generated for clarification.");
         }
     };
 
     await runDemo('Enhanced Contradiction Resolution Demo', taskDefs, {
-        cycleCount: 5,
+        cycleCount: 7,
         postCycleCallback
     });
 }
 
-module.exports = enhancedContradictionResolutionDemo;
+export default enhancedContradictionResolutionDemo;
 
-if (require.main === module) {
+if (import.meta.url.startsWith('file:')) {
     enhancedContradictionResolutionDemo().catch(console.error);
 }

@@ -1,62 +1,36 @@
+// Category: Reasoning
 // Description: Demonstrates the system's ability to perform mathematical inference.
-const { runDemo } = require('./demo-utils');
+
+import { runDemo } from '../shared/demo-utils.js';
 
 async function mathInferenceDemo() {
     const taskDefs = [
-        // Axiom: All numbers are either even or odd
-        {
-            termKey: '(number --> (||, even, odd))',
-            punctuation: '.',
-            truthValue: {
-                frequency: 1.0,
-                confidence: 0.9
-            }
-        },
-        // Fact: 2 is a number
-        {
-            termKey: '(2 --> number)',
-            punctuation: '.',
-            truthValue: {
-                frequency: 1.0,
-                confidence: 0.95
-            }
-        },
-        // Fact: 2 is even
-        {
-            termKey: '(2 --> even)',
-            punctuation: '.',
-            truthValue: {
-                frequency: 1.0,
-                confidence: 0.95
-            }
-        },
-        // Rule: Even numbers are divisible by 2
-        {
-            termKey: '((number --> even) ==> (number --> divisible_by_2))',
-            punctuation: '.',
-            truthValue: {
-                frequency: 0.9,
-                confidence: 0.9
-            }
-        },
-        // Goal: Understand properties of 2
-        {
-            termKey: '(2 --> divisible_by_2)',
-            punctuation: '?',
-            truthValue: {
-                frequency: 1.0,
-                confidence: 0.8
-            }
-        }
+        // Axiom: An even number is divisible by 2.
+        { sentence: '(&&, (even --> number), (divisible_by_2 --> property)).', truth: [1.0, 0.9] },
+        // Fact: 4 is an even number.
+        { sentence: '(4 --> even).', truth: [1.0, 0.9] },
+        // Question: Is 4 divisible by 2?
+        { sentence: '(4 --> divisible_by_2)?' }
     ];
 
+    const postCycleCallback = (system) => {
+        console.log("\nQuerying for mathematical inference...");
+        const inference = system.introspection.queryTasks({ termKey: '(4 --> divisible_by_2)', punctuation: '.' });
+        if (inference.length > 0) {
+            console.log("Successfully inferred that 4 is divisible by 2.");
+        } else {
+            console.log("Inference not yet made.");
+        }
+    };
+
     await runDemo('Math Inference Demo', taskDefs, {
-        cycleCount: 3
+        cycleCount: 5,
+        postCycleCallback
     });
 }
 
-module.exports = mathInferenceDemo;
+export default mathInferenceDemo;
 
-if (require.main === module) {
+if (import.meta.url.startsWith('file:')) {
     mathInferenceDemo().catch(console.error);
 }

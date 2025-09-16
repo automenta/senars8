@@ -111,8 +111,15 @@ class NarseseParser {
             return this.parseDependentVariable();
         } else if (this.match('queryVar')) {
             return this.parseQueryVariable();
+        } else if (this.match('number')) {
+            return this.parseNumber();
         }
         throw new Error(`Unexpected token '${this.current ? this.current.type : 'EOF'}' when parsing term`);
+    }
+
+    parseNumber() {
+        const value = this.consume('number');
+        return { type: 'Number', value: parseFloat(value) };
     }
 
     parseCompoundTerm() {

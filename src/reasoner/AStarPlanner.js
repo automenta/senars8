@@ -58,7 +58,7 @@ class AStarPlanner extends BasePlanner {
                 let newTasks;
 
                 if (expansion.method === null) { // Primitive action
-                    newG += this.costManager.getActionCost(currentTask);
+                    newG += await this.costManager.getActionCost(currentTask);
                     newPlan = [...currentNode.plan, currentTask.key];
                     newTasks = remainingTasks;
                 } else { // Decomposition

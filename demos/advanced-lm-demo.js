@@ -1,39 +1,30 @@
-// Description: Demonstrates advanced capabilities of the Language Model (LM) integration.
-const {runDemo, createTask} = require('../shared/demo-utils');
-const LM = require('../src/lm/LM');
+// Category: Language Model
+// Description: Demonstrates advanced capabilities of the Language Model (LM) integration, including explanation generation.
+
+import { runDemo } from '../shared/demo-utils.js';
 
 async function advancedLMDemo() {
     const taskDefs = [
-        {termKey: '(AI --> intelligent_system)', punctuation: '.', truthValue: {frequency: 0.95, confidence: 0.9}},
-        {
-            termKey: '(neural_network --> machine_learning_model)',
-            punctuation: '.',
-            truthValue: {frequency: 0.9, confidence: 0.85}
-        },
-        {
-            termKey: '(symbolic_reasoning --> logical_inference)',
-            punctuation: '.',
-            truthValue: {frequency: 0.85, confidence: 0.8}
-        },
-        {
-            termKey: '(AI --> (&, neural_network, symbolic_reasoning))',
-            punctuation: '.',
-            truthValue: {frequency: 0.8, confidence: 0.75}
-        },
-        {termKey: '(cognitive_architecture --> AI)', punctuation: '.', truthValue: {frequency: 0.75, confidence: 0.7}},
-        {
-            termKey: '(SeNARS --> cognitive_architecture)',
-            punctuation: '.',
-            truthValue: {frequency: 1.0, confidence: 0.95}
-        },
-        {termKey: '(explain_seNARS)', punctuation: '!', truthValue: {frequency: 1.0, confidence: 0.9}}
+        { sentence: '(AI --> intelligent_system).', truth: [0.95, 0.9] },
+        { sentence: '(neural_network --> machine_learning_model).', truth: [0.9, 0.85] },
+        { sentence: '(symbolic_reasoning --> logical_inference).', truth: [0.85, 0.8] },
+        { sentence: '(AI --> (&, neural_network, symbolic_reasoning)).', truth: [0.8, 0.75] },
+        { sentence: '(cognitive_architecture --> AI).', truth: [0.75, 0.7] },
+        { sentence: '(SeNARS --> cognitive_architecture).', truth: [1.0, 0.95] },
+        { sentence: '(explain_seNARS)!', truth: [1.0, 0.9] }
     ];
 
-    await runDemo('Advanced LM Demo', taskDefs, 3);
+    const postCycleCallback = async (system) => {
+        console.log("\nAsking the LM to explain its understanding of SeNARS...");
+        const explanation = await system.lm.explain();
+        console.log("LM Explanation:", explanation);
+    };
+
+    await runDemo('Advanced LM Demo', taskDefs, { cycleCount: 3, postCycleCallback });
 }
 
-module.exports = advancedLMDemo;
+export default advancedLMDemo;
 
-if (require.main === module) {
+if (import.meta.url.startsWith('file:')) {
     advancedLMDemo().catch(console.error);
 }
