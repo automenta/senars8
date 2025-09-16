@@ -220,23 +220,42 @@ function validateConfigValue(value, schema, path) {
     if (schema.type) {
         const valueType = typeof value;
         if (schema.type === 'array' && !Array.isArray(value)) {
-            throw new Error(`Configuration value '${path}' must be an array, got ${valueType}`);
+            // Apply default for invalid array
+            if ('default' in schema) {
+                return schema.default;
+            }
         } else if (schema.type !== 'array' && valueType !== schema.type) {
+            // Apply default for invalid type
+            if ('default' in schema) {
+                return schema.default;
+            }
             throw new Error(`Configuration value '${path}' must be of type ${schema.type}, got ${valueType}`);
         }
     }
 
     // Validate enum values
     if (schema.enum && !schema.enum.includes(value)) {
+        // Apply default for invalid enum
+        if ('default' in schema) {
+            return schema.default;
+        }
         throw new Error(`Configuration value '${path}' must be one of [${schema.enum.join(', ')}], got ${value}`);
     }
 
     // Validate number ranges
     if (typeof value === 'number') {
         if ('min' in schema && value < schema.min) {
+            // Apply default for value below minimum
+            if ('default' in schema) {
+                return schema.default;
+            }
             throw new Error(`Configuration value '${path}' must be >= ${schema.min}, got ${value}`);
         }
         if ('max' in schema && value > schema.max) {
+            // Apply default for value above maximum
+            if ('default' in schema) {
+                return schema.default;
+            }
             throw new Error(`Configuration value '${path}' must be <= ${schema.max}, got ${value}`);
         }
     }
@@ -244,6 +263,10 @@ function validateConfigValue(value, schema, path) {
     // Validate string patterns
     if (typeof value === 'string' && schema.pattern) {
         if (!schema.pattern.test(value)) {
+            // Apply default for invalid pattern
+            if ('default' in schema) {
+                return schema.default;
+            }
             throw new Error(`Configuration value '${path}' does not match required pattern`);
         }
     }

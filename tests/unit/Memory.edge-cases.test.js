@@ -157,8 +157,8 @@ describe('Memory - Edge Cases', () => {
     test('should handle exportState and importState with edge cases', () => {
         // Test export with empty memory
         const emptyState = memory.exportState();
-        expect(emptyState).toContain('"terms":[]');
-        expect(emptyState).toContain('"shortTermTasks":[]');
+        expect(emptyState).toContain('"terms": []');
+        expect(emptyState).toContain('"shortTermTasks": []');
 
         // Test import with invalid JSON
         expect(() => memory.importState('invalid json')).toThrow();

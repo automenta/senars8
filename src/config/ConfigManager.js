@@ -16,6 +16,7 @@ class ConfigManager {
      */
     constructor(userConfig = {}) {
         this.config = this._mergeConfigs(defaultConfig, userConfig);
+        // Validate configuration during construction
         this.validatedConfig = validateConfig(this.config);
     }
 
@@ -35,7 +36,13 @@ class ConfigManager {
         const merged = {...defaults};
 
         for (const [key, value] of Object.entries(userConfig)) {
-            if (typeof value === 'object' && value !== null && !Array.isArray(value) &&
+            // Preserve null values, don't merge them
+            if (value === null) {
+                merged[key] = null;
+            // Preserve empty objects, don't merge them
+            } else if (typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0) {
+                merged[key] = {};
+            } else if (typeof value === 'object' && !Array.isArray(value) &&
                 typeof merged[key] === 'object' && merged[key] !== null && !Array.isArray(merged[key])) {
                 merged[key] = this._mergeConfigs(merged[key], value);
             } else {

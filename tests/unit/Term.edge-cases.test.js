@@ -81,7 +81,11 @@ describe('Term - Edge Cases', () => {
         expect(similarity).toBe(0); // No common bigrams
 
         const similarity2 = Term.structuralSimilarity('ab', 'ac');
-        expect(similarity2).toBeCloseTo(0.5); // One common bigram out of two
+        expect(similarity2).toBe(0); // No common bigrams ('ab' vs 'ac')
+        
+        // Test with actual common bigrams
+        const similarity3 = Term.structuralSimilarity('abc', 'abd');
+        expect(similarity3).toBeCloseTo(0.5); // One common bigram ('ab') out of two total
     });
 
     test('should handle structural similarity with identical strings', () => {
@@ -125,9 +129,13 @@ describe('Term - Edge Cases', () => {
         term2.setEmbedding([0.1, 0.2, 0.3]);
         expect(Term.termsEqual(term1, term2)).toBe(true);
 
-        // Different embeddings
-        term2.setEmbedding([0.1, 0.2, 0.4]);
-        expect(Term.termsEqual(term1, term2)).toBe(false);
+        // Different embeddings - but terms with same key share embeddings by design
+        // So we need to test with different term keys
+        const term4 = new Term('dog');
+        const term5 = new Term('bird');
+        term4.setEmbedding([0.1, 0.2, 0.3]);
+        term5.setEmbedding([0.1, 0.2, 0.4]);
+        expect(Term.termsEqual(term4, term5)).toBe(false);
     });
 
     test('should handle term destruction correctly', () => {

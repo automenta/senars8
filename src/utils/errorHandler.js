@@ -59,9 +59,21 @@ function logAndThrow(error, context) {
     // Normalize and prepare error for logging
     const preparedError = prepareErrorForLogging(error);
 
-    // Add context to error message
+    // Add context to error message if not already present
     const fullContext = context ? `[${context}] ` : '';
-    preparedError.message = `${fullContext}${preparedError.message}`;
+    // Check if the error message already contains this context to avoid duplication
+    if (context && !preparedError.message.startsWith(fullContext)) {
+        // Also check if the error message already contains any context pattern to avoid nested contexts
+        const contextPattern = /\[.*?\]/;
+        if (contextPattern.test(preparedError.message)) {
+            // If the message already has a context, we don't add another one
+            // This prevents nested contexts like [OuterContext] [InnerContext] inner error
+        } else {
+            preparedError.message = `${fullContext}${preparedError.message}`;
+        }
+    } else if (context && !preparedError.message.startsWith(fullContext)) {
+        preparedError.message = `${fullContext}${preparedError.message}`;
+    }
 
     // Preserve specific error types
     if (!isKnownErrorType(preparedError)) {

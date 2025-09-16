@@ -441,11 +441,18 @@ class Memory {
     queryTasks(filters = {}) {
         let tasks;
         // Validate punctuation filter
-        if (filters.punctuation &&
-            (filters.punctuation === '.' || filters.punctuation === '!' || filters.punctuation === '?') &&
-            this.punctuationIndex.has(filters.punctuation)) {
-            const taskIds = this.punctuationIndex.get(filters.punctuation);
-            tasks = Array.from(taskIds).map(id => this.getTask(id)).filter(Boolean);
+        if (filters.punctuation !== undefined) {
+            // If punctuation is provided but invalid, return empty array
+            if (filters.punctuation !== '.' && filters.punctuation !== '!' && filters.punctuation !== '?') {
+                return [];
+            }
+            // If punctuation is valid and exists in index
+            if (this.punctuationIndex.has(filters.punctuation)) {
+                const taskIds = this.punctuationIndex.get(filters.punctuation);
+                tasks = Array.from(taskIds).map(id => this.getTask(id)).filter(Boolean);
+            } else {
+                tasks = [];
+            }
         } else {
             tasks = this.getAllTasks();
         }
