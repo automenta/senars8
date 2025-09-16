@@ -1,4 +1,4 @@
-import {safeAsync, safeSync} from '../utils/error-handler.js';
+import {safeAsync} from '../utils/error-handler.js';
 import {getGoalTasks} from '../utils/task-utils.js';
 import EventBus from './EventBus.js';
 
@@ -74,15 +74,15 @@ class Cycle {
                 allTasks: this.memory.getAllTasks(),
             };
 
-            await this._runPerceptionPhase(context);
+            await this._runPerceptionPhase();
             this._runPrioritizationPhase(context);
             const {contradictions, metaTasks} = await this._runMetaCognitionPhase(context);
             const derivedTasks = await this._runReasoningPhase(context, contradictions);
 
             this._storeDerivedTasks(derivedTasks);
 
-            const {proactiveTasks} = await this._runEnrichmentPhase(context, derivedTasks, metaTasks);
-            const executionResults = await this._runActionPhase(context);
+            const {proactiveTasks} = await this._runEnrichmentPhase(derivedTasks, metaTasks);
+            const executionResults = await this._runActionPhase();
 
             EventBus.emit('SystemCycleEnded');
 
@@ -98,7 +98,7 @@ class Cycle {
 
     // --- Phase Implementations ---
 
-    async _runPerceptionPhase(context) {
+    async _runPerceptionPhase() {
         // The perception instance handles its own state and events
         return Promise.resolve();
     }
@@ -145,7 +145,7 @@ class Cycle {
         return [...symbolicTasks, ...temporalTasks, ...lmTasks].filter(Boolean);
     }
 
-    async _runEnrichmentPhase(context, derivedTasks, metaTasks) {
+    async _runEnrichmentPhase(derivedTasks, metaTasks) {
         const newTermKeys = this._getNewTermKeys([...derivedTasks, ...metaTasks]);
         await this._bootstrapTerms(newTermKeys);
 
@@ -154,7 +154,7 @@ class Cycle {
         return {proactiveTasks};
     }
 
-    async _runActionPhase(context) {
+    async _runActionPhase() {
         const actionableGoals = this._getActionableGoals();
         const executionPromises = actionableGoals.map(goal => this._executeGoalPlan(goal));
         return Promise.all(executionPromises);

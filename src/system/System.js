@@ -77,8 +77,12 @@ class System {
     }
 
     /**
-     * Runs a single cognitive cycle, the fundamental unit of thought in the system.
-     * @returns {Promise<object>} A promise that resolves to the results of the cycle.
+     * Runs a single cognitive cycle. This is the fundamental unit of operation in the system,
+     * involving perception, reasoning, and action.
+     * @returns {Promise<object>} A promise that resolves to an object containing the results of the cycle,
+     * such as the number of new tasks derived.
+     * @example
+     * await system.runCycle();
      */
     async runCycle() {
         return await errorHandler.safeAsync(async () => {
@@ -91,9 +95,16 @@ class System {
     }
 
     /**
-     * Starts the continuous execution of cognitive cycles.
-     * @param {number} [maxCycles=0] - Maximum number of cycles to run. If 0, runs indefinitely.
-     * @returns {Promise<void>} A promise that resolves when the system stops.
+     * Starts the continuous, asynchronous execution of cognitive cycles. The system will
+     * run until `stop()` is called or the `maxCycles` limit is reached.
+     * @param {number} [maxCycles=0] - The maximum number of cycles to run. If 0 or undefined, the system runs indefinitely.
+     * @returns {Promise<void>} A promise that resolves when the system's execution loop has finished.
+     * @example
+     * // Run for 100 cycles
+     * system.start(100);
+     *
+     * // Run indefinitely
+     * system.start();
      */
     async start(maxCycles = 0) {
         await errorHandler.safeAsync(async () => {
@@ -121,7 +132,9 @@ class System {
     }
 
     /**
-     * Stops the continuous execution of cognitive cycles.
+     * Stops the continuous execution of cognitive cycles if the system is running.
+     * @example
+     * system.stop();
      */
     stop() {
         errorHandler.safeSync(() => {
@@ -133,9 +146,19 @@ class System {
     }
 
     /**
-     * Adds new tasks (beliefs, goals, etc.) to the system's memory.
-     * @param {Task|Task[]} tasks - The task or array of tasks to add.
-     * @returns {Promise<void>}
+     * Adds new tasks to the system's memory. A task can be a belief, a goal, or a question.
+     * The system will automatically bootstrap any new terms found in the tasks.
+     * @param {Task|Task[]} tasks - A single Task object or an array of Task objects to add.
+     * @returns {Promise<void>} A promise that resolves when the tasks have been added.
+     * @example
+     * import { Task, parseTerm } from 'senars';
+     *
+     * const belief = new Task(parseTerm('(cat --> mammal)'), '.');
+     * await system.addTasks(belief);
+     *
+     * const goal = new Task(parseTerm('(<cat> --> pet)!'), '!');
+     * const question = new Task(parseTerm('(<cat> --> friendly)?'), '?');
+     * await system.addTasks([goal, question]);
      */
     async addTasks(tasks) {
         await errorHandler.safeAsync(async () => {

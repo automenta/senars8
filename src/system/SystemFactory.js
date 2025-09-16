@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import {safeAsync} from '../utils/error-handler.js';
 import {info} from '../utils/logger.js';
 
@@ -36,17 +35,43 @@ class SystemFactory {
      * This method assembles all the necessary components, injects dependencies,
      * and initializes the system with its constitutional drives.
      *
-     * @param {object} [userConfig={}] - User-provided configuration to override defaults.
-     * @param {object} [components={}] - Pre-instantiated components for testing or custom setups.
-     * @returns {Promise<System>} A promise that resolves to the fully initialized system.
+     * @param {object} [userConfig={}] - A user-provided configuration object to override the default system settings.
+     * @param {object} [components={}] - An object containing pre-instantiated components, useful for testing or custom setups.
+     * @returns {Promise<System>} A promise that resolves to the fully initialized System instance.
+     * @example
+     * import { SystemFactory } from 'senars';
+     *
+     * const customConfig = {
+     *   memory: {
+     *     MAINTENANCE_CYCLE_FREQUENCY: 5,
+     *   },
+     * };
+     *
+     * async function setup() {
+     *   const system = await SystemFactory.createSystem(customConfig);
+     *   console.log('System is ready.');
+     *   return system;
+     * }
      */
+    deepMerge(target, ...sources) {
+        for (const source of sources) {
+            for (const key in source) {
+                if (source[key] instanceof Object && key in target) {
+                    Object.assign(source[key], this.deepMerge(target[key], source[key]));
+                }
+            }
+        }
+        Object.assign(target || {}, ...sources);
+        return target;
+    }
+
     async createSystem(userConfig = {}, components = {}) {
         return await safeAsync(async () => {
             info('SystemFactory: Creating new system...');
 
             // 1. Configure
             info('SystemFactory: Merging configurations...');
-            const config = _.merge({}, defaultConfig, userConfig);
+            const config = this.deepMerge({}, defaultConfig, userConfig);
             info('SystemFactory: Configuration merged.');
 
             // 2. Assemble Components

@@ -66,10 +66,12 @@ function displayMenu(categorizedDemos) {
     const demoMap = new Map();
 
     for (const category in categorizedDemos) {
-        console.log(`\n${anside.bright}${anside.fg.magenta}--- ${category} ---${anside.reset}`);
+        console.log(`\n${anside.bright}${anside.fg.magenta}╔═════════════════════════════════════════╗`);
+        console.log(`║ ${anside.bright}${anside.fg.yellow} ${category.padEnd(35)} ${anside.fg.magenta}║`);
+        console.log(`╚═════════════════════════════════════════╝${anside.reset}`);
         categorizedDemos[category].forEach(demo => {
             console.log(`${anside.fg.yellow}${demoIndex}:${anside.reset} ${anside.bright}${demo.file}${anside.reset}`);
-            console.log(`   ${anside.dim}${demo.description}${anside.reset}`);
+            console.log(`   ${anside.fg.cyan}${demo.description}${anside.reset}`);
             demoMap.set(demoIndex, demo.file);
             demoIndex++;
         });
@@ -142,7 +144,7 @@ async function main() {
     console.log(`\n${anside.fg.cyan}Exiting Demo Runner. Goodbye!${anside.reset}`);
 }
 
-if (import.meta.url.startsWith('file:') && process.argv[1] === path.basename(import.meta.url.pathname)) {
+if (import.meta.url.startsWith('file:') && path.basename(process.argv[1]) === path.basename(new URL(import.meta.url).pathname)) {
     main().catch(err => {
         console.error("An unexpected error occurred:", err);
         process.exit(1);

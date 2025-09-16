@@ -22,15 +22,6 @@ describe('AStarPlanner Integration Test', () => {
         return term;
     };
 
-    // Helper to add a belief to memory
-    const addBeliefToMemory = (key, confidence = 0.9) => {
-        const term = new Term(key);
-        memory.addTerm(term);
-        const belief = new Task(term, '.', {confidence});
-        memory.addTasks([belief]);
-        return belief;
-    };
-
     const addCostToMemory = (actionKey, cost) => {
         memory.costIndex.set(actionKey, cost);
     };
