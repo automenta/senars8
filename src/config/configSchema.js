@@ -1,6 +1,7 @@
 /**
  * Configuration schema definition and validation utilities
  */
+import { warn } from '../utils/logger.js';
 
 /**
  * @typedef {Object} ConfigSchema
@@ -205,12 +206,17 @@ const configSchema = {
 function validateConfigValue(value, schema, path) {
     // Handle required values
     if (schema.required && (value === undefined || value === null)) {
+        // This is a hard error, as it indicates a programming mistake.
         throw new Error(`Configuration value '${path}' is required`);
     }
 
-    // Handle default values
+    // Handle default values for undefined or null
     if (value === undefined || value === null) {
         if ('default' in schema) {
+            // If the default is an object, we need to validate it too
+            if (typeof schema.default === 'object' && schema.default !== null && schema.properties) {
+                return validateConfigValue(structuredClone(schema.default), schema, path);
+            }
             return schema.default;
         }
         return value;
@@ -220,63 +226,56 @@ function validateConfigValue(value, schema, path) {
     if (schema.type) {
         const valueType = typeof value;
         if (schema.type === 'array' && !Array.isArray(value)) {
-            // Apply default for invalid array
-            if ('default' in schema) {
-                return schema.default;
-            }
-        } else if (schema.type !== 'array' && valueType !== schema.type) {
-            // Apply default for invalid type
-            if ('default' in schema) {
-                return schema.default;
-            }
-            throw new Error(`Configuration value '${path}' must be of type ${schema.type}, got ${valueType}`);
+            warn(`[Config] Invalid type for '${path}'. Expected 'array', got '${valueType}'. Using default.`);
+            return schema.default;
+        }
+        if (schema.type !== 'array' && valueType !== schema.type) {
+            warn(`[Config] Invalid type for '${path}'. Expected '${schema.type}', got '${valueType}'. Using default.`);
+            return schema.default;
         }
     }
 
     // Validate enum values
     if (schema.enum && !schema.enum.includes(value)) {
-        // Apply default for invalid enum
-        if ('default' in schema) {
-            return schema.default;
-        }
-        throw new Error(`Configuration value '${path}' must be one of [${schema.enum.join(', ')}], got ${value}`);
+        warn(`[Config] Invalid value for '${path}'. '${value}' is not in [${schema.enum.join(', ')}]. Using default.`);
+        return schema.default;
     }
 
     // Validate number ranges
     if (typeof value === 'number') {
-        if ('min' in schema && value < schema.min) {
-            // Apply default for value below minimum
-            if ('default' in schema) {
-                return schema.default;
-            }
-            throw new Error(`Configuration value '${path}' must be >= ${schema.min}, got ${value}`);
-        }
-        if ('max' in schema && value > schema.max) {
-            // Apply default for value above maximum
-            if ('default' in schema) {
-                return schema.default;
-            }
-            throw new Error(`Configuration value '${path}' must be <= ${schema.max}, got ${value}`);
+        if (('min' in schema && value < schema.min) || ('max' in schema && value > schema.max)) {
+            warn(`[Config] Invalid value for '${path}'. ${value} is outside the range [${schema.min}-${schema.max}]. Using default.`);
+            return schema.default;
         }
     }
 
     // Validate string patterns
-    if (typeof value === 'string' && schema.pattern) {
-        if (!schema.pattern.test(value)) {
-            // Apply default for invalid pattern
-            if ('default' in schema) {
-                return schema.default;
-            }
-            throw new Error(`Configuration value '${path}' does not match required pattern`);
-        }
+    if (typeof value === 'string' && schema.pattern && !schema.pattern.test(value)) {
+        warn(`[Config] Invalid format for '${path}'. Value does not match pattern. Using default.`);
+        return schema.default;
     }
 
-    // Validate object properties
-    if (schema.type === 'object' && schema.properties && typeof value === 'object' && value !== null) {
-        const validatedObject = {...value};
+    // Validate and strip unknown properties from objects
+    if (schema.type === 'object' && schema.properties) {
+        if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+            warn(`[Config] Invalid type for '${path}'. Expected 'object', got '${typeof value}'. Using default.`);
+            return schema.default;
+        }
+
+        const validatedObject = {};
+
+        // Warn about unknown properties
+        for (const propName in value) {
+            if (!schema.properties.hasOwnProperty(propName)) {
+                warn(`[Config] Unknown property '${path}.${propName}' found and will be ignored.`);
+            }
+        }
+
+        // Validate known properties
         for (const [propName, propSchema] of Object.entries(schema.properties)) {
             const propPath = `${path}.${propName}`;
-            validatedObject[propName] = validateConfigValue(value[propName], propSchema, propPath);
+            const propValue = value.hasOwnProperty(propName) ? value[propName] : undefined;
+            validatedObject[propName] = validateConfigValue(propValue, propSchema, propPath);
         }
         return validatedObject;
     }
@@ -285,18 +284,30 @@ function validateConfigValue(value, schema, path) {
 }
 
 /**
- * Validates an entire configuration object against the schema
+ * Validates an entire configuration object against the schema, stripping unknown properties.
  * @param {object} config - The configuration object to validate
- * @returns {object} The validated configuration with defaults applied
- * @throws {Error} If the configuration is invalid
+ * @returns {object} The validated and cleaned configuration with defaults applied
+ * @throws {Error} If the configuration is not an object
  */
 function validateConfig(config) {
-    const validatedConfig = {...config};
-
-    for (const [key, schema] of Object.entries(configSchema)) {
-        validatedConfig[key] = validateConfigValue(config[key], schema, key);
+    if (typeof config !== 'object' || config === null) {
+        throw new Error('Configuration must be an object.');
     }
 
+    const validatedConfig = {};
+
+    // Warn about unknown top-level properties
+    for (const key in config) {
+        if (!configSchema.hasOwnProperty(key)) {
+            warn(`[Config] Unknown configuration key '${key}' found and will be ignored.`);
+        }
+    }
+
+    // Validate all known properties from the schema
+    for (const [key, schema] of Object.entries(configSchema)) {
+        const value = config.hasOwnProperty(key) ? config[key] : undefined;
+        validatedConfig[key] = validateConfigValue(value, schema, key);
+    }
     return validatedConfig;
 }
 

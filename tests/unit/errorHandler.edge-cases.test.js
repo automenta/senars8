@@ -147,20 +147,21 @@ describe('Error Handler - Edge Cases', () => {
         expect(syncResult).toBe('default');
     });
 
-    test('should handle nested error handling', async () => {
+    test('should handle nested error handling', () => {
         // Test error handling within error handling
         const innerError = new Error('inner error');
         const outerContext = 'OuterContext';
         const innerContext = 'InnerContext';
 
-        // This should not cause infinite recursion
+        // This should not cause infinite recursion and should preserve the original context
         expect(() => {
             try {
                 handleError(innerError, innerContext);
             } catch (caughtError) {
+                // The second call to handleError should not add a new context
                 handleError(caughtError, outerContext);
             }
-        }).not.toThrow();
+        }).toThrow('[InnerContext] inner error');
     });
 
     test('should handle very long error messages', () => {
