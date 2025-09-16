@@ -4,9 +4,17 @@ const WHITESPACE = {
     whitespace: {match: /\s+/, lineBreaks: true}
 };
 
+const PARENS = {
+    lparen: /[<(]/,
+    rparen: /[>)]/,
+};
+
 const PUNCTUATION = {
-    lparen: '(',
-    rparen: ')',
+    ...PARENS,
+    lbrace: '{',
+    rbrace: '}',
+    lbracket: '[',
+    rbracket: ']',
     comma: ',',
     arrow: '-->',
     implies: '==>',
@@ -37,10 +45,10 @@ const TEMPORAL = {
 };
 
 const SETS = {
-    setExtension: '{',
-    setIntension: '[',
-    rbrace: '}',
-    rbracket: ']'
+    setExtension: PUNCTUATION.lbrace,
+    setIntension: PUNCTUATION.lbracket,
+    rbrace: PUNCTUATION.rbrace,
+    rbracket: PUNCTUATION.rbracket
 };
 
 const STATEMENT_PUNCTUATION = {
@@ -52,20 +60,22 @@ const STATEMENT_PUNCTUATION = {
 
 const LITERALS = {
     string: /"[^"]*"/,
-    identifier: /[a-zA-Z_][a-zA-Z0-9_]*/,
-    independentVar: /\w+/,
+    // Order matters: more specific identifiers first
     dependentVar: /#\w+/,
     queryVar: /\?\w+/,
+    independentVar: /\$\w+/, // Made more specific with a $ prefix
+    identifier: /[a-zA-Z_][a-zA-Z0-9_]*/,
     number: /\d+(?:\.\d+)?/
 };
 
+// The order of token rules is important. Keywords should come before general identifiers.
 const lexer = moo.compile({
     ...WHITESPACE,
     ...PUNCTUATION,
     ...TEMPORAL,
     ...SETS,
     ...STATEMENT_PUNCTUATION,
-    ...LITERALS
+    ...LITERALS,
 });
 
 export default lexer;

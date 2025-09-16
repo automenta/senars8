@@ -4,6 +4,7 @@ import registerDefaultActions from './default-actions.js';
 import {createModuleErrorHandler} from '../utils/error-handler.js';
 import {debug, error, info, warn} from '../utils/logger.js';
 import {normalizeToArray} from '../utils/helpers.js';
+import Introspection from './Introspection.js';
 
 // Create a module-specific error handler
 const errorHandler = createModuleErrorHandler('System');
@@ -14,9 +15,9 @@ const errorHandler = createModuleErrorHandler('System');
  */
 class System {
     /**
-     * Private constructor, use System.create() instead
-     * @param {object} userConfig - User-provided configuration
-     * @param {object} dependencies - Dependency injection for testing
+     * Private constructor, use SystemFactory.createSystem() instead.
+     * @param {object} config - The system's configuration object.
+     * @param {object} components - An object containing all required system components.
      * @private
      */
     constructor(config = {}, {memory, reasoner, lm, actionExecutor, cycle}) {
@@ -32,6 +33,12 @@ class System {
         this.isRunning = false;
         this.cycleCount = 0;
 
+        /**
+         * The introspection API for observing the system's state.
+         * @type {Introspection}
+         */
+        this.introspection = new Introspection(this);
+
         info('System components created');
     }
 
@@ -44,7 +51,7 @@ class System {
                     sync: true
                 });
             }
-            await this.cycle.bootstrap();
+            await this.cycle.bootstrap(constitutionTasks);
             info('System: Initialized successfully');
         }, 'initialize');
     }
@@ -66,8 +73,8 @@ class System {
     }
 
     /**
-     * Runs a single cognitive cycle
-     * @returns {Promise<object>} A promise that resolves to cycle results
+     * Runs a single cognitive cycle.
+     * @returns {Promise<object>} A promise that resolves to the cycle results.
      */
     async runCycle() {
         return await errorHandler.safeAsync(async () => {
@@ -80,9 +87,9 @@ class System {
     }
 
     /**
-     * Starts the cognitive system and runs cycles
-     * @param {number} [maxCycles=0] - Maximum number of cycles to run (0 for infinite)
-     * @returns {Promise<void>} A promise that resolves when the system stops
+     * Starts the cognitive system and runs cycles continuously.
+     * @param {number} [maxCycles=0] - Maximum number of cycles to run (0 for infinite).
+     * @returns {Promise<void>} A promise that resolves when the system stops.
      */
     async start(maxCycles = 0) {
         return await errorHandler.safeAsync(async () => {
@@ -115,6 +122,9 @@ class System {
         }, 'start');
     }
 
+    /**
+     * Stops the continuous execution of cognitive cycles.
+     */
     stop() {
         return errorHandler.safeSync(() => {
             if (!this.isRunning) {
@@ -127,9 +137,9 @@ class System {
     }
 
     /**
-     * Adds tasks to the system
-     * @param {Task|Task[]} tasks - The task or array of tasks to add
-     * @returns {Promise<void>} A promise that resolves when tasks are added
+     * Adds new tasks to the system's memory.
+     * @param {Task|Task[]} tasks - The task or array of tasks to add.
+     * @returns {Promise<void>} A promise that resolves when tasks are added.
      */
     async addTasks(tasks) {
         return await errorHandler.safeAsync(async () => {
@@ -139,44 +149,6 @@ class System {
             this.memory.addTasks(tasksToAdd);
             info(`Successfully added ${tasksToAdd.length} tasks`);
         }, 'addTasks');
-    }
-
-    getAvailableRules() {
-        return errorHandler.safeSync(() => {
-            return this.reasoner.getRuleNames();
-        }, 'getAvailableRules', []);
-    }
-
-    getRuleInfo(ruleName) {
-        return errorHandler.safeSync(() => {
-            const rule = this.reasoner.getRule(ruleName);
-            return rule ? {
-                name: rule.name,
-                arity: rule.arity,
-                description: rule.description || 'No description available'
-            } : null;
-        }, 'getRuleInfo', null);
-    }
-
-    /**
-     * Gets the current system status
-     * @returns {object} System status information
-     */
-    getStatus() {
-        return errorHandler.safeSync(() => {
-            return {
-                isRunning: this.isRunning,
-                cycleCount: this.cycleCount,
-                memory: this.memory.getStatistics(),
-                rules: this.reasoner.getRuleNames().length
-            };
-        }, 'getStatus', {});
-    }
-
-    getConfig() {
-        return errorHandler.safeSync(() => {
-            return {...this.config};
-        }, 'getConfig', {});
     }
 }
 

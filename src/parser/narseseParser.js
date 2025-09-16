@@ -96,19 +96,12 @@ class NarseseParser {
         return {frequency, confidence};
     }
 
-    parseNumber() {
-        if (this.match('number')) {
-            return this.consume('number');
-        }
-        throw new Error(`Expected a number, but found '${this.current ? this.current.type : 'EOF'}'`);
-    }
-
     parseTerm() {
         if (this.match('lparen')) {
             return this.parseCompoundTerm();
-        } else if (this.match('setExtension')) {
+        } else if (this.match('lbrace')) { // Use lbrace for extensional sets
             return this.parseExtensionalSet();
-        } else if (this.match('setIntension')) {
+        } else if (this.match('lbracket')) { // Use lbracket for intensional sets
             return this.parseIntensionalSet();
         } else if (this.match('identifier') || this.match('string')) {
             return this.parseAtomicTerm();
@@ -196,10 +189,6 @@ class NarseseParser {
         return {type: this.getTemporalOperatorType(operatorToken.type), term};
     }
 
-    getTemporalOperatorType(operator) {
-        return NarseseParser.TEMPORAL_OPERATOR_TYPES[operator] || operator;
-    }
-
     matchBinaryOperator() {
         return [
             'conjunction', 'sequentialConjunction', 'parallelConjunction',
@@ -273,14 +262,14 @@ class NarseseParser {
     }
 
     parseExtensionalSet() {
-        this.consume('setExtension');
+        this.consume('lbrace');
         const terms = this.parseTermList();
         this.consume('rbrace');
         return {type: 'ExtensionalSet', terms};
     }
 
     parseIntensionalSet() {
-        this.consume('setIntension');
+        this.consume('lbracket');
         const terms = this.parseTermList();
         this.consume('rbracket');
         return {type: 'IntensionalSet', terms};

@@ -1,15 +1,15 @@
 import {v4 as uuidv4} from 'uuid';
-import config from '../config/index.js';
 import {createModuleErrorHandler} from '../utils/error-handler.js';
 import {isNonEmptyArray} from '../utils/helpers.js';
 import EventBus from './EventBus.js';
+import defaultConfig from '../config/default-config.js';
 
-// Create a module-specific error handler
 const errorHandler = createModuleErrorHandler('ActionExecutor');
 
 class ActionExecutor {
-    constructor(memory) {
+    constructor(memory, config = defaultConfig.ACTION_EXECUTOR) {
         this.memory = memory;
+        this.config = config;
         this.actionHandlers = new Map();
         this.actionHistory = [];
         this.resources = new Map();
@@ -23,8 +23,8 @@ class ActionExecutor {
     }
 
     _initializeFromConfig() {
-        config.ACTION_EXECUTOR.RESOURCES.forEach(res => this.registerResource(res.name, res));
-        Object.entries(config.ACTION_EXECUTOR.CONSTRAINTS).forEach(([name, func]) => {
+        this.config.RESOURCES.forEach(res => this.registerResource(res.name, res));
+        Object.entries(this.config.CONSTRAINTS).forEach(([name, func]) => {
             this.setConstraint(name, func.bind(this));
         });
     }
@@ -59,9 +59,7 @@ class ActionExecutor {
     }
 
     async _processQueue() {
-        if (this.processing) {
-            return;
-        }
+        if (this.processing) return;
         this.processing = true;
 
         try {
@@ -90,11 +88,9 @@ class ActionExecutor {
                     return i;
                 }
             } catch (validationError) {
-                // Invalid action, remove it from the queue and reject
                 this._rejectActionWithError(item, validationError);
-                // Remove the item from the queue since we've already processed it
                 this.actionQueue.splice(i, 1);
-                i--; // Adjust index after removal
+                i--;
             }
         }
         return -1;
@@ -134,18 +130,10 @@ class ActionExecutor {
     }
 
     _checkResourceAvailability(action) {
-        if (!action.resources || action.resources.length === 0) {
-            return true;
-        }
-
+        if (!action.resources || action.resources.length === 0) return true;
         for (const resourceName of action.resources) {
             const resource = this.resources.get(resourceName);
-            if (!resource) {
-                return false;
-            }
-            if (resource.locked) {
-                return false;
-            }
+            if (!resource || resource.locked) return false;
         }
         return true;
     }
@@ -157,40 +145,23 @@ class ActionExecutor {
     }
 
     _validate(action) {
-        // Validate action name
         if (!action.name || typeof action.name !== 'string') {
             throw new Error('Action must have a valid name');
         }
-
-        // Validate parameters
         if (action.parameters) {
-            if (!isNonEmptyArray(action.parameters)) {
-                throw new Error('Action parameters must be an array');
-            }
-
+            if (!isNonEmptyArray(action.parameters)) throw new Error('Action parameters must be an array');
             for (const param of action.parameters) {
-                if (!this.memory.getTerm(param)) {
-                    throw new Error(`Parameter term not found in memory: ${param}`);
-                }
+                if (!this.memory.getTerm(param)) throw new Error(`Parameter term not found in memory: ${param}`);
             }
         }
-
-        // Validate resources
         if (action.resources) {
-            if (!isNonEmptyArray(action.resources)) {
-                throw new Error('Action resources must be an array');
-            }
-
+            if (!isNonEmptyArray(action.resources)) throw new Error('Action resources must be an array');
             for (const resourceName of action.resources) {
-                if (!this.resources.has(resourceName)) {
-                    throw new Error(`Resource not registered: ${resourceName}`);
-                }
+                if (!this.resources.has(resourceName)) throw new Error(`Resource not registered: ${resourceName}`);
             }
         }
-
-        // Check constraints
-        if (!this._checkConstraints(action)) {
-            throw new Error('Action violates system constraints');
+        for (const constraint of this.constraints.values()) {
+            if (!constraint(action)) throw new Error('Action violates system constraints');
         }
     }
 
@@ -207,40 +178,18 @@ class ActionExecutor {
     }
 
     _acquireResources(action) {
-        if (!action.resources || action.resources.length === 0) {
-            return;
-        }
-
+        if (!action.resources || action.resources.length === 0) return;
         for (const resourceName of action.resources) {
             const resource = this.resources.get(resourceName);
-            if (resource) {
-                resource.locked = true;
-            }
+            if (resource) resource.locked = true;
         }
     }
 
     _releaseResources(action) {
-        if (!action.resources || action.resources.length === 0) {
-            return;
-        }
-
+        if (!action.resources || action.resources.length === 0) return;
         for (const resourceName of action.resources) {
             const resource = this.resources.get(resourceName);
-            if (resource) {
-                resource.locked = false;
-            }
-        }
-    }
-
-    async _checkConstraint(name, action) {
-        try {
-            const constraint = this.constraints.get(name);
-            if (!constraint) {
-                return true;
-            }
-            return await constraint(action);
-        } catch (error) {
-            return errorHandler.handleWithDefault(error, '_checkConstraint', false);
+            if (resource) resource.locked = false;
         }
     }
 
@@ -248,9 +197,7 @@ class ActionExecutor {
         for (const [pattern, handler] of this.actionHandlers) {
             try {
                 const regex = new RegExp(pattern);
-                if (regex.test(actionName)) {
-                    return handler;
-                }
+                if (regex.test(actionName)) return handler;
             } catch (error) {
                 return errorHandler.handleWithDefault(error, '_getActionHandler', null);
             }

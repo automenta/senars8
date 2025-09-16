@@ -1,49 +1,33 @@
 import BagSamplingStrategy from './strategies/BagSamplingStrategy.js';
+import BruteForceStrategy from './strategies/BruteForceStrategy.js';
 import rules from './rules/index.js';
 import TemporalReasoner from './TemporalReasoner.js';
 import {debug, error as logError, info} from '../utils/logger.js';
 import {createModuleErrorHandler} from '../utils/error-handler.js';
+import defaultConfig from '../config/default-config.js';
 
-// Create a module-specific error handler
 const errorHandler = createModuleErrorHandler('Reasoner');
 
-/**
- * Reasoner performs symbolic inference and manages the rule application process.
- * It uses various strategies to select task combinations and apply inference rules.
- *
- * The Reasoner is responsible for:
- * 1. Applying inference rules to tasks
- * 2. Managing different types of reasoning (symbolic, temporal)
- * 3. Coordinating with strategies for task selection
- * 4. Tracking and limiting the number of derived tasks
- */
 class Reasoner {
-    /**
-     * Creates a new Reasoner instance.
-     * @param {object} [options] - Configuration options
-     * @param {object} [options.strategy] - The strategy for selecting task combinations
-     * @param {TemporalReasoner} [options.temporalReasoner] - The temporal reasoner instance
-     */
-    constructor({strategy = new BagSamplingStrategy(), temporalReasoner = new TemporalReasoner()} = {}) {
-        this.strategy = strategy;
+    constructor({temporalReasoner} = {}, config = defaultConfig.reasoner) {
+        this.config = config;
+        this.temporalReasoner = temporalReasoner || new TemporalReasoner();
+        this.strategy = this._initializeStrategy(this.config.strategy);
         this.rules = rules;
-        this.temporalReasoner = temporalReasoner;
         info('Reasoner initialized with strategy:', this.strategy.constructor.name);
     }
 
-    /**
-     * Performs inference on a focus set of tasks
-     *
-     * This method orchestrates the entire inference process:
-     * 1. Performs symbolic inference using registered rules
-     * 2. Performs temporal inference if needed
-     * 3. Limits the number of derived tasks to maxDerivedTasks
-     *
-     * @param {Task[]} focusSet - Array of tasks to perform inference on
-     * @param {object} [options] - Configuration options
-     * @param {number} [options.maxDerivedTasks=Infinity] - Maximum number of derived tasks to generate
-     * @returns {Task[]} Array of derived tasks
-     */
+    _initializeStrategy(strategyName) {
+        if (strategyName === 'BruteForce') {
+            return new BruteForceStrategy();
+        }
+        if (strategyName === 'BagSampling') {
+            return new BagSamplingStrategy();
+        }
+        // Default to BagSamplingStrategy
+        return new BagSamplingStrategy();
+    }
+
     performInference(focusSet, options = {}) {
         if (!Array.isArray(focusSet)) {
             return errorHandler.handle(new Error('Focus set must be an array'), 'performInference', false);
@@ -60,30 +44,16 @@ class Reasoner {
         }
 
         const finalTasks = derivedTasks.slice(0, maxDerivedTasks);
-
         debug(`Total inference produced ${finalTasks.length} derived tasks`);
         return finalTasks;
     }
 
-    /**
-     * Performs symbolic inference on a focus set of tasks
-     *
-     * Iterates through all registered rules and applies them to combinations
-     * of tasks selected by the strategy. Respects the maxDerivedTasks limit.
-     *
-     * @param {Task[]} focusSet - Array of tasks to perform inference on
-     * @param {number} maxDerivedTasks - Maximum number of derived tasks to generate
-     * @returns {Task[]} Array of derived tasks
-     * @private
-     */
     _performSymbolicInference(focusSet, maxDerivedTasks) {
         let derivedTasks = [];
         const processedCombinations = new Set();
 
         for (const rule of this.rules) {
-            if (derivedTasks.length >= maxDerivedTasks) {
-                break;
-            }
+            if (derivedTasks.length >= maxDerivedTasks) break;
             if (!rule.arity || rule.arity < 1) {
                 debug(`Skipping rule ${rule.name} due to invalid arity`);
                 continue;
@@ -98,30 +68,13 @@ class Reasoner {
         return derivedTasks;
     }
 
-    /**
-     * Applies a rule to combinations of tasks
-     *
-     * Uses the strategy to select combinations of tasks and applies
-     * the given rule to each combination, respecting the maxDerivedTasks limit.
-     *
-     * @param {object} rule - The rule to apply
-     * @param {Task[]} focusSet - Array of tasks to select combinations from
-     * @param {Set} processedCombinations - Set of already processed combinations
-     * @param {number} maxDerivedTasks - Maximum number of derived tasks to generate
-     * @returns {Task[]} Array of derived tasks
-     * @private
-     */
     _applyRuleToCombinations(rule, focusSet, processedCombinations, maxDerivedTasks) {
         const derivedTasks = [];
         try {
             const combinations = this.strategy.selectCombinations(focusSet, rule.arity);
             for (const tasks of combinations) {
-                if (derivedTasks.length >= maxDerivedTasks) {
-                    break;
-                }
-                if (!Array.isArray(tasks) || tasks.length !== rule.arity) {
-                    continue;
-                }
+                if (derivedTasks.length >= maxDerivedTasks) break;
+                if (!Array.isArray(tasks) || tasks.length !== rule.arity) continue;
 
                 const derived = this._applyRule(rule, tasks, processedCombinations);
                 if (derived) {
@@ -134,16 +87,6 @@ class Reasoner {
         return derivedTasks;
     }
 
-    /**
-     * Performs temporal inference on a focus set of tasks
-     *
-     * Delegates to the temporal reasoner to perform temporal reasoning
-     * on the given focus set of tasks.
-     *
-     * @param {Task[]} focusSet - Array of tasks to perform temporal inference on
-     * @returns {Task[]} Array of derived tasks from temporal reasoning
-     * @private
-     */
     _performTemporalInference(focusSet) {
         try {
             const temporalTasks = this.temporalReasoner.infer(focusSet);
@@ -158,18 +101,6 @@ class Reasoner {
         }
     }
 
-    /**
-     * Applies a rule to a specific combination of tasks
-     *
-     * Checks if the rule can be applied to the given tasks and,
-     * if so, executes the rule's action to generate new tasks.
-     *
-     * @param {object} rule - The rule to apply
-     * @param {Task[]} tasks - Array of tasks to apply the rule to
-     * @param {Set} processedCombinations - Set of already processed combinations
-     * @returns {Task|null} The derived task or null if the rule cannot be applied
-     * @private
-     */
     _applyRule(rule, tasks, processedCombinations) {
         if (!rule || !Array.isArray(tasks) || !processedCombinations) {
             return errorHandler.handle(new Error('Invalid arguments to _applyRule'), '_applyRule validation', false);
@@ -178,10 +109,7 @@ class Reasoner {
         const taskIds = tasks.map(task => task.id).sort();
         const combinationKey = `${rule.name}:${taskIds.join(',')}`;
 
-        // Avoid processing the same combination multiple times
-        if (processedCombinations.has(combinationKey)) {
-            return null;
-        }
+        if (processedCombinations.has(combinationKey)) return null;
         processedCombinations.add(combinationKey);
 
         try {
@@ -199,22 +127,10 @@ class Reasoner {
         }
     }
 
-    /**
-     * Validates that all operands for a rule are valid
-     *
-     * Checks that each task in the combination satisfies the
-     * corresponding operand validator function for the rule.
-     *
-     * @param {object} rule - The rule to validate operands for
-     * @param {Task[]} tasks - Array of tasks to validate
-     * @returns {boolean} True if all operands are valid
-     * @private
-     */
     _areOperandsValid(rule, tasks) {
         if (!rule || !Array.isArray(rule.operands) || !Array.isArray(tasks) || tasks.length !== rule.operands.length) {
             return false;
         }
-
         return tasks.every((task, index) => {
             const validator = rule.operands[index];
             if (typeof validator !== 'function') {
@@ -230,31 +146,14 @@ class Reasoner {
         });
     }
 
-    /**
-     * Gets the names of all available rules
-     * @returns {string[]} Array of rule names
-     */
     getRuleNames() {
         return this.rules.map(rule => rule.name);
     }
 
-    /**
-     * Gets a rule by name
-     * @param {string} name - The name of the rule to retrieve
-     * @returns {object|null} The rule object or null if not found
-     */
     getRule(name) {
         return this.rules.find(rule => rule.name === name) || null;
     }
 
-    /**
-     * Gets statistics about the available rules
-     *
-     * Provides information about the total number of rules,
-     * their names, and how they are grouped by arity.
-     *
-     * @returns {object} Rule statistics including total count, names, and arity grouping
-     */
     getRuleStatistics() {
         return {
             totalRules: this.rules.length,

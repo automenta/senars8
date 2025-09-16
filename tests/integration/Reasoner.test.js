@@ -4,8 +4,6 @@ import Task from '../../src/core/Task.js';
 import Term from '../../src/core/Term.js';
 import {parseTerm} from '../../src/parser/narseseParser.js';
 import LM from '../../src/lm/LM.js';
-import BruteForceStrategy from '../../src/reasoner/strategies/BruteForceStrategy.js';
-import TemporalReasoner from '../../src/reasoner/TemporalReasoner.js';
 
 jest.mock('../../src/lm/LM.js');
 jest.mock('@xenova/transformers', () => {
@@ -22,8 +20,8 @@ describe('Reasoner Integration Test', () => {
     let reasoner, memory, lm;
 
     beforeEach(() => {
-        // Use BruteForceStrategy for deterministic test results
-        reasoner = new Reasoner({strategy: new BruteForceStrategy(), temporalReasoner: new TemporalReasoner()});
+        // Use BruteForceStrategy for deterministic test results by passing a config override
+        reasoner = new Reasoner({}, {strategy: 'BruteForce'});
         memory = new Memory();
         lm = new LM();
 

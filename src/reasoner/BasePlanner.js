@@ -21,6 +21,18 @@ class BasePlanner {
         return PlannerUtils.findDecompositionMethods(task, this.memory);
     }
 
+    /**
+     * Determines if a task is a primitive action (i.e., cannot be decomposed further).
+     * @param {Term} task - The task term to check.
+     * @returns {boolean} True if the task is primitive, false otherwise.
+     * @protected
+     */
+    _isPrimitive(task) {
+        if (!task) return false;
+        // A task is primitive if it has no decomposition methods in the knowledge base.
+        return this._getDecompositionMethods(task).length === 0;
+    }
+
     _getSubTasks(method) {
         return PlannerUtils.extractSubTasksFromMethod(method);
     }
@@ -38,6 +50,7 @@ class BasePlanner {
         const decompositionMethods = this._getDecompositionMethods(task);
 
         if (decompositionMethods.length === 0) {
+            // This is a primitive action, it "expands" to itself.
             return [{subTasks: [task], method: null, preconditions: []}];
         }
 

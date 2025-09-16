@@ -13,6 +13,10 @@ function extractSubTasksFromMethod(methodTerm) {
 }
 
 function isAchieved(term, memory, config) {
+    // If the term doesn't exist in memory, it cannot be achieved.
+    if (!term) {
+        return false;
+    }
     const beliefs = memory.beliefIndex.get(term.key);
     return Boolean(beliefs && beliefs.length > 0 &&
         beliefs.some(belief => belief.state.truthValue.confidence >= config.confidenceThreshold));

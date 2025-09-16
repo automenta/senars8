@@ -12,127 +12,56 @@ SeNARS is a cognitive architecture designed to achieve a synergistic union of fo
 
 ## Design Principles
 
-- **Modularity and Decoupling**: Components are designed to be as independent as possible, communicating through a central `EventBus`.
+- **API-Driven & Pluggable Architecture**: The system is built around a clean, observable API. Core components (`Memory`, `Reasoner`, `LM`, etc.) are assembled by a central `SystemFactory` using dependency injection, allowing for easy extension and replacement of components.
+- **Unified Configuration**: All system parameters are managed through a single, hierarchical configuration object, making the system's behavior transparent and easy to customize.
+- **Introspection as a First-Class Citizen**: A dedicated `Introspection` API (`system.introspection`) provides a comprehensive set of tools for observing the system's internal state, querying memory, and subscribing to events, designed explicitly to support GUIs and other external tools.
 - **Explicit State Management**: All cognitive state is explicitly stored within `Task`s in the central `Memory` component.
 - **Strategy over Implementation**: For complex problems like contradiction resolution and planning, the system favors a `Strategy` pattern, allowing for the dynamic selection of the best algorithm for a given context.
-- **Meta-Cognition as a First-Class Citizen**: The `MetaCognition` module is a core component, ensuring the system is fundamentally designed to analyze and correct its own reasoning processes.
-- **Pragmatism under Scarcity**: The principle of Economic Attention ensures computational resources are always allocated to the most salient cognitive activities.
 
 ---
 
 ## System Architecture
 
+The SeNARS architecture is designed for modularity and extensibility.
+
 ```mermaid
 graph TD
-    subgraph "SeNARS Cognitive Core"
-        Reasoner[Reasoner Symbolic Inference & Meta-Cognition]
-        Memory[MEMORY Term Hypergraph & Task Collection]
-        LM[LM LM-Powered Engine]
-
-        Reasoner <--> Memory
-        Reasoner -- Triggers on Gaps/Needs --> LM
-        LM -- Injects Knowledge --> Memory
+    subgraph "System Core"
+        A[System API]
+        F[SystemFactory]
+        I[Introspection API]
     end
 
-    subgraph "Interfaces"
-        Perception -- Creates Tasks --> Memory
-        ActionSystem -- Executes Goals from --> Reasoner
+    subgraph "Cognitive Components"
+        M[Memory]
+        R[Reasoner]
+        L[LM]
+        P[Planner]
+        AE[Action Executor]
+        C[Cycle]
     end
 
-    subgraph "Foundational Layer"
-        Constitution[CONSTITUTION Immutable Drives & Constraints] -- Provides Salience Gradients --> Memory
-    end
+    F -- Assembles --> A
+    A -- Exposes --> I
+    A -- Delegates to --> C
+    C -- Orchestrates --> M
+    C -- Orchestrates --> R
+    C -- Orchestrates --> L
+    C -- Orchestrates --> P
+    C -- Orchestrates --> AE
 
-    subgraph "System-Wide"
-        EventBus((Event Bus))
-        Perception -- Publishes --> EventBus
-        EventBus -- Notifies --> Memory
-        EventBus -- Notifies --> MetaCognition
-    end
+    style F fill:#cce5ff,stroke:#333,stroke-width:2px
+    style A fill:#d4edda,stroke:#333,stroke-width:2px
 ```
 
----
-
-## Features
-
-This manifest represents the currently implemented and tested functionality of the SeNARS cognitive system.
-
-### Core Knowledge Representation
-- **Term System**: Immutable, Narsese-based concept representation with intelligent parsing, semantic grounding, and component access.
-- **Task System**: Stateful cognitive acts (beliefs, goals, questions) with evidence-based truth values, priority scores, and temporal stamps.
-
-### Memory Management
-- **Dual Memory System**: Short-term and long-term memory with automatic consolidation and time-based forgetting mechanisms.
-- **Knowledge Indexing**: Beliefs, implications, and costs are indexed for efficient retrieval and querying.
-
-### Reasoning Engine
-- **Inference Rules**: Supports deduction, induction, abduction, analogy, modus ponens, and inheritance chaining.
-- **Meta-Cognition**: Detects and classifies contradictions, with multiple resolution strategies (revision, evidence gathering, causal analysis).
-- **Planning**:
-    - **HTN Planning**: Decomposes complex goals into primitive actions.
-    - **A* Planning**: Heuristic search-based planning.
-    - Dynamic strategy selection and plan cost calculation.
-
-### Temporal Reasoning
-- **Comprehensive Analysis**: Infers temporal relationships, detects patterns and anomalies, and predicts future events.
-
-### Language Model Integration
-- **Neuro-Symbolic Bridge**: Handles embedding generation, hypothesis generation/evaluation, explanation generation, Q&A, and plan repair.
-- **Advanced Capabilities**: Supports proactive knowledge enrichment and counterfactual reasoning.
-
-### Attention & Control
-- **Economic Attention**: Dynamically calculates and allocates attention based on task priority.
-- **Event-Driven Architecture**: Core components are decoupled via a central `EventBus`.
-- **Constitutional Core**: System behavior is anchored by immutable drives and safety constraints.
-
-### Action Execution
-- **Flexible Execution**: Supports primitive, parallel, conditional, and hierarchical action execution with rollback mechanisms.
-
-### Narsese Support
-- **Rich Syntax**: Supports atomic terms, inheritance, implication, negation, conjunction, disjunction, set relations, and nested expressions.
-
----
-
-## Core Concepts
-
-### `Term`: The Immutable Vocabulary
-A `Term` is the unique, canonical, and *intelligent* representation of a concept. It parses its own Narsese key upon instantiation, making the rest of the system's code cleaner and more performant.
-
-```javascript
-// Example: src/core/Term.js
-class Term {
-    constructor(key) {
-        this.key = key; // e.g., '(<cat> --> mammal)'
-        // Internal parser populates component properties
-    }
-
-    // Smart accessors for component terms
-    get subject() { /* ... */ }
-    get predicate() { /* ... */ }
-}
-```
-
-### `Task`: The Stateful Cognitive Atom
-A `Task` represents a specific, evidence-backed statement (a belief, goal, or question) about a `Term`. Its state, including truth value and priority, is constantly updated by the cognitive cycle.
-
-```javascript
-// Example: src/core/Task.js
-class Task {
-    constructor(term, punctuation, truthValue = { frequency: 1.0, confidence: 0.9 }) {
-        this.term = term;
-        this.punctuation = punctuation; // '.', '!', or '?'
-        this.truthValue = truthValue;
-        // ... other state like priority and timestamps
-    }
-}
-```
+The `SystemFactory` is the main entry point for creating a new system. It instantiates all the necessary cognitive components and injects them into the main `System` object. The `System` object, in turn, exposes a clean public API for interacting with the system, including the powerful `Introspection` API for observability. The `Cycle` object orchestrates the flow of information and reasoning between all other components.
 
 ---
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js (v14 or higher)
+- Node.js (v16 or higher)
 - npm
 
 ### Installation
@@ -145,7 +74,7 @@ To explore the system's capabilities, use the interactive demo runner:
 ```bash
 npm run start:demo
 ```
-This will present a list of available demos, providing the best way to see the system in action.
+This will present a list of available demos, providing the best way to see the system in action. The `comprehensive-system-demo.js` serves as a blueprint for how to use the system's API.
 
 ### Running Tests
 ```bash
@@ -156,44 +85,76 @@ npm test
 
 ## Usage as a Library
 
-Integrate the SeNARS system into your own projects.
+Integrate the SeNARS system into your own projects. The system is designed to be used as a library, with a clean, promise-based, and observable API.
 
 ```javascript
 import { SystemFactory, Task, parseTerm } from 'senars';
 
+// Example of a custom configuration to override the defaults
+const customConfig = {
+    // Make the system forget things faster for this demo
+    memory: {
+        MAINTENANCE_CYCLE_FREQUENCY: 3,
+    },
+    // Use the HTN planner (default)
+    planner: {
+        strategy: 'HTN',
+    }
+};
+
 async function runSystem() {
     // 1. Create a system instance using the factory
-    // The factory handles the creation of all system components.
-    console.log('Creating and initializing system...');
-    const system = await SystemFactory.createSystem();
+    console.log('Creating and initializing system with custom config...');
+    const system = await SystemFactory.createSystem(customConfig);
     console.log('System created and initialized.');
 
-    // 2. Add knowledge to the system
-    // We create a Task, which is a piece of knowledge with a truth value.
-    const beliefTerm = parseTerm('<cat --> animal>');
-    const belief = new Task(
-        beliefTerm,
-        '.', // '.' indicates a belief (judgment)
-        { frequency: 1.0, confidence: 0.9 }
-    );
-    await system.addTasks([belief]);
-    console.log('Belief "<cat --> animal>" added to the system.');
+    // 2. Subscribe to events using the Introspection API
+    console.log('Subscribing to 'SystemCycleEnded' event...');
+    system.introspection.on('SystemCycleEnded', (result) => {
+        console.log(`EVENT: Cycle ended. Derived ${result.derivedTasks} new tasks.`);
+    });
 
-    // 3. Run the cognitive cycle
-    // The cognitive cycle is the "heartbeat" of the system, where reasoning happens.
-    console.log('Running 10 cognitive cycles...');
-    for (let i = 0; i < 10; i++) {
-        const result = await system.runCycle();
-        console.log(`Cycle ${i + 1} completed. Derived ${result.derivedTasks.length} new tasks.`);
+    // 3. Add knowledge to the system
+    console.log('Adding knowledge...');
+    const beliefTerm = parseTerm('(dog --> mammal)');
+    const belief = new Task(beliefTerm, '.');
+    await system.addTasks([belief]);
+
+    const questionTerm = parseTerm('(<dog> --> warm_blooded)');
+    const question = new Task(questionTerm, '?');
+    await system.addTasks([question]);
+
+    // 4. Run the cognitive cycles
+    console.log('Running 5 cognitive cycles...');
+    for (let i = 0; i < 5; i++) {
+        await system.runCycle();
+        const status = system.introspection.getStatus();
+        console.log(`  Cycle ${i + 1}: ${status.memory.shortTermTasks} tasks in STM.`);
     }
 
-    // 4. Stop the system
+    // 5. Query the final state using the Introspection API
+    console.log('Querying for the answer...');
+    const answers = system.introspection.queryTasks({ termKey: '(<dog> --> warm_blooded)', punctuation: '.' });
+
+    if (answers.length > 0) {
+        const bestAnswer = answers.sort((a, b) => b.state.truthValue.confidence - a.state.truthValue.confidence)[0];
+        console.log(`ANSWER: The system believes "(<dog> --> warm_blooded)" is TRUE with confidence ${bestAnswer.state.truthValue.confidence.toFixed(2)}`);
+    } else {
+        console.log('ANSWER: The system has not yet concluded an answer.');
+    }
+
+    // 6. Stop the system
     system.stop();
     console.log('System stopped.');
 }
 
-runSystem();
+runSystem().catch(console.error);
 ```
+
+### Planning Strategies
+The system supports multiple planning algorithms. The active planner can be set in the configuration object passed to `SystemFactory`.
+- **`HTN` (Hierarchical Task Network):** The default and recommended planner. It's robust and well-suited for complex, multi-step problems.
+- **`AStar`:** An alternative heuristic-based search planner. **Note:** This planner is currently experimental and has known bugs.
 
 ---
 

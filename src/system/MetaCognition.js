@@ -5,11 +5,13 @@ import {debug, error, info} from '../utils/logger.js';
 import {getBeliefTasks} from '../utils/task-utils.js';
 import {handleErrorWithDefault} from '../utils/error-handler.js';
 import EventBus from './EventBus.js';
+import defaultConfig from '../config/default-config.js';
 
 class MetaCognition {
-    constructor() {
-        this.contradictionAnalyzer = new ContradictionAnalyzer();
-        this.resolutionStrategy = new ResolutionStrategy();
+    constructor(config = defaultConfig, dependencies = {}) {
+        this.config = config;
+        this.contradictionAnalyzer = dependencies.contradictionAnalyzer || new ContradictionAnalyzer();
+        this.resolutionStrategy = dependencies.resolutionStrategy || new ResolutionStrategy();
         info('MetaCognition initialized');
 
         EventBus.handle('MetaCognition.findContradictions', this.findContradictions.bind(this));

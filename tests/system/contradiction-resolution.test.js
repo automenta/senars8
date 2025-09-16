@@ -7,6 +7,14 @@ import Task from '../../src/core/Task.js';
 import Term from '../../src/core/Term.js';
 import {parseTerm} from '../../src/parser/narseseParser.js';
 import config from '../../src/config/index.js';
+import Perception from '../../src/system/Perception.js';
+import Planner from '../../src/system/Planner.js';
+import MetaCognition from '../../src/system/MetaCognition.js';
+import TemporalReasoner from '../../src/reasoner/TemporalReasoner.js';
+import PriorityManager from '../../src/reasoner/PriorityManager.js';
+import ContradictionAnalyzer from '../../src/reasoner/ContradictionAnalyzer.js';
+import ResolutionStrategy from '../../src/reasoner/strategies/ResolutionStrategy.js';
+import CONSTITUTION_TASKS from '../../src/system/Constitution.js';
 
 // Mock the LM to avoid loading heavy models
 jest.mock('../../src/lm/LM.js');
@@ -26,11 +34,33 @@ describe('Contradiction Resolution in Cycle', () => {
     let memory, reasoner, lm, cycle;
 
     beforeEach(async () => {
+        // Manually assemble the components as the SystemFactory would
         memory = new Memory();
-        reasoner = new Reasoner();
         lm = new LM();
+        const temporalReasoner = new TemporalReasoner();
+        reasoner = new Reasoner({temporalReasoner}, {strategy: 'BruteForce'});
         const actionExecutor = new ActionExecutor(memory);
-        cycle = new Cycle(memory, reasoner, lm, actionExecutor, config);
+
+        // Cycle-specific components
+        const perception = new Perception(memory, lm);
+        const planner = new Planner(memory, lm, actionExecutor, config.planner);
+        const contradictionAnalyzer = new ContradictionAnalyzer();
+        const resolutionStrategy = new ResolutionStrategy();
+        const metaCognition = new MetaCognition(config, {contradictionAnalyzer, resolutionStrategy});
+        const priorityManager = new PriorityManager(memory);
+
+        // Create the cycle with the new constructor signature
+        cycle = new Cycle(config, {
+            memory,
+            reasoner,
+            lm,
+            actionExecutor,
+            perception,
+            planner,
+            metaCognition,
+            temporalReasoner,
+            priorityManager
+        });
 
         // Mock LM methods
         lm.generateHypotheses.mockResolvedValue([]);
@@ -43,7 +73,7 @@ describe('Contradiction Resolution in Cycle', () => {
         lm.proactiveEnrichment.mockResolvedValue([]);
 
         // Bootstrap constitution terms
-        await cycle.bootstrap();
+        await cycle.bootstrap(CONSTITUTION_TASKS);
     });
 
     test('should apply revision strategy for high-severity contradictions', async () => {
@@ -76,7 +106,7 @@ describe('Contradiction Resolution in Cycle', () => {
 
         // The weaker task's confidence should be significantly reduced
         expect(revisedTask.state.truthValue.confidence).toBeLessThan(0.8);
-        expect(revisedTask.state.truthValue.confidence).toBe(0.8 * 0.1); // 0.08
+        expect(revisedTask.state.truthValue.confidence).toBe(0.8 * config.system.CONFIDENCE_REDUCTION_FACTOR);
         // The stronger task's confidence should remain unchanged
         expect(originalTask.state.truthValue.confidence).toBe(0.9);
 
@@ -85,7 +115,7 @@ describe('Contradiction Resolution in Cycle', () => {
         expect(metaTask).toBeDefined();
         expect(metaTask.termKey).toBe(`(&, investigate_source, ${termKey2})`);
         expect(metaTask.punctuation).toBe('!');
-        expect(metaTask.state.priority).toBe(0.9); // META_TASK_PRIORITY
+        expect(metaTask.state.priority).toBe(config.META_TASK_PRIORITY);
     });
 
     test('should apply evidence gathering strategy for moderate-severity contradictions', async () => {
