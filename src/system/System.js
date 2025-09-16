@@ -3,8 +3,8 @@ import '../utils/onnxSuppression.js';
 
 import registerDefaultActions from './default-actions.js';
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
-import {debug, error as logError, info, warn} from '../utils/logger.js';
-import {normalizeToArray} from '../utils/helpers.js';
+import {debug, info, warn} from '../utils/logger.js';
+import {normalizeToArray} from '../utils/index.js';
 import Introspection from './Introspection.js';
 import ConfigManager from '../config/ConfigManager.js';
 

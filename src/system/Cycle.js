@@ -1,5 +1,5 @@
 import {safeAsync} from '../utils/errorHandler.js';
-import {getTasksByType} from '../utils/task-utils.js';
+import {getTasksByType} from '../utils/index.js';
 import EventBus from './EventBus.js';
 
 class Cycle {

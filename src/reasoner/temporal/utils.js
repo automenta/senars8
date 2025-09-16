@@ -1,8 +1,7 @@
-import Task from '../core/Task.js';
-import {parseTerm} from '../parser/narseseParser.js';
-import config from '../config/index.js';
+import Task from '../../core/Task.js';
+import {parseTerm} from '../../parser/narseseParser.js';
+import config from '../../config/index.js';
 
-// From helpers.js
 function groupTasksByTermKey(tasks) {
     const taskGroups = {};
     // Use for loop instead of forEach for better performance

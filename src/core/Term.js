@@ -1,5 +1,5 @@
 import {parseTerm} from '../parser/parse-utils.js';
-import {cosineSimilarity} from '../utils/math.js';
+import {cosineSimilarity} from '../utils/index.js';
 import config from '../config/index.js';
 import EmbeddingStore from '../utils/EmbeddingStore.js';
 

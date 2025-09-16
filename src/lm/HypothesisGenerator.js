@@ -1,5 +1,5 @@
 import Task from '../core/Task.js';
-import {cosineSimilarity} from '../utils/math.js';
+import {cosineSimilarity} from '../utils/index.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
 import zod from 'zod';

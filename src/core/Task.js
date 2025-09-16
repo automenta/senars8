@@ -2,7 +2,7 @@ import {generateOptimizedId} from '../utils/IdGenerator.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
 import TruthValueManager from '../reasoner/TruthValueManager.js';
-import {isTask} from '../utils/task-utils.js';
+import {isTask} from '../utils/index.js';
 
 const {DEFAULT_TRUTH_VALUE} = config;
 

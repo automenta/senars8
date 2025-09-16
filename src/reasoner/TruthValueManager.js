@@ -1,6 +1,6 @@
 import config from '../config/index.js';
 import {handleErrorWithDefault} from '../utils/errorHandler.js';
-import {getBeliefTasks} from '../utils/task-utils.js';
+import {getBeliefTasks} from '../utils/index.js';
 
 /**
  * Truth Value Manager

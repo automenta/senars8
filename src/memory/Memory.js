@@ -1,8 +1,8 @@
 import Term from '../core/Term.js';
 import Task from '../core/Task.js';
 import EventBus from '../system/EventBus.js';
-import {normalizeToArray} from '../utils/helpers.js';
-import {isTask} from '../utils/task-utils.js';
+import {normalizeToArray} from '../utils/index.js';
+import {isTask} from '../utils/index.js';
 import {
     consolidateMemory,
     getHighestPriorityTasksWithPQ,
