@@ -151,6 +151,34 @@ async function runSystem() {
 runSystem().catch(console.error);
 ```
 
+### Language Model Configuration
+
+The system can be configured to use different Large Language Model (LLM) providers. This is controlled by the `LLM_PROVIDER` setting in the `LM` section of the configuration.
+
+#### Supported Providers
+
+-   **`xenova` (Default for testing):** Uses the [`@xenova/transformers`](https://github.com/xenova/transformers.js) library to run models directly within the Node.js process. This is convenient for testing and development as it requires no external setup, but it may not be suitable for production due to performance and logging verbosity.
+-   **`ollama` (Recommended for development):** Uses a local [Ollama](https://ollama.com/) server to run LLMs. This is the recommended approach for local development as it offers better performance and a wider range of models.
+
+#### Setting up Ollama
+
+1.  **Install Ollama:** Follow the instructions on the [Ollama website](https://ollama.com/) to download and install it on your system.
+2.  **Pull a model:** You need to have a model available that matches the `TEXT_GENERATION_MODEL` setting in your configuration. We recommend starting with `llama3.1`. You can pull it by running:
+    ```bash
+    ollama pull llama3.1
+    ```
+3.  **Configure the system:** In your configuration object, set the `LLM_PROVIDER` to `'ollama'` and ensure the `TEXT_GENERATION_MODEL` matches the model you pulled. You can also specify the `OLLAMA_BASE_URL` if your Ollama server is not running on the default `http://127.0.0.1:11434`.
+
+    ```javascript
+    const customConfig = {
+        LM: {
+            LLM_PROVIDER: 'ollama',
+            TEXT_GENERATION_MODEL: 'llama3.1', // Make sure this model is available in Ollama
+            // OLLAMA_BASE_URL: 'http://localhost:11434' // Optional
+        }
+    };
+    ```
+
 ### Planning Strategies
 The system supports multiple planning algorithms. The active planner can be set in the configuration object passed to `SystemFactory`.
 - **`HTN` (Hierarchical Task Network):** The default and recommended planner. It's robust and well-suited for complex, multi-step problems.

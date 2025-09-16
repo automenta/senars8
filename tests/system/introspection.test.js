@@ -17,7 +17,12 @@ describe('System Introspection API', () => {
 
     beforeAll(async () => {
         // Create a single system instance for all tests in this suite
-        system = await SystemFactory.createSystem();
+        const customConfig = {
+            LM: {
+                LLM_PROVIDER: 'xenova',
+            }
+        };
+        system = await SystemFactory.createSystem(customConfig);
     });
 
     afterAll(() => {

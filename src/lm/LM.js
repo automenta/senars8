@@ -1,3 +1,5 @@
+import { Ollama } from '@langchain/community/llms/ollama';
+import { suppressOnnxWarnings } from '../utils/onnxSuppression.js';
 import Term from '../core/Term.js';
 import XenovaLLM from './XenovaLLM.js';
 import {LLMChain} from 'langchain/chains';
@@ -93,13 +95,37 @@ class LM {
     }
 
     async _getGenerationPipeline() {
-        debug('Getting text generation pipeline');
-        const pipeline = await this._pipelineFactory.get(PIPELINE_TYPES.TEXT_GENERATION, this.config.TEXT_GENERATION_MODEL, {useCache: false});
-        if (!this._llm) {
-            info('Initializing XenovaLLM');
-            this._llm = new XenovaLLM(pipeline);
+        if (this._llm) {
+            // Return a pipeline-like function for the existing LLM
+            if (this.config.LLM_PROVIDER === 'ollama') {
+                return (prompt, options) => this._llm.invoke(prompt, options);
+            }
+            return this._llm.pipeline;
         }
-        return pipeline;
+
+        const provider = this.config.LLM_PROVIDER || 'xenova';
+        info(`Initializing LLM with provider: ${provider}`);
+
+        switch (provider) {
+            case 'ollama':
+                this._llm = new Ollama({
+                    model: this.config.TEXT_GENERATION_MODEL,
+                    baseUrl: this.config.OLLAMA_BASE_URL,
+                });
+                // For Ollama, the "pipeline" is just the invoke method
+                return (prompt, options) => this._llm.invoke(prompt, options);
+            case 'xenova':
+                suppressOnnxWarnings();
+                const pipeline = await this._pipelineFactory.get(
+                    PIPELINE_TYPES.TEXT_GENERATION,
+                    this.config.TEXT_GENERATION_MODEL,
+                    { useCache: false }
+                );
+                this._llm = new XenovaLLM(pipeline);
+                return pipeline;
+            default:
+                throw new Error(`Unsupported LLM provider: ${provider}`);
+        }
     }
 
     async _getQAPipeline() {
@@ -113,8 +139,8 @@ class LM {
         }
         try {
             debug('Generating text with prompt length:', prompt.length);
-            await this._getGenerationPipeline();
-            const result = await this._llm._call(prompt, options);
+            await this._getGenerationPipeline(); // Ensures LLM is initialized
+            const result = await this._llm.invoke(prompt, options);
             debug('Text generation completed');
             return result;
         } catch (err) {

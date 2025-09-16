@@ -25,8 +25,10 @@ export default {
 
     // Language Model (LM) settings
     LM: {
+        LLM_PROVIDER: 'ollama', // 'xenova' or 'ollama'
+        OLLAMA_BASE_URL: 'http://127.0.0.1:11434',
         FEATURE_EXTRACTION_MODEL: 'Xenova/all-MiniLM-L6-v2',
-        TEXT_GENERATION_MODEL: 'Xenova/distilgpt2',
+        TEXT_GENERATION_MODEL: 'Xenova/distilgpt2', // This will be used by both providers
         QA_MODEL: 'Xenova/distilbert-base-uncased-distilled-squad',
         EMBEDDING_BATCH_SIZE: 10,
         EMBEDDING_BATCH_DELAY_MS: 100
