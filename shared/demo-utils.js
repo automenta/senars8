@@ -3,6 +3,21 @@ import {parseTerm} from '../src/parser/parse-utils.js';
 import SystemFactory from '../src/system/SystemFactory.js';
 import {debug, info, warn} from '../src/utils/logger.js';
 
+const anside = {
+    reset: "\x1b[0m",
+    bright: "\x1b[1m",
+    dim: "\x1b[2m",
+    underscore: "\x1b[4m",
+    fg: {
+        red: "\x1b[31m",
+        green: "\x1b[32m",
+        yellow: "\x1b[33m",
+        blue: "\x1b[34m",
+        magenta: "\x1b[35m",
+        cyan: "\x1b[36m",
+    },
+};
+
 /**
  * A utility function to create a Task object from a definition.
  * @param {object} def - The task definition object.
@@ -51,6 +66,26 @@ function createTaskFromMacro(macro) {
 }
 
 /**
+ * Prints a visually appealing header for a demo.
+ * @param {string} demoName - The name of the demo.
+ */
+function printHeader(demoName) {
+    console.log(`\n${anside.bright}${anside.fg.cyan}================================================================================${anside.reset}`);
+    console.log(`${anside.bright}${anside.fg.yellow}                      🚀 Starting Demo: ${demoName}                       ${anside.reset}`);
+    console.log(`${anside.bright}${anside.fg.cyan}================================================================================${anside.reset}`);
+}
+
+/**
+ * Prints a visually appealing footer for a demo.
+ * @param {string} demoName - The name of the demo.
+ */
+function printFooter(demoName) {
+    console.log(`\n${anside.bright}${anside.fg.cyan}================================================================================${anside.reset}`);
+    console.log(`${anside.bright}${anside.fg.yellow}                      ✅ Demo Completed: ${demoName}                      ${anside.reset}`);
+    console.log(`${anside.bright}${anside.fg.cyan}================================================================================${anside.reset}\n`);
+}
+
+/**
  * A robust, standardized runner for executing system demonstrations.
  * It handles system creation, setup, execution, and logging.
  *
@@ -71,7 +106,7 @@ async function runDemo(demoName, taskDefs, {
     preCycleCallback = null,
     postCycleCallback = null
 } = {}) {
-    info(`\n\n--- 🚀 Starting Demo: ${demoName} ---`);
+    printHeader(demoName);
 
     const system = await SystemFactory.createSystem(config);
     debug('System created.');
@@ -97,8 +132,8 @@ async function runDemo(demoName, taskDefs, {
 
     if (postCycleCallback) await postCycleCallback(system, tasks);
 
-    info(`--- ✅ Demo Completed: ${demoName} ---\n`);
+    printFooter(demoName);
     return system;
 }
 
-export {createTask, runDemo};
+export {createTask, runDemo, printHeader, printFooter};

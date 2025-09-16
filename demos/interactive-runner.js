@@ -37,10 +37,17 @@ function getDemoFiles() {
     });
 
     // Group demos by category
-    return demos.reduce((acc, demo) => {
+    const categorized = demos.reduce((acc, demo) => {
         (acc[demo.category] = acc[demo.category] || []).push(demo);
         return acc;
     }, {});
+
+    // Sort demos within each category
+    for (const category in categorized) {
+        categorized[category].sort((a, b) => a.file.localeCompare(b.file));
+    }
+
+    return categorized;
 }
 
 async function runDemo(demoFile) {
@@ -58,28 +65,32 @@ async function runDemo(demoFile) {
 
 function displayMenu(categorizedDemos) {
     console.clear();
-    console.log(`${anside.bright}${anside.fg.cyan}╔═════════════════════════════════════════╗`);
-    console.log(`║ ${anside.bright}${anside.fg.yellow} SeNARS Cognitive System Demo Runner ${anside.fg.cyan}║`);
-    console.log(`╚═════════════════════════════════════════╝${anside.reset}`);
+    console.log(`${anside.bright}${anside.fg.cyan}================================================================================${anside.reset}`);
+    console.log(`${anside.bright}${anside.fg.yellow}                      SeNARS Cognitive System Demo Runner                       ${anside.reset}`);
+    console.log(`${anside.bright}${anside.fg.cyan}================================================================================${anside.reset}`);
 
     let demoIndex = 1;
     const demoMap = new Map();
+    const categories = Object.keys(categorizedDemos).sort();
 
-    for (const category in categorizedDemos) {
-        console.log(`\n${anside.bright}${anside.fg.magenta}╔═════════════════════════════════════════╗`);
-        console.log(`║ ${anside.bright}${anside.fg.yellow} ${category.padEnd(35)} ${anside.fg.magenta}║`);
-        console.log(`╚═════════════════════════════════════════╝${anside.reset}`);
-        categorizedDemos[category].forEach(demo => {
-            console.log(`${anside.fg.yellow}${demoIndex}:${anside.reset} ${anside.bright}${demo.file}${anside.reset}`);
-            console.log(`   ${anside.fg.cyan}${demo.description}${anside.reset}`);
-            demoMap.set(demoIndex, demo.file);
+    for (const category of categories) {
+        console.log(`\n${anside.bright}${anside.fg.magenta}--- ${category} ---${anside.reset}`);
+        const demos = categorizedDemos[category];
+        demos.forEach(demo => {
+            const shortFile = demo.file.replace('-demo.js', '');
+            const description = demo.description.length > 50 ? demo.description.substring(0, 47) + '...' : demo.description;
+            console.log(`${anside.fg.yellow}${String(demoIndex).padEnd(2)}:${anside.reset} ${anside.bright}${shortFile.padEnd(35)}${anside.reset} ${anside.fg.cyan}${description}${anside.reset}`);
+            demoMap.set(demoIndex, { action: 'run', file: demo.file });
             demoIndex++;
         });
+        console.log(`${anside.fg.yellow}${String(demoIndex).padEnd(2)}:${anside.reset} ${anside.bright}Run all in this category${anside.reset}`);
+        demoMap.set(demoIndex, { action: 'run_category', category: category });
+        demoIndex++;
     }
 
-    console.log(`\n${anside.bright}${anside.fg.magenta}--- Other ---${anside.reset}`);
-    console.log(`${anside.fg.yellow}0:${anside.reset} ${anside.bright}Run all demos${anside.reset}`);
-    console.log(`${anside.fg.red}q:${anside.reset} ${anside.bright}Exit${anside.reset}`);
+    console.log(`\n${anside.bright}${anside.fg.magenta}--------------------------------------------------------------------------------${anside.reset}`);
+    console.log(`${anside.fg.yellow} a:${anside.reset} ${anside.bright}Run all demos${anside.reset}`);
+    console.log(`${anside.fg.yellow} q:${anside.reset} ${anside.bright}Exit${anside.reset}`);
 
     return demoMap;
 }
@@ -95,12 +106,6 @@ async function main() {
     while (keepRunning) {
         const categorizedDemos = getDemoFiles();
         const demoFiles = Object.values(categorizedDemos).flat();
-
-        if (demoFiles.length === 0) {
-            console.log("No demos found.");
-            break;
-        }
-
         const demoMap = displayMenu(categorizedDemos);
 
         const answer = await new Promise(resolve => {
@@ -112,26 +117,31 @@ async function main() {
             continue;
         }
 
+        if (answer.toLowerCase() === 'a') {
+            for (const demo of demoFiles) {
+                await runDemo(demo.file);
+            }
+            await new Promise(resolve => {
+                rl.question(`\n${anside.fg.green}Press Enter to continue...${anside.reset}`, resolve);
+            });
+            continue;
+        }
+
         const choice = parseInt(answer, 10);
 
-        if (isNaN(choice) || choice < 0 || choice > demoFiles.length) {
+        if (isNaN(choice) || !demoMap.has(choice)) {
             console.log(anside.fg.red + "Invalid choice. Please try again." + anside.reset);
             await new Promise(resolve => setTimeout(resolve, 1500));
             continue;
         }
 
-        if (choice === 0) {
-            for (const demo of demoFiles) {
+        const selected = demoMap.get(choice);
+        if (selected.action === 'run') {
+            await runDemo(selected.file);
+        } else if (selected.action === 'run_category') {
+            const demosToRun = categorizedDemos[selected.category];
+            for (const demo of demosToRun) {
                 await runDemo(demo.file);
-            }
-        } else {
-            const demoFile = demoMap.get(choice);
-            if (demoFile) {
-                await runDemo(demoFile);
-            } else {
-                console.log(anside.fg.red + "Invalid choice. Please try again." + anside.reset);
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                continue;
             }
         }
 

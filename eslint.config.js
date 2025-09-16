@@ -14,6 +14,7 @@ export default [
                 exports: 'readonly',
                 __dirname: 'readonly',
                 __filename: 'readonly',
+                structuredClone: 'readonly',
 
                 // Jest globals
                 describe: 'readonly',
