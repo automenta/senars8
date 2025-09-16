@@ -1,29 +1,48 @@
-const {buildTermKey} = require('../../utils/term-builder');
-const {deduceTruthValue} = require('../truth-value');
-const {createRule} = require('./rule-builder');
+import {createUnaryInheritanceRule} from './rule-factories.js';
+import Term from '../../core/Term.js';
+import {validateTermKey} from '../../parser/parse-utils.js';
 
-module.exports = createRule({
-    name: 'contraposition',
-    arity: 1,
-    operands: [
-        (task) => task.punctuation === '.',
-    ],
-    condition: (parsed1) =>
-        parsed1?.type === 'Inheritance',
-    action: (parsed1, task1) => {
-        // Contraposition: (S --> P) |- ((--,P) --> (--,S))
-        const newTermKey = buildTermKey({
-            type: 'Inheritance',
-            subject: `(--,${buildTermKey(parsed1.predicate)})`,
-            predicate: `(--,${buildTermKey(parsed1.subject)})`
-        });
+export default createUnaryInheritanceRule(
+    'contraposition',
+    parsed1 => {
+        // Validate that we have valid subject and predicate
+        if (!parsed1.subject || !parsed1.predicate) {
+            return null;
+        }
 
-        // Truth value remains the same for contraposition
-        const newTruthValue = {
-            frequency: task1.state.truthValue.frequency,
-            confidence: task1.state.truthValue.confidence
+        // Create negated terms properly
+        const negatedSubject = {
+            type: 'Negation',
+            term: parsed1.predicate  // Use the original parsed predicate
+        };
+        const negatedPredicate = {
+            type: 'Negation',
+            term: parsed1.subject    // Use the original parsed subject
         };
 
-        return {newTermKey, newTruthValue};
+        // Try to build the term key and validate it
+        try {
+            const result = Term.buildTermKey({
+                type: 'Inheritance',
+                subject: negatedSubject,
+                predicate: negatedPredicate
+            });
+
+            // Additional validation to ensure we're not creating malformed terms
+            if (!result || result.length === 0) {
+                return null;
+            }
+
+            // Use the existing validation function
+            if (!validateTermKey(result)) {
+                return null;
+            }
+
+            return result;
+        } catch {
+            // If building the term key fails, return null
+            return null;
+        }
     },
-});
+    truthValue => truthValue // Truth value remains the same
+);

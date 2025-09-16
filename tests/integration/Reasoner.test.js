@@ -1,16 +1,16 @@
-const Reasoner = require('../../src/reasoner/Reasoner');
-const Memory = require('../../src/memory/Memory');
-const Task = require('../../src/core/Task');
-const Term = require('../../src/core/Term');
-const {parseTerm} = require('../../src/parser/NewParser');
-const LM = require('../../src/lm/LM');
+import Reasoner from '../../src/reasoner/Reasoner.js';
+import Memory from '../../src/memory/Memory.js';
+import Task from '../../src/core/Task.js';
+import Term from '../../src/core/Term.js';
+import {parseTerm} from '../../src/parser/narseseParser.js';
+import LM from '../../src/lm/LM.js';
 
-jest.mock('../../src/lm/LM');
+jest.mock('../../src/lm/LM.js');
 jest.mock('@xenova/transformers', () => {
-    const transformers = jest.genMockFromModule('@xenova/transformers');
+    const transformers = jest.createMockFromModule('@xenova/transformers');
     transformers.pipeline = jest.fn(async () => {
         return jest.fn(() => ({
-            data: new Float32Array([1, 2, 3]),
+            data: new Float32Array([1, 2, 3])
         }));
     });
     return transformers;
@@ -20,11 +20,12 @@ describe('Reasoner Integration Test', () => {
     let reasoner, memory, lm;
 
     beforeEach(() => {
-        reasoner = new Reasoner();
+        // Use BruteForceStrategy for deterministic test results by passing a config override
+        reasoner = new Reasoner({}, {strategy: 'BruteForce'});
         memory = new Memory();
         lm = new LM();
 
-        lm.bootstrapTerm.mockImplementation(async (termKey) => {
+        lm.bootstrapTerm.mockImplementation(async termKey => {
             return new Term(termKey, [], 1);
         });
     });
@@ -35,12 +36,10 @@ describe('Reasoner Integration Test', () => {
         memory.addTerm(termA);
         memory.addTerm(termB);
 
-        const task1 = new Task(parseTerm('(cat ==> mammal)'), '.');
-        task1.state.priority = 1;
-        const task2 = new Task(termA, '.');
-        task2.state.priority = 1;
+        const task1 = new Task(parseTerm('(cat ==> mammal)'), '.', {}, {});
+        const task2 = new Task(termA, '.', {}, {});
 
-        const derivedTasks = reasoner.performInference([task1, task2], memory.terms);
+        const derivedTasks = reasoner.performInference([task1, task2]);
         const derivedTask = derivedTasks.find(t => t.termKey === 'mammal');
         expect(derivedTask).toBeDefined();
     });
@@ -54,11 +53,9 @@ describe('Reasoner Integration Test', () => {
         memory.addTerm(termC);
 
         const task1 = new Task(parseTerm('(cat --> mammal)'), '.');
-        task1.state.priority = 1;
         const task2 = new Task(parseTerm('(mammal --> animal)'), '.');
-        task2.state.priority = 1;
 
-        const derivedTasks = reasoner.performInference([task1, task2], memory.terms);
+        const derivedTasks = reasoner.performInference([task1, task2]);
         const derivedTask = derivedTasks.find(t => t.termKey === '(cat --> animal)');
         expect(derivedTask).toBeDefined();
     });

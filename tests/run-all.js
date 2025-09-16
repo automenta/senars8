@@ -9,19 +9,19 @@ const testFiles = fs.readdirSync(testsDir)
     .sort();
 
 async function runAllTests() {
-    console.log("=== SeNARS Test Suite Runner ===\n");
+    console.log('=== SeNARS Test Suite Runner ===\n');
 
     const results = [];
 
     for (const testFile of testFiles) {
         try {
             console.log(`\n▶ Running ${testFile}...`);
-            console.log("=".repeat(50));
+            console.log('='.repeat(50));
 
             require(path.join(testsDir, testFile));
             results.push({test: testFile, success: true});
 
-            console.log("=".repeat(50));
+            console.log('='.repeat(50));
             console.log(`✓ ${testFile} completed\n`);
         } catch (error) {
             console.error(`✗ ${testFile} failed:`, error.message);
@@ -29,7 +29,7 @@ async function runAllTests() {
         }
     }
 
-    console.log("\n=== Test Suite Execution Summary ===");
+    console.log('\n=== Test Suite Execution Summary ===');
     let passed = 0;
     let failed = 0;
 
@@ -52,7 +52,7 @@ async function runAllTests() {
 
 if (require.main === module) {
     runAllTests().catch(error => {
-        console.error("Runner failed:", error);
+        console.error('Runner failed:', error);
         process.exit(1);
     });
 }
