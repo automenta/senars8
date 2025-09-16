@@ -1,7 +1,7 @@
 import Task from '../src/core/Task.js';
-import { parseTerm } from '../src/parser/parse-utils.js';
+import {parseTerm} from '../src/parser/parse-utils.js';
 import SystemFactory from '../src/system/SystemFactory.js';
-import { info, warn, debug } from '../src/utils/logger.js';
+import {debug, info, warn} from '../src/utils/logger.js';
 
 /**
  * A utility function to create a Task object from a definition.
@@ -28,7 +28,7 @@ function createTask(def) {
  * @returns {Task|null} A new Task object or null if parsing fails.
  */
 function createTaskFromMacro(macro) {
-    const { sentence, truth, stamp } = macro;
+    const {sentence, truth, stamp} = macro;
     const punctuation = sentence.slice(-1);
     const termKey = sentence.slice(0, -1);
 
@@ -38,7 +38,7 @@ function createTaskFromMacro(macro) {
     }
 
     const truthValue = (truth && truth.length === 2)
-        ? { frequency: truth[0], confidence: truth[1] }
+        ? {frequency: truth[0], confidence: truth[1]}
         : undefined;
 
     const parsedTerm = parseTerm(termKey);
@@ -101,4 +101,4 @@ async function runDemo(demoName, taskDefs, {
     return system;
 }
 
-export { createTask, runDemo };
+export {createTask, runDemo};

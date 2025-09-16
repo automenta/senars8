@@ -1,13 +1,13 @@
 // Category: Reasoning
 // Description: Compares different reasoning strategies, such as Brute-Force vs. Priority-based Bag Sampling.
 
-import { runDemo } from '../shared/demo-utils.js';
+import {runDemo} from '../shared/demo-utils.js';
 
 async function strategyComparisonDemo() {
     const taskDefs = [
-        { sentence: '(HighPriority --> result).', truth: [1.0, 0.99] },
-        { sentence: '(MediumPriority --> result).', truth: [1.0, 0.5] },
-        { sentence: '(LowPriority --> result).', truth: [1.0, 0.1] },
+        {sentence: '(HighPriority --> result).', truth: [1.0, 0.99]},
+        {sentence: '(MediumPriority --> result).', truth: [1.0, 0.5]},
+        {sentence: '(LowPriority --> result).', truth: [1.0, 0.1]},
     ];
 
     console.log("--- Running with default BagSamplingStrategy ---");

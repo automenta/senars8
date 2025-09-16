@@ -1,17 +1,17 @@
 // Category: Narsese Language
 // Description: Demonstrates parsing and reasoning with a richer, more expressive form of Narsese, including temporal operators.
 
-import { runDemo } from '../shared/demo-utils.js';
+import {runDemo} from '../shared/demo-utils.js';
 
 async function enhancedNarseseDemo() {
     const taskDefs = [
         // Temporal operators and relationships
-        { sentence: '(always, (bird --> animal)).', truth: [1.0, 0.9] },
-        { sentence: '((task_a --> start) until (task_b --> finish)).', truth: [0.85, 0.8] },
+        {sentence: '(always, (bird --> animal)).', truth: [1.0, 0.9]},
+        {sentence: '((task_a --> start) until (task_b --> finish)).', truth: [0.85, 0.8]},
         // Complex sequential conjunction
-        { sentence: '(&/, (initialize --> system), (load --> data), (process --> information))!', truth: [0.9, 0.85] },
+        {sentence: '(&/, (initialize --> system), (load --> data), (process --> information))!', truth: [0.9, 0.85]},
         // Question about a temporal relationship
-        { sentence: '(next, (action --> take))?', truth: [1.0, 0.8] },
+        {sentence: '(next, (action --> take))?', truth: [1.0, 0.8]},
     ];
 
     const postCycleCallback = (system) => {

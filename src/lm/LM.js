@@ -1,5 +1,5 @@
-import { Ollama } from '@langchain/community/llms/ollama';
-import { suppressOnnxWarnings } from '../utils/onnxSuppression.js';
+import {Ollama} from '@langchain/community/llms/ollama';
+import {suppressOnnxWarnings} from '../utils/onnxSuppression.js';
 import Term from '../core/Term.js';
 import XenovaLLM from './XenovaLLM.js';
 import {LLMChain} from 'langchain/chains';
@@ -119,7 +119,7 @@ class LM {
                 const pipeline = await this._pipelineFactory.get(
                     PIPELINE_TYPES.TEXT_GENERATION,
                     this.config.TEXT_GENERATION_MODEL,
-                    { useCache: false }
+                    {useCache: false}
                 );
                 this._llm = new XenovaLLM(pipeline);
                 return pipeline;

@@ -1,5 +1,5 @@
-import { pipeline } from '@xenova/transformers';
-import { info, warn } from '../utils/logger.js';
+import {pipeline} from '@xenova/transformers';
+import {info, warn} from '../utils/logger.js';
 
 class PipelineFactory {
     constructor() {

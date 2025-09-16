@@ -1,8 +1,8 @@
 // Category: Showcase
 // Description: A comprehensive showcase of the SeNARS system's core capabilities, from basic reasoning to advanced planning and learning.
 
-import { runDemo } from '../shared/demo-utils.js';
-import { info } from '../src/utils/logger.js';
+import {runDemo} from '../shared/demo-utils.js';
+import {info} from '../src/utils/logger.js';
 
 async function showcaseDemo() {
     info("--- 🚀 Welcome to the SeNARS Showcase! ---");
@@ -11,14 +11,14 @@ async function showcaseDemo() {
     // 1. Basic Reasoning
     info("\n--- 1. Basic Reasoning: Inferring new knowledge ---");
     const reasoningTasks = [
-        { sentence: '(cat --> mammal).', truth: [1.0, 0.9] },
-        { sentence: '(mammal --> animal).', truth: [1.0, 0.9] },
-        { sentence: '(cat --> animal)?' }
+        {sentence: '(cat --> mammal).', truth: [1.0, 0.9]},
+        {sentence: '(mammal --> animal).', truth: [1.0, 0.9]},
+        {sentence: '(cat --> animal)?'}
     ];
     await runDemo('Basic Reasoning', reasoningTasks, {
         cycleCount: 3,
         postCycleCallback: (system) => {
-            const conclusion = system.introspection.queryTasks({ termKey: '(cat --> animal)', punctuation: '.' });
+            const conclusion = system.introspection.queryTasks({termKey: '(cat --> animal)', punctuation: '.'});
             if (conclusion.length > 0) {
                 info("✅ Inference successful: The system concluded that a cat is an animal.");
             } else {
@@ -30,8 +30,8 @@ async function showcaseDemo() {
     // 2. Contradiction Resolution
     info("\n--- 2. Contradiction Resolution: Handling conflicting information ---");
     const contradictionTasks = [
-        { sentence: '(sun --> hot).', truth: [1.0, 0.99] },
-        { sentence: '(sun --> cold).', truth: [0.8, 0.8] } // Contradictory belief
+        {sentence: '(sun --> hot).', truth: [1.0, 0.99]},
+        {sentence: '(sun --> cold).', truth: [0.8, 0.8]} // Contradictory belief
     ];
     await runDemo('Contradiction Resolution', contradictionTasks, {
         cycleCount: 5,
@@ -48,12 +48,12 @@ async function showcaseDemo() {
     // 3. Simple Planning
     info("\n--- 3. Planning: Creating a sequence of actions to achieve a goal ---");
     const planningTasks = [
-        { sentence: '((get_cup & get_water) ==> have_drink).', truth: [1.0, 0.9] },
-        { sentence: 'have_drink!', truth: [1.0, 0.9] }
+        {sentence: '((get_cup & get_water) ==> have_drink).', truth: [1.0, 0.9]},
+        {sentence: 'have_drink!', truth: [1.0, 0.9]}
     ];
     const actionHandlers = [
-        { name: 'get_cup', handler: async () => info("Action: Getting a cup.") },
-        { name: 'get_water', handler: async () => info("Action: Getting water.") },
+        {name: 'get_cup', handler: async () => info("Action: Getting a cup.")},
+        {name: 'get_water', handler: async () => info("Action: Getting water.")},
     ];
     await runDemo('Simple Planning', planningTasks, {
         cycleCount: 8,
@@ -80,7 +80,7 @@ async function showcaseDemo() {
             system.addTasks(parsed);
         },
         postCycleCallback: (system) => {
-            const task = system.introspection.queryTasks({ termKey: '(car --> vehicle)' });
+            const task = system.introspection.queryTasks({termKey: '(car --> vehicle)'});
             if (task.length > 0) {
                 info("✅ NLP successful: The system correctly parsed the sentence.");
             } else {

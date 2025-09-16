@@ -2,9 +2,9 @@
 import '../utils/onnxSuppression.js';
 
 import registerDefaultActions from './default-actions.js';
-import { createModuleErrorHandler } from '../utils/errorHandler.js';
-import { debug, error, info, warn } from '../utils/logger.js';
-import { normalizeToArray } from '../utils/helpers.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {debug, error, info, warn} from '../utils/logger.js';
+import {normalizeToArray} from '../utils/helpers.js';
 import Introspection from './Introspection.js';
 
 const errorHandler = createModuleErrorHandler('System');
@@ -20,7 +20,7 @@ class System {
      * @param {object} components - An object containing all required system components.
      * @private
      */
-    constructor(config = {}, { memory, reasoner, lm, actionExecutor, cycle }) {
+    constructor(config = {}, {memory, reasoner, lm, actionExecutor, cycle}) {
         this.config = config;
         this.memory = memory;
         this.reasoner = reasoner;
@@ -50,7 +50,7 @@ class System {
             info('System: Initializing with constitution...');
             if (constitutionTasks?.length > 0) {
                 this.memory.addTasks(constitutionTasks);
-                await this._bootstrapTerms(constitutionTasks, { sync: true });
+                await this._bootstrapTerms(constitutionTasks, {sync: true});
             }
             await this.cycle.bootstrap(constitutionTasks);
             info('System: Initialized successfully.');
@@ -63,7 +63,7 @@ class System {
      * @param {object} [options={sync: false}] - Options for the bootstrapping process.
      * @private
      */
-    async _bootstrapTerms(tasks, options = { sync: false }) {
+    async _bootstrapTerms(tasks, options = {sync: false}) {
         await errorHandler.safeAsync(async () => {
             const newTermKeys = [...new Set(tasks.map(task => task.termKey))]
                 .filter(key => !this.memory.getTerm(key));

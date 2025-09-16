@@ -1,8 +1,8 @@
 import SystemFactory from '../system/SystemFactory.js';
-import { parseTerm } from '../parser/narseseParser.js';
-import { handleError } from '../utils/errorHandler.js';
+import {parseTerm} from '../parser/narseseParser.js';
+import {handleError} from '../utils/errorHandler.js';
 import MCP from './MCP.js';
-import { debug, warn } from '../utils/logger.js';
+import {debug, warn} from '../utils/logger.js';
 import Task from '../core/Task.js';
 
 /**
@@ -87,7 +87,7 @@ class Agent {
         const tool = this.tools[action.tool];
         if (!tool) throw new Error(`Tool not found: ${action.tool}`);
 
-        const { handler, parameters: toolParamsDef } = tool;
+        const {handler, parameters: toolParamsDef} = tool;
         if (!toolParamsDef?.properties) {
             return handler({}); // No parameters defined
         }
@@ -112,7 +112,7 @@ class Agent {
 
         switch (term.type) {
             case 'Atomic':
-                return { tool: term.key, parameters: [] };
+                return {tool: term.key, parameters: []};
             case 'SequentialConjunction':
             case 'Conjunction': {
                 const [nameTerm, ...paramTerms] = term.terms;

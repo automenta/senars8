@@ -1,8 +1,8 @@
 // Category: API Usage
 // Description: A blueprint demonstration of how to create, run, and inspect a SeNARS system using its core API.
 
-import { runDemo } from '../shared/demo-utils.js';
-import { info } from '../src/utils/logger.js';
+import {runDemo} from '../shared/demo-utils.js';
+import {info} from '../src/utils/logger.js';
 
 /**
  * This demo serves as a template for creating a client application (like a GUI or a bot)
@@ -12,10 +12,10 @@ import { info } from '../src/utils/logger.js';
 async function comprehensiveSystemDemo() {
     const taskDefs = [
         // Foundational knowledge about animals
-        { sentence: '(mammal --> warm_blooded).', truth: [1.0, 0.9] },
-        { sentence: '(dog --> mammal).', truth: [1.0, 0.95] },
+        {sentence: '(mammal --> warm_blooded).', truth: [1.0, 0.9]},
+        {sentence: '(dog --> mammal).', truth: [1.0, 0.95]},
         // A question for the system to answer
-        { sentence: '(<dog> --> warm_blooded)?', truth: [1.0, 0.9] }
+        {sentence: '(<dog> --> warm_blooded)?', truth: [1.0, 0.9]}
     ];
 
     const preCycleCallback = (system) => {

@@ -8,8 +8,8 @@ import {
     getHighestPriorityTasksWithPQ,
     indexImplication,
     indexTask,
-unindexTask,
-updateCostIndex
+    unindexTask,
+    updateCostIndex
 } from './memoryUtils.js';
 import TimeBasedForgettingStrategy from './strategies/TimeBasedForgettingStrategy.js';
 import defaultConfig from '../config/default-config.js';
@@ -296,7 +296,8 @@ class Memory {
         if (!json || !json.termKey) return null;
         const term = this.getTerm(json.termKey);
         if (!term) return null;
-        const deserializedStamp = { ...json.state.stamp
+        const deserializedStamp = {
+            ...json.state.stamp
         };
         for (const key in deserializedStamp) {
             if (typeof deserializedStamp[key] === 'string' && /^\d+$/.test(deserializedStamp[key])) {

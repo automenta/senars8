@@ -119,7 +119,7 @@ class NarseseParser {
 
     parseNumber() {
         const value = this.consume('number');
-        return { type: 'Number', value: parseFloat(value) };
+        return {type: 'Number', value: parseFloat(value)};
     }
 
     parseCompoundTerm() {
