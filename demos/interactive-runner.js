@@ -80,11 +80,11 @@ function displayMenu(categorizedDemos) {
             const shortFile = demo.file.replace('-demo.js', '');
             const description = demo.description.length > 50 ? demo.description.substring(0, 47) + '...' : demo.description;
             console.log(`${anside.fg.yellow}${String(demoIndex).padEnd(2)}:${anside.reset} ${anside.bright}${shortFile.padEnd(35)}${anside.reset} ${anside.fg.cyan}${description}${anside.reset}`);
-            demoMap.set(demoIndex, { action: 'run', file: demo.file });
+            demoMap.set(demoIndex, {action: 'run', file: demo.file});
             demoIndex++;
         });
         console.log(`${anside.fg.yellow}${String(demoIndex).padEnd(2)}:${anside.reset} ${anside.bright}Run all in this category${anside.reset}`);
-        demoMap.set(demoIndex, { action: 'run_category', category: category });
+        demoMap.set(demoIndex, {action: 'run_category', category: category});
         demoIndex++;
     }
 

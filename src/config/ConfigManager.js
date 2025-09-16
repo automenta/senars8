@@ -39,7 +39,7 @@ class ConfigManager {
             // Preserve null values, don't merge them
             if (value === null) {
                 merged[key] = null;
-            // Preserve empty objects, don't merge them
+                // Preserve empty objects, don't merge them
             } else if (typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0) {
                 merged[key] = {};
             } else if (typeof value === 'object' && !Array.isArray(value) &&
