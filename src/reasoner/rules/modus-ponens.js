@@ -1,6 +1,7 @@
 import TruthValueManager from '../TruthValueManager.js';
 import {createModusPonensRule} from './rule-factories.js';
 import Term from '../../core/Term.js';
+import {error as logError} from '../../utils/logger.js';
 
 /**
  * Modus Ponens Rule
@@ -16,7 +17,7 @@ export default createModusPonensRule(
         try {
             return Term.buildTermKey(parsed1.predicate);
         } catch (err) {
-            console.error('Error building modus ponens term:', err);
+            logError('Error building modus ponens term:', err);
             return null;
         }
     },

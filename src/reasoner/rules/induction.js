@@ -1,6 +1,7 @@
 import Term from '../../core/Term.js';
 import TruthValueManager from '../TruthValueManager.js';
 import {createBinaryInheritanceRule} from './rule-factories.js';
+import {error as logError} from '../../utils/logger.js';
 
 /**
  * Induction Rule
@@ -20,7 +21,7 @@ export default createBinaryInheritanceRule(
                 predicate: parsed2.subject
             });
         } catch (err) {
-            console.error('Error building induction term:', err);
+            logError('Error building induction term:', err);
             return null;
         }
     },
