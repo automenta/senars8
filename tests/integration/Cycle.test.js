@@ -5,7 +5,6 @@ import LM from '../../src/lm/LM.js';
 import ActionExecutor from '../../src/system/ActionExecutor.js';
 import Task from '../../src/core/Task.js';
 import Term from '../../src/core/Term.js';
-import config from '../../src/config/index.js';
 import Perception from '../../src/system/Perception.js';
 import Planner from '../../src/system/Planner.js';
 import MetaCognition from '../../src/system/MetaCognition.js';
@@ -14,6 +13,7 @@ import PriorityManager from '../../src/reasoner/PriorityManager.js';
 import ContradictionAnalyzer from '../../src/reasoner/ContradictionAnalyzer.js';
 import ResolutionStrategy from '../../src/reasoner/strategies/ResolutionStrategy.js';
 import CONSTITUTION_TASKS from '../../src/system/Constitution.js';
+import ConfigManager from '../../src/config/ConfigManager.js';
 
 jest.mock('../../src/lm/LM.js');
 
@@ -30,25 +30,33 @@ jest.mock('@xenova/transformers', () => {
 describe('Cycle Integration Test', () => {
     let memory, reasoner, lm, cycle;
 
-    beforeEach(() => {
-        // Manually assemble the components as the SystemFactory would
-        memory = new Memory();
-        lm = new LM();
-        const temporalReasoner = new TemporalReasoner();
-        // Use BruteForceStrategy for deterministic test results
-        reasoner = new Reasoner({temporalReasoner}, {strategy: 'BruteForce'});
-        const actionExecutor = new ActionExecutor(memory);
-
-        // Cycle-specific components
+    beforeEach(async () => {
+        const configManager = new ConfigManager({
+            reasoner: {
+                strategy: 'BruteForce'
+            },
+            planner: {
+                strategy: 'HTN'
+            }
+        });
+        memory = new Memory(configManager);
+        lm = new LM(configManager);
+        const temporalReasoner = new TemporalReasoner(configManager);
+        reasoner = new Reasoner({
+            temporalReasoner
+        }, configManager);
+        const actionExecutor = new ActionExecutor(memory, configManager);
         const perception = new Perception(memory, lm);
-        const planner = new Planner(memory, lm, actionExecutor, config.planner);
+        const planner = new Planner(memory, lm, actionExecutor, configManager);
         const contradictionAnalyzer = new ContradictionAnalyzer();
         const resolutionStrategy = new ResolutionStrategy();
-        const metaCognition = new MetaCognition(config, {contradictionAnalyzer, resolutionStrategy});
+        const metaCognition = new MetaCognition(configManager, {
+            contradictionAnalyzer,
+            resolutionStrategy
+        });
         const priorityManager = new PriorityManager(memory);
 
-        // Create the cycle with the new constructor signature
-        cycle = new Cycle(config, {
+        cycle = new Cycle(configManager, {
             memory,
             reasoner,
             lm,

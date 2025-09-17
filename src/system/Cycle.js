@@ -1,9 +1,13 @@
-import {safeAsync} from '../utils/errorHandler.js';
-import {getGoalTasks} from '../utils/task-utils.js';
+import {
+    safeAsync
+} from '../utils/errorHandler.js';
+import {
+    getGoalTasks
+} from '../utils/task-utils.js';
 import EventBus from './EventBus.js';
 
 class Cycle {
-    constructor(config, {
+    constructor(configManager, {
         memory,
         reasoner,
         lm,
@@ -25,7 +29,7 @@ class Cycle {
             temporalReasoner,
             priorityManager
         });
-        this.config = config;
+        this.configManager = configManager;
         this.memory = memory;
         this.reasoner = reasoner;
         this.lm = lm;
@@ -40,6 +44,26 @@ class Cycle {
         this.lm.setMemory(this.memory);
 
         this._initializeState();
+
+        this.phases = [{
+            name: 'Perception',
+            execute: this._runPerceptionPhase.bind(this)
+        }, {
+            name: 'Prioritization',
+            execute: this._runPrioritizationPhase.bind(this)
+        }, {
+            name: 'MetaCognition',
+            execute: this._runMetaCognitionPhase.bind(this)
+        }, {
+            name: 'Reasoning',
+            execute: this._runReasoningPhase.bind(this)
+        }, {
+            name: 'Enrichment',
+            execute: this._runEnrichmentPhase.bind(this)
+        }, {
+            name: 'Action',
+            execute: this._runActionPhase.bind(this)
+        }, ];
     }
 
     _validateDependencies(components) {
@@ -62,7 +86,7 @@ class Cycle {
                 .filter(task => task.punctuation === '!')
                 .map(task => this.memory.getTerm(task.termKey))
                 .filter(Boolean);
-            this.driveEmbeddings = driveTerms.map(term => term.embedding);
+            this.driveEmbeddings = driveTerms.map(term => term.embedding).filter(Boolean);
         }, 'Cycle.bootstrap');
     }
 
@@ -72,39 +96,40 @@ class Cycle {
                 currentTime: Date.now(),
                 driveEmbeddings: this.driveEmbeddings,
                 allTasks: this.memory.getAllTasks(),
+                contradictions: [],
+                metaTasks: [],
+                derivedTasks: [],
+                proactiveTasks: [],
+                executionResults: [],
             };
 
-            await this._runPerceptionPhase();
-            this._runPrioritizationPhase(context);
-            const {contradictions, metaTasks} = await this._runMetaCognitionPhase(context);
-            const derivedTasks = await this._runReasoningPhase(context, contradictions);
+            for (const phase of this.phases) {
+                const result = await phase.execute(context);
+                Object.assign(context, result);
+            }
 
-            this._storeDerivedTasks(derivedTasks);
-
-            const {proactiveTasks} = await this._runEnrichmentPhase(derivedTasks, metaTasks);
-            const executionResults = await this._runActionPhase();
-
+            this._storeDerivedTasks(context.derivedTasks);
             EventBus.emit('SystemCycleEnded');
 
             return {
-                derivedTasks: derivedTasks.length,
-                contradictions: contradictions.length,
-                metaTasks: metaTasks.length,
-                proactiveTasks: proactiveTasks.length,
-                executionResults: executionResults
+                derivedTasks: context.derivedTasks.length,
+                contradictions: context.contradictions.length,
+                metaTasks: context.metaTasks.length,
+                proactiveTasks: context.proactiveTasks.length,
+                executionResults: context.executionResults
             };
         }, 'Cycle.runOnce');
     }
 
-    // --- Phase Implementations ---
-
     async _runPerceptionPhase() {
-        // The perception instance handles its own state and events
         return Promise.resolve();
     }
 
     _runPrioritizationPhase(context) {
-        const {currentTime, driveEmbeddings} = context;
+        const {
+            currentTime,
+            driveEmbeddings
+        } = context;
         this.memory.getAllTasks().forEach(task => {
             task.state.priority = this.priorityManager.calculatePriority(task, currentTime, driveEmbeddings);
         });
@@ -113,7 +138,10 @@ class Cycle {
     async _runMetaCognitionPhase(context) {
         const contradictions = (await EventBus.request('MetaCognition.findContradictions', context.allTasks)) || [];
         if (contradictions.length === 0) {
-            return {contradictions: [], metaTasks: []};
+            return {
+                contradictions: [],
+                metaTasks: []
+            };
         }
 
         const resolutionPromises = contradictions.map(c => EventBus.request('MetaCognition.resolve', {
@@ -124,53 +152,69 @@ class Cycle {
         const metaTasks = resolvedTasksArray.flat().filter(Boolean);
 
         if (metaTasks.length > 0) {
-            metaTasks.forEach(metaTask => metaTask.state.priority = this.config.META_TASK_PRIORITY);
+            const metaTaskPriority = this.configManager.getNumber('cycle.META_TASK_PRIORITY', 0.99);
+            metaTasks.forEach(metaTask => metaTask.state.priority = metaTaskPriority);
             this.memory.addTasks(metaTasks);
         }
-        return {contradictions, metaTasks};
+        return {
+            contradictions,
+            metaTasks
+        };
     }
 
-    async _runReasoningPhase(context, contradictions) {
+    async _runReasoningPhase(context) {
         const focusSet = this._getFocusSet();
         if (focusSet.length === 0) {
-            return [];
+            return {
+                derivedTasks: []
+            };
         }
 
         const goals = this._getPrioritizedGoals();
         const [symbolicTasks, temporalTasks, lmTasks] = await Promise.all([
             this.reasoner.performInference(focusSet),
             this.temporalReasoner.infer(focusSet),
-            this._generateLmHypotheses(focusSet, goals, contradictions)
+            this._generateLmHypotheses(focusSet, goals, context.contradictions)
         ]);
-        return [...symbolicTasks, ...temporalTasks, ...lmTasks].filter(Boolean);
+        const derivedTasks = [...symbolicTasks, ...temporalTasks, ...lmTasks].filter(Boolean);
+        return {
+            derivedTasks
+        };
     }
 
-    async _runEnrichmentPhase(derivedTasks, metaTasks) {
-        const newTermKeys = this._getNewTermKeys([...derivedTasks, ...metaTasks]);
+    async _runEnrichmentPhase(context) {
+        const newTermKeys = this._getNewTermKeys([...context.derivedTasks, ...context.metaTasks]);
         await this._bootstrapTerms(newTermKeys);
 
         const proactiveTasks = await this.lm.proactiveEnrichment(this.memory.getAllTasks());
         this.memory.addTasks(proactiveTasks);
-        return {proactiveTasks};
+        return {
+            proactiveTasks
+        };
     }
 
     async _runActionPhase() {
         const actionableGoals = this._getActionableGoals();
-        const executionPromises = actionableGoals.map(goal => this._executeGoalPlan(goal));
-        return Promise.all(executionPromises);
+        const executionResults = await Promise.all(actionableGoals.map(goal => this._executeGoalPlan(goal)));
+        return {
+            executionResults
+        };
     }
 
-    // --- Helper Methods ---
-
     _getFocusSet() {
-        const focusSet = this.memory.getHighestPriorityTasks(this.config.FOCUS_SET_SIZE);
+        const focusSetSize = this.configManager.getNumber('cycle.FOCUS_SET_SIZE', 20);
+        const focusSet = this.memory.getHighestPriorityTasks(focusSetSize);
         focusSet.forEach(task => task.touch());
         return focusSet;
     }
 
     async _generateLmHypotheses(focusSet, goals, contradictions) {
-        const lmHypothesesPromises = this.config.LM_HYPOTHESIS_CONFIGS.map(hypothesisConfig =>
-            this.lm.generateHypotheses(focusSet, {...hypothesisConfig, goals, contradictions})
+        const lmHypothesisConfigs = this.configManager.getArray('cycle.LM_HYPOTHESIS_CONFIGS', []);
+        const lmHypothesesPromises = lmHypothesisConfigs.map(hypothesisConfig =>
+            this.lm.generateHypotheses(focusSet, { ...hypothesisConfig,
+                goals,
+                contradictions
+            })
         );
         const lmHypotheses = (await Promise.all(lmHypothesesPromises)).flat();
         return this.lm.evaluateAndRankHypotheses(focusSet, lmHypotheses);
@@ -179,7 +223,6 @@ class Cycle {
     _storeDerivedTasks(derivedTasks) {
         if (!derivedTasks || derivedTasks.length === 0) return;
         this.memory.addTasks(derivedTasks);
-        // Derivation tracking can be added here if needed
     }
 
     _getNewTermKeys(tasks) {
@@ -187,7 +230,7 @@ class Cycle {
     }
 
     async _bootstrapTerms(termKeys) {
-        const batchSize = this.config.system.BATCH_SIZE;
+        const batchSize = this.configManager.getNumber('system.BATCH_SIZE', 10);
         for (let i = 0; i < termKeys.length; i += batchSize) {
             const batch = termKeys.slice(i, i + batchSize);
             const termPromises = batch.map(termKey => this.lm.bootstrapTerm(termKey));
@@ -197,9 +240,11 @@ class Cycle {
     }
 
     _getPrioritizedGoals() {
+        const priorityThreshold = this.configManager.getNumber('cycle.ACTIONABLE_GOAL_PRIORITY_THRESHOLD', 0.9);
+        const maxGoals = this.configManager.getNumber('cycle.MAX_GOALS_TO_EXECUTE', 5);
         return getGoalTasks(this.memory.getAllTasks())
-            .filter(task => task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
-            .slice(0, this.config.MAX_GOALS_TO_EXECUTE);
+            .filter(task => task.state.priority > priorityThreshold)
+            .slice(0, maxGoals);
     }
 
     _getActionableGoals() {
@@ -207,32 +252,33 @@ class Cycle {
     }
 
     async _executeGoalPlan(goal, maxAttempts = 3) {
-        let result = {success: false};
-        let attempts = 0;
-        let lastFailedPlan = null;
-
-        while (attempts < maxAttempts && !result.success) {
-            attempts++;
-            const plan = await this.planner.createPlan(goal, lastFailedPlan);
-            if (plan && plan.steps.length > 0) {
-                result = await plan.execute().catch(err => ({
+        for (let attempts = 0; attempts < maxAttempts; attempts++) {
+            const plan = await this.planner.createPlan(goal);
+            if (!plan) {
+                return {
                     success: false,
-                    task: goal.termKey,
-                    error: err.message,
-                    failedPlan: plan
-                }));
-                if (!result.success && result.failedPlan) {
-                    lastFailedPlan = result.failedPlan;
-                    delete result.failedPlan;
+                    error: `No plan found for ${goal.termKey}`
+                };
+            }
+            if (plan.steps.length === 0) {
+                return {
+                    success: true,
+                    planId: plan.id,
+                    results: ['Goal already achieved']
+                };
+            }
+            try {
+                return await plan.execute();
+            } catch (err) {
+                if (attempts === maxAttempts - 1) {
+                    return {
+                        success: false,
+                        task: goal.termKey,
+                        error: err.message
+                    };
                 }
-            } else if (plan) {
-                result = {success: true, planId: plan.id, results: ['Goal already achieved']};
-            } else {
-                result = {success: false, error: `No plan found for ${goal.termKey}`};
-                break;
             }
         }
-        return result;
     }
 }
 

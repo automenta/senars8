@@ -1,17 +1,19 @@
 import Memory from '../../src/memory/Memory.js';
 import Task from '../../src/core/Task.js';
 import Term from '../../src/core/Term.js';
+import ConfigManager from '../../src/config/ConfigManager.js';
 
 describe('Memory - Edge Cases', () => {
     let memory;
 
     beforeEach(() => {
-        memory = new Memory();
+        const configManager = new ConfigManager();
+        memory = new Memory(configManager);
     });
 
     test('should handle adding null and undefined terms', () => {
-        expect(() => memory.addTerm(null)).toThrow('Cannot add null or undefined term to memory');
-        expect(() => memory.addTerm(undefined)).toThrow('Cannot add null or undefined term to memory');
+        expect(() => memory.addTerm(null)).toThrow('Can only add valid Term instances to memory');
+        expect(() => memory.addTerm(undefined)).toThrow('Can only add valid Term instances to memory');
     });
 
     test('should handle adding invalid term objects', () => {
@@ -28,17 +30,13 @@ describe('Memory - Edge Cases', () => {
     });
 
     test('should handle adding null and undefined tasks', () => {
-        // Should not throw, but log warnings
         expect(() => memory.addTasks(null)).not.toThrow();
         expect(() => memory.addTasks(undefined)).not.toThrow();
-
-        // Should handle arrays with null/undefined elements
         expect(() => memory.addTasks([null, undefined, new Task(new Term('cat'), '.')])).not.toThrow();
         expect(memory.getAllTasks()).toHaveLength(1);
     });
 
     test('should handle adding invalid task objects', () => {
-        // Should not throw, but log warnings
         expect(() => memory.addTasks([{}, 'string', 123, new Task(new Term('cat'), '.')])).not.toThrow();
         expect(memory.getAllTasks()).toHaveLength(1);
     });
@@ -57,11 +55,13 @@ describe('Memory - Edge Cases', () => {
     });
 
     test('should handle cloning memory with large datasets', () => {
-        // Add many terms and tasks
         for (let i = 0; i < 100; i++) {
             const term = new Term(`term${i}`);
             memory.addTerm(term);
-            const task = new Task(term, '.', {frequency: 0.5, confidence: 0.8});
+            const task = new Task(term, '.', {
+                frequency: 0.5,
+                confidence: 0.8
+            });
             memory.addTasks(task);
         }
 
@@ -77,7 +77,6 @@ describe('Memory - Edge Cases', () => {
     });
 
     test('should handle clearing memory with terms and tasks', () => {
-        // Add some data
         const term = new Term('cat');
         memory.addTerm(term);
         const task = new Task(term, '.');
@@ -86,87 +85,75 @@ describe('Memory - Edge Cases', () => {
         expect(memory.getStatistics().terms).toBe(1);
         expect(memory.getStatistics().shortTermTasks).toBe(1);
 
-        // Clear and verify
         memory.clear();
         expect(memory.getStatistics().terms).toBe(0);
         expect(memory.getStatistics().shortTermTasks).toBe(0);
     });
 
     test('should handle queryTasks with invalid filters', () => {
-        // Add some data first
         const term = new Term('cat');
         memory.addTerm(term);
         const task = new Task(term, '.');
         memory.addTasks(task);
 
-        // Test various invalid filter combinations
-        const results1 = memory.queryTasks({punctuation: 'invalid'});
+        const results1 = memory.queryTasks({
+            punctuation: 'invalid'
+        });
         expect(results1).toHaveLength(0);
 
-        const results2 = memory.queryTasks({minPriority: -1});
+        const results2 = memory.queryTasks({
+            minPriority: -1
+        });
         expect(results2.length).toBeGreaterThan(0);
 
-        const results3 = memory.queryTasks({minConfidence: 2}); // Impossible value
+        const results3 = memory.queryTasks({
+            minConfidence: 2
+        });
         expect(results3).toHaveLength(0);
     });
 
     test('should handle getHighestPriorityTasks with edge cases', () => {
-        // Test with 0 count
         const results1 = memory.getHighestPriorityTasks(0);
         expect(results1).toHaveLength(0);
 
-        // Test with negative count
         const results2 = memory.getHighestPriorityTasks(-5);
         expect(results2).toHaveLength(0);
 
-        // Test with very large count
         const results3 = memory.getHighestPriorityTasks(1000);
         expect(results3).toHaveLength(0);
 
-        // Add some tasks with different priorities
         const term = new Term('cat');
         memory.addTerm(term);
         for (let i = 0; i < 5; i++) {
             const task = new Task(term, '.');
-            // Manually set priority
             task.state.priority = i * 0.1;
             memory.addTasks(task);
         }
 
         const results4 = memory.getHighestPriorityTasks(3);
         expect(results4).toHaveLength(3);
-        // Should be sorted by priority (highest first)
         expect(results4[0].state.priority).toBeGreaterThanOrEqual(results4[1].state.priority);
         expect(results4[1].state.priority).toBeGreaterThanOrEqual(results4[2].state.priority);
     });
 
     test('should handle getRecentTasks with edge cases', () => {
-        // Test with empty memory
         const results1 = memory.getRecentTasks();
         expect(results1).toHaveLength(0);
 
-        // Test with count of 0
         const results2 = memory.getRecentTasks(0);
         expect(results2).toHaveLength(0);
 
-        // Test with negative count
         const results3 = memory.getRecentTasks(-5);
         expect(results3).toHaveLength(0);
     });
 
     test('should handle exportState and importState with edge cases', () => {
-        // Test export with empty memory
         const emptyState = memory.exportState();
         expect(emptyState).toContain('"terms": []');
         expect(emptyState).toContain('"shortTermTasks": []');
 
-        // Test import with invalid JSON
         expect(() => memory.importState('invalid json')).toThrow();
-
-        // Test import with empty JSON object
         expect(() => memory.importState('{}')).not.toThrow();
-
-        // Test import with valid but empty state
         expect(() => memory.importState('{"terms":[],"shortTermTasks":[],"longTermTasks":[]}')).not.toThrow();
     });
 
@@ -185,7 +172,6 @@ describe('Memory - Edge Cases', () => {
         expect(stats).toHaveProperty('beliefs');
         expect(stats).toHaveProperty('costs');
 
-        // All should be numbers
         Object.values(stats).forEach(value => {
             expect(typeof value).toBe('number');
         });

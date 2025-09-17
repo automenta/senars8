@@ -1,85 +1,45 @@
-import {error, warn} from '../utils/logger.js';
+import {
+    error,
+    warn
+} from '../utils/logger.js';
 
-/**
- * EventBus provides a centralized event handling system for decoupled communication
- * between different components of the system.
- *
- * Events can be emitted with data, and listeners can be registered to handle specific events.
- * Additionally, request-response patterns are supported for synchronous communication.
- */
 class EventBus {
     constructor() {
-        /**
-         * Map of event names to arrays of listener functions
-         * @type {Object.<string, Function[]>}
-         */
-        this.listeners = {};
-
-        /**
-         * Map of request types to handler functions
-         * @type {Object.<string, Function>}
-         */
-        this.handlers = {};
+        this.listeners = new Map();
+        this.handlers = new Map();
     }
 
-    /**
-     * Register a listener for a specific event
-     * @param {string} event - The event name to listen for
-     * @param {Function} callback - The function to call when the event is emitted
-     */
     on(event, callback) {
-        if (!this.listeners[event]) {
-            this.listeners[event] = [];
+        if (!this.listeners.has(event)) {
+            this.listeners.set(event, new Set());
         }
-        this.listeners[event].push(callback);
+        this.listeners.get(event).add(callback);
     }
 
-    /**
-     * Remove a listener for a specific event
-     * @param {string} event - The event name
-     * @param {Function} callback - The function to remove
-     */
     off(event, callback) {
-        if (!this.listeners[event]) {
-            return;
+        if (this.listeners.has(event)) {
+            this.listeners.get(event).delete(callback);
+            if (this.listeners.get(event).size === 0) {
+                this.listeners.delete(event);
+            }
         }
-        this.listeners[event] = this.listeners[event].filter(
-            listener => listener !== callback
-        );
     }
 
-    /**
-     * Emit an event with optional data
-     * @param {string} event - The event name to emit
-     * @param {*} [data] - Optional data to pass to listeners
-     */
     emit(event, data) {
-        if (!this.listeners[event]) {
-            return;
+        if (this.listeners.has(event)) {
+            this.listeners.get(event).forEach(listener => listener(data));
         }
-        this.listeners[event].forEach(listener => listener(data));
     }
 
-    /**
-     * Register a handler for a specific request type
-     * @param {string} requestType - The request type to handle
-     * @param {Function} handler - The function to call when the request is made
-     */
     handle(requestType, handler) {
-        if (this.handlers[requestType]) {
+        if (this.handlers.has(requestType)) {
             warn(`[EventBus] Overwriting existing handler for request type: ${requestType}`);
         }
-        this.handlers[requestType] = handler;
+        this.handlers.set(requestType, handler);
     }
 
-    /**
-     * Make a request and wait for a response
-     * @param {string} requestType - The type of request to make
-     * @param {*} [data] - Optional data to pass to the handler
-     * @returns {Promise<*>} The response from the handler, or null if no handler is registered
-     */
     async request(requestType, data) {
-        const handler = this.handlers[requestType];
+        const handler = this.handlers.get(requestType);
         if (!handler) {
             error(`[EventBus] No handler registered for request type: ${requestType}`);
             return null;
@@ -90,6 +50,11 @@ class EventBus {
             error(`[EventBus] Handler for ${requestType} threw an error:`, err);
             return null;
         }
+    }
+
+    clear() {
+        this.listeners.clear();
+        this.handlers.clear();
     }
 }
 

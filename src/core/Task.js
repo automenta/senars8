@@ -37,6 +37,10 @@ class Task {
      * @param {object} [stamp={}] - The temporal stamp information
      */
     constructor(term, punctuation, truthValue = {}, stamp = {}) {
+        if (term && typeof term === 'object' && term.punctuation && !punctuation) {
+            punctuation = term.punctuation;
+        }
+
         // Validate inputs
         if (!this.#isValidTerm(term) || !this.#isValidPunctuation(punctuation)) {
             throw new Error('Invalid Task arguments: term and punctuation are required');
@@ -240,11 +244,11 @@ class Task {
 
     /**
      * Gets the current timestamp
-     * @returns {number} Current timestamp in milliseconds
+     * @returns {bigint} Current timestamp in milliseconds
      * @private
      */
     #getCurrentTimestamp() {
-        return Date.now();
+        return BigInt(Date.now());
     }
 
     /**

@@ -1,21 +1,28 @@
 import Planners from '../reasoner/index.js';
 import Plan from './Plan.js';
-import {debug, error, info, warn} from '../utils/logger.js';
-import {handleErrorWithDefault} from '../utils/errorHandler.js';
+import {
+    debug,
+    error,
+    info,
+    warn
+} from '../utils/logger.js';
+import {
+    handleErrorWithDefault
+} from '../utils/errorHandler.js';
 
 class Planner {
-    constructor(memory, lm, actionExecutor, config = {}) {
+    constructor(memory, lm, actionExecutor, configManager) {
         if (!memory || !lm || !actionExecutor) {
             throw new Error('Planner requires memory, lm, and actionExecutor instances.');
         }
 
-        const strategyName = config.strategy || 'HTN';
+        const strategyName = configManager.getString('planner.strategy', 'HTN');
         const PlannerClass = Planners[`${strategyName}Planner`];
         if (!PlannerClass) {
             throw new Error(`Unknown planner strategy: ${strategyName}`);
         }
 
-        this.strategy = new PlannerClass(memory, lm, config.plannerConfig);
+        this.strategy = new PlannerClass(memory, lm, configManager);
         this.actionExecutor = actionExecutor;
         this.planCache = new Map();
         this.lm = lm;
@@ -28,17 +35,15 @@ class Planner {
             debug(`Creating plan for goal: ${goalKey}`);
 
             const cachedPlan = this._getcachedPlan(goalKey, failedPlan);
-            if (cachedPlan) {
-                return cachedPlan;
-            }
+            if (cachedPlan) return cachedPlan;
 
             let planSteps = await this._generateNewPlan(goalTask);
 
-            if (!planSteps || planSteps.length === 0) {
+            if (this._isPlanEmpty(planSteps)) {
                 planSteps = await this._handleEmptyPlan(goalTask, failedPlan);
             }
 
-            if (!planSteps || planSteps.length === 0) {
+            if (this._isPlanEmpty(planSteps)) {
                 warn(`No plan could be created for goal: ${goalKey}`);
                 return null;
             }
@@ -51,6 +56,10 @@ class Planner {
             error(`Error creating plan for goal ${goalTask.termKey}:`, err);
             return handleErrorWithDefault(err, 'Plan creation error', null);
         }
+    }
+
+    _isPlanEmpty(planSteps) {
+        return !planSteps || planSteps.length === 0;
     }
 
     _getcachedPlan(goalKey, failedPlan) {
@@ -77,15 +86,15 @@ class Planner {
     }
 
     async _getLmSuggestion(goalTask, failedPlan) {
-        if (this.lm) {
-            debug(`Requesting LM plan suggestion for goal: ${goalTask.termKey}`);
-            const lmSuggestion = await this.lm.suggestPlanRepair(goalTask, failedPlan ? failedPlan.steps : null);
-            if (lmSuggestion && lmSuggestion.length > 0) {
-                debug(`LM provided ${lmSuggestion.length} plan steps`);
-                return lmSuggestion;
-            }
-            warn(`LM failed to provide plan suggestion for goal: ${goalTask.termKey}`);
+        if (!this.lm) return null;
+
+        debug(`Requesting LM plan suggestion for goal: ${goalTask.termKey}`);
+        const lmSuggestion = await this.lm.suggestPlanRepair(goalTask, failedPlan?.steps);
+        if (lmSuggestion?.length > 0) {
+            debug(`LM provided ${lmSuggestion.length} plan steps`);
+            return lmSuggestion;
         }
+        warn(`LM failed to provide plan suggestion for goal: ${goalTask.termKey}`);
         return null;
     }
 }
