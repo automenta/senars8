@@ -87,11 +87,9 @@ class Task extends BaseEntity {
      * @private
      */
     #processTerm(term) {
-        if (typeof term === 'string') {
-            return this.#processStringTerm(term);
-        } else {
-            return this.#processObjectTerm(term);
-        }
+        return typeof term === 'string' ? 
+            this.#processStringTerm(term) : 
+            this.#processObjectTerm(term);
     }
 
     /**
@@ -101,17 +99,10 @@ class Task extends BaseEntity {
      * @private
      */
     #processStringTerm(term) {
-        const termKey = term;
-        const processedTerm = parseTerm(term);
-
-        if (!processedTerm) {
+        const processedTerm = parseTerm(term);        
+        if (!processedTerm)
             throw new Error(`Failed to parse term: '${term}'. Please check the term syntax.`);
-        }
-
-        return {
-            processedTerm,
-            termKey
-        };
+        return { processedTerm, term };
     }
 
     /**
@@ -124,18 +115,16 @@ class Task extends BaseEntity {
         const termKey = term.key;
         const processedTerm = term.type ? term : parseTerm(term.key);
 
-        if (!processedTerm) {
+        if (!processedTerm)
             throw new Error(`Failed to parse term: '${term.key}'. Please check the term syntax.`);
-        }
-
+        
         return {
             processedTerm,
             termKey
         };
     }
 
-    /**
-     * Normalizes a truth value object to ensure it has valid frequency and confidence values
+    /** Normalizes a truth value object to ensure it has valid frequency and confidence values
      * @param {object} truthValue - The truth value to normalize
      * @returns {object} Normalized truth value
      * @private
@@ -150,9 +139,7 @@ class Task extends BaseEntity {
             // Handle NaN values
             if (isNaN(frequency) || isNaN(confidence)) {
                 console.warn(`[Task] Invalid truth value with NaN values detected, falling back to defaults`);
-                return {
-                    ...DEFAULT_TRUTH_VALUE
-                };
+                return {...DEFAULT_TRUTH_VALUE};
             }
 
             if (frequency < 0 || frequency > 1 || !isFinite(frequency)) {
@@ -165,16 +152,11 @@ class Task extends BaseEntity {
                 console.warn(`[Task] Confidence value clamped to valid range [0,1]: ${truthValue.confidence}`);
             }
 
-            return {
-                frequency,
-                confidence
-            };
+            return {frequency, confidence};
         }
 
         // Return default if invalid
-        return {
-            ...DEFAULT_TRUTH_VALUE
-        };
+        return {...DEFAULT_TRUTH_VALUE};
     }
 
     /**

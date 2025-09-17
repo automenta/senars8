@@ -14,9 +14,7 @@ const errorHandler = createModuleErrorHandler('parse-utils');
  * @returns {object|null} The parsed term structure or null if parsing fails
  */
 function parseTerm(termKey) {
-    if (typeof termKey !== 'string' || termKey.length === 0) {
-        return null;
-    }
+    if (typeof termKey !== 'string' || termKey.length === 0) return null;
 
     return errorHandler.safeSync(() => parseWithMoo(termKey), `parseTerm: ${termKey}`, null);
 }

@@ -7,9 +7,7 @@
  * @returns {Array<Object>} The filtered array.
  */
 function filterByProperty(array, property, value) {
-    if (!Array.isArray(array)) {
-        return [];
-    }
+    if (!Array.isArray(array)) return [];
     return array.filter(item => item && item[property] === value);
 }
 
@@ -18,7 +16,6 @@ const normalizeToArray = input => (Array.isArray(input) ? input : [input]);
 const isNonEmptyArray = input => Array.isArray(input) && input.length > 0;
 
 const isEmptyArray = input => !Array.isArray(input) || input.length === 0;
-
 
 export {
     filterByProperty,

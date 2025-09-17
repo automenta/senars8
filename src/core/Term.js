@@ -100,11 +100,9 @@ class Term extends BaseEntity {
         }
 
         return errorHandler.safeSync(() => {
-            // Use for loop instead of map for better performance
             const termsArray = [];
             for (let i = 0; i < structure.terms.length; i++) {
-                const termStructure = structure.terms[i];
-                const component = this.#getComponent(`term_${i}`, termStructure);
+                const component = this.#getComponent(`term_${i}`, structure.terms[i]);
                 termsArray.push(component);
             }
             this.#componentCache['terms'] = termsArray;
@@ -120,32 +118,20 @@ class Term extends BaseEntity {
      */
     static termsEqual(term1, term2) {
         // Fast path checks
-        if (term1 === term2) {
-            return true;
-        }
-        if (!term1 || !term2) {
-            return false;
-        }
-        if (term1.key !== term2.key) {
-            return false;
-        }
-        if (term1.complexity !== term2.complexity) {
-            return false;
-        }
+        if (term1 === term2) return true;
+        if (!term1 || !term2) return false;
+        if (term1.key !== term2.key) return false;
+        if (term1.complexity !== term2.complexity) return false;
 
         // Use getters to access embeddings
         const embedding1 = term1.embedding;
         const embedding2 = term2.embedding;
 
-        if (embedding1.length !== embedding2.length) {
-            return false;
-        }
+        if (embedding1.length !== embedding2.length) return false;
 
         // Use for loop instead of every for better performance
         for (let i = 0; i < embedding1.length; i++) {
-            if (Math.abs(embedding1[i] - embedding2[i]) >= 1e-6) {
-                return false;
-            }
+            if (Math.abs(embedding1[i] - embedding2[i]) >= 1e-6) return false;
         }
 
         return true;
@@ -259,9 +245,7 @@ class Term extends BaseEntity {
      */
     static termList(terms) {
         // Handle edge cases
-        if (!terms || terms.length === 0) {
-            return '';
-        }
+        if (!terms || terms.length === 0) return '';
 
         // Use map and join for better readability while maintaining performance
         return terms.map(term => Term.termKey(term)).join(',');
@@ -275,9 +259,7 @@ class Term extends BaseEntity {
      */
     static structuralSimilarity(termKey1, termKey2) {
         // Fast path for identical terms
-        if (termKey1 === termKey2) {
-            return 1.0;
-        }
+        if (termKey1 === termKey2) return 1.0;
 
         // Use a more efficient algorithm for substring comparison
         const len1 = termKey1.length;
@@ -290,9 +272,7 @@ class Term extends BaseEntity {
                 // For strings of length 1 or 2, check character overlap
                 let commonChars = 0;
                 for (let i = 0; i < len1; i++) {
-                    if (termKey2.includes(termKey1[i])) {
-                        commonChars++;
-                    }
+                    if (termKey2.includes(termKey1[i])) commonChars++;
                 }
                 return Math.min(commonChars / Math.max(len1, len2), 1.0);
             }
@@ -336,9 +316,7 @@ class Term extends BaseEntity {
      */
     static findSimilarTerms(terms, targetTermKey, maxResults = 10) {
         const targetTerm = terms.get(targetTermKey);
-        if (!targetTerm || !targetTerm.embedding) {
-            return [];
-        }
+        if (!targetTerm || !targetTerm.embedding) return [];
 
         // Pre-calculate weights to avoid repeated lookups
         const regularityBoost = config.temporal.REGULARITY_BOOST;
@@ -352,18 +330,13 @@ class Term extends BaseEntity {
             const [key, term] = termEntries[i];
 
             // Skip target term and terms without embeddings
-            if (key === targetTermKey || !term.embedding) {
-                continue;
-            }
+            if (key === targetTermKey || !term.embedding) continue;
 
             const semantic = cosineSimilarity(targetTerm.embedding, term.embedding);
             const structural = Term.structuralSimilarity(targetTermKey, key);
             const similarity = regularityBoost * semantic + structuralWeight * structural;
 
-            similarities.push({
-                termKey: key,
-                similarity
-            });
+            similarities.push({termKey: key, similarity});
         }
 
         // Sort and slice using more efficient methods

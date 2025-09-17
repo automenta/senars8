@@ -18,9 +18,7 @@ class BaseEntity {
 
     // Equality checking
     equals(other) {
-        if (!other || this.constructor !== other.constructor) {
-            return false;
-        }
+        if (!other || this.constructor !== other.constructor) return false;
         return this.getId() === other.getId();
     }
 

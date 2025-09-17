@@ -32,9 +32,7 @@ function parseTaskTerm(task) {
 function validateParsedTasks(parsedTasks) {
     return !parsedTasks.some(task => {
         const isInvalid = task === null || task === undefined;
-        if (isInvalid) {
-            debug('Invalid parsed task found:', task);
-        }
+        if (isInvalid) debug('Invalid parsed task found:', task);
         return isInvalid;
     });
 }
@@ -195,12 +193,10 @@ function createBinaryInheritanceRule(name, termBuilder, truthValueFunction) {
     return createBinaryRule(
         name,
         (parsed1, parsed2) => {
-            // Validate both terms are inheritance relations
             if (parsed1?.type !== 'Inheritance' || parsed2?.type !== 'Inheritance') {
                 return false;
             }
 
-            // Check if predicates match and subjects are different
             const predicate1 = Term.termKey(parsed1.predicate);
             const predicate2 = Term.termKey(parsed2.predicate);
             const subject1 = Term.termKey(parsed1.subject);

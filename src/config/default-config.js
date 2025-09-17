@@ -131,18 +131,12 @@ export default {
         ],
         CONSTRAINTS: {
             resource_limit(action) {
-                if (!action.resource_requirements) {
-                    return true;
-                }
+                if (!action.resource_requirements) return true;
                 for (const req of action.resource_requirements) {
                     const resource = this.resources.get(req.name);
-                    if (!resource) {
-                        return false; // Fails if resource is not registered
-                    }
+                    if (!resource) return false; // Fails if resource is not registered
                     const currentlyReserved = resource.reservations.reduce((acc, res) => acc + res.amount, 0);
-                    if (currentlyReserved + req.amount > resource.total) {
-                        return false; // Fails if resource is over-allocated
-                    }
+                    if (currentlyReserved + req.amount > resource.total) return false; // Fails if resource is over-allocated
                 }
                 return true;
             },
