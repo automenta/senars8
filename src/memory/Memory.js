@@ -47,7 +47,9 @@ class Memory {
 
     _performMaintenanceIfNeeded() {
         this.cycleCounter++;
-        if (this.cycleCounter % this.configManager.getNumber('memory.MAINTENANCE_CYCLE_FREQUENCY', 10) === 0) {
+        const frequency = this.configManager.getNumber('memory.MAINTENANCE_CYCLE_FREQUENCY', 10);
+        const shouldPerform = this.cycleCounter % frequency === 0;
+        if (shouldPerform) {
             this._consolidateMemory();
             this._pruneMemory();
         }

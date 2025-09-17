@@ -3,6 +3,7 @@ import Task from '../../src/core/Task.js';
 import {parseTerm} from '../../src/parser/narseseParser.js';
 import ConfigManager from '../../src/config/ConfigManager.js';
 import EventBus from '../../src/system/EventBus.js';
+// import {setLogLevel} from '../../src/utils/logger.js';
 
 const createTestConfig = () => new ConfigManager({
     memory: {
@@ -23,6 +24,8 @@ const createTestConfig = () => new ConfigManager({
             }
         },
         MAINTENANCE_CYCLE_FREQUENCY: 1,
+        CONSOLIDATION_PRIORITY_THRESHOLD: 0.95,  // Higher than task1's priority of 0.9
+        CONSOLIDATION_CONFIDENCE_THRESHOLD: 0.95  // Higher than task2's confidence of 0.9
     }
 });
 
@@ -32,9 +35,12 @@ const createTask = (term, {
     confidence
 }) => {
     const task = new Task(parseTerm(term), '.');
-    if (lastAccessed) task.state.stamp.lastAccessed = lastAccessed;
     if (priority) task.state.priority = priority;
     if (confidence) task.state.truthValue.confidence = confidence;
+    // Properly set the lastAccessed timestamp
+    if (lastAccessed) {
+        task.state.stamp.lastAccessed = lastAccessed;
+    }
     return task;
 };
 
@@ -59,7 +65,9 @@ describe('Memory', () => {
             priority: 0.1,
             confidence: 0.1
         });
-        const task2 = createTask('(new_and_unimportant --> property)', {});
+        const task2 = createTask('(new_and_unimportant --> property)', {
+            confidence: 0.8  // Below the consolidation threshold of 0.9
+        });
 
         await memory.addTasks([task1, task2]);
         expect(memory.shortTermTasks.size).toBe(2);

@@ -5,7 +5,7 @@ class CostManager {
     }
 
     getTaskDifficulty(taskTerm) {
-        const methods = this.memory.implicationIndex.get(taskTerm.key) || [];
+        const methods = this.memory.indexer.implicationIndex.get(taskTerm.key) || [];
         if (methods.length === 0) {
             return this.getActionCost(taskTerm);
         }
@@ -20,7 +20,7 @@ class CostManager {
             }
 
             for (const precondition of preconditions) {
-                const belief = this.memory.beliefIndex.get(precondition.key);
+                const belief = this.memory.indexer.beliefIndex.get(precondition.key);
                 const confidence = belief ? belief.state.truthValue.confidence : 0;
                 methodDifficulty += (1 - confidence);
             }
@@ -34,8 +34,8 @@ class CostManager {
     }
 
     getActionCost(actionTerm) {
-        if (this.memory.costIndex.has(actionTerm.key)) {
-            return this.memory.costIndex.get(actionTerm.key);
+        if (this.memory.indexer.costIndex.has(actionTerm.key)) {
+            return this.memory.indexer.costIndex.get(actionTerm.key);
         }
         return this.defaultCost;
     }

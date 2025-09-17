@@ -47,7 +47,7 @@ describe('System Introspection API', () => {
     test('should get system configuration', () => {
         const config = system.introspection.getConfig();
         expect(config).toBeDefined();
-        expect(config).toHaveProperty('cycle.FOCUS_SET_SIZE');
+        expect(config).toHaveProperty('FOCUS_SET_SIZE');
         expect(config).toHaveProperty('memory.MAINTENANCE_CYCLE_FREQUENCY');
     });
 
