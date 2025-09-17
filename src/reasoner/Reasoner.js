@@ -2,14 +2,8 @@ import BagSamplingStrategy from './strategies/BagSamplingStrategy.js';
 import BruteForceStrategy from './strategies/BruteForceStrategy.js';
 import rules from './rules/index.js';
 import TemporalReasoner from './TemporalReasoner.js';
-import {
-    debug,
-    error as logError,
-    info
-} from '../utils/logger.js';
-import {
-    createModuleErrorHandler
-} from '../utils/errorHandler.js';
+import {debug, error as logError, info} from '../utils/logger.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
 
 const errorHandler = createModuleErrorHandler('Reasoner');
 
@@ -20,8 +14,8 @@ const STRATEGIES = {
 
 class Reasoner {
     constructor({
-        temporalReasoner
-    } = {}, configManager) {
+                    temporalReasoner
+                } = {}, configManager) {
         this.configManager = configManager;
         this.temporalReasoner = temporalReasoner || new TemporalReasoner(configManager);
         const strategyName = this.configManager.getString('reasoner.strategy', 'BagSampling');

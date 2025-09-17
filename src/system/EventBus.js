@@ -1,7 +1,4 @@
-import {
-    error,
-    warn
-} from '../utils/logger.js';
+import {error, warn} from '../utils/logger.js';
 
 class EventBus {
     constructor() {

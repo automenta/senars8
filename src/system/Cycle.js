@@ -1,9 +1,5 @@
-import {
-    safeAsync
-} from '../utils/errorHandler.js';
-import {
-    getGoalTasks
-} from '../utils/task-utils.js';
+import {safeAsync} from '../utils/errorHandler.js';
+import {getGoalTasks} from '../utils/task-utils.js';
 import EventBus from './EventBus.js';
 
 class Cycle {
@@ -63,7 +59,7 @@ class Cycle {
         }, {
             name: 'Action',
             execute: this._runActionPhase.bind(this)
-        }, ];
+        },];
     }
 
     _validateDependencies(components) {
@@ -211,7 +207,8 @@ class Cycle {
     async _generateLmHypotheses(focusSet, goals, contradictions) {
         const lmHypothesisConfigs = this.configManager.getArray('cycle.LM_HYPOTHESIS_CONFIGS', []);
         const lmHypothesesPromises = lmHypothesisConfigs.map(hypothesisConfig =>
-            this.lm.generateHypotheses(focusSet, { ...hypothesisConfig,
+            this.lm.generateHypotheses(focusSet, {
+                ...hypothesisConfig,
                 goals,
                 contradictions
             })

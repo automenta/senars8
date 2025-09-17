@@ -1,8 +1,5 @@
 import ConfigManager from '../../src/config/ConfigManager.js';
-import {
-    validateConfig,
-    validateConfigValue
-} from '../../src/config/configSchema.js';
+import {validateConfig, validateConfigValue} from '../../src/config/configSchema.js';
 import defaultConfig from '../../src/config/default-config.js';
 import * as logger from '../../src/utils/logger.js';
 
@@ -58,7 +55,8 @@ describe('Configuration System', () => {
 
         it('should return default config for empty config', () => {
             const result = validateConfig({});
-            const expectedConfig = { ...defaultConfig
+            const expectedConfig = {
+                ...defaultConfig
             };
             delete expectedConfig.ACTION_EXECUTOR.CONSTRAINTS;
             const resultConstraints = result.ACTION_EXECUTOR.CONSTRAINTS;

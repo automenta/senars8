@@ -1,8 +1,5 @@
 import lexer from './lexer.js';
-import {
-    TERM_TYPES,
-    TOKEN_TYPES
-} from '../config/constants.js';
+import {TERM_TYPES, TOKEN_TYPES} from '../config/constants.js';
 
 const UNARY_OPERATOR_MAP = {
     [TOKEN_TYPES.NEGATION]: TERM_TYPES.NEGATION,

@@ -1,6 +1,4 @@
-import {
-    isBelief
-} from '../utils/task-utils.js';
+import {isBelief} from '../utils/task-utils.js';
 
 class MemoryIndexer {
     constructor() {

@@ -1,17 +1,9 @@
-import {
-    generateOptimizedId
-} from '../utils/IdGenerator.js';
-import {
-    parseTerm
-} from '../parser/parse-utils.js';
+import {generateOptimizedId} from '../utils/IdGenerator.js';
+import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
 import TruthValueManager from '../reasoner/TruthValueManager.js';
-import {
-    isTask
-} from '../utils/task-utils.js';
-import {
-    PUNCTUATION
-} from '../config/constants.js';
+import {isTask} from '../utils/task-utils.js';
+import {PUNCTUATION} from '../config/constants.js';
 
 
 const {
@@ -189,7 +181,8 @@ class Task {
             // Handle NaN values
             if (isNaN(frequency) || isNaN(confidence)) {
                 console.warn(`[Task] Invalid truth value with NaN values detected, falling back to defaults`);
-                return { ...DEFAULT_TRUTH_VALUE
+                return {
+                    ...DEFAULT_TRUTH_VALUE
                 };
             }
 
@@ -210,7 +203,8 @@ class Task {
         }
 
         // Return default if invalid
-        return { ...DEFAULT_TRUTH_VALUE
+        return {
+            ...DEFAULT_TRUTH_VALUE
         };
     }
 
@@ -309,8 +303,10 @@ class Task {
     clone() {
         const clonedTask = new Task(
             this.#term,
-            this.#punctuation, { ...this.#state.truthValue
-            }, { ...this.#state.stamp
+            this.#punctuation, {
+                ...this.#state.truthValue
+            }, {
+                ...this.#state.stamp
             }
         );
         // Preserve the same ID for cloned tasks

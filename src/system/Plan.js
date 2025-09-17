@@ -1,6 +1,4 @@
-import {
-    v4 as uuidv4
-} from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 import Action from '../core/Action.js';
 
 class Plan {
@@ -44,7 +42,8 @@ class Plan {
             };
         }
         const result = await this.actionExecutor.execute(action);
-        return { ...result,
+        return {
+            ...result,
             action: action.name
         };
     }

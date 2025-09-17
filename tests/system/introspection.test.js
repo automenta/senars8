@@ -1,7 +1,5 @@
 import SystemFactory from '../../src/system/SystemFactory.js';
-import {
-    parseTerm
-} from '../../src/parser/narseseParser.js';
+import {parseTerm} from '../../src/parser/narseseParser.js';
 import Task from '../../src/core/Task.js';
 import ConfigManager from '../../src/config/ConfigManager.js';
 

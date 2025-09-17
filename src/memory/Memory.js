@@ -1,21 +1,11 @@
 import Term from '../core/Term.js';
 import Task from '../core/Task.js';
 import EventBus from '../system/EventBus.js';
-import {
-    normalizeToArray
-} from '../utils/helpers.js';
-import {
-    isTask
-} from '../utils/task-utils.js';
-import {
-    consolidateMemory,
-    getHighestPriorityTasksWithPQ
-} from './memoryUtils.js';
+import {normalizeToArray} from '../utils/helpers.js';
+import {isTask} from '../utils/task-utils.js';
+import {consolidateMemory, getHighestPriorityTasksWithPQ} from './memoryUtils.js';
 import TimeBasedForgettingStrategy from './strategies/TimeBasedForgettingStrategy.js';
-import {
-    debug,
-    warn
-} from '../utils/logger.js';
+import {debug, warn} from '../utils/logger.js';
 import MemoryIndexer from './MemoryIndexer.js';
 
 const FORGETTING_STRATEGIES = {
@@ -260,7 +250,8 @@ class Memory {
         if (!json?.termKey) return null;
         const term = this.getTerm(json.termKey);
         if (!term) return null;
-        const deserializedStamp = { ...json.state.stamp
+        const deserializedStamp = {
+            ...json.state.stamp
         };
         for (const key in deserializedStamp) {
             if (typeof deserializedStamp[key] === 'string' && /^\d+$/.test(deserializedStamp[key])) {

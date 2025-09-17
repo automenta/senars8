@@ -1,9 +1,3 @@
-import EventBus from '../../src/system/EventBus.js';
-import System from '../../src/system/System.js';
-import Memory from '../../src/memory/Memory.js';
-import {
-    parseTerm
-} from '../../src/parser/parse-utils.js';
 import Task from '../../src/core/Task.js';
 import ConfigManager from '../../src/config/ConfigManager.js';
 import SystemFactory from '../../src/system/SystemFactory.js';

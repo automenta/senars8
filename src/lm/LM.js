@@ -1,32 +1,17 @@
-import {
-    Ollama
-} from '@langchain/community/llms/ollama';
-import {
-    suppressOnnxWarnings
-} from '../utils/onnxSuppression.js';
+import {Ollama} from '@langchain/community/llms/ollama';
+import {suppressOnnxWarnings} from '../utils/onnxSuppression.js';
 import Term from '../core/Term.js';
 import XenovaLLM from './XenovaLLM.js';
-import {
-    LLMChain
-} from 'langchain/chains';
-import {
-    PromptTemplate
-} from '@langchain/core/prompts';
-import {
-    StructuredOutputParser
-} from '@langchain/core/output_parsers';
+import {LLMChain} from 'langchain/chains';
+import {PromptTemplate} from '@langchain/core/prompts';
+import {StructuredOutputParser} from '@langchain/core/output_parsers';
 import HypothesisGenerator from './HypothesisGenerator.js';
 import PipelineFactory from './PipelineFactory.js';
 import ExplanationGenerator from './ExplanationGenerator.js';
 import QAService from './QAService.js';
 import PlanRepairer from './PlanRepairer.js';
 import ProactiveEnricher from './ProactiveEnricher.js';
-import {
-    debug,
-    error,
-    info,
-    warn
-} from '../utils/logger.js';
+import {debug, error, info, warn} from '../utils/logger.js';
 
 const PIPELINE_TYPES = {
     FEATURE_EXTRACTION: 'feature-extraction',
@@ -120,26 +105,24 @@ class LM {
         info(`Initializing LLM with provider: ${provider}`);
 
         switch (provider) {
-            case 'ollama':
-                {
-                    this._llm = new Ollama({
-                        model: this.configManager.getString('LM.TEXT_GENERATION_MODEL', 'Xenova/distilgpt2'),
-                        baseUrl: this.configManager.getString('LM.OLLAMA_BASE_URL', 'http://127.0.0.1:11434'),
-                    });
-                    return (prompt, options) => this._llm.invoke(prompt, options);
-                }
-            case 'xenova':
-                {
-                    suppressOnnxWarnings();
-                    const pipeline = await this._pipelineFactory.get(
-                        PIPELINE_TYPES.TEXT_GENERATION,
-                        this.configManager.getString('LM.TEXT_GENERATION_MODEL', 'Xenova/distilgpt2'), {
-                            useCache: false
-                        }
-                    );
-                    this._llm = new XenovaLLM(pipeline);
-                    return pipeline;
-                }
+            case 'ollama': {
+                this._llm = new Ollama({
+                    model: this.configManager.getString('LM.TEXT_GENERATION_MODEL', 'Xenova/distilgpt2'),
+                    baseUrl: this.configManager.getString('LM.OLLAMA_BASE_URL', 'http://127.0.0.1:11434'),
+                });
+                return (prompt, options) => this._llm.invoke(prompt, options);
+            }
+            case 'xenova': {
+                suppressOnnxWarnings();
+                const pipeline = await this._pipelineFactory.get(
+                    PIPELINE_TYPES.TEXT_GENERATION,
+                    this.configManager.getString('LM.TEXT_GENERATION_MODEL', 'Xenova/distilgpt2'), {
+                        useCache: false
+                    }
+                );
+                this._llm = new XenovaLLM(pipeline);
+                return pipeline;
+            }
             default:
                 throw new Error(`Unsupported LLM provider: ${provider}`);
         }

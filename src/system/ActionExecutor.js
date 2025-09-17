@@ -1,12 +1,6 @@
-import {
-    v4 as uuidv4
-} from 'uuid';
-import {
-    createModuleErrorHandler
-} from '../utils/errorHandler.js';
-import {
-    isNonEmptyArray
-} from '../utils/helpers.js';
+import {v4 as uuidv4} from 'uuid';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {isNonEmptyArray} from '../utils/helpers.js';
 import EventBus from './EventBus.js';
 
 const errorHandler = createModuleErrorHandler('ActionExecutor');
@@ -231,7 +225,6 @@ class ActionExecutor {
     getResources() {
         return Array.from(this.resources.values());
     }
-
 
 
     getActionHandlers() {

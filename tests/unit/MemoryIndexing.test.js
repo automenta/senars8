@@ -1,8 +1,6 @@
 import Memory from '../../src/memory/Memory.js';
 import Task from '../../src/core/Task.js';
-import {
-    parseTerm
-} from '../../src/parser/narseseParser.js';
+import {parseTerm} from '../../src/parser/narseseParser.js';
 import ConfigManager from '../../src/config/ConfigManager.js';
 
 describe('Memory Indexing', () => {

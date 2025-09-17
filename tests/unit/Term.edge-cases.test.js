@@ -82,7 +82,7 @@ describe('Term - Edge Cases', () => {
 
         const similarity2 = Term.structuralSimilarity('ab', 'ac');
         expect(similarity2).toBe(0); // No common bigrams ('ab' vs 'ac')
-        
+
         // Test with actual common bigrams
         const similarity3 = Term.structuralSimilarity('abc', 'abd');
         expect(similarity3).toBeCloseTo(0.5); // One common bigram ('ab') out of two total

@@ -1,15 +1,8 @@
-import {
-    parseTerm
-} from '../parser/parse-utils.js';
-import {
-    cosineSimilarity
-} from '../utils/math.js';
+import {parseTerm} from '../parser/parse-utils.js';
+import {cosineSimilarity} from '../utils/math.js';
 import config from '../config/index.js';
 import EmbeddingStore from '../utils/EmbeddingStore.js';
-import {
-    TERM_TYPES,
-    OPERATOR_SYMBOLS
-} from '../config/constants.js';
+import {OPERATOR_SYMBOLS, TERM_TYPES} from '../config/constants.js';
 
 /**
  * Term represents a concept or relationship in the knowledge graph.
@@ -190,7 +183,7 @@ class Term {
             case TERM_TYPES.QUERY_VARIABLE:
                 return `?${pTerm.name}`;
 
-                // Binary relations
+            // Binary relations
             case TERM_TYPES.INHERITANCE:
                 return `(${Term.buildTermKey(pTerm.subject)} ${OPERATOR_SYMBOLS.INHERITANCE} ${Term.buildTermKey(pTerm.predicate)})`;
             case TERM_TYPES.IMPLICATION:
@@ -214,7 +207,7 @@ class Term {
             case TERM_TYPES.SINCE:
                 return `(${Term.buildTermKey(pTerm.subject)} since ${Term.buildTermKey(pTerm.predicate)})`;
 
-                // Unary operators
+            // Unary operators
             case TERM_TYPES.NEGATION:
                 return `(${OPERATOR_SYMBOLS.NEGATION}${Term.buildTermKey(pTerm.term)})`;
             case TERM_TYPES.ALWAYS:
@@ -226,7 +219,7 @@ class Term {
             case TERM_TYPES.PREVIOUS:
                 return `(${OPERATOR_SYMBOLS.PREVIOUS}${Term.buildTermKey(pTerm.term)})`;
 
-                // N-ary operators
+            // N-ary operators
             case TERM_TYPES.CONJUNCTION:
                 return `(${OPERATOR_SYMBOLS.CONJUNCTION}${Term.buildTermList(pTerm.terms || [])})`;
             case TERM_TYPES.DISJUNCTION:
@@ -242,7 +235,7 @@ class Term {
             case TERM_TYPES.PRODUCT:
                 return `(${OPERATOR_SYMBOLS.PRODUCT}${Term.buildTermList(pTerm.terms || [])})`;
 
-                // Sets
+            // Sets
             case TERM_TYPES.EXTENSIONAL_SET:
                 return `{${Term.buildTermList(pTerm.terms || [])}}`;
             case TERM_TYPES.INTENSIONAL_SET:

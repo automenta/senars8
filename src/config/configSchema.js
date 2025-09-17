@@ -1,9 +1,7 @@
 /**
  * Configuration schema definition and validation utilities
  */
-import {
-    warn
-} from '../utils/logger.js';
+import {warn} from '../utils/logger.js';
 
 /**
  * @typedef {Object} ConfigSchema
