@@ -14,37 +14,25 @@ describe('AStarPlanner Integration Test', () => {
         const lm = {
             bootstrapTerm: async termKey => new Term(termKey, [0.1, 0.2, 0.3])
         };
-        const logger = {
-            warn: jest.fn(),
-            info: jest.fn(),
-            debug: jest.fn(),
-            error: jest.fn(),
-        };
-        planner = new AStarPlanner(memory, lm, configManager, logger);
+        planner = new AStarPlanner(memory, lm, configManager);
     });
 
-    const addTermToMemory = key => {
+    const addTerm = (key, cost = null) => {
         const term = new Term(key, [Math.random(), Math.random(), Math.random()]);
         memory.addTerm(term);
+        if (cost !== null) {
+            memory.indexer.costIndex.set(key, cost);
+        }
         return term;
     };
 
-    const addCostToMemory = (actionKey, cost) => {
-        memory.indexer.costIndex.set(actionKey, cost);
-    };
-
     test('should find the cheapest plan, even if it is longer', async () => {
-        addTermToMemory('(goal ==> action_expensive)');
-        addTermToMemory('action_expensive');
-        addCostToMemory('action_expensive', 10);
-
-        addTermToMemory('(goal ==> (&&, action_cheap1, action_cheap2))');
-        addTermToMemory('action_cheap1');
-        addCostToMemory('action_cheap1', 2);
-        addTermToMemory('action_cheap2');
-        addCostToMemory('action_cheap2', 2);
-
-        const goalTerm = addTermToMemory('goal');
+        addTerm('(goal ==> action_expensive)', 10);
+        addTerm('action_expensive', 10);
+        addTerm('(goal ==> (&&, action_cheap1, action_cheap2))');
+        addTerm('action_cheap1', 2);
+        addTerm('action_cheap2', 2);
+        const goalTerm = addTerm('goal');
 
         const goalTask = new Task(goalTerm, '!', {
             confidence: 0.9
@@ -56,10 +44,10 @@ describe('AStarPlanner Integration Test', () => {
     });
 
     test('should find a simple plan with one level of decomposition', async () => {
-        addTermToMemory('(goal ==> (&&, action1, action2))');
-        const goalTerm = addTermToMemory('goal');
-        addTermToMemory('action1');
-        addTermToMemory('action2');
+        addTerm('(goal ==> (&&, action1, action2))');
+        const goalTerm = addTerm('goal');
+        addTerm('action1');
+        addTerm('action2');
 
         const goalTask = new Task(goalTerm, '!', {
             confidence: 0.9
@@ -71,9 +59,9 @@ describe('AStarPlanner Integration Test', () => {
     });
 
     test('should return a plan with a single primitive action', async () => {
-        addTermToMemory('(goal ==> action1)');
-        const goalTerm = addTermToMemory('goal');
-        addTermToMemory('action1');
+        addTerm('(goal ==> action1)');
+        const goalTerm = addTerm('goal');
+        addTerm('action1');
 
         const goalTask = new Task(goalTerm, '!', {
             confidence: 0.9
@@ -85,15 +73,14 @@ describe('AStarPlanner Integration Test', () => {
     });
 
     test('should find the optimal (cheapest) plan when two paths exist', async () => {
-        addTermToMemory('(goal ==> intermediate)');
-        addTermToMemory('(intermediate ==> (&&, action1, action2))');
-        addTermToMemory('(goal ==> action3)');
-
-        const goalTerm = addTermToMemory('goal');
-        addTermToMemory('intermediate');
-        addTermToMemory('action1');
-        addTermToMemory('action2');
-        addTermToMemory('action3');
+        addTerm('(goal ==> intermediate)');
+        addTerm('(intermediate ==> (&&, action1, action2))');
+        addTerm('(goal ==> action3)');
+        const goalTerm = addTerm('goal');
+        addTerm('intermediate');
+        addTerm('action1');
+        addTerm('action2');
+        addTerm('action3');
 
         const goalTask = new Task(goalTerm, '!', {
             confidence: 0.9
@@ -105,8 +92,7 @@ describe('AStarPlanner Integration Test', () => {
     });
 
     test('should return an empty plan if the goal is already achieved', async () => {
-        const goalTerm = addTermToMemory('achieved_goal');
-
+        const goalTerm = addTerm('achieved_goal');
         const belief = new Task(goalTerm, '.', {
             confidence: 0.99
         });
@@ -122,13 +108,13 @@ describe('AStarPlanner Integration Test', () => {
     });
 
     test('should handle multi-level decomposition', async () => {
-        addTermToMemory('(goal ==> step1)');
-        addTermToMemory('(step1 ==> step2)');
-        addTermToMemory('(step2 ==> action)');
-        const goalTerm = addTermToMemory('goal');
-        addTermToMemory('step1');
-        addTermToMemory('step2');
-        addTermToMemory('action');
+        addTerm('(goal ==> step1)');
+        addTerm('(step1 ==> step2)');
+        addTerm('(step2 ==> action)');
+        const goalTerm = addTerm('goal');
+        addTerm('step1');
+        addTerm('step2');
+        addTerm('action');
 
         const goalTask = new Task(goalTerm, '!', {
             confidence: 0.9
@@ -140,10 +126,10 @@ describe('AStarPlanner Integration Test', () => {
     });
 
     test('should handle cyclic dependencies and not get stuck in a loop', async () => {
-        addTermToMemory('(a ==> b)');
-        addTermToMemory('(b ==> a)');
-        const goalTerm = addTermToMemory('a');
-        addTermToMemory('b');
+        addTerm('(a ==> b)');
+        addTerm('(b ==> a)');
+        const goalTerm = addTerm('a');
+        addTerm('b');
 
         const goalTask = new Task(goalTerm, '!', {
             confidence: 0.9
@@ -154,14 +140,13 @@ describe('AStarPlanner Integration Test', () => {
     });
 
     test('should not use a path if preconditions are not met', async () => {
-        addTermToMemory('(goal ==> (&&, precondition, action1))');
-        addTermToMemory('precondition');
-        addTermToMemory('action1');
+        addTerm('(goal ==> (&&, precondition, action1))');
+        addTerm('precondition');
+        addTerm('action1');
+        addTerm('(goal ==> action2)');
+        addTerm('action2');
 
-        addTermToMemory('(goal ==> action2)');
-        addTermToMemory('action2');
-
-        const goalTerm = addTermToMemory('goal');
+        const goalTerm = addTerm('goal');
         const goalTask = new Task(goalTerm, '!', {
             confidence: 0.9
         });

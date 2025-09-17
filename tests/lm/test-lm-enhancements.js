@@ -1,65 +1,71 @@
 const LM = require('../src/lm/LM');
 const Task = require('../src/core/Task');
-const {parseTerm} = require('../src/parser/narseseParser');
+const {
+    parseTerm
+} = require('../src/parser/narseseParser');
+
+async function testSection(title, testFn) {
+    console.log(`\n${title}`);
+    try {
+        await testFn();
+    } catch (error) {
+        console.error('   Error:', error.message);
+    }
+}
 
 async function testLMEnhancements() {
     console.log('=== Testing Enhanced LM Capabilities ===\n');
-
     const lm = new LM();
-
-    // Create some sample tasks
-    const taskDefs = [
-        {termKey: '(bird --> can_fly)', punctuation: '.', truthValue: {frequency: 0.95, confidence: 0.95}},
-        {termKey: '(penguin --> bird)', punctuation: '.', truthValue: {frequency: 1.0, confidence: 0.95}},
-        {termKey: '(penguin --> (--, can_fly))', punctuation: '.', truthValue: {frequency: 0.95, confidence: 0.95}}
-    ];
-
-    const tasks = taskDefs.map(def => {
-        const parsedTerm = parseTerm(def.termKey);
-        if (parsedTerm) {
-            return new Task(parsedTerm, def.punctuation, def.truthValue);
+    const taskDefs = [{
+        termKey: '(bird --> can_fly)',
+        punctuation: '.',
+        truthValue: {
+            frequency: 0.95,
+            confidence: 0.95
         }
-        return null;
-    }).filter(Boolean);
-
-    console.log('1. Testing sophisticated hypothesis generation...');
-    try {
-        const sophisticatedHypotheses = await lm.generateSophisticatedHypotheses(tasks);
-        console.log(`   Generated ${sophisticatedHypotheses.length} sophisticated hypotheses:`);
-        for (let i = 0; i < sophisticatedHypotheses.length; i++) {
-            const hypothesis = sophisticatedHypotheses[i];
-            console.log(`     ${i + 1}. ${hypothesis.termKey}${hypothesis.punctuation} (freq: ${hypothesis.state.truthValue.frequency.toFixed(3)}, conf: ${hypothesis.state.truthValue.confidence.toFixed(3)})`);
+    }, {
+        termKey: '(penguin --> bird)',
+        punctuation: '.',
+        truthValue: {
+            frequency: 1.0,
+            confidence: 0.95
         }
-    } catch (error) {
-        console.error('   Error:', error.message);
-    }
+    }, {
+        termKey: '(penguin --> (--, can_fly))',
+        punctuation: '.',
+        truthValue: {
+            frequency: 0.95,
+            confidence: 0.95
+        }
+    }, ];
 
-    console.log('\n2. Testing comprehensive explanation...');
-    try {
-        const comprehensiveExplanation = await lm.explainComprehensive('penguin', 'bird taxonomy');
+    const tasks = taskDefs.map(def => parseTerm(def.termKey) ? new Task(parseTerm(def.termKey), def.punctuation, def.truthValue) : null).filter(Boolean);
+
+    await testSection('1. Testing sophisticated hypothesis generation...', async () => {
+        const hypotheses = await lm.generateSophisticatedHypotheses(tasks);
+        console.log(`   Generated ${hypotheses.length} sophisticated hypotheses:`);
+        hypotheses.forEach((h, i) => console.log(`     ${i + 1}. ${h.termKey}${h.punctuation} (freq: ${h.state.truthValue.frequency.toFixed(3)}, conf: ${h.state.truthValue.confidence.toFixed(3)})`));
+    });
+
+    await testSection('2. Testing comprehensive explanation...', async () => {
+        const explanation = await lm.explainComprehensive('penguin', 'bird taxonomy');
         console.log("   Comprehensive explanation of 'penguin':");
         console.log('   Perspectives:');
-        for (const [perspective, explanation] of Object.entries(comprehensiveExplanation.perspectives || {})) {
-            console.log(`     ${perspective.charAt(0).toUpperCase() + perspective.slice(1)}: ${explanation.substring(0, 100)}${explanation.length > 100 ? '...' : ''}`);
+        for (const [p, exp] of Object.entries(explanation.perspectives || {})) {
+            console.log(`     ${p.charAt(0).toUpperCase() + p.slice(1)}: ${exp.substring(0,100)}${exp.length > 100 ? '...' : ''}`);
         }
-        if (comprehensiveExplanation.synthesis) {
-            console.log(`   Synthesis: ${comprehensiveExplanation.synthesis.substring(0, 100)}${comprehensiveExplanation.synthesis.length > 100 ? '...' : ''}`);
+        if (explanation.synthesis) {
+            console.log(`   Synthesis: ${explanation.synthesis.substring(0, 100)}${explanation.synthesis.length > 100 ? '...' : ''}`);
         }
-    } catch (error) {
-        console.error('   Error:', error.message);
-    }
+    });
 
-    console.log('\n3. Testing audience-specific explanations...');
-    const audiences = ['beginner', 'intermediate', 'expert'];
-    for (const audience of audiences) {
-        try {
+    await testSection('3. Testing audience-specific explanations...', async () => {
+        for (const audience of ['beginner', 'intermediate', 'expert']) {
             console.log(`   ${audience.charAt(0).toUpperCase() + audience.slice(1)} explanation of 'inheritance':`);
             const explanation = await lm.explainForAudience('inheritance', audience, 'object-oriented programming');
             console.log(`     ${explanation.substring(0, 120)}${explanation.length > 120 ? '...' : ''}`);
-        } catch (error) {
-            console.error('   Error:', error.message);
         }
-    }
+    });
 
     console.log('\n=== Test Complete ===');
 }

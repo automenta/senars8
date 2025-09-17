@@ -10,7 +10,7 @@ class QAService {
     }
 
     async answerQuestion(question, context = null) {
-        if (!question || typeof question !== 'string') {
+        if (!question) {
             return 'Cannot answer an empty question.';
         }
 
@@ -19,7 +19,7 @@ class QAService {
             if (context) {
                 const qaPipeline = await this._getQAPipeline();
                 const result = await qaPipeline(question, context);
-                if (result && result.answer) {
+                if (result?.answer) {
                     debug('Question answered using QA pipeline');
                     return result.answer;
                 }

@@ -18,19 +18,15 @@ class Bag {
     }
 
     commit() {
-        if (!this.isDirty) {
-            return;
-        }
+        if (!this.isDirty) return;
 
         this.items.sort((a, b) => b.priority - a.priority);
-
         if (this.items.length > this.capacity) {
             this.items.length = this.capacity;
         }
 
         this.totalPriority = 0;
         this.cumulativePriorities = new Array(this.items.length);
-
         for (let i = 0; i < this.items.length; i++) {
             this.totalPriority += this.items[i].priority;
             this.cumulativePriorities[i] = this.totalPriority;
@@ -40,24 +36,19 @@ class Bag {
     }
 
     sample() {
-        if (this.isDirty || this.items.length === 0) {
-            return null;
-        }
+        if (this.isDirty || this.isEmpty()) return null;
 
         const random = Math.random() * this.totalPriority;
-
-        let low = 0;
-        let high = this.cumulativePriorities.length - 1;
-
+        let low = 0,
+            high = this.cumulativePriorities.length - 1;
         while (low < high) {
-            const mid = Math.floor((low + high) / 2);
+            const mid = (low + high) >>> 1;
             if (random > this.cumulativePriorities[mid]) {
                 low = mid + 1;
             } else {
                 high = mid;
             }
         }
-
         return this.items[low]?.item ?? null;
     }
 

@@ -1,5 +1,9 @@
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
-import {info} from '../utils/logger.js';
+import {
+    createModuleErrorHandler
+} from '../utils/errorHandler.js';
+import {
+    info
+} from '../utils/logger.js';
 import ConfigManager from '../config/ConfigManager.js';
 import System from './System.js';
 import Cycle from './Cycle.js';
@@ -32,23 +36,26 @@ class SystemFactory {
 
     _assembleComponents(configManager, components) {
         info('SystemFactory: Assembling components...');
-        const memory = components.memory || new Memory(configManager);
-        const lm = components.lm || new LM(configManager);
-        const temporalReasoner = components.temporalReasoner || new TemporalReasoner(configManager);
-        const reasoner = components.reasoner || new Reasoner({
+
+        const get = (name, defaultComponent) => components[name] || defaultComponent;
+
+        const memory = get('memory', new Memory(configManager));
+        const lm = get('lm', new LM(configManager));
+        const temporalReasoner = get('temporalReasoner', new TemporalReasoner(configManager));
+        const reasoner = get('reasoner', new Reasoner({
             temporalReasoner
-        }, configManager);
-        const actionExecutor = components.actionExecutor || new ActionExecutor(memory, configManager);
-        const perception = components.perception || new Perception(memory, lm);
-        const planner = components.planner || new Planner(memory, lm, actionExecutor, configManager);
-        const priorityManager = components.priorityManager || new PriorityManager(memory);
-        const contradictionAnalyzer = components.contradictionAnalyzer || new ContradictionAnalyzer();
-        const resolutionStrategy = components.resolutionStrategy || new ResolutionStrategy();
-        const metaCognition = components.metaCognition || new MetaCognition(configManager, {
+        }, configManager));
+        const actionExecutor = get('actionExecutor', new ActionExecutor(memory, configManager));
+        const perception = get('perception', new Perception(memory, lm));
+        const planner = get('planner', new Planner(memory, lm, actionExecutor, configManager));
+        const priorityManager = get('priorityManager', new PriorityManager(memory));
+        const contradictionAnalyzer = get('contradictionAnalyzer', new ContradictionAnalyzer());
+        const resolutionStrategy = get('resolutionStrategy', new ResolutionStrategy());
+        const metaCognition = get('metaCognition', new MetaCognition(configManager, {
             contradictionAnalyzer,
             resolutionStrategy
-        });
-        const cycle = components.cycle || new Cycle(configManager, {
+        }));
+        const cycle = get('cycle', new Cycle(configManager, {
             memory,
             reasoner,
             lm,
@@ -58,14 +65,15 @@ class SystemFactory {
             metaCognition,
             temporalReasoner,
             priorityManager
-        });
-        const system = components.system || new System(configManager, {
+        }));
+        const system = get('system', new System(configManager, {
             memory,
             reasoner,
             lm,
             actionExecutor,
             cycle
-        });
+        }));
+
         info('SystemFactory: Components assembled.');
         return {
             system,

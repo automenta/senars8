@@ -1,6 +1,5 @@
 const lexer = require('../src/parser/lexer');
 
-// Test the lexer with a negation
 const input = '(--,, cat)';
 console.log('Input:', input);
 

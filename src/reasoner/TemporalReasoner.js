@@ -7,14 +7,29 @@ import TemporalAnomalyDetection from './temporal/TemporalAnomalyDetection.js';
 import FutureTaskPrediction from './temporal/FutureTaskPrediction.js';
 import TemporalClusterDetection from './temporal/TemporalClusterDetection.js';
 import TemporalCoherence from './temporal/TemporalCoherence.js';
-import {debug} from '../utils/logger.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {
+    debug
+} from '../utils/logger.js';
+import {
+    createModuleErrorHandler
+} from '../utils/errorHandler.js';
 
 const errorHandler = createModuleErrorHandler('TemporalReasoner');
 
 class TemporalReasoner {
     constructor(configManager) {
         this.configManager = configManager;
+        this.inferenceModules = [
+            TemporalRelationshipInference,
+            TemporalImplicationInference,
+            TemporalPatternDetection,
+            TemporalCycleDetection,
+            TemporalAbstraction,
+            TemporalAnomalyDetection,
+            FutureTaskPrediction,
+            TemporalClusterDetection,
+            TemporalCoherence,
+        ];
     }
 
     infer(focusSet) {
@@ -28,17 +43,8 @@ class TemporalReasoner {
 
             debug(`Processing ${temporalFocusSet.length} temporal tasks`);
             const config = this.configManager.get('temporal');
-            const relationshipTasks = TemporalRelationshipInference.infer(temporalFocusSet, config);
-            const implicationTasks = TemporalImplicationInference.infer(temporalFocusSet, config);
-            const patternTasks = TemporalPatternDetection.detect(temporalFocusSet, config);
-            const cycleTasks = TemporalCycleDetection.detect(temporalFocusSet, config);
-            const abstractionTasks = TemporalAbstraction.create(temporalFocusSet, config);
-            const anomalyTasks = TemporalAnomalyDetection.detect(temporalFocusSet, config);
-            const predictionTasks = FutureTaskPrediction.predict(temporalFocusSet, config);
-            const clusterTasks = TemporalClusterDetection.detect(temporalFocusSet, config);
-            const coherenceTasks = TemporalCoherence.calculate(temporalFocusSet, config);
+            const allTasks = this.inferenceModules.flatMap(module => module.infer(temporalFocusSet, config));
 
-            const allTasks = [...relationshipTasks, ...implicationTasks, ...patternTasks, ...cycleTasks, ...abstractionTasks, ...anomalyTasks, ...predictionTasks, ...clusterTasks, ...coherenceTasks];
             debug(`Temporal reasoning produced ${allTasks.length} derived tasks`);
             return allTasks;
         }, 'infer', []);

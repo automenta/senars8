@@ -61,19 +61,14 @@ class LM {
         const delay = this.configManager.getNumber('LM.EMBEDDING_BATCH_DELAY_MS', 100);
 
         while (this._isProcessingEmbeddings) {
-            if (this._embeddingQueue.length === 0) {
-                await new Promise(resolve => setTimeout(resolve, delay));
-                continue;
-            }
-
             const batch = this._embeddingQueue.splice(0, batchSize);
-            debug(`Processing embedding batch of size ${batch.length}`);
-
-            await errorHandler.safeAsync(
-                () => Promise.all(batch.map(term => this._generateAndAssignEmbedding(term))),
-                'processEmbeddingQueue'
-            );
-
+            if (batch.length > 0) {
+                debug(`Processing embedding batch of size ${batch.length}`);
+                await errorHandler.safeAsync(
+                    () => Promise.all(batch.map(term => this._generateAndAssignEmbedding(term))),
+                    'processEmbeddingQueue'
+                );
+            }
             await new Promise(resolve => setTimeout(resolve, delay));
         }
         debug('Embedding processing loop finished.');
@@ -96,38 +91,32 @@ class LM {
     }
 
     async _getGenerationPipeline() {
-        if (this._llm) {
-            if (this.configManager.getString('LM.LLM_PROVIDER') === 'ollama') {
-                return (prompt, options) => this._llm.invoke(prompt, options);
-            }
-            return this._llm.pipeline;
-        }
+        if (this._llm) return this._llm.pipeline || ((prompt, options) => this._llm.invoke(prompt, options));
 
         const provider = this.configManager.getString('LM.LLM_PROVIDER', 'xenova');
         info(`Initializing LLM with provider: ${provider}`);
 
-        switch (provider) {
-            case 'ollama': {
-                this._llm = new Ollama({
-                    model: this.configManager.getString('LM.TEXT_GENERATION_MODEL', 'Xenova/distilgpt2'),
-                    baseUrl: this.configManager.getString('LM.OLLAMA_BASE_URL', 'http://127.0.0.1:11434'),
-                });
-                return (prompt, options) => this._llm.invoke(prompt, options);
-            }
-            case 'xenova': {
-                suppressOnnxWarnings();
-                const pipeline = await this._pipelineFactory.get(
-                    PIPELINE_TYPES.TEXT_GENERATION,
-                    this.configManager.getString('LM.TEXT_GENERATION_MODEL', 'Xenova/distilgpt2'), {
-                        useCache: false
-                    }
-                );
-                this._llm = new XenovaLLM(pipeline);
-                return pipeline;
-            }
-            default:
-                throw new Error(`Unsupported LLM provider: ${provider}`);
+        if (provider === 'ollama') {
+            this._llm = new Ollama({
+                model: this.configManager.getString('LM.TEXT_GENERATION_MODEL', 'Xenova/distilgpt2'),
+                baseUrl: this.configManager.getString('LM.OLLAMA_BASE_URL', 'http://127.0.0.1:11434'),
+            });
+            return (prompt, options) => this._llm.invoke(prompt, options);
         }
+
+        if (provider === 'xenova') {
+            suppressOnnxWarnings();
+            const pipeline = await this._pipelineFactory.get(
+                PIPELINE_TYPES.TEXT_GENERATION,
+                this.configManager.getString('LM.TEXT_GENERATION_MODEL', 'Xenova/distilgpt2'), {
+                    useCache: false
+                }
+            );
+            this._llm = new XenovaLLM(pipeline);
+            return pipeline;
+        }
+
+        throw new Error(`Unsupported LLM provider: ${provider}`);
     }
 
     async _getQAPipeline() {
@@ -203,11 +192,9 @@ class LM {
     async bootstrapTerm(termKey, options = {
         sync: false
     }) {
-        if (typeof termKey !== 'string' || termKey.length === 0) {
-            throw new Error('termKey must be a non-empty string.');
-        }
+        if (!termKey) throw new Error('termKey must be a non-empty string.');
 
-        const complexity = termKey.split(/[(&,)/]/).filter(s => s.length > 0).length;
+        const complexity = termKey.split(/[(&,)/]/).filter(Boolean).length;
         const term = new Term(termKey, [], complexity);
 
         if (options.sync) {
@@ -219,26 +206,6 @@ class LM {
         }
 
         return term;
-    }
-
-    getGenerationPipeline() {
-        return this._getGenerationPipeline();
-    }
-
-    getFeaturePipeline() {
-        return this._getFeaturePipeline();
-    }
-
-    createStructuredChain(promptTemplate, outputSchema, generationOptions) {
-        return this._createStructuredChain(promptTemplate, outputSchema, generationOptions);
-    }
-
-    parseStructuredResult(resultText) {
-        return this._parseStructuredResult(resultText);
-    }
-
-    generate(prompt, options = {}) {
-        return this._generate(prompt, options);
     }
 
     async generateHypotheses(tasks, options = {}) {

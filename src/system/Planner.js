@@ -1,7 +1,13 @@
 import Planners from '../reasoner/index.js';
 import Plan from './Plan.js';
-import {debug, info, warn} from '../utils/logger.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {
+    debug,
+    info,
+    warn
+} from '../utils/logger.js';
+import {
+    createModuleErrorHandler
+} from '../utils/errorHandler.js';
 
 const errorHandler = createModuleErrorHandler('Planner');
 
@@ -32,13 +38,8 @@ class Planner {
             const cachedPlan = this._getcachedPlan(goalKey, failedPlan);
             if (cachedPlan) return cachedPlan;
 
-            let planSteps = await this._generateNewPlan(goalTask);
-
-            if (this._isPlanEmpty(planSteps)) {
-                planSteps = await this._handleEmptyPlan(goalTask, failedPlan);
-            }
-
-            if (this._isPlanEmpty(planSteps)) {
+            let planSteps = await this._generateNewPlan(goalTask) || await this._handleEmptyPlan(goalTask, failedPlan);
+            if (!planSteps) {
                 warn(`No plan could be created for goal: ${goalKey}`);
                 return null;
             }
@@ -48,10 +49,6 @@ class Planner {
             debug(`Plan created successfully with ${planSteps.length} steps`);
             return plan;
         }, `createPlan for goal ${goalTask.termKey}`, null);
-    }
-
-    _isPlanEmpty(planSteps) {
-        return !planSteps || planSteps.length === 0;
     }
 
     _getcachedPlan(goalKey, failedPlan) {
@@ -69,8 +66,7 @@ class Planner {
     }
 
     async _handleEmptyPlan(goalTask, failedPlan) {
-        const isAchieved = this.strategy._isAchieved(this.strategy.memory.getTerm(goalTask.termKey));
-        if (isAchieved) {
+        if (this.strategy._isAchieved(this.strategy.memory.getTerm(goalTask.termKey))) {
             debug(`Goal already achieved: ${goalTask.termKey}`);
             return [];
         }
@@ -79,7 +75,6 @@ class Planner {
 
     async _getLmSuggestion(goalTask, failedPlan) {
         if (!this.lm) return null;
-
         debug(`Requesting LM plan suggestion for goal: ${goalTask.termKey}`);
         const lmSuggestion = await this.lm.suggestPlanRepair(goalTask, failedPlan?.steps);
         if (lmSuggestion?.length > 0) {

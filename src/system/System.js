@@ -1,8 +1,17 @@
 import '../utils/onnxSuppression.js';
 import registerDefaultActions from './default-actions.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
-import {debug, error as logError, info, warn} from '../utils/logger.js';
-import {normalizeToArray} from '../utils/arrayUtils.js';
+import {
+    createModuleErrorHandler
+} from '../utils/errorHandler.js';
+import {
+    debug,
+    error as logError,
+    info,
+    warn
+} from '../utils/logger.js';
+import {
+    normalizeToArray
+} from '../utils/arrayUtils.js';
 import Introspection from './Introspection.js';
 
 const errorHandler = createModuleErrorHandler('System');
@@ -48,11 +57,10 @@ class System {
     }) {
         await errorHandler.safeAsync(async () => {
             const newTermKeys = [...new Set(tasks.map(task => task.termKey).filter(key => !this.memory.getTerm(key)))];
-            if (newTermKeys.length === 0) return;
+            if (!newTermKeys.length) return;
 
             debug(`Bootstrapping ${newTermKeys.length} new terms...`);
-            const termPromises = newTermKeys.map(key => this.lm.bootstrapTerm(key, options));
-            const newTerms = (await Promise.all(termPromises)).filter(Boolean);
+            const newTerms = (await Promise.all(newTermKeys.map(key => this.lm.bootstrapTerm(key, options)))).filter(Boolean);
             newTerms.forEach(term => this.memory.addTerm(term));
             info(`Successfully bootstrapped ${newTerms.length} terms.`);
         }, '_bootstrapTerms');
@@ -84,10 +92,12 @@ class System {
                     await this.runCycle();
                     const tickDelay = this.configManager.getNumber('cycle.TICK_DELAY_MS', 50);
                     await new Promise(resolve => setTimeout(resolve, tickDelay));
-                    return {success: true};
+                    return {
+                        success: true
+                    };
                 }, 'runCycle-in-loop');
 
-                if (!result || !result.success) {
+                if (!result?.success) {
                     logError('Fatal error during system cycle execution:', result.error);
                     this.stop();
                     break;
@@ -109,7 +119,7 @@ class System {
     async addTasks(tasks) {
         await errorHandler.safeAsync(async () => {
             const tasksToAdd = normalizeToArray(tasks);
-            if (tasksToAdd.length === 0) return;
+            if (!tasksToAdd.length) return;
 
             debug(`Adding ${tasksToAdd.length} new tasks to the system...`);
             await this._bootstrapTerms(tasksToAdd);

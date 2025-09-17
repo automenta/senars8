@@ -11,35 +11,23 @@ class PipelineFactory {
 
     async get(type, model, options = {}) {
         const key = `${type}|${model}`;
-        let pipelinePromise = this._pipelines.get(key);
-
-        if (!pipelinePromise) {
-            info(`Loading pipeline: ${type} - ${model}`);
-            pipelinePromise = errorHandler.safeSync(() => {
-                // Create the pipeline promise and store it immediately.
-                const promise = pipeline(type, model, {
-                    ...options,
-                    progress_callback: _progress => {
-                        // console.log(_progress);
-                    }
-                });
-                this._pipelines.set(key, promise);
-                return promise;
-            }, `create-pipeline-promise-${key}`, null);
+        if (this._pipelines.has(key)) {
+            return this._pipelines.get(key);
         }
 
-        return errorHandler.safeAsync(async () => {
-            // Await the promise (either the one we just created or the one from the cache)
-            const resolvedPipeline = await pipelinePromise;
-            // Replace the promise with the resolved pipeline for future calls
-            this._pipelines.set(key, resolvedPipeline);
-            return resolvedPipeline;
-        }, `resolve-pipeline-promise-${key}`, null);
+        info(`Loading pipeline: ${type} - ${model}`);
+        const newPipeline = await errorHandler.safeAsync(
+            () => pipeline(type, model, options),
+            `create-pipeline-${key}`
+        );
+
+        if (newPipeline) {
+            this._pipelines.set(key, newPipeline);
+        }
+        return newPipeline;
     }
 
     dispose() {
-        // This method is important for cleaning up resources,
-        // but its implementation will depend on the specific models and libraries used.
         this._pipelines.clear();
         info('All pipelines disposed.');
     }

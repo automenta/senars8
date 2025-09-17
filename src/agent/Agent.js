@@ -35,18 +35,17 @@ class Agent {
         debug(`Tool registered: ${tool.name}`);
     }
 
-    async decideNextAction(goalString, _history) {
+    async decideNextAction(goalString) {
         if (!this.isInitialized) throw new Error('Agent not initialized.');
         debug('Deciding next action for goal:', goalString);
 
         const plan = await this.createPlan(goalString);
-        if (!plan || plan.steps.length === 0) {
+        if (!plan?.steps.length) {
             debug('No actionable plan found.');
             return null;
         }
 
-        const nextStep = plan.steps[0];
-        const action = this._parseTermToAction(nextStep);
+        const action = this._parseTermToAction(plan.steps[0]);
         debug('Next action determined:', action);
         return action;
     }
@@ -55,12 +54,8 @@ class Agent {
         const tool = this.tools[action.tool];
         if (!tool) throw new Error(`Tool not found: ${action.tool}`);
 
-        const {handler, parameters: toolParamsDef} = tool;
-        if (!toolParamsDef?.properties) {
-            return handler({}); // No parameters defined
-        }
-
-        const paramNames = Object.keys(toolParamsDef.properties);
+        const { handler, parameters: toolParamsDef } = tool;
+        const paramNames = Object.keys(toolParamsDef?.properties || {});
         const params = action.parameters.reduce((acc, value, i) => {
             if (paramNames[i]) acc[paramNames[i]] = value;
             return acc;

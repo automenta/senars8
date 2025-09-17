@@ -34,9 +34,7 @@ class MemoryIndexer {
     }
 
     _indexImplication(term) {
-        if (term.type !== 'Implication' || !term.subject) {
-            return;
-        }
+        if (term.type !== 'Implication' || !term.subject) return;
 
         const goalTerm = (term.subject.type === 'SequentialConjunction' && term.subject.terms.length > 0) ?
             term.subject.terms[0] :
@@ -50,9 +48,7 @@ class MemoryIndexer {
     }
 
     _indexBelief(task) {
-        if (!isBelief(task)) {
-            return;
-        }
+        if (!isBelief(task)) return;
         const key = task.termKey;
         if (!this.beliefIndex.has(key)) {
             this.beliefIndex.set(key, []);
@@ -61,13 +57,10 @@ class MemoryIndexer {
     }
 
     _unindexBelief(task) {
-        if (!isBelief(task) || !this.beliefIndex.has(task.termKey)) {
-            return;
-        }
+        if (!isBelief(task) || !this.beliefIndex.has(task.termKey)) return;
 
         const beliefs = this.beliefIndex.get(task.termKey);
         const index = beliefs.indexOf(task);
-
         if (index !== -1) {
             beliefs.splice(index, 1);
             if (beliefs.length === 0) {
@@ -83,9 +76,7 @@ class MemoryIndexer {
         }
 
         const cost = parseFloat(term.predicate.terms[0].key);
-        if (isNaN(cost)) {
-            return;
-        }
+        if (isNaN(cost)) return;
 
         const actionKey = term.subject.key;
         if (operation === 'add') {
@@ -95,42 +86,34 @@ class MemoryIndexer {
         }
     }
 
-    _indexPunctuation(task) {
-        const p = task.punctuation;
-        if (!this.punctuationIndex.has(p)) {
-            this.punctuationIndex.set(p, new Set());
+    _updateSetIndex(index, key, id, operation) {
+        if (!index.has(key)) {
+            if (operation === 'remove') return;
+            index.set(key, new Set());
         }
-        this.punctuationIndex.get(p).add(task.id);
+        const set = index.get(key);
+        set[operation === 'add' ? 'add' : 'delete'](id);
+        if (set.size === 0) {
+            index.delete(key);
+        }
+    }
+
+    _indexPunctuation(task) {
+        this._updateSetIndex(this.punctuationIndex, task.punctuation, task.id, 'add');
     }
 
     _unindexPunctuation(task) {
-        const p = task.punctuation;
-        if (this.punctuationIndex.has(p)) {
-            const taskIds = this.punctuationIndex.get(p);
-            taskIds.delete(task.id);
-            if (taskIds.size === 0) {
-                this.punctuationIndex.delete(p);
-            }
-        }
+        this._updateSetIndex(this.punctuationIndex, task.punctuation, task.id, 'remove');
     }
 
     _indexPriority(task) {
         const priorityBucket = Math.floor(task.state.priority * 10);
-        if (!this.priorityIndex.has(priorityBucket)) {
-            this.priorityIndex.set(priorityBucket, new Set());
-        }
-        this.priorityIndex.get(priorityBucket).add(task.id);
+        this._updateSetIndex(this.priorityIndex, priorityBucket, task.id, 'add');
     }
 
     _unindexPriority(task) {
         const priorityBucket = Math.floor(task.state.priority * 10);
-        if (this.priorityIndex.has(priorityBucket)) {
-            const taskIds = this.priorityIndex.get(priorityBucket);
-            taskIds.delete(task.id);
-            if (taskIds.size === 0) {
-                this.priorityIndex.delete(priorityBucket);
-            }
-        }
+        this._updateSetIndex(this.priorityIndex, priorityBucket, task.id, 'remove');
     }
 
     clear() {
@@ -150,19 +133,13 @@ class MemoryIndexer {
     }
 
     queryTasks(tasks, filters) {
-        let filteredTasks;
+        let filteredTasks = [...tasks];
+
         if (filters.punctuation) {
-            if (!['.', '!', '?'].includes(filters.punctuation)) {
-                return [];
-            }
             const taskIds = this.punctuationIndex.get(filters.punctuation);
-            if (!taskIds) {
-                return [];
-            }
+            if (!taskIds) return [];
             const taskMap = new Map(tasks.map(t => [t.id, t]));
-            filteredTasks = Array.from(taskIds).map(id => taskMap.get(id)).filter(Boolean);
-        } else {
-            filteredTasks = [...tasks];
+            filteredTasks = [...taskIds].map(id => taskMap.get(id)).filter(Boolean);
         }
 
         if (filters.termKey) {
@@ -177,21 +154,17 @@ class MemoryIndexer {
 
         filteredTasks.sort((a, b) => b.state.priority - a.state.priority);
 
-        if (filters.limit !== undefined) {
-            return filteredTasks.slice(0, filters.limit);
-        }
-
-        return filteredTasks;
+        return filters.limit ? filteredTasks.slice(0, filters.limit) : filteredTasks;
     }
 
     clone() {
-        const n = new MemoryIndexer();
-        n.implicationIndex = new Map(this.implicationIndex);
-        n.beliefIndex = new Map(Array.from(this.beliefIndex.entries()).map(([key, value]) => [key, [...value]]));
-        n.costIndex = new Map(this.costIndex);
-        n.punctuationIndex = new Map(Array.from(this.punctuationIndex.entries()).map(([key, value]) => [key, new Set(value)]));
-        n.priorityIndex = new Map(Array.from(this.priorityIndex.entries()).map(([key, value]) => [key, new Set(value)]));
-        return n;
+        const newIndexer = new MemoryIndexer();
+        newIndexer.implicationIndex = new Map(this.implicationIndex);
+        newIndexer.beliefIndex = new Map(Array.from(this.beliefIndex.entries()).map(([key, value]) => [key, [...value]]));
+        newIndexer.costIndex = new Map(this.costIndex);
+        newIndexer.punctuationIndex = new Map(Array.from(this.punctuationIndex.entries()).map(([key, value]) => [key, new Set(value)]));
+        newIndexer.priorityIndex = new Map(Array.from(this.priorityIndex.entries()).map(([key, value]) => [key, new Set(value)]));
+        return newIndexer;
     }
 }
 

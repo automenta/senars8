@@ -1,6 +1,12 @@
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
-import {isNonEmptyArray} from '../utils/arrayUtils.js';
-import {generateActionId} from '../utils/IdGenerator.js';
+import {
+    createModuleErrorHandler
+} from '../utils/errorHandler.js';
+import {
+    isNonEmptyArray
+} from '../utils/arrayUtils.js';
+import {
+    generateActionId
+} from '../utils/IdGenerator.js';
 import EventBus from './EventBus.js';
 
 const errorHandler = createModuleErrorHandler('ActionExecutor');
@@ -14,7 +20,6 @@ class ActionExecutor {
         this.resources = new Map();
         this.constraints = new Map();
         this.actionQueue = [];
-        this.pendingActions = new Map();
         this.processing = false;
 
         this.configManager.getArray('ACTION_EXECUTOR.RESOURCES', []).forEach(res => this.registerResource(res.name, res));
@@ -67,7 +72,6 @@ class ActionExecutor {
             }
         }
         this.actionQueue = stillQueued;
-
         this.processing = false;
     }
 
@@ -98,9 +102,7 @@ class ActionExecutor {
         this._acquireResources(action);
         await errorHandler.safeAsync(async () => {
             const handler = this._findHandler(action.name);
-            if (!handler) {
-                throw new Error(`No handler found for action: ${action.name}`);
-            }
+            if (!handler) throw new Error(`No handler for action: ${action.name}`);
             const result = await handler(action);
             resolve(this._recordSuccess(actionRecord, result));
         }, 'processActionItem', (executionError) => {
@@ -126,47 +128,18 @@ class ActionExecutor {
     }
 
     _validate(action) {
-        this._validateName(action);
-        this._validateParameters(action);
-        this._validateResources(action);
-        this._validateConstraints(action);
-    }
+        if (!action.name || typeof action.name !== 'string') throw new Error('Action must have a valid name');
+        if (action.parameters && !isNonEmptyArray(action.parameters)) throw new Error('Action parameters must be a non-empty array');
+        if (action.resources && !isNonEmptyArray(action.resources)) throw new Error('Action resources must be a non-empty array');
 
-    _validateName(action) {
-        if (!action.name || typeof action.name !== 'string') {
-            throw new Error('Action must have a valid name');
-        }
-    }
-
-    _validateParameters(action) {
-        if (!action.parameters) return;
-        if (!isNonEmptyArray(action.parameters)) {
-            throw new Error('Action parameters must be a non-empty array');
-        }
-        for (const param of action.parameters) {
-            if (!this.memory.getTerm(param)) {
-                throw new Error(`Parameter term not found in memory: ${param}`);
-            }
-        }
-    }
-
-    _validateResources(action) {
-        if (!action.resources) return;
-        if (!isNonEmptyArray(action.resources)) {
-            throw new Error('Action resources must be a non-empty array');
-        }
-        for (const resourceName of action.resources) {
-            if (!this.resources.has(resourceName)) {
-                throw new Error(`Resource not registered: ${resourceName}`);
-            }
-        }
-    }
-
-    _validateConstraints(action) {
+        action.parameters?.forEach(param => {
+            if (!this.memory.getTerm(param)) throw new Error(`Parameter term not found in memory: ${param}`);
+        });
+        action.resources?.forEach(resourceName => {
+            if (!this.resources.has(resourceName)) throw new Error(`Resource not registered: ${resourceName}`);
+        });
         for (const constraint of this.constraints.values()) {
-            if (!constraint(action)) {
-                throw new Error('Action violates system constraints');
-            }
+            if (!constraint(action)) throw new Error('Action violates system constraints');
         }
     }
 
@@ -204,8 +177,7 @@ class ActionExecutor {
 
     _findHandler(actionName) {
         for (const [pattern, handler] of this.actionHandlers) {
-            const found = errorHandler.safeSync(() => new RegExp(pattern).test(actionName), `_findHandler RegExp test for pattern: ${pattern}`, false);
-            if (found) {
+            if (errorHandler.safeSync(() => new RegExp(pattern).test(actionName), `_findHandler RegExp test for pattern: ${pattern}`, false)) {
                 return handler;
             }
         }
@@ -221,12 +193,11 @@ class ActionExecutor {
     }
 
     getResources() {
-        return Array.from(this.resources.values());
+        return [...this.resources.values()];
     }
 
-
     getActionHandlers() {
-        return Array.from(this.actionHandlers.keys());
+        return [...this.actionHandlers.keys()];
     }
 }
 

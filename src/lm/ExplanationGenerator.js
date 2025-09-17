@@ -10,12 +10,12 @@ class ExplanationGenerator {
 
     async explain(termKey, config = {}) {
         const {type = 'simple', context = null, promptTemplate = null} = config;
-        if (!promptTemplate && (!termKey || typeof termKey !== 'string')) {
+        if (!promptTemplate && !termKey) {
             return {error: 'Cannot explain an empty term.'};
         }
 
         debug(`Explaining term: ${termKey} with type: ${type}`);
-        const finalPrompt = promptTemplate ? promptTemplate : this._getExplanationPrompt(termKey, config);
+        const finalPrompt = promptTemplate || this._getExplanationPrompt(termKey, config);
         const fullPrompt = context ? `Context: ${context}\n${finalPrompt}` : finalPrompt;
 
         return errorHandler.safeAsync(async () => {
@@ -29,12 +29,11 @@ class ExplanationGenerator {
         }, 'explain', {error: 'Failed to generate explanation'});
     }
 
-    _getExplanationPrompt(termKey, {type, relatedTerms = [], _audience = 'intermediate'}) {
-        debug(`Getting explanation prompt for: ${termKey}`);
+    _getExplanationPrompt(termKey, {type, relatedTerms = []}) {
         const prompts = {
             simple: `Explain what "${termKey}" means.`,
             structured: `Provide a structured explanation of "${termKey}" with Definition, Key Components, and Examples.`,
-            comparison: `Explain "${termKey}" by comparing it with: ${relatedTerms.join(', ')}.`
+            comparison: `Explain "${termKey}" by comparing it with: ${relatedTerms.join(', ')}.`,
         };
         return prompts[type] || prompts.simple;
     }

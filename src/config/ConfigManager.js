@@ -8,17 +8,15 @@ class ConfigManager {
     }
 
     _mergeConfigs(defaults, userConfig) {
-        if (userConfig == null) return {...defaults};
-        
-        const merged = {...defaults};
+        if (userConfig == null) return { ...defaults };
+
+        const merged = { ...defaults };
 
         for (const [key, value] of Object.entries(userConfig)) {
-            if (value === null) {
-                merged[key] = null;
-            } else if (typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0) {
-                merged[key] = {};
-            } else if (typeof value === 'object' && !Array.isArray(value) &&
-                typeof merged[key] === 'object' && merged[key] !== null && !Array.isArray(merged[key])) {
+            const isObject = value !== null && typeof value === 'object' && !Array.isArray(value);
+            const defaultIsObject = merged[key] !== null && typeof merged[key] === 'object' && !Array.isArray(merged[key]);
+
+            if (isObject && defaultIsObject) {
                 merged[key] = this._mergeConfigs(merged[key], value);
             } else {
                 merged[key] = value;
@@ -29,17 +27,7 @@ class ConfigManager {
     }
 
     get(path, defaultValue = undefined) {
-        const parts = path.split('.');
-        let value = this.validatedConfig;
-
-        for (const part of parts) {
-            if (value === undefined || value === null || typeof value !== 'object') {
-                return defaultValue;
-            }
-            value = value[part];
-        }
-
-        return value !== undefined ? value : defaultValue;
+        return path.split('.').reduce((acc, part) => acc?.[part], this.validatedConfig) ?? defaultValue;
     }
 
     getNumber(path, defaultValue = 0) {

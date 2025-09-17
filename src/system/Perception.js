@@ -1,6 +1,8 @@
 import TaskFactory from '../core/TaskFactory.js';
 import PatternDetector from '../reasoner/PatternDetector.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {
+    createModuleErrorHandler
+} from '../utils/errorHandler.js';
 
 const errorHandler = createModuleErrorHandler('Perception');
 
@@ -20,16 +22,14 @@ class Perception {
 
     async processSensoryInput(modalityName, input) {
         const processor = this.sensoryModalities.get(modalityName);
-        if (!processor) {
-            throw new Error(`Unknown sensory modality: ${modalityName}`);
-        }
+        if (!processor) throw new Error(`Unknown sensory modality: ${modalityName}`);
         return await errorHandler.safeAsync(async () => {
             const tasks = await processor(input);
             this.perceptionHistory.push({
                 modality: modalityName,
                 input,
                 timestamp: Date.now(),
-                tasks: tasks.length
+                tasks: tasks.length,
             });
             return tasks;
         }, `processSensoryInput for modality ${modalityName}`, []);
@@ -39,8 +39,7 @@ class Perception {
         return await errorHandler.safeAsync(async () => {
             const patternTasks = this.patternDetector.detectPatterns(events);
             const eventTasks = events.map(event => this.taskFactory.convertEventToTask(event));
-            const allTasks = await Promise.all([...patternTasks, ...eventTasks]);
-            return allTasks.filter(Boolean);
+            return (await Promise.all([...patternTasks, ...eventTasks])).filter(Boolean);
         }, 'process', []);
     }
 
@@ -53,7 +52,7 @@ class Perception {
     }
 
     getSensoryModalities() {
-        return Array.from(this.sensoryModalities.keys());
+        return [...this.sensoryModalities.keys()];
     }
 }
 

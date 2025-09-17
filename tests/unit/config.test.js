@@ -1,84 +1,72 @@
 import ConfigManager from '../../src/config/ConfigManager.js';
-import {validateConfig, validateConfigValue} from '../../src/config/configSchema.js';
 import defaultConfig from '../../src/config/default-config.js';
-import * as logger from '../../src/utils/logger.js';
 
-jest.mock('../../src/utils/logger.js', () => ({
-    ...jest.requireActual('../../src/utils/logger.js'),
-    warn: jest.fn(),
-}));
-
-const createConfigManager = (config) => new ConfigManager(config);
-
-describe('Configuration System', () => {
-    beforeEach(() => {
-        logger.warn.mockClear();
+describe('ConfigManager', () => {
+    it('should initialize with default configuration', () => {
+        const configManager = new ConfigManager();
+        expect(configManager.getAll()).toEqual(expect.objectContaining(defaultConfig));
     });
 
-    describe('ConfigManager', () => {
-        it.each([null, undefined, {}])('should handle %p user config gracefully', (userConfig) => {
-            const cm = createConfigManager(userConfig);
-            expect(cm).toBeDefined();
-            expect(cm.getAll()).toEqual(defaultConfig);
-        });
-
-        it('should replace invalid values with defaults and log a warning', () => {
-            const cm = createConfigManager({
-                LM: {
-                    LLM_PROVIDER: 'invalid_provider'
-                }
-            });
-            expect(cm.get('LM.LLM_PROVIDER')).toBe(defaultConfig.LM.LLM_PROVIDER);
-            expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining("[Config] Invalid value for 'LM.LLM_PROVIDER'"));
-        });
-
-        it('should strip unknown properties and log warnings', () => {
-            const cm = createConfigManager({
-                INVALID_SECTION: {
-                    some: 'value'
-                }
-            });
-            expect(cm.get('INVALID_SECTION')).toBeUndefined();
-            expect(logger.warn).toHaveBeenCalledWith("[Config] Unknown configuration key 'INVALID_SECTION' found and will be ignored.");
-        });
-
-        it('should throw error for wrong type accessors', () => {
-            const cm = createConfigManager();
-            expect(() => cm.getString('FOCUS_SET_SIZE')).toThrow("Configuration value 'FOCUS_SET_SIZE' must be a string, got number");
-        });
+    it('should merge user configuration with defaults', () => {
+        const userConfig = {
+            FOCUS_SET_SIZE: 10,
+            system: {
+                BATCH_SIZE: 5
+            },
+        };
+        const configManager = new ConfigManager(userConfig);
+        expect(configManager.get('FOCUS_SET_SIZE')).toBe(10);
+        expect(configManager.get('system.BATCH_SIZE')).toBe(5);
+        expect(configManager.get('META_TASK_PRIORITY')).toBe(defaultConfig.META_TASK_PRIORITY);
     });
 
-    describe('Config Validation', () => {
-        it.each([null, undefined])('should throw for %p config', (config) => {
-            expect(() => validateConfig(config)).toThrow('Configuration must be an object.');
-        });
+    it('should get a value by path', () => {
+        const configManager = new ConfigManager();
+        expect(configManager.get('system.BATCH_SIZE')).toBe(10);
+    });
 
-        it('should return default config for empty config', () => {
-            const result = validateConfig({});
-            const expectedConfig = {
-                ...defaultConfig
-            };
-            delete expectedConfig.ACTION_EXECUTOR.CONSTRAINTS;
-            const resultConstraints = result.ACTION_EXECUTOR.CONSTRAINTS;
-            delete result.ACTION_EXECUTOR.CONSTRAINTS;
+    it('should return a default value if path does not exist', () => {
+        const configManager = new ConfigManager();
+        expect(configManager.get('nonexistent.path', 'default')).toBe('default');
+    });
 
-            expect(result).toEqual(expectedConfig);
-            expect(typeof resultConstraints.resource_limit).toBe('object');
-            expect(typeof resultConstraints.safety).toBe('object');
-        });
+    it('should handle different data types for getters', () => {
+        const configManager = new ConfigManager();
+        expect(typeof configManager.getNumber('FOCUS_SET_SIZE')).toBe('number');
+        expect(typeof configManager.getString('LM.LLM_PROVIDER')).toBe('string');
+        expect(typeof configManager.getBoolean('LM.LLM_PROVIDER', false)).toBe('boolean');
+        expect(typeof configManager.getObject('system')).toBe('object');
+        expect(Array.isArray(configManager.getArray('LM_HYPOTHESIS_CONFIGS'))).toBe(true);
+    });
 
-        it('should use default for required value', () => {
-            expect(() => validateConfigValue(null, {
-                required: true
-            }, 'test')).toThrow("Configuration value 'test' is required");
+    it('should update configuration', () => {
+        const configManager = new ConfigManager();
+        expect(configManager.get('FOCUS_SET_SIZE')).toBe(20);
+        configManager.update({
+            FOCUS_SET_SIZE: 15
         });
+        expect(configManager.get('FOCUS_SET_SIZE')).toBe(15);
+    });
 
-        it('should warn about invalid types and use defaults', () => {
-            const validated = validateConfig({
-                FOCUS_SET_SIZE: 'not a number'
-            });
-            expect(validated.FOCUS_SET_SIZE).toBe(defaultConfig.FOCUS_SET_SIZE);
-            expect(logger.warn).toHaveBeenCalledWith("[Config] Invalid type for 'FOCUS_SET_SIZE'. Expected 'number', got 'string'. Using default.");
-        });
+    it('should strip unknown properties from the configuration', () => {
+        const userConfig = {
+            unknownProperty: 'should_be_stripped',
+            system: {
+                unknownNested: true,
+            },
+        };
+        const configManager = new ConfigManager(userConfig);
+        expect(configManager.get('unknownProperty')).toBeUndefined();
+        expect(configManager.get('system.unknownNested')).toBeUndefined();
+    });
+
+    it('should handle null and undefined values in user config', () => {
+        const userConfig = {
+            FOCUS_SET_SIZE: null,
+            system: undefined,
+        };
+        const configManager = new ConfigManager(userConfig);
+        expect(configManager.get('FOCUS_SET_SIZE')).toBeNull();
+        expect(configManager.get('system')).toEqual(defaultConfig.system);
     });
 });

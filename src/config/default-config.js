@@ -1,32 +1,4 @@
-/**
- * Default configuration for the SeNARS cognitive system.
- *
- * This configuration object defines all system parameters with their default values.
- * Each section corresponds to a specific system component or functionality.
- *
- * @typedef {Object} DefaultConfig
- * @property {number} FOCUS_SET_SIZE - Number of high-priority tasks to focus on during reasoning
- * @property {number} META_TASK_PRIORITY - Priority level for meta-cognitive tasks
- * @property {number} ACTIONABLE_GOAL_PRIORITY_THRESHOLD - Minimum priority for goals to be executed
- * @property {number} MAX_GOALS_TO_EXECUTE - Maximum number of goals to execute per cycle
- * @property {number} RECENCY_DECAY_FACTOR - Factor for decaying task priority based on age
- * @property {number} SIMILARITY_OFFSET - Offset for similarity calculations
- * @property {number} SIMILARITY_SCALE - Scale factor for similarity calculations
- * @property {Object} DEFAULT_TRUTH_VALUE - Default truth value for new beliefs
- * @property {number} DEFAULT_TRUTH_VALUE.frequency - Default frequency value
- * @property {number} DEFAULT_TRUTH_VALUE.confidence - Default confidence value
- * @property {Array} LM_HYPOTHESIS_CONFIGS - Configuration for LM hypothesis generation
- * @property {Object} system - System-level configuration
- * @property {Object} LM - Language Model configuration
- * @property {Object} memory - Memory subsystem configuration
- * @property {Object} reasoner - Reasoner subsystem configuration
- * @property {Object} planner - Planner subsystem configuration
- * @property {Object} temporal - Temporal reasoning configuration
- * @property {Object} ACTION_EXECUTOR - Action executor configuration
- */
-
 export default {
-    // Core settings
     FOCUS_SET_SIZE: 20,
     META_TASK_PRIORITY: 0.9,
     ACTIONABLE_GOAL_PRIORITY_THRESHOLD: 0.1,
@@ -44,36 +16,33 @@ export default {
         {type: 'sophisticated', num: 1}
     ],
 
-    // System settings
     system: {
-        BATCH_SIZE: 10, // Batch size for term bootstrapping
-        CONFIDENCE_REDUCTION_FACTOR: 0.1 // Factor by which to reduce confidence during revision
+        BATCH_SIZE: 10,
+        CONFIDENCE_REDUCTION_FACTOR: 0.1
     },
 
-    // Language Model (LM) settings
     LM: {
-        LLM_PROVIDER: 'ollama', // 'xenova' or 'ollama'
+        LLM_PROVIDER: 'ollama',
         OLLAMA_BASE_URL: 'http://127.0.0.1:11434',
         FEATURE_EXTRACTION_MODEL: 'Xenova/all-MiniLM-L6-v2',
-        TEXT_GENERATION_MODEL: 'Xenova/distilgpt2', // This will be used by both providers
+        TEXT_GENERATION_MODEL: 'Xenova/distilgpt2',
         QA_MODEL: 'Xenova/distilbert-base-uncased-distilled-squad',
         EMBEDDING_BATCH_SIZE: 10,
         EMBEDDING_BATCH_DELAY_MS: 100
     },
 
-    // Memory settings
     memory: {
         FORGETTING_STRATEGY_NAME: 'TimeBased',
         FORGETTING_STRATEGY_OPTIONS: {
             shortTerm: {
-                expirationThreshold: BigInt(24) * BigInt(3600 * 1000), // 1 day
+                expirationThreshold: BigInt(24) * BigInt(3600 * 1000),
                 importanceThresholds: {
                     priority: 0.7,
                     confidence: 0.7
                 }
             },
             longTerm: {
-                expirationThreshold: BigInt(30) * BigInt(24) * BigInt(3600 * 1000), // 30 days
+                expirationThreshold: BigInt(30) * BigInt(24) * BigInt(3600 * 1000),
                 importanceThresholds: {
                     priority: 0.8,
                     confidence: 0.8
@@ -85,17 +54,14 @@ export default {
         CONSOLIDATION_CONFIDENCE_THRESHOLD: 0.9
     },
 
-    // Reasoner settings
     reasoner: {
-        strategy: 'BagSampling' // Can be 'BagSampling', 'BruteForce', etc.
+        strategy: 'BagSampling'
     },
 
-    // Planner settings
     planner: {
-        strategy: 'HTN', // Can be 'AStar' or 'HTN'
-        maxDepth: 10, // Maximum depth for HTN planning
+        strategy: 'HTN',
+        maxDepth: 10,
         plannerConfig: {
-            // A* specific configs
             heuristicWeights: {
                 complexity: 0.4,
                 confidence: 0.3,
@@ -104,7 +70,6 @@ export default {
         }
     },
 
-    // Temporal reasoning settings
     temporal: {
         REGULARITY_BOOST: 0.7,
         STRUCTURAL_SIMILARITY_WEIGHT: 0.3,
@@ -119,10 +84,9 @@ export default {
         PERIODIC_CONFIDENCE: 0.8,
         TEMPORAL_SUMMARY_CONFIDENCE: 0.9,
         PREDICTION_CONFIDENCE: 0.5,
-        MAX_COMPARISONS: 1000 // Maximum number of comparisons for temporal reasoning
+        MAX_COMPARISONS: 1000
     },
 
-    // Action Executor settings
     ACTION_EXECUTOR: {
         RESOURCES: [
             {name: 'cpu', total: 100, unit: 'percent'},

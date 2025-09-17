@@ -16,14 +16,13 @@ import CONSTITUTION_TASKS from '../../src/system/Constitution.js';
 import ConfigManager from '../../src/config/ConfigManager.js';
 
 jest.mock('../../src/lm/LM.js');
-
 jest.mock('@xenova/transformers', () => {
     const transformers = jest.createMockFromModule('@xenova/transformers');
-    transformers.pipeline = jest.fn(async () => {
-        return jest.fn(() => ({
+    transformers.pipeline = jest.fn(async () =>
+        jest.fn(() => ({
             data: new Float32Array([1, 2, 3])
-        }));
-    });
+        }))
+    );
     return transformers;
 });
 
@@ -68,12 +67,9 @@ describe('Cycle Integration Test', () => {
             priorityManager
         });
 
-
         lm.generateHypotheses.mockResolvedValue([]);
-        lm.evaluateAndRankHypotheses.mockImplementation(async (tasks, hypotheses) => hypotheses);
-        lm.bootstrapTerm.mockImplementation(async termKey => {
-            return new Term(termKey, [], 1);
-        });
+        lm.evaluateAndRankHypotheses.mockImplementation(async (_, hypotheses) => hypotheses);
+        lm.bootstrapTerm.mockImplementation(async termKey => new Term(termKey, [], 1));
         lm.proactiveEnrichment.mockResolvedValue([]);
     });
 

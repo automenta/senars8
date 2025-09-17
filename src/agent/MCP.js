@@ -1,10 +1,3 @@
-/**
- * Defines the Model Context Protocol (MCP), a lightweight, dependency-free
- * protocol for managing the interaction between an agent and its environment.
- * It provides a standardized way to handle observations, goals, and actions,
- * making it suitable for a wide range of evaluation benchmarks.
- */
-
 class MCP {
     constructor(agent, options = {}) {
         this.agent = agent;
@@ -33,7 +26,7 @@ class MCP {
         if (this.isTerminated) {
             throw new Error('Interaction has already terminated.');
         }
-        const action = await this.agent.decideNextAction(this.goal, this.history);
+        const action = await this.agent.decideNextAction(this.goal);
         if (action) {
             this.log({type: 'action', content: action});
         }

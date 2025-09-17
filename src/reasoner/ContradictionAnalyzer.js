@@ -1,5 +1,9 @@
-import {CONTRADICTION_TYPES} from './contradiction-types.js';
-import {detectionStrategies} from './strategies/detection/index.js';
+import {
+    CONTRADICTION_TYPES
+} from './contradiction-types.js';
+import {
+    detectionStrategies
+} from './strategies/detection/index.js';
 
 const CONTRADICTION_SEVERITY_WEIGHTS = {
     [CONTRADICTION_TYPES.DIRECT_NEGATION]: 1.0,
@@ -25,9 +29,7 @@ class ContradictionAnalyzer {
     analyze(task1, task2, parsed1, parsed2) {
         for (const strategy of this.strategies) {
             const result = strategy(task1, task2, parsed1, parsed2);
-            if (result) {
-                return result;
-            }
+            if (result) return result;
         }
         return null;
     }
