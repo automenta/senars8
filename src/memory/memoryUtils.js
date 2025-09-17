@@ -1,17 +1,6 @@
 import {isBelief} from '../utils/task-utils.js';
 import {MinPriorityQueue} from '@datastructures-js/priority-queue';
 
-/**
- * Memory utilities for task and term management
- */
-
-/**
- * Consolidates memory by moving high priority/confidence tasks to long term storage
- * @param {Map} shortTermTasks - Short term task map
- * @param {Map} longTermTasks - Long term task map
- * @param {object} config - Memory configuration
- * @returns {object} Updated task maps
- */
 function consolidateMemory(shortTermTasks, longTermTasks, config) {
     const priorityThreshold = config.memory.CONSOLIDATION_PRIORITY_THRESHOLD;
     const confidenceThreshold = config.memory.CONSOLIDATION_CONFIDENCE_THRESHOLD;
@@ -23,7 +12,6 @@ function consolidateMemory(shortTermTasks, longTermTasks, config) {
         }
     }
 
-    // Create new maps to avoid mutating the originals
     const newShortTermTasks = new Map(shortTermTasks);
     const newLongTermTasks = new Map(longTermTasks);
 
@@ -38,13 +26,6 @@ function consolidateMemory(shortTermTasks, longTermTasks, config) {
     };
 }
 
-/**
- * Updates cost index based on term structure
- * @param {Term} term - Term to process
- * @param {Map} costIndex - Cost index map
- * @param {string} operation - Operation type ('add' or 'remove')
- * @returns {Map} Updated cost index
- */
 function updateCostIndex(term, costIndex, operation) {
     if (!term || term.type !== 'Inheritance' || !term.subject ||
         term.predicate?.type !== 'IntensionalSet' || term.predicate.terms.length !== 1) {
@@ -64,12 +45,6 @@ function updateCostIndex(term, costIndex, operation) {
     return newCostIndex;
 }
 
-/**
- * Indexes implications for a term
- * @param {Term} term - Term to index
- * @param {Map} implicationIndex - Current implication index
- * @returns {Map} Updated implication index
- */
 function indexImplication(term, implicationIndex) {
     if (term.type !== 'Implication' || !term.subject) {
         return implicationIndex;
@@ -91,12 +66,6 @@ function indexImplication(term, implicationIndex) {
     return newImplicationIndex;
 }
 
-/**
- * Indexes a task for belief queries
- * @param {Task} task - Task to index
- * @param {Map} beliefIndex - Current belief index
- * @returns {Map} Updated belief index
- */
 function indexTask(task, beliefIndex) {
     if (!isBelief(task)) {
         return beliefIndex;
@@ -109,12 +78,6 @@ function indexTask(task, beliefIndex) {
     return newBeliefIndex;
 }
 
-/**
- * Unindexes a task from belief queries
- * @param {Task} task - Task to unindex
- * @param {Map} beliefIndex - Current belief index
- * @returns {Map} Updated belief index
- */
 function unindexTask(task, beliefIndex) {
     if (!isBelief(task) || !beliefIndex.has(task.termKey)) {
         return beliefIndex;
@@ -132,12 +95,6 @@ function unindexTask(task, beliefIndex) {
     return newBeliefIndex;
 }
 
-/**
- * Gets highest priority tasks using priority queue for efficiency
- * @param {Array} tasks - Array of tasks
- * @param {number} k - Number of tasks to return
- * @returns {Array} Highest priority tasks
- */
 function getHighestPriorityTasksWithPQ(tasks, k) {
     const pq = new MinPriorityQueue({
         priority: task => task.state.priority
