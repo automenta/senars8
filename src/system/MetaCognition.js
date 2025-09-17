@@ -3,8 +3,10 @@ import ContradictionAnalyzer from '../reasoner/ContradictionAnalyzer.js';
 import ResolutionStrategy from '../reasoner/strategies/ResolutionStrategy.js';
 import {debug, error, info} from '../utils/logger.js';
 import {getBeliefTasks} from '../utils/task-utils.js';
-import {handleErrorWithDefault} from '../utils/errorHandler.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
 import EventBus from './EventBus.js';
+
+const errorHandler = createModuleErrorHandler('MetaCognition');
 
 class MetaCognition {
     constructor(configManager, dependencies = {}) {
@@ -18,7 +20,7 @@ class MetaCognition {
     }
 
     findContradictions(tasks) {
-        try {
+        return errorHandler.safeSync(() => {
             debug(`Finding contradictions in ${tasks.length} tasks`);
             const beliefTasks = getBeliefTasks(tasks);
             debug(`Found ${beliefTasks.length} belief tasks`);
@@ -30,10 +32,7 @@ class MetaCognition {
             debug(`Successfully parsed ${parsedBeliefs.length} belief tasks`);
 
             return this._findContradictionsInParsedBeliefs(parsedBeliefs);
-        } catch (err) {
-            error('Error finding contradictions:', err);
-            return handleErrorWithDefault(err, 'Contradiction detection error', []);
-        }
+        }, 'findContradictions', []);
     }
 
     _findContradictionsInParsedBeliefs(parsedBeliefs) {
@@ -43,7 +42,7 @@ class MetaCognition {
             for (let j = i + 1; j < parsedBeliefs.length; j++) {
                 const item1 = parsedBeliefs[i];
                 const item2 = parsedBeliefs[j];
-                try {
+                errorHandler.safeSync(() => {
                     const contradictionType = this.contradictionAnalyzer.analyze(item1.task, item2.task, item1.parsed, item2.parsed);
                     if (contradictionType) {
                         contradictionCount++;
@@ -55,9 +54,7 @@ class MetaCognition {
                             severity: this.contradictionAnalyzer.calculateSeverity(contradictionType, item1.task, item2.task)
                         });
                     }
-                } catch (err) {
-                    error(`Error analyzing contradiction between ${item1.task.termKey} and ${item2.task.termKey}:`, err);
-                }
+                }, `analyze-contradiction-${item1.task.id}-${item2.task.id}`);
             }
         }
         debug(`Found ${contradictionCount} contradictions`);
@@ -69,15 +66,12 @@ class MetaCognition {
                 contradiction,
                 strategy
             }) {
-        try {
+        return errorHandler.safeSync(() => {
             debug(`Resolving contradiction of type: ${contradiction.type}`);
             const result = this.resolutionStrategy.resolve(contradiction, strategy);
             debug('Contradiction resolution completed');
             return result;
-        } catch (err) {
-            error('Error resolving contradiction:', err);
-            return handleErrorWithDefault(err, 'Contradiction resolution error', []);
-        }
+        }, 'resolve', []);
     }
 
     generateContradictionReport(contradictions) {

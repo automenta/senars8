@@ -1,5 +1,8 @@
 import {pipeline} from '@xenova/transformers';
 import {info, warn} from '../utils/logger.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
+
+const errorHandler = createModuleErrorHandler('PipelineFactory');
 
 class PipelineFactory {
     constructor() {
@@ -12,34 +15,26 @@ class PipelineFactory {
 
         if (!pipelinePromise) {
             info(`Loading pipeline: ${type} - ${model}`);
-            try {
+            pipelinePromise = errorHandler.safeSync(() => {
                 // Create the pipeline promise and store it immediately.
-                pipelinePromise = pipeline(type, model, {
+                const promise = pipeline(type, model, {
                     ...options,
                     progress_callback: _progress => {
                         // console.log(_progress);
                     }
                 });
-                this._pipelines.set(key, pipelinePromise);
-            } catch (error) {
-                warn(`Failed to create pipeline promise for: ${key}`, error);
-                this._pipelines.delete(key); // Clean up on synchronous error
-                return null;
-            }
+                this._pipelines.set(key, promise);
+                return promise;
+            }, `create-pipeline-promise-${key}`, null);
         }
 
-        try {
+        return errorHandler.safeAsync(async () => {
             // Await the promise (either the one we just created or the one from the cache)
             const resolvedPipeline = await pipelinePromise;
             // Replace the promise with the resolved pipeline for future calls
             this._pipelines.set(key, resolvedPipeline);
             return resolvedPipeline;
-        } catch (error) {
-            warn(`Failed to resolve pipeline promise for: ${key}`, error);
-            // Remove the failed promise from the cache so we can try again later
-            this._pipelines.delete(key);
-            return null;
-        }
+        }, `resolve-pipeline-promise-${key}`, null);
     }
 
     dispose() {

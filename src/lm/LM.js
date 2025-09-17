@@ -12,6 +12,9 @@ import QAService from './QAService.js';
 import PlanRepairer from './PlanRepairer.js';
 import ProactiveEnricher from './ProactiveEnricher.js';
 import {debug, error, info, warn} from '../utils/logger.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
+
+const errorHandler = createModuleErrorHandler('LM');
 
 const PIPELINE_TYPES = {
     FEATURE_EXTRACTION: 'feature-extraction',
@@ -66,11 +69,10 @@ class LM {
             const batch = this._embeddingQueue.splice(0, batchSize);
             debug(`Processing embedding batch of size ${batch.length}`);
 
-            try {
-                await Promise.all(batch.map(term => this._generateAndAssignEmbedding(term)));
-            } catch (err) {
-                error('Error processing embedding batch:', err);
-            }
+            await errorHandler.safeAsync(
+                () => Promise.all(batch.map(term => this._generateAndAssignEmbedding(term))),
+                'processEmbeddingQueue'
+            );
 
             await new Promise(resolve => setTimeout(resolve, delay));
         }
@@ -140,16 +142,13 @@ class LM {
         if (!prompt || typeof prompt !== 'string') {
             throw new Error('Prompt must be a non-empty string');
         }
-        try {
+        return errorHandler.safeAsync(async () => {
             debug('Generating text with prompt length:', prompt.length);
             await this._getGenerationPipeline();
             const result = await this._llm.invoke(prompt, options);
             debug('Text generation completed');
             return result;
-        } catch (err) {
-            error('Text generation error:', err);
-            throw err;
-        }
+        }, 'generate', null);
     }
 
     _createStructuredChain(promptTemplate, outputSchema, generationOptions) {
@@ -176,7 +175,7 @@ class LM {
         if (!resultText || typeof resultText !== 'string') {
             return null;
         }
-        try {
+        return errorHandler.safeSync(() => {
             debug('Parsing structured result');
             const match = resultText.match(/```json\n(.*)\n```/s);
             const result = match ? JSON.parse(match[1]) : null;
@@ -184,14 +183,11 @@ class LM {
                 debug('Structured result parsed successfully');
             }
             return result;
-        } catch (e) {
-            error('Error parsing structured result:', e);
-            return null;
-        }
+        }, 'parseStructuredResult', null);
     }
 
     async _generateAndAssignEmbedding(term) {
-        try {
+        await errorHandler.safeAsync(async () => {
             debug(`Generating embedding for term: ${term.key}`);
             const extractor = await this._getFeaturePipeline();
             const output = await extractor(term.key, {
@@ -201,9 +197,7 @@ class LM {
             const embeddingVector = Array.from(output.data);
             term.setEmbedding(embeddingVector);
             debug(`Embedding generated and assigned for term: ${term.key}`);
-        } catch (err) {
-            error(`Error generating embedding for term "${term.key}":`, err);
-        }
+        }, 'generateAndAssignEmbedding');
     }
 
     async bootstrapTerm(termKey, options = {

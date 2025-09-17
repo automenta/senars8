@@ -13,6 +13,16 @@ function filterByProperty(array, property, value) {
     return array.filter(item => item && item[property] === value);
 }
 
+const normalizeToArray = input => (Array.isArray(input) ? input : [input]);
+
+const isNonEmptyArray = input => Array.isArray(input) && input.length > 0;
+
+const isEmptyArray = input => !Array.isArray(input) || input.length === 0;
+
+
 export {
-    filterByProperty
+    filterByProperty,
+    normalizeToArray,
+    isNonEmptyArray,
+    isEmptyArray
 };

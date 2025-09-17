@@ -1,5 +1,8 @@
 import {parseTerm as parseWithMoo} from './narseseParser.js';
 import {warn} from '../utils/logger.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
+
+const errorHandler = createModuleErrorHandler('parse-utils');
 
 /**
  * Centralized parsing utility for Narsese terms
@@ -16,13 +19,7 @@ function parseTerm(termKey) {
         return null;
     }
 
-    try {
-        return parseWithMoo(termKey);
-    } catch (error) {
-        // Log parsing errors but don't throw to maintain backward compatibility
-        warn(`Failed to parse term: ${termKey}`, error);
-        return null;
-    }
+    return errorHandler.safeSync(() => parseWithMoo(termKey), `parseTerm: ${termKey}`, null);
 }
 
 /**\n * Validate a term key before parsing\n * @param {string} termKey - The term key to validate\n * @returns {boolean} Whether the term key is valid\n */

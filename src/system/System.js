@@ -2,7 +2,7 @@ import '../utils/onnxSuppression.js';
 import registerDefaultActions from './default-actions.js';
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
 import {debug, error as logError, info, warn} from '../utils/logger.js';
-import {normalizeToArray} from '../utils/helpers.js';
+import {normalizeToArray} from '../utils/arrayUtils.js';
 import Introspection from './Introspection.js';
 
 const errorHandler = createModuleErrorHandler('System');
@@ -80,14 +80,17 @@ class System {
             this.lm.startEmbeddingProcessor();
 
             while (this.isRunning && (maxCycles === 0 || this.cycleCount < maxCycles)) {
-                try {
+                const result = await errorHandler.safeAsync(async () => {
                     await this.runCycle();
                     const tickDelay = this.configManager.getNumber('cycle.TICK_DELAY_MS', 50);
                     await new Promise(resolve => setTimeout(resolve, tickDelay));
-                } catch (err) {
-                    logError('Fatal error during system cycle execution:', err);
+                    return {success: true};
+                }, 'runCycle-in-loop');
+
+                if (!result || !result.success) {
+                    logError('Fatal error during system cycle execution:', result.error);
                     this.stop();
-                    throw errorHandler.handle(err, 'start', true);
+                    break;
                 }
             }
             this.stop();

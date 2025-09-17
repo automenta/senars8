@@ -1,5 +1,5 @@
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
-import {isNonEmptyArray} from '../utils/helpers.js';
+import {isNonEmptyArray} from '../utils/arrayUtils.js';
 import {generateActionId} from '../utils/IdGenerator.js';
 import EventBus from './EventBus.js';
 
@@ -72,13 +72,13 @@ class ActionExecutor {
     }
 
     _isActionRunnable(item) {
-        try {
+        return errorHandler.safeSync(() => {
             this._validate(item.action);
             return this._checkResourceAvailability(item.action);
-        } catch (validationError) {
+        }, 'isActionRunnable', (validationError) => {
             this._rejectActionWithError(item, validationError);
             return false;
-        }
+        });
     }
 
     _rejectActionWithError(item, error) {
@@ -96,19 +96,18 @@ class ActionExecutor {
         const actionRecord = this._createActionRecord(action, actionId);
 
         this._acquireResources(action);
-        try {
+        await errorHandler.safeAsync(async () => {
             const handler = this._findHandler(action.name);
             if (!handler) {
                 throw new Error(`No handler found for action: ${action.name}`);
             }
             const result = await handler(action);
             resolve(this._recordSuccess(actionRecord, result));
-        } catch (executionError) {
+        }, 'processActionItem', (executionError) => {
             reject(this._recordFailure(actionRecord, executionError));
-        } finally {
-            this._releaseResources(action);
-            EventBus.emit('ActionExecuted', actionRecord);
-        }
+        });
+        this._releaseResources(action);
+        EventBus.emit('ActionExecuted', actionRecord);
     }
 
     _checkResourceAvailability(action) {

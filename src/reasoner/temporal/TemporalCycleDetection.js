@@ -2,18 +2,20 @@ import Task from '../../core/Task.js';
 import {parseTerm} from '../../parser/narseseParser.js';
 import {detectTemporalCycles} from '../../utils/temporal.js';
 import {debug} from '../../utils/logger.js';
-import {handleErrorWithDefault} from '../../utils/errorHandler.js';
+import {createModuleErrorHandler} from '../../utils/errorHandler.js';
+
+const errorHandler = createModuleErrorHandler('TemporalCycleDetection');
 
 class TemporalCycleDetection {
     static detect(temporalFocusSet) {
-        try {
+        return errorHandler.safeSync(() => {
             debug(`Detecting temporal cycles for ${temporalFocusSet.length} tasks`);
             const cycleTasks = [];
             const cycles = detectTemporalCycles(temporalFocusSet);
 
             for (const cycle of cycles) {
-                try {
-                    const cycleTask = new Task(
+                const cycleTask = errorHandler.safeSync(() => {
+                    return new Task(
                         parseTerm(`(cyclic_pattern, ${cycle.termKey})`),
                         '.',
                         {
@@ -21,17 +23,16 @@ class TemporalCycleDetection {
                             confidence: cycle.confidence
                         }
                     );
+                }, `process-cycle-${cycle.termKey}`, null);
+
+                if (cycleTask) {
                     cycleTasks.push(cycleTask);
-                } catch (err) {
-                    handleErrorWithDefault(err, `Error processing cycle for term ${cycle.termKey}`, null);
                 }
             }
 
             debug(`Detected ${cycleTasks.length} temporal cycles`);
             return cycleTasks;
-        } catch (err) {
-            return handleErrorWithDefault(err, 'Temporal cycle detection error', []);
-        }
+        }, 'detect', []);
     }
 }
 

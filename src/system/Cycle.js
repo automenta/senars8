@@ -266,16 +266,16 @@ class Cycle {
                     results: ['Goal already achieved']
                 };
             }
-            try {
-                return await plan.execute();
-            } catch (err) {
-                if (attempts === maxAttempts - 1) {
-                    return {
-                        success: false,
-                        task: goal.termKey,
-                        error: err.message
-                    };
-                }
+            const result = await errorHandler.safeAsync(() => plan.execute(), `executeGoalPlan: ${goal.termKey}`);
+            if (result && result.success) {
+                return result;
+            }
+            if (attempts === maxAttempts - 1) {
+                return {
+                    success: false,
+                    task: goal.termKey,
+                    error: result ? result.error : 'Unknown error during plan execution'
+                };
             }
         }
     }

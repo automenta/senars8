@@ -1,6 +1,8 @@
 import config from '../config/index.js';
-import {handleErrorWithDefault} from '../utils/errorHandler.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
 import {getBeliefTasks} from '../utils/task-utils.js';
+
+const errorHandler = createModuleErrorHandler('TruthValueManager');
 
 /**
  * Truth Value Manager
@@ -476,7 +478,7 @@ class TruthValueManager {
         const results = [];
 
         for (const task of tasks) {
-            try {
+            const result = await errorHandler.safeAsync(async () => {
                 if (options.applyTemporalDecay !== false) {
                     this.temporalDecayRevision(task, currentTime, options.decayRate);
                 }
@@ -487,20 +489,18 @@ class TruthValueManager {
                     this.consensusRevision(task, sources);
                 }
 
-                results.push({
+                return {
                     taskId: task.id,
                     termKey: task.termKey,
                     success: true
-                });
-            } catch (error) {
-                handleErrorWithDefault(error, `Error maintaining truth value for task ${task.id}`, null);
-                results.push({
-                    taskId: task.id,
-                    termKey: task.termKey,
-                    success: false,
-                    error: error.message
-                });
-            }
+                };
+            }, `maintainTruthValues: ${task.id}`);
+            results.push(result || {
+                taskId: task.id,
+                termKey: task.termKey,
+                success: false,
+                error: 'An unknown error occurred'
+            });
         }
 
         return results;
@@ -520,28 +520,33 @@ class TruthValueManager {
                 const task1 = beliefTasks[i];
                 const task2 = beliefTasks[j];
 
-                try {
+                const result = await errorHandler.safeAsync(async () => {
                     const similarity = this._calculateSemanticSimilarity(task1, task2);
 
                     if (similarity > 0.8 &&
                         Math.abs(task1.state.truthValue.frequency - task2.state.truthValue.frequency) > 0.7) {
                         const resolvedTruthValue = this.resolveConflict(task1, task2);
 
-                        results.push({
+                        return {
                             taskIds: [task1.id, task2.id],
                             termKeys: [task1.termKey, task2.termKey],
                             conflictType: 'frequency_contradiction',
                             resolvedTruthValue,
                             success: true
-                        });
+                        };
                     }
-                } catch (error) {
-                    handleErrorWithDefault(error, `Error resolving conflicts between tasks ${task1.id} and ${task2.id}`, null);
+                    return null;
+                }, `resolveConflicts: ${task1.id}-${task2.id}`);
+                if (result) {
+                    results.push(result);
+                } else if (result === null) {
+                    // This means there was no conflict, not an error
+                } else {
                     results.push({
                         taskIds: [task1.id, task2.id],
                         termKeys: [task1.termKey, task2.termKey],
                         success: false,
-                        error: error.message
+                        error: 'An unknown error occurred'
                     });
                 }
             }

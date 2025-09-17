@@ -3,6 +3,9 @@ import {isBelief} from '../../utils/task-utils.js';
 import {parseTerm, validateTermKey} from '../../parser/parse-utils.js';
 import Term from '../../core/Term.js';
 import {debug, error as logError} from '../../utils/logger.js';
+import {createModuleErrorHandler} from '../../utils/errorHandler.js';
+
+const errorHandler = createModuleErrorHandler('rule-factories');
 
 /**
  * Parses a task to extract its term structure
@@ -10,7 +13,7 @@ import {debug, error as logError} from '../../utils/logger.js';
  * @returns {object|null} The parsed term structure or null if parsing fails
  */
 function parseTaskTerm(task) {
-    try {
+    return errorHandler.safeSync(() => {
         // If it's a Term object, get its parsed structure
         if (task.term && typeof task.term._getStructure === 'function') {
             const structure = task.term._getStructure();
@@ -18,10 +21,7 @@ function parseTaskTerm(task) {
         }
         // Otherwise, use the term directly
         return task.term;
-    } catch (err) {
-        logError('Error parsing task term:', err);
-        return null;
-    }
+    }, 'parseTaskTerm', null);
 }
 
 /**
@@ -90,113 +90,97 @@ function createRule(spec) {
          * @param {...Task} tasks - The tasks to check
          * @returns {boolean} True if the rule can be applied
          */
-        condition: (...tasks) => {
-            try {
-                // Basic validation
-                if (tasks.length !== spec.arity) {
-                    debug(`Rule ${spec.name}: Incorrect number of tasks. Expected ${spec.arity}, got ${tasks.length}`);
-                    return false;
-                }
-
-                // Parse tasks
-                const parsedTasks = tasks.map(parseTaskTerm);
-                if (!validateParsedTasks(parsedTasks)) {
-                    debug(`Rule ${spec.name}: Failed to parse tasks`);
-                    return false;
-                }
-
-                // Apply rule-specific condition
-                const result = spec.condition(...parsedTasks);
-                debug(`Rule ${spec.name}: Condition check result: ${result}`);
-                return Boolean(result);
-            } catch (err) {
-                logError(`Rule ${spec.name}: Error in condition check:`, err);
+        condition: (...tasks) => errorHandler.safeSync(() => {
+            // Basic validation
+            if (tasks.length !== spec.arity) {
+                debug(`Rule ${spec.name}: Incorrect number of tasks. Expected ${spec.arity}, got ${tasks.length}`);
                 return false;
             }
-        },
+
+            // Parse tasks
+            const parsedTasks = tasks.map(parseTaskTerm);
+            if (!validateParsedTasks(parsedTasks)) {
+                debug(`Rule ${spec.name}: Failed to parse tasks`);
+                return false;
+            }
+
+            // Apply rule-specific condition
+            const result = spec.condition(...parsedTasks);
+            debug(`Rule ${spec.name}: Condition check result: ${result}`);
+            return Boolean(result);
+        }, `condition-check-${spec.name}`, false),
 
         /**
          * Applies the rule to the given tasks and generates a new task
          * @param {...Task} tasks - The tasks to apply the rule to
          * @returns {Task|null} The resulting task or null if the rule cannot be applied
          */
-        action: (...tasks) => {
-            try {
-                // Basic validation
-                if (tasks.length !== spec.arity) {
-                    logError(`Rule ${spec.name}: Incorrect number of tasks. Expected ${spec.arity}, got ${tasks.length}`);
-                    return null;
-                }
-
-                // Parse tasks
-                const parsedTasks = tasks.map(parseTaskTerm);
-                if (!validateParsedTasks(parsedTasks)) {
-                    logError(`Rule ${spec.name}: Failed to parse tasks`);
-                    return null;
-                }
-
-                // Apply rule action
-                const result = spec.action(...parsedTasks, ...tasks);
-                if (!result) {
-                    debug(`Rule ${spec.name}: Action returned no result`);
-                    return null;
-                }
-
-                const {newTermKey, newTruthValue} = result;
-
-                // Validate term key
-                if (!newTermKey || typeof newTermKey !== 'string') {
-                    logError(`Rule ${spec.name}: Term builder must return a string, got ${typeof newTermKey}`);
-                    return null;
-                }
-
-                if (!validateTermKey(newTermKey)) {
-                    logError(`Rule ${spec.name}: Invalid term key generated: ${newTermKey}`);
-                    return null;
-                }
-
-                // Parse the new term
-                let parsedTerm;
-                try {
-                    parsedTerm = parseTerm(newTermKey);
-                } catch (parseErr) {
-                    logError(`Rule ${spec.name}: Failed to parse generated term key: ${newTermKey}`, parseErr);
-                    return null;
-                }
-
-                if (!parsedTerm) {
-                    logError(`Rule ${spec.name}: Parsing generated term key returned null: ${newTermKey}`);
-                    return null;
-                }
-
-                // Validate truth value
-                if (!newTruthValue ||
-                    typeof newTruthValue.frequency !== 'number' ||
-                    typeof newTruthValue.confidence !== 'number') {
-                    logError(`Rule ${spec.name}: Invalid truth value generated:`, newTruthValue);
-                    return null;
-                }
-
-                // Validate truth value ranges
-                if (newTruthValue.frequency < 0 || newTruthValue.frequency > 1) {
-                    logError(`Rule ${spec.name}: Frequency must be between 0 and 1, got ${newTruthValue.frequency}`);
-                    return null;
-                }
-
-                if (newTruthValue.confidence < 0 || newTruthValue.confidence > 1) {
-                    logError(`Rule ${spec.name}: Confidence must be between 0 and 1, got ${newTruthValue.confidence}`);
-                    return null;
-                }
-
-                // Create and return new task
-                const newTask = new Task(parsedTerm, '.', newTruthValue);
-                debug(`Rule ${spec.name}: Successfully created new task: ${newTask.toString()}`);
-                return newTask;
-            } catch (err) {
-                logError(`Rule ${spec.name}: Error in action:`, err);
+        action: (...tasks) => errorHandler.safeSync(() => {
+            // Basic validation
+            if (tasks.length !== spec.arity) {
+                logError(`Rule ${spec.name}: Incorrect number of tasks. Expected ${spec.arity}, got ${tasks.length}`);
                 return null;
             }
-        }
+
+            // Parse tasks
+            const parsedTasks = tasks.map(parseTaskTerm);
+            if (!validateParsedTasks(parsedTasks)) {
+                logError(`Rule ${spec.name}: Failed to parse tasks`);
+                return null;
+            }
+
+            // Apply rule action
+            const result = spec.action(...parsedTasks, ...tasks);
+            if (!result) {
+                debug(`Rule ${spec.name}: Action returned no result`);
+                return null;
+            }
+
+            const {newTermKey, newTruthValue} = result;
+
+            // Validate term key
+            if (!newTermKey || typeof newTermKey !== 'string') {
+                logError(`Rule ${spec.name}: Term builder must return a string, got ${typeof newTermKey}`);
+                return null;
+            }
+
+            if (!validateTermKey(newTermKey)) {
+                logError(`Rule ${spec.name}: Invalid term key generated: ${newTermKey}`);
+                return null;
+            }
+
+            // Parse the new term
+            const parsedTerm = parseTerm(newTermKey);
+
+            if (!parsedTerm) {
+                logError(`Rule ${spec.name}: Parsing generated term key returned null: ${newTermKey}`);
+                return null;
+            }
+
+            // Validate truth value
+            if (!newTruthValue ||
+                typeof newTruthValue.frequency !== 'number' ||
+                typeof newTruthValue.confidence !== 'number') {
+                logError(`Rule ${spec.name}: Invalid truth value generated:`, newTruthValue);
+                return null;
+            }
+
+            // Validate truth value ranges
+            if (newTruthValue.frequency < 0 || newTruthValue.frequency > 1) {
+                logError(`Rule ${spec.name}: Frequency must be between 0 and 1, got ${newTruthValue.frequency}`);
+                return null;
+            }
+
+            if (newTruthValue.confidence < 0 || newTruthValue.confidence > 1) {
+                logError(`Rule ${spec.name}: Confidence must be between 0 and 1, got ${newTruthValue.confidence}`);
+                return null;
+            }
+
+            // Create and return new task
+            const newTask = new Task(parsedTerm, '.', newTruthValue);
+            debug(`Rule ${spec.name}: Successfully created new task: ${newTask.toString()}`);
+            return newTask;
+        }, `action-${spec.name}`, null)
     };
 }
 

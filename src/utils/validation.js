@@ -1,3 +1,4 @@
+import { isEmptyArray } from './arrayUtils.js';
 /**
  * Utility functions for input validation
  */
@@ -21,7 +22,7 @@ function validateString(value, name = 'Value') {
  * @throws {Error} If the value is not a non-empty array
  */
 function validateNonEmptyArray(value, name = 'Value') {
-    if (!Array.isArray(value) || value.length === 0) {
+    if (isEmptyArray(value)) {
         throw new Error(`${name} must be a non-empty array`);
     }
 }

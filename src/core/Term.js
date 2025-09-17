@@ -5,6 +5,10 @@ import EmbeddingStore from '../utils/EmbeddingStore.js';
 import {OP, REL} from '../config/constants.js';
 import {validateString} from '../utils/validation.js';
 import BaseEntity from './BaseEntity.js';
+import { isNonEmptyArray } from '../utils/arrayUtils.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
+
+const errorHandler = createModuleErrorHandler('Term');
 
 /**
  * Term represents a concept or relationship in the knowledge graph.
@@ -29,7 +33,7 @@ class Term extends BaseEntity {
 
         this.#key = key;
         // Store reference to embedding instead of copying the array
-        if (embedding && Array.isArray(embedding) && embedding.length > 0) {
+        if (isNonEmptyArray(embedding)) {
             this.#embeddingRef = EmbeddingStore.store(key, embedding);
         } else {
             this.#embeddingRef = null;
@@ -95,7 +99,7 @@ class Term extends BaseEntity {
             return null;
         }
 
-        try {
+        return errorHandler.safeSync(() => {
             // Use for loop instead of map for better performance
             const termsArray = [];
             for (let i = 0; i < structure.terms.length; i++) {
@@ -105,10 +109,7 @@ class Term extends BaseEntity {
             }
             this.#componentCache['terms'] = termsArray;
             return termsArray;
-        } catch {
-            this.#componentCache['terms'] = null;
-            return null;
-        }
+        }, 'get-terms', null);
     }
 
     /**
@@ -456,11 +457,7 @@ class Term extends BaseEntity {
     #getStructure() {
         // Use lazy initialization with caching
         if (this.#structure === null) {
-            try {
-                this.#structure = parseTerm(this.#key);
-            } catch {
-                this.#structure = null;
-            }
+            this.#structure = errorHandler.safeSync(() => parseTerm(this.#key), 'get-structure', null);
         }
         return this.#structure;
     }
@@ -486,20 +483,17 @@ class Term extends BaseEntity {
             return null;
         }
 
-        try {
+        const componentTerm = errorHandler.safeSync(() => {
             const componentKey = Term.termKey(termStructure);
             if (componentKey) {
                 // Create new term and cache it
-                const componentTerm = new Term(componentKey);
-                cache[componentName] = componentTerm;
-                return componentTerm;
+                return new Term(componentKey);
             }
-        } catch {
-            //?
-        }
+            return null;
+        }, 'get-component', null);
 
-        cache[componentName] = null;
-        return null;
+        cache[componentName] = componentTerm;
+        return componentTerm;
     }
 
     #componentStructure(componentName) {
