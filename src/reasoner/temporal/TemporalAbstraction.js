@@ -7,7 +7,7 @@ const errorHandler = createModuleErrorHandler('TemporalAbstraction');
 class TemporalAbstraction {
     static create(temporalFocusSet) {
         return errorHandler.safeSync(() => {
-            debug(`Creating temporal abstractions for ${temporalFocusSet.length} tasks`);
+            debug(`Creating temporal abstractions for ${temporalFocusSet.length} tasks`, { module: 'temporal/TemporalAbstraction' });
             const abstractionTasks = [];
 
             const overallAbstraction = createTemporalAbstraction(temporalFocusSet);
@@ -15,7 +15,7 @@ class TemporalAbstraction {
                 abstractionTasks.push(overallAbstraction);
             }
 
-            debug(`Created ${abstractionTasks.length} temporal abstractions`);
+            debug(`Created ${abstractionTasks.length} temporal abstractions`, { module: 'temporal/TemporalAbstraction' });
             return abstractionTasks;
         }, 'create', []);
     }

@@ -150,7 +150,7 @@ class Cycle {
         const metaTasks = resolvedTasksArray.flat().filter(Boolean);
 
         if (metaTasks.length > 0) {
-            const metaTaskPriority = this.configManager.getNumber('cycle.META_TASK_PRIORITY', 0.99);
+            const metaTaskPriority = this.configManager.getNumber('META_TASK_PRIORITY', 0.99);
             metaTasks.forEach(metaTask => metaTask.state.priority = metaTaskPriority);
             this.memory.addTasks(metaTasks);
         }
@@ -200,7 +200,7 @@ class Cycle {
     }
 
     _getFocusSet() {
-        const focusSetSize = this.configManager.getNumber('cycle.FOCUS_SET_SIZE', 20);
+        const focusSetSize = this.configManager.getNumber('FOCUS_SET_SIZE', 20);
         const focusSet = this.memory.getHighestPriorityTasks(focusSetSize);
         focusSet.forEach(task => task.touch());
         return focusSet;
@@ -239,8 +239,8 @@ class Cycle {
     }
 
     _getPrioritizedGoals() {
-        const priorityThreshold = this.configManager.getNumber('cycle.ACTIONABLE_GOAL_PRIORITY_THRESHOLD', 0.9);
-        const maxGoals = this.configManager.getNumber('cycle.MAX_GOALS_TO_EXECUTE', 5);
+        const priorityThreshold = this.configManager.getNumber('ACTIONABLE_GOAL_PRIORITY_THRESHOLD', 0.9);
+        const maxGoals = this.configManager.getNumber('MAX_GOALS_TO_EXECUTE', 5);
         return getGoalTasks(this.memory.getAllTasks())
             .filter(task => task.state.priority > priorityThreshold)
             .slice(0, maxGoals);
@@ -250,7 +250,8 @@ class Cycle {
         return this._getPrioritizedGoals();
     }
 
-    async _executeGoalPlan(goal, maxAttempts = 3) {
+    async _executeGoalPlan(goal) {
+        const maxAttempts = this.configManager.getNumber('planner.MAX_PLANNING_ATTEMPTS', 3);
         for (let attempts = 0; attempts < maxAttempts; attempts++) {
             const plan = await this.planner.createPlan(goal);
             if (!plan) {

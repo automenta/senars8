@@ -33,7 +33,7 @@ class Agent {
         await errorHandler.safeAsync(async () => {
             this.system = await SystemFactory.createSystem(this.config);
             this.isInitialized = true;
-            debug('Agent initialized successfully.');
+            debug('Agent initialized successfully.', { module: 'Agent' });
         }, 'initialize');
     }
 
@@ -52,7 +52,7 @@ class Agent {
         }
         this.tools[tool.name] = tool;
         this.system.actionExecutor.registerActionHandler(tool.name, tool.handler);
-        debug(`Tool registered: ${tool.name}`);
+        debug(`Tool registered: ${tool.name}`, { module: 'Agent', toolName: tool.name });
     }
 
     /**
@@ -64,17 +64,17 @@ class Agent {
      */
     async decideNextAction(goalString, _history) {
         if (!this.isInitialized) throw new Error('Agent not initialized.');
-        debug('Deciding next action for goal:', goalString);
+        debug('Deciding next action for goal', { module: 'Agent', goal: goalString });
 
         const plan = await this.createPlan(goalString);
         if (!plan || plan.steps.length === 0) {
-            debug('No actionable plan found.');
+            debug('No actionable plan found', { module: 'Agent', goal: goalString });
             return null;
         }
 
         const nextStep = plan.steps[0];
         const action = this._parseTermToAction(nextStep);
-        debug('Next action determined:', action);
+        debug('Next action determined', { module: 'Agent', action });
         return action;
     }
 
@@ -123,7 +123,7 @@ class Agent {
                 };
             }
             default:
-                warn(`Cannot parse term of type '${term.type}' to an action:`, term);
+                warn(`Cannot parse term of type '${term.type}' to an action`, { module: 'Agent', term });
                 return null;
         }
     }
@@ -137,7 +137,7 @@ class Agent {
         return await errorHandler.safeAsync(async () => {
             const goalTerm = parseTerm(goalString);
             if (!goalTerm) {
-                warn(`Could not parse goal string: ${goalString}`);
+                warn('Could not parse goal string', { module: 'Agent', goalString });
                 return null;
             }
 
@@ -145,7 +145,7 @@ class Agent {
             const plan = await this.system.reasoner.planner.createPlan(goalTask);
 
             if (!plan || plan.steps.length === 0) {
-                warn(`No plan could be created for goal: ${goalString}`);
+                warn('No plan could be created for goal', { module: 'Agent', goalString });
                 return null;
             }
             return plan;

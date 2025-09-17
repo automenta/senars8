@@ -1,5 +1,7 @@
 import EventBus from './EventBus.js';
-import {safeSync} from '../utils/errorHandler.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
+
+const errorHandler = createModuleErrorHandler('Introspection');
 
 class Introspection {
     constructor(system) {
@@ -10,7 +12,7 @@ class Introspection {
     }
 
     getStatus() {
-        return safeSync(() => ({
+        return errorHandler.safeSync(() => ({
             isRunning: this.system.isRunning,
             cycleCount: this.system.cycleCount,
             memory: this.memory.getStatistics(),
@@ -20,7 +22,7 @@ class Introspection {
     }
 
     getConfig() {
-        return safeSync(() => this.configManager.getAll(), 'getConfig', {});
+        return errorHandler.safeSync(() => this.configManager.getAll(), 'getConfig', {});
     }
 
     getTask(id) {

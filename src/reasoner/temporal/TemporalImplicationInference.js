@@ -8,7 +8,7 @@ const errorHandler = createModuleErrorHandler('TemporalImplicationInference');
 class TemporalImplicationInference {
     static infer(temporalFocusSet) {
         return errorHandler.safeSync(() => {
-            debug(`Inferring temporal implications for ${temporalFocusSet.length} tasks`);
+            debug(`Inferring temporal implications for ${temporalFocusSet.length} tasks`, { module: 'temporal/TemporalImplicationInference' });
             const implicationTasks = [];
             let implicationCount = 0;
 
@@ -26,7 +26,7 @@ class TemporalImplicationInference {
                 }
             }
 
-            debug(`Found ${implicationCount} temporal implications (${comparisonCount} comparisons)`);
+            debug(`Found ${implicationCount} temporal implications (${comparisonCount} comparisons, { module: 'temporal/TemporalImplicationInference' })`);
             return implicationTasks;
         }, 'infer', []);
     }

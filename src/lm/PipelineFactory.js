@@ -14,7 +14,7 @@ class PipelineFactory {
         let pipelinePromise = this._pipelines.get(key);
 
         if (!pipelinePromise) {
-            info(`Loading pipeline: ${type} - ${model}`);
+            info(`Loading pipeline: ${type} - ${model}`, { module: 'lm/PipelineFactory' });
             pipelinePromise = errorHandler.safeSync(() => {
                 // Create the pipeline promise and store it immediately.
                 const promise = pipeline(type, model, {
@@ -41,7 +41,7 @@ class PipelineFactory {
         // This method is important for cleaning up resources,
         // but its implementation will depend on the specific models and libraries used.
         this._pipelines.clear();
-        info('All pipelines disposed.');
+        info('All pipelines disposed.', { module: 'lm/PipelineFactory' });
     }
 }
 

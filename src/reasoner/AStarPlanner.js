@@ -7,7 +7,7 @@ class AStarPlanner extends BasePlanner {
         this.heuristicCache = new Map();
     }
 
-    async findPlan(goalTask, maxIterations = 1000) {
+    async findPlan(goalTask) {
         const startNode = this.memory.getTerm(goalTask.termKey);
         if (!startNode) return null;
 
@@ -27,7 +27,7 @@ class AStarPlanner extends BasePlanner {
         openSet.enqueue(initialState);
 
         let iterations = 0;
-        while (!openSet.isEmpty() && iterations < maxIterations) {
+        while (!openSet.isEmpty() && iterations < this.config.maxIterations) {
             iterations++;
             const currentNode = openSet.dequeue();
 

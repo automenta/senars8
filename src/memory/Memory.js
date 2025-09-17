@@ -1,7 +1,7 @@
 import Term from '../core/Term.js';
 import Task from '../core/Task.js';
 import EventBus from '../system/EventBus.js';
-import {normalizeToArray} from '../utils/arrayUtils.js';
+import {normalizeToArray} from '../utils/helpers.js';
 import {isTask} from '../utils/task-utils.js';
 import {consolidateMemory, getHighestPriorityTasksWithPQ} from './memoryUtils.js';
 import TimeBasedForgettingStrategy from './strategies/TimeBasedForgettingStrategy.js';
@@ -90,12 +90,12 @@ class Memory {
         }
         this.terms.set(term.key, term);
         this.indexer.indexTerm(term);
-        debug(`Added term '${term.key}' to memory`);
+        debug(`Added term '${term.key}' to memory`, { module: 'memory/Memory' });
     }
 
     getTerm(key) {
         if (typeof key !== 'string') {
-            warn(`Invalid term key type: ${typeof key}. Expected string.`);
+            warn(`Invalid term key type: ${typeof key}. Expected string.`, { module: 'memory/Memory' });
             return null;
         }
         return this.terms.get(key);
@@ -108,7 +108,7 @@ class Memory {
     addTasks(tasks) {
         const tasksToAdd = normalizeToArray(tasks);
         if (tasksToAdd.length === 0) {
-            debug('No tasks to add to memory');
+            debug('No tasks to add to memory', { module: 'memory/Memory' });
             return;
         }
 
@@ -125,7 +125,7 @@ class Memory {
 
         if (addedCount > 0) {
             this._invalidateTaskCache();
-            debug(`Added ${addedCount} tasks to memory`);
+            debug(`Added ${addedCount} tasks to memory`, { module: 'memory/Memory' });
         }
     }
 
@@ -152,12 +152,12 @@ class Memory {
     }
 
     _shouldUsePriorityQueue(k, totalTasks) {
-        const K_THRESHOLD = 50;
-        const RATIO_THRESHOLD = 10;
+        const K_THRESHOLD = this.configManager.getNumber('memory.K_THRESHOLD', 50);
+        const RATIO_THRESHOLD = this.configManager.getNumber('memory.RATIO_THRESHOLD', 10);
         return k < K_THRESHOLD && k < totalTasks / RATIO_THRESHOLD;
     }
 
-    getHighestPriorityTasks(k = 20) {
+    getHighestPriorityTasks(k = this.configManager.getNumber('memory.DEFAULT_K', 20)) {
         if (k <= 0) return [];
         const allTasks = this.getAllTasks();
         if (this._shouldUsePriorityQueue(k, allTasks.length)) {
@@ -229,7 +229,7 @@ class Memory {
         });
     }
 
-    getRecentTasks(count = 10) {
+    getRecentTasks(count = this.configManager.getNumber('memory.DEFAULT_COUNT', 10)) {
         const allTasks = this.getAllTasks();
         return [...allTasks]
             .sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime))

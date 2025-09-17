@@ -20,14 +20,14 @@ class QAService {
                 const qaPipeline = await this._getQAPipeline();
                 const result = await qaPipeline(question, context);
                 if (result && result.answer) {
-                    debug('Question answered using QA pipeline');
+                    debug('Question answered using QA pipeline', { module: 'lm/QAService' });
                     return result.answer;
                 }
             }
 
             const prompt = context ? `Context: ${context}\nQuestion: ${question}\nAnswer:` : `Question: ${question}\nAnswer:`;
             const answer = await this._generate(prompt);
-            debug('Question answered using generation');
+            debug('Question answered using generation', { module: 'lm/QAService' });
             return answer;
         }, `answerQuestion: ${question.substring(0, 50)}...`, `Failed to answer question: ${question}`);
     }

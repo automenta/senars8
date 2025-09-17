@@ -1,5 +1,5 @@
 import Task from '../core/Task.js';
-import {filterByProperty} from './arrayUtils.js';
+import {filterByProperty} from './helpers.js';
 
 /**
  * Utility functions for working with Task objects

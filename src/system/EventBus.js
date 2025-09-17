@@ -31,7 +31,7 @@ class EventBus {
 
     handle(requestType, handler) {
         if (this.handlers.has(requestType)) {
-            warn(`[EventBus] Overwriting existing handler for request type: ${requestType}`);
+            warn(`[EventBus] Overwriting existing handler for request type: ${requestType}`, { module: 'system/EventBus' });
         }
         this.handlers.set(requestType, handler);
     }
@@ -39,7 +39,7 @@ class EventBus {
     async request(requestType, data) {
         const handler = this.handlers.get(requestType);
         if (!handler) {
-            error(`[EventBus] No handler registered for request type: ${requestType}`);
+            error(`[EventBus] No handler registered for request type: ${requestType}`, { module: 'system/EventBus' });
             return null;
         }
         return errorHandler.safeAsync(() => handler(data), `request: ${requestType}`, null);

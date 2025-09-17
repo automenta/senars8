@@ -21,17 +21,17 @@ const errorHandler = createModuleErrorHandler('SystemFactory');
 class SystemFactory {
     async createSystem(userConfig = {}, components = {}) {
         return await errorHandler.safeAsync(async () => {
-            info('SystemFactory: Creating new system...');
+            info('SystemFactory: Creating new system...', { module: 'system/SystemFactory' });
             const configManager = new ConfigManager(userConfig);
             const assembledComponents = this._assembleComponents(configManager, components);
             const system = await this._initializeSystem(assembledComponents);
-            info('SystemFactory: System creation complete.');
+            info('SystemFactory: System creation complete.', { module: 'system/SystemFactory' });
             return system;
         }, 'createSystem');
     }
 
     _assembleComponents(configManager, components) {
-        info('SystemFactory: Assembling components...');
+        info('SystemFactory: Assembling components...', { module: 'system/SystemFactory' });
         const memory = components.memory || new Memory(configManager);
         const lm = components.lm || new LM(configManager);
         const temporalReasoner = components.temporalReasoner || new TemporalReasoner(configManager);
@@ -66,7 +66,7 @@ class SystemFactory {
             actionExecutor,
             cycle
         });
-        info('SystemFactory: Components assembled.');
+        info('SystemFactory: Components assembled.', { module: 'system/SystemFactory' });
         return {
             system,
             ...components
@@ -74,9 +74,9 @@ class SystemFactory {
     }
 
     async _initializeSystem(components) {
-        info('SystemFactory: Initializing system with constitution...');
+        info('SystemFactory: Initializing system with constitution...', { module: 'system/SystemFactory' });
         await components.system.initialize(CONSTITUTION_TASKS);
-        info('SystemFactory: System initialized.');
+        info('SystemFactory: System initialized.', { module: 'system/SystemFactory' });
         return components.system;
     }
 }

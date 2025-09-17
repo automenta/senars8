@@ -18,7 +18,7 @@ class PlanRepairer {
         }
 
         return await errorHandler.safeAsync(async () => {
-            debug(`Suggesting plan repair for goal: ${goalTask.termKey}`);
+            debug(`Suggesting plan repair for goal: ${goalTask.termKey}`, { module: 'lm/PlanRepairer' });
             await this._getGenerationPipeline();
 
             const context = this._createPlanRepairContext(goalTask.termKey, failedPlan);
@@ -32,12 +32,12 @@ class PlanRepairer {
             const parsed = this._parseStructuredResult(result.text);
 
             if (!parsed || !parsed.plan) {
-                warn('Plan repair suggestion failed to parse');
+                warn('Plan repair suggestion failed to parse', { module: 'lm/PlanRepairer' });
                 return null;
             }
 
             const planTerms = parsed.plan.map(termKey => parseTerm(termKey)).filter(Boolean);
-            debug(`Plan repair suggested ${planTerms.length} terms`);
+            debug(`Plan repair suggested ${planTerms.length} terms`, { module: 'lm/PlanRepairer' });
             return planTerms;
         }, `suggestPlanRepair for goal: ${goalTask.termKey}`, null);
     }

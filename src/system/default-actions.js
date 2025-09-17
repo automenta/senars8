@@ -66,7 +66,7 @@ function registerDefaultActions(actionExecutor) {
             info(`Dynamically registered action ${pattern} executed.`, act.parameters);
             return {success: true, registered_action: pattern};
         });
-        info(`ACTION: Dynamically registered new action handler for "${pattern}"`);
+        info(`ACTION: Dynamically registered new action handler for "${pattern}"`, { module: 'system/default-actions' });
         return {success: true, registered: pattern};
     });
 }

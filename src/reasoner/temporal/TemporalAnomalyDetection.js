@@ -9,7 +9,7 @@ const errorHandler = createModuleErrorHandler('TemporalAnomalyDetection');
 class TemporalAnomalyDetection {
     static detect(temporalFocusSet) {
         return errorHandler.safeSync(() => {
-            debug(`Detecting temporal anomalies for ${temporalFocusSet.length} tasks`);
+            debug(`Detecting temporal anomalies for ${temporalFocusSet.length} tasks`, { module: 'temporal/TemporalAnomalyDetection' });
             const anomalyTasks = [];
             const anomalies = detectTemporalAnomalies(temporalFocusSet);
 
@@ -30,7 +30,7 @@ class TemporalAnomalyDetection {
                 }
             }
 
-            debug(`Detected ${anomalyTasks.length} temporal anomalies`);
+            debug(`Detected ${anomalyTasks.length} temporal anomalies`, { module: 'temporal/TemporalAnomalyDetection' });
             return anomalyTasks;
         }, 'detect', []);
     }

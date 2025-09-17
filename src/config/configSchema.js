@@ -74,6 +74,26 @@ const configSchema = {
                 min: 0,
                 max: 1,
                 default: 0.9
+            },
+            K_THRESHOLD: {
+                type: 'number',
+                min: 1,
+                default: 50
+            },
+            RATIO_THRESHOLD: {
+                type: 'number',
+                min: 1,
+                default: 10
+            },
+            DEFAULT_K: {
+                type: 'number',
+                min: 1,
+                default: 20
+            },
+            DEFAULT_COUNT: {
+                type: 'number',
+                min: 1,
+                default: 10
             }
         },
         default: {
@@ -150,11 +170,26 @@ const configSchema = {
                 max: 100,
                 default: 10
             },
+            maxIterations: {
+                type: 'number',
+                min: 1,
+                default: 1000
+            },
+            MAX_PLANNING_ATTEMPTS: {
+                type: 'number',
+                min: 1,
+                default: 3
+            },
             EMBEDDING_BATCH_DELAY_MS: {
                 type: 'number',
                 min: 0,
                 max: 10000,
                 default: 100
+            },
+            QA_MODEL_MAX_LENGTH: {
+                type: 'number',
+                min: 1,
+                default: 512
             }
         },
         default: {
@@ -164,7 +199,8 @@ const configSchema = {
             TEXT_GENERATION_MODEL: 'Xenova/distilgpt2',
             QA_MODEL: 'Xenova/distilbert-base-uncased-distilled-squad',
             EMBEDDING_BATCH_SIZE: 10,
-            EMBEDDING_BATCH_DELAY_MS: 100
+            EMBEDDING_BATCH_DELAY_MS: 100,
+            QA_MODEL_MAX_LENGTH: 512
         }
     },
 
@@ -218,7 +254,11 @@ const configSchema = {
             },
             MAINTENANCE_CYCLE_FREQUENCY: 10,
             CONSOLIDATION_PRIORITY_THRESHOLD: 0.8,
-            CONSOLIDATION_CONFIDENCE_THRESHOLD: 0.9
+            CONSOLIDATION_CONFIDENCE_THRESHOLD: 0.9,
+            K_THRESHOLD: 50,
+            RATIO_THRESHOLD: 10,
+            DEFAULT_K: 20,
+            DEFAULT_COUNT: 10
         }
     },
 
@@ -443,39 +483,39 @@ function validateConfigValue(value, schema, path) {
     if (schema.type) {
         const valueType = typeof value;
         if (schema.type === 'array' && !Array.isArray(value)) {
-            warn(`[Config] Invalid type for '${path}'. Expected 'array', got '${valueType}'. Using default.`);
+            warn(`Invalid type for '${path}'. Expected 'array', got '${valueType}'. Using default.`, { module: 'Config' });
             return schema.default;
         }
         if (schema.type !== 'array' && valueType !== schema.type) {
-            warn(`[Config] Invalid type for '${path}'. Expected '${schema.type}', got '${valueType}'. Using default.`);
+            warn(`Invalid type for '${path}'. Expected '${schema.type}', got '${valueType}'. Using default.`, { module: 'Config' });
             return schema.default;
         }
     }
 
     // Validate enum values
     if (schema.enum && !schema.enum.includes(value)) {
-        warn(`[Config] Invalid value for '${path}'. '${value}' is not in [${schema.enum.join(', ')}]. Using default.`);
+        warn(`Invalid value for '${path}'. '${value}' is not in [${schema.enum.join(', ')}]. Using default.`, { module: 'Config' });
         return schema.default;
     }
 
     // Validate number ranges
     if (typeof value === 'number') {
         if (('min' in schema && value < schema.min) || ('max' in schema && value > schema.max)) {
-            warn(`[Config] Invalid value for '${path}'. ${value} is outside the range [${schema.min}-${schema.max}]. Using default.`);
+            warn(`Invalid value for '${path}'. ${value} is outside the range [${schema.min}-${schema.max}]. Using default.`, { module: 'Config' });
             return schema.default;
         }
     }
 
     // Validate string patterns
     if (typeof value === 'string' && schema.pattern && !schema.pattern.test(value)) {
-        warn(`[Config] Invalid format for '${path}'. Value does not match pattern. Using default.`);
+        warn(`Invalid format for '${path}'. Value does not match pattern. Using default.`, { module: 'Config' });
         return schema.default;
     }
 
     // Validate and strip unknown properties from objects
     if (schema.type === 'object' && schema.properties) {
         if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-            warn(`[Config] Invalid type for '${path}'. Expected 'object', got '${typeof value}'. Using default.`);
+            warn(`Invalid type for '${path}'. Expected 'object', got '${typeof value}'. Using default.`, { module: 'Config' });
             return schema.default;
         }
 
@@ -484,7 +524,7 @@ function validateConfigValue(value, schema, path) {
         // Warn about unknown properties
         for (const propName in value) {
             if (!Object.hasOwn(schema.properties, propName)) {
-                warn(`[Config] Unknown property '${path}.${propName}' found and will be ignored.`);
+                warn(`Unknown property '${path}.${propName}' found and will be ignored.`, { module: 'Config' });
             }
         }
 
@@ -516,7 +556,7 @@ function validateConfig(config) {
     // Warn about unknown top-level properties
     for (const key in config) {
         if (!Object.hasOwn(configSchema, key)) {
-            warn(`[Config] Unknown configuration key '${key}' found and will be ignored.`);
+            warn(`Unknown configuration key '${key}' found and will be ignored.`, { module: 'Config' });
         }
     }
 

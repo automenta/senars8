@@ -13,7 +13,7 @@ class MetaCognition {
         this.configManager = configManager;
         this.contradictionAnalyzer = dependencies.contradictionAnalyzer || new ContradictionAnalyzer();
         this.resolutionStrategy = dependencies.resolutionStrategy || new ResolutionStrategy();
-        info('MetaCognition initialized');
+        info('MetaCognition initialized', { module: 'system/MetaCognition' });
 
         EventBus.handle('MetaCognition.findContradictions', this.findContradictions.bind(this));
         EventBus.handle('MetaCognition.resolve', this.resolve.bind(this));
@@ -21,15 +21,15 @@ class MetaCognition {
 
     findContradictions(tasks) {
         return errorHandler.safeSync(() => {
-            debug(`Finding contradictions in ${tasks.length} tasks`);
+            debug(`Finding contradictions in ${tasks.length} tasks`, { module: 'system/MetaCognition' });
             const beliefTasks = getBeliefTasks(tasks);
-            debug(`Found ${beliefTasks.length} belief tasks`);
+            debug(`Found ${beliefTasks.length} belief tasks`, { module: 'system/MetaCognition' });
 
             const parsedBeliefs = beliefTasks.map(task => ({
                 task,
                 parsed: parseTerm(task.termKey)
             })).filter(item => item.parsed);
-            debug(`Successfully parsed ${parsedBeliefs.length} belief tasks`);
+            debug(`Successfully parsed ${parsedBeliefs.length} belief tasks`, { module: 'system/MetaCognition' });
 
             return this._findContradictionsInParsedBeliefs(parsedBeliefs);
         }, 'findContradictions', []);
@@ -57,7 +57,7 @@ class MetaCognition {
                 }, `analyze-contradiction-${item1.task.id}-${item2.task.id}`);
             }
         }
-        debug(`Found ${contradictionCount} contradictions`);
+        debug(`Found ${contradictionCount} contradictions`, { module: 'system/MetaCognition' });
         return contradictions;
     }
 
@@ -67,19 +67,19 @@ class MetaCognition {
                 strategy
             }) {
         return errorHandler.safeSync(() => {
-            debug(`Resolving contradiction of type: ${contradiction.type}`);
+            debug(`Resolving contradiction of type: ${contradiction.type}`, { module: 'system/MetaCognition' });
             const result = this.resolutionStrategy.resolve(contradiction, strategy);
-            debug('Contradiction resolution completed');
+            debug('Contradiction resolution completed', { module: 'system/MetaCognition' });
             return result;
         }, 'resolve', []);
     }
 
     generateContradictionReport(contradictions) {
         if (contradictions.length === 0) {
-            debug('No contradictions to report');
+            debug('No contradictions to report', { module: 'system/MetaCognition' });
             return 'No contradictions found.';
         }
-        debug(`Generating report for ${contradictions.length} contradictions`);
+        debug(`Generating report for ${contradictions.length} contradictions`, { module: 'system/MetaCognition' });
         const reportHeader = `Contradiction Report (${contradictions.length} found):\n`;
         const reportBody = contradictions.map((c, i) => `
 ${i + 1}. Type: ${c.type}

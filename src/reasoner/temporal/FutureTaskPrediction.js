@@ -7,9 +7,9 @@ const errorHandler = createModuleErrorHandler('FutureTaskPrediction');
 class FutureTaskPrediction {
     static predict(temporalFocusSet) {
         return errorHandler.safeSync(() => {
-            debug(`Predicting future tasks for ${temporalFocusSet.length} tasks`);
+            debug(`Predicting future tasks for ${temporalFocusSet.length} tasks`, { module: 'temporal/FutureTaskPrediction' });
             const predictionTasks = advancedPredictFutureTasks(temporalFocusSet, 24 * 60 * 60 * 1000);
-            debug(`Predicted ${predictionTasks.length} future tasks`);
+            debug(`Predicted ${predictionTasks.length} future tasks`, { module: 'temporal/FutureTaskPrediction' });
             return predictionTasks;
         }, 'predict', []);
     }

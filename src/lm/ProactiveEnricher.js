@@ -16,17 +16,17 @@ class ProactiveEnricher {
 
     async proactiveEnrichment(tasks) {
         if (!tasks || tasks.length === 0) {
-            debug('No tasks for proactive enrichment');
+            debug('No tasks for proactive enrichment', { module: 'lm/ProactiveEnricher' });
             return [];
         }
 
         return await errorHandler.safeAsync(async () => {
-            debug(`Performing proactive enrichment on ${tasks.length} tasks`);
+            debug(`Performing proactive enrichment on ${tasks.length} tasks`, { module: 'lm/ProactiveEnricher' });
             await this._getGenerationPipeline();
 
             const context = this._createProactiveEnrichmentContext(tasks);
             if (!context) {
-                debug('No high-confidence beliefs for enrichment');
+                debug('No high-confidence beliefs for enrichment', { module: 'lm/ProactiveEnricher' });
                 return [];
             }
 
@@ -41,7 +41,7 @@ class ProactiveEnricher {
             const parsed = this._parseStructuredResult(result.text);
 
             if (!parsed || !parsed.new_knowledge) {
-                debug('Proactive enrichment failed to parse results');
+                debug('Proactive enrichment failed to parse results', { module: 'lm/ProactiveEnricher' });
                 return [];
             }
 
@@ -50,7 +50,7 @@ class ProactiveEnricher {
                 return parsedTerm ? new Task(parsedTerm, '.', {confidence: 0.6, frequency: 0.5}) : null;
             }).filter(Boolean);
 
-            debug(`Proactive enrichment generated ${newTasks.length} new tasks`);
+            debug(`Proactive enrichment generated ${newTasks.length} new tasks`, { module: 'lm/ProactiveEnricher' });
             return newTasks;
         }, 'proactiveEnrichment', []);
     }
@@ -61,7 +61,7 @@ class ProactiveEnricher {
             return null;
         }
 
-        debug(`Found ${newBeliefs.length} high-confidence beliefs for enrichment`);
+        debug(`Found ${newBeliefs.length} high-confidence beliefs for enrichment`, { module: 'lm/ProactiveEnricher' });
         return `Given the following new beliefs:\n${newBeliefs.map(t => t.termKey).join('\n')}`;
     }
 }

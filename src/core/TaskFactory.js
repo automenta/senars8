@@ -2,7 +2,9 @@ import Task from './Task.js';
 import {createTemporalTask} from '../utils/temporal.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
-import {safeAsync} from '../utils/errorHandler.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
+
+const errorHandler = createModuleErrorHandler('TaskFactory');
 
 class TaskFactory {
     constructor(memory, lm) {
@@ -27,80 +29,80 @@ class TaskFactory {
     _initializeEventHandlers() {
         return {
             observation: async e => {
-                return await safeAsync(async () => {
+                return await errorHandler.safeAsync(async () => {
                     return await this._createTask(e.content || `observed_${Date.now()}`, '.', {
                         frequency: e.confidence || 1.0,
                         confidence: e.confidence || config.DEFAULT_TRUTH_VALUE.confidence
                     });
-                }, 'Error processing observation event', null);
+                }, 'observation', null);
             },
             user_input: async e => {
-                return await safeAsync(async () => {
+                return await errorHandler.safeAsync(async () => {
                     return await this._createTask(e.content || `user_input_${Date.now()}`, '?', {
                         frequency: 1.0,
                         confidence: 0.8
                     });
-                }, 'Error processing user_input event', null);
+                }, 'user_input', null);
             },
             sensor_data: async e => {
-                return await safeAsync(async () => {
+                return await errorHandler.safeAsync(async () => {
                     return await this._createTask(e.sensorType ? `(sensor_type_${e.sensorType}_value_${e.value})` : `sensor_data_${Date.now()}`, '.', {
                         frequency: 1.0,
                         confidence: e.accuracy || 0.95
                     });
-                }, 'Error processing sensor_data event', null);
+                }, 'sensor_data', null);
             },
             temporal_event: async e => {
-                return await safeAsync(async () => {
+                return await errorHandler.safeAsync(async () => {
                     return await this._createTemporalEventTask(e);
-                }, 'Error processing temporal_event', null);
+                }, 'temporal_event', null);
             },
             communication: async e => {
-                return await safeAsync(async () => {
+                return await errorHandler.safeAsync(async () => {
                     return await this._createTask(e.content ? `(communication_${e.sender}_to_${e.recipient}_${e.content})` : `communication_${Date.now()}`, '.', {
                         frequency: e.confidence || 1.0,
                         confidence: e.confidence || config.DEFAULT_TRUTH_VALUE.confidence
                     });
-                }, 'Error processing communication event', null);
+                }, 'communication', null);
             },
             action_feedback: async e => {
-                return await safeAsync(async () => {
+                return await errorHandler.safeAsync(async () => {
                     return await this._createTask(e.action ? `(action_feedback_${e.action}_${e.result})` : `action_feedback_${Date.now()}`, '.', {
                         frequency: e.success ? 1.0 : 0.0,
                         confidence: e.confidence || config.DEFAULT_TRUTH_VALUE.confidence
                     });
-                }, 'Error processing action_feedback event', null);
+                }, 'action_feedback', null);
             },
             goal_achievement: async e => {
-                return await safeAsync(async () => {
+                return await errorHandler.safeAsync(async () => {
                     return await this._createTask(e.goal ? `(goal_achieved_${e.goal})` : `goal_achieved_${Date.now()}`, '.', {
                         frequency: 1.0,
                         confidence: e.confidence || 0.95
                     });
-                }, 'Error processing goal_achievement event', null);
+                }, 'goal_achievement', null);
             },
             social_interaction: async e => {
-                return await safeAsync(async () => {
+                return await errorHandler.safeAsync(async () => {
                     return await this._createSocialInteractionTask(e);
-                }, 'Error processing social_interaction event', null);
+                }, 'social_interaction', null);
             },
             environmental_change: async e => {
-                return await safeAsync(async () => {
+                return await errorHandler.safeAsync(async () => {
                     return await this._createEnvironmentalChangeTask(e);
-                }, 'Error processing environmental_change event', null);
+                }, 'environmental_change', null);
             },
             learning_experience: async e => {
-                return await safeAsync(async () => {
+                return await errorHandler.safeAsync(async () => {
                     return await this._createLearningExperienceTask(e);
-                }, 'Error processing learning_experience event', null);
+                }, 'learning_experience', null);
             },
             default: async e => {
-                return await safeAsync(async () => {
+                return await errorHandler.safeAsync(async () => {
                     return await this._createTask(e.description || `event_${Date.now()}`, e.punctuation || '.', {
                         frequency: e.frequency || 1.0,
                         confidence: e.confidence || config.DEFAULT_TRUTH_VALUE.confidence
                     });
-                }, 'Error processing default event', null);
+                }, 'default', null);
             }
         };
     }
@@ -110,9 +112,9 @@ class TaskFactory {
             return null;
         }
         const handler = this.eventHandlers[event.type] || this.eventHandlers.default;
-        return await safeAsync(async () => {
+        return await errorHandler.safeAsync(async () => {
             return await handler(event);
-        }, 'Error converting event to task', null);
+        }, 'convertEventToTask', null);
     }
 
     async _createTemporalEventTask(event) {

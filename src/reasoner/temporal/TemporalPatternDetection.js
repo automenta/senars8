@@ -9,7 +9,7 @@ const errorHandler = createModuleErrorHandler('TemporalPatternDetection');
 class TemporalPatternDetection {
     static detect(temporalFocusSet) {
         return errorHandler.safeSync(() => {
-            debug(`Detecting temporal patterns for ${temporalFocusSet.length} tasks`);
+            debug(`Detecting temporal patterns for ${temporalFocusSet.length} tasks`, { module: 'temporal/TemporalPatternDetection' });
             const patternTasks = [];
             const patterns = detectTemporalPatterns(temporalFocusSet);
 
@@ -39,7 +39,7 @@ class TemporalPatternDetection {
                 }
             }
 
-            debug(`Detected ${patternTasks.length} temporal pattern tasks`);
+            debug(`Detected ${patternTasks.length} temporal pattern tasks`, { module: 'temporal/TemporalPatternDetection' });
             return patternTasks;
         }, 'detect', []);
     }

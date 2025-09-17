@@ -14,23 +14,23 @@ class ExplanationGenerator {
             return {error: 'Cannot explain an empty term.'};
         }
 
-        debug(`Explaining term: ${termKey} with type: ${type}`);
+        debug(`Explaining term: ${termKey} with type: ${type}`, { module: 'ExplanationGenerator', termKey, type });
         const finalPrompt = promptTemplate ? promptTemplate : this._getExplanationPrompt(termKey, config);
         const fullPrompt = context ? `Context: ${context}\n${finalPrompt}` : finalPrompt;
 
         return errorHandler.safeAsync(async () => {
             const explanationText = await this._generate(fullPrompt, {max_new_tokens: 300});
             if (!explanationText) {
-                error('Explanation generation failed');
+                error('Explanation generation failed', { module: 'ExplanationGenerator', termKey });
                 return {error: 'Explanation generation failed.'};
             }
-            debug('Explanation generated successfully');
+            debug('Explanation generated successfully', { module: 'ExplanationGenerator', termKey });
             return {term: termKey, explanation: explanationText};
         }, 'explain', {error: 'Failed to generate explanation'});
     }
 
     _getExplanationPrompt(termKey, {type, relatedTerms = [], _audience = 'intermediate'}) {
-        debug(`Getting explanation prompt for: ${termKey}`);
+        debug(`Getting explanation prompt for: ${termKey}`, { module: 'ExplanationGenerator', termKey, type });
         const prompts = {
             simple: `Explain what "${termKey}" means.`,
             structured: `Provide a structured explanation of "${termKey}" with Definition, Key Components, and Examples.`,

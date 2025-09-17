@@ -38,21 +38,21 @@ class LM {
         this._embeddingQueue = [];
         this._isProcessingEmbeddings = false;
 
-        info('LM initialized');
+        info('LM initialized', { module: 'lm/LM' });
     }
 
     startEmbeddingProcessor() {
         if (this._isProcessingEmbeddings) {
-            warn('Embedding processor is already running.');
+            warn('Embedding processor is already running.', { module: 'lm/LM' });
             return;
         }
-        info('Starting embedding processor.');
+        info('Starting embedding processor.', { module: 'lm/LM' });
         this._isProcessingEmbeddings = true;
         this.processEmbeddingQueue();
     }
 
     stopEmbeddingProcessor() {
-        info('Stopping embedding processor.');
+        info('Stopping embedding processor.', { module: 'lm/LM' });
         this._isProcessingEmbeddings = false;
     }
 
@@ -67,7 +67,7 @@ class LM {
             }
 
             const batch = this._embeddingQueue.splice(0, batchSize);
-            debug(`Processing embedding batch of size ${batch.length}`);
+            debug(`Processing embedding batch of size ${batch.length}`, { module: 'lm/LM' });
 
             await errorHandler.safeAsync(
                 () => Promise.all(batch.map(term => this._generateAndAssignEmbedding(term))),
@@ -76,21 +76,21 @@ class LM {
 
             await new Promise(resolve => setTimeout(resolve, delay));
         }
-        debug('Embedding processing loop finished.');
+        debug('Embedding processing loop finished.', { module: 'lm/LM' });
     }
 
     setReasoner(reasoner) {
         this._reasoner = reasoner;
-        debug('Reasoner set for LM');
+        debug('Reasoner set for LM', { module: 'lm/LM' });
     }
 
     setMemory(memory) {
         this._memory = memory;
-        debug('Memory set for LM');
+        debug('Memory set for LM', { module: 'lm/LM' });
     }
 
     async _getFeaturePipeline() {
-        debug('Getting feature extraction pipeline');
+        debug('Getting feature extraction pipeline', { module: 'lm/LM' });
         const model = this.configManager.getString('LM.FEATURE_EXTRACTION_MODEL', 'Xenova/all-MiniLM-L6-v2');
         return this._pipelineFactory.get(PIPELINE_TYPES.FEATURE_EXTRACTION, model);
     }
@@ -104,7 +104,7 @@ class LM {
         }
 
         const provider = this.configManager.getString('LM.LLM_PROVIDER', 'xenova');
-        info(`Initializing LLM with provider: ${provider}`);
+        info(`Initializing LLM with provider: ${provider}`, { module: 'lm/LM' });
 
         switch (provider) {
             case 'ollama': {
@@ -131,10 +131,10 @@ class LM {
     }
 
     async _getQAPipeline() {
-        debug('Getting QA pipeline');
+        debug('Getting QA pipeline', { module: 'lm/LM' });
         const model = this.configManager.getString('LM.QA_MODEL', 'Xenova/distilbert-base-uncased-distilled-squad');
         return this._pipelineFactory.get(PIPELINE_TYPES.QUESTION_ANSWERING, model, {
-            maxLength: 512
+            maxLength: this.configManager.getNumber('LM.QA_MODEL_MAX_LENGTH', 512)
         });
     }
 
@@ -146,7 +146,7 @@ class LM {
             debug('Generating text with prompt length:', prompt.length);
             await this._getGenerationPipeline();
             const result = await this._llm.invoke(prompt, options);
-            debug('Text generation completed');
+            debug('Text generation completed', { module: 'lm/LM' });
             return result;
         }, 'generate', null);
     }
@@ -155,7 +155,7 @@ class LM {
         if (!promptTemplate || !outputSchema) {
             throw new Error('Prompt template and output schema are required');
         }
-        debug('Creating structured chain');
+        debug('Creating structured chain', { module: 'lm/LM' });
         const parser = StructuredOutputParser.fromZodSchema(outputSchema);
         const prompt = new PromptTemplate({
             template: `${promptTemplate}\n{format_instructions}\n`,
@@ -176,11 +176,11 @@ class LM {
             return null;
         }
         return errorHandler.safeSync(() => {
-            debug('Parsing structured result');
+            debug('Parsing structured result', { module: 'lm/LM' });
             const match = resultText.match(/```json\n(.*)\n```/s);
             const result = match ? JSON.parse(match[1]) : null;
             if (result) {
-                debug('Structured result parsed successfully');
+                debug('Structured result parsed successfully', { module: 'lm/LM' });
             }
             return result;
         }, 'parseStructuredResult', null);
@@ -188,7 +188,7 @@ class LM {
 
     async _generateAndAssignEmbedding(term) {
         await errorHandler.safeAsync(async () => {
-            debug(`Generating embedding for term: ${term.key}`);
+            debug(`Generating embedding for term: ${term.key}`, { module: 'lm/LM' });
             const extractor = await this._getFeaturePipeline();
             const output = await extractor(term.key, {
                 pooling: 'mean',
@@ -196,7 +196,7 @@ class LM {
             });
             const embeddingVector = Array.from(output.data);
             term.setEmbedding(embeddingVector);
-            debug(`Embedding generated and assigned for term: ${term.key}`);
+            debug(`Embedding generated and assigned for term: ${term.key}`, { module: 'lm/LM' });
         }, 'generateAndAssignEmbedding');
     }
 
@@ -211,10 +211,10 @@ class LM {
         const term = new Term(termKey, [], complexity);
 
         if (options.sync) {
-            debug(`Bootstrapping term synchronously: ${termKey}`);
+            debug(`Bootstrapping term synchronously: ${termKey}`, { module: 'lm/LM' });
             await this._generateAndAssignEmbedding(term);
         } else {
-            debug(`Queueing term for embedding generation: ${termKey}`);
+            debug(`Queueing term for embedding generation: ${termKey}`, { module: 'lm/LM' });
             this._embeddingQueue.push(term);
         }
 
@@ -242,17 +242,17 @@ class LM {
     }
 
     async generateHypotheses(tasks, options = {}) {
-        debug(`Generating hypotheses for ${tasks.length} tasks`);
+        debug(`Generating hypotheses for ${tasks.length} tasks`, { module: 'lm/LM' });
         return this._hypothesisGenerator.generateHypotheses(tasks, options);
     }
 
     async evaluateAndRankHypotheses(tasks, hypotheses) {
-        debug(`Evaluating and ranking ${hypotheses.length} hypotheses`);
+        debug(`Evaluating and ranking ${hypotheses.length} hypotheses`, { module: 'lm/LM' });
         return this._hypothesisGenerator.evaluateAndRankHypotheses(tasks, hypotheses);
     }
 
     async refineHypothesis(hypothesis, refinementType) {
-        debug(`Refining hypothesis with type: ${refinementType}`);
+        debug(`Refining hypothesis with type: ${refinementType}`, { module: 'lm/LM' });
         return this._hypothesisGenerator.refineHypothesis(hypothesis, refinementType);
     }
 
@@ -279,7 +279,7 @@ class LM {
     }
 
     async dispose() {
-        info('Disposing LM resources');
+        info('Disposing LM resources', { module: 'lm/LM' });
         this.stopEmbeddingProcessor();
         if (this._pipelineFactory) {
             this._pipelineFactory.dispose();
@@ -287,7 +287,7 @@ class LM {
         this._llm = null;
         this._reasoner = null;
         this._memory = null;
-        info('LM resources disposed');
+        info('LM resources disposed', { module: 'lm/LM' });
     }
 }
 

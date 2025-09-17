@@ -8,7 +8,7 @@ const errorHandler = createModuleErrorHandler('TemporalRelationshipInference');
 class TemporalRelationshipInference {
     static infer(temporalFocusSet) {
         return errorHandler.safeSync(() => {
-            debug(`Inferring temporal relationships for ${temporalFocusSet.length} tasks`);
+            debug(`Inferring temporal relationships for ${temporalFocusSet.length} tasks`, { module: 'temporal/TemporalRelationshipInference' });
             const temporalTasks = [];
             let relationshipCount = 0;
 
@@ -31,7 +31,7 @@ class TemporalRelationshipInference {
                 }
             }
 
-            debug(`Found ${relationshipCount} temporal relationships (${comparisonCount} comparisons)`);
+            debug(`Found ${relationshipCount} temporal relationships (${comparisonCount} comparisons, { module: 'temporal/TemporalRelationshipInference' })`);
             return temporalTasks;
         }, 'infer', []);
     }

@@ -100,13 +100,13 @@ function createRule(spec) {
             // Parse tasks
             const parsedTasks = tasks.map(parseTaskTerm);
             if (!validateParsedTasks(parsedTasks)) {
-                debug(`Rule ${spec.name}: Failed to parse tasks`);
+                debug(`Rule ${spec.name}: Failed to parse tasks`, { module: 'rules/rule-factories' });
                 return false;
             }
 
             // Apply rule-specific condition
             const result = spec.condition(...parsedTasks);
-            debug(`Rule ${spec.name}: Condition check result: ${result}`);
+            debug(`Rule ${spec.name}: Condition check result: ${result}`, { module: 'rules/rule-factories' });
             return Boolean(result);
         }, `condition-check-${spec.name}`, false),
 
@@ -132,7 +132,7 @@ function createRule(spec) {
             // Apply rule action
             const result = spec.action(...parsedTasks, ...tasks);
             if (!result) {
-                debug(`Rule ${spec.name}: Action returned no result`);
+                debug(`Rule ${spec.name}: Action returned no result`, { module: 'rules/rule-factories' });
                 return null;
             }
 
@@ -178,7 +178,7 @@ function createRule(spec) {
 
             // Create and return new task
             const newTask = new Task(parsedTerm, '.', newTruthValue);
-            debug(`Rule ${spec.name}: Successfully created new task: ${newTask.toString()}`);
+            debug(`Rule ${spec.name}: Successfully created new task: ${newTask.toString(, { module: 'rules/rule-factories' })}`);
             return newTask;
         }, `action-${spec.name}`, null)
     };

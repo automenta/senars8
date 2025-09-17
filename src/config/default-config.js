@@ -58,7 +58,8 @@ export default {
         TEXT_GENERATION_MODEL: 'Xenova/distilgpt2', // This will be used by both providers
         QA_MODEL: 'Xenova/distilbert-base-uncased-distilled-squad',
         EMBEDDING_BATCH_SIZE: 10,
-        EMBEDDING_BATCH_DELAY_MS: 100
+        EMBEDDING_BATCH_DELAY_MS: 100,
+        QA_MODEL_MAX_LENGTH: 512
     },
 
     // Memory settings
@@ -82,7 +83,11 @@ export default {
         },
         MAINTENANCE_CYCLE_FREQUENCY: 10,
         CONSOLIDATION_PRIORITY_THRESHOLD: 0.8,
-        CONSOLIDATION_CONFIDENCE_THRESHOLD: 0.9
+        CONSOLIDATION_CONFIDENCE_THRESHOLD: 0.9,
+        K_THRESHOLD: 50,
+        RATIO_THRESHOLD: 10,
+        DEFAULT_K: 20,
+        DEFAULT_COUNT: 10
     },
 
     // Reasoner settings
@@ -94,6 +99,8 @@ export default {
     planner: {
         strategy: 'HTN', // Can be 'AStar' or 'HTN'
         maxDepth: 10, // Maximum depth for HTN planning
+        maxIterations: 1000, // Maximum iterations for A* planning
+        MAX_PLANNING_ATTEMPTS: 3,
         plannerConfig: {
             // A* specific configs
             heuristicWeights: {
