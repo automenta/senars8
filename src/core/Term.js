@@ -2,7 +2,7 @@ import {parseTerm} from '../parser/parse-utils.js';
 import {cosineSimilarity} from '../utils/math.js';
 import config from '../config/index.js';
 import EmbeddingStore from '../utils/EmbeddingStore.js';
-import {OPERATOR_SYMBOLS, TERM_TYPES} from '../config/constants.js';
+import {OP, REL} from '../config/constants.js';
 import {validateString} from '../utils/validation.js';
 import BaseEntity from './BaseEntity.js';
 
@@ -60,7 +60,7 @@ class Term extends BaseEntity {
      */
     get type() {
         const structure = this.#getStructure();
-        return structure ? structure.type : TERM_TYPES.ATOMIC;
+        return structure ? structure.type : OP.ATOMIC;
     }
 
     /**
@@ -167,7 +167,7 @@ class Term extends BaseEntity {
      * @param {object} pTerm - Parsed term structure
      * @returns {string} The term key
      */
-    static buildTermKey(pTerm) {
+    static termKey(pTerm) {
         if (!pTerm || !pTerm.type) {
             return '';
         }
@@ -175,76 +175,80 @@ class Term extends BaseEntity {
         // Use a switch statement for better performance
         switch (pTerm.type) {
             // Atomic terms
-            case TERM_TYPES.ATOMIC:
+            case OP.ATOMIC:
                 return pTerm.key;
-            case TERM_TYPES.INDEPENDENT_VARIABLE:
+            case OP.INDEPENDENT_VARIABLE:
                 return pTerm.name;
-            case TERM_TYPES.DEPENDENT_VARIABLE:
+            case OP.DEPENDENT_VARIABLE:
                 return `#${pTerm.name}`;
-            case TERM_TYPES.QUERY_VARIABLE:
+            case OP.QUERY_VARIABLE:
                 return `?${pTerm.name}`;
 
             // Binary relations
-            case TERM_TYPES.INHERITANCE:
-                return `(${Term.buildTermKey(pTerm.subject)} ${OPERATOR_SYMBOLS.INHERITANCE} ${Term.buildTermKey(pTerm.predicate)})`;
-            case TERM_TYPES.IMPLICATION:
-                return `(${Term.buildTermKey(pTerm.subject)} ${OPERATOR_SYMBOLS.IMPLICATION} ${Term.buildTermKey(pTerm.predicate)})`;
-            case TERM_TYPES.EQUIVALENCE:
-                return `(${Term.buildTermKey(pTerm.subject)} ${OPERATOR_SYMBOLS.EQUIVALENCE} ${Term.buildTermKey(pTerm.predicate)})`;
-            case TERM_TYPES.SIMILARITY:
-                return `(${Term.buildTermKey(pTerm.subject)} ${OPERATOR_SYMBOLS.SIMILARITY} ${Term.buildTermKey(pTerm.predicate)})`;
-            case TERM_TYPES.INSTANCE:
-                return `(${Term.buildTermKey(pTerm.subject)} ${OPERATOR_SYMBOLS.INSTANCE} ${Term.buildTermKey(pTerm.predicate)})`;
-            case TERM_TYPES.PROPERTY:
-                return `(${Term.buildTermKey(pTerm.subject)} ${OPERATOR_SYMBOLS.PROPERTY} ${Term.buildTermKey(pTerm.predicate)})`;
-            case TERM_TYPES.PREDICTIVE_IMPLICATION:
-                return `(${Term.buildTermKey(pTerm.subject)} ${OPERATOR_SYMBOLS.PREDICTIVE_IMPLICATION} ${Term.buildTermKey(pTerm.predicate)})`;
-            case TERM_TYPES.RETROSPECTIVE_IMPLICATION:
-                return `(${Term.buildTermKey(pTerm.subject)} ${OPERATOR_SYMBOLS.RETROSPECTIVE_IMPLICATION} ${Term.buildTermKey(pTerm.predicate)})`;
-            case TERM_TYPES.CONCURRENT_IMPLICATION:
-                return `(${Term.buildTermKey(pTerm.subject)} ${OPERATOR_SYMBOLS.CONCURRENT_IMPLICATION} ${Term.buildTermKey(pTerm.predicate)})`;
-            case TERM_TYPES.UNTIL:
-                return `(${Term.buildTermKey(pTerm.subject)} until ${Term.buildTermKey(pTerm.predicate)})`;
-            case TERM_TYPES.SINCE:
-                return `(${Term.buildTermKey(pTerm.subject)} since ${Term.buildTermKey(pTerm.predicate)})`;
+            case OP.INHERITANCE:
+                return this.termKeyInfix(pTerm, REL.INHERITANCE);
+            case OP.IMPLICATION:
+                return this.termKeyInfix(pTerm, REL.IMPLICATION);
+            case OP.EQUIVALENCE:
+                return this.termKeyInfix(pTerm, REL.EQUIVALENCE);
+            case OP.SIMILARITY:
+                return this.termKeyInfix(pTerm, REL.SIMILARITY);
+            case OP.INSTANCE:
+                return `(${Term.termKey(pTerm.subject)} ${REL.INSTANCE} ${Term.termKey(pTerm.predicate)})`;
+            case OP.PROPERTY:
+                return `(${Term.termKey(pTerm.subject)} ${REL.PROPERTY} ${Term.termKey(pTerm.predicate)})`;
+            case OP.PREDICTIVE_IMPLICATION:
+                return `(${Term.termKey(pTerm.subject)} ${REL.PREDICTIVE_IMPLICATION} ${Term.termKey(pTerm.predicate)})`;
+            case OP.RETROSPECTIVE_IMPLICATION:
+                return `(${Term.termKey(pTerm.subject)} ${REL.RETROSPECTIVE_IMPLICATION} ${Term.termKey(pTerm.predicate)})`;
+            case OP.CONCURRENT_IMPLICATION:
+                return `(${Term.termKey(pTerm.subject)} ${REL.CONCURRENT_IMPLICATION} ${Term.termKey(pTerm.predicate)})`;
+            case OP.UNTIL:
+                return `(${Term.termKey(pTerm.subject)} until ${Term.termKey(pTerm.predicate)})`;
+            case OP.SINCE:
+                return `(${Term.termKey(pTerm.subject)} since ${Term.termKey(pTerm.predicate)})`;
 
             // Unary operators
-            case TERM_TYPES.NEGATION:
-                return `(${OPERATOR_SYMBOLS.NEGATION}${Term.buildTermKey(pTerm.term)})`;
-            case TERM_TYPES.ALWAYS:
-                return `(${OPERATOR_SYMBOLS.ALWAYS}${Term.buildTermKey(pTerm.term)})`;
-            case TERM_TYPES.EVENTUALLY:
-                return `(${OPERATOR_SYMBOLS.EVENTUALLY}${Term.buildTermKey(pTerm.term)})`;
-            case TERM_TYPES.NEXT:
-                return `(${OPERATOR_SYMBOLS.NEXT}${Term.buildTermKey(pTerm.term)})`;
-            case TERM_TYPES.PREVIOUS:
-                return `(${OPERATOR_SYMBOLS.PREVIOUS}${Term.buildTermKey(pTerm.term)})`;
+            case OP.NEGATION:
+                return `(${REL.NEGATION}${Term.termKey(pTerm.term)})`;
+            case OP.ALWAYS:
+                return `(${REL.ALWAYS}${Term.termKey(pTerm.term)})`;
+            case OP.EVENTUALLY:
+                return `(${REL.EVENTUALLY}${Term.termKey(pTerm.term)})`;
+            case OP.NEXT:
+                return `(${REL.NEXT}${Term.termKey(pTerm.term)})`;
+            case OP.PREVIOUS:
+                return `(${REL.PREVIOUS}${Term.termKey(pTerm.term)})`;
 
             // N-ary operators
-            case TERM_TYPES.CONJUNCTION:
-                return `(${OPERATOR_SYMBOLS.CONJUNCTION}${Term.buildTermList(pTerm.terms || [])})`;
-            case TERM_TYPES.DISJUNCTION:
-                return `(${OPERATOR_SYMBOLS.DISJUNCTION}${Term.buildTermList(pTerm.terms || [])})`;
-            case TERM_TYPES.SEQUENTIAL_CONJUNCTION:
-                return `(${OPERATOR_SYMBOLS.SEQUENTIAL_CONJUNCTION}${Term.buildTermList(pTerm.terms || [])})`;
-            case TERM_TYPES.PARALLEL_CONJUNCTION:
-                return `(${OPERATOR_SYMBOLS.PARALLEL_CONJUNCTION}${Term.buildTermList(pTerm.terms || [])})`;
-            case TERM_TYPES.EXTENSIONAL_DIFFERENCE:
-                return `(${OPERATOR_SYMBOLS.EXTENSIONAL_DIFFERENCE}${Term.buildTermList(pTerm.terms || [])})`;
-            case TERM_TYPES.INTENSIONAL_DIFFERENCE:
-                return `(${OPERATOR_SYMBOLS.INTENSIONAL_DIFFERENCE}${Term.buildTermList(pTerm.terms || [])})`;
-            case TERM_TYPES.PRODUCT:
-                return `(${OPERATOR_SYMBOLS.PRODUCT}${Term.buildTermList(pTerm.terms || [])})`;
+            case OP.CONJUNCTION:
+                return `(${REL.CONJUNCTION}${Term.termList(pTerm.terms || [])})`;
+            case OP.DISJUNCTION:
+                return `(${REL.DISJUNCTION}${Term.termList(pTerm.terms || [])})`;
+            case OP.SEQUENTIAL_CONJUNCTION:
+                return `(${REL.SEQUENTIAL_CONJUNCTION}${Term.termList(pTerm.terms || [])})`;
+            case OP.PARALLEL_CONJUNCTION:
+                return `(${REL.PARALLEL_CONJUNCTION}${Term.termList(pTerm.terms || [])})`;
+            case OP.EXTENSIONAL_DIFFERENCE:
+                return `(${REL.EXTENSIONAL_DIFFERENCE}${Term.termList(pTerm.terms || [])})`;
+            case OP.INTENSIONAL_DIFFERENCE:
+                return `(${REL.INTENSIONAL_DIFFERENCE}${Term.termList(pTerm.terms || [])})`;
+            case OP.PRODUCT:
+                return `(${REL.PRODUCT}${Term.termList(pTerm.terms || [])})`;
 
             // Sets
-            case TERM_TYPES.EXTENSIONAL_SET:
-                return `{${Term.buildTermList(pTerm.terms || [])}}`;
-            case TERM_TYPES.INTENSIONAL_SET:
-                return `[${Term.buildTermList(pTerm.terms || [])}]`;
+            case OP.EXTENSIONAL_SET:
+                return `{${Term.termList(pTerm.terms || [])}}`;
+            case OP.INTENSIONAL_SET:
+                return `[${Term.termList(pTerm.terms || [])}]`;
 
             default:
                 throw new Error(`buildTermKey does not support type: ${pTerm.type}`);
         }
+    }
+
+    static termKeyInfix(pTerm, op) {
+        return `(${Term.termKey(pTerm.subject)} ${op} ${Term.termKey(pTerm.predicate)})`;
     }
 
     /**
@@ -252,14 +256,14 @@ class Term extends BaseEntity {
      * @param {Array} terms - Array of term structures
      * @returns {string} Comma-separated list of term keys
      */
-    static buildTermList(terms) {
+    static termList(terms) {
         // Handle edge cases
         if (!terms || terms.length === 0) {
             return '';
         }
 
         // Use map and join for better readability while maintaining performance
-        return terms.map(term => Term.buildTermKey(term)).join(',');
+        return terms.map(term => Term.termKey(term)).join(',');
     }
 
     /**
@@ -429,10 +433,7 @@ class Term extends BaseEntity {
             hash = ((hash << 5) - hash) + char;
             hash = hash & hash;
         }
-
-        // Store cached value
-        this._hashCode = hash;
-        return hash;
+        return this._hashCode = hash; // Store cached value
     }
 
     /**
@@ -473,30 +474,37 @@ class Term extends BaseEntity {
      */
     #getComponent(componentName, structure) {
         // Check cache first
-        if (Object.hasOwn(this.#componentCache, componentName)) {
-            return this.#componentCache[componentName];
+        const cache = this.#componentCache;
+
+        if (Object.hasOwn(cache, componentName)) {
+            return cache[componentName];
         }
 
-        const termStructure = structure || (this.#getStructure() ? this.#getStructure()[componentName] : null);
+        const termStructure = structure || this.#componentStructure(componentName);
         if (!termStructure) {
-            this.#componentCache[componentName] = null;
+            cache[componentName] = null;
             return null;
         }
 
         try {
-            const componentKey = Term.buildTermKey(termStructure);
+            const componentKey = Term.termKey(termStructure);
             if (componentKey) {
                 // Create new term and cache it
                 const componentTerm = new Term(componentKey);
-                this.#componentCache[componentName] = componentTerm;
+                cache[componentName] = componentTerm;
                 return componentTerm;
             }
-            this.#componentCache[componentName] = null;
-            return null;
         } catch {
-            this.#componentCache[componentName] = null;
-            return null;
+            //?
         }
+
+        cache[componentName] = null;
+        return null;
+    }
+
+    #componentStructure(componentName) {
+        const s = this.#getStructure();
+        return s ? s[componentName] : null;
     }
 }
 

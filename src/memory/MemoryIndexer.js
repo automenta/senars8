@@ -53,10 +53,11 @@ class MemoryIndexer {
         if (!isBelief(task)) {
             return;
         }
-        if (!this.beliefIndex.has(task.termKey)) {
-            this.beliefIndex.set(task.termKey, []);
+        const key = task.termKey;
+        if (!this.beliefIndex.has(key)) {
+            this.beliefIndex.set(key, []);
         }
-        this.beliefIndex.get(task.termKey).push(task);
+        this.beliefIndex.get(key).push(task);
     }
 
     _unindexBelief(task) {
@@ -95,18 +96,20 @@ class MemoryIndexer {
     }
 
     _indexPunctuation(task) {
-        if (!this.punctuationIndex.has(task.punctuation)) {
-            this.punctuationIndex.set(task.punctuation, new Set());
+        const p = task.punctuation;
+        if (!this.punctuationIndex.has(p)) {
+            this.punctuationIndex.set(p, new Set());
         }
-        this.punctuationIndex.get(task.punctuation).add(task.id);
+        this.punctuationIndex.get(p).add(task.id);
     }
 
     _unindexPunctuation(task) {
-        if (this.punctuationIndex.has(task.punctuation)) {
-            const taskIds = this.punctuationIndex.get(task.punctuation);
+        const p = task.punctuation;
+        if (this.punctuationIndex.has(p)) {
+            const taskIds = this.punctuationIndex.get(p);
             taskIds.delete(task.id);
             if (taskIds.size === 0) {
-                this.punctuationIndex.delete(task.punctuation);
+                this.punctuationIndex.delete(p);
             }
         }
     }
@@ -182,13 +185,13 @@ class MemoryIndexer {
     }
 
     clone() {
-        const newIndexer = new MemoryIndexer();
-        newIndexer.implicationIndex = new Map(this.implicationIndex);
-        newIndexer.beliefIndex = new Map(Array.from(this.beliefIndex.entries()).map(([key, value]) => [key, [...value]]));
-        newIndexer.costIndex = new Map(this.costIndex);
-        newIndexer.punctuationIndex = new Map(Array.from(this.punctuationIndex.entries()).map(([key, value]) => [key, new Set(value)]));
-        newIndexer.priorityIndex = new Map(Array.from(this.priorityIndex.entries()).map(([key, value]) => [key, new Set(value)]));
-        return newIndexer;
+        const n = new MemoryIndexer();
+        n.implicationIndex = new Map(this.implicationIndex);
+        n.beliefIndex = new Map(Array.from(this.beliefIndex.entries()).map(([key, value]) => [key, [...value]]));
+        n.costIndex = new Map(this.costIndex);
+        n.punctuationIndex = new Map(Array.from(this.punctuationIndex.entries()).map(([key, value]) => [key, new Set(value)]));
+        n.priorityIndex = new Map(Array.from(this.priorityIndex.entries()).map(([key, value]) => [key, new Set(value)]));
+        return n;
     }
 }
 

@@ -1,25 +1,25 @@
 import lexer from './lexer.js';
-import {TERM_TYPES, TOKEN_TYPES} from '../config/constants.js';
+import {OP, TOKEN} from '../config/constants.js';
 
 const UNARY_OPERATOR_MAP = {
-    [TOKEN_TYPES.NEGATION]: TERM_TYPES.NEGATION,
+    [TOKEN.NEGATION]: OP.NEGATION,
 };
 
 const TEMPORAL_OPERATOR_MAP = {
-    [TOKEN_TYPES.ALWAYS]: TERM_TYPES.ALWAYS,
-    [TOKEN_TYPES.EVENTUALLY]: TERM_TYPES.EVENTUALLY,
-    [TOKEN_TYPES.NEXT]: TERM_TYPES.NEXT,
-    [TOKEN_TYPES.PREVIOUS]: TERM_TYPES.PREVIOUS,
+    [TOKEN.ALWAYS]: OP.ALWAYS,
+    [TOKEN.EVENTUALLY]: OP.EVENTUALLY,
+    [TOKEN.NEXT]: OP.NEXT,
+    [TOKEN.PREVIOUS]: OP.PREVIOUS,
 };
 
 const BINARY_OPERATOR_MAP = {
-    [TOKEN_TYPES.CONJUNCTION]: TERM_TYPES.CONJUNCTION,
-    [TOKEN_TYPES.SEQUENTIAL_CONJUNCTION]: TERM_TYPES.SEQUENTIAL_CONJUNCTION,
-    [TOKEN_TYPES.PARALLEL_CONJUNCTION]: TERM_TYPES.PARALLEL_CONJUNCTION,
-    [TOKEN_TYPES.DISJUNCTION]: TERM_TYPES.DISJUNCTION,
-    [TOKEN_TYPES.EXTENSIONAL_DIFFERENCE]: TERM_TYPES.EXTENSIONAL_DIFFERENCE,
-    [TOKEN_TYPES.INTENSIONAL_DIFFERENCE]: TERM_TYPES.INTENSIONAL_DIFFERENCE,
-    [TOKEN_TYPES.PRODUCT]: TERM_TYPES.PRODUCT,
+    [TOKEN.CONJUNCTION]: OP.CONJUNCTION,
+    [TOKEN.SEQUENTIAL_CONJUNCTION]: OP.SEQUENTIAL_CONJUNCTION,
+    [TOKEN.PARALLEL_CONJUNCTION]: OP.PARALLEL_CONJUNCTION,
+    [TOKEN.DISJUNCTION]: OP.DISJUNCTION,
+    [TOKEN.EXTENSIONAL_DIFFERENCE]: OP.EXTENSIONAL_DIFFERENCE,
+    [TOKEN.INTENSIONAL_DIFFERENCE]: OP.INTENSIONAL_DIFFERENCE,
+    [TOKEN.PRODUCT]: OP.PRODUCT,
 };
 
 const OPERATOR_MAP = {
@@ -29,17 +29,17 @@ const OPERATOR_MAP = {
 };
 
 const BINARY_RELATION_MAP = {
-    [TOKEN_TYPES.ARROW]: TERM_TYPES.INHERITANCE,
-    [TOKEN_TYPES.IMPLIES]: TERM_TYPES.IMPLICATION,
-    [TOKEN_TYPES.INSTANCE]: TERM_TYPES.INSTANCE,
-    [TOKEN_TYPES.PROPERTY]: TERM_TYPES.PROPERTY,
-    [TOKEN_TYPES.EQUIVALENCE]: TERM_TYPES.EQUIVALENCE,
-    [TOKEN_TYPES.SIMILARITY]: TERM_TYPES.SIMILARITY,
-    [TOKEN_TYPES.RETROSPECTION]: TERM_TYPES.RETROSPECTIVE_IMPLICATION,
-    [TOKEN_TYPES.PREDICTION]: TERM_TYPES.PREDICTIVE_IMPLICATION,
-    [TOKEN_TYPES.CONCURRENT]: TERM_TYPES.CONCURRENT_IMPLICATION,
-    [TOKEN_TYPES.UNTIL]: TERM_TYPES.UNTIL,
-    [TOKEN_TYPES.SINCE]: TERM_TYPES.SINCE,
+    [TOKEN.ARROW]: OP.INHERITANCE,
+    [TOKEN.IMPLIES]: OP.IMPLICATION,
+    [TOKEN.INSTANCE]: OP.INSTANCE,
+    [TOKEN.PROPERTY]: OP.PROPERTY,
+    [TOKEN.EQUIVALENCE]: OP.EQUIVALENCE,
+    [TOKEN.SIMILARITY]: OP.SIMILARITY,
+    [TOKEN.RETROSPECTION]: OP.RETROSPECTIVE_IMPLICATION,
+    [TOKEN.PREDICTION]: OP.PREDICTIVE_IMPLICATION,
+    [TOKEN.CONCURRENT]: OP.CONCURRENT_IMPLICATION,
+    [TOKEN.UNTIL]: OP.UNTIL,
+    [TOKEN.SINCE]: OP.SINCE,
 };
 
 class NarseseParser {
@@ -52,7 +52,7 @@ class NarseseParser {
 
     next() {
         this.current = this.lexer.next();
-        while (this.current && this.current.type === TOKEN_TYPES.WHITESPACE) {
+        while (this.current && this.current.type === TOKEN.WHITESPACE) {
             this.current = this.lexer.next();
         }
         return this.current;
@@ -85,22 +85,22 @@ class NarseseParser {
         const term = this.parseTerm();
 
         let punctuation = null;
-        if (this.match(TOKEN_TYPES.BELIEF)) {
-            punctuation = this.consume(TOKEN_TYPES.BELIEF);
-        } else if (this.match(TOKEN_TYPES.GOAL)) {
-            punctuation = this.consume(TOKEN_TYPES.GOAL);
-        } else if (this.match(TOKEN_TYPES.QUESTION)) {
-            punctuation = this.consume(TOKEN_TYPES.QUESTION);
+        if (this.match(TOKEN.BELIEF)) {
+            punctuation = this.consume(TOKEN.BELIEF);
+        } else if (this.match(TOKEN.GOAL)) {
+            punctuation = this.consume(TOKEN.GOAL);
+        } else if (this.match(TOKEN.QUESTION)) {
+            punctuation = this.consume(TOKEN.QUESTION);
         }
 
         let truthValue = null;
-        if (this.match(TOKEN_TYPES.LPAREN)) {
+        if (this.match(TOKEN.LPAREN)) {
             truthValue = this.parseTruthValue();
         }
 
         if (punctuation || truthValue) {
             return {
-                type: TERM_TYPES.STATEMENT,
+                type: OP.STATEMENT,
                 term,
                 punctuation,
                 truthValue
@@ -111,11 +111,11 @@ class NarseseParser {
     }
 
     parseTruthValue() {
-        this.consume(TOKEN_TYPES.LPAREN);
+        this.consume(TOKEN.LPAREN);
         const frequency = this.parseNumber();
-        this.consume(TOKEN_TYPES.COMMA);
+        this.consume(TOKEN.COMMA);
         const confidence = this.parseNumber();
-        this.consume(TOKEN_TYPES.RPAREN);
+        this.consume(TOKEN.RPAREN);
         return {
             frequency,
             confidence
@@ -123,36 +123,36 @@ class NarseseParser {
     }
 
     parseTerm() {
-        if (this.match(TOKEN_TYPES.LPAREN)) {
+        if (this.match(TOKEN.LPAREN)) {
             return this.parseCompoundTerm();
-        } else if (this.match(TOKEN_TYPES.LBRACE)) {
+        } else if (this.match(TOKEN.LBRACE)) {
             return this.parseExtensionalSet();
-        } else if (this.match(TOKEN_TYPES.LBRACKET)) {
+        } else if (this.match(TOKEN.LBRACKET)) {
             return this.parseIntensionalSet();
-        } else if (this.match(TOKEN_TYPES.IDENTIFIER) || this.match(TOKEN_TYPES.STRING)) {
+        } else if (this.match(TOKEN.IDENTIFIER) || this.match(TOKEN.STRING)) {
             return this.parseAtomicTerm();
-        } else if (this.match(TOKEN_TYPES.INDEPENDENT_VAR)) {
+        } else if (this.match(TOKEN.INDEPENDENT_VAR)) {
             return this.parseIndependentVariable();
-        } else if (this.match(TOKEN_TYPES.DEPENDENT_VAR)) {
+        } else if (this.match(TOKEN.DEPENDENT_VAR)) {
             return this.parseDependentVariable();
-        } else if (this.match(TOKEN_TYPES.QUERY_VAR)) {
+        } else if (this.match(TOKEN.QUERY_VAR)) {
             return this.parseQueryVariable();
-        } else if (this.match(TOKEN_TYPES.NUMBER)) {
+        } else if (this.match(TOKEN.NUMBER)) {
             return this.parseNumber();
         }
         throw new Error(`Unexpected token '${this.current ? this.current.type : 'EOF'}' when parsing term`);
     }
 
     parseNumber() {
-        const value = this.consume(TOKEN_TYPES.NUMBER);
+        const value = this.consume(TOKEN.NUMBER);
         return {
-            type: TERM_TYPES.NUMBER,
+            type: OP.NUMBER,
             value: parseFloat(value)
         };
     }
 
     parseCompoundTerm() {
-        this.consume(TOKEN_TYPES.LPAREN);
+        this.consume(TOKEN.LPAREN);
 
         if (this.matchOperator()) {
             return this.parseOperator();
@@ -165,7 +165,7 @@ class NarseseParser {
             return this.parseBinaryRelation(subject, this.current.type, relationType);
         }
 
-        this.consume(TOKEN_TYPES.RPAREN);
+        this.consume(TOKEN.RPAREN);
         return subject;
     }
 
@@ -177,7 +177,7 @@ class NarseseParser {
         const operatorToken = this.current;
         const operatorType = operatorToken.type;
         this.next(); // Consume the operator token
-        this.consume(TOKEN_TYPES.COMMA);
+        this.consume(TOKEN.COMMA);
 
         const isBinary = operatorType in BINARY_OPERATOR_MAP;
         const result = isBinary ?
@@ -188,7 +188,7 @@ class NarseseParser {
                 term: this.parseTerm()
             };
 
-        this.consume(TOKEN_TYPES.RPAREN);
+        this.consume(TOKEN.RPAREN);
 
         return {
             type: OPERATOR_MAP[operatorType],
@@ -199,7 +199,7 @@ class NarseseParser {
     parseBinaryRelation(subject, tokenType, relationType) {
         this.consume(tokenType);
         const predicate = this.parseTerm();
-        this.consume(TOKEN_TYPES.RPAREN);
+        this.consume(TOKEN.RPAREN);
         return {
             type: relationType,
             subject,
@@ -208,21 +208,21 @@ class NarseseParser {
     }
 
     parseExtensionalSet() {
-        this.consume(TOKEN_TYPES.LBRACE);
+        this.consume(TOKEN.LBRACE);
         const terms = this.parseTermList();
-        this.consume(TOKEN_TYPES.RBRACE);
+        this.consume(TOKEN.RBRACE);
         return {
-            type: TERM_TYPES.EXTENSIONAL_SET,
+            type: OP.EXTENSIONAL_SET,
             terms
         };
     }
 
     parseIntensionalSet() {
-        this.consume(TOKEN_TYPES.LBRACKET);
+        this.consume(TOKEN.LBRACKET);
         const terms = this.parseTermList();
-        this.consume(TOKEN_TYPES.RBRACKET);
+        this.consume(TOKEN.RBRACKET);
         return {
-            type: TERM_TYPES.INTENSIONAL_SET,
+            type: OP.INTENSIONAL_SET,
             terms
         };
     }
@@ -231,7 +231,7 @@ class NarseseParser {
         const token = this.current;
         this.next(); // consume token
         return {
-            type: TERM_TYPES.ATOMIC,
+            type: OP.ATOMIC,
             key: token.value
         };
     }
@@ -245,25 +245,25 @@ class NarseseParser {
     }
 
     parseIndependentVariable() {
-        return this.parseVariable(TOKEN_TYPES.INDEPENDENT_VAR, TERM_TYPES.INDEPENDENT_VARIABLE);
+        return this.parseVariable(TOKEN.INDEPENDENT_VAR, OP.INDEPENDENT_VARIABLE);
     }
 
     parseDependentVariable() {
-        return this.parseVariable(TOKEN_TYPES.DEPENDENT_VAR, TERM_TYPES.DEPENDENT_VARIABLE);
+        return this.parseVariable(TOKEN.DEPENDENT_VAR, OP.DEPENDENT_VARIABLE);
     }
 
     parseQueryVariable() {
-        return this.parseVariable(TOKEN_TYPES.QUERY_VAR, TERM_TYPES.QUERY_VARIABLE);
+        return this.parseVariable(TOKEN.QUERY_VAR, OP.QUERY_VARIABLE);
     }
 
     parseTermList() {
         const terms = [];
 
-        if (!this.match(TOKEN_TYPES.RPAREN) && !this.match(TOKEN_TYPES.RBRACE) && !this.match(TOKEN_TYPES.RBRACKET)) {
+        if (!this.match(TOKEN.RPAREN) && !this.match(TOKEN.RBRACE) && !this.match(TOKEN.RBRACKET)) {
             terms.push(this.parseTerm());
 
-            while (this.match(TOKEN_TYPES.COMMA)) {
-                this.consume(TOKEN_TYPES.COMMA);
+            while (this.match(TOKEN.COMMA)) {
+                this.consume(TOKEN.COMMA);
                 terms.push(this.parseTerm());
             }
         }

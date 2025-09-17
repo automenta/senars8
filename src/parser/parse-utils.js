@@ -31,25 +31,28 @@ function validateTermKey(termKey) {
         return false;
     }
 
-    // Additional validation to catch invalid term keys that would cause parsing errors
-    // Check for malformed binary relations with empty components
-    if (termKey.includes('( --> )') || termKey.includes('( ==> )') ||
-        termKey.includes('( <-> )') || termKey.includes('( <=> )') ||
-        termKey.includes('( {-- )') || termKey.includes('( --} )') ||
-        termKey.includes('( =\\> )') || termKey.includes('( =/> )') ||
-        termKey.includes('( =<> )')) {
-        return false;
-    }
+    // TODO don't rely on this, expensive
+    if (termKey.includes("(")) {
+        // Additional validation to catch invalid term keys that would cause parsing errors
+        // Check for malformed binary relations with empty components
+        if (termKey.includes('( --> )') || termKey.includes('( ==> )') ||
+            termKey.includes('( <-> )') || termKey.includes('( <=> )') ||
+            termKey.includes('( {-- )') || termKey.includes('( --} )') ||
+            termKey.includes('( =\\> )') || termKey.includes('( =/> )') ||
+            termKey.includes('( =<> )')) {
+            return false;
+        }
 
-    // Check for malformed unary operators with empty components
-    if (termKey.includes('(--,') && termKey.includes(')') &&
-        termKey.indexOf(')') - termKey.indexOf('(--,') <= 4) {
-        return false;
-    }
+        // Check for malformed unary operators with empty components
+        if (termKey.includes('(--,') && termKey.includes(')') &&
+            termKey.indexOf(')') - termKey.indexOf('(--,') <= 4) {
+            return false;
+        }
 
-    // Check for other common malformed patterns
-    if (termKey.includes('()') || termKey.includes('(,)') || termKey.includes(',)')) {
-        return false;
+        // Check for other common malformed patterns
+        if (termKey.includes('()') || termKey.includes('(,)') || termKey.includes(',)')) {
+            return false;
+        }
     }
 
     return true;

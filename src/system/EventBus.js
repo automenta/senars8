@@ -23,9 +23,7 @@ class EventBus {
     }
 
     emit(event, data) {
-        if (this.listeners.has(event)) {
-            this.listeners.get(event).forEach(listener => listener(data));
-        }
+        this.listeners.get(event)?.forEach(listener => listener(data));
     }
 
     handle(requestType, handler) {

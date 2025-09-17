@@ -31,14 +31,14 @@ describe('Term - Edge Cases', () => {
     });
 
     test('should handle unsupported term types in buildTermKey', () => {
-        expect(() => Term.buildTermKey({type: 'UnsupportedType', key: 'test'}))
+        expect(() => Term.termKey({type: 'UnsupportedType', key: 'test'}))
             .toThrow('buildTermKey does not support type: UnsupportedType');
     });
 
     test('should handle null and undefined inputs to buildTermKey', () => {
-        expect(Term.buildTermKey(null)).toBe('');
-        expect(Term.buildTermKey(undefined)).toBe('');
-        expect(Term.buildTermKey({})).toBe('');
+        expect(Term.termKey(null)).toBe('');
+        expect(Term.termKey(undefined)).toBe('');
+        expect(Term.termKey({})).toBe('');
     });
 
     test('should handle complex nested term structures', () => {
@@ -57,7 +57,7 @@ describe('Term - Edge Cases', () => {
             predicate: {type: 'Atomic', key: 'd'}
         };
 
-        const key = Term.buildTermKey(nestedTerm);
+        const key = Term.termKey(nestedTerm);
         expect(key).toBe('(((a --> b) --> c) --> d)');
     });
 

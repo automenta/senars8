@@ -15,7 +15,7 @@ export default createBinaryInheritanceRule(
     'Induction',
     (parsed1, parsed2) => {
         try {
-            return Term.buildTermKey({
+            return Term.termKey({
                 type: 'Inheritance',
                 subject: parsed1.subject,
                 predicate: parsed2.subject

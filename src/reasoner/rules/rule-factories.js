@@ -217,10 +217,10 @@ function createBinaryInheritanceRule(name, termBuilder, truthValueFunction) {
             }
 
             // Check if predicates match and subjects are different
-            const predicate1 = Term.buildTermKey(parsed1.predicate);
-            const predicate2 = Term.buildTermKey(parsed2.predicate);
-            const subject1 = Term.buildTermKey(parsed1.subject);
-            const subject2 = Term.buildTermKey(parsed2.subject);
+            const predicate1 = Term.termKey(parsed1.predicate);
+            const predicate2 = Term.termKey(parsed2.predicate);
+            const subject1 = Term.termKey(parsed1.subject);
+            const subject2 = Term.termKey(parsed2.subject);
 
             return predicate1 === predicate2 && subject1 !== subject2;
         },
@@ -246,8 +246,8 @@ function createTransitiveInheritanceRule(name, termBuilder, truthValueFunction) 
             }
 
             // Check if the predicate of the first matches the subject of the second
-            const predicate1 = Term.buildTermKey(parsed1.predicate);
-            const subject2 = Term.buildTermKey(parsed2.subject);
+            const predicate1 = Term.termKey(parsed1.predicate);
+            const subject2 = Term.termKey(parsed2.subject);
 
             return predicate1 === subject2;
         },
@@ -293,8 +293,8 @@ function createModusPonensRule(name, termBuilder, truthValueFunction) {
                 return false;
             }
 
-            const subject1 = Term.buildTermKey(parsed1.subject);
-            const term2 = Term.buildTermKey(parsed2);
+            const subject1 = Term.termKey(parsed1.subject);
+            const term2 = Term.termKey(parsed2);
 
             return subject1 === term2;
         },

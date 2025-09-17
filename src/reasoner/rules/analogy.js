@@ -15,10 +15,10 @@ export default createRule({
         parsed1?.type === 'Inheritance' &&
         parsed2?.type === 'Inheritance' &&
         parsed3?.type === 'Inheritance' &&
-        Term.buildTermKey(parsed1.subject) === Term.buildTermKey(parsed3.subject) &&
-        Term.buildTermKey(parsed2.subject) === Term.buildTermKey(parsed3.predicate),
+        Term.termKey(parsed1.subject) === Term.termKey(parsed3.subject) &&
+        Term.termKey(parsed2.subject) === Term.termKey(parsed3.predicate),
     action: (parsed1, parsed2, parsed3, task1, task2, task3) => {
-        const newTermKey = Term.buildTermKey({
+        const newTermKey = Term.termKey({
             type: 'Inheritance',
             subject: parsed1.predicate,
             predicate: parsed2.predicate

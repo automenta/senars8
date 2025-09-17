@@ -22,7 +22,7 @@ export default createUnaryInheritanceRule(
 
         // Try to build the term key and validate it
         try {
-            const result = Term.buildTermKey({
+            const result = Term.termKey({
                 type: 'Inheritance',
                 subject: negatedSubject,
                 predicate: negatedPredicate

@@ -15,7 +15,7 @@ export default createModusPonensRule(
     'Modus Ponens',
     (parsed1, _parsed2) => {
         try {
-            return Term.buildTermKey(parsed1.predicate);
+            return Term.termKey(parsed1.predicate);
         } catch (err) {
             logError('Error building modus ponens term:', err);
             return null;

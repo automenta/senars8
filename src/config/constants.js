@@ -8,7 +8,8 @@ export const PUNCTUATION = {
     QUESTION: '?',
 };
 
-export const TERM_TYPES = {
+/** operator (term types) */
+export const OP = {
     ATOMIC: 'Atomic',
     INDEPENDENT_VARIABLE: 'IndependentVariable',
     DEPENDENT_VARIABLE: 'DependentVariable',
@@ -42,7 +43,8 @@ export const TERM_TYPES = {
     STATEMENT: 'Statement',
 };
 
-export const OPERATOR_SYMBOLS = {
+/** relation symbols */
+export const REL = {
     INHERITANCE: '-->',
     IMPLICATION: '==>',
     EQUIVALENCE: '<=>',
@@ -66,7 +68,7 @@ export const OPERATOR_SYMBOLS = {
     PRODUCT: '*,',
 };
 
-export const TOKEN_TYPES = {
+export const TOKEN = {
     LPAREN: 'lparen',
     RPAREN: 'rparen',
     LBRACE: 'lbrace',
