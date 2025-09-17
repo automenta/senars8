@@ -17,7 +17,8 @@ class TimeBasedForgettingStrategy extends ForgettingStrategy {
         const {
             expirationThreshold,
             importanceThresholds
-        } = { ...this.defaultOptions,
+        } = {
+            ...this.defaultOptions,
             ...options
         };
 

@@ -1,6 +1,4 @@
-import {
-    MinPriorityQueue
-} from '@datastructures-js/priority-queue';
+import {MinPriorityQueue} from '@datastructures-js/priority-queue';
 import BasePlanner from './BasePlanner.js';
 
 class AStarPlanner extends BasePlanner {
@@ -55,7 +53,8 @@ class AStarPlanner extends BasePlanner {
     }
 
     async _enqueueAchievedNode(currentNode, remainingTasks, openSet) {
-        const nextNode = { ...currentNode,
+        const nextNode = {
+            ...currentNode,
             tasks: remainingTasks,
             g: currentNode.g
         };

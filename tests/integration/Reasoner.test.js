@@ -2,9 +2,7 @@ import Reasoner from '../../src/reasoner/Reasoner.js';
 import Memory from '../../src/memory/Memory.js';
 import Task from '../../src/core/Task.js';
 import Term from '../../src/core/Term.js';
-import {
-    parseTerm
-} from '../../src/parser/narseseParser.js';
+import {parseTerm} from '../../src/parser/narseseParser.js';
 import LM from '../../src/lm/LM.js';
 import ConfigManager from '../../src/config/ConfigManager.js';
 

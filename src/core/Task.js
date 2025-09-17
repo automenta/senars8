@@ -86,14 +86,16 @@ class Task extends BaseEntity {
         if (truthValue && typeof truthValue.frequency === 'number' && typeof truthValue.confidence === 'number') {
             const freq = Math.max(0, Math.min(1, truthValue.frequency));
             const conf = Math.max(0, Math.min(1, truthValue.confidence));
-            if (isNaN(freq) || isNaN(conf)) return { ...DEFAULT_TRUTH_VALUE
+            if (isNaN(freq) || isNaN(conf)) return {
+                ...DEFAULT_TRUTH_VALUE
             };
             return {
                 frequency: freq,
                 confidence: conf
             };
         }
-        return { ...DEFAULT_TRUTH_VALUE
+        return {
+            ...DEFAULT_TRUTH_VALUE
         };
     }
 

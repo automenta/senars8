@@ -1,12 +1,7 @@
 import System from '../src/System.js';
 import Task from '../src/Task.js';
-import {
-    parseTerm
-} from '../src/parser.js';
-import {
-    log,
-    print_task
-} from './shared/demo-utils.js';
+import {parseTerm} from '../src/parser.js';
+import {log, print_task} from './shared/demo-utils.js';
 
 async function advancedHypothesisGenerationDemo() {
     log('Advanced Hypothesis Generation Demo');

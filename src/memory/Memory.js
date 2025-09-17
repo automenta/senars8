@@ -231,7 +231,8 @@ class Memory {
         if (!json?.termKey) return null;
         const term = this.getTerm(json.termKey);
         if (!term) return null;
-        const deserializedStamp = { ...json.state.stamp
+        const deserializedStamp = {
+            ...json.state.stamp
         };
         Object.keys(deserializedStamp).forEach(key => {
             if (typeof deserializedStamp[key] === 'string' && /^\d+n?$/.test(deserializedStamp[key])) {

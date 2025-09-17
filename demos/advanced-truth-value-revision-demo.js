@@ -1,12 +1,10 @@
-import {
-    runDemo
-} from '../shared/demo-utils.js';
+import {runDemo} from '../shared/demo-utils.js';
 
 async function advancedTruthValueRevisionDemo() {
     const initialBeliefs = [{
         sentence: '(bird --> flies).',
         truth: [0.9, 0.9]
-    }, ];
+    },];
 
     const postCycleCallback = async (system) => {
         console.log("\nRevising truth value of '(bird --> flies)' with new evidence...");

@@ -1,6 +1,3 @@
-import {
-    CONTRADICTION_TYPES
-} from '../../contradiction-types.js';
 import Term from '../../../core/Term.js';
 
 function analyzeBinaryStatementConflict(task1, task2, parsed1, parsed2, type, conflictType) {

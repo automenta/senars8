@@ -1,12 +1,6 @@
-import {
-    createModuleErrorHandler
-} from '../utils/errorHandler.js';
-import {
-    isNonEmptyArray
-} from '../utils/arrayUtils.js';
-import {
-    generateActionId
-} from '../utils/IdGenerator.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {isNonEmptyArray} from '../utils/arrayUtils.js';
+import {generateActionId} from '../utils/IdGenerator.js';
 import EventBus from './EventBus.js';
 
 const errorHandler = createModuleErrorHandler('ActionExecutor');

@@ -28,7 +28,11 @@ class HypothesisGenerator {
         const sections = [
             {title: 'Observations', items: tasks, format: task => `${task.termKey}${task.punctuation}`},
             {title: 'Current Goals', items: goals, format: task => `${task.termKey}${task.punctuation}`},
-            {title: 'Recent Contradictions', items: contradictions, format: c => `${c.taskA.termKey} vs ${c.taskB.termKey}`},
+            {
+                title: 'Recent Contradictions',
+                items: contradictions,
+                format: c => `${c.taskA.termKey} vs ${c.taskB.termKey}`
+            },
         ];
 
         return sections

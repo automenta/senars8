@@ -112,7 +112,7 @@ async function testEnhancedMetaCognition() {
             frequency: 1.0,
             confidence: 0.9
         }
-    }, ];
+    },];
 
     const tasks = taskDefs.map(def => {
         const parsedTerm = parseTerm(def.termKey);

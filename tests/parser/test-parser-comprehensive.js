@@ -34,7 +34,7 @@ const testCases = [{
 }, {
     input: '(cat --} furry)',
     expectedType: 'Property'
-}, ];
+},];
 
 testCases.forEach(testCase => {
     console.log(`\nTesting: ${testCase.input}`);

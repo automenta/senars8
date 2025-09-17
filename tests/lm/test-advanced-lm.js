@@ -36,7 +36,7 @@ async function testAdvancedLMCapabilities() {
             frequency: 0.9,
             confidence: 0.9
         }
-    }, ];
+    },];
 
     const tasks = taskDefs.map(def => {
         const parsedTerm = parseTerm(def.termKey);

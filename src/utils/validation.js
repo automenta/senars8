@@ -34,7 +34,7 @@ function validateTerm(term, name = 'Term') {
     if (term === null || term === undefined) {
         throw new Error(`${name} is required`);
     }
-    
+
     if (typeof term === 'string') {
         if (term.length === 0) {
             throw new Error(`${name} must be a non-empty string`);
@@ -59,12 +59,12 @@ function validateTruthValue(truthValue, name = 'TruthValue') {
     if (!truthValue || typeof truthValue !== 'object') {
         throw new Error(`${name} must be an object`);
     }
-    
+
     if (typeof truthValue.frequency !== 'number' ||
         truthValue.frequency < 0 || truthValue.frequency > 1) {
         throw new Error(`${name}.frequency must be a number between 0 and 1`);
     }
-    
+
     if (typeof truthValue.confidence !== 'number' ||
         truthValue.confidence < 0 || truthValue.confidence > 1) {
         throw new Error(`${name}.confidence must be a number between 0 and 1`);

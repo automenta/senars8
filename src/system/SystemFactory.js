@@ -1,9 +1,5 @@
-import {
-    createModuleErrorHandler
-} from '../utils/errorHandler.js';
-import {
-    info
-} from '../utils/logger.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {info} from '../utils/logger.js';
 import ConfigManager from '../config/ConfigManager.js';
 import System from './System.js';
 import Cycle from './Cycle.js';

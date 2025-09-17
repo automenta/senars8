@@ -1,6 +1,4 @@
-import {
-    runDemo
-} from '../shared/demo-utils.js';
+import {runDemo} from '../shared/demo-utils.js';
 
 async function advancedLMDemo() {
     const taskDefs = [{
@@ -24,7 +22,7 @@ async function advancedLMDemo() {
     }, {
         sentence: '(explain_seNARS)!',
         truth: [1.0, 0.9]
-    }, ];
+    },];
 
     const postCycleCallback = async (system) => {
         console.log("\nAsking the LM to explain its understanding of SeNARS...");

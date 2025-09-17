@@ -1,7 +1,5 @@
 import Task from '../core/Task.js';
-import {
-    parseTerm
-} from '../parser/narseseParser.js';
+import {parseTerm} from '../parser/narseseParser.js';
 import config from '../config/index.js';
 
 function groupTasksByTermKey(tasks) {
@@ -168,7 +166,9 @@ function inferTemporalImplications(task1, task2) {
         },
     };
 
-    const implicationTask = implications[relationship] ? .();
+    const implicationTask = implications[relationship] ?
+.
+    ();
     return implicationTask ? [implicationTask] : [];
 }
 

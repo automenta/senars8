@@ -1,6 +1,4 @@
-import {
-    generatePlanId
-} from '../utils/IdGenerator.js';
+import {generatePlanId} from '../utils/IdGenerator.js';
 import Action from '../core/Action.js';
 
 class Plan {
@@ -43,7 +41,8 @@ class Plan {
             };
         }
         const result = await this.actionExecutor.execute(action);
-        return { ...result,
+        return {
+            ...result,
             action: action.name
         };
     }

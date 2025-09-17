@@ -198,7 +198,7 @@ class PatternDetector {
                 type: 'linear_trend',
                 direction: slope > 0 ? 'increasing' : 'decreasing',
                 strength: Math.min(1.0, Math.abs(slope) * 1000),
-            }, ];
+            },];
         }
         return [];
     }

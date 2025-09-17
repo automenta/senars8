@@ -8,9 +8,9 @@ class ConfigManager {
     }
 
     _mergeConfigs(defaults, userConfig) {
-        if (userConfig == null) return { ...defaults };
+        if (userConfig == null) return {...defaults};
 
-        const merged = { ...defaults };
+        const merged = {...defaults};
 
         for (const [key, value] of Object.entries(userConfig)) {
             const isObject = value !== null && typeof value === 'object' && !Array.isArray(value);

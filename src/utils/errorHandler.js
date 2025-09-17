@@ -1,6 +1,4 @@
-import {
-    error as logError
-} from './logger.js';
+import {error as logError} from './logger.js';
 
 class ValidationError extends Error {
     constructor(message, context = null) {

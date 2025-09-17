@@ -1,6 +1,4 @@
-import {
-    env
-} from '@xenova/transformers';
+import {env} from '@xenova/transformers';
 
 if (typeof process !== 'undefined') {
     process.env.ORT_LOGGING_LEVEL = 'FATAL';
@@ -20,7 +18,8 @@ if (env.backends?.onnx) {
     }
 }
 
-export function suppressOnnxWarnings() {}
+export function suppressOnnxWarnings() {
+}
 
 export default {
     suppressOnnxWarnings

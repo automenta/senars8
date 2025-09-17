@@ -1,13 +1,6 @@
-import {
-    getGoalTasks
-} from '../utils/task-utils.js';
-import {
-    debug,
-    error as logError
-} from '../utils/logger.js';
-import {
-    createModuleErrorHandler
-} from '../utils/errorHandler.js';
+import {getGoalTasks} from '../utils/task-utils.js';
+import {debug} from '../utils/logger.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
 import EventBus from './EventBus.js';
 
 const errorHandler = createModuleErrorHandler('Cycle');

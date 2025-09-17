@@ -1,15 +1,8 @@
 import Task from '../../core/Task.js';
-import {
-    isBelief
-} from '../../utils/task-utils.js';
-import {
-    parseTerm,
-    validateTermKey
-} from '../../parser/parse-utils.js';
+import {isBelief} from '../../utils/task-utils.js';
+import {parseTerm, validateTermKey} from '../../parser/parse-utils.js';
 import Term from '../../core/Term.js';
-import {
-    createModuleErrorHandler
-} from '../../utils/errorHandler.js';
+import {createModuleErrorHandler} from '../../utils/errorHandler.js';
 
 const errorHandler = createModuleErrorHandler('rule-factories');
 
@@ -82,8 +75,8 @@ function createBinaryInheritanceRule(name, termBuilder, truthValueFunction) {
     return createBinaryRule(
         name,
         (p1, p2) => p1?.type === 'Inheritance' && p2?.type === 'Inheritance' &&
-        Term.termKey(p1.predicate) === Term.termKey(p2.predicate) &&
-        Term.termKey(p1.subject) !== Term.termKey(p2.subject),
+            Term.termKey(p1.predicate) === Term.termKey(p2.predicate) &&
+            Term.termKey(p1.subject) !== Term.termKey(p2.subject),
         termBuilder,
         truthValueFunction
     );
@@ -93,7 +86,7 @@ function createTransitiveInheritanceRule(name, termBuilder, truthValueFunction) 
     return createBinaryRule(
         name,
         (p1, p2) => p1?.type === 'Inheritance' && p2?.type === 'Inheritance' &&
-        Term.termKey(p1.predicate) === Term.termKey(p2.subject),
+            Term.termKey(p1.predicate) === Term.termKey(p2.subject),
         termBuilder,
         truthValueFunction
     );
@@ -107,7 +100,7 @@ function createModusPonensRule(name, termBuilder, truthValueFunction) {
     return createBinaryRule(
         name,
         (p1, p2) => p1?.type === 'Implication' && p2?.type === 'Atomic' &&
-        Term.termKey(p1.subject) === Term.termKey(p2),
+            Term.termKey(p1.subject) === Term.termKey(p2),
         termBuilder,
         truthValueFunction
     );

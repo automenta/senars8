@@ -1,8 +1,5 @@
 import lexer from './lexer.js';
-import {
-    OP,
-    TOKEN
-} from '../config/constants.js';
+import {OP, TOKEN} from '../config/constants.js';
 
 const UNARY_OPERATOR_MAP = {
     [TOKEN.NEGATION]: OP.NEGATION,
@@ -85,7 +82,7 @@ class NarseseParser {
         const term = this.parseTerm();
         const punctuation = this.match(TOKEN.BELIEF) ? this.consume(TOKEN.BELIEF) :
             this.match(TOKEN.GOAL) ? this.consume(TOKEN.GOAL) :
-            this.match(TOKEN.QUESTION) ? this.consume(TOKEN.QUESTION) : null;
+                this.match(TOKEN.QUESTION) ? this.consume(TOKEN.QUESTION) : null;
         const truthValue = this.match(TOKEN.LPAREN) ? this.parseTruthValue() : null;
 
         return (punctuation || truthValue) ? {

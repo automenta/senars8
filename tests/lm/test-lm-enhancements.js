@@ -37,7 +37,7 @@ async function testLMEnhancements() {
             frequency: 0.95,
             confidence: 0.95
         }
-    }, ];
+    },];
 
     const tasks = taskDefs.map(def => parseTerm(def.termKey) ? new Task(parseTerm(def.termKey), def.punctuation, def.truthValue) : null).filter(Boolean);
 
@@ -52,7 +52,7 @@ async function testLMEnhancements() {
         console.log("   Comprehensive explanation of 'penguin':");
         console.log('   Perspectives:');
         for (const [p, exp] of Object.entries(explanation.perspectives || {})) {
-            console.log(`     ${p.charAt(0).toUpperCase() + p.slice(1)}: ${exp.substring(0,100)}${exp.length > 100 ? '...' : ''}`);
+            console.log(`     ${p.charAt(0).toUpperCase() + p.slice(1)}: ${exp.substring(0, 100)}${exp.length > 100 ? '...' : ''}`);
         }
         if (explanation.synthesis) {
             console.log(`   Synthesis: ${explanation.synthesis.substring(0, 100)}${explanation.synthesis.length > 100 ? '...' : ''}`);

@@ -1,10 +1,6 @@
 import config from '../config/index.js';
-import {
-    createModuleErrorHandler
-} from '../utils/errorHandler.js';
-import {
-    getBeliefTasks
-} from '../utils/task-utils.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {getBeliefTasks} from '../utils/task-utils.js';
 
 const errorHandler = createModuleErrorHandler('TruthValueManager');
 
@@ -59,10 +55,10 @@ class TruthValueManager {
             maxConfidence
         } = evidenceSources.reduce(
             ({
-                totalWeightedFrequency,
-                totalWeight,
-                maxConfidence
-            }, evidence) => ({
+                 totalWeightedFrequency,
+                 totalWeight,
+                 maxConfidence
+             }, evidence) => ({
                 totalWeightedFrequency: totalWeightedFrequency + evidence.frequency * evidence.confidence,
                 totalWeight: totalWeight + evidence.confidence,
                 maxConfidence: Math.max(maxConfidence, evidence.confidence),
@@ -126,7 +122,8 @@ class TruthValueManager {
     }
 
     static sophisticatedRevision(currentTruthValue, options = {}) {
-        let revised = { ...currentTruthValue
+        let revised = {
+            ...currentTruthValue
         };
         if (options.applyTemporalDecay) {
             revised = this.temporalDecayRevision(revised, options.currentTime, options.creationTime, options.decayRate);
@@ -150,7 +147,8 @@ class TruthValueManager {
     }
 
     _revisionWrapper(task, revisionType, revisionFn, metadata) {
-        const oldTruthValue = { ...task.state.truthValue
+        const oldTruthValue = {
+            ...task.state.truthValue
         };
         const revisedTruthValue = revisionFn(oldTruthValue);
         task.state.truthValue = revisedTruthValue;
@@ -190,9 +188,11 @@ class TruthValueManager {
     }
 
     resolveConflict(task1, task2) {
-        const oldTruthValue1 = { ...task1.state.truthValue
+        const oldTruthValue1 = {
+            ...task1.state.truthValue
         };
-        const oldTruthValue2 = { ...task2.state.truthValue
+        const oldTruthValue2 = {
+            ...task2.state.truthValue
         };
         const resolvedTruthValue = TruthValueManager.conflictResolutionRevision(oldTruthValue1, oldTruthValue2);
         task1.state.truthValue = resolvedTruthValue;

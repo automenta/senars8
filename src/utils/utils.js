@@ -1,19 +1,19 @@
-import { 
-    isBelief, 
-    isGoal, 
-    isQuestion, 
-    getTasksByType, 
-    getBeliefTasks, 
-    getGoalTasks, 
-    getQuestionTasks, 
-    isTask 
+import {
+    getBeliefTasks,
+    getGoalTasks,
+    getQuestionTasks,
+    getTasksByType,
+    isBelief,
+    isGoal,
+    isQuestion,
+    isTask
 } from './task-utils.js';
-import { 
-    generateSequentialId, 
-    generateHashId, 
-    generateOptimizedId, 
-    generateActionId, 
-    generatePlanId 
+import {
+    generateActionId,
+    generateHashId,
+    generateOptimizedId,
+    generatePlanId,
+    generateSequentialId
 } from './IdGenerator.js';
 
 // Task utilities
@@ -41,9 +41,12 @@ const id = {
     // Generic version
     generate: (type, ...args) => {
         switch (type) {
-            case 'action': return generateActionId(...args);
-            case 'plan': return generatePlanId(...args);
-            default: return generateOptimizedId(...args);
+            case 'action':
+                return generateActionId(...args);
+            case 'plan':
+                return generatePlanId(...args);
+            default:
+                return generateOptimizedId(...args);
         }
     }
 };
