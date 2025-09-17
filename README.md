@@ -1,161 +1,93 @@
-# **SeNARS Cognitive System**
+# SeNARS Cognitive System
 
-## *A Blueprint for Principled and Pragmatic Neuro-Symbolic Cognition*
+## A Blueprint for Principled and Pragmatic Neuro-Symbolic Cognition
 
-A complete cognitive architecture designed to achieve a synergistic union of formal symbolic reasoning and the semantic
-power of Large Language Models (LMs).
+SeNARS is a cognitive architecture designed to achieve a synergistic union of formal symbolic reasoning and the semantic
+power of Large Language Models (LMs). Its foundation is a **Unified Knowledge Hypergraph** composed of immutable *
+*`Term`s** (concepts) and stateful, evidence-backed **`Task`s** (beliefs, goals, questions). The system operates in a
+discrete **`Cycle`**, a reasoning loop governed by a principle of **Economic Attention**, which pragmatically
+prioritizes tasks based on their relevance, urgency, confidence, and predicted effort.
 
-- Its foundation is a **Unified Knowledge Hypergraph**, a sophisticated data structure composed of immutable **`Term`s
-  ** (concepts) and stateful, evidence-backed **`Task`s** (beliefs, goals, questions).
-- The system operates in a **Cycle**, a discrete reasoning loop governed by a principle of **Economic Attention**, which
-  pragmatically prioritizes tasks based on their relevance, urgency, confidence, and predicted effort.
-- All reasoning is guided by an immutable **`Constitution`** of foundational motives.
-- The architecture features a dual-engine design: a symbolic **Reasoner** performs rigorous, explainable inference,
-  while a neuro-symbolic **LM** leverages LMs for creativity, grounding, and natural language fluency.
-- Through a powerful **Meta-Cognitive** feedback loop, SeNARS is designed for recursive self-improvement, creating a
-  robust and transparent foundation for genuinely cognitive AI.
-
----
-
-## **Current Implementation Status**
-
-This repository contains a working implementation of the SeNARS cognitive system as specified in the full specification.
-The system includes all core components and demonstrates the key principles of neuro-symbolic cognition.
+- **Dual-Engine Design**: A symbolic **Reasoner** performs rigorous, explainable inference, while a neuro-symbolic **LM
+  ** leverages Large Language Models for creativity, grounding, and natural language fluency.
+- **Meta-Cognitive Loop**: Through a powerful **Meta-Cognitive** feedback loop, SeNARS is designed for recursive
+  self-improvement.
+- **Immutable Foundation**: All reasoning is guided by an immutable **`Constitution`** of foundational motives.
 
 ---
 
-### **1. Core Principles (Implemented)**
+## Design Principles
 
-1. **Unified Knowledge Hypergraph**: ✅ Implemented with `Term` and `Task` classes
-2. **Term/Task Distinction**: ✅ Strictly maintained in the implementation
-3. **Pragmatic Economic Attention**: ✅ Priority calculation implemented
-4. **Motive-Driven Cognition**: ✅ Constitution with drives and constraints
-5. **Recursive Meta-Cognition**: ✅ Basic contradiction detection and analysis
-6. **Neuro-Symbolic Synergy**: ✅ Integration with transformer models via LM class
+- **API-Driven & Pluggable Architecture**: The system is built around a clean, observable API. Core components (
+  `Memory`, `Reasoner`, `LM`, etc.) are assembled by a central `SystemFactory` using dependency injection, allowing for
+  easy extension and replacement of components.
+- **Unified Configuration**: All system parameters are managed through a single, hierarchical configuration object,
+  making the system's behavior transparent and easy to customize.
+- **Introspection as a First-Class Citizen**: A dedicated `Introspection` API (`system.introspection`) provides a
+  comprehensive set of tools for observing the system's internal state, querying memory, and subscribing to events,
+  designed explicitly to support GUIs and other external tools.
+- **Explicit State Management**: All cognitive state is explicitly stored within `Task`s in the central `Memory`
+  component.
+- **Strategy over Implementation**: For complex problems like contradiction resolution and planning, the system favors a
+  `Strategy` pattern, allowing for the dynamic selection of the best algorithm for a given context.
 
 ---
 
-### **2. System Architecture (Implemented)**
+## System Architecture
+
+The SeNARS architecture is designed for modularity and extensibility.
 
 ```mermaid
 graph TD
-    subgraph "SeNARS Cognitive Core"
-        Reasoner[Reasoner Symbolic Inference & Meta-Cognition]
-        Memory[MEMORY Term Hypergraph & Task Collection]
-        LM[LM LM-Powered Engine]
-
-        Reasoner <--> Memory
-        Reasoner -- Triggers on Gaps/Needs --> LM
-        LM -- Injects Knowledge --> Memory
+    subgraph "System Core"
+        A[System API]
+        F[SystemFactory]
+        I[Introspection API]
     end
 
-    subgraph "Interfaces"
-        Perception -- Creates Tasks --> Memory
-        ActionSystem -- Executes Goals from --> Reasoner
+    subgraph "Cognitive Components"
+        M[Memory]
+        R[Reasoner]
+        L[LM]
+        P[Planner]
+        AE[Action Executor]
+        C[Cycle]
     end
 
-    subgraph "Foundational Layer"
-        Constitution[CONSTITUTION Immutable Drives & Constraints] -- Provides Salience Gradients --> Memory
-    end
+    F -- Assembles --> A
+    A -- Exposes --> I
+    A -- Delegates to --> C
+    C -- Orchestrates --> M
+    C -- Orchestrates --> R
+    C -- Orchestrates --> L
+    C -- Orchestrates --> P
+    C -- Orchestrates --> AE
 
-    subgraph "System-Wide"
-        EventBus((Event Bus))
-        Perception -- Publishes --> EventBus
-        EventBus -- Notifies --> Memory
-        EventBus -- Notifies --> MetaCognition
-    end
+    style F fill:#cce5ff,stroke:#333,stroke-width:2px
+    style A fill:#d4edda,stroke:#333,stroke-width:2px
 ```
 
-#### **2.1 Event Bus Architecture**
-
-To enhance modularity and extensibility, the system uses a central **`EventBus`**. Components can publish events (e.g., `NewTasksCreated`) and subscribe to them, allowing for decoupled communication and making it easier to add new functionality without modifying core components.
-
----
-
-### **3. Knowledge Representation (Implemented)**
-
-#### **3.1 `Term`: The Immutable Vocabulary**
-
-- **Purpose**: A unique, canonical, and *intelligent* representation of a concept or relationship.
-- **Structure**:
-    - `key: string`: The formal, Narsese-inspired syntax.
-    - `embedding: number[]`: A dense vector representation from the `LM`.
-    - `complexity: number`: A static measure of structural complexity.
-- **Intelligence**: The `Term` class is not just a data container. It parses its own key upon instantiation, caching its Narsese structure. This allows for efficient access to its components (e.g., `term.subject`, `term.predicate`) as full `Term` instances, making the rest of the system's code cleaner and more performant.
-
-#### **3.2 `Task`: The Stateful Cognitive Atom**
-
-- **Purpose**: A specific, evidence-backed statement (belief, goal, or question) about a `Term`.
-- **Structure**:
-    - `id: string`: Unique identifier for this specific cognitive act.
-    - `termKey: string`: Foreign key pointing to a `Term`'s key.
-    - `punctuation: '.' | '!' | '?'`: Belief (Judgment), Goal, or Question.
-    - `state`:
-        - `priority: number`: The current attentional focus score.
-        - `truthValue: { frequency: number, confidence: number }`: Evidence-based belief strength.
-        - `stamp: { creationTime: number, occurrenceTime?: number }`: For temporal and causal reasoning.
+The `SystemFactory` is the main entry point for creating a new system. It instantiates all the necessary cognitive
+components and injects them into the main `System` object. The `System` object, in turn, exposes a clean public API for
+interacting with the system, including the powerful `Introspection` API for observability. The `Cycle` object
+orchestrates the flow of information and reasoning between all other components.
 
 ---
 
-### **4. The Constitution (Implemented)**
+## Getting Started
 
-- **Purpose**: An immutable, pre-loaded set of `Task`s defining the system's foundational motivations and safety
-  constraints.
-- **Content**:
-    - **Drives (High-Priority, Permanent Goals)**:
-        - `AcquireKnowledge!`
-        - `ReduceUncertainty!`
-        - `MaintainCoherence!` (Resolve contradictions)
-        - **`MaintainCognitiveIntegrity!`**: The core meta-cognitive drive for self-improvement.
-    - **Constraints (High-Confidence Beliefs about Negative Outcomes)**:
-        - `((&, self, cause_harm) ==> NEGATIVE_OUTCOME).`
+### Prerequisites
 
----
-
-### **5. The Cycle (Core Loop) (Implemented)**
-
-The cognitive cycle is implemented in `src/system/Cycle.js` and follows the specification:
-
-1. **Perception**: Ingest new information from the world (implemented in `src/system/Perception.js`).
-2. **Prioritization**: Apply economic attention to all tasks.
-3. **Inference**: Reason upon the most salient tasks.
-4. **Meta-Cognition**: Detect and analyze reasoning failures.
-5. **Semantic Enrichment & Action**: Process new terms and execute goals.
-
----
-
-### **6. Core Mechanisms (Partially Implemented)**
-
-#### **6.1 Dynamic Priority Calculation (Economic Attention)**
-
-✅ Implemented in `src/system/Cycle.js`
-
-#### **6.2 Reasoner & Meta-Cognition**
-
-✅ Basic inference rules (deduction, induction, abduction, analogy) implemented in `src/reasoner/`
-✅ Basic contradiction detection in `src/system/MetaCognition.js`
-
-#### **6.3 The LM (Neuro-Symbolic Engine)**
-
-✅ Integration with transformer models via `@xenova/transformers` in `src/lm/LM.js`
-✅ Term embedding generation implemented
-
----
-
-## **Getting Started**
-
-### **Prerequisites**
-
-- Node.js (v14 or higher)
+- Node.js (v16 or higher)
 - npm
 
-### **Installation**
+### Installation
 
 ```bash
 npm install
 ```
 
-### **Running the Interactive Demo Runner**
+### Running the Interactive Demo
 
 To explore the system's capabilities, use the interactive demo runner:
 
@@ -163,108 +95,156 @@ To explore the system's capabilities, use the interactive demo runner:
 npm run start:demo
 ```
 
-This command will present you with a list of available demos. You can choose to run a specific demo or all of them sequentially. This is the best way to see the system in action.
+This will present a categorized list of available demos, providing the best way to see the system in action. The
+`showcase-demo.js` is the recommended starting point for new users.
 
-### **Running Tests**
+### Running Tests
 
 ```bash
 npm test
 ```
 
 ---
-## **Usage as a Library**
 
-You can easily integrate the SeNARS system into your own projects.
+## Usage as a Library
+
+Integrate the SeNARS system into your own projects. The system is designed to be used as a library, with a clean,
+promise-based, and observable API.
 
 ```javascript
-const { System } = require('./src'); // Assuming you have an index.js in src
-const { Task } = require('./src/core/Task');
-const { parseTerm } = require('./src/parser/narseseParser');
+import { SystemFactory, Task, parseTerm } from 'senars';
+
+// Example of a custom configuration to override the defaults
+const customConfig = {
+    // Make the system forget things faster for this demo
+    memory: {
+        MAINTENANCE_CYCLE_FREQUENCY: 3,
+    },
+    // Use the HTN planner (default)
+    planner: {
+        strategy: 'HTN',
+    }
+};
 
 async function runSystem() {
-    // 1. Initialize the system
-    const system = new System();
-    await system.initialize();
+    // 1. Create a system instance using the factory
+    console.log('Creating and initializing system with custom config...');
+    const system = await SystemFactory.createSystem(customConfig);
+    console.log('System created and initialized.');
 
-    // 2. Add knowledge to the system
-    const belief = new Task(
-        parseTerm('<cat --> animal>.'),
-        '.',
-        { frequency: 1.0, confidence: 0.9 }
-    );
+    // 2. Subscribe to events using the Introspection API
+    console.log('Subscribing to 'SystemCycleEnded' event...');
+    system.introspection.on('SystemCycleEnded', (result) => {
+        console.log(`EVENT: Cycle ended. Derived ${result.derivedTasks} new tasks.`);
+    });
+
+    // 3. Add knowledge to the system
+    console.log('Adding knowledge...');
+    const beliefTerm = parseTerm('(dog --> mammal)');
+    const belief = new Task(beliefTerm, '.');
     await system.addTasks([belief]);
 
-    console.log('System initialized and belief added.');
+    const questionTerm = parseTerm('(<dog> --> warm_blooded)');
+    const question = new Task(questionTerm, '?');
+    await system.addTasks([question]);
 
-    // 3. Run the cognitive cycle
-    for (let i = 0; i < 10; i++) {
-        const output = await system.runCycle();
-        console.log(`Cycle ${i+1} complete. Derived ${output.derivedTasks} new tasks.`);
+    // 4. Run the cognitive cycles
+    console.log('Running 5 cognitive cycles...');
+    for (let i = 0; i < 5; i++) {
+        await system.runCycle();
+        const status = system.introspection.getStatus();
+        console.log(`  Cycle ${i + 1}: ${status.memory.shortTermTasks} tasks in STM.`);
     }
 
+    // 5. Query the final state using the Introspection API
+    console.log('Querying for the answer...');
+    const answers = system.introspection.queryTasks({ termKey: '(<dog> --> warm_blooded)', punctuation: '.' });
+
+    if (answers.length > 0) {
+        const bestAnswer = answers.sort((a, b) => b.state.truthValue.confidence - a.state.truthValue.confidence)[0];
+        console.log(`ANSWER: The system believes "(<dog> --> warm_blooded)" is TRUE with confidence ${bestAnswer.state.truthValue.confidence.toFixed(2)}`);
+    } else {
+        console.log('ANSWER: The system has not yet concluded an answer.');
+    }
+
+    // 6. Stop the system
     system.stop();
+    console.log('System stopped.');
 }
 
-runSystem();
+runSystem().catch(console.error);
 ```
 
----
+### Language Model Configuration
 
-## **Contributing**
+The system can be configured to use different Large Language Model (LLM) providers. This is controlled by the
+`LLM_PROVIDER` setting in the `LM` section of the configuration.
 
-We welcome contributions from the community! To contribute, please follow these guidelines:
+#### Supported Providers
 
-1.  **Fork the repository.**
-2.  **Create a new branch** for your feature or bug fix.
-3.  **Follow the coding style:** Adhere to the principles outlined in `AGENTS.md`. The code should be clean, self-documenting, and elegant.
-4.  **Write tests** for any new functionality.
-5.  **Submit a pull request** with a clear description of your changes.
+- **`xenova` (Default for testing):** Uses the [`@xenova/transformers`](https://github.com/xenova/transformers.js)
+  library to run models directly within the Node.js process. This is convenient for testing and development as it
+  requires no external setup, but it may not be suitable for production due to performance and logging verbosity.
+- **`ollama` (Recommended for development):** Uses a local [Ollama](https://ollama.com/) server to run LLMs. This is the
+  recommended approach for local development as it offers better performance and a wider range of models.
 
-### **Project Structure**
+#### Setting up Ollama
 
-```
-senars8/
-├── src/
-│   ├── core/          # Core classes (Term, Task, TaskFactory)
-│   ├── memory/        # Memory management (Memory)
-│   ├── parser/        # Narsese lexer and parser
-│   ├── reasoner/      # Inference engine and strategies
-│   ├── lm/            # Language model integration
-│   ├── system/        # High-level system components (System, Cycle, etc.)
-│   └── utils/         # Utility functions
-├── demos/             # Demonstration scripts (including interactive-runner.js)
-├── tests/             # Test suite
-├── package.json       # Project dependencies
-└── README.md          # This file
-```
+1. **Install Ollama:** Follow the instructions on the [Ollama website](https://ollama.com/) to download and install it
+   on your system.
+2. **Pull a model:** You need to have a model available that matches the `TEXT_GENERATION_MODEL` setting in your
+   configuration. We recommend starting with `llama3.1`. You can pull it by running:
+   ```bash
+   ollama pull llama3.1
+   ```
+3. **Configure the system:** In your configuration object, set the `LLM_PROVIDER` to `'ollama'` and ensure the
+   `TEXT_GENERATION_MODEL` matches the model you pulled. You can also specify the `OLLAMA_BASE_URL` if your Ollama
+   server is not running on the default `http://127.0.0.1:11434`.
 
----
+   ```javascript
+   const customConfig = {
+       LM: {
+           LLM_PROVIDER: 'ollama',
+           TEXT_GENERATION_MODEL: 'llama3.1', // Make sure this model is available in Ollama
+           // OLLAMA_BASE_URL: 'http://localhost:11434' // Optional
+       }
+   };
+   ```
 
-## **Features**
+### Planning Strategies
 
-- **Symbolic Reasoning**: Formal inference with deduction, induction, abduction, and analogy
-- **Neuro-Symbolic Integration**: Embedding-based semantic similarity and term grounding
-- **Attention Mechanism**: Economic attention model for task prioritization
-- **Meta-Cognition**: Contradiction detection with an extensible, strategy-pattern-based resolution system.
-- **Planning**: A sophisticated, graph-integrated Hierarchical Task Network (HTN) planner that decomposes complex goals by querying planning knowledge stored directly in the knowledge graph.
-- **Temporal Reasoning**: Time-aware task processing
+The system supports multiple planning algorithms. The active planner can be set in the configuration object passed to
+`SystemFactory`.
 
----
-
-## **Demos**
-
-1. **Math Inference Demo**: Tests logical inference with mathematical relationships
-2. **Planning Demo**: Demonstrates goal-directed behavior and planning
-3. **Comprehensive System Demo**: Full system demonstration with complex knowledge
-4. **NLP Integration Demo**: Shows natural language processing capabilities
-5. **Contradiction Resolution Demo**: Demonstrates meta-cognitive capabilities
+- **`HTN` (Hierarchical Task Network):** The default and recommended planner. It's robust and well-suited for complex,
+  multi-step problems.
+- **`AStar`:** An alternative heuristic-based search planner. **Note:** This planner is currently experimental and has
+  known bugs.
 
 ---
 
-## **Future Work**
+## Development Roadmap
 
-- Enhanced meta-cognition with more sophisticated contradiction resolution
-- Advanced LM capabilities (hypothesis generation, explanation)
-- More complex perception interfaces
-- Extended action execution system
-- Improved temporal reasoning capabilities
+This project has a long-term vision for creating a safe, transparent, and symbiotic cognitive partner. The roadmap is
+organized into several tracks:
+
+1. **Core Cognition & Self-Improvement**: Focuses on making the reasoning core more adaptive, principled, and capable of
+   safely evolving its own foundational values.
+2. **Knowledge Architecture & Scalability**: Aims to build a massively scalable, persistent, and distributed knowledge
+   architecture, enabling a "society of minds."
+3. **Cognitive Tooling & Autonomous Development**: Involves creating tools for visualization and debugging, with the
+   ultimate goal of having the system accelerate its own development.
+4. **Symbiotic Intelligence & Interfaces**: Centers on developing truly collaborative reasoning, where the AI can
+   explain its thinking and act as a proactive cognitive augmenter for the user.
+
+---
+
+## Contributing
+
+We welcome contributions! Please follow these guidelines:
+
+1. Fork the repository.
+2. Create a new branch for your feature or bug fix.
+3. Follow the coding style: The code should be clean, self-documenting, and elegant.
+4. Write tests for any new functionality.
+5. Submit a pull request with a clear description of your changes.

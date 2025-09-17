@@ -1,9 +1,9 @@
-const Task = require('../../src/core/Task');
-const Term = require('../../src/core/Term');
+import Task from '../../src/core/Task.js';
+import Term from '../../src/core/Term.js';
 
-jest.mock('../../src/core/Term', () => {
-    return jest.fn().mockImplementation((key) => {
-        return {key: key};
+jest.mock('../../src/core/Term.js', () => {
+    return jest.fn().mockImplementation(key => {
+        return {key};
     });
 });
 
@@ -33,17 +33,19 @@ describe('Task', () => {
         expect(task.termKey).toBe('cat');
         expect(task.punctuation).toBe('!');
         expect(task.state.truthValue).toEqual(truthValue);
-        expect(task.state.stamp).toEqual(stamp);
+        expect(task.state.stamp.creationTime).toEqual(stamp.creationTime);
+        expect(task.state.stamp.occurrenceTime).toEqual(stamp.occurrenceTime);
+        expect(task.state.stamp.lastAccessed).toEqual(expect.any(BigInt));
     });
 
     test('should throw an error if term is invalid', () => {
-        expect(() => new Task(null, '.')).toThrow('Invalid Task arguments');
-        expect(() => new Task({}, '.')).toThrow('Invalid Task arguments');
-        expect(() => new Task({key: ''}, '.')).toThrow('Invalid Task arguments');
+        expect(() => new Task(null, '.')).toThrow('Task term is required');
+        expect(() => new Task({}, '.')).toThrow('Task term must have a valid key property');
+        expect(() => new Task({key: ''}, '.')).toThrow('Task term must have a valid key property');
     });
 
     test('should throw an error if punctuation is invalid', () => {
         const term = new Term('cat');
-        expect(() => new Task(term, 'a')).toThrow('Invalid Task arguments');
+        expect(() => new Task(term, 'a')).toThrow('Task punctuation must be one of: ., !, ?');
     });
 });

@@ -1,19 +1,27 @@
-const moo = require('moo');
+import moo from 'moo';
 
-const lexer = moo.compile({
-    // Whitespace
-    whitespace: {match: /\s+/, lineBreaks: true},
+const WHITESPACE = {
+    whitespace: {match: /\s+/, lineBreaks: true}
+};
 
-    // Punctuation
-    lparen: '(',
-    rparen: ')',
+const PARENS = {
+    lparen: /[<(]/,
+    rparen: /[>)]/,
+};
+
+const PUNCTUATION = {
+    ...PARENS,
+    lbrace: '{',
+    rbrace: '}',
+    lbracket: '[',
+    rbracket: ']',
     comma: ',',
     arrow: '-->',
     implies: '==>',
     instance: '{--',
     property: '--}',
-    sequentialConjunction: '&&',  // Must be before conjunction
-    parallelConjunction: '&|',    // Must be before conjunction
+    sequentialConjunction: '&&',
+    parallelConjunction: '&|',
     negation: '--',
     conjunction: '&',
     disjunction: '||',
@@ -24,35 +32,50 @@ const lexer = moo.compile({
     similarity: '<->',
     retrospection: '=/>',
     prediction: '=\\>',
-    concurrent: '=<>',
+    concurrent: '=<>'
+};
 
-    // Temporal operators
+const TEMPORAL = {
     always: 'always',
     eventually: 'eventually',
     until: 'until',
     since: 'since',
     next: 'next',
-    previous: 'previous',
+    previous: 'previous'
+};
 
-    setExtension: '{',
-    setIntension: '[',
-    rbrace: '}',
-    rbracket: ']',
+const SETS = {
+    setExtension: PUNCTUATION.lbrace,
+    setIntension: PUNCTUATION.lbracket,
+    rbrace: PUNCTUATION.rbrace,
+    rbracket: PUNCTUATION.rbracket
+};
+
+const STATEMENT_PUNCTUATION = {
     colon: ':',
     question: '?',
     goal: '!',
-    belief: '.',
+    belief: '.'
+};
 
-    // Literals
-    identifier: /[a-zA-Z_][a-zA-Z0-9_]*/,
-
-    // Variables
-    independentVar: /\w+/,
+const LITERALS = {
+    string: /"[^"]*"/,
+    // Order matters: more specific identifiers first
     dependentVar: /#\w+/,
     queryVar: /\?\w+/,
-
-    // Numbers
+    independentVar: /\$\w+/, // Made more specific with a $ prefix
+    identifier: /[a-zA-Z_][a-zA-Z0-9_]*/,
     number: /\d+(?:\.\d+)?/
+};
+
+// The order of token rules is important. Keywords should come before general identifiers.
+const lexer = moo.compile({
+    ...WHITESPACE,
+    ...PUNCTUATION,
+    ...TEMPORAL,
+    ...SETS,
+    ...STATEMENT_PUNCTUATION,
+    ...LITERALS,
 });
 
-module.exports = lexer;
+export default lexer;

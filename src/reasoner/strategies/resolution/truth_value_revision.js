@@ -1,7 +1,7 @@
-const Task = require('../../../core/Task');
+import Task from '../../../core/Task.js';
 
 function truthValueRevision(contradiction, context) {
-    const { truthValueManager } = context;
+    const {truthValueManager} = context;
     if (!truthValueManager) {
         throw new Error('TruthValueManager not provided in context');
     }
@@ -11,4 +11,4 @@ function truthValueRevision(contradiction, context) {
     return [resolutionTask];
 }
 
-module.exports = truthValueRevision;
+export default truthValueRevision;

@@ -1,72 +1,55 @@
-const System = require('../src/system/System');
-const { createTask } = require('./demo-utils');
+// Category: API Usage
+// Description: A blueprint demonstration of how to create, run, and inspect a SeNARS system using its core API.
+
+import {runDemo} from '../shared/demo-utils.js';
+import {info} from '../src/utils/logger.js';
 
 /**
- * Comprehensive System Demo
- * Demonstrates multiple capabilities of the SeNARS system in a single run.
+ * This demo serves as a template for creating a client application (like a GUI or a bot)
+ * that interacts with the SeNARS system. It shows the fundamental steps of creating a system,
+ * adding knowledge, running cognitive cycles, and introspecting the system's state.
  */
 async function comprehensiveSystemDemo() {
-    console.log("=== Comprehensive System Demo ===\n");
-
-    const system = new System();
-    await system.initialize();
-
-    // Add initial knowledge to the system
     const taskDefs = [
-        // Knowledge about animals
-        {
-            termKey: '(animal --> (||, mammal, bird, fish))',
-            punctuation: '.',
-            truthValue: {frequency: 1.0, confidence: 0.9}
-        },
-        {termKey: '(mammal --> warm_blooded)', punctuation: '.', truthValue: {frequency: 0.95, confidence: 0.9}},
-        {termKey: '(bird --> warm_blooded)', punctuation: '.', truthValue: {frequency: 0.95, confidence: 0.9}},
-        {termKey: '(fish --> cold_blooded)', punctuation: '.', truthValue: {frequency: 0.9, confidence: 0.9}},
-        {termKey: '(dog --> mammal)', punctuation: '.', truthValue: {frequency: 1.0, confidence: 0.95}},
-        {termKey: '(sparrow --> bird)', punctuation: '.', truthValue: {frequency: 1.0, confidence: 0.95}},
-        {termKey: '(goldfish --> fish)', punctuation: '.', truthValue: {frequency: 1.0, confidence: 0.95}},
-
-        // Temporal knowledge
-        {
-            termKey: 'daytime',
-            punctuation: '.',
-            truthValue: {frequency: 1.0, confidence: 0.9},
-            stamp: {creationTime: Date.now(), occurrenceTime: Date.now()}
-        },
-        {termKey: '(daytime ==> birds_sing)', punctuation: '.', truthValue: {frequency: 0.8, confidence: 0.8}},
-
-        // Goals
-        {termKey: 'understand_animal_classification', punctuation: '!', truthValue: {frequency: 1.0, confidence: 0.9}},
-        {termKey: 'predict_animal_behavior', punctuation: '!', truthValue: {frequency: 1.0, confidence: 0.8}}
+        // Foundational knowledge about animals
+        {sentence: '(mammal --> warm_blooded).', truth: [1.0, 0.9]},
+        {sentence: '(dog --> mammal).', truth: [1.0, 0.95]},
+        // A question for the system to answer
+        {sentence: '(<dog> --> warm_blooded)?', truth: [1.0, 0.9]}
     ];
 
-    // Create tasks and filter out any that failed to parse
-    const tasks = taskDefs.map(def => createTask(def.termKey, def.punctuation, def.truthValue, def.stamp)).filter(Boolean);
+    const preCycleCallback = (system) => {
+        info('Subscribing to system events...');
+        system.introspection.on('SystemCycleEnded', (cycleResult) => {
+            info(`EVENT [SystemCycleEnded]: Derived ${cycleResult.derivedTasks} new tasks.`);
+        });
+    };
 
-    if (tasks.length === 0) {
-        console.log("No valid tasks could be created. Exiting demo.");
-        return;
-    }
+    const postCycleCallback = (system) => {
+        info('\nInspecting final memory state...');
+        const answerTasks = system.introspection.queryTasks({
+            termKey: '(<dog> --> warm_blooded)',
+            punctuation: '.' // We are looking for a belief (an answer)
+        });
 
-    await system.addTasks(tasks);
+        if (answerTasks.length > 0) {
+            const bestAnswer = answerTasks.sort((a, b) => b.state.truthValue.confidence - a.state.truthValue.confidence)[0];
+            info(`System's answer to "(<dog> --> warm_blooded)?": YES, with confidence ${bestAnswer.state.truthValue.confidence.toFixed(2)}`);
+        } else {
+            info('System did not find a definitive answer to our question in time.');
+        }
+    };
 
-    console.log("Running 7 cognitive cycles to demonstrate comprehensive system capabilities...\n");
-
-    for (let i = 0; i < 7; i++) {
-        const result = await system.runCycle();
-        console.log(`Cycle ${i + 1}:`);
-        console.log(`  - Derived Tasks: ${result.derivedTasks}`);
-        console.log(`  - Contradictions: ${result.contradictions}`);
-        console.log(`  - Meta Tasks: ${result.metaTasks}`);
-        console.log(`  - Execution Results: ${JSON.stringify(result.executionResults)}`);
-        console.log();
-    }
-
-    console.log("\n=== Demo Complete ===");
+    await runDemo('Comprehensive System Demo', taskDefs, {
+        cycleCount: 5,
+        preCycleCallback,
+        postCycleCallback
+    });
 }
 
-module.exports = comprehensiveSystemDemo;
+export default comprehensiveSystemDemo;
 
-if (require.main === module) {
+// This allows the demo to be run directly from the command line
+if (import.meta.url.startsWith('file:')) {
     comprehensiveSystemDemo().catch(console.error);
 }

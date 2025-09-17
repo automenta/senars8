@@ -1,87 +1,119 @@
-const Memory = require('../memory/Memory');
-const Reasoner = require('../reasoner/Reasoner');
-const LM = require('../lm/LM');
-const Cycle = require('./Cycle');
-const { ActionExecutor } = require('./ActionExecutor');
-const CONSTITUTION_TASKS = require('./Constitution');
-const registerDefaultActions = require('./default-actions');
+import '../utils/onnxSuppression.js';
+import registerDefaultActions from './default-actions.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {debug, error as logError, info, warn} from '../utils/logger.js';
+import {normalizeToArray} from '../utils/helpers.js';
+import Introspection from './Introspection.js';
 
-const config = require('../config');
-const _ = require('lodash');
+const errorHandler = createModuleErrorHandler('System');
 
 class System {
-    constructor(userConfig = {}) {
-        this.config = _.merge({}, config, userConfig);
-        this.memory = new Memory();
-        this.reasoner = new Reasoner();
-        this.lm = new LM();
-        this.actionExecutor = new ActionExecutor(this.memory);
-        this.cycle = new Cycle(this.memory, this.reasoner, this.lm, this.actionExecutor, this.config);
-        registerDefaultActions(this.actionExecutor);
+    constructor(configManager, {
+        memory,
+        reasoner,
+        lm,
+        actionExecutor,
+        cycle
+    }) {
+        this.configManager = configManager;
+        this.memory = memory;
+        this.reasoner = reasoner;
+        this.lm = lm;
+        this.actionExecutor = actionExecutor;
+        this.cycle = cycle;
         this.isRunning = false;
         this.cycleCount = 0;
-        this.initialized = false;
+        this.introspection = new Introspection(this);
+
+        registerDefaultActions(this.actionExecutor);
+        info('System components created and initialized.');
     }
 
-    async _bootstrapTerms(tasks) {
-        const termKeys = [...new Set(tasks.map(task => task.termKey))];
-        const newTermKeys = termKeys.filter(key => !this.memory.getTerm(key));
-        if (newTermKeys.length === 0) return;
-
-        const termPromises = newTermKeys.map(key => this.lm.bootstrapTerm(key));
-        const newTerms = (await Promise.all(termPromises)).filter(Boolean);
-        newTerms.forEach(term => this.memory.addTerm(term));
+    async initialize(constitutionTasks) {
+        await errorHandler.safeAsync(async () => {
+            info('System: Initializing with constitution...');
+            if (constitutionTasks?.length > 0) {
+                this.memory.addTasks(constitutionTasks);
+                await this._bootstrapTerms(constitutionTasks, {
+                    sync: true
+                });
+            }
+            await this.cycle.bootstrap(constitutionTasks);
+            info('System: Initialized successfully.');
+        }, 'initialize');
     }
 
-    async _ensureInitialized() {
-        if (this.initialized) return;
-        this.memory.addTasks(CONSTITUTION_TASKS);
-        await this._bootstrapTerms(CONSTITUTION_TASKS);
-        this.initialized = true;
-    }
+    async _bootstrapTerms(tasks, options = {
+        sync: false
+    }) {
+        await errorHandler.safeAsync(async () => {
+            const newTermKeys = [...new Set(tasks.map(task => task.termKey).filter(key => !this.memory.getTerm(key)))];
+            if (newTermKeys.length === 0) return;
 
-    async initialize() {
-        await this._ensureInitialized();
+            debug(`Bootstrapping ${newTermKeys.length} new terms...`);
+            const termPromises = newTermKeys.map(key => this.lm.bootstrapTerm(key, options));
+            const newTerms = (await Promise.all(termPromises)).filter(Boolean);
+            newTerms.forEach(term => this.memory.addTerm(term));
+            info(`Successfully bootstrapped ${newTerms.length} terms.`);
+        }, '_bootstrapTerms');
     }
 
     async runCycle() {
-        await this._ensureInitialized();
-        this.cycleCount++;
-        return this.cycle.runOnce();
+        return await errorHandler.safeAsync(async () => {
+            this.cycleCount++;
+            debug(`Running cycle ${this.cycleCount}...`);
+            const result = await this.cycle.runOnce();
+            debug(`Cycle ${this.cycleCount} completed.`, result);
+            return result;
+        }, 'runCycle');
     }
 
     async start(maxCycles = 0) {
-        if (this.isRunning) return;
-        await this._ensureInitialized();
-
-        this.isRunning = true;
-        this.cycleCount = 0;
-
-        while (this.isRunning && (maxCycles === 0 || this.cycleCount < maxCycles)) {
-            try {
-                await this.runCycle();
-                await new Promise(resolve => setTimeout(resolve, 100));
-            } catch (error) {
-                this.stop();
-                throw error;
+        await errorHandler.safeAsync(async () => {
+            if (this.isRunning) {
+                warn('System is already running.');
+                return;
             }
-        }
+            info(`Starting system with maxCycles=${maxCycles || 'infinite'}`);
+            this.isRunning = true;
+            this.cycleCount = 0;
+            this.lm.startEmbeddingProcessor();
 
-        if (this.isRunning) {
+            while (this.isRunning && (maxCycles === 0 || this.cycleCount < maxCycles)) {
+                try {
+                    await this.runCycle();
+                    const tickDelay = this.configManager.getNumber('cycle.TICK_DELAY_MS', 50);
+                    await new Promise(resolve => setTimeout(resolve, tickDelay));
+                } catch (err) {
+                    logError('Fatal error during system cycle execution:', err);
+                    this.stop();
+                    throw errorHandler.handle(err, 'start', true);
+                }
+            }
             this.stop();
-        }
+        }, 'start');
     }
 
     stop() {
-        this.isRunning = false;
+        errorHandler.safeSync(() => {
+            if (!this.isRunning) return;
+            this.isRunning = false;
+            this.lm.stopEmbeddingProcessor();
+            info(`System stopped after ${this.cycleCount} cycles.`);
+        }, 'stop');
     }
 
     async addTasks(tasks) {
-        await this._ensureInitialized();
-        const tasksToAdd = Array.isArray(tasks) ? tasks : [tasks];
-        await this._bootstrapTerms(tasksToAdd);
-        this.memory.addTasks(tasksToAdd);
+        await errorHandler.safeAsync(async () => {
+            const tasksToAdd = normalizeToArray(tasks);
+            if (tasksToAdd.length === 0) return;
+
+            debug(`Adding ${tasksToAdd.length} new tasks to the system...`);
+            await this._bootstrapTerms(tasksToAdd);
+            this.memory.addTasks(tasksToAdd);
+            info(`Successfully added ${tasksToAdd.length} tasks.`);
+        }, 'addTasks');
     }
 }
 
-module.exports = System;
+export default System;

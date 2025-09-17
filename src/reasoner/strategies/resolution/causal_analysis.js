@@ -1,7 +1,7 @@
-const { createMetaTask } = require('../strategy-utils');
+import {createMetaTask} from '../strategy-utils.js';
 
 function causalAnalysis(contradiction) {
     return [createMetaTask('causal_analysis', contradiction.tasks.map(t => t.termKey).join(','), contradiction.confidence)].filter(Boolean);
 }
 
-module.exports = causalAnalysis;
+export default causalAnalysis;

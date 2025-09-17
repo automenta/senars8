@@ -1,119 +1,98 @@
-const Memory = require('../../src/memory/Memory');
-const Task = require('../../src/core/Task');
-const Term = require('../../src/core/Term');
-const EventBus = require('../../src/system/EventBus');
+import Memory from '../../src/memory/Memory.js';
+import Task from '../../src/core/Task.js';
+import {parseTerm} from '../../src/parser/narseseParser.js';
+import ConfigManager from '../../src/config/ConfigManager.js';
+import EventBus from '../../src/system/EventBus.js';
+// import {setLogLevel} from '../../src/utils/logger.js';
 
-// Mock dependencies
-jest.mock('../../src/core/Term', () => {
-    return jest.fn().mockImplementation((key) => {
-        const termInstance = {
-            key: key,
-            type: 'Atomic',
-            subject: null,
-            predicate: null,
-            terms: [],
-        };
-        return new Proxy(termInstance, {
-            set: (target, prop, value) => {
-                target[prop] = value;
-                return true;
+const createTestConfig = () => new ConfigManager({
+    memory: {
+        FORGETTING_STRATEGY_OPTIONS: {
+            shortTerm: {
+                expirationThreshold: BigInt(24 * 3600 * 1000), // 1 day
+                importanceThresholds: {
+                    priority: 0.5,
+                    confidence: 0.5
+                }
+            },
+            longTerm: {
+                expirationThreshold: BigInt(30 * 24 * 3600 * 1000), // 30 days
+                importanceThresholds: {
+                    priority: 0.8,
+                    confidence: 0.8
+                }
             }
-        });
-    });
+        },
+        MAINTENANCE_CYCLE_FREQUENCY: 1,
+        CONSOLIDATION_PRIORITY_THRESHOLD: 0.95,  // Higher than task1's priority of 0.9
+        CONSOLIDATION_CONFIDENCE_THRESHOLD: 0.95  // Higher than task2's confidence of 0.9
+    }
 });
-// Mock dependencies
-jest.mock('../../src/core/Term', () => {
-    return jest.fn().mockImplementation((key) => {
-        const termInstance = {
-            key: key,
-            type: 'Atomic',
-            subject: null,
-            predicate: null,
-            terms: [],
-        };
-        return new Proxy(termInstance, {
-            set: (target, prop, value) => {
-                target[prop] = value;
-                return true;
-            }
-        });
-    });
-});
-jest.mock('../../src/core/Task'); // Hoisted
-jest.mock('../../src/system/EventBus', () => ({
-    on: jest.fn(),
-    emit: jest.fn(),
-}));
+
+const createTask = (term, {
+    lastAccessed,
+    priority,
+    confidence
+}) => {
+    const task = new Task(parseTerm(term), '.');
+    if (priority) task.state.priority = priority;
+    if (confidence) task.state.truthValue.confidence = confidence;
+    // Properly set the lastAccessed timestamp
+    if (lastAccessed) {
+        task.state.stamp.lastAccessed = lastAccessed;
+    }
+    return task;
+};
 
 describe('Memory', () => {
     let memory;
 
     beforeEach(() => {
-        Term.mockClear();
-        Task.mockClear();
-        EventBus.on.mockClear();
-
-        // Configure the mock implementation for Task for each test
-        Task.mockImplementation((term, punctuation) => {
-            const mockTaskInstance = Object.create(Task.prototype);
-            return Object.assign(mockTaskInstance, {
-                id: `task-${Math.random()}`,
-                term: term,
-                termKey: term.key,
-                punctuation: punctuation,
-                state: {},
-            });
-        });
-
-        memory = new Memory();
+        const configManager = createTestConfig();
+        memory = new Memory(configManager);
     });
 
-    describe('costIndex', () => {
-        it('should add a cost to the costIndex when a cost belief is added', () => {
-            const actionTerm = new Term('action1');
-            const costTerm = new Term('<action1 --> [10]>');
-            costTerm.type = 'Inheritance';
-            costTerm.subject = actionTerm;
-            costTerm.predicate = { type: 'IntensionalSet', terms: [{ key: '10' }] };
+    afterEach(() => {
+        EventBus.clear();
+    });
 
-            const belief = new Task(costTerm, '.');
+    it('should prune expired, unimportant tasks during maintenance', async () => {
+        const now = BigInt(Date.now());
+        const longAgo = now - (BigInt(24 * 3600 * 1000) * BigInt(2)); // 2 days ago
 
-            memory.addTasks([belief]);
-
-            expect(memory.costIndex.has('action1')).toBe(true);
-            expect(memory.costIndex.get('action1')).toBe(10);
+        const task1 = createTask('(unimportant_and_old --> property)', {
+            lastAccessed: longAgo,
+            priority: 0.1,
+            confidence: 0.1
+        });
+        const task2 = createTask('(new_and_unimportant --> property)', {
+            confidence: 0.8  // Below the consolidation threshold of 0.9
         });
 
-        it('should not add a cost for non-cost beliefs', () => {
-            const regularTerm = new Term('<cat --> animal>');
-            regularTerm.type = 'Inheritance';
-            regularTerm.subject = new Term('cat');
-            regularTerm.predicate = new Term('animal');
+        await memory.addTasks([task1, task2]);
+        expect(memory.shortTermTasks.size).toBe(2);
 
-            const belief = new Task(regularTerm, '.');
+        EventBus.emit('SystemCycleEnded');
 
-            memory.addTasks([belief]);
+        expect(memory.shortTermTasks.size).toBe(1);
+        expect(memory.shortTermTasks.has(task2.id)).toBe(true);
+    });
 
-            expect(memory.costIndex.size).toBe(0);
+    it('should NOT prune expired but important tasks', async () => {
+        const now = BigInt(Date.now());
+        const longAgo = now - (BigInt(24 * 3600 * 1000) * BigInt(2)); // 2 days ago
+
+        const task1 = createTask('(important_and_old --> property)', {
+            lastAccessed: longAgo,
+            priority: 0.9
         });
 
-        it('should remove a cost from the costIndex when a cost belief is removed', () => {
-            // Add the belief first
-            const actionTerm = new Term('action2');
-            const costTerm = new Term('<action2 --> [20]>');
-            costTerm.type = 'Inheritance';
-            costTerm.subject = actionTerm;
-            costTerm.predicate = { type: 'IntensionalSet', terms: [{ key: '20' }] };
-            const belief = new Task(costTerm, '.');
-            belief.id = 'task123'; // Assign an ID for removal
+        await memory.addTasks([task1]);
+        expect(memory.shortTermTasks.size).toBe(1);
 
-            memory.addTasks([belief]);
-            expect(memory.costIndex.get('action2')).toBe(20);
+        EventBus.emit('SystemCycleEnded');
 
-            // Now remove it
-            memory.removeTask(belief.id);
-
-            expect(memory.costIndex.has('action2')).toBe(false);
-        });
+        expect(memory.shortTermTasks.size).toBe(1);
+        expect(memory.shortTermTasks.has(task1.id)).toBe(true);
     });
 });

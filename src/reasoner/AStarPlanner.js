@@ -1,32 +1,30 @@
-const { MinPriorityQueue } = require('@datastructures-js/priority-queue');
-const BasePlanner = require('./BasePlanner');
-const { cosineSimilarity } = require('../utils/math');
+import {MinPriorityQueue} from '@datastructures-js/priority-queue';
+import BasePlanner from './BasePlanner.js';
 
 class AStarPlanner extends BasePlanner {
     constructor(memory, lm, config = {}) {
         super(memory, lm, config);
-        this.config.heuristicWeights = config.heuristicWeights || {
-            complexity: 0.4,
-            confidence: 0.3,
-            semantic: 0.3,
-        };
+        this.heuristicCache = new Map();
     }
 
-    async findPlan(goalTask, maxIterations = 100) {
-        const goalTerm = this.memory.getTerm(goalTask.termKey);
-        if (!goalTerm) return null;
+    async findPlan(goalTask, maxIterations = 1000) {
+        const startNode = this.memory.getTerm(goalTask.termKey);
+        if (!startNode) return null;
 
-        const openSet = new MinPriorityQueue((node) => node.g + node.h);
+        if (this._isAchieved(startNode)) return [];
+
+        const openSet = new MinPriorityQueue(node => node.f);
+        const visited = new Set(); // To avoid cycles and redundant explorations
 
         const initialState = {
+            tasks: [startNode],
             plan: [],
-            tasks: [goalTerm],
             g: 0,
-            h: await this._calculateHeuristic([goalTerm], goalTerm),
+            h: await this._calculateHeuristic([startNode])
         };
+        initialState.f = initialState.g + initialState.h;
 
         openSet.enqueue(initialState);
-        const visited = new Set();
 
         let iterations = 0;
         while (!openSet.isEmpty() && iterations < maxIterations) {
@@ -34,79 +32,106 @@ class AStarPlanner extends BasePlanner {
             const currentNode = openSet.dequeue();
 
             if (currentNode.tasks.length === 0) {
-                return currentNode.plan.map(termKey => this.memory.getTerm(termKey));
+                return currentNode.plan.map(key => this.memory.getTerm(key));
             }
 
-            const tasksKey = currentNode.tasks.map(t => t.key).join(',');
-            if (visited.has(tasksKey)) {
+            const stateKey = this._getStateKey(currentNode);
+            if (visited.has(stateKey)) {
                 continue;
             }
-            visited.add(tasksKey);
+            visited.add(stateKey);
 
             const [currentTask, ...remainingTasks] = currentNode.tasks;
 
             if (this._isAchieved(currentTask)) {
-                const newNode = {
-                    plan: currentNode.plan,
-                    tasks: remainingTasks,
-                    g: currentNode.g,
-                    h: await this._calculateHeuristic(remainingTasks, goalTerm),
-                };
-                openSet.enqueue(newNode);
+                const nextNode = {...currentNode, tasks: remainingTasks, g: currentNode.g};
+                nextNode.h = await this._calculateHeuristic(nextNode.tasks);
+                nextNode.f = nextNode.g + nextNode.h;
+                openSet.enqueue(nextNode);
                 continue;
             }
 
             const expansions = this._getExpansions(currentTask);
 
             for (const expansion of expansions) {
-                if (expansion.method === null && expansion.subTasks.length > 0) {
-                    const newPlanKeys = [...currentNode.plan, ...expansion.subTasks.map(t => t.key)];
-                    const newPlanTerms = newPlanKeys.map(key => this.memory.getTerm(key));
-                    const newNode = {
-                        plan: newPlanKeys,
-                        tasks: remainingTasks,
-                        g: this.costManager.getPlanCost(newPlanTerms),
-                        h: await this._calculateHeuristic(remainingTasks, goalTerm),
-                    };
-                    openSet.enqueue(newNode);
-                } else {
-                    const newTasks = [...expansion.subTasks, ...remainingTasks];
-                    const newNode = {
-                        plan: currentNode.plan,
-                        tasks: newTasks,
-                        g: currentNode.g,
-                        h: await this._calculateHeuristic(newTasks, goalTerm),
-                    };
-                    openSet.enqueue(newNode);
+                let newG = currentNode.g;
+                let newPlan = currentNode.plan;
+                let newTasks;
+
+                if (expansion.method === null) { // Primitive action
+                    newG += this.costManager.getActionCost(currentTask);
+                    newPlan = [...currentNode.plan, currentTask.key];
+                    newTasks = remainingTasks;
+                } else { // Decomposition
+                    // The cost of a decomposition is the cost of its subtasks, which is handled by the heuristic.
+                    // The g-value should only reflect the cost of the actions taken so far.
+                    newTasks = [...expansion.subTasks, ...remainingTasks];
                 }
+
+                const nextNode = {
+                    tasks: newTasks,
+                    plan: newPlan,
+                    g: newG,
+                    h: await this._calculateHeuristic(newTasks)
+                };
+                nextNode.f = nextNode.g + nextNode.h;
+                openSet.enqueue(nextNode);
             }
         }
 
-        return null;
+        return null; // No plan found
     }
 
-    async _calculateHeuristic(tasks, goalTerm) {
-        if (tasks.length === 0) return 0;
+    _getStateKey(node) {
+        // A unique key for a state is the combination of remaining tasks and the current plan
+        const taskKey = node.tasks.map(t => t.key).sort().join(',');
+        const planKey = node.plan.sort().join(',');
+        return `${taskKey}|${planKey}`;
+    }
 
-        const complexityCost = tasks.reduce((acc, task) => acc + this.costManager.getTaskDifficulty(task), 0);
-
-        const confidenceCost = tasks.reduce((acc, task) => {
-            const belief = this.memory.beliefIndex.get(task.key);
-            return acc + (1 - (belief ? belief.state.truthValue.confidence : 0));
-        }, 0);
-
-        let semanticCost = 0;
-        if (this.lm) {
-            const taskEmbeddings = tasks.map(t => t.embedding).filter(Boolean);
-            if (taskEmbeddings.length > 0 && goalTerm.embedding) {
-                const avgSimilarity = taskEmbeddings.reduce((acc, emb) => acc + cosineSimilarity(emb, goalTerm.embedding), 0) / taskEmbeddings.length;
-                semanticCost = 1 - avgSimilarity;
-            }
+    async _calculateHeuristic(tasks, visited = new Set()) {
+        if (!tasks || tasks.length === 0) {
+            return 0;
         }
 
-        const { complexity, confidence, semantic } = this.config.heuristicWeights;
-        return (complexityCost * complexity) + (confidenceCost * confidence) + (semanticCost * semantic);
+        let totalCost = 0;
+        for (const task of tasks) {
+            if (visited.has(task.key)) {
+                // Found a cycle, return infinity to avoid infinite loops
+                return Infinity;
+            }
+            visited.add(task.key);
+            totalCost += await this._getMinTaskCost(task, visited);
+            visited.delete(task.key);
+        }
+        return totalCost;
+    }
+
+    async _getMinTaskCost(task, visited) {
+        if (this.heuristicCache.has(task.key)) {
+            return this.heuristicCache.get(task.key);
+        }
+
+        if (this._isPrimitive(task)) {
+            const cost = this.costManager.getActionCost(task);
+            this.heuristicCache.set(task.key, cost);
+            return cost;
+        }
+
+        const expansions = this._getExpansions(task);
+        if (expansions.length === 0) {
+            return Infinity; // No way to solve this task
+        }
+
+        let minCost = Infinity;
+        for (const expansion of expansions) {
+            const subTaskCosts = await this._calculateHeuristic(expansion.subTasks, new Set(visited));
+            minCost = Math.min(minCost, subTaskCosts);
+        }
+
+        this.heuristicCache.set(task.key, minCost);
+        return minCost;
     }
 }
 
-module.exports = AStarPlanner;
+export default AStarPlanner;

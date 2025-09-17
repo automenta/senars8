@@ -1,7 +1,7 @@
-const AStarPlanner = require('./AStarPlanner');
-const HTNPlanner = require('./HTNPlanner');
+import AStarPlanner from './AStarPlanner.js';
+import HTNPlanner from './HTNPlanner.js';
 
-module.exports = {
+export default {
     AStarPlanner,
-    HTNPlanner,
+    HTNPlanner
 };

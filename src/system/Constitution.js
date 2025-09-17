@@ -1,19 +1,18 @@
-const Task = require('../core/Task');
-const {parseTerm} = require('../parser/narseseParser');
+import Task from '../core/Task.js';
+import {parseTerm} from '../parser/parse-utils.js';
 
 const DRIVES = [
     new Task(parseTerm('AcquireKnowledge'), '!'),
     new Task(parseTerm('ReduceUncertainty'), '!'),
     new Task(parseTerm('MaintainCoherence'), '!'),
-    new Task(parseTerm('MaintainCognitiveIntegrity'), '!'),
+    new Task(parseTerm('MaintainCognitiveIntegrity'), '!')
 ];
 
-const CONSTRAINTS = [
-];
+const CONSTRAINTS = [];
 
 const CONSTITUTION_TASKS = Object.freeze([
     ...DRIVES,
-    ...CONSTRAINTS,
+    ...CONSTRAINTS
 ]);
 
-module.exports = CONSTITUTION_TASKS;
+export default CONSTITUTION_TASKS;

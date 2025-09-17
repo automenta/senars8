@@ -1,118 +1,94 @@
-const { v4: uuidv4 } = require('uuid');
-const Action = require('../core/Action');
+import Planners from '../reasoner/index.js';
+import Plan from './Plan.js';
+import {debug, error, info, warn} from '../utils/logger.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
 
-class PlanExecutor {
-    constructor(actionExecutor) {
-        this.actionExecutor = actionExecutor;
-    }
-
-    async executeAction(term) {
-        const action = this._parseAction(term);
-        if (!action) {
-            return { success: false, error: `Could not parse action: ${term.key}` };
-        }
-        const result = await this.actionExecutor.execute(action);
-        return { ...result, action: action.name };
-    }
-
-    _parseAction(term) {
-        switch (term.type) {
-            case 'Atomic':
-                return new Action(term.key);
-            case 'SequentialConjunction':
-            case 'Conjunction':
-                if (term.terms.length > 0) {
-                    const [nameTerm, ...paramTerms] = term.terms;
-                    return new Action(nameTerm.key, paramTerms.map(t => t.key));
-                }
-                return null;
-            default:
-                return null;
-        }
-    }
-}
-
-const Planners = require('../reasoner');
+const errorHandler = createModuleErrorHandler('Planner');
 
 class Planner {
-    constructor(memory, lm, actionExecutor, config = {}) {
+    constructor(memory, lm, actionExecutor, configManager) {
         if (!memory || !lm || !actionExecutor) {
             throw new Error('Planner requires memory, lm, and actionExecutor instances.');
         }
 
-        const strategyName = config.strategy || 'HTN';
-        const PlannerClass = Planners[strategyName + 'Planner'];
+        const strategyName = configManager.getString('planner.strategy', 'HTN');
+        const PlannerClass = Planners[`${strategyName}Planner`];
         if (!PlannerClass) {
             throw new Error(`Unknown planner strategy: ${strategyName}`);
         }
 
-        this.strategy = new PlannerClass(memory, lm, config.plannerConfig);
-        this.executor = new PlanExecutor(actionExecutor);
+        this.strategy = new PlannerClass(memory, lm, configManager);
+        this.actionExecutor = actionExecutor;
         this.planCache = new Map();
-    }
-
-    async planAndExecute(goalTask, maxAttempts = 3) {
-        let attempts = 0;
-        let lastFailedPlan = null;
-
-        while (attempts < maxAttempts) {
-            attempts++;
-            const plan = await this.createPlan(goalTask, lastFailedPlan);
-
-            if (!plan || plan.length === 0) {
-                const isAchieved = this.strategy._isAchieved(this.strategy.memory.getTerm(goalTask.termKey));
-                if (isAchieved) return { success: true, planId: null, results: ['Goal already achieved'] };
-
-                if (this.strategy.lm) {
-                    const lmSuggestion = await this.strategy.lm.suggestPlanRepair(goalTask, lastFailedPlan);
-                    if (lmSuggestion && lmSuggestion.length > 0) {
-                        const executionResult = await this._executePlan(lmSuggestion);
-                        if (executionResult.success) return executionResult;
-                    }
-                }
-                return { success: false, error: 'No plan found, and LM could not repair.' };
-            }
-
-            const executionResult = await this._executePlan(plan);
-            if (executionResult.success) {
-                return executionResult;
-            }
-
-            lastFailedPlan = plan;
-            this.planCache.delete(goalTask.termKey);
-        }
-
-        return { success: false, error: `Plan failed after ${maxAttempts} attempts` };
-    }
-
-    async _executePlan(plan) {
-        const planId = uuidv4();
-        const results = [];
-        for (const step of plan) {
-            const result = await this.executor.executeAction(step);
-            results.push(result);
-
-            if (!result.success) {
-                return { success: false, planId, error: `Plan failed at action ${step.key}`, results };
-            }
-        }
-        return { success: true, planId, results };
+        this.lm = lm;
+        info(`Planner initialized with strategy: ${strategyName}`);
     }
 
     async createPlan(goalTask, failedPlan = null) {
-        const goalKey = goalTask.termKey;
-        const cachedPlan = this.planCache.get(goalKey);
+        return await errorHandler.safeAsync(async () => {
+            const goalKey = goalTask.termKey;
+            debug(`Creating plan for goal: ${goalKey}`);
 
-        if (cachedPlan && cachedPlan !== failedPlan) {
-            return cachedPlan;
-        }
+            const cachedPlan = this._getcachedPlan(goalKey, failedPlan);
+            if (cachedPlan) return cachedPlan;
 
-        const plan = await this.strategy.findPlan(goalTask);
-        if (plan) {
+            let planSteps = await this._generateNewPlan(goalTask);
+
+            if (this._isPlanEmpty(planSteps)) {
+                planSteps = await this._handleEmptyPlan(goalTask, failedPlan);
+            }
+
+            if (this._isPlanEmpty(planSteps)) {
+                warn(`No plan could be created for goal: ${goalKey}`);
+                return null;
+            }
+
+            const plan = new Plan(planSteps, this.actionExecutor, goalKey);
             this.planCache.set(goalKey, plan);
+            debug(`Plan created successfully with ${planSteps.length} steps`);
+            return plan;
+        }, `createPlan for goal ${goalTask.termKey}`, null);
+    }
+
+    _isPlanEmpty(planSteps) {
+        return !planSteps || planSteps.length === 0;
+    }
+
+    _getcachedPlan(goalKey, failedPlan) {
+        const cachedPlan = this.planCache.get(goalKey);
+        if (cachedPlan && cachedPlan !== failedPlan) {
+            debug(`Using cached plan for goal: ${goalKey}`);
+            return new Plan(cachedPlan.steps, this.actionExecutor, goalKey);
         }
-        return plan;
+        return null;
+    }
+
+    async _generateNewPlan(goalTask) {
+        debug(`Generating new plan with strategy for goal: ${goalTask.termKey}`);
+        return this.strategy.findPlan(goalTask);
+    }
+
+    async _handleEmptyPlan(goalTask, failedPlan) {
+        const isAchieved = this.strategy._isAchieved(this.strategy.memory.getTerm(goalTask.termKey));
+        if (isAchieved) {
+            debug(`Goal already achieved: ${goalTask.termKey}`);
+            return [];
+        }
+        return this._getLmSuggestion(goalTask, failedPlan);
+    }
+
+    async _getLmSuggestion(goalTask, failedPlan) {
+        if (!this.lm) return null;
+
+        debug(`Requesting LM plan suggestion for goal: ${goalTask.termKey}`);
+        const lmSuggestion = await this.lm.suggestPlanRepair(goalTask, failedPlan?.steps);
+        if (lmSuggestion?.length > 0) {
+            debug(`LM provided ${lmSuggestion.length} plan steps`);
+            return lmSuggestion;
+        }
+        warn(`LM failed to provide plan suggestion for goal: ${goalTask.termKey}`);
+        return null;
     }
 }
 
-module.exports = Planner;
+export default Planner;

@@ -1,44 +1,54 @@
-const Reasoner = require('../../src/reasoner/Reasoner');
-const Memory = require('../../src/memory/Memory');
-const Task = require('../../src/core/Task');
-const Term = require('../../src/core/Term');
-const { parseTerm } = require('../../src/parser/narseseParser');
-const LM = require('../../src/lm/LM');
-const BruteForceStrategy = require('../../src/reasoner/strategies/BruteForceStrategy');
+import Reasoner from '../../src/reasoner/Reasoner.js';
+import Memory from '../../src/memory/Memory.js';
+import Task from '../../src/core/Task.js';
+import Term from '../../src/core/Term.js';
+import {parseTerm} from '../../src/parser/narseseParser.js';
+import LM from '../../src/lm/LM.js';
+import ConfigManager from '../../src/config/ConfigManager.js';
 
-jest.mock('../../src/lm/LM');
+jest.mock('../../src/lm/LM.js');
 jest.mock('@xenova/transformers', () => {
-    const transformers = jest.genMockFromModule('@xenova/transformers');
+    const transformers = jest.createMockFromModule('@xenova/transformers');
     transformers.pipeline = jest.fn(async () => {
         return jest.fn(() => ({
-            data: new Float32Array([1, 2, 3]),
+            data: new Float32Array([1, 2, 3])
         }));
     });
     return transformers;
 });
 
+const createTestConfig = () => new ConfigManager({
+    reasoner: {
+        strategy: 'BruteForce'
+    }
+});
+
+const createTerm = async (lm, memory, termKey) => {
+    const term = await lm.bootstrapTerm(termKey);
+    memory.addTerm(term);
+    return term;
+};
+
 describe('Reasoner Integration Test', () => {
     let reasoner, memory, lm;
 
     beforeEach(() => {
-        // Use BruteForceStrategy for deterministic test results
-        reasoner = new Reasoner(new BruteForceStrategy());
-        memory = new Memory();
-        lm = new LM();
+        const configManager = createTestConfig();
+        memory = new Memory(configManager);
+        lm = new LM(configManager);
+        reasoner = new Reasoner({}, configManager);
 
-        lm.bootstrapTerm.mockImplementation(async (termKey) => {
+        lm.bootstrapTerm.mockImplementation(async termKey => {
             return new Term(termKey, [], 1);
         });
     });
 
     test('should perform modus ponens', async () => {
-        const termA = await lm.bootstrapTerm('cat');
-        const termB = await lm.bootstrapTerm('mammal');
-        memory.addTerm(termA);
-        memory.addTerm(termB);
+        const termA = await createTerm(lm, memory, 'cat');
+        await createTerm(lm, memory, 'mammal');
 
-        const task1 = new Task(parseTerm('(cat ==> mammal)'), '.', {}, {}, 1);
-        const task2 = new Task(termA, '.', {}, {}, 1);
+        const task1 = new Task(parseTerm('(cat ==> mammal)'), '.');
+        const task2 = new Task(termA, '.');
 
         const derivedTasks = reasoner.performInference([task1, task2]);
         const derivedTask = derivedTasks.find(t => t.termKey === 'mammal');
@@ -46,12 +56,9 @@ describe('Reasoner Integration Test', () => {
     });
 
     test('should perform inheritance chaining', async () => {
-        const termA = await lm.bootstrapTerm('cat');
-        const termB = await lm.bootstrapTerm('mammal');
-        const termC = await lm.bootstrapTerm('animal');
-        memory.addTerm(termA);
-        memory.addTerm(termB);
-        memory.addTerm(termC);
+        await createTerm(lm, memory, 'cat');
+        await createTerm(lm, memory, 'mammal');
+        await createTerm(lm, memory, 'animal');
 
         const task1 = new Task(parseTerm('(cat --> mammal)'), '.');
         const task2 = new Task(parseTerm('(mammal --> animal)'), '.');

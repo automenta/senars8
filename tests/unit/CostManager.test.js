@@ -1,19 +1,19 @@
-const CostManager = require('../../src/reasoner/CostManager');
-const Term = require('../../src/core/Term');
-const Memory = require('../../src/memory/Memory');
+import CostManager from '../../src/reasoner/CostManager.js';
+import Term from '../../src/core/Term.js';
+import Memory from '../../src/memory/Memory.js';
 
 // Mock Term and Memory for testing purposes
-jest.mock('../../src/core/Term', () => {
-    return jest.fn().mockImplementation((key) => {
+jest.mock('../../src/core/Term.js', () => {
+    return jest.fn().mockImplementation(key => {
         const termInstance = {
-            key: key,
+            key,
             type: 'Atomic',
             subject: null,
             predicate: null,
             terms: [],
             equals: jest.fn(otherTerm => {
                 return otherTerm && termInstance.key === otherTerm.key;
-            }),
+            })
         };
         // Allow setting properties for more complex test cases
         return new Proxy(termInstance, {
@@ -24,7 +24,7 @@ jest.mock('../../src/core/Term', () => {
         });
     });
 });
-jest.mock('../../src/memory/Memory');
+jest.mock('../../src/memory/Memory.js');
 
 describe('CostManager', () => {
     let memory;
@@ -32,14 +32,15 @@ describe('CostManager', () => {
 
     beforeEach(() => {
         // Reset mocks before each test
-        Memory.mockClear();
-        Term.mockClear();
+        jest.clearAllMocks();
 
-        // Setup mock memory
+        // Setup mock memory with proper indexer structure
         memory = new Memory();
-        memory.beliefIndex = new Map();
-        memory.implicationIndex = new Map();
-        memory.costIndex = new Map();
+        memory.indexer = {
+            beliefIndex: new Map(),
+            implicationIndex: new Map(),
+            costIndex: new Map()
+        };
         memory.getTerm = jest.fn(key => new Term(key));
 
         // Initialize CostManager with mock memory
@@ -56,8 +57,7 @@ describe('CostManager', () => {
             const actionTerm = new Term('action2');
 
             // Mock the costIndex
-            memory.costIndex = new Map();
-            memory.costIndex.set('action2', 5);
+            memory.indexer.costIndex.set('action2', 5);
 
             expect(costManager.getActionCost(actionTerm)).toBe(5);
         });
@@ -66,8 +66,8 @@ describe('CostManager', () => {
     describe('getTaskDifficulty (Enhanced Heuristic)', () => {
         it('should return the action cost for a primitive task', () => {
             const taskTerm = new Term('primitiveTask');
-            memory.implicationIndex.set(taskTerm.key, []); // No decomposition methods
-            memory.costIndex.set(taskTerm.key, 5); // Action cost is 5
+            memory.indexer.implicationIndex.set(taskTerm.key, []); // No decomposition methods
+            memory.indexer.costIndex.set(taskTerm.key, 5); // Action cost is 5
             expect(costManager.getTaskDifficulty(taskTerm)).toBe(5);
         });
 
@@ -76,12 +76,12 @@ describe('CostManager', () => {
             const precond1 = new Term('precond1'); // Believed, confidence 0.9
             const precond2 = new Term('precond2'); // Unknown, confidence 0
 
-            memory.beliefIndex.set(precond1.key, { state: { truthValue: { confidence: 0.9 } } });
+            memory.indexer.beliefIndex.set(precond1.key, {state: {truthValue: {confidence: 0.9}}});
 
             const method = new Term('method1');
-            method.subject = { type: 'SequentialConjunction', terms: [taskTerm, precond1, precond2] };
+            method.subject = {type: 'SequentialConjunction', terms: [taskTerm, precond1, precond2]};
 
-            memory.implicationIndex.set(taskTerm.key, [method]);
+            memory.indexer.implicationIndex.set(taskTerm.key, [method]);
 
             // Difficulty = (1 - 0.9) + (1 - 0) = 0.1 + 1 = 1.1
             expect(costManager.getTaskDifficulty(taskTerm)).toBeCloseTo(1.1);
@@ -93,20 +93,20 @@ describe('CostManager', () => {
             const precond2 = new Term('precond2'); // Conf 0.8 -> Diff 0.2
             const precond3 = new Term('precond3'); // Conf 0.5 -> Diff 0.5
 
-            memory.beliefIndex.set(precond1.key, { state: { truthValue: { confidence: 0.9 } } });
-            memory.beliefIndex.set(precond2.key, { state: { truthValue: { confidence: 0.8 } } });
-            memory.beliefIndex.set(precond3.key, { state: { truthValue: { confidence: 0.5 } } });
+            memory.indexer.beliefIndex.set(precond1.key, {state: {truthValue: {confidence: 0.9}}});
+            memory.indexer.beliefIndex.set(precond2.key, {state: {truthValue: {confidence: 0.8}}});
+            memory.indexer.beliefIndex.set(precond3.key, {state: {truthValue: {confidence: 0.5}}});
 
             const method1 = new Term('method1');
-            method1.subject = { type: 'SequentialConjunction', terms: [taskTerm, precond1, precond3] };
+            method1.subject = {type: 'SequentialConjunction', terms: [taskTerm, precond1, precond3]};
 
             const method2 = new Term('method2');
-            method2.subject = { type: 'SequentialConjunction', terms: [taskTerm, precond2, precond3] };
+            method2.subject = {type: 'SequentialConjunction', terms: [taskTerm, precond2, precond3]};
 
             const method3 = new Term('method3');
-            method3.subject = { type: 'SequentialConjunction', terms: [taskTerm, precond1, precond2] };
+            method3.subject = {type: 'SequentialConjunction', terms: [taskTerm, precond1, precond2]};
 
-            memory.implicationIndex.set(taskTerm.key, [method1, method2, method3]);
+            memory.indexer.implicationIndex.set(taskTerm.key, [method1, method2, method3]);
 
             expect(costManager.getTaskDifficulty(taskTerm)).toBeCloseTo(0.3);
         });
@@ -121,9 +121,15 @@ describe('CostManager', () => {
 
             // Mock getActionCost to return specific values
             jest.spyOn(costManager, 'getActionCost').mockImplementation(action => {
-                if (action.key === 'action1') return 1;
-                if (action.key === 'action2') return 5;
-                if (action.key === 'action3') return 2;
+                if (action.key === 'action1') {
+                    return 1;
+                }
+                if (action.key === 'action2') {
+                    return 5;
+                }
+                if (action.key === 'action3') {
+                    return 2;
+                }
                 return 0;
             });
 

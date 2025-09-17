@@ -1,8 +1,8 @@
-const Task = require('../core/Task');
-const { parseTerm } = require('../parser/narseseParser');
-const TaskFactory = require('../core/TaskFactory');
-const PatternDetector = require('../reasoner/PatternDetector');
-const EventBus = require('./EventBus');
+import TaskFactory from '../core/TaskFactory.js';
+import PatternDetector from '../reasoner/PatternDetector.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
+
+const errorHandler = createModuleErrorHandler('Perception');
 
 class Perception {
     constructor(memory, lm) {
@@ -23,36 +23,25 @@ class Perception {
         if (!processor) {
             throw new Error(`Unknown sensory modality: ${modalityName}`);
         }
-        try {
+        return await errorHandler.safeAsync(async () => {
             const tasks = await processor(input);
-            this.perceptionHistory.push({ modality: modalityName, input, timestamp: Date.now(), tasks: tasks.length });
+            this.perceptionHistory.push({
+                modality: modalityName,
+                input,
+                timestamp: Date.now(),
+                tasks: tasks.length
+            });
             return tasks;
-        } catch (error) {
-            // Error handling can be improved, e.g., by emitting an error event
-            return [];
-        }
+        }, `processSensoryInput for modality ${modalityName}`, []);
     }
 
-    async processEvents(events = []) {
-        const taskPromises = events.map(event =>
-            this.taskFactory.convertEventToTask(event).catch(() => null)
-        );
-        const newTasks = (await Promise.all(taskPromises)).filter(Boolean);
-
-        if (newTasks.length > 0) {
-            EventBus.emit('NewTasksCreated', newTasks);
-        }
-    }
-
-    async processEventStream(eventStream) {
-        const advancedPatterns = this.patternDetector.detectAdvancedPatterns(eventStream);
-        const patternTasks = await Promise.all(advancedPatterns.map(p =>
-            this.taskFactory.convertEventToTask({ type: 'observation', content: `pattern_${p.type}_${p.id}`, confidence: p.confidence })
-        ));
-
-        const eventTasks = await Promise.all(eventStream.map(e => this.taskFactory.convertEventToTask(e)));
-
-        return [...patternTasks, ...eventTasks].filter(Boolean);
+    async process(events) {
+        return await errorHandler.safeAsync(async () => {
+            const patternTasks = this.patternDetector.detectPatterns(events);
+            const eventTasks = events.map(event => this.taskFactory.convertEventToTask(event));
+            const allTasks = await Promise.all([...patternTasks, ...eventTasks]);
+            return allTasks.filter(Boolean);
+        }, 'process', []);
     }
 
     getPerceptionHistory() {
@@ -62,6 +51,10 @@ class Perception {
     clearPerceptionHistory() {
         this.perceptionHistory = [];
     }
+
+    getSensoryModalities() {
+        return Array.from(this.sensoryModalities.keys());
+    }
 }
 
-module.exports = Perception;
+export default Perception;

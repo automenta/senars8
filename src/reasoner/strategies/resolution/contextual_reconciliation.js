@@ -1,7 +1,7 @@
-const { createMetaTask } = require('../strategy-utils');
+import {createMetaTask} from '../strategy-utils.js';
 
 function contextualReconciliation(contradiction) {
     return [createMetaTask('contextual_reconciliation', contradiction.tasks.map(t => t.termKey).join(','), contradiction.confidence)].filter(Boolean);
 }
 
-module.exports = contextualReconciliation;
+export default contextualReconciliation;

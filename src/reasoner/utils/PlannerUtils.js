@@ -1,9 +1,11 @@
 function findDecompositionMethods(goalTerm, memory) {
-    return memory.implicationIndex.get(goalTerm.key) || [];
+    return memory.indexer.implicationIndex.get(goalTerm.key) || [];
 }
 
 function extractSubTasksFromMethod(methodTerm) {
-    if (!methodTerm) return null;
+    if (!methodTerm) {
+        return null;
+    }
     if (methodTerm.type === 'SequentialConjunction') {
         return methodTerm.terms;
     }
@@ -11,23 +13,31 @@ function extractSubTasksFromMethod(methodTerm) {
 }
 
 function isAchieved(term, memory, config) {
-    const belief = memory.beliefIndex.get(term.key);
-    return !!(belief && belief.state.truthValue.confidence >= config.confidenceThreshold);
+    if (!term) {
+        return false;
+    }
+    const beliefs = memory.indexer.beliefIndex.get(term.key);
+    return Boolean(beliefs && beliefs.length > 0 &&
+        beliefs.some(belief => belief.state.truthValue.confidence >= config.confidenceThreshold));
 }
 
 function arePreconditionsMet(preconditions, memory, config) {
+    if (!preconditions || preconditions.length === 0) {
+        return true;
+    }
     for (const precondition of preconditions) {
-        const belief = memory.beliefIndex.get(precondition.key);
-        if (!belief || belief.state.truthValue.confidence <= config.preconditionConfidenceThreshold) {
+        const beliefs = memory.indexer.beliefIndex.get(precondition.key);
+        if (!beliefs || beliefs.length === 0 ||
+            !beliefs.some(belief => belief.state.truthValue.confidence > config.preconditionConfidenceThreshold)) {
             return false;
         }
     }
     return true;
 }
 
-module.exports = {
+export {
     findDecompositionMethods,
     extractSubTasksFromMethod,
     isAchieved,
-    arePreconditionsMet,
+    arePreconditionsMet
 };

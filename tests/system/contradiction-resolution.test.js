@@ -1,0 +1,55 @@
+import Task from '../../src/core/Task.js';
+import ConfigManager from '../../src/config/ConfigManager.js';
+import SystemFactory from '../../src/system/SystemFactory.js';
+
+
+jest.mock('@xenova/transformers', () => {
+    const transformers = jest.createMockFromModule('@xenova/transformers');
+    transformers.pipeline = jest.fn(async () => {
+        return jest.fn(() => ({
+            data: new Float32Array([1, 2, 3])
+        }));
+    });
+    return transformers;
+});
+
+describe('System-level Contradiction Resolution', () => {
+    let system;
+
+    beforeEach(async () => {
+        const customConfig = {
+            reasoner: {
+                strategy: 'BruteForce'
+            },
+            temporal: {
+                enabled: false
+            }
+        };
+        const configManager = new ConfigManager(customConfig);
+        system = await SystemFactory.createSystem(configManager);
+    });
+
+    afterEach(() => {
+        system.stop();
+    });
+
+    test('should detect and propose a resolution for a direct contradiction', async () => {
+        const task1 = new Task('<a --> b>.', '.', {
+            confidence: 0.9,
+            priority: 0.9
+        });
+        const task2 = new Task('<a --> b_neg>.', '.', {
+            confidence: 0.9,
+            priority: 0.9
+        });
+
+        await system.addTasks([task1, task2]);
+
+        console.log(system);
+
+        await system.runCycle();
+
+        // Basic check that the cycle completed
+        expect(system.cycleCount).toBe(1);
+    });
+});

@@ -1,297 +1,300 @@
-const Term = require("../core/Term");
-const Task = require("../core/Task");
-const XenovaLLM = require("./XenovaLLM");
-const { parseTerm } = require('../parser/narseseParser');
-const { cosineSimilarity } = require('../utils/math');
-const { LLMChain } = require("langchain/chains");
-const { PromptTemplate } = require("@langchain/core/prompts");
-const { StructuredOutputParser } = require("@langchain/core/output_parsers");
-const { LM: LM_CONFIG } = require('../config');
+import {Ollama} from '@langchain/community/llms/ollama';
+import {suppressOnnxWarnings} from '../utils/onnxSuppression.js';
+import Term from '../core/Term.js';
+import XenovaLLM from './XenovaLLM.js';
+import {LLMChain} from 'langchain/chains';
+import {PromptTemplate} from '@langchain/core/prompts';
+import {StructuredOutputParser} from '@langchain/core/output_parsers';
+import HypothesisGenerator from './HypothesisGenerator.js';
+import PipelineFactory from './PipelineFactory.js';
+import ExplanationGenerator from './ExplanationGenerator.js';
+import QAService from './QAService.js';
+import PlanRepairer from './PlanRepairer.js';
+import ProactiveEnricher from './ProactiveEnricher.js';
+import {debug, error, info, warn} from '../utils/logger.js';
 
-const HYPOTHESIS_TYPES = {
-    GENERAL: 'general',
-    CREATIVE: 'creative',
-    GOAL_ORIENTED: 'goal_oriented',
+const PIPELINE_TYPES = {
+    FEATURE_EXTRACTION: 'feature-extraction',
+    TEXT_GENERATION: 'text-generation',
+    QUESTION_ANSWERING: 'question-answering'
 };
-
-const REFINEMENT_TYPES = {
-    FORMALIZE: 'formalize',
-    SIMPLIFY: 'simplify',
-};
-
-class PipelineFactory {
-    constructor() {
-        this._pipelines = new Map();
-    }
-
-    async get(type, model, options = {}) {
-        const key = `${type}-${model}`;
-        if (!this._pipelines.has(key)) {
-            const { pipeline } = await import('@xenova/transformers');
-            this._pipelines.set(key, pipeline(type, model, options));
-        }
-        return this._pipelines.get(key);
-    }
-}
 
 class LM {
-    constructor() {
-        this.pipelineFactory = new PipelineFactory();
-        this.llm = null;
-        this.reasoner = null;
-        this.memory = null;
+    constructor(configManager) {
+        this.configManager = configManager;
+        this._pipelineFactory = PipelineFactory;
+        this._llm = null;
+        this._reasoner = null;
+        this._memory = null;
+        this._hypothesisGenerator = new HypothesisGenerator(this);
+        this._explanationGenerator = new ExplanationGenerator(this._generate.bind(this));
+        this._qaService = new QAService(this._generate.bind(this), this._getQAPipeline.bind(this));
+        this._planRepairer = new PlanRepairer(this._getGenerationPipeline.bind(this), this._createStructuredChain.bind(this), this._parseStructuredResult.bind(this));
+        this._proactiveEnricher = new ProactiveEnricher(this._getGenerationPipeline.bind(this), this._createStructuredChain.bind(this), this._parseStructuredResult.bind(this));
+
+        this._embeddingQueue = [];
+        this._isProcessingEmbeddings = false;
+
+        info('LM initialized');
+    }
+
+    startEmbeddingProcessor() {
+        if (this._isProcessingEmbeddings) {
+            warn('Embedding processor is already running.');
+            return;
+        }
+        info('Starting embedding processor.');
+        this._isProcessingEmbeddings = true;
+        this.processEmbeddingQueue();
+    }
+
+    stopEmbeddingProcessor() {
+        info('Stopping embedding processor.');
+        this._isProcessingEmbeddings = false;
+    }
+
+    async processEmbeddingQueue() {
+        const batchSize = this.configManager.getNumber('LM.EMBEDDING_BATCH_SIZE', 10);
+        const delay = this.configManager.getNumber('LM.EMBEDDING_BATCH_DELAY_MS', 100);
+
+        while (this._isProcessingEmbeddings) {
+            if (this._embeddingQueue.length === 0) {
+                await new Promise(resolve => setTimeout(resolve, delay));
+                continue;
+            }
+
+            const batch = this._embeddingQueue.splice(0, batchSize);
+            debug(`Processing embedding batch of size ${batch.length}`);
+
+            try {
+                await Promise.all(batch.map(term => this._generateAndAssignEmbedding(term)));
+            } catch (err) {
+                error('Error processing embedding batch:', err);
+            }
+
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+        debug('Embedding processing loop finished.');
     }
 
     setReasoner(reasoner) {
-        this.reasoner = reasoner;
+        this._reasoner = reasoner;
+        debug('Reasoner set for LM');
     }
 
     setMemory(memory) {
-        this.memory = memory;
+        this._memory = memory;
+        debug('Memory set for LM');
     }
 
     async _getFeaturePipeline() {
-        return this.pipelineFactory.get('feature-extraction', LM_CONFIG.FEATURE_EXTRACTION_MODEL);
+        debug('Getting feature extraction pipeline');
+        const model = this.configManager.getString('LM.FEATURE_EXTRACTION_MODEL', 'Xenova/all-MiniLM-L6-v2');
+        return this._pipelineFactory.get(PIPELINE_TYPES.FEATURE_EXTRACTION, model);
     }
 
     async _getGenerationPipeline() {
-        const pipeline = await this.pipelineFactory.get('text-generation', LM_CONFIG.TEXT_GENERATION_MODEL, { useCache: false });
-        if (!this.llm) {
-            this.llm = new XenovaLLM(pipeline);
+        if (this._llm) {
+            if (this.configManager.getString('LM.LLM_PROVIDER') === 'ollama') {
+                return (prompt, options) => this._llm.invoke(prompt, options);
+            }
+            return this._llm.pipeline;
         }
-        return pipeline;
+
+        const provider = this.configManager.getString('LM.LLM_PROVIDER', 'xenova');
+        info(`Initializing LLM with provider: ${provider}`);
+
+        switch (provider) {
+            case 'ollama': {
+                this._llm = new Ollama({
+                    model: this.configManager.getString('LM.TEXT_GENERATION_MODEL', 'Xenova/distilgpt2'),
+                    baseUrl: this.configManager.getString('LM.OLLAMA_BASE_URL', 'http://127.0.0.1:11434'),
+                });
+                return (prompt, options) => this._llm.invoke(prompt, options);
+            }
+            case 'xenova': {
+                suppressOnnxWarnings();
+                const pipeline = await this._pipelineFactory.get(
+                    PIPELINE_TYPES.TEXT_GENERATION,
+                    this.configManager.getString('LM.TEXT_GENERATION_MODEL', 'Xenova/distilgpt2'), {
+                        useCache: false
+                    }
+                );
+                this._llm = new XenovaLLM(pipeline);
+                return pipeline;
+            }
+            default:
+                throw new Error(`Unsupported LLM provider: ${provider}`);
+        }
     }
 
     async _getQAPipeline() {
-        return this.pipelineFactory.get('question-answering', LM_CONFIG.QA_MODEL, { maxLength: 512 });
+        debug('Getting QA pipeline');
+        const model = this.configManager.getString('LM.QA_MODEL', 'Xenova/distilbert-base-uncased-distilled-squad');
+        return this._pipelineFactory.get(PIPELINE_TYPES.QUESTION_ANSWERING, model, {
+            maxLength: 512
+        });
     }
 
     async _generate(prompt, options = {}) {
-        await this._getGenerationPipeline();
-        return this.llm._call(prompt, options);
+        if (!prompt || typeof prompt !== 'string') {
+            throw new Error('Prompt must be a non-empty string');
+        }
+        try {
+            debug('Generating text with prompt length:', prompt.length);
+            await this._getGenerationPipeline();
+            const result = await this._llm.invoke(prompt, options);
+            debug('Text generation completed');
+            return result;
+        } catch (err) {
+            error('Text generation error:', err);
+            throw err;
+        }
     }
 
     _createStructuredChain(promptTemplate, outputSchema, generationOptions) {
+        if (!promptTemplate || !outputSchema) {
+            throw new Error('Prompt template and output schema are required');
+        }
+        debug('Creating structured chain');
         const parser = StructuredOutputParser.fromZodSchema(outputSchema);
         const prompt = new PromptTemplate({
             template: `${promptTemplate}\n{format_instructions}\n`,
-            inputVariables: ["context"],
-            partialVariables: { format_instructions: parser.getFormatInstructions() },
+            inputVariables: ['context'],
+            partialVariables: {
+                format_instructions: parser.getFormatInstructions()
+            }
         });
-        return new LLMChain({ llm: this.llm, prompt, ...generationOptions });
+        return new LLMChain({
+            llm: this._llm,
+            prompt,
+            ...generationOptions
+        });
     }
 
     _parseStructuredResult(resultText) {
+        if (!resultText || typeof resultText !== 'string') {
+            return null;
+        }
         try {
+            debug('Parsing structured result');
             const match = resultText.match(/```json\n(.*)\n```/s);
-            return match ? JSON.parse(match[1]) : null;
+            const result = match ? JSON.parse(match[1]) : null;
+            if (result) {
+                debug('Structured result parsed successfully');
+            }
+            return result;
         } catch (e) {
+            error('Error parsing structured result:', e);
             return null;
         }
     }
 
-    async bootstrapTerm(termKey) {
+    async _generateAndAssignEmbedding(term) {
+        try {
+            debug(`Generating embedding for term: ${term.key}`);
+            const extractor = await this._getFeaturePipeline();
+            const output = await extractor(term.key, {
+                pooling: 'mean',
+                normalize: true
+            });
+            const embeddingVector = Array.from(output.data);
+            term.setEmbedding(embeddingVector);
+            debug(`Embedding generated and assigned for term: ${term.key}`);
+        } catch (err) {
+            error(`Error generating embedding for term "${term.key}":`, err);
+        }
+    }
+
+    async bootstrapTerm(termKey, options = {
+        sync: false
+    }) {
         if (typeof termKey !== 'string' || termKey.length === 0) {
             throw new Error('termKey must be a non-empty string.');
         }
-        const extractor = await this._getFeaturePipeline();
-        const output = await extractor(termKey, { pooling: 'mean', normalize: true });
-        const embeddingVector = Array.from(output.data);
+
         const complexity = termKey.split(/[(&,)/]/).filter(s => s.length > 0).length;
-        return new Term(termKey, embeddingVector, complexity);
-    }
+        const term = new Term(termKey, [], complexity);
 
-    _buildHypothesisContext(tasks, goals, contradictions) {
-        let context = "Observations:\n" + tasks.map(task => `${task.termKey}${task.punctuation}`).join('\n');
-        if (goals.length > 0) {
-            context += "\n\nCurrent Goals:\n" + goals.map(task => `${task.termKey}${task.punctuation}`).join('\n');
+        if (options.sync) {
+            debug(`Bootstrapping term synchronously: ${termKey}`);
+            await this._generateAndAssignEmbedding(term);
+        } else {
+            debug(`Queueing term for embedding generation: ${termKey}`);
+            this._embeddingQueue.push(term);
         }
-        if (contradictions.length > 0) {
-            context += "\n\nRecent Contradictions:\n" + contradictions.map(c => `${c.taskA.termKey} vs ${c.taskB.termKey}`).join('\n');
-        }
-        return context;
+
+        return term;
     }
 
-    _createHypothesisPrompt(type, promptTemplate) {
-        if (promptTemplate) return promptTemplate;
-        const prompts = {
-            [HYPOTHESIS_TYPES.GENERAL]: "Based on the following context:\n{context}\n\nA general principle that explains these observations is:",
-            [HYPOTHESIS_TYPES.CREATIVE]: "Based on the following context:\n{context}\n\nA surprising insight that explains these observations is:",
-            [HYPOTHESIS_TYPES.GOAL_ORIENTED]: "Given the following context:\n{context}\n\nA useful hypothesis to explore to achieve the current goals is:",
-        };
-        return prompts[type] || prompts[HYPOTHESIS_TYPES.GENERAL];
+    getGenerationPipeline() {
+        return this._getGenerationPipeline();
     }
 
-    async generateHypotheses(tasks, config = {}) {
-        if (!tasks || tasks.length === 0) return [];
-        await this._getGenerationPipeline();
-
-        const { type = HYPOTHESIS_TYPES.GENERAL, num = 3, refinement = null, promptTemplate = null, goals = [], contradictions = [] } = config;
-
-        const context = this._buildHypothesisContext(tasks, goals, contradictions);
-        const selectedPrompt = this._createHypothesisPrompt(type, promptTemplate);
-
-        const chain = this._createStructuredChain(selectedPrompt, require('zod').object({ term: require('zod').string().describe("The generated hypothesis in valid Narsese format.") }), {});
-
-        const results = await Promise.all(Array(num).fill().map(() => chain.call({ context })));
-
-        const hypotheses = results.map(result => {
-            const parsed = this._parseStructuredResult(result.text);
-            if (!parsed || !parsed.term) return null;
-            const parsedTerm = parseTerm(parsed.term);
-            return parsedTerm ? new Task(parsedTerm, '.', { confidence: 0.5, frequency: 0.5 }) : null;
-        }).filter(Boolean);
-
-        return refinement ? Promise.all(hypotheses.map(h => this.refineHypothesis(h, refinement))) : hypotheses;
+    getFeaturePipeline() {
+        return this._getFeaturePipeline();
     }
 
-    async generateHypothesis(task, config = {}) {
-        if (!task) return null;
-        return (await this.generateHypotheses([task], { ...config, num: 1 }))[0] || null;
+    createStructuredChain(promptTemplate, outputSchema, generationOptions) {
+        return this._createStructuredChain(promptTemplate, outputSchema, generationOptions);
     }
 
-    async explain(termKey, config = {}) {
-        const { type = 'simple', context = null, promptTemplate = null } = config;
-        if (!promptTemplate && (!termKey || typeof termKey !== 'string')) return { error: "Cannot explain an empty term." };
-
-        const finalPrompt = promptTemplate ? promptTemplate : this._getExplanationPrompt(termKey, config);
-        const fullPrompt = context ? `Context: ${context}\n${finalPrompt}` : finalPrompt;
-
-        const explanationText = await this._generate(fullPrompt, { max_new_tokens: 300 });
-        if (!explanationText) return { error: `Explanation generation failed.` };
-
-        return { term: termKey, explanation: explanationText };
+    parseStructuredResult(resultText) {
+        return this._parseStructuredResult(resultText);
     }
 
-    _getExplanationPrompt(termKey, { type, relatedTerms = [], audience = 'intermediate' }) {
-        const prompts = {
-            simple: `Explain what "${termKey}" means.`,
-            structured: `Provide a structured explanation of "${termKey}" with Definition, Key Components, and Examples.`,
-            comparison: `Explain "${termKey}" by comparing it with: ${relatedTerms.join(', ')}.`,
-        };
-        return prompts[type] || prompts.simple;
+    generate(prompt, options = {}) {
+        return this._generate(prompt, options);
+    }
+
+    async generateHypotheses(tasks, options = {}) {
+        debug(`Generating hypotheses for ${tasks.length} tasks`);
+        return this._hypothesisGenerator.generateHypotheses(tasks, options);
     }
 
     async evaluateAndRankHypotheses(tasks, hypotheses) {
-        if (!hypotheses || hypotheses.length === 0) return [];
-        const extractor = await this._getFeaturePipeline();
-
-        const taskEmbeddings = await Promise.all(tasks.map(async task => {
-            const output = await extractor(task.termKey, {pooling: 'mean', normalize: true});
-            return Array.from(output.data);
-        }));
-
-        const evaluatedHypotheses = await Promise.all(hypotheses.map(async hypothesis => {
-            const output = await extractor(hypothesis.termKey, {pooling: 'mean', normalize: true});
-            const hypothesisEmbedding = Array.from(output.data);
-            const totalSimilarity = taskEmbeddings.reduce((sum, taskEmbedding) => sum + cosineSimilarity(hypothesisEmbedding, taskEmbedding), 0);
-            const averageRelevance = taskEmbeddings.length > 0 ? totalSimilarity / taskEmbeddings.length : 0;
-            hypothesis.state.truthValue.confidence = Math.min(0.9, (hypothesis.state.truthValue.confidence || 0.5) * (0.5 + 0.5 * averageRelevance));
-            return {hypothesis, relevance: averageRelevance};
-        }));
-
-        return evaluatedHypotheses.sort((a, b) => b.relevance - a.relevance).map(item => item.hypothesis);
+        debug(`Evaluating and ranking ${hypotheses.length} hypotheses`);
+        return this._hypothesisGenerator.evaluateAndRankHypotheses(tasks, hypotheses);
     }
 
-    async refineHypothesis(hypothesis, refinementType = REFINEMENT_TYPES.FORMALIZE) {
-        const prompts = {
-            [REFINEMENT_TYPES.FORMALIZE]: `Refine into a more formal statement: ${hypothesis.termKey}`,
-            [REFINEMENT_TYPES.SIMPLIFY]: `Simplify into a more concise statement: ${hypothesis.termKey}`,
-        };
-        const prompt = prompts[refinementType] || prompts[REFINEMENT_TYPES.FORMALIZE];
-        const refinedText = await this._generate(prompt, { max_new_tokens: 60 });
-        if (!refinedText) return hypothesis;
+    async refineHypothesis(hypothesis, refinementType) {
+        debug(`Refining hypothesis with type: ${refinementType}`);
+        return this._hypothesisGenerator.refineHypothesis(hypothesis, refinementType);
+    }
 
-        const parsedTerm = parseTerm(refinedText);
-        if (!parsedTerm) return hypothesis;
-
-        const refinedHypothesis = new Task(parsedTerm, '.', { ...hypothesis.state.truthValue });
-
-        if (this.reasoner && this.memory) {
-            const tempMemory = this.memory.clone();
-            tempMemory.addTasks([refinedHypothesis]);
-            const MetaCognition = require('../system/MetaCognition');
-            const metaCognition = new MetaCognition();
-            const contradictions = metaCognition.findContradictions(tempMemory.getAllTasks());
-            if (contradictions.some(c => c.severity > 0.8)) {
-                return hypothesis; // Reject refinement if it causes a high-severity contradiction
-            }
-        }
-
-        return refinedHypothesis;
+    async explain(termKey, options = {}) {
+        return this._explanationGenerator.explain(termKey, options);
     }
 
     async answerQuestion(question, context = null) {
-        if (!question || typeof question !== 'string') return "Cannot answer an empty question.";
-        if (context) {
-            const qaPipeline = await this._getQAPipeline();
-            const result = await qaPipeline(question, context);
-            if (result && result.answer) return result.answer;
-        }
-        const prompt = context ? `Context: ${context}\nQuestion: ${question}\nAnswer:` : `Question: ${question}\nAnswer:`;
-        return this._generate(prompt);
+        return this._qaService.answerQuestion(question, context);
     }
 
     async suggestPlanRepair(goalTask, failedPlan) {
-        await this._getGenerationPipeline();
-
-        const goal = goalTask.termKey;
-        const failedPlanSteps = failedPlan ? failedPlan.map(t => t.key).join(', ') : 'None';
-
-        const context = `
-Goal: ${goal}
-Failed Plan: ${failedPlanSteps}
-The previous attempt to achieve the goal failed. Please suggest a new sequence of primitive actions to achieve the goal.
-The new plan should be a list of Narsese terms.
-`;
-
-        const chain = this._createStructuredChain(
-            context + "New creative plan:",
-            require('zod').object({ plan: require('zod').array(require('zod').string()).describe("A list of Narsese terms for the new plan.") }),
-            {}
-        );
-
-        const result = await chain.call({ context: "" }); // context is already in the prompt template
-        const parsed = this._parseStructuredResult(result.text);
-
-        if (!parsed || !parsed.plan) {
-            return null;
-        }
-
-        const planTerms = parsed.plan.map(termKey => parseTerm(termKey)).filter(Boolean);
-        return planTerms;
+        return this._planRepairer.suggestPlanRepair(goalTask, failedPlan);
     }
 
     async proactiveEnrichment(tasks) {
-        if (!tasks || tasks.length === 0) return [];
-        await this._getGenerationPipeline();
+        return this._proactiveEnricher.proactiveEnrichment(tasks);
+    }
 
-        const newBeliefs = tasks.filter(t => t.punctuation === '.' && t.state.truthValue.confidence > 0.8);
-        if (newBeliefs.length === 0) return [];
+    getPipelineStatistics() {
+        return {
+            pipelineCount: this._pipelineFactory._pipelines.size
+        };
+    }
 
-        const context = "Given the following new beliefs:\n" + newBeliefs.map(t => t.termKey).join('\n');
-        const prompt = context + "\n\nWhat are some interesting implications or related concepts? Generate new knowledge in Narsese format.";
-
-        const chain = this._createStructuredChain(
-            prompt,
-            require('zod').object({ new_knowledge: require('zod').array(require('zod').string()).describe("A list of new Narsese statements.") }),
-            {}
-        );
-
-        const result = await chain.call({ context: "" });
-        const parsed = this._parseStructuredResult(result.text);
-
-        if (!parsed || !parsed.new_knowledge) {
-            return [];
+    async dispose() {
+        info('Disposing LM resources');
+        this.stopEmbeddingProcessor();
+        if (this._pipelineFactory) {
+            this._pipelineFactory.dispose();
         }
-
-        const newTasks = parsed.new_knowledge.map(termKey => {
-            const parsedTerm = parseTerm(termKey);
-            return parsedTerm ? new Task(parsedTerm, '.', { confidence: 0.6, frequency: 0.5 }) : null;
-        }).filter(Boolean);
-
-        return newTasks;
+        this._llm = null;
+        this._reasoner = null;
+        this._memory = null;
+        info('LM resources disposed');
     }
 }
 
-module.exports = LM;
+export default LM;

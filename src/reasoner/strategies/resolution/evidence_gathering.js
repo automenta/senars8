@@ -1,10 +1,11 @@
-const Task = require('../../../core/Task');
+import Task from '../../../core/Task.js';
+import config from '../../../config/index.js';
 
 function evidenceGathering(contradiction) {
     return contradiction.tasks.map(task => new Task(task.term, '?', {
         frequency: 1.0,
-        confidence: 0.9
+        confidence: config.DEFAULT_TRUTH_VALUE.confidence
     }));
 }
 
-module.exports = evidenceGathering;
+export default evidenceGathering;

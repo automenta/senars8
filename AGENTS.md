@@ -8,5 +8,5 @@
 - Organized
 - Terse syntax: ternary, switch, etc
 - Deeply deduplicated: Don't repeat yourself (DRY)
-- No comments: rely purely on self-documenting code and meaningful identifiers
+- Few comments: rely on self-documenting code
 - Purpose: professional, not explanatory/educational

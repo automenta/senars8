@@ -1,5 +1,5 @@
-function monitoring(contradiction) {
+function monitoring(_contradiction) {
     return [];
 }
 
-module.exports = monitoring;
+export default monitoring;
