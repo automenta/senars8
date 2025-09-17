@@ -11,7 +11,7 @@ import ExplanationGenerator from './ExplanationGenerator.js';
 import QAService from './QAService.js';
 import PlanRepairer from './PlanRepairer.js';
 import ProactiveEnricher from './ProactiveEnricher.js';
-import {debug, error, info, warn} from '../utils/logger.js';
+import {debug, info, warn} from '../utils/logger.js';
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
 
 const errorHandler = createModuleErrorHandler('LM');

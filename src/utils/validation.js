@@ -1,4 +1,5 @@
-import { isEmptyArray } from './arrayUtils.js';
+import {isEmptyArray} from './arrayUtils.js';
+
 /**
  * Utility functions for input validation
  */

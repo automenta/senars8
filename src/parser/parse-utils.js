@@ -1,5 +1,4 @@
 import {parseTerm as parseWithMoo} from './narseseParser.js';
-import {warn} from '../utils/logger.js';
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
 
 const errorHandler = createModuleErrorHandler('parse-utils');

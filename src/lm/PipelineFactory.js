@@ -1,5 +1,5 @@
 import {pipeline} from '@xenova/transformers';
-import {info, warn} from '../utils/logger.js';
+import {info} from '../utils/logger.js';
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
 
 const errorHandler = createModuleErrorHandler('PipelineFactory');
