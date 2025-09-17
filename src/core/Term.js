@@ -1,18 +1,9 @@
-import {
-    parseTerm
-} from '../parser/parse-utils.js';
-import {
-    cosineSimilarity
-} from '../utils/math.js';
+import {parseTerm} from '../parser/parse-utils.js';
+import {cosineSimilarity} from '../utils/math.js';
 import config from '../config/index.js';
 import EmbeddingStore from '../utils/EmbeddingStore.js';
-import {
-    OPERATOR_SYMBOLS,
-    TERM_TYPES
-} from '../config/constants.js';
-import {
-    validateString
-} from '../utils/validation.js';
+import {OPERATOR_SYMBOLS, TERM_TYPES} from '../config/constants.js';
+import {validateString} from '../utils/validation.js';
 import BaseEntity from './BaseEntity.js';
 
 /**

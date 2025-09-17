@@ -1,19 +1,8 @@
-import {
-    generateOptimizedId
-} from '../utils/IdGenerator.js';
-import {
-    parseTerm
-} from '../parser/parse-utils.js';
+import {generateOptimizedId} from '../utils/IdGenerator.js';
+import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
 import TruthValueManager from '../reasoner/TruthValueManager.js';
-import {
-    isTask
-} from '../utils/task-utils.js';
-import {
-    validateTerm,
-    validatePunctuation,
-    validateTruthValue
-} from '../utils/validation.js';
+import {validatePunctuation, validateTerm} from '../utils/validation.js';
 import BaseEntity from './BaseEntity.js';
 
 
