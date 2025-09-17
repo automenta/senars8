@@ -1,7 +1,15 @@
-import {parseTerm} from '../parser/parse-utils.js';
-import {cosineSimilarity} from '../utils/math.js';
+import {
+    parseTerm
+} from '../parser/parse-utils.js';
+import {
+    cosineSimilarity
+} from '../utils/math.js';
 import config from '../config/index.js';
 import EmbeddingStore from '../utils/EmbeddingStore.js';
+import {
+    TERM_TYPES,
+    OPERATOR_SYMBOLS
+} from '../config/constants.js';
 
 /**
  * Term represents a concept or relationship in the knowledge graph.
@@ -58,7 +66,7 @@ class Term {
      */
     get type() {
         const structure = this.#getStructure();
-        return structure ? structure.type : 'Atomic';
+        return structure ? structure.type : TERM_TYPES.ATOMIC;
     }
 
     /**
@@ -83,7 +91,7 @@ class Term {
      */
     get terms() {
         // Check cache first
-        if (this.#componentCache.hasOwnProperty('terms')) {
+        if (Object.hasOwn(this.#componentCache, 'terms')) {
             return this.#componentCache['terms'];
         }
 
@@ -173,71 +181,71 @@ class Term {
         // Use a switch statement for better performance
         switch (pTerm.type) {
             // Atomic terms
-            case 'Atomic':
+            case TERM_TYPES.ATOMIC:
                 return pTerm.key;
-            case 'IndependentVariable':
+            case TERM_TYPES.INDEPENDENT_VARIABLE:
                 return pTerm.name;
-            case 'DependentVariable':
+            case TERM_TYPES.DEPENDENT_VARIABLE:
                 return `#${pTerm.name}`;
-            case 'QueryVariable':
+            case TERM_TYPES.QUERY_VARIABLE:
                 return `?${pTerm.name}`;
 
-            // Binary relations
-            case 'Inheritance':
-                return `(${Term.buildTermKey(pTerm.subject)} --> ${Term.buildTermKey(pTerm.predicate)})`;
-            case 'Implication':
-                return `(${Term.buildTermKey(pTerm.subject)} ==> ${Term.buildTermKey(pTerm.predicate)})`;
-            case 'Equivalence':
-                return `(${Term.buildTermKey(pTerm.subject)} <=> ${Term.buildTermKey(pTerm.predicate)})`;
-            case 'Similarity':
-                return `(${Term.buildTermKey(pTerm.subject)} <-> ${Term.buildTermKey(pTerm.predicate)})`;
-            case 'Instance':
-                return `(${Term.buildTermKey(pTerm.subject)} {-- ${Term.buildTermKey(pTerm.predicate)})`;
-            case 'Property':
-                return `(${Term.buildTermKey(pTerm.subject)} --} ${Term.buildTermKey(pTerm.predicate)})`;
-            case 'PredictiveImplication':
-                return `(${Term.buildTermKey(pTerm.subject)} =\> ${Term.buildTermKey(pTerm.predicate)})`;
-            case 'RetrospectiveImplication':
-                return `(${Term.buildTermKey(pTerm.subject)} =/> ${Term.buildTermKey(pTerm.predicate)})`;
-            case 'ConcurrentImplication':
-                return `(${Term.buildTermKey(pTerm.subject)} =<> ${Term.buildTermKey(pTerm.predicate)})`;
-            case 'Until':
+                // Binary relations
+            case TERM_TYPES.INHERITANCE:
+                return `(${Term.buildTermKey(pTerm.subject)} ${OPERATOR_SYMBOLS.INHERITANCE} ${Term.buildTermKey(pTerm.predicate)})`;
+            case TERM_TYPES.IMPLICATION:
+                return `(${Term.buildTermKey(pTerm.subject)} ${OPERATOR_SYMBOLS.IMPLICATION} ${Term.buildTermKey(pTerm.predicate)})`;
+            case TERM_TYPES.EQUIVALENCE:
+                return `(${Term.buildTermKey(pTerm.subject)} ${OPERATOR_SYMBOLS.EQUIVALENCE} ${Term.buildTermKey(pTerm.predicate)})`;
+            case TERM_TYPES.SIMILARITY:
+                return `(${Term.buildTermKey(pTerm.subject)} ${OPERATOR_SYMBOLS.SIMILARITY} ${Term.buildTermKey(pTerm.predicate)})`;
+            case TERM_TYPES.INSTANCE:
+                return `(${Term.buildTermKey(pTerm.subject)} ${OPERATOR_SYMBOLS.INSTANCE} ${Term.buildTermKey(pTerm.predicate)})`;
+            case TERM_TYPES.PROPERTY:
+                return `(${Term.buildTermKey(pTerm.subject)} ${OPERATOR_SYMBOLS.PROPERTY} ${Term.buildTermKey(pTerm.predicate)})`;
+            case TERM_TYPES.PREDICTIVE_IMPLICATION:
+                return `(${Term.buildTermKey(pTerm.subject)} ${OPERATOR_SYMBOLS.PREDICTIVE_IMPLICATION} ${Term.buildTermKey(pTerm.predicate)})`;
+            case TERM_TYPES.RETROSPECTIVE_IMPLICATION:
+                return `(${Term.buildTermKey(pTerm.subject)} ${OPERATOR_SYMBOLS.RETROSPECTIVE_IMPLICATION} ${Term.buildTermKey(pTerm.predicate)})`;
+            case TERM_TYPES.CONCURRENT_IMPLICATION:
+                return `(${Term.buildTermKey(pTerm.subject)} ${OPERATOR_SYMBOLS.CONCURRENT_IMPLICATION} ${Term.buildTermKey(pTerm.predicate)})`;
+            case TERM_TYPES.UNTIL:
                 return `(${Term.buildTermKey(pTerm.subject)} until ${Term.buildTermKey(pTerm.predicate)})`;
-            case 'Since':
+            case TERM_TYPES.SINCE:
                 return `(${Term.buildTermKey(pTerm.subject)} since ${Term.buildTermKey(pTerm.predicate)})`;
 
-            // Unary operators
-            case 'Negation':
-                return `(--,${Term.buildTermKey(pTerm.term)})`;
-            case 'Always':
-                return `(always,${Term.buildTermKey(pTerm.term)})`;
-            case 'Eventually':
-                return `(eventually,${Term.buildTermKey(pTerm.term)})`;
-            case 'Next':
-                return `(next,${Term.buildTermKey(pTerm.term)})`;
-            case 'Previous':
-                return `(previous,${Term.buildTermKey(pTerm.term)})`;
+                // Unary operators
+            case TERM_TYPES.NEGATION:
+                return `(${OPERATOR_SYMBOLS.NEGATION}${Term.buildTermKey(pTerm.term)})`;
+            case TERM_TYPES.ALWAYS:
+                return `(${OPERATOR_SYMBOLS.ALWAYS}${Term.buildTermKey(pTerm.term)})`;
+            case TERM_TYPES.EVENTUALLY:
+                return `(${OPERATOR_SYMBOLS.EVENTUALLY}${Term.buildTermKey(pTerm.term)})`;
+            case TERM_TYPES.NEXT:
+                return `(${OPERATOR_SYMBOLS.NEXT}${Term.buildTermKey(pTerm.term)})`;
+            case TERM_TYPES.PREVIOUS:
+                return `(${OPERATOR_SYMBOLS.PREVIOUS}${Term.buildTermKey(pTerm.term)})`;
 
-            // N-ary operators
-            case 'Conjunction':
-                return `(&,${Term.buildTermList(pTerm.terms || [])})`;
-            case 'Disjunction':
-                return `(||,${Term.buildTermList(pTerm.terms || [])})`;
-            case 'SequentialConjunction':
-                return `(&&,${Term.buildTermList(pTerm.terms || [])})`;
-            case 'ParallelConjunction':
-                return `(&|,${Term.buildTermList(pTerm.terms || [])})`;
-            case 'ExtensionalDifference':
-                return `(#,${Term.buildTermList(pTerm.terms || [])})`;
-            case 'IntensionalDifference':
-                return `(\\\\,${Term.buildTermList(pTerm.terms || [])})`;
-            case 'Product':
-                return `(*,${Term.buildTermList(pTerm.terms || [])})`;
+                // N-ary operators
+            case TERM_TYPES.CONJUNCTION:
+                return `(${OPERATOR_SYMBOLS.CONJUNCTION}${Term.buildTermList(pTerm.terms || [])})`;
+            case TERM_TYPES.DISJUNCTION:
+                return `(${OPERATOR_SYMBOLS.DISJUNCTION}${Term.buildTermList(pTerm.terms || [])})`;
+            case TERM_TYPES.SEQUENTIAL_CONJUNCTION:
+                return `(${OPERATOR_SYMBOLS.SEQUENTIAL_CONJUNCTION}${Term.buildTermList(pTerm.terms || [])})`;
+            case TERM_TYPES.PARALLEL_CONJUNCTION:
+                return `(${OPERATOR_SYMBOLS.PARALLEL_CONJUNCTION}${Term.buildTermList(pTerm.terms || [])})`;
+            case TERM_TYPES.EXTENSIONAL_DIFFERENCE:
+                return `(${OPERATOR_SYMBOLS.EXTENSIONAL_DIFFERENCE}${Term.buildTermList(pTerm.terms || [])})`;
+            case TERM_TYPES.INTENSIONAL_DIFFERENCE:
+                return `(${OPERATOR_SYMBOLS.INTENSIONAL_DIFFERENCE}${Term.buildTermList(pTerm.terms || [])})`;
+            case TERM_TYPES.PRODUCT:
+                return `(${OPERATOR_SYMBOLS.PRODUCT}${Term.buildTermList(pTerm.terms || [])})`;
 
-            // Sets
-            case 'ExtensionalSet':
+                // Sets
+            case TERM_TYPES.EXTENSIONAL_SET:
                 return `{${Term.buildTermList(pTerm.terms || [])}}`;
-            case 'IntensionalSet':
+            case TERM_TYPES.INTENSIONAL_SET:
                 return `[${Term.buildTermList(pTerm.terms || [])}]`;
 
             default:
@@ -470,7 +478,7 @@ class Term {
      */
     #getComponent(componentName, structure) {
         // Check cache first
-        if (this.#componentCache.hasOwnProperty(componentName)) {
+        if (Object.hasOwn(this.#componentCache, componentName)) {
             return this.#componentCache[componentName];
         }
 

@@ -414,21 +414,6 @@ class Memory {
     }
 
     /**
-     * Gets the most recently created tasks.
-     * @param {number} count - Number of tasks to retrieve
-     * @returns {Task[]} Array of recent tasks
-     */
-    getRecentTasks(count = 10) {
-        const allTasks = this.getAllTasks();
-        if (allTasks.length <= count) {
-            return [...allTasks].sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime));
-        }
-        return [...allTasks]
-            .sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime))
-            .slice(0, count);
-    }
-
-    /**
      * Queries tasks based on filters.
      * @param {object} filters - Query filters
      * @param {string} [filters.punctuation] - Filter by punctuation type

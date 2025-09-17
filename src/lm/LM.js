@@ -121,21 +121,26 @@ class LM {
 
         switch (provider) {
             case 'ollama':
-                this._llm = new Ollama({
-                    model: this.config.TEXT_GENERATION_MODEL,
-                    baseUrl: this.config.OLLAMA_BASE_URL,
-                });
-                // For Ollama, the "pipeline" is just the invoke method
-                return (prompt, options) => this._llm.invoke(prompt, options);
+                {
+                    this._llm = new Ollama({
+                        model: this.config.TEXT_GENERATION_MODEL,
+                        baseUrl: this.config.OLLAMA_BASE_URL,
+                    });
+                    // For Ollama, the "pipeline" is just the invoke method
+                    return (prompt, options) => this._llm.invoke(prompt, options);
+                }
             case 'xenova':
-                suppressOnnxWarnings();
-                const pipeline = await this._pipelineFactory.get(
-                    PIPELINE_TYPES.TEXT_GENERATION,
-                    this.config.TEXT_GENERATION_MODEL,
-                    {useCache: false}
-                );
-                this._llm = new XenovaLLM(pipeline);
-                return pipeline;
+                {
+                    suppressOnnxWarnings();
+                    const pipeline = await this._pipelineFactory.get(
+                        PIPELINE_TYPES.TEXT_GENERATION,
+                        this.config.TEXT_GENERATION_MODEL, {
+                            useCache: false
+                        }
+                    );
+                    this._llm = new XenovaLLM(pipeline);
+                    return pipeline;
+                }
             default:
                 throw new Error(`Unsupported LLM provider: ${provider}`);
         }

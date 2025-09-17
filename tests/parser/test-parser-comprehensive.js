@@ -48,10 +48,10 @@ testCases.forEach(testCase => {
         // Additional checks for specific types
         if (result.type === 'Inheritance' || result.type === 'Implication' ||
             result.type === 'Instance' || result.type === 'Property') {
-            console.log(`  Has subject: ${Boolean(result.subject) ? '✓' : '✗'}`);
-            console.log(`  Has predicate: ${Boolean(result.predicate) ? '✓' : '✗'}`);
+            console.log(`  Has subject: ${result.subject ? '✓' : '✗'}`);
+            console.log(`  Has predicate: ${result.predicate ? '✓' : '✗'}`);
         } else if (result.type === 'Negation') {
-            console.log(`  Has term: ${Boolean(result.term) ? '✓' : '✗'}`);
+            console.log(`  Has term: ${result.term ? '✓' : '✗'}`);
         } else if (result.type === 'Conjunction' || result.type === 'Disjunction' ||
             result.type === 'ExtensionalDifference' || result.type === 'IntensionalDifference') {
             console.log(`  Has terms array: ${Array.isArray(result.terms) ? '✓' : '✗'}`);

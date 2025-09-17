@@ -1,7 +1,9 @@
 /**
  * Configuration schema definition and validation utilities
  */
-import { warn } from '../utils/logger.js';
+import {
+    warn
+} from '../utils/logger.js';
 
 /**
  * @typedef {Object} ConfigSchema
@@ -20,47 +22,142 @@ import { warn } from '../utils/logger.js';
  */
 const configSchema = {
     // Core settings
-    FOCUS_SET_SIZE: {type: 'number', min: 1, max: 1000, default: 20},
-    META_TASK_PRIORITY: {type: 'number', min: 0, max: 1, default: 0.9},
-    ACTIONABLE_GOAL_PRIORITY_THRESHOLD: {type: 'number', min: 0, max: 1, default: 0.1},
-    MAX_GOALS_TO_EXECUTE: {type: 'number', min: 1, max: 100, default: 3},
-    RECENCY_DECAY_FACTOR: {type: 'number', min: 1, default: 10000},
-    SIMILARITY_OFFSET: {type: 'number', min: 0, max: 1, default: 0.1},
-    SIMILARITY_SCALE: {type: 'number', min: 0, default: 1.1},
+    FOCUS_SET_SIZE: {
+        type: 'number',
+        min: 1,
+        max: 1000,
+        default: 20
+    },
+    META_TASK_PRIORITY: {
+        type: 'number',
+        min: 0,
+        max: 1,
+        default: 0.9
+    },
+    ACTIONABLE_GOAL_PRIORITY_THRESHOLD: {
+        type: 'number',
+        min: 0,
+        max: 1,
+        default: 0.1
+    },
+    MAX_GOALS_TO_EXECUTE: {
+        type: 'number',
+        min: 1,
+        max: 100,
+        default: 3
+    },
+    RECENCY_DECAY_FACTOR: {
+        type: 'number',
+        min: 1,
+        default: 10000
+    },
+    SIMILARITY_OFFSET: {
+        type: 'number',
+        min: 0,
+        max: 1,
+        default: 0.1
+    },
+    SIMILARITY_SCALE: {
+        type: 'number',
+        min: 0,
+        default: 1.1
+    },
     DEFAULT_TRUTH_VALUE: {
         type: 'object',
         properties: {
-            frequency: {type: 'number', min: 0, max: 1, default: 1.0},
-            confidence: {type: 'number', min: 0, max: 1, default: 0.9}
+            frequency: {
+                type: 'number',
+                min: 0,
+                max: 1,
+                default: 1.0
+            },
+            confidence: {
+                type: 'number',
+                min: 0,
+                max: 1,
+                default: 0.9
+            }
         },
-        default: {frequency: 1.0, confidence: 0.9}
+        default: {
+            frequency: 1.0,
+            confidence: 0.9
+        }
     },
     LM_HYPOTHESIS_CONFIGS: {
         type: 'array',
-        default: [{type: 'general', num: 2}, {type: 'creative', num: 1}, {type: 'sophisticated', num: 1}]
+        default: [{
+            type: 'general',
+            num: 2
+        }, {
+            type: 'creative',
+            num: 1
+        }, {
+            type: 'sophisticated',
+            num: 1
+        }]
     },
 
     // System settings
     system: {
         type: 'object',
         properties: {
-            BATCH_SIZE: {type: 'number', min: 1, max: 1000, default: 10},
-            CONFIDENCE_REDUCTION_FACTOR: {type: 'number', min: 0, max: 1, default: 0.1}
+            BATCH_SIZE: {
+                type: 'number',
+                min: 1,
+                max: 1000,
+                default: 10
+            },
+            CONFIDENCE_REDUCTION_FACTOR: {
+                type: 'number',
+                min: 0,
+                max: 1,
+                default: 0.1
+            }
         },
-        default: {BATCH_SIZE: 10, CONFIDENCE_REDUCTION_FACTOR: 0.1}
+        default: {
+            BATCH_SIZE: 10,
+            CONFIDENCE_REDUCTION_FACTOR: 0.1
+        }
     },
 
     // Language Model (LM) settings
     LM: {
         type: 'object',
         properties: {
-            LLM_PROVIDER: {type: 'string', enum: ['xenova', 'ollama'], default: 'ollama'},
-            OLLAMA_BASE_URL: {type: 'string', pattern: /^https?:\/\/.+/, default: 'http://127.0.0.1:11434'},
-            FEATURE_EXTRACTION_MODEL: {type: 'string', default: 'Xenova/all-MiniLM-L6-v2'},
-            TEXT_GENERATION_MODEL: {type: 'string', default: 'Xenova/distilgpt2'},
-            QA_MODEL: {type: 'string', default: 'Xenova/distilbert-base-uncased-distilled-squad'},
-            EMBEDDING_BATCH_SIZE: {type: 'number', min: 1, max: 100, default: 10},
-            EMBEDDING_BATCH_DELAY_MS: {type: 'number', min: 0, max: 10000, default: 100}
+            LLM_PROVIDER: {
+                type: 'string',
+                enum: ['xenova', 'ollama'],
+                default: 'ollama'
+            },
+            OLLAMA_BASE_URL: {
+                type: 'string',
+                pattern: /^https?:\/\/.+/,
+                default: 'http://127.0.0.1:11434'
+            },
+            FEATURE_EXTRACTION_MODEL: {
+                type: 'string',
+                default: 'Xenova/all-MiniLM-L6-v2'
+            },
+            TEXT_GENERATION_MODEL: {
+                type: 'string',
+                default: 'Xenova/distilgpt2'
+            },
+            QA_MODEL: {
+                type: 'string',
+                default: 'Xenova/distilbert-base-uncased-distilled-squad'
+            },
+            EMBEDDING_BATCH_SIZE: {
+                type: 'number',
+                min: 1,
+                max: 100,
+                default: 10
+            },
+            EMBEDDING_BATCH_DELAY_MS: {
+                type: 'number',
+                min: 0,
+                max: 10000,
+                default: 100
+            }
         },
         default: {
             LLM_PROVIDER: 'ollama',
@@ -77,11 +174,31 @@ const configSchema = {
     memory: {
         type: 'object',
         properties: {
-            FORGETTING_STRATEGY_NAME: {type: 'string', enum: ['TimeBased'], default: 'TimeBased'},
-            FORGETTING_STRATEGY_OPTIONS: {type: 'object'},
-            MAINTENANCE_CYCLE_FREQUENCY: {type: 'number', min: 1, default: 10},
-            CONSOLIDATION_PRIORITY_THRESHOLD: {type: 'number', min: 0, max: 1, default: 0.8},
-            CONSOLIDATION_CONFIDENCE_THRESHOLD: {type: 'number', min: 0, max: 1, default: 0.9}
+            FORGETTING_STRATEGY_NAME: {
+                type: 'string',
+                enum: ['TimeBased'],
+                default: 'TimeBased'
+            },
+            FORGETTING_STRATEGY_OPTIONS: {
+                type: 'object'
+            },
+            MAINTENANCE_CYCLE_FREQUENCY: {
+                type: 'number',
+                min: 1,
+                default: 10
+            },
+            CONSOLIDATION_PRIORITY_THRESHOLD: {
+                type: 'number',
+                min: 0,
+                max: 1,
+                default: 0.8
+            },
+            CONSOLIDATION_CONFIDENCE_THRESHOLD: {
+                type: 'number',
+                min: 0,
+                max: 1,
+                default: 0.9
+            }
         },
         default: {
             FORGETTING_STRATEGY_NAME: 'TimeBased',
@@ -111,18 +228,35 @@ const configSchema = {
     reasoner: {
         type: 'object',
         properties: {
-            strategy: {type: 'string', enum: ['BagSampling', 'BruteForce'], default: 'BagSampling'}
+            strategy: {
+                type: 'string',
+                enum: ['BagSampling', 'BruteForce'],
+                default: 'BagSampling'
+            }
         },
-        default: {strategy: 'BagSampling'}
+        default: {
+            strategy: 'BagSampling'
+        }
     },
 
     // Planner settings
     planner: {
         type: 'object',
         properties: {
-            strategy: {type: 'string', enum: ['HTN', 'AStar'], default: 'HTN'},
-            maxDepth: {type: 'number', min: 1, max: 100, default: 10},
-            plannerConfig: {type: 'object'}
+            strategy: {
+                type: 'string',
+                enum: ['HTN', 'AStar'],
+                default: 'HTN'
+            },
+            maxDepth: {
+                type: 'number',
+                min: 1,
+                max: 100,
+                default: 10
+            },
+            plannerConfig: {
+                type: 'object'
+            }
         },
         default: {
             strategy: 'HTN',
@@ -141,20 +275,89 @@ const configSchema = {
     temporal: {
         type: 'object',
         properties: {
-            REGULARITY_BOOST: {type: 'number', min: 0, max: 1, default: 0.7},
-            STRUCTURAL_SIMILARITY_WEIGHT: {type: 'number', min: 0, max: 1, default: 0.3},
-            TEMPORAL_CONFIDENCE: {type: 'number', min: 0, max: 1, default: 0.9},
-            TEMPORAL_RELATIONSHIP_FREQUENCY: {type: 'number', min: 0, max: 1, default: 0.8},
-            TEMPORAL_RELATIONSHIP_CONFIDENCE: {type: 'number', min: 0, max: 1, default: 0.7},
-            MEETS_IMPLICATION_FREQUENCY: {type: 'number', min: 0, max: 1, default: 0.9},
-            MEETS_IMPLICATION_CONFIDENCE: {type: 'number', min: 0, max: 1, default: 0.8},
-            OVERLAP_IMPLICATION_FREQUENCY: {type: 'number', min: 0, max: 1, default: 0.8},
-            OVERLAP_IMPLICATION_CONFIDENCE: {type: 'number', min: 0, max: 1, default: 0.7},
-            SEQUENCE_CONFIDENCE_DECAY: {type: 'number', min: 0, max: 1, default: 0.9},
-            PERIODIC_CONFIDENCE: {type: 'number', min: 0, max: 1, default: 0.8},
-            TEMPORAL_SUMMARY_CONFIDENCE: {type: 'number', min: 0, max: 1, default: 0.9},
-            PREDICTION_CONFIDENCE: {type: 'number', min: 0, max: 1, default: 0.5},
-            MAX_COMPARISONS: {type: 'number', min: 1, default: 1000}
+            REGULARITY_BOOST: {
+                type: 'number',
+                min: 0,
+                max: 1,
+                default: 0.7
+            },
+            STRUCTURAL_SIMILARITY_WEIGHT: {
+                type: 'number',
+                min: 0,
+                max: 1,
+                default: 0.3
+            },
+            TEMPORAL_CONFIDENCE: {
+                type: 'number',
+                min: 0,
+                max: 1,
+                default: 0.9
+            },
+            TEMPORAL_RELATIONSHIP_FREQUENCY: {
+                type: 'number',
+                min: 0,
+                max: 1,
+                default: 0.8
+            },
+            TEMPORAL_RELATIONSHIP_CONFIDENCE: {
+                type: 'number',
+                min: 0,
+                max: 1,
+                default: 0.7
+            },
+            MEETS_IMPLICATION_FREQUENCY: {
+                type: 'number',
+                min: 0,
+                max: 1,
+                default: 0.9
+            },
+            MEETS_IMPLICATION_CONFIDENCE: {
+                type: 'number',
+                min: 0,
+                max: 1,
+                default: 0.8
+            },
+            OVERLAP_IMPLICATION_FREQUENCY: {
+                type: 'number',
+                min: 0,
+                max: 1,
+                default: 0.8
+            },
+            OVERLAP_IMPLICATION_CONFIDENCE: {
+                type: 'number',
+                min: 0,
+                max: 1,
+                default: 0.7
+            },
+            SEQUENCE_CONFIDENCE_DECAY: {
+                type: 'number',
+                min: 0,
+                max: 1,
+                default: 0.9
+            },
+            PERIODIC_CONFIDENCE: {
+                type: 'number',
+                min: 0,
+                max: 1,
+                default: 0.8
+            },
+            TEMPORAL_SUMMARY_CONFIDENCE: {
+                type: 'number',
+                min: 0,
+                max: 1,
+                default: 0.9
+            },
+            PREDICTION_CONFIDENCE: {
+                type: 'number',
+                min: 0,
+                max: 1,
+                default: 0.5
+            },
+            MAX_COMPARISONS: {
+                type: 'number',
+                min: 1,
+                default: 1000
+            }
         },
         default: {
             REGULARITY_BOOST: 0.7,
@@ -178,18 +381,34 @@ const configSchema = {
     ACTION_EXECUTOR: {
         type: 'object',
         properties: {
-            RESOURCES: {type: 'array'},
-            CONSTRAINTS: {type: 'object'}
+            RESOURCES: {
+                type: 'array'
+            },
+            CONSTRAINTS: {
+                type: 'object'
+            }
         },
         default: {
-            RESOURCES: [
-                {name: 'cpu', total: 100, unit: 'percent'},
-                {name: 'memory', total: 8192, unit: 'MB'},
-                {name: 'network', total: 1000, unit: 'Mbps'}
-            ],
+            RESOURCES: [{
+                name: 'cpu',
+                total: 100,
+                unit: 'percent'
+            }, {
+                name: 'memory',
+                total: 8192,
+                unit: 'MB'
+            }, {
+                name: 'network',
+                total: 1000,
+                unit: 'Mbps'
+            }],
             CONSTRAINTS: {
-                resource_limit: {type: 'function'},
-                safety: {type: 'function'}
+                resource_limit: {
+                    type: 'function'
+                },
+                safety: {
+                    type: 'function'
+                }
             }
         }
     }
@@ -266,7 +485,7 @@ function validateConfigValue(value, schema, path) {
 
         // Warn about unknown properties
         for (const propName in value) {
-            if (!schema.properties.hasOwnProperty(propName)) {
+            if (!Object.hasOwn(schema.properties, propName)) {
                 warn(`[Config] Unknown property '${path}.${propName}' found and will be ignored.`);
             }
         }
@@ -274,7 +493,7 @@ function validateConfigValue(value, schema, path) {
         // Validate known properties
         for (const [propName, propSchema] of Object.entries(schema.properties)) {
             const propPath = `${path}.${propName}`;
-            const propValue = value.hasOwnProperty(propName) ? value[propName] : undefined;
+            const propValue = Object.hasOwn(value, propName) ? value[propName] : undefined;
             validatedObject[propName] = validateConfigValue(propValue, propSchema, propPath);
         }
         return validatedObject;
@@ -298,14 +517,14 @@ function validateConfig(config) {
 
     // Warn about unknown top-level properties
     for (const key in config) {
-        if (!configSchema.hasOwnProperty(key)) {
+        if (!Object.hasOwn(configSchema, key)) {
             warn(`[Config] Unknown configuration key '${key}' found and will be ignored.`);
         }
     }
 
     // Validate all known properties from the schema
     for (const [key, schema] of Object.entries(configSchema)) {
-        const value = config.hasOwnProperty(key) ? config[key] : undefined;
+        const value = Object.hasOwn(config, key) ? config[key] : undefined;
         validatedConfig[key] = validateConfigValue(value, schema, key);
     }
     return validatedConfig;

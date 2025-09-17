@@ -1,27 +1,51 @@
 import lexer from './lexer.js';
+import {
+    TERM_TYPES,
+    TOKEN_TYPES
+} from '../config/constants.js';
+
+const UNARY_OPERATOR_MAP = {
+    [TOKEN_TYPES.NEGATION]: TERM_TYPES.NEGATION,
+};
+
+const TEMPORAL_OPERATOR_MAP = {
+    [TOKEN_TYPES.ALWAYS]: TERM_TYPES.ALWAYS,
+    [TOKEN_TYPES.EVENTUALLY]: TERM_TYPES.EVENTUALLY,
+    [TOKEN_TYPES.NEXT]: TERM_TYPES.NEXT,
+    [TOKEN_TYPES.PREVIOUS]: TERM_TYPES.PREVIOUS,
+};
+
+const BINARY_OPERATOR_MAP = {
+    [TOKEN_TYPES.CONJUNCTION]: TERM_TYPES.CONJUNCTION,
+    [TOKEN_TYPES.SEQUENTIAL_CONJUNCTION]: TERM_TYPES.SEQUENTIAL_CONJUNCTION,
+    [TOKEN_TYPES.PARALLEL_CONJUNCTION]: TERM_TYPES.PARALLEL_CONJUNCTION,
+    [TOKEN_TYPES.DISJUNCTION]: TERM_TYPES.DISJUNCTION,
+    [TOKEN_TYPES.EXTENSIONAL_DIFFERENCE]: TERM_TYPES.EXTENSIONAL_DIFFERENCE,
+    [TOKEN_TYPES.INTENSIONAL_DIFFERENCE]: TERM_TYPES.INTENSIONAL_DIFFERENCE,
+    [TOKEN_TYPES.PRODUCT]: TERM_TYPES.PRODUCT,
+};
+
+const OPERATOR_MAP = {
+    ...UNARY_OPERATOR_MAP,
+    ...TEMPORAL_OPERATOR_MAP,
+    ...BINARY_OPERATOR_MAP,
+};
+
+const BINARY_RELATION_MAP = {
+    [TOKEN_TYPES.ARROW]: TERM_TYPES.INHERITANCE,
+    [TOKEN_TYPES.IMPLIES]: TERM_TYPES.IMPLICATION,
+    [TOKEN_TYPES.INSTANCE]: TERM_TYPES.INSTANCE,
+    [TOKEN_TYPES.PROPERTY]: TERM_TYPES.PROPERTY,
+    [TOKEN_TYPES.EQUIVALENCE]: TERM_TYPES.EQUIVALENCE,
+    [TOKEN_TYPES.SIMILARITY]: TERM_TYPES.SIMILARITY,
+    [TOKEN_TYPES.RETROSPECTION]: TERM_TYPES.RETROSPECTIVE_IMPLICATION,
+    [TOKEN_TYPES.PREDICTION]: TERM_TYPES.PREDICTIVE_IMPLICATION,
+    [TOKEN_TYPES.CONCURRENT]: TERM_TYPES.CONCURRENT_IMPLICATION,
+    [TOKEN_TYPES.UNTIL]: TERM_TYPES.UNTIL,
+    [TOKEN_TYPES.SINCE]: TERM_TYPES.SINCE,
+};
 
 class NarseseParser {
-    static UNARY_OPERATOR_TYPES = {
-        negation: 'Negation'
-    };
-
-    static TEMPORAL_OPERATOR_TYPES = {
-        always: 'Always',
-        eventually: 'Eventually',
-        next: 'Next',
-        previous: 'Previous'
-    };
-
-    static BINARY_OPERATOR_TYPES = {
-        conjunction: 'Conjunction',
-        sequentialConjunction: 'SequentialConjunction',
-        parallelConjunction: 'ParallelConjunction',
-        disjunction: 'Disjunction',
-        extensionalDifference: 'ExtensionalDifference',
-        intensionalDifference: 'IntensionalDifference',
-        product: 'Product'
-    };
-
     constructor(input) {
         this.lexer = lexer.clone();
         this.lexer.reset(input);
@@ -31,7 +55,7 @@ class NarseseParser {
 
     next() {
         this.current = this.lexer.next();
-        while (this.current && this.current.type === 'whitespace') {
+        while (this.current && this.current.type === TOKEN_TYPES.WHITESPACE) {
             this.current = this.lexer.next();
         }
         return this.current;
@@ -43,7 +67,9 @@ class NarseseParser {
 
     consume(type) {
         if (this.match(type)) {
-            const {value} = this.current;
+            const {
+                value
+            } = this.current;
             this.next();
             return value;
         }
@@ -62,22 +88,22 @@ class NarseseParser {
         const term = this.parseTerm();
 
         let punctuation = null;
-        if (this.match('belief')) {
-            punctuation = this.consume('belief');
-        } else if (this.match('goal')) {
-            punctuation = this.consume('goal');
-        } else if (this.match('question')) {
-            punctuation = this.consume('question');
+        if (this.match(TOKEN_TYPES.BELIEF)) {
+            punctuation = this.consume(TOKEN_TYPES.BELIEF);
+        } else if (this.match(TOKEN_TYPES.GOAL)) {
+            punctuation = this.consume(TOKEN_TYPES.GOAL);
+        } else if (this.match(TOKEN_TYPES.QUESTION)) {
+            punctuation = this.consume(TOKEN_TYPES.QUESTION);
         }
 
         let truthValue = null;
-        if (this.match('lparen')) {
+        if (this.match(TOKEN_TYPES.LPAREN)) {
             truthValue = this.parseTruthValue();
         }
 
         if (punctuation || truthValue) {
             return {
-                type: 'Statement',
+                type: TERM_TYPES.STATEMENT,
                 term,
                 punctuation,
                 truthValue
@@ -88,231 +114,159 @@ class NarseseParser {
     }
 
     parseTruthValue() {
-        this.consume('lparen');
+        this.consume(TOKEN_TYPES.LPAREN);
         const frequency = this.parseNumber();
-        this.consume('comma');
+        this.consume(TOKEN_TYPES.COMMA);
         const confidence = this.parseNumber();
-        this.consume('rparen');
-        return {frequency, confidence};
+        this.consume(TOKEN_TYPES.RPAREN);
+        return {
+            frequency,
+            confidence
+        };
     }
 
     parseTerm() {
-        if (this.match('lparen')) {
+        if (this.match(TOKEN_TYPES.LPAREN)) {
             return this.parseCompoundTerm();
-        } else if (this.match('lbrace')) { // Use lbrace for extensional sets
+        } else if (this.match(TOKEN_TYPES.LBRACE)) {
             return this.parseExtensionalSet();
-        } else if (this.match('lbracket')) { // Use lbracket for intensional sets
+        } else if (this.match(TOKEN_TYPES.LBRACKET)) {
             return this.parseIntensionalSet();
-        } else if (this.match('identifier') || this.match('string')) {
+        } else if (this.match(TOKEN_TYPES.IDENTIFIER) || this.match(TOKEN_TYPES.STRING)) {
             return this.parseAtomicTerm();
-        } else if (this.match('independentVar')) {
+        } else if (this.match(TOKEN_TYPES.INDEPENDENT_VAR)) {
             return this.parseIndependentVariable();
-        } else if (this.match('dependentVar')) {
+        } else if (this.match(TOKEN_TYPES.DEPENDENT_VAR)) {
             return this.parseDependentVariable();
-        } else if (this.match('queryVar')) {
+        } else if (this.match(TOKEN_TYPES.QUERY_VAR)) {
             return this.parseQueryVariable();
-        } else if (this.match('number')) {
+        } else if (this.match(TOKEN_TYPES.NUMBER)) {
             return this.parseNumber();
         }
         throw new Error(`Unexpected token '${this.current ? this.current.type : 'EOF'}' when parsing term`);
     }
 
     parseNumber() {
-        const value = this.consume('number');
-        return {type: 'Number', value: parseFloat(value)};
+        const value = this.consume(TOKEN_TYPES.NUMBER);
+        return {
+            type: TERM_TYPES.NUMBER,
+            value: parseFloat(value)
+        };
     }
 
     parseCompoundTerm() {
-        this.consume('lparen');
+        this.consume(TOKEN_TYPES.LPAREN);
 
-        if (this.matchUnaryOperator()) {
-            return this.parseUnaryOperator();
+        if (this.matchOperator()) {
+            return this.parseOperator();
         }
 
-        if (this.matchTemporalOperator()) {
-            return this.parseTemporalOperator();
+        const subject = this.parseTerm();
+        const relationType = BINARY_RELATION_MAP[this.current?.type];
+
+        if (relationType) {
+            return this.parseBinaryRelation(subject, this.current.type, relationType);
         }
 
-        if (this.matchBinaryOperator()) {
-            return this.parseBinaryOperator();
-        }
-
-        const firstTerm = this.parseTerm();
-
-        if (this.match('arrow')) {
-            return this.parseInheritance(firstTerm);
-        } else if (this.match('implies')) {
-            return this.parseImplication(firstTerm);
-        } else if (this.match('instance')) {
-            return this.parseInstance(firstTerm);
-        } else if (this.match('property')) {
-            return this.parseProperty(firstTerm);
-        } else if (this.match('equivalence')) {
-            return this.parseEquivalence(firstTerm);
-        } else if (this.match('similarity')) {
-            return this.parseSimilarity(firstTerm);
-        } else if (this.match('retrospection')) {
-            return this.parseRetrospectiveImplication(firstTerm);
-        } else if (this.match('prediction')) {
-            return this.parsePredictiveImplication(firstTerm);
-        } else if (this.match('concurrent')) {
-            return this.parseConcurrentImplication(firstTerm);
-        } else if (this.match('until')) {
-            return this.parseUntil(firstTerm);
-        } else if (this.match('since')) {
-            return this.parseSince(firstTerm);
-        }
-        this.consume('rparen');
-        return firstTerm;
+        this.consume(TOKEN_TYPES.RPAREN);
+        return subject;
     }
 
-    matchUnaryOperator() {
-        return ['negation'].includes(this.current.type);
+    matchOperator() {
+        return this.current && this.current.type in OPERATOR_MAP;
     }
 
-    parseUnaryOperator() {
+    parseOperator() {
         const operatorToken = this.current;
+        const operatorType = operatorToken.type;
         this.next(); // Consume the operator token
-        this.consume('comma');
-        const term = this.parseTerm();
-        this.consume('rparen');
-        return {type: this.getUnaryOperatorType(operatorToken.type), term};
-    }
+        this.consume(TOKEN_TYPES.COMMA);
 
-    getUnaryOperatorType(operator) {
-        return NarseseParser.UNARY_OPERATOR_TYPES[operator] || operator;
-    }
+        const isBinary = operatorType in BINARY_OPERATOR_MAP;
+        const result = isBinary ?
+            {
+                terms: this.parseTermList()
+            } :
+            {
+                term: this.parseTerm()
+            };
 
-    matchTemporalOperator() {
-        return ['always', 'eventually', 'next', 'previous'].includes(this.current.type);
-    }
+        this.consume(TOKEN_TYPES.RPAREN);
 
-    parseTemporalOperator() {
-        const operatorToken = this.current;
-        this.next(); // Consume the operator token
-        this.consume('comma');
-        const term = this.parseTerm();
-        this.consume('rparen');
-        return {type: this.getTemporalOperatorType(operatorToken.type), term};
-    }
-
-    matchBinaryOperator() {
-        return [
-            'conjunction', 'sequentialConjunction', 'parallelConjunction',
-            'disjunction', 'extensionalDifference', 'intensionalDifference',
-            'product'
-        ].includes(this.current.type);
-    }
-
-    parseBinaryOperator() {
-        const operatorToken = this.current;
-        this.next(); // Consume the operator token
-        this.consume('comma');
-        const terms = this.parseTermList();
-        this.consume('rparen');
-        return {type: this.getBinaryOperatorType(operatorToken.type), terms};
-    }
-
-    getBinaryOperatorType(operator) {
-        return NarseseParser.BINARY_OPERATOR_TYPES[operator] || operator;
+        return {
+            type: OPERATOR_MAP[operatorType],
+            ...result
+        };
     }
 
     parseBinaryRelation(subject, tokenType, relationType) {
         this.consume(tokenType);
         const predicate = this.parseTerm();
-        this.consume('rparen');
-        return {type: relationType, subject, predicate};
-    }
-
-    parseInheritance(subject) {
-        return this.parseBinaryRelation(subject, 'arrow', 'Inheritance');
-    }
-
-    parseImplication(subject) {
-        return this.parseBinaryRelation(subject, 'implies', 'Implication');
-    }
-
-    parseInstance(subject) {
-        return this.parseBinaryRelation(subject, 'instance', 'Instance');
-    }
-
-    parseProperty(subject) {
-        return this.parseBinaryRelation(subject, 'property', 'Property');
-    }
-
-    parseEquivalence(subject) {
-        return this.parseBinaryRelation(subject, 'equivalence', 'Equivalence');
-    }
-
-    parseSimilarity(subject) {
-        return this.parseBinaryRelation(subject, 'similarity', 'Similarity');
-    }
-
-    parseRetrospectiveImplication(subject) {
-        return this.parseBinaryRelation(subject, 'retrospection', 'RetrospectiveImplication');
-    }
-
-    parsePredictiveImplication(subject) {
-        return this.parseBinaryRelation(subject, 'prediction', 'PredictiveImplication');
-    }
-
-    parseConcurrentImplication(subject) {
-        return this.parseBinaryRelation(subject, 'concurrent', 'ConcurrentImplication');
-    }
-
-    parseUntil(subject) {
-        return this.parseBinaryRelation(subject, 'until', 'Until');
-    }
-
-    parseSince(subject) {
-        return this.parseBinaryRelation(subject, 'since', 'Since');
+        this.consume(TOKEN_TYPES.RPAREN);
+        return {
+            type: relationType,
+            subject,
+            predicate
+        };
     }
 
     parseExtensionalSet() {
-        this.consume('lbrace');
+        this.consume(TOKEN_TYPES.LBRACE);
         const terms = this.parseTermList();
-        this.consume('rbrace');
-        return {type: 'ExtensionalSet', terms};
+        this.consume(TOKEN_TYPES.RBRACE);
+        return {
+            type: TERM_TYPES.EXTENSIONAL_SET,
+            terms
+        };
     }
 
     parseIntensionalSet() {
-        this.consume('lbracket');
+        this.consume(TOKEN_TYPES.LBRACKET);
         const terms = this.parseTermList();
-        this.consume('rbracket');
-        return {type: 'IntensionalSet', terms};
+        this.consume(TOKEN_TYPES.RBRACKET);
+        return {
+            type: TERM_TYPES.INTENSIONAL_SET,
+            terms
+        };
     }
 
     parseAtomicTerm() {
         const token = this.current;
         this.next(); // consume token
-        return {type: 'Atomic', key: token.value};
+        return {
+            type: TERM_TYPES.ATOMIC,
+            key: token.value
+        };
     }
 
     parseVariable(tokenType, variableType) {
         const variable = this.consume(tokenType);
-        return {type: variableType, name: variable};
+        return {
+            type: variableType,
+            name: variable
+        };
     }
 
     parseIndependentVariable() {
-        return this.parseVariable('independentVar', 'IndependentVariable');
+        return this.parseVariable(TOKEN_TYPES.INDEPENDENT_VAR, TERM_TYPES.INDEPENDENT_VARIABLE);
     }
 
     parseDependentVariable() {
-        return this.parseVariable('dependentVar', 'DependentVariable');
+        return this.parseVariable(TOKEN_TYPES.DEPENDENT_VAR, TERM_TYPES.DEPENDENT_VARIABLE);
     }
 
     parseQueryVariable() {
-        return this.parseVariable('queryVar', 'QueryVariable');
+        return this.parseVariable(TOKEN_TYPES.QUERY_VAR, TERM_TYPES.QUERY_VARIABLE);
     }
 
     parseTermList() {
         const terms = [];
 
-        if (!this.match('rparen') && !this.match('rbrace') && !this.match('rbracket')) {
+        if (!this.match(TOKEN_TYPES.RPAREN) && !this.match(TOKEN_TYPES.RBRACE) && !this.match(TOKEN_TYPES.RBRACKET)) {
             terms.push(this.parseTerm());
 
-            while (this.match('comma')) {
-                this.consume('comma');
+            while (this.match(TOKEN_TYPES.COMMA)) {
+                this.consume(TOKEN_TYPES.COMMA);
                 terms.push(this.parseTerm());
             }
         }
@@ -326,18 +280,16 @@ function parseTerm(input) {
         return null;
     }
 
-    try {
-        const parser = new NarseseParser(input);
-        const parsed = parser.parseMain();
-        if (parsed) {
-            if (typeof parsed === 'object' && !parsed.key) {
-                parsed.key = input;
-            }
+    const parser = new NarseseParser(input);
+    const parsed = parser.parseMain();
+    if (parsed) {
+        if (typeof parsed === 'object' && !parsed.key) {
+            parsed.key = input;
         }
-        return parsed;
-    } catch (error) {
-        throw error;
     }
+    return parsed;
 }
 
-export {parseTerm};
+export {
+    parseTerm
+};

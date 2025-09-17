@@ -1,10 +1,22 @@
-import {generateOptimizedId} from '../utils/IdGenerator.js';
-import {parseTerm} from '../parser/parse-utils.js';
+import {
+    generateOptimizedId
+} from '../utils/IdGenerator.js';
+import {
+    parseTerm
+} from '../parser/parse-utils.js';
 import config from '../config/index.js';
 import TruthValueManager from '../reasoner/TruthValueManager.js';
-import {isTask} from '../utils/task-utils.js';
+import {
+    isTask
+} from '../utils/task-utils.js';
+import {
+    PUNCTUATION
+} from '../config/constants.js';
 
-const {DEFAULT_TRUTH_VALUE} = config;
+
+const {
+    DEFAULT_TRUTH_VALUE
+} = config;
 
 /**
  * Task represents a specific cognitive act concerning a Term.
@@ -31,7 +43,10 @@ class Task {
         }
 
         // Process term
-        const {processedTerm, termKey} = this.#processTerm(term);
+        const {
+            processedTerm,
+            termKey
+        } = this.#processTerm(term);
 
         // Initialize core properties
         this.#id = generateOptimizedId(`${termKey}${punctuation}`);
@@ -97,7 +112,7 @@ class Task {
         if (typeof punctuation !== 'string') {
             return false;
         }
-        return punctuation === '.' || punctuation === '!' || punctuation === '?';
+        return punctuation === PUNCTUATION.BELIEF || punctuation === PUNCTUATION.GOAL || punctuation === PUNCTUATION.QUESTION;
     }
 
     /**
@@ -128,7 +143,10 @@ class Task {
             throw new Error(`Failed to parse term: '${term}'. Please check the term syntax.`);
         }
 
-        return {processedTerm, termKey};
+        return {
+            processedTerm,
+            termKey
+        };
     }
 
     /**
@@ -145,7 +163,10 @@ class Task {
             throw new Error(`Failed to parse term: '${term.key}'. Please check the term syntax.`);
         }
 
-        return {processedTerm, termKey};
+        return {
+            processedTerm,
+            termKey
+        };
     }
 
     /**
@@ -164,7 +185,8 @@ class Task {
             // Handle NaN values
             if (isNaN(frequency) || isNaN(confidence)) {
                 console.warn(`[Task] Invalid truth value with NaN values detected, falling back to defaults`);
-                return {...DEFAULT_TRUTH_VALUE};
+                return { ...DEFAULT_TRUTH_VALUE
+                };
             }
 
             if (frequency < 0 || frequency > 1 || !isFinite(frequency)) {
@@ -177,11 +199,15 @@ class Task {
                 console.warn(`[Task] Confidence value clamped to valid range [0,1]: ${truthValue.confidence}`);
             }
 
-            return {frequency, confidence};
+            return {
+                frequency,
+                confidence
+            };
         }
 
         // Return default if invalid
-        return {...DEFAULT_TRUTH_VALUE};
+        return { ...DEFAULT_TRUTH_VALUE
+        };
     }
 
     /**
@@ -279,9 +305,9 @@ class Task {
     clone() {
         const clonedTask = new Task(
             this.#term,
-            this.#punctuation,
-            {...this.#state.truthValue},
-            {...this.#state.stamp}
+            this.#punctuation, { ...this.#state.truthValue
+            }, { ...this.#state.stamp
+            }
         );
         // Preserve the same ID for cloned tasks
         clonedTask.#id = this.#id;

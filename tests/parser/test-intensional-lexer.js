@@ -8,6 +8,6 @@ const lexerInstance = lexer.clone();
 lexerInstance.reset(input);
 
 let token;
-while (token = lexerInstance.next()) {
+while ((token = lexerInstance.next())) {
     console.log('Token:', token);
 }
