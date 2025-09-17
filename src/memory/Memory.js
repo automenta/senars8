@@ -1,14 +1,8 @@
 import Term from '../core/Term.js';
 import Task from '../core/Task.js';
 import EventBus from '../system/EventBus.js';
-import {
-    isTask,
-    normalizeToArray
-} from '../utils/index.js';
-import {
-    debug,
-    warn
-} from '../utils/logger.js';
+import {normalizeToArray} from '../utils/helpers.js';
+import {isTask} from '../utils/task-utils.js';
 import {
     consolidateMemory,
     getHighestPriorityTasksWithPQ,
@@ -19,10 +13,7 @@ import {
 } from './memoryUtils.js';
 import TimeBasedForgettingStrategy from './strategies/TimeBasedForgettingStrategy.js';
 import defaultConfig from '../config/default-config.js';
-
-const FORGETTING_STRATEGIES = {
-    'TimeBased': TimeBasedForgettingStrategy,
-};
+import {debug, warn} from '../utils/logger.js';
 
 /**
  * Memory represents the cognitive system's knowledge storage and retrieval mechanism.
@@ -35,23 +26,46 @@ class Memory {
      * @param {object} config - Memory configuration options
      */
     constructor(config = defaultConfig.memory) {
+        // Validate and set configuration with defaults
         this.config = {
-            ...defaultConfig.memory,
-            ...config,
-            FORGETTING_STRATEGY_OPTIONS: {
-                ...defaultConfig.memory.FORGETTING_STRATEGY_OPTIONS,
-                ...(config.FORGETTING_STRATEGY_OPTIONS || {}),
-            }
+            FORGETTING_STRATEGY_NAME: config.FORGETTING_STRATEGY_NAME || 'TimeBased',
+            FORGETTING_STRATEGY_OPTIONS: config.FORGETTING_STRATEGY_OPTIONS || {
+                shortTerm: {
+                    expirationThreshold: BigInt(24) * BigInt(3600 * 1000), // 1 day
+                    importanceThresholds: {
+                        priority: 0.7,
+                        confidence: 0.7
+                    }
+                },
+                longTerm: {
+                    expirationThreshold: BigInt(30) * BigInt(24) * BigInt(3600 * 1000), // 30 days
+                    importanceThresholds: {
+                        priority: 0.8,
+                        confidence: 0.8
+                    }
+                }
+            },
+            MAINTENANCE_CYCLE_FREQUENCY: typeof config.MAINTENANCE_CYCLE_FREQUENCY === 'number' ?
+                config.MAINTENANCE_CYCLE_FREQUENCY : 10,
+            CONSOLIDATION_PRIORITY_THRESHOLD: typeof config.CONSOLIDATION_PRIORITY_THRESHOLD === 'number' ?
+                config.CONSOLIDATION_PRIORITY_THRESHOLD : 0.8,
+            CONSOLIDATION_CONFIDENCE_THRESHOLD: typeof config.CONSOLIDATION_CONFIDENCE_THRESHOLD === 'number' ?
+                config.CONSOLIDATION_CONFIDENCE_THRESHOLD : 0.9
         };
 
-        this.terms = new Map();
-        this.shortTermTasks = new Map();
-        this.longTermTasks = new Map();
-        this.implicationIndex = new Map();
-        this.beliefIndex = new Map();
-        this.costIndex = new Map();
-        this.punctuationIndex = new Map();
-        this.priorityIndex = new Map();
+        // Core data structures
+        this.terms = new Map(); // Term key -> Term
+        this.shortTermTasks = new Map(); // Task ID -> Task (recently accessed)
+        this.longTermTasks = new Map(); // Task ID -> Task (persisted)
+
+        // Indexes for efficient querying
+        this.implicationIndex = new Map(); // Term key -> Set of implication terms
+        this.beliefIndex = new Map(); // Term key -> Set of belief tasks
+        this.costIndex = new Map(); // Term key -> cost information
+        this.punctuationIndex = new Map(); // Punctuation type -> Set of task IDs
+        this.priorityIndex = new Map(); // Priority bucket -> Set of task IDs
+
+        // Maintenance state
         this.cycleCounter = 0;
         this.maintenanceFrequency = this.config.MAINTENANCE_CYCLE_FREQUENCY;
         this._cachedAllTasks = null;
@@ -70,8 +84,13 @@ class Memory {
     }
 
     _loadForgettingStrategy() {
-        const StrategyClass = FORGETTING_STRATEGIES[this.config.FORGETTING_STRATEGY_NAME] || TimeBasedForgettingStrategy;
-        this.forgettingStrategy = new StrategyClass();
+        const strategyName = this.config.FORGETTING_STRATEGY_NAME;
+        if (strategyName === 'TimeBased') {
+            this.forgettingStrategy = new TimeBasedForgettingStrategy();
+        } else {
+            // Default or extend with more strategies
+            this.forgettingStrategy = new TimeBasedForgettingStrategy();
+        }
     }
 
     _registerEventListeners() {
@@ -110,26 +129,17 @@ class Memory {
         this.implicationIndex = indexImplication(term, this.implicationIndex);
     }
 
-    _addToIndexMap(map, key, value) {
-        if (!map.has(key)) {
-            map.set(key, new Set());
-        }
-        map.get(key).add(value);
-    }
-
-    _removeFromIndexMap(map, key, value) {
-        const set = map.get(key);
-        if (set) {
-            set.delete(value);
-            if (set.size === 0) {
-                map.delete(key);
-            }
-        }
-    }
-
+    /**
+     * Adds a term to memory.
+     * @param {Term} term - The term to add
+     * @throws {Error} If the term is not a valid Term instance
+     */
     addTerm(term) {
-        if (!term || !(term instanceof Term)) {
-            throw new Error(`Can only add valid Term instances to memory. Received: ${term}`);
+        if (!term) {
+            throw new Error('Cannot add null or undefined term to memory');
+        }
+        if (!(term instanceof Term)) {
+            throw new Error(`Can only add valid Term instances to memory. Received: ${typeof term}`);
         }
         if (this.terms.has(term.key)) {
             debug(`Term '${term.key}' already exists in memory, skipping addition`);
@@ -140,6 +150,11 @@ class Memory {
         debug(`Added term '${term.key}' to memory`);
     }
 
+    /**
+     * Retrieves a term by its key.
+     * @param {string} key - The term key
+     * @returns {Term|null} The term if found, null otherwise
+     */
     getTerm(key) {
         if (typeof key !== 'string') {
             warn(`Invalid term key type: ${typeof key}. Expected string.`);
@@ -148,6 +163,10 @@ class Memory {
         return this.terms.get(key);
     }
 
+    /**
+     * Gets all terms in memory.
+     * @returns {Term[]} Array of all terms
+     */
     getAllTerms() {
         return Array.from(this.terms.values());
     }
@@ -155,42 +174,81 @@ class Memory {
     _indexTask(task) {
         this.beliefIndex = indexTask(task, this.beliefIndex);
         this.costIndex = updateCostIndex(task.term, this.costIndex, 'add');
-        this._addToIndexMap(this.punctuationIndex, task.punctuation, task.id);
+        if (!this.punctuationIndex.has(task.punctuation)) {
+            this.punctuationIndex.set(task.punctuation, new Set());
+        }
+        this.punctuationIndex.get(task.punctuation).add(task.id);
         const priorityBucket = Math.floor(task.state.priority * 10);
-        this._addToIndexMap(this.priorityIndex, priorityBucket, task.id);
+        if (!this.priorityIndex.has(priorityBucket)) {
+            this.priorityIndex.set(priorityBucket, new Set());
+        }
+        this.priorityIndex.get(priorityBucket).add(task.id);
     }
 
     _unindexTask(task) {
         this.beliefIndex = unindexTask(task, this.beliefIndex);
         this.costIndex = updateCostIndex(task.term, this.costIndex, 'remove');
-        this._removeFromIndexMap(this.punctuationIndex, task.punctuation, task.id);
+        if (this.punctuationIndex.has(task.punctuation)) {
+            this.punctuationIndex.get(task.punctuation).delete(task.id);
+            if (this.punctuationIndex.get(task.punctuation).size === 0) {
+                this.punctuationIndex.delete(task.punctuation);
+            }
+        }
         const priorityBucket = Math.floor(task.state.priority * 10);
-        this._removeFromIndexMap(this.priorityIndex, priorityBucket, task.id);
+        if (this.priorityIndex.has(priorityBucket)) {
+            this.priorityIndex.get(priorityBucket).delete(task.id);
+            if (this.priorityIndex.get(priorityBucket).size === 0) {
+                this.priorityIndex.delete(priorityBucket);
+            }
+        }
     }
 
+    /**
+     * Adds tasks to memory.
+     * @param {Task|Task[]} tasks - Single task or array of tasks to add
+     * @throws {Error} If any task is not a valid Task instance
+     */
     addTasks(tasks) {
         const tasksToAdd = normalizeToArray(tasks);
-        if (tasksToAdd.length === 0) return;
+        if (tasksToAdd.length === 0) {
+            debug('No tasks to add to memory');
+            return;
+        }
 
+        let addedCount = 0;
         for (const task of tasksToAdd) {
+            if (!task) {
+                warn('Skipping null or undefined task');
+                continue;
+            }
             if (!isTask(task)) {
-                warn(`Skipping invalid task. Expected Task instance, received: ${task}`);
+                warn(`Skipping invalid task. Expected Task instance, received: ${typeof task}`);
                 continue;
             }
             this.shortTermTasks.set(task.id, task);
             this._indexTask(task);
+            addedCount++;
         }
 
-        if (tasksToAdd.length > 0) {
+        if (addedCount > 0) {
             this._invalidateTaskCache();
-            debug(`Added ${tasksToAdd.length} tasks to memory`);
+            debug(`Added ${addedCount} tasks to memory`);
         }
     }
 
+    /**
+     * Retrieves a task by its ID.
+     * @param {string} id - The task ID
+     * @returns {Task|null} The task if found, null otherwise
+     */
     getTask(id) {
         return this.shortTermTasks.get(id) || this.longTermTasks.get(id);
     }
 
+    /**
+     * Removes a task from memory.
+     * @param {string} taskId - The ID of the task to remove
+     */
     removeTask(taskId) {
         if (!taskId) return;
         const task = this.getTask(taskId);
@@ -202,6 +260,10 @@ class Memory {
         }
     }
 
+    /**
+     * Gets all tasks in memory.
+     * @returns {Task[]} Array of all tasks
+     */
     getAllTasks() {
         if (!this._cachedAllTasks) {
             this._cachedAllTasks = [...this.shortTermTasks.values(), ...this.longTermTasks.values()];
@@ -215,6 +277,11 @@ class Memory {
         return k < K_THRESHOLD && k < totalTasks / RATIO_THRESHOLD;
     }
 
+    /**
+     * Gets the highest priority tasks.
+     * @param {number} k - Number of tasks to retrieve
+     * @returns {Task[]} Array of highest priority tasks
+     */
     getHighestPriorityTasks(k = 20) {
         if (k <= 0) return [];
         const allTasks = this.getAllTasks();
@@ -224,6 +291,10 @@ class Memory {
         return [...allTasks].sort((a, b) => b.state.priority - a.state.priority).slice(0, k);
     }
 
+    /**
+     * Creates a clone of this memory instance.
+     * @returns {Memory} A new memory instance with the same data
+     */
     clone() {
         const newMemory = new Memory(this.config);
         newMemory.terms = new Map(this.terms);
@@ -239,32 +310,53 @@ class Memory {
         return newMemory;
     }
 
+    /**
+     * Removes a term from memory and cleans up its resources
+     * @param {string} key - The key of the term to remove
+     */
     removeTerm(key) {
         const term = this.terms.get(key);
         if (term) {
+            // Clean up term resources
             if (typeof term.destroy === 'function') {
                 term.destroy();
             }
             this.terms.delete(key);
 
+            // Remove from indexes
             this.implicationIndex.delete(key);
             this.beliefIndex.delete(key);
             this.costIndex.delete(key);
         }
     }
 
+    /**
+     * Clears all data from memory and cleans up resources
+     */
     clear() {
-        this.terms.forEach(term => typeof term.destroy === 'function' && term.destroy());
+        // Clean up all term resources
+        for (const term of this.terms.values()) {
+            if (typeof term.destroy === 'function') {
+                term.destroy();
+            }
+        }
 
-        [this.terms, this.shortTermTasks, this.longTermTasks,
-            this.implicationIndex, this.beliefIndex, this.costIndex,
-            this.punctuationIndex, this.priorityIndex
-        ].forEach(map => map.clear());
-
+        this.terms.clear();
+        this.shortTermTasks.clear();
+        this.longTermTasks.clear();
+        this.implicationIndex.clear();
+        this.beliefIndex.clear();
+        this.costIndex.clear();
+        this.punctuationIndex.clear();
+        this.priorityIndex.clear();
         this.cycleCounter = 0;
         this._invalidateTaskCache();
     }
 
+    /**
+     * Gets statistics about memory contents.
+     * @returns {object} Object containing memory statistics
+     */
     getStatistics() {
         return {
             terms: this.terms.size,
@@ -276,54 +368,93 @@ class Memory {
         };
     }
 
+    /**
+     * Gets all belief tasks.
+     * @returns {Task[]} Array of belief tasks
+     */
     getBeliefs() {
         return this.queryTasks({
             punctuation: '.'
         });
     }
 
+    /**
+     * Gets all goal tasks.
+     * @returns {Task[]} Array of goal tasks
+     */
     getGoals() {
         return this.queryTasks({
             punctuation: '!'
         });
     }
 
+    /**
+     * Gets all question tasks.
+     * @returns {Task[]} Array of question tasks
+     */
     getQuestions() {
         return this.queryTasks({
             punctuation: '?'
         });
     }
 
+    /**
+     * Gets the most recently created tasks.
+     * @param {number} count - Number of tasks to retrieve
+     * @returns {Task[]} Array of recent tasks
+     */
     getRecentTasks(count = 10) {
-        return [...this.getAllTasks()]
+        const allTasks = this.getAllTasks();
+        if (allTasks.length <= count) {
+            return [...allTasks].sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime));
+        }
+        return [...allTasks]
             .sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime))
             .slice(0, count);
     }
 
+    /**
+     * Queries tasks based on filters.
+     * @param {object} filters - Query filters
+     * @param {string} [filters.punctuation] - Filter by punctuation type
+     * @param {string} [filters.termKey] - Filter by term key
+     * @param {number} [filters.minPriority] - Filter by minimum priority
+     * @param {number} [filters.minConfidence] - Filter by minimum confidence
+     * @param {number} [filters.limit] - Limit the number of results
+     * @returns {Task[]} Array of matching tasks
+     */
     queryTasks(filters = {}) {
-        let candidateTasks;
-        if (filters.punctuation) {
-            if (!['.', '!', '?'].includes(filters.punctuation)) return [];
-            const taskIds = this.punctuationIndex.get(filters.punctuation) || new Set();
-            candidateTasks = Array.from(taskIds).map(id => this.getTask(id)).filter(Boolean);
+        let tasks;
+        // Validate punctuation filter
+        if (filters.punctuation !== undefined) {
+            // If punctuation is provided but invalid, return empty array
+            if (filters.punctuation !== '.' && filters.punctuation !== '!' && filters.punctuation !== '?') {
+                return [];
+            }
+            // If punctuation is valid and exists in index
+            if (this.punctuationIndex.has(filters.punctuation)) {
+                const taskIds = this.punctuationIndex.get(filters.punctuation);
+                tasks = Array.from(taskIds).map(id => this.getTask(id)).filter(Boolean);
+            } else {
+                tasks = [];
+            }
         } else {
-            candidateTasks = this.getAllTasks();
+            tasks = this.getAllTasks();
         }
-
-        let filteredTasks = candidateTasks;
         if (filters.termKey) {
-            filteredTasks = filteredTasks.filter(task => task.termKey === filters.termKey);
+            tasks = tasks.filter(task => task.termKey === filters.termKey);
         }
         if (filters.minPriority !== undefined) {
-            filteredTasks = filteredTasks.filter(task => task.state.priority >= filters.minPriority);
+            tasks = tasks.filter(task => task.state.priority >= filters.minPriority);
         }
         if (filters.minConfidence !== undefined) {
-            filteredTasks = filteredTasks.filter(task => task.state.truthValue.confidence >= filters.minConfidence);
+            tasks = tasks.filter(task => task.state.truthValue.confidence >= filters.minConfidence);
         }
-
-        filteredTasks.sort((a, b) => b.state.priority - a.state.priority);
-
-        return filters.limit !== undefined ? filteredTasks.slice(0, filters.limit) : filteredTasks;
+        tasks.sort((a, b) => b.state.priority - a.state.priority);
+        if (filters.limit !== undefined) {
+            tasks = tasks.slice(0, filters.limit);
+        }
+        return tasks;
     }
 
     exportState() {

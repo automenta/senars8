@@ -1,7 +1,8 @@
-import Task from '../../core/Task.js';
-import {parseTerm} from '../../parser/narseseParser.js';
-import config from '../../config/index.js';
+import Task from '../core/Task.js';
+import {parseTerm} from '../parser/narseseParser.js';
+import config from '../config/index.js';
 
+// From helpers.js
 function groupTasksByTermKey(tasks) {
     const taskGroups = {};
     // Use for loop instead of forEach for better performance
@@ -201,22 +202,20 @@ function inferTemporalImplications(task1, task2) {
                 });
             }
             break;
-        case 'meets': {
+        case 'meets':
             const termKey = `((&&, ${task1.termKey}, ${task2.termKey}) ==> (temporal_continuity, ${task1.termKey}, ${task2.termKey}))`;
             implicationTask = _createImplicationTask(termKey, {
                 frequency: config.temporal.MEETS_IMPLICATION_FREQUENCY,
                 confidence: config.temporal.MEETS_IMPLICATION_CONFIDENCE
             });
             break;
-        }
-        case 'overlaps': {
+        case 'overlaps':
             const overlapTermKey = `(temporal_overlap, ${task1.termKey}, ${task2.termKey})`;
             implicationTask = _createImplicationTask(overlapTermKey, {
                 frequency: config.temporal.OVERLAP_IMPLICATION_FREQUENCY,
                 confidence: config.temporal.OVERLAP_IMPLICATION_CONFIDENCE
             });
             break;
-        }
     }
 
     return implicationTask ? [implicationTask] : [];

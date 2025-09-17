@@ -1,7 +1,7 @@
 /**
  * Configuration schema definition and validation utilities
  */
-import {warn} from '../utils/logger.js';
+import { warn } from '../utils/logger.js';
 
 /**
  * @typedef {Object} ConfigSchema
@@ -266,7 +266,7 @@ function validateConfigValue(value, schema, path) {
 
         // Warn about unknown properties
         for (const propName in value) {
-            if (!Object.prototype.hasOwnProperty.call(schema.properties, propName)) {
+            if (!schema.properties.hasOwnProperty(propName)) {
                 warn(`[Config] Unknown property '${path}.${propName}' found and will be ignored.`);
             }
         }
@@ -274,7 +274,7 @@ function validateConfigValue(value, schema, path) {
         // Validate known properties
         for (const [propName, propSchema] of Object.entries(schema.properties)) {
             const propPath = `${path}.${propName}`;
-            const propValue = Object.prototype.hasOwnProperty.call(value, propName) ? value[propName] : undefined;
+            const propValue = value.hasOwnProperty(propName) ? value[propName] : undefined;
             validatedObject[propName] = validateConfigValue(propValue, propSchema, propPath);
         }
         return validatedObject;
@@ -298,14 +298,14 @@ function validateConfig(config) {
 
     // Warn about unknown top-level properties
     for (const key in config) {
-        if (!Object.prototype.hasOwnProperty.call(configSchema, key)) {
+        if (!configSchema.hasOwnProperty(key)) {
             warn(`[Config] Unknown configuration key '${key}' found and will be ignored.`);
         }
     }
 
     // Validate all known properties from the schema
     for (const [key, schema] of Object.entries(configSchema)) {
-        const value = Object.prototype.hasOwnProperty.call(config, key) ? config[key] : undefined;
+        const value = config.hasOwnProperty(key) ? config[key] : undefined;
         validatedConfig[key] = validateConfigValue(value, schema, key);
     }
     return validatedConfig;

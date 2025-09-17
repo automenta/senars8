@@ -1,5 +1,5 @@
 import {safeAsync} from '../utils/errorHandler.js';
-import {getTasksByType} from '../utils/index.js';
+import {getGoalTasks} from '../utils/task-utils.js';
 import EventBus from './EventBus.js';
 
 class Cycle {
@@ -197,7 +197,7 @@ class Cycle {
     }
 
     _getPrioritizedGoals() {
-        return getTasksByType(this.memory.getAllTasks(), '!')
+        return getGoalTasks(this.memory.getAllTasks())
             .filter(task => task.state.priority > this.config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD)
             .slice(0, this.config.MAX_GOALS_TO_EXECUTE);
     }

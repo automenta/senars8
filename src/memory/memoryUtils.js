@@ -1,4 +1,4 @@
-import {isBelief} from '../utils/index.js';
+import {isBelief} from '../utils/task-utils.js';
 import {MinPriorityQueue} from '@datastructures-js/priority-queue';
 
 /**
@@ -82,11 +82,10 @@ function indexImplication(term, implicationIndex) {
 
     const newImplicationIndex = new Map(implicationIndex);
     if (!newImplicationIndex.has(goalKey)) {
-        newImplicationIndex.set(goalKey, []);
+        newImplicationIndex.set(goalKey, new Set());
     }
 
-    const currentImplications = newImplicationIndex.get(goalKey) || [];
-    newImplicationIndex.set(goalKey, [...currentImplications, term]);
+    newImplicationIndex.get(goalKey).add(term);
 
     return newImplicationIndex;
 }
@@ -103,8 +102,10 @@ function indexTask(task, beliefIndex) {
     }
 
     const newBeliefIndex = new Map(beliefIndex);
-    const currentBeliefs = newBeliefIndex.get(task.termKey) || [];
-    newBeliefIndex.set(task.termKey, [...currentBeliefs, task]);
+    if (!newBeliefIndex.has(task.termKey)) {
+        newBeliefIndex.set(task.termKey, new Set());
+    }
+    newBeliefIndex.get(task.termKey).add(task);
 
     return newBeliefIndex;
 }
@@ -121,12 +122,11 @@ function unindexTask(task, beliefIndex) {
     }
 
     const newBeliefIndex = new Map(beliefIndex);
-    const beliefs = [...newBeliefIndex.get(task.termKey)];
-    const index = beliefs.indexOf(task);
+    const beliefs = newBeliefIndex.get(task.termKey);
+    beliefs.delete(task);
 
-    if (index !== -1) {
-        beliefs.splice(index, 1);
-        beliefs.length === 0 ? newBeliefIndex.delete(task.termKey) : newBeliefIndex.set(task.termKey, beliefs);
+    if (beliefs.size === 0) {
+        newBeliefIndex.delete(task.termKey);
     }
 
     return newBeliefIndex;

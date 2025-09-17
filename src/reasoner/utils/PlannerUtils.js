@@ -18,15 +18,31 @@ function isAchieved(term, memory, config) {
         return false;
     }
     const beliefs = memory.beliefIndex.get(term.key);
-    return Boolean(beliefs && beliefs.length > 0 &&
-        beliefs.some(belief => belief.state.truthValue.confidence >= config.confidenceThreshold));
+    if (!beliefs || beliefs.size === 0) {
+        return false;
+    }
+    for (const belief of beliefs) {
+        if (belief.state.truthValue.confidence >= config.confidenceThreshold) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function arePreconditionsMet(preconditions, memory, config) {
     for (const precondition of preconditions) {
         const beliefs = memory.beliefIndex.get(precondition.key);
-        if (!beliefs || beliefs.length === 0 ||
-            !beliefs.some(belief => belief.state.truthValue.confidence > config.preconditionConfidenceThreshold)) {
+        if (!beliefs || beliefs.size === 0) {
+            return false;
+        }
+        let preconditionMet = false;
+        for (const belief of beliefs) {
+            if (belief.state.truthValue.confidence > config.preconditionConfidenceThreshold) {
+                preconditionMet = true;
+                break;
+            }
+        }
+        if (!preconditionMet) {
             return false;
         }
     }

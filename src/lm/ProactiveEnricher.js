@@ -2,7 +2,7 @@ import {safeAsync} from '../utils/errorHandler.js';
 import {debug} from '../utils/logger.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import Task from '../core/Task.js';
-import {getBeliefTasks} from '../utils/index.js';
+import {getBeliefTasks} from '../utils/task-utils.js';
 import zod from 'zod';
 
 class ProactiveEnricher {

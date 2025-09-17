@@ -10,8 +10,8 @@ describe('Memory - Edge Cases', () => {
     });
 
     test('should handle adding null and undefined terms', () => {
-        expect(() => memory.addTerm(null)).toThrow('Can only add valid Term instances to memory. Received: null');
-        expect(() => memory.addTerm(undefined)).toThrow('Can only add valid Term instances to memory. Received: undefined');
+        expect(() => memory.addTerm(null)).toThrow('Cannot add null or undefined term to memory');
+        expect(() => memory.addTerm(undefined)).toThrow('Cannot add null or undefined term to memory');
     });
 
     test('should handle adding invalid term objects', () => {

@@ -1,6 +1,6 @@
 import TruthValueManager from '../TruthValueManager.js';
 import {createRule} from './rule-factories.js';
-import {isBelief} from '../../utils/index.js';
+import {isBelief} from '../../utils/task-utils.js';
 import Term from '../../core/Term.js';
 
 export default createRule({

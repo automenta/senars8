@@ -1,6 +1,6 @@
 import Task from '../../core/Task.js';
 import {parseTerm} from '../../parser/narseseParser.js';
-import {detectTemporalAnomalies} from './utils.js';
+import {detectTemporalAnomalies} from '../../utils/temporal.js';
 import {debug} from '../../utils/logger.js';
 import {handleErrorWithDefault} from '../../utils/errorHandler.js';
 

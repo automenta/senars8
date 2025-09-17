@@ -65,6 +65,11 @@ class Bag {
         let low = 0;
         let high = this.cumulativePriorities.length - 1;
 
+        // Handle edge case where random is 0
+        if (random === 0) {
+            return this.items[0].item;
+        }
+
         while (low < high) {
             const mid = Math.floor((low + high) / 2);
             if (random > this.cumulativePriorities[mid]) {

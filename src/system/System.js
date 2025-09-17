@@ -3,10 +3,9 @@ import '../utils/onnxSuppression.js';
 
 import registerDefaultActions from './default-actions.js';
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
-import {debug, info, warn} from '../utils/logger.js';
-import {normalizeToArray} from '../utils/index.js';
+import {debug, error as logError, info, warn} from '../utils/logger.js';
+import {normalizeToArray} from '../utils/helpers.js';
 import Introspection from './Introspection.js';
-import ConfigManager from '../config/ConfigManager.js';
 
 const errorHandler = createModuleErrorHandler('System');
 
@@ -22,8 +21,7 @@ class System {
      * @private
      */
     constructor(config = {}, {memory, reasoner, lm, actionExecutor, cycle}) {
-        this.configManager = new ConfigManager(config);
-        this.config = this.configManager.getAll();
+        this.config = config;
         this.memory = memory;
         this.reasoner = reasoner;
         this.lm = lm;
@@ -110,25 +108,28 @@ class System {
      * system.start();
      */
     async start(maxCycles = 0) {
-        if (this.isRunning) {
-            warn('System is already running.');
-            return;
-        }
-        info(`Starting system with maxCycles=${maxCycles || 'infinite'}`);
-        this.isRunning = true;
-        this.cycleCount = 0;
-        this.lm.startEmbeddingProcessor();
+        await errorHandler.safeAsync(async () => {
+            if (this.isRunning) {
+                warn('System is already running.');
+                return;
+            }
+            info(`Starting system with maxCycles=${maxCycles || 'infinite'}`);
+            this.isRunning = true;
+            this.cycleCount = 0;
+            this.lm.startEmbeddingProcessor();
 
-        try {
-            await errorHandler.safeAsync(async () => {
-                while (this.isRunning && (maxCycles === 0 || this.cycleCount < maxCycles)) {
+            while (this.isRunning && (maxCycles === 0 || this.cycleCount < maxCycles)) {
+                try {
                     await this.runCycle();
-                    await new Promise(resolve => setTimeout(resolve, this.configManager.getNumber('cycle.TICK_DELAY_MS', 50)));
+                    await new Promise(resolve => setTimeout(resolve, this.config.cycle?.TICK_DELAY_MS || 50));
+                } catch (err) {
+                    logError('Fatal error during system cycle execution:', err);
+                    this.stop(); // Halt on critical error
+                    throw errorHandler.handle(err, 'start', true);
                 }
-            }, 'start');
-        } finally {
-            this.stop(); // Ensure stop is called when loop finishes or on error
-        }
+            }
+            this.stop(); // Ensure stop is called when loop finishes
+        }, 'start');
     }
 
     /**

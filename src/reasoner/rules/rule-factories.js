@@ -1,5 +1,5 @@
 import Task from '../../core/Task.js';
-import {isBelief} from '../../utils/index.js';
+import {isBelief} from '../../utils/task-utils.js';
 import {parseTerm, validateTermKey} from '../../parser/parse-utils.js';
 import Term from '../../core/Term.js';
 import {debug, error as logError} from '../../utils/logger.js';

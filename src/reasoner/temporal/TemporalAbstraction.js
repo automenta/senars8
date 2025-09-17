@@ -1,4 +1,4 @@
-import {createTemporalAbstraction} from './utils.js';
+import {createTemporalAbstraction} from '../../utils/temporal.js';
 import {debug} from '../../utils/logger.js';
 import {handleErrorWithDefault} from '../../utils/errorHandler.js';
 

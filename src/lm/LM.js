@@ -127,7 +127,7 @@ class LM {
                 });
                 // For Ollama, the "pipeline" is just the invoke method
                 return (prompt, options) => this._llm.invoke(prompt, options);
-            case 'xenova': {
+            case 'xenova':
                 suppressOnnxWarnings();
                 const pipeline = await this._pipelineFactory.get(
                     PIPELINE_TYPES.TEXT_GENERATION,
@@ -136,7 +136,6 @@ class LM {
                 );
                 this._llm = new XenovaLLM(pipeline);
                 return pipeline;
-            }
             default:
                 throw new Error(`Unsupported LLM provider: ${provider}`);
         }

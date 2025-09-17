@@ -8,11 +8,6 @@ import defaultConfig from '../config/default-config.js';
 
 const errorHandler = createModuleErrorHandler('Reasoner');
 
-const STRATEGY_MAP = {
-    BruteForce: BruteForceStrategy,
-    BagSampling: BagSamplingStrategy,
-};
-
 /**
  * Reasoner performs symbolic logical inference on tasks using a set of predefined rules.
  * It supports different strategies for selecting task combinations and can perform both
@@ -26,8 +21,9 @@ class Reasoner {
      * @param {object} config - Reasoner configuration
      */
     constructor({temporalReasoner} = {}, config = defaultConfig.reasoner) {
+        // Validate and set configuration with defaults
         this.config = {
-            strategy: config.strategy || 'BagSampling'
+            strategy: typeof config.strategy === 'string' ? config.strategy : 'BagSampling'
         };
 
         this.temporalReasoner = temporalReasoner || new TemporalReasoner();
@@ -37,7 +33,12 @@ class Reasoner {
     }
 
     _initializeStrategy(strategyName) {
-        const StrategyClass = STRATEGY_MAP[strategyName] || BagSamplingStrategy;
+        const strategies = new Map([
+            ['BruteForce', BruteForceStrategy],
+            ['BagSampling', BagSamplingStrategy]
+        ]);
+
+        const StrategyClass = strategies.get(strategyName) || BagSamplingStrategy;
         return new StrategyClass();
     }
 
@@ -55,35 +56,30 @@ class Reasoner {
         }
 
         const {maxDerivedTasks = Infinity} = options;
-        debug(`Performing inference on ${focusSet.length} tasks with max ${maxDerivedTasks} derived tasks.`);
+        debug(`Performing inference on ${focusSet.length} tasks with max ${maxDerivedTasks} derived tasks`);
 
         const symbolicTasks = this._performSymbolicInference(focusSet, maxDerivedTasks);
-        debug(`Symbolic inference produced ${symbolicTasks.length} tasks.`);
 
-        let temporalTasks = [];
+        let allDerivedTasks;
         if (symbolicTasks.length < maxDerivedTasks) {
-            debug('Performing temporal inference to gather more tasks.');
-            const remainingTasks = maxDerivedTasks - symbolicTasks.length;
-            temporalTasks = this._performTemporalInference(focusSet, remainingTasks);
-            debug(`Temporal inference produced ${temporalTasks.length} tasks.`);
+            const temporalTasks = this._performTemporalInference(focusSet);
+            allDerivedTasks = [...symbolicTasks, ...temporalTasks];
+        } else {
+            allDerivedTasks = symbolicTasks;
         }
 
-        const allDerivedTasks = [...symbolicTasks, ...temporalTasks];
         const finalTasks = allDerivedTasks.slice(0, maxDerivedTasks);
-
-        debug(`Total inference produced ${finalTasks.length} derived tasks.`);
+        debug(`Total inference produced ${finalTasks.length} derived tasks`);
         return finalTasks;
     }
 
     _performSymbolicInference(focusSet, maxDerivedTasks) {
-        const derivedTasks = [];
+        let derivedTasks = [];
         const processedCombinations = new Set();
-        const isTaskLimitReached = () => derivedTasks.length >= maxDerivedTasks;
 
         debug(`Starting symbolic inference with ${this.rules.length} rules`);
-
         for (const rule of this.rules) {
-            if (isTaskLimitReached()) {
+            if (derivedTasks.length >= maxDerivedTasks) {
                 debug(`Reached maximum derived tasks limit of ${maxDerivedTasks}`);
                 break;
             }
@@ -91,29 +87,10 @@ class Reasoner {
                 debug(`Skipping rule ${rule.name} due to invalid arity: ${rule.arity}`);
                 continue;
             }
-
-            try {
-                const combinations = this.strategy.selectCombinations(focusSet, rule.arity);
-                debug(`Rule ${rule.name} selected ${combinations.length} combinations to process`);
-
-                for (const tasks of combinations) {
-                    if (isTaskLimitReached()) {
-                        debug(`Reached maximum derived tasks limit of ${maxDerivedTasks} for rule ${rule.name}`);
-                        break;
-                    }
-                    if (!Array.isArray(tasks) || tasks.length !== rule.arity) {
-                        debug(`Skipping invalid combination for rule ${rule.name}: expected ${rule.arity} tasks, got ${tasks.length}`);
-                        continue;
-                    }
-
-                    const derived = this._applyRule(rule, tasks, processedCombinations);
-                    if (derived) {
-                        derivedTasks.push(derived);
-                        debug(`Rule ${rule.name} produced a new task`);
-                    }
-                }
-            } catch (err) {
-                logError(`Error applying rule ${rule.name}:`, err);
+            const newTasks = this._applyRuleToCombinations(rule, focusSet, processedCombinations, maxDerivedTasks - derivedTasks.length);
+            if (newTasks.length > 0) {
+                derivedTasks = derivedTasks.concat(newTasks);
+                debug(`Rule ${rule.name} produced ${newTasks.length} new tasks`);
             }
         }
 
@@ -121,13 +98,40 @@ class Reasoner {
         return derivedTasks;
     }
 
-    _performTemporalInference(focusSet, maxDerivedTasks) {
+    _applyRuleToCombinations(rule, focusSet, processedCombinations, maxDerivedTasks) {
+        const derivedTasks = [];
+        try {
+            const combinations = this.strategy.selectCombinations(focusSet, rule.arity);
+            debug(`Rule ${rule.name} selected ${combinations.length} combinations to process`);
+
+            for (const tasks of combinations) {
+                if (derivedTasks.length >= maxDerivedTasks) {
+                    debug(`Reached maximum derived tasks limit of ${maxDerivedTasks} for rule ${rule.name}`);
+                    break;
+                }
+                if (!Array.isArray(tasks) || tasks.length !== rule.arity) {
+                    debug(`Skipping invalid combination for rule ${rule.name}: expected ${rule.arity} tasks, got ${tasks.length}`);
+                    continue;
+                }
+
+                const derived = this._applyRule(rule, tasks, processedCombinations);
+                if (derived) {
+                    derivedTasks.push(derived);
+                }
+            }
+        } catch (err) {
+            logError(`Error applying rule ${rule.name}:`, err);
+        }
+        return derivedTasks;
+    }
+
+    _performTemporalInference(focusSet) {
         try {
             debug(`Starting temporal inference on ${focusSet.length} tasks`);
             const temporalTasks = this.temporalReasoner.infer(focusSet);
             if (Array.isArray(temporalTasks)) {
                 debug(`Temporal inference produced ${temporalTasks.length} derived tasks`);
-                return temporalTasks.slice(0, maxDerivedTasks);
+                return temporalTasks;
             }
             debug('Temporal inference returned invalid result, expected array');
             return [];
@@ -153,13 +157,17 @@ class Reasoner {
         processedCombinations.add(combinationKey);
 
         try {
-            if (!this._areOperandsValid(rule, tasks) || !rule.condition(...tasks)) {
-                debug(`Rule ${rule.name} condition not met or operands invalid`);
-                return null;
+            if (this._areOperandsValid(rule, tasks) && rule.condition(...tasks)) {
+                const result = rule.action(...tasks);
+                if (result) {
+                    debug(`Rule ${rule.name} applied successfully`);
+                } else {
+                    debug(`Rule ${rule.name} action returned null/undefined`);
+                }
+                return result;
             }
-            const result = rule.action(...tasks);
-            debug(`Rule ${rule.name} ${result ? 'applied successfully' : 'action returned null/undefined'}`);
-            return result;
+            debug(`Rule ${rule.name} condition not met`);
+            return null;
         } catch (err) {
             logError(`Error applying rule ${rule.name}:`, err);
             return null;
@@ -171,23 +179,27 @@ class Reasoner {
             return false;
         }
 
-        return tasks.every((task, i) => {
+        for (let i = 0; i < tasks.length; i++) {
+            const task = tasks[i];
             const validator = rule.operands[i];
+
             if (typeof validator !== 'function') {
                 logError(`Operand validator at index ${i} for rule ${rule.name} is not a function.`);
                 return false;
             }
+
             try {
-                const isValid = validator(task);
-                if (!isValid) {
+                if (!validator(task)) {
                     debug(`Task at index ${i} failed validation for rule ${rule.name}`);
+                    return false;
                 }
-                return isValid;
             } catch (err) {
                 logError(`Error validating operand at index ${i} for rule ${rule.name}:`, err);
                 return false;
             }
-        });
+        }
+
+        return true;
     }
 
     /**
@@ -212,15 +224,19 @@ class Reasoner {
      * @returns {object} Object containing rule statistics
      */
     getRuleStatistics() {
+        const rulesByArity = new Map();
+        for (const rule of this.rules) {
+            const arity = rule.arity || 0;
+            if (!rulesByArity.has(arity)) {
+                rulesByArity.set(arity, []);
+            }
+            rulesByArity.get(arity).push(rule.name);
+        }
+
         return {
             totalRules: this.rules.length,
             ruleNames: this.getRuleNames(),
-            rulesByArity: this.rules.reduce((acc, rule) => {
-                const arity = rule.arity || 0;
-                acc[arity] = acc[arity] || [];
-                acc[arity].push(rule.name);
-                return acc;
-            }, {})
+            rulesByArity,
         };
     }
 }

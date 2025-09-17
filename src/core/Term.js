@@ -1,5 +1,5 @@
 import {parseTerm} from '../parser/parse-utils.js';
-import {cosineSimilarity} from '../utils/index.js';
+import {cosineSimilarity} from '../utils/math.js';
 import config from '../config/index.js';
 import EmbeddingStore from '../utils/EmbeddingStore.js';
 
@@ -34,8 +34,8 @@ class Term {
         }
         this.#complexity = complexity;
         this.#structure = null;
-        // Use a simple object as cache instead of Map for better performance
-        this.#componentCache = {};
+        // Use a Map for the component cache for better performance with frequent lookups and deletions.
+        this.#componentCache = new Map();
     }
 
     // Getters for private properties
@@ -83,13 +83,13 @@ class Term {
      */
     get terms() {
         // Check cache first
-        if (Object.prototype.hasOwnProperty.call(this.#componentCache, 'terms')) {
-            return this.#componentCache['terms'];
+        if (this.#componentCache.has('terms')) {
+            return this.#componentCache.get('terms');
         }
 
         const structure = this.#getStructure();
         if (!structure || !structure.terms) {
-            this.#componentCache['terms'] = null;
+            this.#componentCache.set('terms', null);
             return null;
         }
 
@@ -101,10 +101,10 @@ class Term {
                 const component = this.#getComponent(`term_${i}`, termStructure);
                 termsArray.push(component);
             }
-            this.#componentCache['terms'] = termsArray;
+            this.#componentCache.set('terms', termsArray);
             return termsArray;
         } catch {
-            this.#componentCache['terms'] = null;
+            this.#componentCache.set('terms', null);
             return null;
         }
     }
@@ -196,7 +196,7 @@ class Term {
             case 'Property':
                 return `(${Term.buildTermKey(pTerm.subject)} --} ${Term.buildTermKey(pTerm.predicate)})`;
             case 'PredictiveImplication':
-                return `(${Term.buildTermKey(pTerm.subject)} => ${Term.buildTermKey(pTerm.predicate)})`;
+                return `(${Term.buildTermKey(pTerm.subject)} =\> ${Term.buildTermKey(pTerm.predicate)})`;
             case 'RetrospectiveImplication':
                 return `(${Term.buildTermKey(pTerm.subject)} =/> ${Term.buildTermKey(pTerm.predicate)})`;
             case 'ConcurrentImplication':
@@ -337,24 +337,20 @@ class Term {
         const regularityBoost = config.temporal.REGULARITY_BOOST;
         const structuralWeight = config.temporal.STRUCTURAL_SIMILARITY_WEIGHT;
 
-        // Convert map to array for more efficient processing
-        const termEntries = Array.from(terms.entries());
         const similarities = [];
 
-        for (let i = 0; i < termEntries.length; i++) {
-            const [key, term] = termEntries[i];
-
+        for (const term of terms.values()) {
             // Skip target term and terms without embeddings
-            if (key === targetTermKey || !term.embedding) {
+            if (term.key === targetTermKey || !term.embedding) {
                 continue;
             }
 
             const semantic = cosineSimilarity(targetTerm.embedding, term.embedding);
-            const structural = Term.structuralSimilarity(targetTermKey, key);
+            const structural = Term.structuralSimilarity(targetTermKey, term.key);
             const similarity = regularityBoost * semantic + structuralWeight * structural;
 
             similarities.push({
-                termKey: key,
+                termKey: term.key,
                 similarity
             });
         }
@@ -428,7 +424,7 @@ class Term {
             EmbeddingStore.release(this.#embeddingRef);
             this.#embeddingRef = null;
         }
-        this.#componentCache = {};
+        this.#componentCache.clear();
         this.#structure = null;
     }
 
@@ -470,13 +466,13 @@ class Term {
      */
     #getComponent(componentName, structure) {
         // Check cache first
-        if (Object.prototype.hasOwnProperty.call(this.#componentCache, componentName)) {
-            return this.#componentCache[componentName];
+        if (this.#componentCache.has(componentName)) {
+            return this.#componentCache.get(componentName);
         }
 
         const termStructure = structure || (this.#getStructure() ? this.#getStructure()[componentName] : null);
         if (!termStructure) {
-            this.#componentCache[componentName] = null;
+            this.#componentCache.set(componentName, null);
             return null;
         }
 
@@ -485,13 +481,13 @@ class Term {
             if (componentKey) {
                 // Create new term and cache it
                 const componentTerm = new Term(componentKey);
-                this.#componentCache[componentName] = componentTerm;
+                this.#componentCache.set(componentName, componentTerm);
                 return componentTerm;
             }
-            this.#componentCache[componentName] = null;
+            this.#componentCache.set(componentName, null);
             return null;
         } catch {
-            this.#componentCache[componentName] = null;
+            this.#componentCache.set(componentName, null);
             return null;
         }
     }
