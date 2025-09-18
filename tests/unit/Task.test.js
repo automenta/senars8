@@ -48,11 +48,12 @@ describe('Task', () => {
     });
 
     test('should throw an error if term is invalid', () => {
-        expect(() => new Task(null, '.')).toThrow('Task term is required');
-        expect(() => new Task({}, '.')).toThrow('Task term must have a valid key property');
+        const expectedError = 'Task term must be a non-empty string or a valid object with a key property';
+        expect(() => new Task(null, '.')).toThrow(expectedError);
+        expect(() => new Task({}, '.')).toThrow(expectedError);
         expect(() => new Task({
             key: ''
-        }, '.')).toThrow('Task term must have a valid key property');
+        }, '.')).toThrow(expectedError);
     });
 
     test('should throw an error if punctuation is invalid', () => {

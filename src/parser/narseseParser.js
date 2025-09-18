@@ -131,26 +131,35 @@ class NarseseParser {
 
     parseCompoundTerm() {
         this.consume(TOKEN.LPAREN);
-        if (this.current?.type in OPERATOR_MAP) return this.parseOperator();
-        const subject = this.parseTerm();
-        const relationType = BINARY_RELATION_MAP[this.current?.type];
-        if (relationType) return this.parseBinaryRelation(subject, this.current.type, relationType);
+        let term;
+        if (this.current?.type in OPERATOR_MAP) {
+            term = this.parseOperator();
+        } else {
+            const subject = this.parseTerm();
+            if (this.current?.type in BINARY_RELATION_MAP) {
+                const relationType = BINARY_RELATION_MAP[this.current.type];
+                term = this.parseBinaryRelation(subject, this.current.type, relationType);
+            } else {
+                term = subject;
+            }
+        }
         this.consume(TOKEN.RPAREN);
-        return subject;
+        return term;
     }
 
     parseOperator() {
-        const operatorType = this.consume(this.current.type);
+        const operatorTokenType = this.current.type;
+        this.consume(operatorTokenType);
         this.consume(TOKEN.COMMA);
-        const isBinary = operatorType in BINARY_OPERATOR_MAP;
+        const isBinary = operatorTokenType in BINARY_OPERATOR_MAP;
         const result = isBinary ? {
-            terms: this.parseTermList()
+            terms: this.parseTermList(TOKEN.RPAREN)
         } : {
             term: this.parseTerm()
         };
-        this.consume(TOKEN.RPAREN);
+        // this.consume(TOKEN.RPAREN); // This was the bug
         return {
-            type: OPERATOR_MAP[operatorType],
+            type: OPERATOR_MAP[operatorTokenType],
             ...result
         };
     }
@@ -158,7 +167,7 @@ class NarseseParser {
     parseBinaryRelation(subject, tokenType, relationType) {
         this.consume(tokenType);
         const predicate = this.parseTerm();
-        this.consume(TOKEN.RPAREN);
+        // this.consume(TOKEN.RPAREN); // This was the bug
         return {
             type: relationType,
             subject,
@@ -195,11 +204,9 @@ class NarseseParser {
     parseTermList(closingToken) {
         const terms = [];
         if (!this.match(closingToken)) {
-            terms.push(this.parseTerm());
-            while (this.match(TOKEN.COMMA)) {
-                this.consume(TOKEN.COMMA);
+            do {
                 terms.push(this.parseTerm());
-            }
+            } while (this.match(TOKEN.COMMA) && this.consume(TOKEN.COMMA));
         }
         return terms;
     }

@@ -166,9 +166,7 @@ function inferTemporalImplications(task1, task2) {
         },
     };
 
-    const implicationTask = implications[relationship] ?
-.
-    ();
+    const implicationTask = implications[relationship] ? implications[relationship]() : null;
     return implicationTask ? [implicationTask] : [];
 }
 

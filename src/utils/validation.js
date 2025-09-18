@@ -31,20 +31,11 @@ function validateTask(value, name = 'Value') {
 }
 
 function validateTerm(term, name = 'Term') {
-    if (term === null || term === undefined) {
-        throw new Error(`${name} is required`);
-    }
+    const isValidString = typeof term === 'string' && term.length > 0;
+    const isValidObject = typeof term === 'object' && term !== null && typeof term.key === 'string' && term.key.length > 0;
 
-    if (typeof term === 'string') {
-        if (term.length === 0) {
-            throw new Error(`${name} must be a non-empty string`);
-        }
-    } else if (typeof term === 'object') {
-        if (!term.key || typeof term.key !== 'string' || term.key.length === 0) {
-            throw new Error(`${name} must have a valid key property`);
-        }
-    } else {
-        throw new Error(`${name} must be a string or object`);
+    if (!isValidString && !isValidObject) {
+        throw new Error(`${name} must be a non-empty string or a valid object with a key property`);
     }
 }
 

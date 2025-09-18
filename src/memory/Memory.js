@@ -71,7 +71,9 @@ class Memory {
     }
 
     addTerm(term) {
-        if (!(term instanceof Term)) throw new Error(`Invalid term type: ${typeof term}`);
+        if (!(term instanceof Term)) {
+            throw new Error('Can only add valid Term instances to memory');
+        }
         if (this.terms.has(term.key)) {
             debug(`Term '${term.key}' already exists, skipping.`);
             return;
