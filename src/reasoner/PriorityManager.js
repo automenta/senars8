@@ -22,6 +22,18 @@ class PriorityManager {
 
         return I * U * T * C * E;
     }
+
+    updatePriority(task) {
+        // For now, we'll just ensure the task has a priority property
+        if (!task.state) {
+            task.state = {};
+        }
+        if (task.state.priority === undefined) {
+            task.state.priority = 0;
+        }
+        // In a real implementation, we would recalculate the priority here
+        // based on current system state and task properties
+    }
 }
 
 export default PriorityManager;

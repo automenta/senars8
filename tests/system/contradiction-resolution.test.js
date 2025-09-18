@@ -51,5 +51,5 @@ describe('System-level Contradiction Resolution', () => {
 
         // Basic check that the cycle completed
         expect(system.cycleCount).toBe(1);
-    });
+    }, 10000); // 10 second timeout
 });

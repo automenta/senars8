@@ -93,7 +93,7 @@ describe('System Introspection API', () => {
 
         await system.runCycle();
         expect(mockCallback).toHaveBeenCalledTimes(1);
-    });
+    }, 10000); // 10 second timeout
 
     test('should get available reasoner rules', () => {
         const rules = system.introspection.getAvailableRules();

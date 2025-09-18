@@ -1,12 +1,7 @@
-#!/usr/bin/env node
-
 import UnitTestAnalyzer from '../../src/analyzer/index.js';
 
-// This is a comprehensive test to verify the analyzer works with various data types
-async function runIntegrationTest() {
-    console.log("=== Unit Test Analyzer Integration Test ===\n");
-    
-    try {
+describe('Analyzer Integration Test', () => {
+    test('should analyze test data and generate reports', async () => {
         // Create analyzer with all features enabled
         const analyzer = new UnitTestAnalyzer({
             enableCoverageAnalysis: true,
@@ -60,65 +55,42 @@ async function runIntegrationTest() {
         };
         
         // Process the data
-        console.log("Processing test data with coverage and profiling...");
         const results = await analyzer.analyzeTestData(testData, coverageData, profilingData);
         
-        if (!results) {
-            console.error("❌ Analysis failed!");
-            return;
-        }
-        
         // Verify we got results
-        console.log("✅ Analysis completed successfully");
-        console.log(`✅ Found ${results.issues.length} issues`);
-        console.log(`✅ Generated ${results.recommendations.length} recommendations`);
-        console.log(`✅ Identified ${results.patterns.length} patterns`);
+        expect(results).not.toBeNull();
+        expect(results.issues).toBeDefined();
+        expect(results.recommendations).toBeDefined();
+        expect(results.patterns).toBeDefined();
         
         // Test report generation
-        console.log("\nTesting report generation...");
-        
         // JSON report
         const jsonReport = analyzer.generateReport('json');
-        console.log("✅ JSON report generated");
+        expect(jsonReport).toBeDefined();
         
         // Text report
         const textReport = analyzer.generateReport('text');
-        console.log("✅ Text report generated");
+        expect(textReport).toBeDefined();
         
         // HTML report
         const htmlReport = await analyzer.generateDetailedReport('html');
-        console.log("✅ HTML report generated");
+        expect(htmlReport).toBeDefined();
         
         // Markdown report
         const mdReport = await analyzer.generateDetailedReport('markdown');
-        console.log("✅ Markdown report generated");
-        
-        // Verify content
-        if (jsonReport && textReport && htmlReport && mdReport) {
-            console.log("✅ All report formats generated successfully");
-        } else {
-            console.log("❌ Some report formats failed to generate");
-        }
-        
-        // Test error handling
-        console.log("\nTesting error handling...");
-        
-        try {
-            await analyzer.generateDetailedReport('unsupported-format');
-            console.log("❌ Should have thrown an error for unsupported format");
-        } catch (error) {
-            console.log("✅ Correctly handled unsupported format error");
-        }
-        
-        console.log("\n=== INTEGRATION TEST COMPLETE ===");
-        console.log("🎉 All tests passed! The Unit Test Analyzer is working correctly.");
-        
-    } catch (error) {
-        console.error("❌ Integration test failed:", error.message);
-        console.error(error.stack);
-        process.exit(1);
-    }
-}
+        expect(mdReport).toBeDefined();
+    });
 
-// Run the integration test
-runIntegrationTest();
+    test('should handle unsupported format error', async () => {
+        const analyzer = new UnitTestAnalyzer();
+        
+        // First run analysis to have data
+        await analyzer.analyzeTestData({
+            testResults: []
+        }, {}, {});
+        
+        // Test error handling - expect null due to error handling wrapper
+        const result = await analyzer.generateDetailedReport('unsupported-format');
+        expect(result).toBeNull();
+    });
+});

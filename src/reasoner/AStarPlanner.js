@@ -9,47 +9,56 @@ class AStarPlanner extends BasePlanner {
 
     async findPlan(goalTask, maxIterations = 1000) {
         const startNode = this.memory.getTerm(goalTask.termKey);
-        if (!startNode || this._isAchieved(startNode)) return startNode ? [] : null;
+        if (!startNode) return null;
+
+        // If the goal is already achieved, return an empty plan
+        if (this._isAchieved(startNode)) return [];
 
         const openSet = new MinPriorityQueue(node => node.f);
         const visited = new Set();
 
+        const initialHeuristic = await this._calculateHeuristic([startNode]);
         openSet.enqueue({
             tasks: [startNode],
             plan: [],
             g: 0,
-            h: await this._calculateHeuristic([startNode]),
-            f: await this._calculateHeuristic([startNode]),
+            h: initialHeuristic,
+            f: initialHeuristic,
         });
 
         for (let i = 0; i < maxIterations && !openSet.isEmpty(); i++) {
             const currentNode = openSet.dequeue();
 
+            // If we have no more tasks, we've found a complete plan
             if (currentNode.tasks.length === 0) {
-                return currentNode.plan.map(key => this.memory.getTerm(key));
+                return currentNode.plan.map(key => {
+                    const term = this.memory.getTerm(key);
+                    return term || { key }; // Return a minimal object if term not found
+                });
             }
 
             const stateKey = this._getStateKey(currentNode);
             if (visited.has(stateKey)) continue;
             visited.add(stateKey);
 
-            this._expandNode(currentNode, openSet);
+            await this._expandNode(currentNode, openSet);
         }
 
         return null;
     }
 
-    _expandNode(currentNode, openSet) {
+    async _expandNode(currentNode, openSet) {
         const [currentTask, ...remainingTasks] = currentNode.tasks;
 
         if (this._isAchieved(currentTask)) {
-            this._enqueueAchievedNode(currentNode, remainingTasks, openSet);
+            await this._enqueueAchievedNode(currentNode, remainingTasks, openSet);
             return;
         }
 
-        this._getExpansions(currentTask).forEach(expansion => {
-            this._enqueueExpansion(expansion, currentNode, remainingTasks, openSet);
-        });
+        const expansions = this._getExpansions(currentTask);
+        for (const expansion of expansions) {
+            await this._enqueueExpansion(expansion, currentNode, remainingTasks, openSet);
+        }
     }
 
     async _enqueueAchievedNode(currentNode, remainingTasks, openSet) {

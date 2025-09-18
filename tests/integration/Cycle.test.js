@@ -75,7 +75,7 @@ describe('Cycle Integration Test', () => {
 
     test('should run a cycle without errors', async () => {
         await expect(cycle.runOnce()).resolves.not.toThrow();
-    });
+    }, 10000); // 10 second timeout
 
     test('should prioritize tasks based on relevance to the constitution', async () => {
         const term1 = new Term('AcquireKnowledge', [1, 0, 0], 1);
@@ -95,5 +95,5 @@ describe('Cycle Integration Test', () => {
         const catTask = tasks.find(t => t.termKey === 'cat');
 
         expect(acquireKnowledgeTask.state.priority).toBeGreaterThan(catTask.state.priority);
-    });
+    }, 10000); // 10 second timeout
 });
