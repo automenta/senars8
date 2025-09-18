@@ -7,6 +7,7 @@ import {validateString} from '../utils/validation.js';
 import BaseEntity from './BaseEntity.js';
 import {isNonEmptyArray} from '../utils/arrayUtils.js';
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import lexer from '../parser/lexer.js';
 
 const errorHandler = createModuleErrorHandler('Term');
 
@@ -145,24 +146,69 @@ class Term extends BaseEntity {
     }
 
     static structuralSimilarity(termKey1, termKey2) {
-        if (termKey1 === termKey2) return 1.0;
-        const len1 = termKey1.length;
-        const len2 = termKey2.length;
-        if (len1 < 2 || len2 < 2) return 0;
+        if (termKey1 === termKey2) {
+            return 1.0;
+        }
 
-        const bigrams1 = new Set();
-        for (let i = 0; i < len1 - 1; i++) {
-            bigrams1.add(termKey1.substring(i, i + 2));
+        const getTokens = (text) => {
+            const l = lexer.clone().reset(text);
+            const tokens = [];
+            for (let tok = l.next(); tok; tok = l.next()) {
+                if (tok.type !== 'whitespace') {
+                    tokens.push(tok.value);
+                }
+            }
+            return tokens;
+        };
+
+        const tokens1 = getTokens(termKey1);
+        const tokens2 = getTokens(termKey2);
+
+        if (tokens1.length === 1 && tokens2.length === 1) {
+            const len1 = termKey1.length;
+            const len2 = termKey2.length;
+            if (len1 < 2 || len2 < 2) return 0;
+
+            const bigrams1 = new Set();
+            for (let i = 0; i < len1 - 1; i++) {
+                bigrams1.add(termKey1.substring(i, i + 2));
+            }
+
+            let intersection = 0;
+            for (let i = 0; i < len2 - 1; i++) {
+                if (bigrams1.has(termKey2.substring(i, i + 2))) {
+                    intersection++;
+                }
+            }
+
+            return (2 * intersection) / (len1 + len2 - 2);
+        }
+
+        if (tokens1.length === 0 && tokens2.length === 0) {
+            return 1.0;
+        }
+        if (tokens1.length === 0 || tokens2.length === 0) {
+            return 0.0;
+        }
+
+        const map1 = new Map();
+        for (const token of tokens1) {
+            map1.set(token, (map1.get(token) || 0) + 1);
+        }
+
+        const map2 = new Map();
+        for (const token of tokens2) {
+            map2.set(token, (map2.get(token) || 0) + 1);
         }
 
         let intersection = 0;
-        for (let i = 0; i < len2 - 1; i++) {
-            if (bigrams1.has(termKey2.substring(i, i + 2))) {
-                intersection++;
+        for (const [token, count1] of map1.entries()) {
+            if (map2.has(token)) {
+                intersection += Math.min(count1, map2.get(token));
             }
         }
 
-        return (2 * intersection) / (len1 + len2 - 2);
+        return (2 * intersection) / (tokens1.length + tokens2.length);
     }
 
     static findSimilarTerms(terms, targetTermKey, maxResults = 10) {

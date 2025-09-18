@@ -10,7 +10,7 @@ function extractSubTasksFromMethod(methodTerm) {
 function isAchieved(term, memory, config) {
     if (!term) return false;
     const beliefs = memory.indexer.beliefIndex.get(term.key);
-    return beliefs?.some(belief => belief.state.truthValue.confidence >= config.confidenceThreshold);
+    return !!beliefs?.some(belief => belief.state.truthValue.confidence >= config.confidenceThreshold);
 }
 
 function arePreconditionsMet(preconditions, memory, config) {
