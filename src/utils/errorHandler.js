@@ -40,14 +40,14 @@ class MemoryError extends Error {
     }
 }
 
-function logAndReturn(error, context, returnValue = null) {
+const logAndReturn = (error, context, returnValue = null) => {
     const preparedError = prepareErrorForLogging(error);
     const fullContext = context ? `[${context}] ` : '';
     logError(`${fullContext}${preparedError.message}`, preparedError);
     return returnValue;
-}
+};
 
-function logAndThrow(error, context) {
+const logAndThrow = (error, context) => {
     const preparedError = prepareErrorForLogging(error);
     if (context && !/\[.*?\]/.test(preparedError.message)) {
         preparedError.message = `[${context}] ${preparedError.message}`;
@@ -63,9 +63,9 @@ function logAndThrow(error, context) {
 
     logError(preparedError.message, preparedError);
     throw preparedError;
-}
+};
 
-function prepareErrorForLogging(error) {
+const prepareErrorForLogging = error => {
     if (error == null) {
         const nullError = new Error('Null or undefined error');
         nullError.originalStack = new Error().stack;
@@ -75,52 +75,47 @@ function prepareErrorForLogging(error) {
         error.originalStack = error.stack;
     }
     return error;
-}
+};
 
-function isKnownErrorType(error) {
-    return error instanceof ValidationError ||
-        error instanceof ParseError ||
-        error instanceof InferenceError ||
-        error instanceof PlanningError ||
-        error instanceof MemoryError;
-}
+const isKnownErrorType = error => 
+    error instanceof ValidationError ||
+    error instanceof ParseError ||
+    error instanceof InferenceError ||
+    error instanceof PlanningError ||
+    error instanceof MemoryError;
 
-function handleError(error, context, shouldThrow = true) {
-    return shouldThrow ? logAndThrow(error, context) : logAndReturn(error, context, null);
-}
+const handleError = (error, context, shouldThrow = true) => 
+    shouldThrow ? logAndThrow(error, context) : logAndReturn(error, context, null);
 
-function handleErrorWithDefault(error, context, defaultValue = null) {
-    return logAndReturn(error, context, defaultValue);
-}
+const handleErrorWithDefault = (error, context, defaultValue = null) => 
+    logAndReturn(error, context, defaultValue);
 
-async function safeAsync(operation, context, defaultValue = null) {
+const safeAsync = async (operation, context, defaultValue = null) => {
     try {
         return await operation();
     } catch (error) {
         return handleErrorWithDefault(error, context, defaultValue);
     }
-}
+};
 
-function safeSync(operation, context, defaultValue = null) {
+const safeSync = (operation, context, defaultValue = null) => {
     try {
         return operation();
     } catch (error) {
         return handleErrorWithDefault(error, context, defaultValue);
     }
-}
+};
 
-function createModuleErrorHandler(moduleName) {
-    return {
-        handle: (error, context, shouldThrow = true) =>
-            handleError(error, `${moduleName}.${context}`, shouldThrow),
-        handleWithDefault: (error, context, defaultValue = null) =>
-            handleErrorWithDefault(error, `${moduleName}.${context}`, defaultValue),
-        safeAsync: (operation, context, defaultValue = null) =>
-            safeAsync(operation, `${moduleName}.${context}`, defaultValue),
-        safeSync: (operation, context, defaultValue = null) =>
-            safeSync(operation, `${moduleName}.${context}`, defaultValue),
-    };
-}
+const createModuleErrorHandler = moduleName => ({
+    handle: (error, context, shouldThrow = true) =>
+        handleError(error, `${moduleName}.${context}`, shouldThrow),
+    handleWithDefault: (error, context, defaultValue = null) =>
+        handleErrorWithDefault(error, `${moduleName}.${context}`, defaultValue),
+    safeAsync: (operation, context, defaultValue = null) =>
+        safeAsync(operation, `${moduleName}.${context}`, defaultValue),
+    safeSync: (operation, context, defaultValue = null) =>
+        safeSync(operation, `${moduleName}.${context}`, defaultValue),
+});
 
 const createValidationError = (message, context = null) => new ValidationError(message, context);
 const createParseError = (message, context = null) => new ParseError(message, context);

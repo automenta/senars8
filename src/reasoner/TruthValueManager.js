@@ -50,18 +50,14 @@ class TruthValueManager {
         if (!evidenceSources?.length) return currentTruthValue;
 
         const {
-            totalWeightedFrequency,
-            totalWeight,
-            maxConfidence
+            totalWeightedFrequency: weightedFreq,
+            totalWeight: totalWt,
+            maxConfidence: maxConf
         } = evidenceSources.reduce(
-            ({
-                 totalWeightedFrequency,
-                 totalWeight,
-                 maxConfidence
-             }, evidence) => ({
-                totalWeightedFrequency: totalWeightedFrequency + evidence.frequency * evidence.confidence,
-                totalWeight: totalWeight + evidence.confidence,
-                maxConfidence: Math.max(maxConfidence, evidence.confidence),
+            (acc, evidence) => ({
+                totalWeightedFrequency: acc.totalWeightedFrequency + evidence.frequency * evidence.confidence,
+                totalWeight: acc.totalWeight + evidence.confidence,
+                maxConfidence: Math.max(acc.maxConfidence, evidence.confidence),
             }), {
                 totalWeightedFrequency: currentTruthValue.frequency * currentTruthValue.confidence,
                 totalWeight: currentTruthValue.confidence,
@@ -70,8 +66,8 @@ class TruthValueManager {
         );
 
         return {
-            frequency: totalWeightedFrequency / totalWeight,
-            confidence: Math.min(1.0, maxConfidence),
+            frequency: weightedFreq / totalWt,
+            confidence: Math.min(1.0, maxConf),
         };
     }
 

@@ -73,7 +73,7 @@ describe('Unit Test Analyzer Components', () => {
             }]
         };
 
-        const results = await analyzer.analyzeTestData(mockData);
+        await analyzer.analyzeTestData(mockData);
 
         // Test JSON report
         const jsonReport = analyzer.generateReport('json');

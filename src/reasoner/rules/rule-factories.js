@@ -7,13 +7,7 @@ import {createModuleErrorHandler} from '../../utils/errorHandler.js';
 const errorHandler = createModuleErrorHandler('rule-factories');
 
 function createRule(spec) {
-    const {
-        name,
-        arity,
-        operands,
-        condition,
-        action
-    } = spec;
+    const {name, arity, operands, condition, action} = spec;
 
     if (!name || !arity || !operands || !condition || !action) {
         throw new Error('Rule spec is missing required fields.');

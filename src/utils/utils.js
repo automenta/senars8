@@ -27,7 +27,7 @@ const task = {
     getGoalTasks,
     getQuestionTasks,
     // Generic versions
-    isType: (task, type) => task?.punctuation === type,
+    isType: (item, type) => item?.punctuation === type,
     getByPunctuation: (tasks, punctuation) => getTasksByType(tasks, punctuation)
 };
 
@@ -52,7 +52,7 @@ const id = {
 };
 
 // Consolidated task type checking functions
-const isTaskType = (task, type) => task?.punctuation === type;
+const isTaskType = (item, type) => item?.punctuation === type;
 
 const getTasksByPunctuation = (tasks, punctuation) => {
     if (!Array.isArray(tasks)) {

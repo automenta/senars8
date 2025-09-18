@@ -12,7 +12,7 @@ class AnalysisEngine {
         };
     }
 
-    async analyze(narseseData, config = {}) {
+    async analyze(narseseData, _config = {}) {
         return errorHandler.safeAsync(async () => {
             const analysis = {
                 issues: [],

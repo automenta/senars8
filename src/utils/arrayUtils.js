@@ -1,9 +1,9 @@
-function filterByProperty(array, property, value) {
+const filterByProperty = (array, property, value) => {
     if (!Array.isArray(array)) return [];
     return array.filter(item => item && item[property] === value);
-}
+};
 
-const normalizeToArray = input => (Array.isArray(input) ? input : [input]);
+const normalizeToArray = input => Array.isArray(input) ? input : [input];
 
 const isNonEmptyArray = input => Array.isArray(input) && input.length > 0;
 

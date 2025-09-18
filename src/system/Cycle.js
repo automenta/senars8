@@ -12,7 +12,7 @@ class Cycle {
         this.cycleCount = 0;
     }
 
-    async bootstrap(constitutionTasks) {
+    async bootstrap(_constitutionTasks) {
         // Bootstrap method - can be empty for now or add initialization logic if needed
         info('Cycle: Bootstrap completed');
     }
