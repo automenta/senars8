@@ -1,4 +1,4 @@
-import { createModuleErrorHandler } from '../utils/errorHandler.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
 
 const errorHandler = createModuleErrorHandler('AnalysisEngine');
 
@@ -11,7 +11,7 @@ class AnalysisEngine {
             ...config
         };
     }
-    
+
     async analyze(narseseData, config = {}) {
         return errorHandler.safeAsync(async () => {
             const analysis = {
@@ -21,32 +21,32 @@ class AnalysisEngine {
                 metrics: {},
                 summary: {}
             };
-            
+
             // Analyze test failures
             this._analyzeTestFailures(narseseData, analysis);
-            
+
             // Analyze coverage issues
             this._analyzeCoverageIssues(narseseData, analysis);
-            
+
             // Analyze performance bottlenecks
             this._analyzePerformance(narseseData, analysis);
-            
+
             // Identify patterns and correlations
             this._identifyPatterns(narseseData, analysis);
-            
+
             // Generate summary metrics
             this._generateSummary(analysis);
-            
+
             return analysis;
         }, 'analyze', null);
     }
-    
+
     _analyzeTestFailures(narseseData, analysis) {
         // Find all failed tests
-        const failedTests = narseseData.facts.filter(fact => 
+        const failedTests = narseseData.facts.filter(fact =>
             fact.term.key.includes('has_status failed')
         );
-        
+
         failedTests.forEach(fact => {
             const testKey = fact.term.key.match(/\((test_[^ ]+) has_status failed\)/)?.[1];
             if (testKey) {
@@ -59,7 +59,7 @@ class AnalysisEngine {
                 });
             }
         });
-        
+
         // Find common error patterns
         const errorPatterns = {};
         narseseData.facts.forEach(fact => {
@@ -72,7 +72,7 @@ class AnalysisEngine {
                 errorPatterns[pattern].push(testKey);
             }
         });
-        
+
         // Report common patterns
         Object.entries(errorPatterns).forEach(([pattern, tests]) => {
             if (tests.length > 1) {
@@ -83,7 +83,7 @@ class AnalysisEngine {
                     count: tests.length,
                     description: `${tests.length} tests have the same error pattern: ${pattern}`
                 });
-                
+
                 analysis.issues.push({
                     type: 'common_error_pattern',
                     severity: 'medium',
@@ -95,15 +95,15 @@ class AnalysisEngine {
             }
         });
     }
-    
+
     _analyzeCoverageIssues(narseseData, analysis) {
         // Find low coverage files
         const lowCoverageFacts = narseseData.facts.filter(fact => {
             const key = fact.term.key;
             return (key.includes('_coverage low') || key.includes('_coverage very_low')) &&
-                   fact.truth.frequency < 0.8; // Below 80%
+                fact.truth.frequency < 0.8; // Below 80%
         });
-        
+
         lowCoverageFacts.forEach(fact => {
             const match = fact.term.key.match(/\((file_[^ ]+) ([^ ]+)_coverage ([^)]+)\)/);
             if (match) {
@@ -117,7 +117,7 @@ class AnalysisEngine {
                     coverageType: coverageType,
                     coverageLevel: level
                 });
-                
+
                 analysis.recommendations.push({
                     type: 'increase_coverage',
                     priority: level === 'very_low' ? 'high' : 'medium',
@@ -128,14 +128,14 @@ class AnalysisEngine {
             }
         });
     }
-    
+
     _analyzePerformance(narseseData, analysis) {
         // Find performance bottlenecks
-        const bottlenecks = narseseData.facts.filter(fact => 
-            fact.term.key.includes('is_bottleneck') && 
+        const bottlenecks = narseseData.facts.filter(fact =>
+            fact.term.key.includes('is_bottleneck') &&
             fact.truth.frequency > 0.7
         );
-        
+
         bottlenecks.forEach(fact => {
             const funcKey = fact.term.key.match(/\((function_[^ ]+) is_bottleneck\)/)?.[1];
             if (funcKey) {
@@ -146,7 +146,7 @@ class AnalysisEngine {
                     description: `Function ${funcKey} is a performance bottleneck`,
                     confidence: fact.truth.confidence
                 });
-                
+
                 analysis.recommendations.push({
                     type: 'optimize_function',
                     priority: 'high',
@@ -156,14 +156,14 @@ class AnalysisEngine {
                 });
             }
         });
-        
+
         // Find slow functions
         const slowFunctions = narseseData.facts.filter(fact => {
             const key = fact.term.key;
             return (key.includes('performance slow') || key.includes('performance very_slow')) &&
-                   fact.truth.frequency < 0.5; // Poor performance
+                fact.truth.frequency < 0.5; // Poor performance
         });
-        
+
         slowFunctions.forEach(fact => {
             const match = fact.term.key.match(/\((function_[^ ]+) performance ([^)]+)\)/);
             if (match) {
@@ -178,12 +178,12 @@ class AnalysisEngine {
             }
         });
     }
-    
+
     _identifyPatterns(narseseData, analysis) {
         // Find implications that suggest root causes
         narseseData.implications.forEach(implication => {
             const key = implication.term.key;
-            
+
             // Pattern: test failure implies suite has failures
             const suiteFailureMatch = key.match(/\(\((test_[^ ]+) has_status failed\) ==> \((test_suite_[^ ]+) has_failures\)\)/);
             if (suiteFailureMatch) {
@@ -195,11 +195,11 @@ class AnalysisEngine {
                     description: `Failure in ${testKey} contributes to suite ${suiteKey} failures`
                 });
             }
-            
+
             // Pattern: slow function implies bottleneck
             const bottleneckMatch = key.match(/\(\((function_[^ ]+) performance (slow|very_slow)\) ==> \((function_[^ ]+) is_bottleneck\)\)/);
             if (bottleneckMatch) {
-                const [, funcKey, , ] = bottleneckMatch;
+                const [, funcKey, ,] = bottleneckMatch;
                 analysis.patterns.push({
                     type: 'performance_causation',
                     function: funcKey,
@@ -207,7 +207,7 @@ class AnalysisEngine {
                 });
             }
         });
-        
+
         // Find common entities across different issue types
         const entityIssues = {};
         analysis.issues.forEach(issue => {
@@ -218,7 +218,7 @@ class AnalysisEngine {
                 entityIssues[issue.entity].push(issue);
             }
         });
-        
+
         Object.entries(entityIssues).forEach(([entity, issues]) => {
             if (issues.length > 1) {
                 analysis.patterns.push({
@@ -231,7 +231,7 @@ class AnalysisEngine {
             }
         });
     }
-    
+
     _generateSummary(analysis) {
         const summary = {
             totalIssues: analysis.issues.length,
@@ -241,7 +241,7 @@ class AnalysisEngine {
             totalRecommendations: analysis.recommendations.length,
             highPriorityRecommendations: analysis.recommendations.filter(r => r.priority === 'high').length
         };
-        
+
         // Categorize issues
         const issueTypes = {};
         analysis.issues.forEach(issue => {
@@ -251,7 +251,7 @@ class AnalysisEngine {
             issueTypes[issue.type]++;
         });
         summary.issueTypes = issueTypes;
-        
+
         analysis.summary = summary;
     }
 }

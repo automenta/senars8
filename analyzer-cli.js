@@ -2,7 +2,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import {fileURLToPath} from 'url';
 import UnitTestAnalyzer from '../src/analyzer/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 
 async function main() {
     const args = process.argv.slice(2);
-    
+
     if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
         console.log(`
 Unit Test Analyzer - SeNARS-powered test diagnostics
@@ -32,7 +32,7 @@ Examples:
         `);
         process.exit(0);
     }
-    
+
     // Parse arguments
     const options = {};
     for (let i = 0; i < args.length; i++) {
@@ -55,45 +55,45 @@ Examples:
                 break;
         }
     }
-    
+
     // Validate required files
     if (!options.testResults) {
         console.error('Error: --test-results is required');
         process.exit(1);
     }
-    
+
     try {
         // Load data files
         const testData = JSON.parse(fs.readFileSync(options.testResults, 'utf8'));
         const coverageData = options.coverage ? JSON.parse(fs.readFileSync(options.coverage, 'utf8')) : null;
         const profilingData = options.profiling ? JSON.parse(fs.readFileSync(options.profiling, 'utf8')) : null;
-        
+
         // Create analyzer
         const analyzer = new UnitTestAnalyzer({
             enableCoverageAnalysis: !!coverageData,
             enablePerformanceAnalysis: !!profilingData
         });
-        
+
         // Analyze data
         console.log('Analyzing test data...');
         const results = await analyzer.analyzeTestData(testData, coverageData, profilingData);
-        
+
         if (!results) {
             console.error('Analysis failed');
             process.exit(1);
         }
-        
+
         // Generate report
         const format = options.format || 'text';
         console.log(`Generating ${format} report...`);
-        
+
         let report;
         if (format === 'html' || format === 'markdown') {
             report = await analyzer.generateDetailedReport(format);
         } else {
             report = analyzer.generateReport(format);
         }
-        
+
         // Output report
         if (options.output) {
             fs.writeFileSync(options.output, report);
@@ -101,7 +101,7 @@ Examples:
         } else {
             console.log(report);
         }
-        
+
     } catch (error) {
         console.error('Error:', error.message);
         process.exit(1);

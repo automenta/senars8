@@ -1,6 +1,5 @@
 import MemoryIndexer from '../../src/memory/MemoryIndexer.js';
 import Task from '../../src/core/Task.js';
-import Term from '../../src/core/Term.js';
 import {parseTerm} from '../../src/parser/narseseParser.js';
 
 describe('MemoryIndexer', () => {

@@ -30,14 +30,14 @@ class Cycle {
             } = await this._processFocusSet(focusSet);
 
             this.system.memory.addTasks(derivedTasks);
-            
+
             // Convert actionable goals to proper action objects
             const actions = actionableGoals.map(goal => ({
                 name: 'achieve',
                 parameters: [goal.termKey],
                 goal: goal
             }));
-            
+
             // Execute each action individually
             for (const action of actions) {
                 await this.system.actionExecutor.execute(action);
@@ -74,7 +74,7 @@ class Cycle {
                 actionableGoals: []
             };
         }
-        
+
         const derivedTasks = await this.system.reasoner.performInference(focusSet);
         const allTasks = [...focusSet, ...derivedTasks];
         const actionableGoals = getGoalTasks(allTasks).filter(goal =>

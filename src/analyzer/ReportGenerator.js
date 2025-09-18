@@ -1,4 +1,4 @@
-import { createModuleErrorHandler } from '../utils/errorHandler.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
 
 const errorHandler = createModuleErrorHandler('ReportGenerator');
 
@@ -10,7 +10,7 @@ class ReportGenerator {
             ...config
         };
     }
-    
+
     generate(analysisResults, format = 'json') {
         return errorHandler.safeSync(() => {
             switch (format.toLowerCase()) {
@@ -23,7 +23,7 @@ class ReportGenerator {
             }
         }, 'generate', null);
     }
-    
+
     async generateDetailed(analysisResults, format = 'html') {
         return errorHandler.safeAsync(async () => {
             switch (format.toLowerCase()) {
@@ -36,15 +36,15 @@ class ReportGenerator {
             }
         }, 'generate-detailed', null);
     }
-    
+
     _generateJsonReport(analysisResults) {
         return JSON.stringify(analysisResults, null, 2);
     }
-    
+
     _generateTextReport(analysisResults) {
         let report = 'Unit Test Analysis Report\n';
         report += '========================\n\n';
-        
+
         // Summary
         const summary = analysisResults.summary;
         report += 'SUMMARY\n';
@@ -54,7 +54,7 @@ class ReportGenerator {
         report += `Major Issues: ${summary.majorIssues}\n`;
         report += `Minor Issues: ${summary.minorIssues}\n`;
         report += `Recommendations: ${summary.totalRecommendations}\n\n`;
-        
+
         // Issues
         report += 'ISSUES\n';
         report += '------\n';
@@ -63,11 +63,11 @@ class ReportGenerator {
             report += `   Entity: ${issue.entity || 'N/A'}\n`;
             report += `   Confidence: ${(issue.confidence * 100).toFixed(1)}%\n\n`;
         });
-        
+
         if (analysisResults.issues.length > 10) {
             report += `... and ${analysisResults.issues.length - 10} more issues\n\n`;
         }
-        
+
         // Recommendations
         report += 'RECOMMENDATIONS\n';
         report += '---------------\n';
@@ -75,10 +75,10 @@ class ReportGenerator {
             report += `${index + 1}. [${(rec.priority || 'medium').toUpperCase()}] ${rec.description}\n`;
             report += `   Entity: ${rec.entity || 'N/A'}\n\n`;
         });
-        
+
         return report;
     }
-    
+
     _generateHtmlReport(analysisResults) {
         let html = `
 <!DOCTYPE html>
@@ -119,7 +119,7 @@ class ReportGenerator {
         const highIssues = analysisResults.issues.filter(i => i.severity === 'high');
         const mediumIssues = analysisResults.issues.filter(i => i.severity === 'medium');
         const lowIssues = analysisResults.issues.filter(i => i.severity === 'low');
-        
+
         if (highIssues.length > 0) {
             html += `<h3>Critical Issues (${highIssues.length})</h3>`;
             highIssues.forEach(issue => {
@@ -133,7 +133,7 @@ class ReportGenerator {
 `;
             });
         }
-        
+
         if (mediumIssues.length > 0) {
             html += `<h3>Major Issues (${mediumIssues.length})</h3>`;
             mediumIssues.forEach(issue => {
@@ -147,7 +147,7 @@ class ReportGenerator {
 `;
             });
         }
-        
+
         if (lowIssues.length > 0) {
             html += `<h3>Minor Issues (${lowIssues.length})</h3>`;
             lowIssues.forEach(issue => {
@@ -161,12 +161,12 @@ class ReportGenerator {
 `;
             });
         }
-        
+
         html += `<h2>Recommendations</h2>`;
-        
+
         const highRecs = analysisResults.recommendations.filter(r => r.priority === 'high');
         const mediumRecs = analysisResults.recommendations.filter(r => r.priority === 'medium');
-        
+
         if (highRecs.length > 0) {
             html += `<h3>High Priority (${highRecs.length})</h3>`;
             highRecs.forEach(rec => {
@@ -179,7 +179,7 @@ class ReportGenerator {
 `;
             });
         }
-        
+
         if (mediumRecs.length > 0) {
             html += `<h3>Medium Priority (${mediumRecs.length})</h3>`;
             mediumRecs.forEach(rec => {
@@ -192,7 +192,7 @@ class ReportGenerator {
 `;
             });
         }
-        
+
         // Patterns
         if (analysisResults.patterns.length > 0) {
             html += `<h2>Identified Patterns (${analysisResults.patterns.length})</h2>`;
@@ -206,18 +206,18 @@ class ReportGenerator {
 `;
             });
         }
-        
+
         html += `
 </body>
 </html>
 `;
-        
+
         return html;
     }
-    
+
     _generateMarkdownReport(analysisResults) {
         let md = '# Unit Test Analysis Report\n\n';
-        
+
         // Summary
         const summary = analysisResults.summary;
         md += '## Summary\n\n';
@@ -228,10 +228,10 @@ class ReportGenerator {
         md += `| Major Issues | ${summary.majorIssues} |\n`;
         md += `| Minor Issues | ${summary.minorIssues} |\n`;
         md += `| Recommendations | ${summary.totalRecommendations} |\n\n`;
-        
+
         // Issues by severity
         md += '## Issues by Severity\n\n';
-        
+
         const highIssues = analysisResults.issues.filter(i => i.severity === 'high');
         if (highIssues.length > 0) {
             md += `### Critical Issues (${highIssues.length})\n\n`;
@@ -242,7 +242,7 @@ class ReportGenerator {
                 md += `   - Type: ${issue.type}\n\n`;
             });
         }
-        
+
         const mediumIssues = analysisResults.issues.filter(i => i.severity === 'medium');
         if (mediumIssues.length > 0) {
             md += `### Major Issues (${mediumIssues.length})\n\n`;
@@ -253,10 +253,10 @@ class ReportGenerator {
                 md += `   - Type: ${issue.type}\n\n`;
             });
         }
-        
+
         // Recommendations
         md += '## Recommendations\n\n';
-        
+
         const highRecs = analysisResults.recommendations.filter(r => r.priority === 'high');
         if (highRecs.length > 0) {
             md += `### High Priority (${highRecs.length})\n\n`;
@@ -266,7 +266,7 @@ class ReportGenerator {
                 md += `   - Type: ${rec.type}\n\n`;
             });
         }
-        
+
         const mediumRecs = analysisResults.recommendations.filter(r => r.priority === 'medium');
         if (mediumRecs.length > 0) {
             md += `### Medium Priority (${mediumRecs.length})\n\n`;
@@ -276,7 +276,7 @@ class ReportGenerator {
                 md += `   - Type: ${rec.type}\n\n`;
             });
         }
-        
+
         // Patterns
         if (analysisResults.patterns.length > 0) {
             md += '## Identified Patterns\n\n';
@@ -289,7 +289,7 @@ class ReportGenerator {
                 md += '\n';
             });
         }
-        
+
         return md;
     }
 }

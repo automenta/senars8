@@ -33,7 +33,7 @@ class AStarPlanner extends BasePlanner {
             if (currentNode.tasks.length === 0) {
                 return currentNode.plan.map(key => {
                     const term = this.memory.getTerm(key);
-                    return term || { key }; // Return a minimal object if term not found
+                    return term || {key}; // Return a minimal object if term not found
                 });
             }
 

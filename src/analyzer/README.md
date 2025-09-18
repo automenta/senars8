@@ -77,6 +77,7 @@ new UnitTestAnalyzer(config)
 ```
 
 **Config Options:**
+
 - `enableCoverageAnalysis` (boolean): Enable coverage analysis (default: true)
 - `enablePerformanceAnalysis` (boolean): Enable performance analysis (default: true)
 - `enableFailureAnalysis` (boolean): Enable failure analysis (default: true)
@@ -225,7 +226,8 @@ The HTML report provides a rich, interactive dashboard with:
 
 ## Integration
 
-The analyzer can be easily integrated into existing CI/CD pipelines or development workflows. The JSON output format makes it simple to parse and incorporate into automated systems.
+The analyzer can be easily integrated into existing CI/CD pipelines or development workflows. The JSON output format
+makes it simple to parse and incorporate into automated systems.
 
 ## Contributing
 

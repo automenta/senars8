@@ -7,7 +7,7 @@ const mockTestData = {
     testResults: [
         {
             testFilePath: "/home/me/senars8/tests/unit/config.test.js",
-            perfStats: { runtime: 120 },
+            perfStats: {runtime: 120},
             numPassingTests: 2,
             numFailingTests: 2,
             numPendingTests: 0,
@@ -53,7 +53,7 @@ const mockTestData = {
         },
         {
             testFilePath: "/home/me/senars8/tests/unit/MemoryIndexing.test.js",
-            perfStats: { runtime: 45 },
+            perfStats: {runtime: 45},
             numPassingTests: 4,
             numFailingTests: 2,
             numPendingTests: 0,
@@ -83,7 +83,7 @@ const mockTestData = {
         },
         {
             testFilePath: "/home/me/senars8/tests/unit/Term.test.js",
-            perfStats: { runtime: 30 },
+            perfStats: {runtime: 30},
             numPassingTests: 3,
             numFailingTests: 1,
             numPendingTests: 0,
@@ -108,10 +108,10 @@ const mockTestData = {
 const mockCoverageData = {
     coverageMap: {},
     total: {
-        statements: { covered: 850, total: 1000, pct: 85 },
-        branches: { covered: 420, total: 500, pct: 84 },
-        functions: { covered: 170, total: 200, pct: 85 },
-        lines: { covered: 850, total: 1000, pct: 85 }
+        statements: {covered: 850, total: 1000, pct: 85},
+        branches: {covered: 420, total: 500, pct: 84},
+        functions: {covered: 170, total: 200, pct: 85},
+        lines: {covered: 850, total: 1000, pct: 85}
     }
 };
 
@@ -157,39 +157,39 @@ const mockProfilingData = {
 
 async function runDemo() {
     console.log("=== Unit Test Analyzer Demo ===\n");
-    
+
     try {
         // Create analyzer
         const analyzer = new UnitTestAnalyzer({
             enableCoverageAnalysis: true,
             enablePerformanceAnalysis: true
         });
-        
+
         // Process mock data
         console.log("Processing test data...");
         const results = await analyzer.analyzeTestData(mockTestData, mockCoverageData, mockProfilingData);
-        
+
         if (!results) {
             console.error("Analysis failed!");
             return;
         }
-        
+
         // Generate text report
         console.log("\n=== ANALYSIS RESULTS ===\n");
         const textReport = analyzer.generateReport('text');
         console.log(textReport);
-        
+
         // Generate HTML report
         console.log("Generating HTML report...");
         const htmlReport = await analyzer.generateDetailedReport('html');
-        
+
         // Save HTML report
         const fs = await import('fs');
         fs.writeFileSync('./test-analysis-report.html', htmlReport);
         console.log("HTML report saved to test-analysis-report.html");
-        
+
         console.log("\n=== ANALYSIS COMPLETE ===");
-        
+
     } catch (error) {
         console.error("Demo failed:", error.message);
         console.error(error.stack);
