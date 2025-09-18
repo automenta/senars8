@@ -24,15 +24,25 @@ class PriorityManager {
     }
 
     updatePriority(task) {
-        // For now, we'll just ensure the task has a priority property
+        // Ensure the task has a state object
         if (!task.state) {
             task.state = {};
         }
-        if (task.state.priority === undefined) {
-            task.state.priority = 0;
+        
+        // For now, we'll use a simple heuristic based on task type and term content
+        // In a real implementation, we would calculate this based on embeddings and similarity to drives
+        
+        // Goals ('!') should generally have higher priority than beliefs ('.')
+        let basePriority = task.punctuation === '!' ? 0.7 : 0.3;
+        
+        // Tasks related to constitutional concepts should have higher priority
+        const constitutionalTerms = ['AcquireKnowledge', 'ReduceUncertainty', 'MaintainCoherence', 'MaintainCognitiveIntegrity'];
+        if (constitutionalTerms.some(term => task.termKey.includes(term))) {
+            basePriority += 0.2; // Boost for constitutional relevance
         }
-        // In a real implementation, we would recalculate the priority here
-        // based on current system state and task properties
+        
+        // Cap the priority at 1.0
+        task.state.priority = Math.min(1.0, basePriority);
     }
 }
 

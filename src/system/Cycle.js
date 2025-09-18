@@ -30,7 +30,18 @@ class Cycle {
             } = await this._processFocusSet(focusSet);
 
             this.system.memory.addTasks(derivedTasks);
-            await this.system.actionExecutor.execute(actionableGoals);
+            
+            // Convert actionable goals to proper action objects
+            const actions = actionableGoals.map(goal => ({
+                name: 'achieve',
+                parameters: [goal.termKey],
+                goal: goal
+            }));
+            
+            // Execute each action individually
+            for (const action of actions) {
+                await this.system.actionExecutor.execute(action);
+            }
 
             debug(`Cycle ${this.cycleCount} finished`);
             EventBus.emit('SystemCycleEnded', this.cycleCount);

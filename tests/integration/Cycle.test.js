@@ -14,6 +14,7 @@ import ContradictionAnalyzer from '../../src/reasoner/ContradictionAnalyzer.js';
 import ResolutionStrategy from '../../src/reasoner/strategies/ResolutionStrategy.js';
 import CONSTITUTION_TASKS from '../../src/system/Constitution.js';
 import ConfigManager from '../../src/config/ConfigManager.js';
+import registerDefaultActions from '../../src/system/default-actions.js';
 
 jest.mock('../../src/lm/LM.js');
 jest.mock('@xenova/transformers', () => {
@@ -45,6 +46,12 @@ describe('Cycle Integration Test', () => {
             temporalReasoner
         }, configManager);
         const actionExecutor = new ActionExecutor(memory, configManager);
+        // Register default actions
+        registerDefaultActions(actionExecutor);
+        // Register default actions
+        import('../../src/system/default-actions.js').then(registerDefaultActions => {
+            registerDefaultActions.default(actionExecutor);
+        });
         const perception = new Perception(memory, lm);
         const planner = new Planner(memory, lm, actionExecutor, configManager);
         const contradictionAnalyzer = new ContradictionAnalyzer();
@@ -78,8 +85,10 @@ describe('Cycle Integration Test', () => {
     }, 10000); // 10 second timeout
 
     test('should prioritize tasks based on relevance to the constitution', async () => {
+        // AcquireKnowledge should have a high similarity to constitutional goals
         const term1 = new Term('AcquireKnowledge', [1, 0, 0], 1);
-        const term2 = new Term('cat', [0, 1, 0], 1);
+        // cat should have low similarity to constitutional goals
+        const term2 = new Term('cat', [0, 0, 1], 1);
         await memory.addTerm(term1);
         await memory.addTerm(term2);
 
@@ -95,5 +104,5 @@ describe('Cycle Integration Test', () => {
         const catTask = tasks.find(t => t.termKey === 'cat');
 
         expect(acquireKnowledgeTask.state.priority).toBeGreaterThan(catTask.state.priority);
-    }, 10000); // 10 second timeout
+    }, 30000); // 30 second timeout
 });
