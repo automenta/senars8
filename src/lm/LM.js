@@ -13,6 +13,7 @@ import PlanRepairer from './PlanRepairer.js';
 import ProactiveEnricher from './ProactiveEnricher.js';
 import {debug, info, warn} from '../utils/logger.js';
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import ConfigAccessor from '../config/ConfigAccessor.js';
 
 const errorHandler = createModuleErrorHandler('LM');
 
@@ -24,7 +25,7 @@ const PIPELINE_TYPES = {
 
 class LM {
     constructor(configManager) {
-        this.configManager = configManager;
+        this.config = new ConfigAccessor(configManager);
         this._pipelineFactory = PipelineFactory;
         this._llm = null;
         this._reasoner = null;
@@ -57,8 +58,8 @@ class LM {
     }
 
     async processEmbeddingQueue() {
-        const batchSize = this.configManager.getNumber('LM.EMBEDDING_BATCH_SIZE', 10);
-        const delay = this.configManager.getNumber('LM.EMBEDDING_BATCH_DELAY_MS', 100);
+        const batchSize = this.config.getNumber('LM.EMBEDDING_BATCH_SIZE', 10);
+        const delay = this.config.getNumber('LM.EMBEDDING_BATCH_DELAY_MS', 100);
 
         while (this._isProcessingEmbeddings) {
             const batch = this._embeddingQueue.splice(0, batchSize);
@@ -86,20 +87,20 @@ class LM {
 
     async _getFeaturePipeline() {
         debug('Getting feature extraction pipeline');
-        const model = this.configManager.getString('LM.FEATURE_EXTRACTION_MODEL', 'Xenova/all-MiniLM-L6-v2');
+        const model = this.config.getString('LM.FEATURE_EXTRACTION_MODEL', 'Xenova/all-MiniLM-L6-v2');
         return this._pipelineFactory.get(PIPELINE_TYPES.FEATURE_EXTRACTION, model);
     }
 
     async _getGenerationPipeline() {
         if (this._llm) return this._llm.pipeline || ((prompt, options) => this._llm.invoke(prompt, options));
 
-        const provider = this.configManager.getString('LM.LLM_PROVIDER', 'xenova');
+        const provider = this.config.getString('LM.LLM_PROVIDER', 'xenova');
         info(`Initializing LLM with provider: ${provider}`);
 
         if (provider === 'ollama') {
             this._llm = new Ollama({
-                model: this.configManager.getString('LM.TEXT_GENERATION_MODEL', 'Xenova/distilgpt2'),
-                baseUrl: this.configManager.getString('LM.OLLAMA_BASE_URL', 'http://127.0.0.1:11434'),
+                model: this.config.getString('LM.TEXT_GENERATION_MODEL', 'Xenova/distilgpt2'),
+                baseUrl: this.config.getString('LM.OLLAMA_BASE_URL', 'http://127.0.0.1:11434'),
             });
             return (prompt, options) => this._llm.invoke(prompt, options);
         }
@@ -108,7 +109,7 @@ class LM {
             suppressOnnxWarnings();
             const pipeline = await this._pipelineFactory.get(
                 PIPELINE_TYPES.TEXT_GENERATION,
-                this.configManager.getString('LM.TEXT_GENERATION_MODEL', 'Xenova/distilgpt2'), {
+                this.config.getString('LM.TEXT_GENERATION_MODEL', 'Xenova/distilgpt2'), {
                     useCache: false
                 }
             );
@@ -121,7 +122,7 @@ class LM {
 
     async _getQAPipeline() {
         debug('Getting QA pipeline');
-        const model = this.configManager.getString('LM.QA_MODEL', 'Xenova/distilbert-base-uncased-distilled-squad');
+        const model = this.config.getString('LM.QA_MODEL', 'Xenova/distilbert-base-uncased-distilled-squad');
         return this._pipelineFactory.get(PIPELINE_TYPES.QUESTION_ANSWERING, model, {
             maxLength: 512
         });

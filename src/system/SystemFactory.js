@@ -44,7 +44,7 @@ class SystemFactory {
         const actionExecutor = get('actionExecutor', new ActionExecutor(memory, configManager));
         const perception = get('perception', new Perception(memory, lm));
         const planner = get('planner', new Planner(memory, lm, actionExecutor, configManager));
-        const priorityManager = get('priorityManager', new PriorityManager(memory));
+        const priorityManager = get('priorityManager', new PriorityManager(memory, configManager));
         const contradictionAnalyzer = get('contradictionAnalyzer', new ContradictionAnalyzer());
         const resolutionStrategy = get('resolutionStrategy', new ResolutionStrategy());
         const metaCognition = get('metaCognition', new MetaCognition(configManager, {

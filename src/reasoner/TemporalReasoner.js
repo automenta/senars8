@@ -9,12 +9,13 @@ import TemporalClusterDetection from './temporal/TemporalClusterDetection.js';
 import TemporalCoherence from './temporal/TemporalCoherence.js';
 import {debug} from '../utils/logger.js';
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import ConfigAccessor from '../config/ConfigAccessor.js';
 
 const errorHandler = createModuleErrorHandler('TemporalReasoner');
 
 class TemporalReasoner {
     constructor(configManager) {
-        this.configManager = configManager;
+        this.config = new ConfigAccessor(configManager);
         this.inferenceModules = [
             TemporalRelationshipInference,
             TemporalImplicationInference,
@@ -28,22 +29,26 @@ class TemporalReasoner {
         ];
     }
 
-    infer(focusSet) {
-        return errorHandler.safeSync(() => {
-            debug(`Temporal reasoning on ${focusSet.length} tasks`);
-            const temporalFocusSet = focusSet.filter(task => task.state.stamp.occurrenceTime);
-            if (temporalFocusSet.length < 2) {
-                debug('Insufficient temporal tasks for reasoning');
-                return [];
+    infer(tasks) {
+        const config = this.config.get('temporal');
+        if (!config) {
+            debug('Temporal reasoning disabled - no temporal config found');
+            return [];
+        }
+
+        const results = [];
+        for (const Module of this.inferenceModules) {
+            try {
+                const moduleResults = Module.infer(tasks, config);
+                if (Array.isArray(moduleResults)) {
+                    results.push(...moduleResults);
+                }
+            } catch (error) {
+                debug(`Error in temporal inference module ${Module.name}:`, error.message);
             }
+        }
 
-            debug(`Processing ${temporalFocusSet.length} temporal tasks`);
-            const config = this.configManager.get('temporal');
-            const allTasks = this.inferenceModules.flatMap(module => module.infer(temporalFocusSet, config));
-
-            debug(`Temporal reasoning produced ${allTasks.length} derived tasks`);
-            return allTasks;
-        }, 'infer', []);
+        return results;
     }
 }
 

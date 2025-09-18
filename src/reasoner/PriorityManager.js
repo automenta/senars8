@@ -1,10 +1,11 @@
 import {cosineSimilarity} from '../utils/math.js';
 import {calculateTemporalPriority} from '../utils/temporal.js';
-import config from '../config/index.js';
+import ConfigAccessor from '../config/ConfigAccessor.js';
 
 class PriorityManager {
-    constructor(memory) {
+    constructor(memory, configManager) {
         this.memory = memory;
+        this.config = new ConfigAccessor(configManager);
     }
 
     calculatePriority(task, currentTime, driveEmbeddings) {
@@ -14,6 +15,7 @@ class PriorityManager {
         const maxSimilarity = driveEmbeddings.reduce((max, driveEmbedding) =>
             Math.max(max, cosineSimilarity(term.embedding, driveEmbedding)), 0);
 
+        const config = this.config.getAll();
         const I = (maxSimilarity + config.SIMILARITY_OFFSET) / config.SIMILARITY_SCALE;
         const U = 1 / (1 + (currentTime - Number(task.state.stamp.creationTime)) / config.RECENCY_DECAY_FACTOR);
         const T = calculateTemporalPriority(task, currentTime);

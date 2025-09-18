@@ -4,6 +4,7 @@ import rules from './rules/index.js';
 import TemporalReasoner from './TemporalReasoner.js';
 import {debug, error as logError, info} from '../utils/logger.js';
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import ConfigAccessor from '../config/ConfigAccessor.js';
 
 const errorHandler = createModuleErrorHandler('Reasoner');
 
@@ -16,9 +17,9 @@ class Reasoner {
     constructor({
                     temporalReasoner
                 } = {}, configManager) {
-        this.configManager = configManager;
+        this.config = new ConfigAccessor(configManager);
         this.temporalReasoner = temporalReasoner || new TemporalReasoner(configManager);
-        const strategyName = this.configManager.getString('reasoner.strategy', 'BagSampling');
+        const strategyName = this.config.getString('reasoner.strategy', 'BagSampling');
         this.strategy = this._initializeStrategy(strategyName);
         this.rules = rules;
         info('Reasoner initialized with strategy:', this.strategy.constructor.name);

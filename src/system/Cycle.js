@@ -2,12 +2,13 @@ import {getGoalTasks} from '../utils/task-utils.js';
 import {debug, info} from '../utils/logger.js';
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
 import EventBus from './EventBus.js';
+import ConfigAccessor from '../config/ConfigAccessor.js';
 
 const errorHandler = createModuleErrorHandler('Cycle');
 
 class Cycle {
     constructor(configManager, components) {
-        this.configManager = configManager;
+        this.config = new ConfigAccessor(configManager);
         this.system = components; // In tests, this is the object with all components
         this.cycleCount = 0;
     }
@@ -58,7 +59,7 @@ class Cycle {
         if (this.system.priorityManager && typeof this.system.priorityManager.updatePriority === 'function') {
             allTasks.forEach(task => this.system.priorityManager.updatePriority(task));
         }
-        const focusSetSize = this.configManager.getNumber('FOCUS_SET_SIZE', 20);
+        const focusSetSize = this.config.getNumber('FOCUS_SET_SIZE', 20);
         return allTasks.sort((a, b) => {
             const priorityA = a.state?.priority || 0;
             const priorityB = b.state?.priority || 0;
@@ -78,7 +79,7 @@ class Cycle {
         const derivedTasks = await this.system.reasoner.performInference(focusSet);
         const allTasks = [...focusSet, ...derivedTasks];
         const actionableGoals = getGoalTasks(allTasks).filter(goal =>
-            goal.state?.priority >= this.configManager.getNumber('ACTIONABLE_GOAL_PRIORITY_THRESHOLD', 0.1)
+            goal.state?.priority >= this.config.getNumber('ACTIONABLE_GOAL_PRIORITY_THRESHOLD', 0.1)
         );
         return {
             derivedTasks,

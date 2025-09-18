@@ -7,6 +7,7 @@ import {consolidateMemory, getHighestPriorityTasksWithPQ} from './memoryUtils.js
 import TimeBasedForgettingStrategy from './strategies/TimeBasedForgettingStrategy.js';
 import {debug, warn} from '../utils/logger.js';
 import MemoryIndexer from './MemoryIndexer.js';
+import ConfigAccessor from '../config/ConfigAccessor.js';
 
 const FORGETTING_STRATEGIES = {
     TimeBased: TimeBasedForgettingStrategy,
@@ -14,7 +15,7 @@ const FORGETTING_STRATEGIES = {
 
 class Memory {
     constructor(configManager) {
-        this.configManager = configManager;
+        this.config = new ConfigAccessor(configManager);
         this.terms = new Map();
         this.shortTermTasks = new Map();
         this.longTermTasks = new Map();
@@ -26,7 +27,7 @@ class Memory {
     }
 
     _loadForgettingStrategy() {
-        const strategyName = this.configManager.getString('memory.FORGETTING_STRATEGY_NAME', 'TimeBased');
+        const strategyName = this.config.getString('memory.FORGETTING_STRATEGY_NAME', 'TimeBased');
         const Strategy = FORGETTING_STRATEGIES[strategyName] || TimeBasedForgettingStrategy;
         this.forgettingStrategy = new Strategy();
     }
@@ -38,7 +39,7 @@ class Memory {
 
     _performMaintenanceIfNeeded() {
         this.cycleCounter++;
-        const frequency = this.configManager.getNumber('memory.MAINTENANCE_CYCLE_FREQUENCY', 10);
+        const frequency = this.config.getNumber('memory.MAINTENANCE_CYCLE_FREQUENCY', 10);
         if (this.cycleCounter % frequency === 0) {
             this._consolidateMemory();
             this._pruneMemory();
@@ -48,8 +49,8 @@ class Memory {
     _consolidateMemory() {
         const consolidationConfig = {
             memory: {
-                CONSOLIDATION_PRIORITY_THRESHOLD: this.configManager.getNumber('memory.CONSOLIDATION_PRIORITY_THRESHOLD', 0.8),
-                CONSOLIDATION_CONFIDENCE_THRESHOLD: this.configManager.getNumber('memory.CONSOLIDATION_CONFIDENCE_THRESHOLD', 0.9),
+                CONSOLIDATION_PRIORITY_THRESHOLD: this.config.getNumber('memory.CONSOLIDATION_PRIORITY_THRESHOLD', 0.8),
+                CONSOLIDATION_CONFIDENCE_THRESHOLD: this.config.getNumber('memory.CONSOLIDATION_CONFIDENCE_THRESHOLD', 0.9),
             },
         };
         const result = consolidateMemory(this.shortTermTasks, this.longTermTasks, consolidationConfig);
@@ -60,7 +61,7 @@ class Memory {
 
     _pruneMemory() {
         if (!this.forgettingStrategy) return;
-        const options = this.configManager.getObject('memory.FORGETTING_STRATEGY_OPTIONS', {});
+        const options = this.config.getObject('memory.FORGETTING_STRATEGY_OPTIONS', {});
         this.shortTermTasks = this.forgettingStrategy.prune(this.shortTermTasks, options.shortTerm);
         this.longTermTasks = this.forgettingStrategy.prune(this.longTermTasks, options.longTerm);
         this._invalidateTaskCache();
@@ -153,7 +154,7 @@ class Memory {
     }
 
     clone() {
-        const newMemory = new Memory(this.configManager);
+        const newMemory = new Memory(this.config.configManager);
         Object.assign(newMemory, {
             terms: new Map(this.terms),
             shortTermTasks: new Map(this.shortTermTasks),

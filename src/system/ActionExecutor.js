@@ -2,13 +2,14 @@ import {createModuleErrorHandler} from '../utils/errorHandler.js';
 import {isNonEmptyArray} from '../utils/arrayUtils.js';
 import {generateActionId} from '../utils/IdGenerator.js';
 import EventBus from './EventBus.js';
+import ConfigAccessor from '../config/ConfigAccessor.js';
 
 const errorHandler = createModuleErrorHandler('ActionExecutor');
 
 class ActionExecutor {
     constructor(memory, configManager) {
         this.memory = memory;
-        this.configManager = configManager;
+        this.config = new ConfigAccessor(configManager);
         this.actionHandlers = new Map();
         this.actionHistory = [];
         this.resources = new Map();
@@ -16,8 +17,8 @@ class ActionExecutor {
         this.actionQueue = [];
         this.processing = false;
 
-        this.configManager.getArray('ACTION_EXECUTOR.RESOURCES', []).forEach(res => this.registerResource(res.name, res));
-        Object.entries(this.configManager.getObject('ACTION_EXECUTOR.CONSTRAINTS', {})).forEach(([name, func]) => {
+        this.config.getArray('ACTION_EXECUTOR.RESOURCES', []).forEach(res => this.registerResource(res.name, res));
+        Object.entries(this.config.getObject('ACTION_EXECUTOR.CONSTRAINTS', {})).forEach(([name, func]) => {
             this.setConstraint(name, func.bind(this));
         });
     }

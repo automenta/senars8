@@ -4,6 +4,7 @@ import {createModuleErrorHandler} from '../utils/errorHandler.js';
 import {debug, error as logError, info, warn} from '../utils/logger.js';
 import {normalizeToArray} from '../utils/arrayUtils.js';
 import Introspection from './Introspection.js';
+import ConfigAccessor from '../config/ConfigAccessor.js';
 
 const errorHandler = createModuleErrorHandler('System');
 
@@ -15,7 +16,7 @@ class System {
         actionExecutor,
         cycle
     }) {
-        this.configManager = configManager;
+        this.config = new ConfigAccessor(configManager);
         this.memory = memory;
         this.reasoner = reasoner;
         this.lm = lm;
@@ -81,7 +82,7 @@ class System {
             while (this.isRunning && (maxCycles === 0 || this.cycleCount < maxCycles)) {
                 const result = await errorHandler.safeAsync(async () => {
                     await this.runCycle();
-                    const tickDelay = this.configManager.getNumber('cycle.TICK_DELAY_MS', 50);
+                    const tickDelay = this.config.getNumber('cycle.TICK_DELAY_MS', 50);
                     await new Promise(resolve => setTimeout(resolve, tickDelay));
                     return {
                         success: true

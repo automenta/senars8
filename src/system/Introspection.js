@@ -6,7 +6,8 @@ class Introspection {
         this.system = system;
         this.memory = system.memory;
         this.reasoner = system.reasoner;
-        this.configManager = system.configManager;
+        // Use the config accessor if available, otherwise fall back to configManager
+        this.configAccessor = system.config || { getAll: () => system.configManager?.getAll() || {} };
     }
 
     getStatus() {
@@ -20,7 +21,7 @@ class Introspection {
     }
 
     getConfig() {
-        return safeSync(() => this.configManager.getAll(), 'getConfig', {});
+        return safeSync(() => this.configAccessor.getAll(), 'getConfig', {});
     }
 
     getTask(id) {
