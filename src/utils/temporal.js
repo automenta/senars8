@@ -18,9 +18,13 @@ function calculateIntervalStats(tasks) {
             stdDev: 0
         };
     }
-    const sortedTasks = [...tasks].sort((a, b) => a.state.stamp.occurrenceTime - b.state.stamp.occurrenceTime);
-    const intervals = sortedTasks.slice(1).map((task, i) => task.state.stamp.occurrenceTime - sortedTasks[i].state.stamp.occurrenceTime);
-    if (!intervals.length) {
+    const sortedTimestamps = tasks.map(t => t.state.stamp.occurrenceTime).sort((a, b) => a - b);
+    const intervals = [];
+    for (let i = 1; i < sortedTimestamps.length; i++) {
+        intervals.push(sortedTimestamps[i] - sortedTimestamps[i - 1]);
+    }
+
+    if (intervals.length === 0) {
         return {
             intervals,
             avgInterval: 0,
@@ -28,15 +32,15 @@ function calculateIntervalStats(tasks) {
             stdDev: 0
         };
     }
-    const sum = intervals.reduce((a, b) => a + b, 0);
+    const sum = intervals.reduce((acc, val) => acc + val, 0);
     const avgInterval = sum / intervals.length;
-    const variance = intervals.reduce((a, b) => a + (b - avgInterval) ** 2, 0) / intervals.length;
-    const stdDev = Math.sqrt(variance);
+    const variance = intervals.reduce((acc, val) => acc + (val - avgInterval) ** 2, 0) / intervals.length;
+
     return {
         intervals,
         avgInterval,
         variance,
-        stdDev
+        stdDev: Math.sqrt(variance),
     };
 }
 
@@ -54,25 +58,31 @@ function findTasksInTimeWindow(tasks, startTime, endTime) {
 
 function determineTemporalRelationship(task1, task2) {
     const {
-        occurrenceTime: time1,
+        occurrenceTime: start1,
         endTime: end1
     } = task1.state.stamp;
     const {
-        occurrenceTime: time2,
+        occurrenceTime: start2,
         endTime: end2
     } = task2.state.stamp;
-    if (!time1 || !time2) return null;
+    if (!start1 || !start2) return null;
 
-    const effectiveEnd1 = end1 || time1;
-    const effectiveEnd2 = end2 || time2;
+    const effectiveEnd1 = end1 || start1;
+    const effectiveEnd2 = end2 || start2;
 
-    if (effectiveEnd1 < time2) return 'before';
-    if (effectiveEnd2 < time1) return 'after';
-    if (time1 >= time2 && effectiveEnd1 <= effectiveEnd2) return 'during';
-    if (time2 >= time1 && effectiveEnd2 <= effectiveEnd1) return 'contains';
-    if (end1 === time2) return 'meets';
-    if (end2 === time1) return 'met-by';
-    if ((time1 <= time2 && effectiveEnd1 > time2) || (time2 <= time1 && effectiveEnd2 > time1)) return 'overlaps';
+    if (effectiveEnd1 < start2) return 'before';
+    if (effectiveEnd2 < start1) return 'after';
+    if (start1 === start2 && effectiveEnd1 === effectiveEnd2) return 'equals';
+    if (start1 >= start2 && effectiveEnd1 <= effectiveEnd2) return 'during';
+    if (start2 >= start1 && effectiveEnd2 <= effectiveEnd1) return 'contains';
+    if (effectiveEnd1 === start2) return 'meets';
+    if (effectiveEnd2 === start1) return 'met-by';
+    if (start1 < start2 && effectiveEnd1 > start2 && effectiveEnd1 < effectiveEnd2) return 'overlaps';
+    if (start2 < start1 && effectiveEnd2 > start1 && effectiveEnd2 < effectiveEnd1) return 'overlapped-by';
+    if (start1 === start2 && effectiveEnd1 < effectiveEnd2) return 'starts';
+    if (start1 === start2 && effectiveEnd1 > effectiveEnd2) return 'started-by';
+    if (effectiveEnd1 === effectiveEnd2 && start1 > start2) return 'finishes';
+    if (effectiveEnd1 === effectiveEnd2 && start1 < start2) return 'finished-by';
 
     return null;
 }
@@ -98,18 +108,24 @@ function createTemporalSequenceTask(tasks) {
     if (tasks.length < 2) return null;
     const termKeys = tasks.map(task => task.termKey);
     const termKey = `(&/, ${termKeys.join(', ')})`;
+
+    const initialTruth = {
+        frequency: 1.0,
+        confidence: 1.0
+    };
     const {
         frequency,
         confidence
     } = tasks.reduce((acc, task) => ({
         frequency: acc.frequency * task.state.truthValue.frequency,
         confidence: acc.confidence * task.state.truthValue.confidence,
-    }), {
-        frequency: 1.0,
-        confidence: 1.0
-    });
+    }), initialTruth);
+
     const finalConfidence = confidence * Math.pow(config.temporal.SEQUENCE_CONFIDENCE_DECAY, tasks.length - 1);
-    return new Task(parseTerm(termKey), '.', {
+    const parsedTerm = parseTerm(termKey);
+    if (!parsedTerm) return null;
+
+    return new Task(parsedTerm, '.', {
         frequency,
         confidence: finalConfidence
     }, {
@@ -140,33 +156,50 @@ function inferTemporalImplications(task1, task2) {
     const relationship = determineTemporalRelationship(task1, task2);
     if (!relationship) return [];
 
-    const implications = {
-        before: () => {
-            if (task1.punctuation !== '.') return null;
-            const termKey = `((&&, ${task1.termKey}, ${task2.termKey}) ==> ${task2.termKey})`;
-            return _createImplicationTask(termKey, {
-                frequency: task1.state.truthValue.frequency * config.temporal.TEMPORAL_RELATIONSHIP_FREQUENCY,
-                confidence: task1.state.truthValue.confidence * config.temporal.TEMPORAL_RELATIONSHIP_CONFIDENCE,
-            });
+    const implicationMap = {
+        before: (t1, t2) => `((&&, ${t1.termKey}, ${t2.termKey}) ==> ${t2.termKey})`,
+        meets: (t1, t2) => `((&&, ${t1.termKey}, ${t2.termKey}) ==> (temporal_continuity, ${t1.termKey}, ${t2.termKey}))`,
+        overlaps: (t1, t2) => `(temporal_overlap, ${t1.termKey}, ${t2.termKey})`,
+    };
+
+    const truthValueMap = {
+        before: {
+            frequency: task1.state.truthValue.frequency * config.temporal.TEMPORAL_RELATIONSHIP_FREQUENCY,
+            confidence: task1.state.truthValue.confidence * config.temporal.TEMPORAL_RELATIONSHIP_CONFIDENCE,
         },
-        after: () => implications.before(), // Symmetric
-        meets: () => {
-            const termKey = `((&&, ${task1.termKey}, ${task2.termKey}) ==> (temporal_continuity, ${task1.termKey}, ${task2.termKey}))`;
-            return _createImplicationTask(termKey, {
-                frequency: config.temporal.MEETS_IMPLICATION_FREQUENCY,
-                confidence: config.temporal.MEETS_IMPLICATION_CONFIDENCE,
-            });
+        meets: {
+            frequency: config.temporal.MEETS_IMPLICATION_FREQUENCY,
+            confidence: config.temporal.MEETS_IMPLICATION_CONFIDENCE,
         },
-        overlaps: () => {
-            const termKey = `(temporal_overlap, ${task1.termKey}, ${task2.termKey})`;
-            return _createImplicationTask(termKey, {
-                frequency: config.temporal.OVERLAP_IMPLICATION_FREQUENCY,
-                confidence: config.temporal.OVERLAP_IMPLICATION_CONFIDENCE,
-            });
+        overlaps: {
+            frequency: config.temporal.OVERLAP_IMPLICATION_FREQUENCY,
+            confidence: config.temporal.OVERLAP_IMPLICATION_CONFIDENCE,
         },
     };
 
-    const implicationTask = implications[relationship] ? implications[relationship]() : null;
+    let termKey;
+    let truthValue;
+
+    switch (relationship) {
+        case 'before':
+        case 'after':
+            if (task1.punctuation !== '.') return [];
+            termKey = implicationMap.before(task1, task2);
+            truthValue = truthValueMap.before;
+            break;
+        case 'meets':
+            termKey = implicationMap.meets(task1, task2);
+            truthValue = truthValueMap.meets;
+            break;
+        case 'overlaps':
+            termKey = implicationMap.overlaps(task1, task2);
+            truthValue = truthValueMap.overlaps;
+            break;
+        default:
+            return [];
+    }
+
+    const implicationTask = _createImplicationTask(termKey, truthValue);
     return implicationTask ? [implicationTask] : [];
 }
 
@@ -226,7 +259,7 @@ function detectTemporalCycles(tasks) {
         .filter(Boolean);
 }
 
-function detectTemporalAnomalies(tasks) {
+function detectTemporalAnomalies(tasks, zScoreThreshold = 2) {
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
     if (temporalTasks.length < 5) return [];
 
@@ -239,16 +272,19 @@ function detectTemporalAnomalies(tasks) {
                 avgInterval,
                 stdDev
             } = calculateIntervalStats(groupTasks);
+            if (stdDev === 0) return []; // Avoid division by zero
+
             return intervals
                 .map((interval, i) => {
-                    if (Math.abs(interval - avgInterval) > 2 * stdDev) {
+                    const zScore = (interval - avgInterval) / stdDev;
+                    if (Math.abs(zScore) > zScoreThreshold) {
                         return {
                             termKey,
                             type: 'temporal_anomaly',
                             timestamp: groupTasks[i + 1].state.stamp.occurrenceTime,
                             expectedInterval: avgInterval,
                             actualInterval: interval,
-                            severity: Math.min(1.0, Math.abs(interval - avgInterval) / (3 * stdDev)),
+                            severity: Math.min(1.0, Math.abs(zScore) / (zScoreThreshold + 1)),
                         };
                     }
                     return null;
@@ -418,21 +454,27 @@ function createTemporalAbstraction(tasks) {
     );
 }
 
-function calculateTemporalCoherence(tasks) {
+function calculateTemporalCoherence(tasks, timeWindow = 3600000) {
     const temporalTasks = tasks.filter(task => task.state.stamp.occurrenceTime);
     if (temporalTasks.length < 2) return 1.0;
 
-    const timeWindow = 3600000;
     const windows = temporalTasks.reduce((acc, task) => {
         const windowKey = Math.floor(task.state.stamp.occurrenceTime / timeWindow);
-        (acc[windowKey] = acc[windowKey] || []).push(task);
+        acc[windowKey] = (acc[windowKey] || 0) + 1;
         return acc;
     }, {});
-    const windowCounts = Object.values(windows).map(window => window.length);
+
+    const windowCounts = Object.values(windows);
+    if (windowCounts.length < 2) return 1.0; // Not enough data for coherence calculation
+
     const avgCount = windowCounts.reduce((sum, count) => sum + count, 0) / windowCounts.length;
+    if (avgCount === 0) return 1.0; // Avoid division by zero
+
     const variance = windowCounts.reduce((sum, count) => sum + (count - avgCount) ** 2, 0) / windowCounts.length;
     const stdDev = Math.sqrt(variance);
-    return 1.0 / (1.0 + stdDev / avgCount);
+
+    const coefficientOfVariation = stdDev / avgCount;
+    return 1.0 / (1.0 + coefficientOfVariation);
 }
 
 export {

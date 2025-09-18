@@ -19,10 +19,6 @@ class Task extends BaseEntity {
 
     constructor(term, punctuation, truthValue = {}, stamp = {}) {
         super();
-        if (term && typeof term === 'object' && term.punctuation && !punctuation) {
-            punctuation = term.punctuation;
-        }
-
         validateTerm(term, 'Task term');
         validatePunctuation(punctuation, 'Task punctuation');
 
@@ -65,17 +61,12 @@ class Task extends BaseEntity {
     }
 
     #processTerm(term) {
-        if (typeof term === 'string') {
-            const processedTerm = parseTerm(term);
-            if (!processedTerm) throw new Error(`Failed to parse term: '${term}'.`);
-            return {
-                processedTerm,
-                termKey: term
-            };
+        const isString = typeof term === 'string';
+        const termKey = isString ? term : term.key;
+        const processedTerm = isString || !term.type ? parseTerm(termKey) : term;
+        if (!processedTerm) {
+            throw new Error(`Failed to parse term: '${termKey}'.`);
         }
-        const termKey = term.key;
-        const processedTerm = term.type ? term : parseTerm(term.key);
-        if (!processedTerm) throw new Error(`Failed to parse term: '${term.key}'.`);
         return {
             processedTerm,
             termKey
@@ -84,18 +75,16 @@ class Task extends BaseEntity {
 
     #normalizeTruthValue(truthValue) {
         if (truthValue && typeof truthValue.frequency === 'number' && typeof truthValue.confidence === 'number') {
-            const freq = Math.max(0, Math.min(1, truthValue.frequency));
-            const conf = Math.max(0, Math.min(1, truthValue.confidence));
-            if (isNaN(freq) || isNaN(conf)) return {
-                ...DEFAULT_TRUTH_VALUE
-            };
-            return {
-                frequency: freq,
-                confidence: conf
-            };
+            const frequency = Math.max(0, Math.min(1, truthValue.frequency));
+            const confidence = Math.max(0, Math.min(1, truthValue.confidence));
+            if (!isNaN(frequency) && !isNaN(confidence)) {
+                return {
+                    frequency,
+                    confidence
+                };
+            }
         }
-        return {
-            ...DEFAULT_TRUTH_VALUE
+        return { ...DEFAULT_TRUTH_VALUE
         };
     }
 
@@ -117,15 +106,16 @@ class Task extends BaseEntity {
     }
 
     reviseTruthValue(newEvidence, weight = 0.5) {
-        const revisedTruthValue = TruthValueManager.bayesianRevision(this.#state.truthValue, newEvidence, weight);
-        this.#state.truthValue = revisedTruthValue;
-        return revisedTruthValue;
+        this.#state.truthValue = TruthValueManager.bayesianRevision(this.#state.truthValue, newEvidence, weight);
+        return this.#state.truthValue;
     }
 
     formatString() {
-        const frequency = this.#state.truthValue.frequency.toFixed(3);
-        const confidence = this.#state.truthValue.confidence.toFixed(3);
-        return `${this.#termKey}${this.#punctuation} (f: ${frequency}, c: ${confidence})`;
+        const {
+            frequency,
+            confidence
+        } = this.#state.truthValue;
+        return `${this.#termKey}${this.#punctuation} (f: ${frequency.toFixed(3)}, c: ${confidence.toFixed(3)})`;
     }
 
     getId() {

@@ -1,60 +1,45 @@
-import {error as logError} from './logger.js';
+import {
+    error as logError
+} from './logger.js';
 
-class ValidationError extends Error {
-    constructor(message, context = null) {
+const ERROR_TYPES = {
+    VALIDATION: 'ValidationError',
+    PARSE: 'ParseError',
+    INFERENCE: 'InferenceError',
+    PLANNING: 'PlanningError',
+    MEMORY: 'MemoryError',
+    GENERIC: 'AppError',
+};
+
+class AppError extends Error {
+    constructor(message, type = ERROR_TYPES.GENERIC, context = null) {
         super(message);
-        this.name = 'ValidationError';
+        this.name = type;
         this.context = context;
     }
 }
 
-class ParseError extends Error {
-    constructor(message, context = null) {
-        super(message);
-        this.name = 'ParseError';
-        this.context = context;
-    }
-}
+const createErrorCreator = (type) => (message, context) => new AppError(message, type, context);
 
-class InferenceError extends Error {
-    constructor(message, context = null) {
-        super(message);
-        this.name = 'InferenceError';
-        this.context = context;
-    }
-}
+const createValidationError = createErrorCreator(ERROR_TYPES.VALIDATION);
+const createParseError = createErrorCreator(ERROR_TYPES.PARSE);
+const createInferenceError = createErrorCreator(ERROR_TYPES.INFERENCE);
+const createPlanningError = createErrorCreator(ERROR_TYPES.PLANNING);
+const createMemoryError = createErrorCreator(ERROR_TYPES.MEMORY);
 
-class PlanningError extends Error {
-    constructor(message, context = null) {
-        super(message);
-        this.name = 'PlanningError';
-        this.context = context;
-    }
-}
-
-class MemoryError extends Error {
-    constructor(message, context = null) {
-        super(message);
-        this.name = 'MemoryError';
-        this.context = context;
-    }
-}
+const isKnownErrorType = (error) => Object.values(ERROR_TYPES).includes(error.name);
 
 function logAndReturn(error, context, returnValue = null) {
-    const preparedError = prepareErrorForLogging(error);
-    const fullContext = context ? `[${context}] ` : '';
-    logError(`${fullContext}${preparedError.message}`, preparedError);
+    const preparedError = prepareErrorForLogging(error, context);
+    logError(preparedError.message, preparedError);
     return returnValue;
 }
 
 function logAndThrow(error, context) {
-    const preparedError = prepareErrorForLogging(error);
-    if (context && !/\[.*?\]/.test(preparedError.message)) {
-        preparedError.message = `[${context}] ${preparedError.message}`;
-    }
+    const preparedError = prepareErrorForLogging(error, context);
 
     if (!isKnownErrorType(preparedError) && !preparedError.originalError) {
-        const newError = new Error(preparedError.message);
+        const newError = new AppError(preparedError.message);
         newError.originalStack = preparedError.stack || preparedError.originalStack;
         newError.originalError = preparedError;
         logError(newError.message, newError);
@@ -65,11 +50,21 @@ function logAndThrow(error, context) {
     throw preparedError;
 }
 
-function prepareErrorForLogging(error) {
+function prepareErrorForLogging(error, context) {
     if (error == null) {
-        const nullError = new Error('Null or undefined error');
+        const nullError = new AppError('Null or undefined error', ERROR_TYPES.GENERIC, context);
         nullError.originalStack = new Error().stack;
         return nullError;
+    }
+    if (typeof error === 'string') {
+        return new AppError(error, ERROR_TYPES.GENERIC, context);
+    }
+    if (!(error instanceof Error)) {
+        return new AppError(JSON.stringify(error), ERROR_TYPES.GENERIC, context);
+    }
+
+    if (context && !error.message.startsWith(`[${context}]`)) {
+        error.message = `[${context}] ${error.message}`;
     }
     if (error.stack && !error.originalStack) {
         error.originalStack = error.stack;
@@ -77,27 +72,15 @@ function prepareErrorForLogging(error) {
     return error;
 }
 
-function isKnownErrorType(error) {
-    return error instanceof ValidationError ||
-        error instanceof ParseError ||
-        error instanceof InferenceError ||
-        error instanceof PlanningError ||
-        error instanceof MemoryError;
-}
-
 function handleError(error, context, shouldThrow = true) {
     return shouldThrow ? logAndThrow(error, context) : logAndReturn(error, context, null);
-}
-
-function handleErrorWithDefault(error, context, defaultValue = null) {
-    return logAndReturn(error, context, defaultValue);
 }
 
 async function safeAsync(operation, context, defaultValue = null) {
     try {
         return await operation();
     } catch (error) {
-        return handleErrorWithDefault(error, context, defaultValue);
+        return logAndReturn(error, context, defaultValue);
     }
 }
 
@@ -105,38 +88,35 @@ function safeSync(operation, context, defaultValue = null) {
     try {
         return operation();
     } catch (error) {
-        return handleErrorWithDefault(error, context, defaultValue);
+        return logAndReturn(error, context, defaultValue);
     }
 }
 
 function createModuleErrorHandler(moduleName) {
+    const buildContext = (context) => context ? `${moduleName}.${context}` : moduleName;
     return {
         handle: (error, context, shouldThrow = true) =>
-            handleError(error, `${moduleName}.${context}`, shouldThrow),
-        handleWithDefault: (error, context, defaultValue = null) =>
-            handleErrorWithDefault(error, `${moduleName}.${context}`, defaultValue),
+            handleError(error, buildContext(context), shouldThrow),
         safeAsync: (operation, context, defaultValue = null) =>
-            safeAsync(operation, `${moduleName}.${context}`, defaultValue),
+            safeAsync(operation, buildContext(context), defaultValue),
         safeSync: (operation, context, defaultValue = null) =>
-            safeSync(operation, `${moduleName}.${context}`, defaultValue),
+            safeSync(operation, buildContext(context), defaultValue),
     };
 }
 
-const createValidationError = (message, context = null) => new ValidationError(message, context);
-const createParseError = (message, context = null) => new ParseError(message, context);
-const createInferenceError = (message, context = null) => new InferenceError(message, context);
-const createPlanningError = (message, context = null) => new PlanningError(message, context);
-const createMemoryError = (message, context = null) => new MemoryError(message, context);
+const isErrorOfType = (error, type) => error instanceof AppError && error.name === type;
 
-const isValidationError = error => error instanceof ValidationError;
-const isParseError = error => error instanceof ParseError;
-const isInferenceError = error => error instanceof InferenceError;
-const isPlanningError = error => error instanceof PlanningError;
-const isMemoryError = error => error instanceof MemoryError;
+const isValidationError = error => isErrorOfType(error, ERROR_TYPES.VALIDATION);
+const isParseError = error => isErrorOfType(error, ERROR_TYPES.PARSE);
+const isInferenceError = error => isErrorOfType(error, ERROR_TYPES.INFERENCE);
+const isPlanningError = error => isErrorOfType(error, ERROR_TYPES.PLANNING);
+const isMemoryError = error => isErrorOfType(error, ERROR_TYPES.MEMORY);
+
 
 export {
+    AppError,
+    ERROR_TYPES,
     handleError,
-    handleErrorWithDefault,
     safeAsync,
     safeSync,
     createModuleErrorHandler,
@@ -150,9 +130,4 @@ export {
     isInferenceError,
     isPlanningError,
     isMemoryError,
-    ValidationError,
-    ParseError,
-    InferenceError,
-    PlanningError,
-    MemoryError,
 };

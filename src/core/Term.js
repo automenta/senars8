@@ -23,11 +23,7 @@ class Term extends BaseEntity {
         validateString(key, 'Term key');
 
         this.#key = key;
-        if (isNonEmptyArray(embedding)) {
-            this.#embeddingRef = EmbeddingStore.store(key, embedding);
-        } else {
-            this.#embeddingRef = null;
-        }
+        this.#embeddingRef = isNonEmptyArray(embedding) ? EmbeddingStore.store(key, embedding) : null;
         this.#complexity = complexity;
         this.#structure = null;
         this.#componentCache = {};
@@ -62,17 +58,17 @@ class Term extends BaseEntity {
 
     get terms() {
         if (Object.hasOwn(this.#componentCache, 'terms')) {
-            return this.#componentCache['terms'];
+            return this.#componentCache.terms;
         }
 
         const structure = this.#getStructure();
         if (!structure?.terms) {
-            return (this.#componentCache['terms'] = null);
+            return (this.#componentCache.terms = null);
         }
 
         return errorHandler.safeSync(() => {
             const termsArray = structure.terms.map((term, i) => this.#getComponent(`term_${i}`, term));
-            return (this.#componentCache['terms'] = termsArray);
+            return (this.#componentCache.terms = termsArray);
         }, 'get-terms', null);
     }
 
@@ -85,11 +81,7 @@ class Term extends BaseEntity {
 
         if (embedding1.length !== embedding2.length) return false;
 
-        for (let i = 0; i < embedding1.length; i++) {
-            if (Math.abs(embedding1[i] - embedding2[i]) >= 1e-6) return false;
-        }
-
-        return true;
+        return embedding1.every((v, i) => Math.abs(v - embedding2[i]) < 1e-6);
     }
 
     static fromJSON(json) {
@@ -104,10 +96,10 @@ class Term extends BaseEntity {
             [OP.INDEPENDENT_VARIABLE]: () => pTerm.name,
             [OP.DEPENDENT_VARIABLE]: () => `#${pTerm.name}`,
             [OP.QUERY_VARIABLE]: () => `?${pTerm.name}`,
-            [OP.INHERITANCE]: () => this.termKeyInfix(pTerm, REL.INHERITANCE),
-            [OP.IMPLICATION]: () => this.termKeyInfix(pTerm, REL.IMPLICATION),
-            [OP.EQUIVALENCE]: () => this.termKeyInfix(pTerm, REL.EQUIVALENCE),
-            [OP.SIMILARITY]: () => this.termKeyInfix(pTerm, REL.SIMILARITY),
+            [OP.INHERITANCE]: () => Term.termKeyInfix(pTerm, REL.INHERITANCE),
+            [OP.IMPLICATION]: () => Term.termKeyInfix(pTerm, REL.IMPLICATION),
+            [OP.EQUIVALENCE]: () => Term.termKeyInfix(pTerm, REL.EQUIVALENCE),
+            [OP.SIMILARITY]: () => Term.termKeyInfix(pTerm, REL.SIMILARITY),
             [OP.INSTANCE]: () => `(${Term.termKey(pTerm.subject)} ${REL.INSTANCE} ${Term.termKey(pTerm.predicate)})`,
             [OP.PROPERTY]: () => `(${Term.termKey(pTerm.subject)} ${REL.PROPERTY} ${Term.termKey(pTerm.predicate)})`,
             [OP.PREDICTIVE_IMPLICATION]: () => `(${Term.termKey(pTerm.subject)} ${REL.PREDICTIVE_IMPLICATION} ${Term.termKey(pTerm.predicate)})`,
@@ -238,7 +230,9 @@ class Term extends BaseEntity {
         if (this.#embeddingRef) {
             EmbeddingStore.release(this.#embeddingRef);
         }
-        this.#embeddingRef = isNonEmptyArray(embedding) ? EmbeddingStore.store(this.#key, embedding) : null;
+        this.#embeddingRef = isNonEmptyArray(embedding) ?
+            EmbeddingStore.store(this.#key, embedding) :
+            null;
     }
 
     formatString() {
@@ -300,7 +294,8 @@ class Term extends BaseEntity {
 
         const termStructure = structure || this.#getStructure()?.[componentName];
         if (!termStructure) {
-            return (this.#componentCache[componentName] = null);
+            this.#componentCache[componentName] = null;
+            return null;
         }
 
         const componentTerm = errorHandler.safeSync(() => {
@@ -308,7 +303,8 @@ class Term extends BaseEntity {
             return componentKey ? new Term(componentKey) : null;
         }, 'get-component', null);
 
-        return (this.#componentCache[componentName] = componentTerm);
+        this.#componentCache[componentName] = componentTerm;
+        return componentTerm;
     }
 }
 
