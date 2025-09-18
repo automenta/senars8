@@ -11,95 +11,109 @@ class AStarPlanner extends BasePlanner {
         const startNode = this.memory.getTerm(goalTask.termKey);
         if (!startNode) return null;
 
+        // If the goal is already achieved, return an empty plan
         if (this._isAchieved(startNode)) return [];
 
         const openSet = new MinPriorityQueue(node => node.f);
-        const visited = new Set(); // To avoid cycles and redundant explorations
+        const visited = new Set();
 
-        const initialState = {
+        const initialHeuristic = await this._calculateHeuristic([startNode]);
+        openSet.enqueue({
             tasks: [startNode],
             plan: [],
             g: 0,
-            h: await this._calculateHeuristic([startNode])
-        };
-        initialState.f = initialState.g + initialState.h;
+            h: initialHeuristic,
+            f: initialHeuristic,
+        });
 
-        openSet.enqueue(initialState);
-
-        let iterations = 0;
-        while (!openSet.isEmpty() && iterations < maxIterations) {
-            iterations++;
+        for (let i = 0; i < maxIterations && !openSet.isEmpty(); i++) {
             const currentNode = openSet.dequeue();
 
+            // If we have no more tasks, we've found a complete plan
             if (currentNode.tasks.length === 0) {
-                return currentNode.plan.map(key => this.memory.getTerm(key));
+                return currentNode.plan.map(key => {
+                    const term = this.memory.getTerm(key);
+                    return term || { key }; // Return a minimal object if term not found
+                });
             }
 
             const stateKey = this._getStateKey(currentNode);
-            if (visited.has(stateKey)) {
-                continue;
-            }
+            if (visited.has(stateKey)) continue;
             visited.add(stateKey);
 
-            const [currentTask, ...remainingTasks] = currentNode.tasks;
-
-            if (this._isAchieved(currentTask)) {
-                const nextNode = {...currentNode, tasks: remainingTasks, g: currentNode.g};
-                nextNode.h = await this._calculateHeuristic(nextNode.tasks);
-                nextNode.f = nextNode.g + nextNode.h;
-                openSet.enqueue(nextNode);
-                continue;
-            }
-
-            const expansions = this._getExpansions(currentTask);
-
-            for (const expansion of expansions) {
-                let newG = currentNode.g;
-                let newPlan = currentNode.plan;
-                let newTasks;
-
-                if (expansion.method === null) { // Primitive action
-                    newG += this.costManager.getActionCost(currentTask);
-                    newPlan = [...currentNode.plan, currentTask.key];
-                    newTasks = remainingTasks;
-                } else { // Decomposition
-                    // The cost of a decomposition is the cost of its subtasks, which is handled by the heuristic.
-                    // The g-value should only reflect the cost of the actions taken so far.
-                    newTasks = [...expansion.subTasks, ...remainingTasks];
-                }
-
-                const nextNode = {
-                    tasks: newTasks,
-                    plan: newPlan,
-                    g: newG,
-                    h: await this._calculateHeuristic(newTasks)
-                };
-                nextNode.f = nextNode.g + nextNode.h;
-                openSet.enqueue(nextNode);
-            }
+            await this._expandNode(currentNode, openSet);
         }
 
-        return null; // No plan found
+        return null;
+    }
+
+    async _expandNode(currentNode, openSet) {
+        const [currentTask, ...remainingTasks] = currentNode.tasks;
+
+        if (this._isAchieved(currentTask)) {
+            await this._enqueueAchievedNode(currentNode, remainingTasks, openSet);
+            return;
+        }
+
+        const expansions = this._getExpansions(currentTask);
+        for (const expansion of expansions) {
+            await this._enqueueExpansion(expansion, currentNode, remainingTasks, openSet);
+        }
+    }
+
+    async _enqueueAchievedNode(currentNode, remainingTasks, openSet) {
+        const nextNode = {
+            ...currentNode,
+            tasks: remainingTasks,
+            g: currentNode.g
+        };
+        nextNode.h = await this._calculateHeuristic(nextNode.tasks);
+        nextNode.f = nextNode.g + nextNode.h;
+        openSet.enqueue(nextNode);
+    }
+
+    async _enqueueExpansion(expansion, currentNode, remainingTasks, openSet) {
+        const {
+            plan,
+            g,
+            tasks
+        } = this._calculateNextState(expansion, currentNode, remainingTasks);
+        const h = await this._calculateHeuristic(tasks);
+        openSet.enqueue({
+            tasks,
+            plan,
+            g,
+            h,
+            f: g + h
+        });
+    }
+
+    _calculateNextState(expansion, currentNode, remainingTasks) {
+        if (expansion.method === null) {
+            return {
+                g: currentNode.g + this.costManager.getActionCost(currentNode.tasks[0]),
+                plan: [...currentNode.plan, currentNode.tasks[0].key],
+                tasks: remainingTasks,
+            };
+        }
+        return {
+            g: currentNode.g,
+            plan: currentNode.plan,
+            tasks: [...expansion.subTasks, ...remainingTasks],
+        };
     }
 
     _getStateKey(node) {
-        // A unique key for a state is the combination of remaining tasks and the current plan
         const taskKey = node.tasks.map(t => t.key).sort().join(',');
         const planKey = node.plan.sort().join(',');
         return `${taskKey}|${planKey}`;
     }
 
     async _calculateHeuristic(tasks, visited = new Set()) {
-        if (!tasks || tasks.length === 0) {
-            return 0;
-        }
-
+        if (!tasks || tasks.length === 0) return 0;
         let totalCost = 0;
         for (const task of tasks) {
-            if (visited.has(task.key)) {
-                // Found a cycle, return infinity to avoid infinite loops
-                return Infinity;
-            }
+            if (visited.has(task.key)) return Infinity;
             visited.add(task.key);
             totalCost += await this._getMinTaskCost(task, visited);
             visited.delete(task.key);
@@ -111,7 +125,6 @@ class AStarPlanner extends BasePlanner {
         if (this.heuristicCache.has(task.key)) {
             return this.heuristicCache.get(task.key);
         }
-
         if (this._isPrimitive(task)) {
             const cost = this.costManager.getActionCost(task);
             this.heuristicCache.set(task.key, cost);
@@ -119,16 +132,12 @@ class AStarPlanner extends BasePlanner {
         }
 
         const expansions = this._getExpansions(task);
-        if (expansions.length === 0) {
-            return Infinity; // No way to solve this task
-        }
+        if (expansions.length === 0) return Infinity;
 
         let minCost = Infinity;
         for (const expansion of expansions) {
-            const subTaskCosts = await this._calculateHeuristic(expansion.subTasks, new Set(visited));
-            minCost = Math.min(minCost, subTaskCosts);
+            minCost = Math.min(minCost, await this._calculateHeuristic(expansion.subTasks, new Set(visited)));
         }
-
         this.heuristicCache.set(task.key, minCost);
         return minCost;
     }

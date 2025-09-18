@@ -9,11 +9,11 @@ import ConfigManager from '../../src/config/ConfigManager.js';
 jest.mock('../../src/lm/LM.js');
 jest.mock('@xenova/transformers', () => {
     const transformers = jest.createMockFromModule('@xenova/transformers');
-    transformers.pipeline = jest.fn(async () => {
-        return jest.fn(() => ({
+    transformers.pipeline = jest.fn(async () =>
+        jest.fn(() => ({
             data: new Float32Array([1, 2, 3])
-        }));
-    });
+        }))
+    );
     return transformers;
 });
 
@@ -37,34 +37,27 @@ describe('Reasoner Integration Test', () => {
         memory = new Memory(configManager);
         lm = new LM(configManager);
         reasoner = new Reasoner({}, configManager);
-
-        lm.bootstrapTerm.mockImplementation(async termKey => {
-            return new Term(termKey, [], 1);
-        });
+        lm.bootstrapTerm.mockImplementation(async termKey => new Term(termKey, [], 1));
     });
 
     test('should perform modus ponens', async () => {
         const termA = await createTerm(lm, memory, 'cat');
         await createTerm(lm, memory, 'mammal');
-
         const task1 = new Task(parseTerm('(cat ==> mammal)'), '.');
         const task2 = new Task(termA, '.');
 
         const derivedTasks = reasoner.performInference([task1, task2]);
-        const derivedTask = derivedTasks.find(t => t.termKey === 'mammal');
-        expect(derivedTask).toBeDefined();
+        expect(derivedTasks.some(t => t.termKey === 'mammal')).toBe(true);
     });
 
     test('should perform inheritance chaining', async () => {
         await createTerm(lm, memory, 'cat');
         await createTerm(lm, memory, 'mammal');
         await createTerm(lm, memory, 'animal');
-
         const task1 = new Task(parseTerm('(cat --> mammal)'), '.');
         const task2 = new Task(parseTerm('(mammal --> animal)'), '.');
 
         const derivedTasks = reasoner.performInference([task1, task2]);
-        const derivedTask = derivedTasks.find(t => t.termKey === '(cat --> animal)');
-        expect(derivedTask).toBeDefined();
+        expect(derivedTasks.some(t => t.termKey === '(cat --> animal)')).toBe(true);
     });
 });

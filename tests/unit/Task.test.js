@@ -2,9 +2,9 @@ import Task from '../../src/core/Task.js';
 import Term from '../../src/core/Term.js';
 
 jest.mock('../../src/core/Term.js', () => {
-    return jest.fn().mockImplementation(key => {
-        return {key};
-    });
+    return jest.fn().mockImplementation(key => ({
+        key
+    }));
 });
 
 describe('Task', () => {
@@ -20,13 +20,22 @@ describe('Task', () => {
         expect(task.termKey).toBe('cat');
         expect(task.punctuation).toBe('.');
         expect(task.state.priority).toBe(0);
-        expect(task.state.truthValue).toEqual({frequency: 1.0, confidence: 0.9});
+        expect(task.state.truthValue).toEqual({
+            frequency: 1.0,
+            confidence: 0.9
+        });
     });
 
     test('should create a new Task object with custom truth value and stamp', () => {
         const term = new Term('cat');
-        const truthValue = {frequency: 0.5, confidence: 0.5};
-        const stamp = {creationTime: 123, occurrenceTime: 456};
+        const truthValue = {
+            frequency: 0.5,
+            confidence: 0.5
+        };
+        const stamp = {
+            creationTime: 123,
+            occurrenceTime: 456
+        };
         const task = new Task(term, '!', truthValue, stamp);
         expect(task).toBeInstanceOf(Task);
         expect(task.term.key).toBe(term.key);
@@ -39,9 +48,12 @@ describe('Task', () => {
     });
 
     test('should throw an error if term is invalid', () => {
-        expect(() => new Task(null, '.')).toThrow('Task term is required');
-        expect(() => new Task({}, '.')).toThrow('Task term must have a valid key property');
-        expect(() => new Task({key: ''}, '.')).toThrow('Task term must have a valid key property');
+        const expectedError = 'Task term must be a non-empty string or a valid object with a key property';
+        expect(() => new Task(null, '.')).toThrow(expectedError);
+        expect(() => new Task({}, '.')).toThrow(expectedError);
+        expect(() => new Task({
+            key: ''
+        }, '.')).toThrow(expectedError);
     });
 
     test('should throw an error if punctuation is invalid', () => {

@@ -16,13 +16,12 @@ class Plan {
         for (const step of this.steps) {
             const result = await this._executeStep(step);
             results.push(result);
-
             if (!result.success) {
                 return {
                     success: false,
                     planId: this.id,
                     error: `Plan failed at action ${step.key}`,
-                    results
+                    results,
                 };
             }
         }
@@ -52,7 +51,7 @@ class Plan {
         if (term.type === 'Atomic') {
             return new Action(term.key);
         }
-        if ((term.type === 'SequentialConjunction' || term.type === 'Conjunction') && term.terms.length > 0) {
+        if ((term.type === 'SequentialConjunction' || term.type === 'Conjunction') && term.terms?.length > 0) {
             const [nameTerm, ...paramTerms] = term.terms;
             return new Action(nameTerm.key, paramTerms.map(t => t.key));
         }

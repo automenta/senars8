@@ -1,7 +1,9 @@
 import TruthValueManager from '../TruthValueManager.js';
 import {createTransitiveInheritanceRule} from './rule-factories.js';
 import Term from '../../core/Term.js';
-import {error as logError} from '../../utils/logger.js';
+import {createModuleErrorHandler} from '../../utils/errorHandler.js';
+
+const errorHandler = createModuleErrorHandler('inheritance-rule');
 
 /**
  * Inheritance Rule
@@ -14,16 +16,11 @@ import {error as logError} from '../../utils/logger.js';
 export default createTransitiveInheritanceRule(
     'Inheritance Transitivity',
     (parsed1, parsed2) => {
-        try {
-            return Term.termKey({
-                type: 'Inheritance',
-                subject: parsed1.subject,
-                predicate: parsed2.predicate
-            });
-        } catch (err) {
-            logError('Error building inheritance term:', err);
-            return null;
-        }
+        return errorHandler.safeSync(() => Term.termKey({
+            type: 'Inheritance',
+            subject: parsed1.subject,
+            predicate: parsed2.predicate
+        }), 'build-term-key', null);
     },
     TruthValueManager.deduce
 );

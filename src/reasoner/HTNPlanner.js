@@ -10,55 +10,41 @@ class HTNPlanner extends BasePlanner {
 
     async findPlan(goalTask) {
         const goalTerm = this.memory.getTerm(goalTask.termKey);
-        if (!goalTerm) {
-            return null;
-        }
+        if (!goalTerm) return null;
         return this._findPlanRecursive(goalTerm, 0);
     }
 
     _findPlanRecursive(goal, depth) {
-        if (depth > this.config.maxDepth) {
-            return null;
-        }
-
-        if (this._isAchieved(goal)) {
-            return [];
-        }
-
-        if (this._isPrimitive(goal)) {
-            return [goal];
-        }
+        if (depth > this.config.maxDepth) return null;
+        if (this._isAchieved(goal)) return [];
+        if (this._isPrimitive(goal)) return [goal];
 
         const methods = this._getDecompositionMethods(goal);
-        if (methods.length === 0) {
-            return null;
-        }
+        if (!methods.length) return null;
 
         for (const method of methods) {
             const subTasks = this._getSubTasks(method.predicate);
-            if (!subTasks) {
-                continue;
-            }
+            if (!subTasks) continue;
 
-            let plan = [];
-            let allSubTasksAchievable = true;
-            for (const subTask of subTasks) {
-                const subTaskTerm = this.memory.getTerm(subTask.key);
-                const subPlan = this._findPlanRecursive(subTaskTerm, depth + 1);
-                if (subPlan) {
-                    plan = plan.concat(subPlan);
-                } else {
-                    allSubTasksAchievable = false;
-                    break;
-                }
-            }
-
-            if (allSubTasksAchievable) {
-                return plan;
-            }
+            const plan = this._solveSubTasks(subTasks, depth);
+            if (plan) return plan;
         }
 
         return null;
+    }
+
+    _solveSubTasks(subTasks, depth) {
+        let plan = [];
+        for (const subTask of subTasks) {
+            const subTaskTerm = this.memory.getTerm(subTask.key);
+            const subPlan = this._findPlanRecursive(subTaskTerm, depth + 1);
+            if (subPlan) {
+                plan = plan.concat(subPlan);
+            } else {
+                return null;
+            }
+        }
+        return plan;
     }
 }
 

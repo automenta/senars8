@@ -1,82 +1,16 @@
 import Task from '../core/Task.js';
 import {filterByProperty} from './arrayUtils.js';
 
-/**
- * Utility functions for working with Task objects
- */
+const isBelief = (task) => task?.punctuation === '.';
+const isGoal = (task) => task?.punctuation === '!';
+const isQuestion = (task) => task?.punctuation === '?';
 
-/**
- * Checks if a task is a belief (punctuation '.')
- * @param {Task} task - The task to check
- * @returns {boolean} True if the task is a belief
- */
-function isBelief(task) {
-    return task?.punctuation === '.';
-}
+const getTasksByType = (tasks, type) => filterByProperty(tasks, 'punctuation', type);
+const getBeliefTasks = (tasks) => getTasksByType(tasks, '.');
+const getGoalTasks = (tasks) => getTasksByType(tasks, '!');
+const getQuestionTasks = (tasks) => getTasksByType(tasks, '?');
 
-/**
- * Checks if a task is a goal (punctuation '!')
- * @param {Task} task - The task to check
- * @returns {boolean} True if the task is a goal
- */
-function isGoal(task) {
-    return task?.punctuation === '!';
-}
-
-/**
- * Checks if a task is a question (punctuation '?')
- * @param {Task} task - The task to check
- * @returns {boolean} True if the task is a question
- */
-function isQuestion(task) {
-    return task?.punctuation === '?';
-}
-
-/**
- * Filters tasks by punctuation type
- * @param {Task[]} tasks - Array of tasks to filter
- * @param {string} type - The punctuation type to filter by
- * @returns {Task[]} Array of filtered tasks
- */
-function getTasksByType(tasks, type) {
-    return filterByProperty(tasks, 'punctuation', type);
-}
-
-/**
- * Gets all belief tasks from an array of tasks
- * @param {Task[]} tasks - Array of tasks
- * @returns {Task[]} Array of belief tasks
- */
-function getBeliefTasks(tasks) {
-    return getTasksByType(tasks, '.');
-}
-
-/**
- * Gets all goal tasks from an array of tasks
- * @param {Task[]} tasks - Array of tasks
- * @returns {Task[]} Array of goal tasks
- */
-function getGoalTasks(tasks) {
-    return getTasksByType(tasks, '!');
-}
-
-/**
- * Gets all question tasks from an array of tasks
- * @param {Task[]} tasks - Array of tasks
- * @returns {Task[]} Array of question tasks
- */
-function getQuestionTasks(tasks) {
-    return getTasksByType(tasks, '?');
-}
-
-/**
- * Checks if an object is a valid Task instance
- * @param {any} obj - The object to check
- * @returns {boolean} True if the object is a valid Task instance
- */
-function isTask(obj) {
-    return obj instanceof Task;
-}
+const isTask = (obj) => obj instanceof Task;
 
 export {
     getTasksByType,

@@ -1,6 +1,9 @@
 import {createUnaryInheritanceRule} from './rule-factories.js';
 import Term from '../../core/Term.js';
 import {validateTermKey} from '../../parser/parse-utils.js';
+import {createModuleErrorHandler} from '../../utils/errorHandler.js';
+
+const errorHandler = createModuleErrorHandler('contraposition-rule');
 
 export default createUnaryInheritanceRule(
     'contraposition',
@@ -21,7 +24,7 @@ export default createUnaryInheritanceRule(
         };
 
         // Try to build the term key and validate it
-        try {
+        return errorHandler.safeSync(() => {
             const result = Term.termKey({
                 type: 'Inheritance',
                 subject: negatedSubject,
@@ -39,10 +42,7 @@ export default createUnaryInheritanceRule(
             }
 
             return result;
-        } catch {
-            // If building the term key fails, return null
-            return null;
-        }
+        }, 'build-term-key', null);
     },
     truthValue => truthValue // Truth value remains the same
 );

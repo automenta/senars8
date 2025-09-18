@@ -3,41 +3,27 @@ function findDecompositionMethods(goalTerm, memory) {
 }
 
 function extractSubTasksFromMethod(methodTerm) {
-    if (!methodTerm) {
-        return null;
-    }
-    if (methodTerm.type === 'SequentialConjunction') {
-        return methodTerm.terms;
-    }
-    return [methodTerm];
+    if (!methodTerm) return null;
+    return methodTerm.type === 'SequentialConjunction' ? methodTerm.terms : [methodTerm];
 }
 
 function isAchieved(term, memory, config) {
-    if (!term) {
-        return false;
-    }
+    if (!term) return false;
     const beliefs = memory.indexer.beliefIndex.get(term.key);
-    return Boolean(beliefs && beliefs.length > 0 &&
-        beliefs.some(belief => belief.state.truthValue.confidence >= config.confidenceThreshold));
+    return !!beliefs?.some(belief => belief.state.truthValue.confidence >= config.confidenceThreshold);
 }
 
 function arePreconditionsMet(preconditions, memory, config) {
-    if (!preconditions || preconditions.length === 0) {
-        return true;
-    }
-    for (const precondition of preconditions) {
+    if (!preconditions?.length) return true;
+    return preconditions.every(precondition => {
         const beliefs = memory.indexer.beliefIndex.get(precondition.key);
-        if (!beliefs || beliefs.length === 0 ||
-            !beliefs.some(belief => belief.state.truthValue.confidence > config.preconditionConfidenceThreshold)) {
-            return false;
-        }
-    }
-    return true;
+        return beliefs?.some(belief => belief.state.truthValue.confidence > config.preconditionConfidenceThreshold);
+    });
 }
 
 export {
     findDecompositionMethods,
     extractSubTasksFromMethod,
     isAchieved,
-    arePreconditionsMet
+    arePreconditionsMet,
 };

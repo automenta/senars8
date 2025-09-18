@@ -1,6 +1,7 @@
-const {parseTerm} = require('../src/parser/narseseParser');
+const {
+    parseTerm
+} = require('../src/parser/narseseParser');
 
-// Test just the intensional difference
 const testCase = '(\\, cat, dog)';
 console.log(`Input: ${testCase}`);
 const result = parseTerm(testCase);

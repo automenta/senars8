@@ -1,140 +1,77 @@
-import Memory from '../../src/memory/Memory.js';
+import MemoryIndexer from '../../src/memory/MemoryIndexer.js';
 import Task from '../../src/core/Task.js';
+import Term from '../../src/core/Term.js';
 import {parseTerm} from '../../src/parser/narseseParser.js';
-import ConfigManager from '../../src/config/ConfigManager.js';
 
-describe('Memory Indexing', () => {
-    let memory;
+describe('MemoryIndexer', () => {
+    let indexer;
 
     beforeEach(() => {
-        const configManager = new ConfigManager();
-        memory = new Memory(configManager);
+        indexer = new MemoryIndexer();
     });
 
-    describe('punctuationIndex', () => {
-        test('should index tasks by punctuation type', async () => {
-            const beliefTask = new Task(parseTerm('(cat --> animal)'), '.');
-            const goalTask = new Task(parseTerm('find_food'), '!');
-            const questionTask = new Task(parseTerm('(bird --> flies)'), '?');
-
-            await memory.addTasks([beliefTask, goalTask, questionTask]);
-
-            expect(memory.indexer.punctuationIndex.has('.')).toBe(true);
-            expect(memory.indexer.punctuationIndex.has('!')).toBe(true);
-            expect(memory.indexer.punctuationIndex.has('?')).toBe(true);
-
-            expect(memory.indexer.punctuationIndex.get('.').has(beliefTask.id)).toBe(true);
-            expect(memory.indexer.punctuationIndex.get('!').has(goalTask.id)).toBe(true);
-            expect(memory.indexer.punctuationIndex.get('?').has(questionTask.id)).toBe(true);
-        });
-
-        test('should remove tasks from punctuation index when tasks are removed', () => {
-            const beliefTask = new Task(parseTerm('(cat --> animal)'), '.');
-            memory.addTasks([beliefTask]);
-
-            expect(memory.indexer.punctuationIndex.get('.').has(beliefTask.id)).toBe(true);
-
-            memory.removeTask(beliefTask.id);
-
-            expect(memory.indexer.punctuationIndex.has('.') && memory.indexer.punctuationIndex.get('.').has(beliefTask.id)).toBe(false);
-        });
-
-        test('should query tasks by punctuation using index', async () => {
-            const beliefTask1 = new Task(parseTerm('(cat --> animal)'), '.');
-            const beliefTask2 = new Task(parseTerm('(bird --> animal)'), '.');
-            const goalTask = new Task(parseTerm('find_food'), '!');
-
-            await memory.addTasks([beliefTask1, beliefTask2, goalTask]);
-
-            const beliefs = memory.queryTasks({
-                punctuation: '.'
-            });
-
-            expect(beliefs).toHaveLength(2);
-            expect(beliefs.every(task => task.punctuation === '.')).toBe(true);
-            expect(beliefs.some(task => task.id === beliefTask1.id)).toBe(true);
-            expect(beliefs.some(task => task.id === beliefTask2.id)).toBe(true);
-        });
+    test('should index implication terms correctly', () => {
+        const term = parseTerm('(goal ==> action)');
+        indexer.indexTerm(term);
+        expect(indexer.implicationIndex.has('goal')).toBe(true);
+        expect(indexer.implicationIndex.get('goal')).toContain(term);
     });
 
-    describe('priorityIndex', () => {
-        test('should index tasks by priority buckets', async () => {
-            const lowPriorityTask = new Task(parseTerm('(low_priority --> property)'), '.');
-            lowPriorityTask.state.priority = 0.2;
-
-            const highPriorityTask = new Task(parseTerm('(high_priority --> property)'), '.');
-            highPriorityTask.state.priority = 0.8;
-
-            await memory.addTasks([lowPriorityTask, highPriorityTask]);
-
-            const lowPriorityBucket = Math.floor(lowPriorityTask.state.priority * 10);
-            const highPriorityBucket = Math.floor(highPriorityTask.state.priority * 10);
-
-            expect(memory.indexer.priorityIndex.has(lowPriorityBucket)).toBe(true);
-            expect(memory.indexer.priorityIndex.has(highPriorityBucket)).toBe(true);
-
-            expect(memory.indexer.priorityIndex.get(lowPriorityBucket).has(lowPriorityTask.id)).toBe(true);
-            expect(memory.indexer.priorityIndex.get(highPriorityBucket).has(highPriorityTask.id)).toBe(true);
-        });
-
-        test('should remove tasks from priority index when tasks are removed', () => {
-            const task = new Task(parseTerm('(test --> property)'), '.');
-            task.state.priority = 0.5;
-            memory.addTasks([task]);
-
-            const priorityBucket = Math.floor(task.state.priority * 10);
-
-            expect(memory.indexer.priorityIndex.get(priorityBucket).has(task.id)).toBe(true);
-
-            memory.removeTask(task.id);
-
-            expect(memory.indexer.priorityIndex.has(priorityBucket) && memory.indexer.priorityIndex.get(priorityBucket).has(task.id)).toBe(false);
-        });
+    test('should index belief tasks correctly', () => {
+        const task = new Task(parseTerm('belief'), '.');
+        indexer.indexTask(task);
+        expect(indexer.beliefIndex.has('belief')).toBe(true);
+        expect(indexer.beliefIndex.get('belief')).toContain(task);
     });
 
-    describe('queryTasks optimization', () => {
-        test('should use punctuation index for faster queries', async () => {
-            const tasks = [];
-            for (let i = 0; i < 100; i++) {
-                if (i % 2 === 0) {
-                    tasks.push(new Task(parseTerm(`(belief_${i} --> property)`), '.'));
-                } else {
-                    tasks.push(new Task(parseTerm(`(goal_${i} --> property)`), '!'));
-                }
-            }
+    test('should index and unindex tasks by punctuation', () => {
+        const task = new Task(parseTerm('belief'), '.');
+        indexer._indexPunctuation(task);
+        expect(indexer.punctuationIndex.get('.').has(task.id)).toBe(true);
+        indexer._unindexPunctuation(task);
+        expect(indexer.punctuationIndex.has('.')).toBe(false);
+    });
 
-            await memory.addTasks(tasks);
+    test('should index and unindex tasks by priority', () => {
+        const task = new Task(parseTerm('belief'), '.');
+        task.state.priority = 0.75;
+        const bucket = 7;
+        indexer._indexPriority(task);
+        expect(indexer.priorityIndex.get(bucket).has(task.id)).toBe(true);
+        indexer._unindexPriority(task);
+        expect(indexer.priorityIndex.has(bucket)).toBe(false);
+    });
 
-            const beliefs = memory.queryTasks({
-                punctuation: '.'
-            });
+    test('should correctly query tasks by punctuation', () => {
+        const belief = new Task(parseTerm('a'), '.');
+        const goal = new Task(parseTerm('b'), '!');
+        const tasks = [belief, goal];
+        indexer.indexTask(belief);
+        indexer.indexTask(goal);
 
-            expect(beliefs.every(task => task.punctuation === '.')).toBe(true);
-            expect(beliefs).toHaveLength(50);
-
-            expect(memory.indexer.punctuationIndex.has('.')).toBe(true);
-            expect(memory.indexer.punctuationIndex.get('.').size).toBe(50);
+        const beliefs = indexer.queryTasks(tasks, {
+            punctuation: '.'
         });
+        expect(beliefs).toHaveLength(1);
+        expect(beliefs[0].termKey).toBe('a');
 
-        test('should fall back to full scan for complex queries', async () => {
-            const task1 = new Task(parseTerm('(test --> property)'), '.');
-            task1.state.priority = 0.9;
-            task1.state.truthValue.confidence = 0.8;
-
-            const task2 = new Task(parseTerm('(test2 --> property)'), '.');
-            task2.state.priority = 0.3;
-            task2.state.truthValue.confidence = 0.9;
-
-            await memory.addTasks([task1, task2]);
-
-            const results = memory.queryTasks({
-                punctuation: '.',
-                minPriority: 0.5,
-                minConfidence: 0.7
-            });
-
-            expect(results).toHaveLength(1);
-            expect(results[0].id).toBe(task1.id);
+        const goals = indexer.queryTasks(tasks, {
+            punctuation: '!'
         });
+        expect(goals).toHaveLength(1);
+        expect(goals[0].termKey).toBe('b');
+    });
+
+    test('should clone the indexer correctly', () => {
+        const term = parseTerm('(goal ==> action)');
+        indexer.indexTerm(term);
+        const task = new Task(parseTerm('belief'), '.');
+        indexer.indexTask(task);
+
+        const clonedIndexer = indexer.clone();
+        expect(clonedIndexer.implicationIndex.size).toBe(1);
+        expect(clonedIndexer.beliefIndex.size).toBe(1);
+        expect(clonedIndexer.punctuationIndex.size).toBe(1);
+        expect(clonedIndexer.priorityIndex.size).toBe(1);
     });
 });

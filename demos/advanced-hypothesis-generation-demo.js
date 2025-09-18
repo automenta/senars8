@@ -1,34 +1,42 @@
-// Category: Language Model
-// Description: Showcases the generation of creative and sophisticated hypotheses from observations using the Language Model.
-
-import {runDemo} from '../shared/demo-utils.js';
+import System from '../src/System.js';
+import Task from '../src/Task.js';
+import {parseTerm} from '../src/parser.js';
+import {log, print_task} from './shared/demo-utils.js';
 
 async function advancedHypothesisGenerationDemo() {
-    const observations = [
-        {sentence: '(cat --> chase_mouse).', truth: [0.9, 0.9]},
-        {sentence: '(dog --> chase_cat).', truth: [0.8, 0.8]},
-        {sentence: '(hawk --> chase_mouse).', truth: [0.7, 0.7]},
+    log('Advanced Hypothesis Generation Demo');
+
+    const system = new System();
+    await system.initialize();
+
+    const tasks = [
+        new Task(parseTerm('<a --> b>.')),
+        new Task(parseTerm('<b --> c>.')),
+        new Task(parseTerm('<d --> c>.')),
     ];
+    await system.addTasks(tasks);
 
-    const postCycleCallback = async (system, tasks) => {
-        console.log("\nAsking the LM to generate creative hypotheses...");
-        const creativeHypotheses = await system.lm.generateHypotheses(tasks, {type: 'creative', num: 2});
-        console.log("Creative hypotheses:", creativeHypotheses.map(t => t.termKey));
+    log('Initial tasks added to memory.');
+    tasks.forEach(print_task);
 
-        console.log("\nAsking the LM to generate and refine sophisticated hypotheses...");
-        const sophisticatedHypotheses = await system.lm.generateHypotheses(tasks, {
-            type: 'sophisticated',
-            num: 1,
-            refinement: 'make_testable'
-        });
-        console.log("Refined, sophisticated hypotheses:", sophisticatedHypotheses.map(t => t.termKey));
-    };
+    await system.runCycles(3);
 
-    await runDemo('Advanced Hypothesis Generation Demo', observations, {cycleCount: 0, postCycleCallback});
+    log('Running hypothesis generation...');
+    const hypotheses = await system.lm.generateHypotheses(system.memory.getAllTasks(), {
+        type: 'creative',
+        num: 5
+    });
+
+    log(`Generated ${hypotheses.length} creative hypotheses:`);
+    hypotheses.forEach(print_task);
+
+    log('Evaluating and ranking hypotheses...');
+    const rankedHypotheses = await system.lm.evaluateAndRankHypotheses(tasks, hypotheses);
+
+    log('Ranked hypotheses:');
+    rankedHypotheses.forEach(print_task);
+
+    log('Demo finished.');
 }
 
-export default advancedHypothesisGenerationDemo;
-
-if (import.meta.url.startsWith('file:')) {
-    advancedHypothesisGenerationDemo().catch(console.error);
-}
+advancedHypothesisGenerationDemo();

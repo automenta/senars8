@@ -1,14 +1,9 @@
-/**
- * Centralized constants for the SeNARS system.
- */
-
 export const PUNCTUATION = {
     BELIEF: '.',
     GOAL: '!',
     QUESTION: '?',
 };
 
-/** operator (term types) */
 export const OP = {
     ATOMIC: 'Atomic',
     INDEPENDENT_VARIABLE: 'IndependentVariable',
@@ -43,7 +38,6 @@ export const OP = {
     STATEMENT: 'Statement',
 };
 
-/** relation symbols */
 export const REL = {
     INHERITANCE: '-->',
     IMPLICATION: '==>',

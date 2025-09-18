@@ -1,9 +1,3 @@
-/**
- * @file Centralized constants for contradiction types.
- * This prevents the use of "magic strings" for identifying contradiction types
- * across the system, making the code more robust and easier to maintain.
- */
-
 export const CONTRADICTION_TYPES = {
     DIRECT_NEGATION: 'direct_negation',
     INHERITANCE_CONFLICT: 'inheritance_conflict',

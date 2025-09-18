@@ -1,6 +1,7 @@
-const {parseTerm} = require('../src/parser/narseseParser');
+const {
+    parseTerm
+} = require('../src/parser/narseseParser');
 
-// Test the new parser with valid Narsese expressions
 console.log('Testing new parser with valid Narsese expressions:');
 
 const validTestCases = [
@@ -13,7 +14,7 @@ const validTestCases = [
     '((*, addition, two, three) --> five)',
     '((*, multiplication, two, three) --> six)',
     '(arith_op ==> result)',
-    '((*, arith_op, x, y) ==> result)'
+    '((*, arith_op, x, y) ==> result)',
 ];
 
 validTestCases.forEach(testCase => {

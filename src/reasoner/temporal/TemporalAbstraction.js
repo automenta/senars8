@@ -1,10 +1,12 @@
 import {createTemporalAbstraction} from '../../utils/temporal.js';
 import {debug} from '../../utils/logger.js';
-import {handleErrorWithDefault} from '../../utils/errorHandler.js';
+import {createModuleErrorHandler} from '../../utils/errorHandler.js';
+
+const errorHandler = createModuleErrorHandler('TemporalAbstraction');
 
 class TemporalAbstraction {
     static create(temporalFocusSet) {
-        try {
+        return errorHandler.safeSync(() => {
             debug(`Creating temporal abstractions for ${temporalFocusSet.length} tasks`);
             const abstractionTasks = [];
 
@@ -15,9 +17,7 @@ class TemporalAbstraction {
 
             debug(`Created ${abstractionTasks.length} temporal abstractions`);
             return abstractionTasks;
-        } catch (err) {
-            return handleErrorWithDefault(err, 'Temporal abstraction creation error', []);
-        }
+        }, 'create', []);
     }
 }
 
