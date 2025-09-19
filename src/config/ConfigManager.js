@@ -16,6 +16,10 @@ class ConfigManager {
             const isObject = value !== null && typeof value === 'object' && !Array.isArray(value);
             const defaultIsObject = merged[key] !== null && typeof merged[key] === 'object' && !Array.isArray(merged[key]);
 
+            if (value === null || value === undefined) {
+                continue;
+            }
+
             if (isObject && defaultIsObject) {
                 merged[key] = this._mergeConfigs(merged[key], value);
             } else {
