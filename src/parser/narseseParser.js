@@ -1,339 +1,227 @@
 import lexer from './lexer.js';
+import {OP, TOKEN} from '../config/constants.js';
+
+const UNARY_OPERATOR_MAP = {
+    [TOKEN.NEGATION]: OP.NEGATION,
+};
+
+const TEMPORAL_OPERATOR_MAP = {
+    [TOKEN.ALWAYS]: OP.ALWAYS,
+    [TOKEN.EVENTUALLY]: OP.EVENTUALLY,
+    [TOKEN.NEXT]: OP.NEXT,
+    [TOKEN.PREVIOUS]: OP.PREVIOUS,
+};
+
+const BINARY_OPERATOR_MAP = {
+    [TOKEN.CONJUNCTION]: OP.CONJUNCTION,
+    [TOKEN.SEQUENTIAL_CONJUNCTION]: OP.SEQUENTIAL_CONJUNCTION,
+    [TOKEN.PARALLEL_CONJUNCTION]: OP.PARALLEL_CONJUNCTION,
+    [TOKEN.DISJUNCTION]: OP.DISJUNCTION,
+    [TOKEN.EXTENSIONAL_DIFFERENCE]: OP.EXTENSIONAL_DIFFERENCE,
+    [TOKEN.INTENSIONAL_DIFFERENCE]: OP.INTENSIONAL_DIFFERENCE,
+    [TOKEN.PRODUCT]: OP.PRODUCT,
+};
+
+const OPERATOR_MAP = {
+    ...UNARY_OPERATOR_MAP,
+    ...TEMPORAL_OPERATOR_MAP,
+    ...BINARY_OPERATOR_MAP,
+};
+
+const BINARY_RELATION_MAP = {
+    [TOKEN.ARROW]: OP.INHERITANCE,
+    [TOKEN.IMPLIES]: OP.IMPLICATION,
+    [TOKEN.INSTANCE]: OP.INSTANCE,
+    [TOKEN.PROPERTY]: OP.PROPERTY,
+    [TOKEN.EQUIVALENCE]: OP.EQUIVALENCE,
+    [TOKEN.SIMILARITY]: OP.SIMILARITY,
+    [TOKEN.RETROSPECTION]: OP.RETROSPECTIVE_IMPLICATION,
+    [TOKEN.PREDICTION]: OP.PREDICTIVE_IMPLICATION,
+    [TOKEN.CONCURRENT]: OP.CONCURRENT_IMPLICATION,
+    [TOKEN.UNTIL]: OP.UNTIL,
+    [TOKEN.SINCE]: OP.SINCE,
+};
 
 class NarseseParser {
-    static UNARY_OPERATOR_TYPES = {
-        negation: 'Negation'
-    };
-
-    static TEMPORAL_OPERATOR_TYPES = {
-        always: 'Always',
-        eventually: 'Eventually',
-        next: 'Next',
-        previous: 'Previous'
-    };
-
-    static BINARY_OPERATOR_TYPES = {
-        conjunction: 'Conjunction',
-        sequentialConjunction: 'SequentialConjunction',
-        parallelConjunction: 'ParallelConjunction',
-        disjunction: 'Disjunction',
-        extensionalDifference: 'ExtensionalDifference',
-        intensionalDifference: 'IntensionalDifference',
-        product: 'Product'
-    };
-
     constructor(input) {
-        this.lexer = lexer.clone();
-        this.lexer.reset(input);
+        this.lexer = lexer.clone().reset(input);
         this.current = null;
         this.next();
     }
 
     next() {
         this.current = this.lexer.next();
-        while (this.current && this.current.type === 'whitespace') {
+        while (this.current?.type === TOKEN.WHITESPACE) {
             this.current = this.lexer.next();
         }
         return this.current;
     }
 
     match(type) {
-        return this.current && this.current.type === type;
+        return this.current?.type === type;
     }
 
     consume(type) {
-        if (this.match(type)) {
-            const {value} = this.current;
-            this.next();
-            return value;
+        if (!this.match(type)) {
+            throw new Error(`Expected '${type}', found '${this.current?.type || 'EOF'}'`);
         }
-        throw new Error(`Expected token type '${type}', but found '${this.current ? this.current.type : 'EOF'}'`);
+        const value = this.current.value;
+        this.next();
+        return value;
     }
 
     parseMain() {
         const result = this.parseStatement();
         if (this.current) {
-            throw new Error(`Unexpected token '${this.current.type}' at end of input`);
+            throw new Error(`Unexpected token '${this.current.type}' at end`);
         }
         return result;
     }
 
     parseStatement() {
         const term = this.parseTerm();
+        const punctuation = this.match(TOKEN.BELIEF) ? this.consume(TOKEN.BELIEF) :
+            this.match(TOKEN.GOAL) ? this.consume(TOKEN.GOAL) :
+                this.match(TOKEN.QUESTION) ? this.consume(TOKEN.QUESTION) : null;
+        const truthValue = this.match(TOKEN.LPAREN) ? this.parseTruthValue() : null;
 
-        let punctuation = null;
-        if (this.match('belief')) {
-            punctuation = this.consume('belief');
-        } else if (this.match('goal')) {
-            punctuation = this.consume('goal');
-        } else if (this.match('question')) {
-            punctuation = this.consume('question');
-        }
-
-        let truthValue = null;
-        if (this.match('lparen')) {
-            truthValue = this.parseTruthValue();
-        }
-
-        if (punctuation || truthValue) {
-            return {
-                type: 'Statement',
-                term,
-                punctuation,
-                truthValue
-            };
-        }
-
-        return term;
+        return (punctuation || truthValue) ? {
+            type: OP.STATEMENT,
+            term,
+            punctuation,
+            truthValue
+        } : term;
     }
 
     parseTruthValue() {
-        this.consume('lparen');
-        const frequency = this.parseNumber();
-        this.consume('comma');
-        const confidence = this.parseNumber();
-        this.consume('rparen');
-        return {frequency, confidence};
+        this.consume(TOKEN.LPAREN);
+        const frequency = this.parseNumber().value;
+        this.consume(TOKEN.COMMA);
+        const confidence = this.parseNumber().value;
+        this.consume(TOKEN.RPAREN);
+        return {
+            frequency,
+            confidence
+        };
     }
 
     parseTerm() {
-        if (this.match('lparen')) {
-            return this.parseCompoundTerm();
-        } else if (this.match('lbrace')) { // Use lbrace for extensional sets
-            return this.parseExtensionalSet();
-        } else if (this.match('lbracket')) { // Use lbracket for intensional sets
-            return this.parseIntensionalSet();
-        } else if (this.match('identifier') || this.match('string')) {
-            return this.parseAtomicTerm();
-        } else if (this.match('independentVar')) {
-            return this.parseIndependentVariable();
-        } else if (this.match('dependentVar')) {
-            return this.parseDependentVariable();
-        } else if (this.match('queryVar')) {
-            return this.parseQueryVariable();
-        } else if (this.match('number')) {
-            return this.parseNumber();
-        }
-        throw new Error(`Unexpected token '${this.current ? this.current.type : 'EOF'}' when parsing term`);
+        const parsers = {
+            [TOKEN.LPAREN]: () => this.parseCompoundTerm(),
+            [TOKEN.LBRACE]: () => this.parseSet(OP.EXTENSIONAL_SET, TOKEN.LBRACE, TOKEN.RBRACE),
+            [TOKEN.LBRACKET]: () => this.parseSet(OP.INTENSIONAL_SET, TOKEN.LBRACKET, TOKEN.RBRACKET),
+            [TOKEN.IDENTIFIER]: () => this.parseAtomicTerm(),
+            [TOKEN.STRING]: () => this.parseAtomicTerm(),
+            [TOKEN.INDEPENDENT_VAR]: () => this.parseVariable(TOKEN.INDEPENDENT_VAR, OP.INDEPENDENT_VARIABLE),
+            [TOKEN.DEPENDENT_VAR]: () => this.parseVariable(TOKEN.DEPENDENT_VAR, OP.DEPENDENT_VARIABLE),
+            [TOKEN.QUERY_VAR]: () => this.parseVariable(TOKEN.QUERY_VAR, OP.QUERY_VARIABLE),
+            [TOKEN.NUMBER]: () => this.parseNumber(),
+        };
+        const parser = this.current ? parsers[this.current.type] : null;
+        if (parser) return parser();
+        throw new Error(`Unexpected token '${this.current?.type || 'EOF'}'`);
     }
 
     parseNumber() {
-        const value = this.consume('number');
-        return {type: 'Number', value: parseFloat(value)};
+        return {
+            type: OP.NUMBER,
+            value: parseFloat(this.consume(TOKEN.NUMBER))
+        };
     }
 
     parseCompoundTerm() {
-        this.consume('lparen');
-
-        if (this.matchUnaryOperator()) {
-            return this.parseUnaryOperator();
+        this.consume(TOKEN.LPAREN);
+        let term;
+        if (this.current?.type in OPERATOR_MAP) {
+            term = this.parseOperator();
+        } else {
+            const subject = this.parseTerm();
+            if (this.current?.type in BINARY_RELATION_MAP) {
+                const relationType = BINARY_RELATION_MAP[this.current.type];
+                term = this.parseBinaryRelation(subject, this.current.type, relationType);
+            } else {
+                term = subject;
+            }
         }
-
-        if (this.matchTemporalOperator()) {
-            return this.parseTemporalOperator();
-        }
-
-        if (this.matchBinaryOperator()) {
-            return this.parseBinaryOperator();
-        }
-
-        const firstTerm = this.parseTerm();
-
-        if (this.match('arrow')) {
-            return this.parseInheritance(firstTerm);
-        } else if (this.match('implies')) {
-            return this.parseImplication(firstTerm);
-        } else if (this.match('instance')) {
-            return this.parseInstance(firstTerm);
-        } else if (this.match('property')) {
-            return this.parseProperty(firstTerm);
-        } else if (this.match('equivalence')) {
-            return this.parseEquivalence(firstTerm);
-        } else if (this.match('similarity')) {
-            return this.parseSimilarity(firstTerm);
-        } else if (this.match('retrospection')) {
-            return this.parseRetrospectiveImplication(firstTerm);
-        } else if (this.match('prediction')) {
-            return this.parsePredictiveImplication(firstTerm);
-        } else if (this.match('concurrent')) {
-            return this.parseConcurrentImplication(firstTerm);
-        } else if (this.match('until')) {
-            return this.parseUntil(firstTerm);
-        } else if (this.match('since')) {
-            return this.parseSince(firstTerm);
-        }
-        this.consume('rparen');
-        return firstTerm;
+        this.consume(TOKEN.RPAREN);
+        return term;
     }
 
-    matchUnaryOperator() {
-        return ['negation'].includes(this.current.type);
-    }
-
-    parseUnaryOperator() {
-        const operatorToken = this.current;
-        this.next(); // Consume the operator token
-        this.consume('comma');
-        const term = this.parseTerm();
-        this.consume('rparen');
-        return {type: this.getUnaryOperatorType(operatorToken.type), term};
-    }
-
-    getUnaryOperatorType(operator) {
-        return NarseseParser.UNARY_OPERATOR_TYPES[operator] || operator;
-    }
-
-    matchTemporalOperator() {
-        return ['always', 'eventually', 'next', 'previous'].includes(this.current.type);
-    }
-
-    parseTemporalOperator() {
-        const operatorToken = this.current;
-        this.next(); // Consume the operator token
-        this.consume('comma');
-        const term = this.parseTerm();
-        this.consume('rparen');
-        return {type: this.getTemporalOperatorType(operatorToken.type), term};
-    }
-
-    matchBinaryOperator() {
-        return [
-            'conjunction', 'sequentialConjunction', 'parallelConjunction',
-            'disjunction', 'extensionalDifference', 'intensionalDifference',
-            'product'
-        ].includes(this.current.type);
-    }
-
-    parseBinaryOperator() {
-        const operatorToken = this.current;
-        this.next(); // Consume the operator token
-        this.consume('comma');
-        const terms = this.parseTermList();
-        this.consume('rparen');
-        return {type: this.getBinaryOperatorType(operatorToken.type), terms};
-    }
-
-    getBinaryOperatorType(operator) {
-        return NarseseParser.BINARY_OPERATOR_TYPES[operator] || operator;
+    parseOperator() {
+        const operatorTokenType = this.current.type;
+        this.consume(operatorTokenType);
+        this.consume(TOKEN.COMMA);
+        const isBinary = operatorTokenType in BINARY_OPERATOR_MAP;
+        const result = isBinary ? {
+            terms: this.parseTermList(TOKEN.RPAREN)
+        } : {
+            term: this.parseTerm()
+        };
+        // this.consume(TOKEN.RPAREN); // This was the bug
+        return {
+            type: OPERATOR_MAP[operatorTokenType],
+            ...result
+        };
     }
 
     parseBinaryRelation(subject, tokenType, relationType) {
         this.consume(tokenType);
         const predicate = this.parseTerm();
-        this.consume('rparen');
-        return {type: relationType, subject, predicate};
+        // this.consume(TOKEN.RPAREN); // This was the bug
+        return {
+            type: relationType,
+            subject,
+            predicate
+        };
     }
 
-    parseInheritance(subject) {
-        return this.parseBinaryRelation(subject, 'arrow', 'Inheritance');
-    }
-
-    parseImplication(subject) {
-        return this.parseBinaryRelation(subject, 'implies', 'Implication');
-    }
-
-    parseInstance(subject) {
-        return this.parseBinaryRelation(subject, 'instance', 'Instance');
-    }
-
-    parseProperty(subject) {
-        return this.parseBinaryRelation(subject, 'property', 'Property');
-    }
-
-    parseEquivalence(subject) {
-        return this.parseBinaryRelation(subject, 'equivalence', 'Equivalence');
-    }
-
-    parseSimilarity(subject) {
-        return this.parseBinaryRelation(subject, 'similarity', 'Similarity');
-    }
-
-    parseRetrospectiveImplication(subject) {
-        return this.parseBinaryRelation(subject, 'retrospection', 'RetrospectiveImplication');
-    }
-
-    parsePredictiveImplication(subject) {
-        return this.parseBinaryRelation(subject, 'prediction', 'PredictiveImplication');
-    }
-
-    parseConcurrentImplication(subject) {
-        return this.parseBinaryRelation(subject, 'concurrent', 'ConcurrentImplication');
-    }
-
-    parseUntil(subject) {
-        return this.parseBinaryRelation(subject, 'until', 'Until');
-    }
-
-    parseSince(subject) {
-        return this.parseBinaryRelation(subject, 'since', 'Since');
-    }
-
-    parseExtensionalSet() {
-        this.consume('lbrace');
-        const terms = this.parseTermList();
-        this.consume('rbrace');
-        return {type: 'ExtensionalSet', terms};
-    }
-
-    parseIntensionalSet() {
-        this.consume('lbracket');
-        const terms = this.parseTermList();
-        this.consume('rbracket');
-        return {type: 'IntensionalSet', terms};
+    parseSet(type, open, close) {
+        this.consume(open);
+        const terms = this.parseTermList(close);
+        this.consume(close);
+        return {
+            type,
+            terms
+        };
     }
 
     parseAtomicTerm() {
         const token = this.current;
-        this.next(); // consume token
-        return {type: 'Atomic', key: token.value};
+        this.next();
+        return {
+            type: OP.ATOMIC,
+            key: token.value
+        };
     }
 
     parseVariable(tokenType, variableType) {
-        const variable = this.consume(tokenType);
-        return {type: variableType, name: variable};
+        return {
+            type: variableType,
+            name: this.consume(tokenType)
+        };
     }
 
-    parseIndependentVariable() {
-        return this.parseVariable('independentVar', 'IndependentVariable');
-    }
-
-    parseDependentVariable() {
-        return this.parseVariable('dependentVar', 'DependentVariable');
-    }
-
-    parseQueryVariable() {
-        return this.parseVariable('queryVar', 'QueryVariable');
-    }
-
-    parseTermList() {
+    parseTermList(closingToken) {
         const terms = [];
-
-        if (!this.match('rparen') && !this.match('rbrace') && !this.match('rbracket')) {
-            terms.push(this.parseTerm());
-
-            while (this.match('comma')) {
-                this.consume('comma');
+        if (!this.match(closingToken)) {
+            do {
                 terms.push(this.parseTerm());
-            }
+            } while (this.match(TOKEN.COMMA) && this.consume(TOKEN.COMMA));
         }
-
         return terms;
     }
 }
 
 function parseTerm(input) {
-    if (typeof input !== 'string' || input.length === 0) {
-        return null;
-    }
-
+    if (typeof input !== 'string' || !input.length) return null;
     const parser = new NarseseParser(input);
     const parsed = parser.parseMain();
-    if (parsed) {
-        if (typeof parsed === 'object' && !parsed.key) {
-            parsed.key = input;
-        }
+    if (parsed && typeof parsed === 'object' && !parsed.key) {
+        parsed.key = input;
     }
     return parsed;
 }
 
-export {parseTerm};
+export {
+    parseTerm
+};

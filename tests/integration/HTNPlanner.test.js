@@ -2,35 +2,43 @@ import HTNPlanner from '../../src/reasoner/HTNPlanner.js';
 import Memory from '../../src/memory/Memory.js';
 import Term from '../../src/core/Term.js';
 import Task from '../../src/core/Task.js';
+import ConfigManager from '../../src/config/ConfigManager.js';
 
 describe('HTNPlanner Integration Test', () => {
     let memory;
     let planner;
+    let configManager;
+
+    const addTermToMemory = (key, complexity = 1) => {
+        const term = new Term(key, [], complexity);
+        memory.addTerm(term);
+        return term;
+    };
 
     beforeEach(() => {
-        memory = new Memory();
-        planner = new HTNPlanner(memory);
+        configManager = new ConfigManager();
+        memory = new Memory(configManager);
+        const lm = {
+            bootstrapTerm: async termKey => new Term(termKey, [0.1, 0.2, 0.3])
+        };
+        planner = new HTNPlanner(memory, lm, configManager);
     });
 
     test('should find a simple plan with one level of decomposition', async () => {
-        // Simplified test case
         const goalKey = 'a';
         const action1Key = 'b';
         const action2Key = 'c';
-        // Narsese for: a ==> (&&, b, c)
         const methodKey = `(${goalKey} ==> (&&,${action1Key},${action2Key}))`;
 
-        const goalTerm = new Term(goalKey);
-        const action1Term = new Term(action1Key);
-        const action2Term = new Term(action2Key);
-        const methodTerm = new Term(methodKey);
+        const goalTerm = addTermToMemory(goalKey);
+        addTermToMemory(action1Key);
+        addTermToMemory(action2Key);
+        addTermToMemory(methodKey);
 
-        memory.addTerm(goalTerm);
-        memory.addTerm(action1Term);
-        memory.addTerm(action2Term);
-        memory.addTerm(methodTerm);
-
-        const goalTask = new Task(goalTerm, '!', {frequency: 1.0, confidence: 0.9});
+        const goalTask = new Task(goalTerm, '!', {
+            frequency: 1.0,
+            confidence: 0.9
+        });
         const plan = await planner.findPlan(goalTask);
 
         expect(plan).not.toBeNull();

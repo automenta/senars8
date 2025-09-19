@@ -1,5 +1,7 @@
-import {safeAsync} from '../utils/errorHandler.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
 import {debug} from '../utils/logger.js';
+
+const errorHandler = createModuleErrorHandler('QAService');
 
 class QAService {
     constructor(generateFunction, getQAPipelineFunction) {
@@ -8,16 +10,16 @@ class QAService {
     }
 
     async answerQuestion(question, context = null) {
-        if (!question || typeof question !== 'string') {
+        if (!question) {
             return 'Cannot answer an empty question.';
         }
 
-        return await safeAsync(async () => {
+        return await errorHandler.safeAsync(async () => {
             debug(`Answering question: ${question.substring(0, 50)}...`);
             if (context) {
                 const qaPipeline = await this._getQAPipeline();
                 const result = await qaPipeline(question, context);
-                if (result && result.answer) {
+                if (result?.answer) {
                     debug('Question answered using QA pipeline');
                     return result.answer;
                 }
@@ -27,7 +29,7 @@ class QAService {
             const answer = await this._generate(prompt);
             debug('Question answered using generation');
             return answer;
-        }, 'Question answering error', `Failed to answer question: ${question}`);
+        }, `answerQuestion: ${question.substring(0, 50)}...`, `Failed to answer question: ${question}`);
     }
 }
 

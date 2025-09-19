@@ -1,23 +1,25 @@
 import Task from '../../core/Task.js';
 import {parseTerm} from '../../parser/narseseParser.js';
-import {createTemporalSequenceTask, detectTemporalPatterns} from './utils.js';
+import {createTemporalSequenceTask, detectTemporalPatterns} from '../../utils/temporal.js';
 import {debug} from '../../utils/logger.js';
-import {handleErrorWithDefault} from '../../utils/errorHandler.js';
+import {createModuleErrorHandler} from '../../utils/errorHandler.js';
+
+const errorHandler = createModuleErrorHandler('TemporalPatternDetection');
 
 class TemporalPatternDetection {
     static detect(temporalFocusSet) {
-        try {
+        return errorHandler.safeSync(() => {
             debug(`Detecting temporal patterns for ${temporalFocusSet.length} tasks`);
             const patternTasks = [];
             const patterns = detectTemporalPatterns(temporalFocusSet);
 
             for (const pattern of patterns) {
-                try {
+                const patternTask = errorHandler.safeSync(() => {
                     if (pattern.type === 'periodic') {
                         const termKey = `(periodic_pattern, ${pattern.tasks[0].termKey})`;
                         const parsedTerm = parseTerm(termKey);
                         if (parsedTerm) {
-                            const periodicTask = new Task(
+                            return new Task(
                                 parsedTerm,
                                 '.',
                                 {
@@ -25,24 +27,21 @@ class TemporalPatternDetection {
                                     confidence: pattern.confidence
                                 }
                             );
-                            patternTasks.push(periodicTask);
                         }
                     } else if (pattern.type === 'sequential') {
-                        const sequenceTask = createTemporalSequenceTask(pattern.sequence);
-                        if (sequenceTask) {
-                            patternTasks.push(sequenceTask);
-                        }
+                        return createTemporalSequenceTask(pattern.sequence);
                     }
-                } catch (err) {
-                    handleErrorWithDefault(err, `Error processing pattern of type ${pattern.type}`, null);
+                    return null;
+                }, `process-pattern-${pattern.type}`, null);
+
+                if (patternTask) {
+                    patternTasks.push(patternTask);
                 }
             }
 
             debug(`Detected ${patternTasks.length} temporal pattern tasks`);
             return patternTasks;
-        } catch (err) {
-            return handleErrorWithDefault(err, 'Temporal pattern detection error', []);
-        }
+        }, 'detect', []);
     }
 }
 

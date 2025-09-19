@@ -25,9 +25,7 @@ class ContradictionAnalyzer {
     analyze(task1, task2, parsed1, parsed2) {
         for (const strategy of this.strategies) {
             const result = strategy(task1, task2, parsed1, parsed2);
-            if (result) {
-                return result;
-            }
+            if (result) return result;
         }
         return null;
     }

@@ -121,7 +121,7 @@ describe('Error Handler - Edge Cases', () => {
         expect(isMemoryError(genericError)).toBe(false);
     });
 
-    test('should handle module error handler edge cases', async () => {
+    test('should handle module error handler edge cases for safeAsync', async () => {
         const moduleHandler = createModuleErrorHandler('TestModule');
 
         // Test that all methods exist
@@ -136,6 +136,10 @@ describe('Error Handler - Edge Cases', () => {
         };
         const result = await moduleHandler.safeAsync(asyncThrowingFunction, 'test context', 'default');
         expect(result).toBe('default');
+    });
+
+    test('should handle module error handler edge cases for safeSync', () => {
+        const moduleHandler = createModuleErrorHandler('TestModule');
 
         // Test safeSync with sync function that throws
         const syncThrowingFunction = () => {

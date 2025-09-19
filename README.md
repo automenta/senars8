@@ -112,7 +112,7 @@ Integrate the SeNARS system into your own projects. The system is designed to be
 promise-based, and observable API.
 
 ```javascript
-import { SystemFactory, Task, parseTerm } from 'senars';
+import {SystemFactory, Task, parseTerm} from 'senars';
 
 // Example of a custom configuration to override the defaults
 const customConfig = {
@@ -133,7 +133,11 @@ async function runSystem() {
     console.log('System created and initialized.');
 
     // 2. Subscribe to events using the Introspection API
-    console.log('Subscribing to 'SystemCycleEnded' event...');
+    console.log('Subscribing to '
+    SystemCycleEnded
+    ' event...'
+)
+    ;
     system.introspection.on('SystemCycleEnded', (result) => {
         console.log(`EVENT: Cycle ended. Derived ${result.derivedTasks} new tasks.`);
     });
@@ -158,7 +162,7 @@ async function runSystem() {
 
     // 5. Query the final state using the Introspection API
     console.log('Querying for the answer...');
-    const answers = system.introspection.queryTasks({ termKey: '(<dog> --> warm_blooded)', punctuation: '.' });
+    const answers = system.introspection.queryTasks({termKey: '(<dog> --> warm_blooded)', punctuation: '.'});
 
     if (answers.length > 0) {
         const bestAnswer = answers.sort((a, b) => b.state.truthValue.confidence - a.state.truthValue.confidence)[0];

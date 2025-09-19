@@ -1,6 +1,7 @@
-const {parseTerm} = require('../src/parser/narseseParser');
+const {
+    parseTerm
+} = require('../src/parser/narseseParser');
 
-// Test the new parser with various inputs
 console.log('Testing new parser implementation:');
 
 const testCases = [
@@ -13,7 +14,7 @@ const testCases = [
     '(#, cat, dog)',
     '(\\, cat, dog)',
     '(cat {-- animal)',
-    '(cat --} furry)'
+    '(cat --} furry)',
 ];
 
 testCases.forEach(testCase => {

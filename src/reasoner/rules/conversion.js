@@ -4,7 +4,7 @@ import config from '../../config/index.js';
 
 export default createUnaryInheritanceRule(
     'conversion',
-    parsed1 => Term.buildTermKey({
+    parsed1 => Term.termKey({
         type: 'Inheritance',
         subject: parsed1.predicate,
         predicate: parsed1.subject

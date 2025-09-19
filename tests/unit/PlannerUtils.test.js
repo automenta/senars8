@@ -1,129 +1,134 @@
 import * as PlannerUtils from '../../src/reasoner/utils/PlannerUtils.js';
-import Term from '../../src/core/Term.js';
 import Memory from '../../src/memory/Memory.js';
+import Term from '../../src/core/Term.js';
 
-// Mock Term and Memory for testing purposes
-jest.mock('../../src/core/Term.js', () => {
-    return jest.fn().mockImplementation(key => {
-        const termInstance = {
-            key,
-            type: 'Atomic',
-            subject: null,
-            predicate: null,
-            terms: [],
-            equals: jest.fn(otherTerm => otherTerm && termInstance.key === otherTerm.key)
-        };
-        return new Proxy(termInstance, {
-            set: (target, prop, value) => {
-                target[prop] = value;
-                return true;
-            }
-        });
-    });
-});
 jest.mock('../../src/memory/Memory.js');
 
 describe('PlannerUtils', () => {
     let memory;
-    let config;
 
     beforeEach(() => {
-        jest.clearAllMocks();
-
         memory = new Memory();
-        memory.implicationIndex = new Map();
-        memory.beliefIndex = new Map();
-
-        config = {
-            confidenceThreshold: 0.9,
-            preconditionConfidenceThreshold: 0.8
+        memory.indexer = {
+            implicationIndex: new Map(),
+            beliefIndex: new Map(),
         };
     });
 
     describe('findDecompositionMethods', () => {
-        it('should return methods from the implication index', () => {
+        it('should return an empty array if no methods are found', () => {
             const goalTerm = new Term('goal');
-            const methods = [{id: 'method1'}, {id: 'method2'}];
-            memory.implicationIndex.set(goalTerm.key, methods);
-            const result = PlannerUtils.findDecompositionMethods(goalTerm, memory);
-            expect(result).toEqual(methods);
+            expect(PlannerUtils.findDecompositionMethods(goalTerm, memory)).toEqual([]);
         });
 
-        it('should return an empty array if no methods are found', () => {
-            const goalTerm = new Term('goal_without_methods');
-            const result = PlannerUtils.findDecompositionMethods(goalTerm, memory);
-            expect(result).toEqual([]);
+        it('should return the correct decomposition methods', () => {
+            const goalTerm = new Term('goal');
+            const method1 = new Term('(goal ==> action1)');
+            memory.indexer.implicationIndex.set('goal', [method1]);
+            expect(PlannerUtils.findDecompositionMethods(goalTerm, memory)).toEqual([method1]);
         });
     });
 
     describe('extractSubTasksFromMethod', () => {
-        it('should return the terms of a SequentialConjunction', () => {
-            const methodTerm = new Term('method');
-            methodTerm.type = 'SequentialConjunction';
-            methodTerm.terms = [new Term('sub1'), new Term('sub2')];
-            const result = PlannerUtils.extractSubTasksFromMethod(methodTerm);
-            expect(result).toEqual(methodTerm.terms);
+        it('should return null for a null methodTerm', () => {
+            expect(PlannerUtils.extractSubTasksFromMethod(null)).toBeNull();
         });
 
         it('should return an array with the term itself if not a SequentialConjunction', () => {
-            const methodTerm = new Term('atomic_method');
-            const result = PlannerUtils.extractSubTasksFromMethod(methodTerm);
-            expect(result).toEqual([methodTerm]);
+            const term = new Term('atomic');
+            expect(PlannerUtils.extractSubTasksFromMethod(term)).toEqual([term]);
         });
 
-        it('should return null if the method term is null', () => {
-            const result = PlannerUtils.extractSubTasksFromMethod(null);
-            expect(result).toBeNull();
+        it('should extract subtasks from a SequentialConjunction', () => {
+            const subTask1 = new Term('sub1');
+            const subTask2 = new Term('sub2');
+            const methodTerm = {
+                type: 'SequentialConjunction',
+                terms: [subTask1, subTask2]
+            };
+            expect(PlannerUtils.extractSubTasksFromMethod(methodTerm)).toEqual([subTask1, subTask2]);
         });
     });
 
     describe('isAchieved', () => {
-        it('should return true if a belief meets the confidence threshold', () => {
-            const term = new Term('achieved_term');
-            memory.beliefIndex.set(term.key, [{state: {truthValue: {confidence: 0.95}}}]);
-            const result = PlannerUtils.isAchieved(term, memory, config);
-            expect(result).toBe(true);
+        const config = {
+            confidenceThreshold: 0.8
+        };
+
+        it('should return false if term is null', () => {
+            expect(PlannerUtils.isAchieved(null, memory, config)).toBe(false);
         });
 
-        it('should return false if a belief is below the confidence threshold', () => {
-            const term = new Term('unachieved_term');
-            memory.beliefIndex.set(term.key, [{state: {truthValue: {confidence: 0.5}}}]);
-            const result = PlannerUtils.isAchieved(term, memory, config);
-            expect(result).toBe(false);
+        it('should return false if no beliefs are found', () => {
+            const term = new Term('goal');
+            expect(PlannerUtils.isAchieved(term, memory, config)).toBe(false);
         });
 
-        it('should return false if no belief is found', () => {
-            const term = new Term('non_existent_term');
-            const result = PlannerUtils.isAchieved(term, memory, config);
-            expect(result).toBe(false);
+        it('should return false if belief confidence is below threshold', () => {
+            const term = new Term('goal');
+            memory.indexer.beliefIndex.set('goal', [{
+                state: {
+                    truthValue: {
+                        confidence: 0.7
+                    }
+                }
+            }]);
+            expect(PlannerUtils.isAchieved(term, memory, config)).toBe(false);
+        });
+
+        it('should return true if belief confidence is at or above threshold', () => {
+            const term = new Term('goal');
+            memory.indexer.beliefIndex.set('goal', [{
+                state: {
+                    truthValue: {
+                        confidence: 0.8
+                    }
+                }
+            }]);
+            expect(PlannerUtils.isAchieved(term, memory, config)).toBe(true);
         });
     });
 
     describe('arePreconditionsMet', () => {
+        const config = {
+            preconditionConfidenceThreshold: 0.7
+        };
+
+        it('should return true for empty preconditions', () => {
+            expect(PlannerUtils.arePreconditionsMet([], memory, config)).toBe(true);
+        });
+
         it('should return true if all preconditions are met', () => {
-            const pre1 = new Term('pre1');
-            const pre2 = new Term('pre2');
-            memory.beliefIndex.set(pre1.key, [{state: {truthValue: {confidence: 0.85}}}]);
-            memory.beliefIndex.set(pre2.key, [{state: {truthValue: {confidence: 0.9}}}]);
-            const result = PlannerUtils.arePreconditionsMet([pre1, pre2], memory, config);
-            expect(result).toBe(true);
+            const precond1 = new Term('precond1');
+            const precond2 = new Term('precond2');
+            memory.indexer.beliefIndex.set('precond1', [{
+                state: {
+                    truthValue: {
+                        confidence: 0.8
+                    }
+                }
+            }]);
+            memory.indexer.beliefIndex.set('precond2', [{
+                state: {
+                    truthValue: {
+                        confidence: 0.9
+                    }
+                }
+            }]);
+            expect(PlannerUtils.arePreconditionsMet([precond1, precond2], memory, config)).toBe(true);
         });
 
         it('should return false if any precondition is not met', () => {
-            const pre1 = new Term('pre1');
-            const pre2 = new Term('pre2_unmet');
-            memory.beliefIndex.set(pre1.key, [{state: {truthValue: {confidence: 0.9}}}]);
-            memory.beliefIndex.set(pre2.key, [{state: {truthValue: {confidence: 0.7}}}]);
-            const result = PlannerUtils.arePreconditionsMet([pre1, pre2], memory, config);
-            expect(result).toBe(false);
-        });
-
-        it('should return false if any precondition belief does not exist', () => {
-            const pre1 = new Term('pre1');
-            const pre2 = new Term('pre2_nonexistent');
-            memory.beliefIndex.set(pre1.key, [{state: {truthValue: {confidence: 0.9}}}]);
-            const result = PlannerUtils.arePreconditionsMet([pre1, pre2], memory, config);
-            expect(result).toBe(false);
+            const precond1 = new Term('precond1');
+            const precond2 = new Term('precond2');
+            memory.indexer.beliefIndex.set('precond1', [{
+                state: {
+                    truthValue: {
+                        confidence: 0.8
+                    }
+                }
+            }]);
+            expect(PlannerUtils.arePreconditionsMet([precond1, precond2], memory, config)).toBe(false);
         });
     });
 });

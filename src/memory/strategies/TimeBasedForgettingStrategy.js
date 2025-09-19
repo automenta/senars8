@@ -14,33 +14,28 @@ class TimeBasedForgettingStrategy extends ForgettingStrategy {
 
     prune(tasks, options = {}) {
         const now = Date.now();
-        const updatedTasks = new Map();
-
         const {
             expirationThreshold,
             importanceThresholds
-        } = {...this.defaultOptions, ...options};
+        } = {
+            ...this.defaultOptions,
+            ...options
+        };
 
-        for (const [id, task] of tasks.entries()) {
-            const lastAccessed = task.state.stamp.lastAccessed || task.state.stamp.creationTime;
+        const numericExpirationThreshold = typeof expirationThreshold === 'bigint' ? Number(expirationThreshold) : expirationThreshold;
 
-            // Handle both BigInt and number timestamps
-            const lastAccessedTime = typeof lastAccessed === 'bigint' ? Number(lastAccessed) : lastAccessed;
-            const isExpired = (now - lastAccessedTime) >= expirationThreshold;
+        return new Map(
+            [...tasks.entries()].filter(([, task]) => {
+                const lastAccessed = task.state.stamp.lastAccessed || task.state.stamp.creationTime;
+                const lastAccessedTime = typeof lastAccessed === 'bigint' ? Number(lastAccessed) : lastAccessed;
+                const isExpired = (now - lastAccessedTime) >= numericExpirationThreshold;
 
-            if (!isExpired) {
-                updatedTasks.set(id, task);
-                continue;
-            }
+                if (!isExpired) return true;
 
-            const isImportant = task.state.priority >= importanceThresholds.priority ||
-                task.state.truthValue.confidence >= importanceThresholds.confidence;
-
-            if (isImportant) {
-                updatedTasks.set(id, task);
-            }
-        }
-        return updatedTasks;
+                return task.state.priority >= importanceThresholds.priority ||
+                    task.state.truthValue.confidence >= importanceThresholds.confidence;
+            })
+        );
     }
 }
 

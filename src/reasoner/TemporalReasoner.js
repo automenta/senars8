@@ -8,43 +8,47 @@ import FutureTaskPrediction from './temporal/FutureTaskPrediction.js';
 import TemporalClusterDetection from './temporal/TemporalClusterDetection.js';
 import TemporalCoherence from './temporal/TemporalCoherence.js';
 import {debug} from '../utils/logger.js';
-import {handleErrorWithDefault} from '../utils/errorHandler.js';
-import defaultConfig from '../config/default-config.js';
+import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import ConfigAccessor from '../config/ConfigAccessor.js';
+
+const errorHandler = createModuleErrorHandler('TemporalReasoner');
 
 class TemporalReasoner {
-    constructor(config = defaultConfig.temporal) {
-        this.config = config;
-        // The config can be passed down to sub-modules if they are refactored
-        // to be stateful and configurable. For now, they use static methods.
+    constructor(configManager) {
+        this.config = new ConfigAccessor(configManager);
+        this.inferenceModules = [
+            TemporalRelationshipInference,
+            TemporalImplicationInference,
+            TemporalPatternDetection,
+            TemporalCycleDetection,
+            TemporalAbstraction,
+            TemporalAnomalyDetection,
+            FutureTaskPrediction,
+            TemporalClusterDetection,
+            TemporalCoherence,
+        ];
     }
 
-    infer(focusSet) {
-        try {
-            debug(`Temporal reasoning on ${focusSet.length} tasks`);
-            const temporalFocusSet = focusSet.filter(task => task.state.stamp.occurrenceTime);
-            if (temporalFocusSet.length < 2) {
-                debug('Insufficient temporal tasks for reasoning');
-                return [];
-            }
-
-            debug(`Processing ${temporalFocusSet.length} temporal tasks`);
-            // Pass config to sub-modules if they are updated to accept it
-            const relationshipTasks = TemporalRelationshipInference.infer(temporalFocusSet, this.config);
-            const implicationTasks = TemporalImplicationInference.infer(temporalFocusSet, this.config);
-            const patternTasks = TemporalPatternDetection.detect(temporalFocusSet, this.config);
-            const cycleTasks = TemporalCycleDetection.detect(temporalFocusSet, this.config);
-            const abstractionTasks = TemporalAbstraction.create(temporalFocusSet, this.config);
-            const anomalyTasks = TemporalAnomalyDetection.detect(temporalFocusSet, this.config);
-            const predictionTasks = FutureTaskPrediction.predict(temporalFocusSet, this.config);
-            const clusterTasks = TemporalClusterDetection.detect(temporalFocusSet, this.config);
-            const coherenceTasks = TemporalCoherence.calculate(temporalFocusSet, this.config);
-
-            const allTasks = [...relationshipTasks, ...implicationTasks, ...patternTasks, ...cycleTasks, ...abstractionTasks, ...anomalyTasks, ...predictionTasks, ...clusterTasks, ...coherenceTasks];
-            debug(`Temporal reasoning produced ${allTasks.length} derived tasks`);
-            return allTasks;
-        } catch (err) {
-            return handleErrorWithDefault(err, 'Temporal reasoning error', []);
+    infer(tasks) {
+        const config = this.config.get('temporal');
+        if (!config) {
+            debug('Temporal reasoning disabled - no temporal config found');
+            return [];
         }
+
+        const results = [];
+        for (const Module of this.inferenceModules) {
+            try {
+                const moduleResults = Module.infer(tasks, config);
+                if (Array.isArray(moduleResults)) {
+                    results.push(...moduleResults);
+                }
+            } catch (error) {
+                debug(`Error in temporal inference module ${Module.name}:`, error.message);
+            }
+        }
+
+        return results;
     }
 }
 

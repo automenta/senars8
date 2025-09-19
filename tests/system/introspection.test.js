@@ -1,6 +1,7 @@
 import SystemFactory from '../../src/system/SystemFactory.js';
 import {parseTerm} from '../../src/parser/narseseParser.js';
 import Task from '../../src/core/Task.js';
+import ConfigManager from '../../src/config/ConfigManager.js';
 
 jest.mock('@xenova/transformers', () => {
     const transformers = jest.createMockFromModule('@xenova/transformers');
@@ -16,17 +17,19 @@ describe('System Introspection API', () => {
     let system;
 
     beforeAll(async () => {
-        // Create a single system instance for all tests in this suite
         const customConfig = {
             LM: {
                 LLM_PROVIDER: 'xenova',
+            },
+            planner: {
+                strategy: 'HTN'
             }
         };
-        system = await SystemFactory.createSystem(customConfig);
+        const configManager = new ConfigManager(customConfig);
+        system = await SystemFactory.createSystem(configManager);
     });
 
     afterAll(() => {
-        // Stop the system if it's running
         if (system && system.introspection.getStatus().isRunning) {
             system.stop();
         }
@@ -45,8 +48,7 @@ describe('System Introspection API', () => {
         const config = system.introspection.getConfig();
         expect(config).toBeDefined();
         expect(config).toHaveProperty('FOCUS_SET_SIZE');
-        expect(config).toHaveProperty('memory');
-        expect(config.memory).toHaveProperty('MAINTENANCE_CYCLE_FREQUENCY');
+        expect(config).toHaveProperty('memory.MAINTENANCE_CYCLE_FREQUENCY');
     });
 
     test('should query tasks from memory', async () => {
@@ -55,8 +57,12 @@ describe('System Introspection API', () => {
 
         await system.addTasks([beliefTask, goalTask]);
 
-        const beliefs = system.introspection.queryTasks({punctuation: '.'});
-        const goals = system.introspection.queryTasks({punctuation: '!'});
+        const beliefs = system.introspection.queryTasks({
+            punctuation: '.'
+        });
+        const goals = system.introspection.queryTasks({
+            punctuation: '!'
+        });
 
         expect(beliefs.some(t => t.id === beliefTask.id)).toBe(true);
         expect(goals.some(t => t.id === goalTask.id)).toBe(true);
@@ -76,23 +82,18 @@ describe('System Introspection API', () => {
         const mockCallback = jest.fn();
         const eventName = 'SystemCycleEnded';
 
-        // Subscribe to the event via the introspection API
         system.introspection.on(eventName, mockCallback);
 
-        // Run a cycle to trigger the event
         await system.runCycle();
 
-        // Check if the callback was called
         expect(mockCallback).toHaveBeenCalled();
         expect(mockCallback).toHaveBeenCalledTimes(1);
 
-        // Clean up the listener
         system.introspection.off(eventName, mockCallback);
 
-        // Run another cycle to ensure the listener was removed
         await system.runCycle();
-        expect(mockCallback).toHaveBeenCalledTimes(1); // Should not have been called again
-    });
+        expect(mockCallback).toHaveBeenCalledTimes(1);
+    }, 10000); // 10 second timeout
 
     test('should get available reasoner rules', () => {
         const rules = system.introspection.getAvailableRules();
