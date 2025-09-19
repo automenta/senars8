@@ -78,6 +78,7 @@ function printFooter(demoName) {
  * @param {object[]} [options.actionHandlers=[]] - Custom action handlers to register with the system.
  * @param {Function} [options.preCycleCallback=null] - A callback to run before the cycles start.
  * @param {Function} [options.postCycleCallback=null] - A callback to run after the cycles complete.
+ * @param {Function} [options.assertions=null] - A callback containing test assertions to run.
  * @returns {Promise<System>} The instance of the system after the demo run.
  */
 async function runDemo(demoName, taskDefs, {
@@ -85,7 +86,8 @@ async function runDemo(demoName, taskDefs, {
     config = {},
     actionHandlers = [],
     preCycleCallback = null,
-    postCycleCallback = null
+    postCycleCallback = null,
+    assertions = null
 } = {}) {
     printHeader(demoName);
 
@@ -112,6 +114,12 @@ async function runDemo(demoName, taskDefs, {
     }
 
     if (postCycleCallback) await postCycleCallback(system, tasks);
+
+    if (assertions) {
+        debug('Running assertions...');
+        await assertions(system);
+        debug('Assertions completed.');
+    }
 
     printFooter(demoName);
     return system;

@@ -1,9 +1,9 @@
 // Category: Core Reasoning
 // Description: A basic demonstration of the system's core reasoning capabilities, including deduction and inheritance.
 
-import {runDemo} from '../shared/demo-utils.js';
+import {runDemo} from '../../shared/demo-utils.js';
 
-async function basicDemo() {
+async function basicDemo(options = {}) {
     const taskDefs = [
         {sentence: '(bird --> animal).', truth: [1.0, 0.9]},
         {sentence: '(animal --> living).', truth: [1.0, 0.9]},
@@ -11,17 +11,20 @@ async function basicDemo() {
         {sentence: '(living --> ?)?'}
     ];
 
-    const postCycleCallback = async (system) => {
-        console.log("\nQuerying for inferred knowledge...");
-        const inferred = system.introspection.queryTasks({term: 'living', punctuation: '.'});
-        if (inferred.length > 0) {
-            console.log("Inferred that 'bird' is 'living'.");
-        } else {
-            console.log("Inference not yet made.");
+    const defaultOptions = {
+        cycleCount: 5,
+        postCycleCallback: async (system) => {
+            console.log("\nQuerying for inferred knowledge...");
+            const inferred = system.introspection.queryTasks({term: 'living', punctuation: '.'});
+            if (inferred.length > 0) {
+                console.log("Inferred that 'bird' is 'living'.");
+            } else {
+                console.log("Inference not yet made.");
+            }
         }
     };
 
-    await runDemo('Basic Demo', taskDefs, {cycleCount: 5, postCycleCallback});
+    await runDemo('Basic Demo', taskDefs, {...defaultOptions, ...options});
 }
 
 export default basicDemo;
