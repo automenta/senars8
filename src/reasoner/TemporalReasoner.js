@@ -33,19 +33,15 @@ class TemporalReasoner {
             return [];
         }
 
-        const results = [];
-        for (const Module of this.inferenceModules) {
+        return this.inferenceModules.flatMap(Module => {
             try {
                 const moduleResults = Module.infer(tasks, config);
-                if (Array.isArray(moduleResults)) {
-                    results.push(...moduleResults);
-                }
+                return Array.isArray(moduleResults) ? moduleResults : [];
             } catch (error) {
                 debug(`Error in temporal inference module ${Module.name}:`, error.message);
+                return [];
             }
-        }
-
-        return results;
+        });
     }
 }
 

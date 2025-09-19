@@ -26,8 +26,7 @@ class Reasoner {
     }
 
     _initializeStrategy(strategyName) {
-        const StrategyClass = STRATEGIES[strategyName] || BagSamplingStrategy;
-        return new StrategyClass();
+        return new (STRATEGIES[strategyName] || BagSamplingStrategy)();
     }
 
     performInference(focusSet, options = {}) {

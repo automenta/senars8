@@ -19,30 +19,11 @@ const anside = {
 };
 
 /**
- * A utility function to create a Task object from a definition.
- * @param {object} def - The task definition object.
- * @returns {Task|null} A new Task object or null if parsing fails.
- */
-function createTask(def) {
-    // Support for the new macro format
-    if (def.sentence) {
-        return createTaskFromMacro(def);
-    }
-
-    const parsedTerm = parseTerm(def.termKey);
-    if (!parsedTerm) {
-        warn(`Failed to parse term: ${def.termKey}`);
-        return null;
-    }
-    return new Task(parsedTerm, def.punctuation, def.truthValue, def.stamp);
-}
-
-/**
- * Creates a Task from the new macro format { sentence, truth, stamp }.
+ * Creates a Task from a macro definition { sentence, truth, stamp }.
  * @param {object} macro - The macro definition.
  * @returns {Task|null} A new Task object or null if parsing fails.
  */
-function createTaskFromMacro(macro) {
+function createTask(macro) {
     const {sentence, truth, stamp} = macro;
     const punctuation = sentence.slice(-1);
     const termKey = sentence.slice(0, -1);

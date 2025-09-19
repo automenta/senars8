@@ -56,15 +56,11 @@ class Cycle {
     _selectFocusSet() {
         const allTasks = this.system.memory.getAllTasks();
         // Use the priorityManager if available and has updatePriority method, otherwise skip priority updates
-        if (this.system.priorityManager && typeof this.system.priorityManager.updatePriority === 'function') {
-            allTasks.forEach(task => this.system.priorityManager.updatePriority(task));
-        }
+        allTasks.forEach(task => this.system.priorityManager?.updatePriority?.(task));
+
         const focusSetSize = this.config.getNumber('FOCUS_SET_SIZE', 20);
-        return allTasks.sort((a, b) => {
-            const priorityA = a.state?.priority || 0;
-            const priorityB = b.state?.priority || 0;
-            return priorityB - priorityA;
-        }).slice(0, focusSetSize);
+        return allTasks.sort((a, b) => (b.state?.priority || 0) - (a.state?.priority || 0))
+            .slice(0, focusSetSize);
     }
 
     async _processFocusSet(focusSet) {
