@@ -22,7 +22,7 @@ export default {
     },
 
     LM: {
-        LLM_PROVIDER: 'ollama',
+        LLM_PROVIDER: 'xenova',
         OLLAMA_BASE_URL: 'http://127.0.0.1:11434',
         FEATURE_EXTRACTION_MODEL: 'Xenova/all-MiniLM-L6-v2',
         TEXT_GENERATION_MODEL: 'Xenova/distilgpt2',

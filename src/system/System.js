@@ -14,14 +14,30 @@ class System {
         reasoner,
         lm,
         actionExecutor,
-        cycle
+        cycle,
+        planner,
+        metaCognition,
+        perception
     }) {
+        debug('System: Constructor called with components:', {
+            memory,
+            reasoner,
+            lm,
+            actionExecutor,
+            cycle,
+            planner,
+            metaCognition,
+            perception
+        });
         this.config = new ConfigAccessor(configManager);
         this.memory = memory;
         this.reasoner = reasoner;
         this.lm = lm;
         this.actionExecutor = actionExecutor;
         this.cycle = cycle;
+        this.planner = planner;
+        this.metaCognition = metaCognition;
+        this.perception = perception;
         this.isRunning = false;
         this.cycleCount = 0;
         this.introspection = new Introspection(this);

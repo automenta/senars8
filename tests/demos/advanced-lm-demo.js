@@ -19,8 +19,12 @@ async function advancedLMDemo(options = {}) {
         cycleCount: 3,
         postCycleCallback: async (system) => {
             info("Asking the LM to explain its understanding of SeNARS...");
-            const explanation = await system.lm.explain();
-            info(`LM Explanation: ${explanation.substring(0, 100)}...`);
+            const explanationResult = await system.lm.explain();
+            if (explanationResult && explanationResult.explanation) {
+                info(`LM Explanation: ${explanationResult.explanation.substring(0, 100)}...`);
+            } else {
+                info("LM Explanation: (Failed to retrieve explanation)");
+            }
         }
     };
 

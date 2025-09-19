@@ -10,8 +10,6 @@ class XenovaLLM extends LLM {
     async _call(prompt, options) {
         const generationOptions = {
             max_new_tokens: 100,
-            temperature: 0.7,
-            do_sample: true,
             ...this.options,
             ...options
         };

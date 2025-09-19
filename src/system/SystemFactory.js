@@ -1,5 +1,5 @@
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
-import {info} from '../utils/logger.js';
+import {info, debug} from '../utils/logger.js'; // Added debug import
 import ConfigManager from '../config/ConfigManager.js';
 import System from './System.js';
 import Cycle from './Cycle.js';
@@ -19,21 +19,15 @@ import CONSTITUTION_TASKS from './Constitution.js';
 const errorHandler = createModuleErrorHandler('SystemFactory');
 
 class SystemFactory {
-    async createSystem(userConfig = {}, components = {}) {
-        return await errorHandler.safeAsync(async () => {
-            info('SystemFactory: Creating new system...');
-            const configManager = new ConfigManager(userConfig);
-            const assembledComponents = this._assembleComponents(configManager, components);
-            const system = await this._initializeSystem(assembledComponents);
-            info('SystemFactory: System creation complete.');
-            return system;
-        }, 'createSystem');
-    }
-
     _assembleComponents(configManager, components) {
         info('SystemFactory: Assembling components...');
+        debug('SystemFactory: Components received:', components);
 
-        const get = (name, defaultComponent) => components[name] || defaultComponent;
+        const get = (name, defaultComponent) => {
+            const component = components[name] || defaultComponent;
+            debug(`SystemFactory: Assembled component ${name}:`, component);
+            return component;
+        };
 
         const memory = get('memory', new Memory(configManager));
         const lm = get('lm', new LM(configManager));
@@ -67,21 +61,37 @@ class SystemFactory {
             reasoner,
             lm,
             actionExecutor,
-            cycle
+            cycle,
+            planner,
+            metaCognition,
+            perception
         }));
 
         info('SystemFactory: Components assembled.');
-        return {
-            system,
-            ...components
-        };
+        debug('SystemFactory: Returning system from _assembleComponents:', system);
+        return system;
     }
 
-    async _initializeSystem(components) {
+    async _initializeSystem(system) {
         info('SystemFactory: Initializing system with constitution...');
-        await components.system.initialize(CONSTITUTION_TASKS);
+        debug('SystemFactory: System to initialize:', system);
+        await system.initialize(CONSTITUTION_TASKS);
         info('SystemFactory: System initialized.');
-        return components.system;
+        return system;
+    }
+
+    async createSystem(userConfig = {}, components = {}) {
+        return await errorHandler.safeAsync(async () => {
+            info('SystemFactory: Creating new system...');
+            debug('SystemFactory: User config:', userConfig);
+            debug('SystemFactory: Initial components:', components);
+            const configManager = new ConfigManager(userConfig);
+            const system = this._assembleComponents(configManager, components);
+            await this._initializeSystem(system);
+            info('SystemFactory: System creation complete.');
+            debug('SystemFactory: Returning system from createSystem:', system);
+            return system;
+        }, 'createSystem');
     }
 }
 

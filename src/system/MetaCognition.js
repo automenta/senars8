@@ -13,6 +13,7 @@ class MetaCognition {
         this.configManager = configManager;
         this.contradictionAnalyzer = dependencies.contradictionAnalyzer || new ContradictionAnalyzer();
         this.resolutionStrategy = dependencies.resolutionStrategy || new ResolutionStrategy();
+        this.contradictions = [];
         info('MetaCognition initialized');
 
         EventBus.handle('MetaCognition.findContradictions', this.findContradictions.bind(this));
@@ -38,7 +39,7 @@ class MetaCognition {
     }
 
     _findContradictionsInParsedBeliefs(parsedBeliefs) {
-        const contradictions = [];
+        this.contradictions = [];
         for (let i = 0; i < parsedBeliefs.length; i++) {
             for (let j = i + 1; j < parsedBeliefs.length; j++) {
                 const item1 = parsedBeliefs[i];
@@ -46,7 +47,7 @@ class MetaCognition {
                 errorHandler.safeSync(() => {
                     const contradictionType = this.contradictionAnalyzer.analyze(item1.task, item2.task, item1.parsed, item2.parsed);
                     if (contradictionType) {
-                        contradictions.push({
+                        this.contradictions.push({
                             type: contradictionType.type,
                             tasks: [item1.task, item2.task],
                             confidence: Math.min(item1.task.state.truthValue.confidence, item2.task.state.truthValue.confidence),
@@ -57,8 +58,12 @@ class MetaCognition {
                 }, `analyze-contradiction-${item1.task.id}-${item2.task.id}`);
             }
         }
-        debug(`Found ${contradictions.length} contradictions`);
-        return contradictions;
+        debug(`Found ${this.contradictions.length} contradictions`);
+        return this.contradictions;
+    }
+
+    getContradictions() {
+        return this.contradictions;
     }
 
 

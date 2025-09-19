@@ -24,18 +24,33 @@ const anside = {
  * @returns {Task|null} A new Task object or null if parsing fails.
  */
 function createTask(macro) {
-    const {sentence, truth, stamp} = macro;
-    const punctuation = sentence.slice(-1);
-    const termKey = sentence.slice(0, -1);
+    let termKey;
+    let punctuation;
+    let truthValue;
+    let stamp;
 
-    if (!['.', '?', '!'].includes(punctuation)) {
-        warn(`Invalid or missing punctuation in macro sentence: "${sentence}"`);
+    if (macro.term && macro.punctuation) { // It's a Task object
+        termKey = macro.term.key;
+        punctuation = macro.punctuation;
+        truthValue = macro.truth;
+        stamp = macro.stamp;
+    } else if (macro.sentence) { // It's a plain object with a sentence
+        const {sentence, truth, stamp: macroStamp} = macro;
+        punctuation = sentence.slice(-1);
+        termKey = sentence.slice(0, -1);
+        truthValue = (truth && truth.length === 2)
+            ? {frequency: truth[0], confidence: truth[1]}
+            : undefined;
+        stamp = macroStamp;
+    } else {
+        warn(`Invalid macro definition: ${JSON.stringify(macro)}`);
         return null;
     }
 
-    const truthValue = (truth && truth.length === 2)
-        ? {frequency: truth[0], confidence: truth[1]}
-        : undefined;
+    if (!['.', '?', '!'].includes(punctuation)) {
+        warn(`Invalid or missing punctuation in macro sentence: "${termKey}${punctuation}"`);
+        return null;
+    }
 
     const parsedTerm = parseTerm(termKey);
     if (!parsedTerm) {
