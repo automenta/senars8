@@ -54,12 +54,17 @@ class Agent {
         const tool = this.tools[action.tool];
         if (!tool) throw new Error(`Tool not found: ${action.tool}`);
 
-        const {handler, parameters: toolParamsDef} = tool;
+        const {
+            handler,
+            parameters: toolParamsDef
+        } = tool;
         const paramNames = Object.keys(toolParamsDef?.properties || {});
-        const params = action.parameters.reduce((acc, value, i) => {
-            if (paramNames[i]) acc[paramNames[i]] = value;
-            return acc;
-        }, {});
+        const params = {};
+        for (let i = 0; i < action.parameters.length; i++) {
+            if (paramNames[i]) {
+                params[paramNames[i]] = action.parameters[i];
+            }
+        }
 
         return handler(params);
     }

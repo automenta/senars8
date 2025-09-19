@@ -1,4 +1,4 @@
-import {isEmptyArray} from './arrayUtils.js';
+import {isEmptyArray} from './index.js';
 
 const validateString = (value, name = 'Value') => {
     if (typeof value !== 'string' || value.length === 0) {

@@ -5,7 +5,7 @@ import EmbeddingStore from '../utils/EmbeddingStore.js';
 import {OP, REL} from '../config/constants.js';
 import {validateString} from '../utils/validation.js';
 import BaseEntity from './BaseEntity.js';
-import {isNonEmptyArray} from '../utils/arrayUtils.js';
+import {isNonEmptyArray} from '../utils/index.js';
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
 import lexer from '../parser/lexer.js';
 
