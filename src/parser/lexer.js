@@ -24,7 +24,6 @@ const PUNCTUATION = {
     negation: '--',
     conjunction: '&',
     disjunction: '||',
-    extensionalDifference: '#',
     intensionalDifference: '\\',
     product: '*',
     equivalence: '<=>',
@@ -52,7 +51,7 @@ const STATEMENT_PUNCTUATION = {
 
 const LITERALS = {
     string: /"[^"]*"/,
-    dependentVar: /#\w+/,
+    dependentVar: /#\w*/,
     queryVar: /\?\w+/,
     independentVar: /\$\w+/,
     identifier: /[a-zA-Z_][a-zA-Z0-9_]*/,

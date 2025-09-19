@@ -8,10 +8,7 @@ import FutureTaskPrediction from './temporal/FutureTaskPrediction.js';
 import TemporalClusterDetection from './temporal/TemporalClusterDetection.js';
 import TemporalCoherence from './temporal/TemporalCoherence.js';
 import {debug} from '../utils/logger.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
 import ConfigAccessor from '../config/ConfigAccessor.js';
-
-const errorHandler = createModuleErrorHandler('TemporalReasoner');
 
 class TemporalReasoner {
     constructor(configManager) {

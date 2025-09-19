@@ -1,5 +1,5 @@
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
-import {isNonEmptyArray} from '../utils/index.js';
+import {isNonEmptyArray} from '../utils/core.js';
 import {generateActionId} from '../utils/IdGenerator.js';
 import EventBus from './EventBus.js';
 import ConfigAccessor from '../config/ConfigAccessor.js';

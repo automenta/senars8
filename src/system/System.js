@@ -2,7 +2,7 @@ import '../utils/onnxSuppression.js';
 import registerDefaultActions from './default-actions.js';
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
 import {debug, error as logError, info, warn} from '../utils/logger.js';
-import {normalizeToArray} from '../utils/index.js';
+import {normalizeToArray} from '../utils/core.js';
 import Introspection from './Introspection.js';
 import ConfigAccessor from '../config/ConfigAccessor.js';
 
