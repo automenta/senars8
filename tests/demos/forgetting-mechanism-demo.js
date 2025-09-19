@@ -1,9 +1,10 @@
 // Category: Memory
 // Description: Illustrates the time-based forgetting strategy, where the confidence of beliefs decays over time.
 
-import {runDemo} from '../shared/demo-utils.js';
+import {runDemo} from '../../shared/demo-utils.js';
+import {info} from '../../src/utils/logger.js';
 
-async function forgettingMechanismDemo() {
+async function forgettingMechanismDemo(options = {}) {
     const now = Date.now();
     const oneHourAgo = now - 3600 * 1000;
 
@@ -22,35 +23,36 @@ async function forgettingMechanismDemo() {
         }
     ];
 
-    const postCycleCallback = (system) => {
-        console.log("\nInspecting confidence decay...");
-        const oldBelief = system.introspection.queryTasks({termKey: '(old_belief --> property)'})[0];
-        const newBelief = system.introspection.queryTasks({termKey: '(new_belief --> property)'})[0];
-
-        if (oldBelief && newBelief) {
-            const oldConfidence = oldBelief.state.truthValue.confidence;
-            const newConfidence = newBelief.state.truthValue.confidence;
-            console.log(`Old belief confidence: ${oldConfidence.toFixed(2)} (started at 0.9)`);
-            console.log(`New belief confidence: ${newConfidence.toFixed(2)} (started at 0.9)`);
-            if (oldConfidence < newConfidence) {
-                console.log("✅ PASSED: Older belief has lower confidence.");
-            } else {
-                console.log("❌ FAILED: Older belief did not decay as expected.");
-            }
-        } else {
-            console.log("Could not find beliefs to compare.");
-        }
-    };
-
-    await runDemo('Forgetting Mechanism Demo', taskDefs, {
+    const defaultOptions = {
         cycleCount: 10, // Run enough cycles to trigger maintenance and decay
         config: {
             memory: {
                 FORGETTING_DECAY_RATE: 0.1 // Accelerate decay for demo purposes
             }
         },
-        postCycleCallback
-    });
+        postCycleCallback: (system) => {
+            info("Inspecting confidence decay...");
+            const oldBelief = system.introspection.queryTasks({termKey: '(old_belief --> property)'})[0];
+            const newBelief = system.introspection.queryTasks({termKey: '(new_belief --> property)'})[0];
+
+            if (oldBelief && newBelief) {
+                const oldConfidence = oldBelief.state.truthValue.confidence;
+                const newConfidence = newBelief.state.truthValue.confidence;
+                info(`Old belief confidence: ${oldConfidence.toFixed(2)} (started at 0.9)`);
+                info(`New belief confidence: ${newConfidence.toFixed(2)} (started at 0.9)`);
+                if (oldConfidence < newConfidence) {
+                    info("✅ PASSED: Older belief has lower confidence.");
+                } else {
+                    info("❌ FAILED: Older belief did not decay as expected.");
+                }
+            } else {
+                info("Could not find beliefs to compare.");
+            }
+        }
+    };
+
+    const mergedOptions = {...defaultOptions, ...options};
+    return await runDemo('Forgetting Mechanism Demo', taskDefs, mergedOptions);
 }
 
 export default forgettingMechanismDemo;

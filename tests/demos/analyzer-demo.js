@@ -1,6 +1,10 @@
-#!/usr/bin/env node
+// Category: Analysis
+// Description: Demonstrates the unit test analyzer capabilities.
 
-import UnitTestAnalyzer from '../src/analyzer/index.js';
+import {runDemo} from '../../shared/demo-utils.js';
+import {info} from '../../src/utils/logger.js';
+import UnitTestAnalyzer from '../../src/analyzer/index.js';
+import {writeFileSync} from 'fs';
 
 // Mock test data based on the actual test failures we observed
 const mockTestData = {
@@ -155,46 +159,44 @@ const mockProfilingData = {
     ]
 };
 
-async function runDemo() {
-    console.log("=== Unit Test Analyzer Demo ===\n");
+async function analyzerDemo(options = {}) {
+    const taskDefs = []; // No initial tasks needed for this demo
 
-    try {
-        // Create analyzer
-        const analyzer = new UnitTestAnalyzer({
-            enableCoverageAnalysis: true,
-            enablePerformanceAnalysis: true
-        });
+    const defaultOptions = {
+        cycleCount: 0, // No cycles needed for this demo
+        postCycleCallback: async (system) => {
+            info("Processing test data...");
+            const analyzer = new UnitTestAnalyzer({
+                enableCoverageAnalysis: true,
+                enablePerformanceAnalysis: true
+            });
 
-        // Process mock data
-        console.log("Processing test data...");
-        const results = await analyzer.analyzeTestData(mockTestData, mockCoverageData, mockProfilingData);
+            const results = await analyzer.analyzeTestData(mockTestData, mockCoverageData, mockProfilingData);
 
-        if (!results) {
-            console.error("Analysis failed!");
-            return;
+            if (!results) {
+                info("Analysis failed!");
+                return;
+            }
+
+            info("Generating text report...");
+            const textReport = analyzer.generateReport('text');
+            info(`Text report generated: ${textReport.substring(0, 100)}...`);
+
+            info("Generating HTML report...");
+            const htmlReport = await analyzer.generateDetailedReport('html');
+            
+            // Save HTML report
+            writeFileSync('./test-analysis-report.html', htmlReport);
+            info("HTML report saved to test-analysis-report.html");
         }
+    };
 
-        // Generate text report
-        console.log("\n=== ANALYSIS RESULTS ===\n");
-        const textReport = analyzer.generateReport('text');
-        console.log(textReport);
-
-        // Generate HTML report
-        console.log("Generating HTML report...");
-        const htmlReport = await analyzer.generateDetailedReport('html');
-
-        // Save HTML report
-        const fs = await import('fs');
-        fs.writeFileSync('./test-analysis-report.html', htmlReport);
-        console.log("HTML report saved to test-analysis-report.html");
-
-        console.log("\n=== ANALYSIS COMPLETE ===");
-
-    } catch (error) {
-        console.error("Demo failed:", error.message);
-        console.error(error.stack);
-    }
+    const mergedOptions = {...defaultOptions, ...options};
+    return await runDemo('Analyzer Demo', taskDefs, mergedOptions);
 }
 
-// Run the demo
-runDemo();
+export default analyzerDemo;
+
+if (import.meta.url.startsWith('file:')) {
+    analyzerDemo().catch(console.error);
+}

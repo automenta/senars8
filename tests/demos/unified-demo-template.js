@@ -2,6 +2,7 @@
 // Description: A template for creating unified demos that function as both runnable examples and unit tests.
 
 import {runDemo} from '../../shared/demo-utils.js';
+import {info} from '../../src/utils/logger.js';
 
 /**
  * A unified demo function that can be run as both a standalone example and a unit test.
@@ -27,7 +28,7 @@ async function unifiedDemoTemplate(options = {}) {
         cycleCount: 5,
         // You can add custom callbacks here
         postCycleCallback: async (system) => {
-            console.log("\nDemo completed. Add your custom logic here.");
+            info("Demo completed. Add your custom logic here.");
             
             // If we're running in test mode, the assertions will be run by the runDemo function
             // You can also add test-specific logic here if needed

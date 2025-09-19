@@ -1,9 +1,10 @@
 // Category: Narsese Language
 // Description: Demonstrates parsing and reasoning with a richer, more expressive form of Narsese, including temporal operators.
 
-import {runDemo} from '../shared/demo-utils.js';
+import {runDemo} from '../../shared/demo-utils.js';
+import {info} from '../../src/utils/logger.js';
 
-async function enhancedNarseseDemo() {
+async function enhancedNarseseDemo(options = {}) {
     const taskDefs = [
         // Temporal operators and relationships
         {sentence: '(always, (bird --> animal)).', truth: [1.0, 0.9]},
@@ -14,21 +15,22 @@ async function enhancedNarseseDemo() {
         {sentence: '(next, (action --> take))?', truth: [1.0, 0.8]},
     ];
 
-    const postCycleCallback = (system) => {
-        console.log("\nInspecting tasks with enhanced Narsese...");
-        const tasks = system.introspection.queryTasks({});
-        const enhancedTasks = tasks.filter(t => t.term.isTemporal || t.term.isSequential);
+    const defaultOptions = {
+        cycleCount: 3,
+        postCycleCallback: (system) => {
+            info("Inspecting tasks with enhanced Narsese...");
+            const tasks = system.introspection.queryTasks({});
+            const enhancedTasks = tasks.filter(t => t.term.isTemporal || t.term.isSequential);
 
-        console.log(`Found ${enhancedTasks.length} tasks with enhanced Narsese constructs:`);
-        enhancedTasks.slice(0, 5).forEach(task => {
-            console.log(`  - ${task.termKey}`);
-        });
+            info(`Found ${enhancedTasks.length} tasks with enhanced Narsese constructs:`);
+            enhancedTasks.slice(0, 5).forEach(task => {
+                info(`  - ${task.termKey}`);
+            });
+        }
     };
 
-    await runDemo('Enhanced Narsese Demo', taskDefs, {
-        cycleCount: 3,
-        postCycleCallback
-    });
+    const mergedOptions = {...defaultOptions, ...options};
+    return await runDemo('Enhanced Narsese Demo', taskDefs, mergedOptions);
 }
 
 export default enhancedNarseseDemo;

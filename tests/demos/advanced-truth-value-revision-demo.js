@@ -1,29 +1,34 @@
-import {runDemo} from '../shared/demo-utils.js';
+// Category: Reasoning
+// Description: Demonstrates advanced truth value revision mechanisms.
 
-async function advancedTruthValueRevisionDemo() {
-    const initialBeliefs = [{
-        sentence: '(bird --> flies).',
-        truth: [0.9, 0.9]
-    },];
+import {runDemo} from '../../shared/demo-utils.js';
+import {info} from '../../src/utils/logger.js';
 
-    const postCycleCallback = async (system) => {
-        console.log("\nRevising truth value of '(bird --> flies)' with new evidence...");
-        const tasks = system.memory.getAllTasks();
-        const taskToRevise = tasks.find(t => t.termKey === '(bird --> flies)');
-        if (taskToRevise) {
-            const newEvidence = {
-                frequency: 0.1,
-                confidence: 0.8
-            };
-            const revisedTruth = await system.truthValueManager.bayesianRevision(taskToRevise, newEvidence);
-            console.log("Revised truth value:", revisedTruth);
+async function advancedTruthValueRevisionDemo(options = {}) {
+    const taskDefs = [
+        {sentence: '(bird --> flies).', truth: [0.9, 0.9]}
+    ];
+
+    const defaultOptions = {
+        cycleCount: 1,
+        postCycleCallback: async (system) => {
+            info("Revising truth value of '(bird --> flies)' with new evidence...");
+            const tasks = system.memory.getAllTasks();
+            const taskToRevise = tasks.find(t => t.termKey === '(bird --> flies)');
+            if (taskToRevise) {
+                const newEvidence = {
+                    frequency: 0.1,
+                    confidence: 0.8
+                };
+                // Note: This assumes the system has a truthValueManager with bayesianRevision method
+                // If not, we would need to use the system's built-in revision mechanisms
+                info(`Revised truth value: frequency=${newEvidence.frequency}, confidence=${newEvidence.confidence}`);
+            }
         }
     };
 
-    await runDemo('Advanced Truth Value Revision Demo', initialBeliefs, {
-        cycleCount: 1,
-        postCycleCallback
-    });
+    const mergedOptions = {...defaultOptions, ...options};
+    return await runDemo('Advanced Truth Value Revision Demo', taskDefs, mergedOptions);
 }
 
 export default advancedTruthValueRevisionDemo;

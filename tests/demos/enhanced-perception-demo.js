@@ -1,49 +1,49 @@
 // Category: Perception
 // Description: Showcases enhanced perception, processing various event types and sensory inputs into tasks.
 
-import {runDemo} from '../shared/demo-utils.js';
-import {parseTerm} from '../src/parser/parse-utils.js';
-import Task from '../src/core/Task.js';
+import {runDemo} from '../../shared/demo-utils.js';
+import {parseTerm} from '../../src/parser/parse-utils.js';
+import Task from '../../src/core/Task.js';
+import {info} from '../../src/utils/logger.js';
 
-async function enhancedPerceptionDemo() {
+async function enhancedPerceptionDemo(options = {}) {
     const taskDefs = [
         {sentence: '(perception_system --> active).', truth: [1.0, 0.9]},
     ];
 
-    const preCycleCallback = async (system) => {
-        // Register a custom sensory modality for 'visual' input
-        system.perception.registerSensoryModality('visual', async (input) => {
-            const term = parseTerm(`(visual_input --> ${input.description})`);
-            return [new Task(term, '.', {frequency: input.confidence, confidence: 0.9})];
-        });
-    };
-
-    const postCycleCallback = async (system) => {
-        console.log("\nProcessing new sensory input...");
-
-        // Process a visual event
-        await system.perception.processSensoryInput('visual', {description: 'red_ball', confidence: 0.95});
-        console.log("Processed a 'visual' event: red_ball");
-
-        // Process a raw text event
-        await system.perception.processEvents([{type: 'text', content: 'The cat is on the mat.'}]);
-        console.log("Processed a 'text' event.");
-
-        console.log("\nInspecting resulting tasks in memory...");
-        const tasks = system.introspection.queryTasks({});
-        const perceptionTasks = tasks.filter(t => t.termKey.includes('visual_input') || t.termKey.includes('cat'));
-
-        console.log(`Found ${perceptionTasks.length} perception-related tasks:`);
-        perceptionTasks.forEach(task => {
-            console.log(`  - ${task.termKey}`);
-        });
-    };
-
-    await runDemo('Enhanced Perception Demo', taskDefs, {
+    const defaultOptions = {
         cycleCount: 2,
-        preCycleCallback,
-        postCycleCallback
-    });
+        preCycleCallback: async (system) => {
+            // Register a custom sensory modality for 'visual' input
+            system.perception.registerSensoryModality('visual', async (input) => {
+                const term = parseTerm(`(visual_input --> ${input.description})`);
+                return [new Task(term, '.', {frequency: input.confidence, confidence: 0.9})];
+            });
+        },
+        postCycleCallback: async (system) => {
+            info("Processing new sensory input...");
+
+            // Process a visual event
+            await system.perception.processSensoryInput('visual', {description: 'red_ball', confidence: 0.95});
+            info("Processed a 'visual' event: red_ball");
+
+            // Process a raw text event
+            await system.perception.processEvents([{type: 'text', content: 'The cat is on the mat.'}]);
+            info("Processed a 'text' event.");
+
+            info("Inspecting resulting tasks in memory...");
+            const tasks = system.introspection.queryTasks({});
+            const perceptionTasks = tasks.filter(t => t.termKey.includes('visual_input') || t.termKey.includes('cat'));
+
+            info(`Found ${perceptionTasks.length} perception-related tasks:`);
+            perceptionTasks.slice(0, 5).forEach(task => {
+                info(`  - ${task.termKey}`);
+            });
+        }
+    };
+
+    const mergedOptions = {...defaultOptions, ...options};
+    return await runDemo('Enhanced Perception Demo', taskDefs, mergedOptions);
 }
 
 export default enhancedPerceptionDemo;
