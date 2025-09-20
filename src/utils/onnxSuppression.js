@@ -30,6 +30,9 @@ export function suppressOnnxWarnings() {
     }
 }
 
+// Automatically execute the suppression function when this module is imported.
+suppressOnnxWarnings();
+
 export default {
     suppressOnnxWarnings
 };

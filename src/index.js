@@ -1,3 +1,5 @@
+import './utils/onnxSuppression.js';
+
 import System from './system/System.js';
 import Task from './core/Task.js';
 import Term from './core/Term.js';

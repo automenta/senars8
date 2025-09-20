@@ -14,7 +14,7 @@
     "start": "npm run start:showcase",
     "start:demo": "node --loader ./scripts/set-env.js demos/interactive-runner.js",
     "start:showcase": "node --loader ./scripts/set-env.js demos/showcase-demo.js",
-    "test": "jest --silent",
+    "test": "jest --runInBand --detectOpenHandles --logHeapUsage",
     "lint": "eslint src tests",
     "lint:fix": "eslint src tests --fix"
   },

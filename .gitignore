@@ -2,3 +2,4 @@ node_modules/
 .idea
 dist/
 results/
+test-analysis-report.html

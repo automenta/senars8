@@ -1,14 +1,13 @@
 import {pipeline} from '@xenova/transformers';
 import {info} from '../utils/logger.js';
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
-import {suppressOnnxWarnings} from '../utils/onnxSuppression.js';
+import './utils/onnxSuppression.js';
 
 const errorHandler = createModuleErrorHandler('PipelineFactory');
 
 class PipelineFactory {
     constructor() {
         this._pipelines = new Map();
-        suppressOnnxWarnings();
     }
 
     async get(type, model, options = {}) {
