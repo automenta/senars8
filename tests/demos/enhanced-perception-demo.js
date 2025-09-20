@@ -28,7 +28,7 @@ async function enhancedPerceptionDemo(options = {}) {
             info("Processed a 'visual' event: red_ball");
 
             // Process a raw text event
-            await system.perception.processEvents([{type: 'text', content: 'The cat is on the mat.'}]);
+            await system.perception.process([{type: 'text', content: 'The cat is on the mat.'}]);
             info("Processed a 'text' event.");
 
             info("Inspecting resulting tasks in memory...");

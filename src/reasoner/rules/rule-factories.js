@@ -6,6 +6,12 @@ import {createModuleErrorHandler} from '../../utils/errorHandler.js';
 
 const errorHandler = createModuleErrorHandler('rule-factories');
 
+const prepareTasks = (tasks, arity) => {
+    if (tasks.length !== arity) return null;
+    const parsedTasks = tasks.map(t => parseTerm(t.termKey));
+    return parsedTasks.some(t => !t) ? null : parsedTasks;
+};
+
 function createRule(spec) {
     const {name, arity, operands, condition, action} = spec;
 
@@ -13,29 +19,35 @@ function createRule(spec) {
         throw new Error('Rule spec is missing required fields.');
     }
 
+    const executeAndWrap = (fn, context, defaultVal) =>
+        (...tasks) => errorHandler.safeSync(() => {
+            const parsedTasks = prepareTasks(tasks, arity);
+            return parsedTasks ? fn(parsedTasks, tasks) : defaultVal;
+        }, context, defaultVal);
+
+
     return {
         name,
         arity,
         operands,
         description: spec.description || `Rule for ${name}`,
-        condition: (...tasks) => errorHandler.safeSync(() => {
-            if (tasks.length !== arity) return false;
-            const parsedTasks = tasks.map(t => parseTerm(t.termKey));
-            if (parsedTasks.some(t => !t)) return false;
-            return condition(...parsedTasks);
-        }, `condition-check-${name}`, false),
-        action: (...tasks) => errorHandler.safeSync(() => {
-            if (tasks.length !== arity) return null;
-            const parsedTasks = tasks.map(t => parseTerm(t.termKey));
-            if (parsedTasks.some(t => !t)) return null;
-
-            const result = action(...parsedTasks, ...tasks);
-            if (!result?.newTermKey || !result.newTruthValue) return null;
-            if (!validateTermKey(result.newTermKey)) return null;
-
-            const parsedTerm = parseTerm(result.newTermKey);
-            return parsedTerm ? new Task(parsedTerm, '.', result.newTruthValue) : null;
-        }, `action-${name}`, null),
+        condition: executeAndWrap(
+            (parsedTasks) => condition(...parsedTasks),
+            `condition-check-${name}`,
+            false
+        ),
+        action: executeAndWrap(
+            (parsedTasks, tasks) => {
+                const result = action(...parsedTasks, ...tasks);
+                if (!result?.newTermKey || !result.newTruthValue || !validateTermKey(result.newTermKey)) {
+                    return null;
+                }
+                const newParsedTerm = parseTerm(result.newTermKey);
+                return newParsedTerm ? new Task(newParsedTerm, '.', result.newTruthValue) : null;
+            },
+            `action-${name}`,
+            null
+        ),
     };
 }
 
