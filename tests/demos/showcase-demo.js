@@ -7,7 +7,7 @@ import {info} from '../../src/utils/logger.js';
 /**
  * A unified showcase demo that demonstrates core system capabilities.
  * Can be run as a standalone example or as a unit test.
- * 
+ *
  * @param {object} options - Configuration options
  * @param {Function} [options.assertions] - Optional assertions for testing
  * @param {Function} [options.preCycleCallback] - Optional callback before cycles run
@@ -45,11 +45,11 @@ async function showcaseDemo(options = {}) {
                 // Check for contradictions by looking for conflicting beliefs
                 const hotBelief = system.introspection.queryTasks({termKey: '(sun --> hot)', punctuation: '.'});
                 const coldBelief = system.introspection.queryTasks({termKey: '(sun --> cold)', punctuation: '.'});
-                
+
                 // If both beliefs exist with high confidence, there's still a contradiction
                 const hasHot = hotBelief.length > 0 && hotBelief[0].state.truthValue.confidence > 0.8;
                 const hasCold = coldBelief.length > 0 && coldBelief[0].state.truthValue.confidence > 0.8;
-                
+
                 if (!(hasHot && hasCold)) {
                     info("✅ Contradiction resolved: The system identified and handled the conflict.");
                 } else {
@@ -105,7 +105,7 @@ async function showcaseDemo(options = {}) {
     let system;
     for (const [index, step] of showcaseSteps.entries()) {
         info(`\n--- ${index + 1}. ${step.name}: ${getStepDescription(step.name)} ---`);
-        
+
         // Merge step options with any provided options
         const stepOptions = {
             cycleCount: step.cycleCount,
@@ -119,7 +119,7 @@ async function showcaseDemo(options = {}) {
     }
 
     info("\n--- 🚀 Showcase Complete! ---");
-    
+
     // Return the final system instance
     return system;
 }

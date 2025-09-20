@@ -11,7 +11,7 @@ async function comprehensiveContradictionDemo(options = {}) {
         {sentence: '(penguin --> bird).', truth: [1.0, 0.9]},
         {sentence: '(penguin --> not_fly).', truth: [1.0, 0.9]},
     ];
-    
+
     const system1 = await runDemo('Simple Contradiction Resolution', simpleContradictionTasks, {
         cycleCount: 8,
         postCycleCallback: (system) => {
@@ -32,7 +32,7 @@ async function comprehensiveContradictionDemo(options = {}) {
         {sentence: '(<black_swan> --> swan).', truth: [1.0, 0.95]},
         {sentence: '(<black_swan> --> black).', truth: [1.0, 0.95]},
     ];
-    
+
     const system2 = await runDemo('Enhanced Contradiction Resolution', enhancedContradictionTasks, {
         cycleCount: 7,
         postCycleCallback: (system) => {

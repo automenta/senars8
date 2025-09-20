@@ -29,7 +29,7 @@ async function unifiedDemoTemplate(options = {}) {
         // You can add custom callbacks here
         postCycleCallback: async (system) => {
             info("Demo completed. Add your custom logic here.");
-            
+
             // If we're running in test mode, the assertions will be run by the runDemo function
             // You can also add test-specific logic here if needed
         }

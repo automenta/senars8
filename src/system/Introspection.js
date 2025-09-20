@@ -9,7 +9,7 @@ class Introspection {
         this.planner = system.planner;
         this.metaCognition = system.metaCognition;
         // Use the config accessor if available, otherwise fall back to configManager
-        this.configAccessor = system.config || { getAll: () => system.configManager?.getAll() || {} };
+        this.configAccessor = system.config || {getAll: () => system.configManager?.getAll() || {}};
     }
 
     getStatus() {

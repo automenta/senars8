@@ -6,7 +6,7 @@ import {runDemo} from '../../shared/demo-utils.js';
 /**
  * A unified demo that demonstrates mathematical inference capabilities.
  * Can be run as a standalone example or as a unit test.
- * 
+ *
  * @param {object} options - Configuration options
  * @param {Function} [options.assertions] - Optional assertions for testing
  * @param {Function} [options.preCycleCallback] - Optional callback before cycles run

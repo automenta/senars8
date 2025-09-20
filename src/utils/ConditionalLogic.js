@@ -33,7 +33,7 @@ class ConditionalLogic {
                 return result;
             }
         }
-        return { valid: true };
+        return {valid: true};
     }
 
     /**
@@ -94,7 +94,7 @@ class ConditionalLogic {
      * @returns {*} Result of callback if object, otherwise default value
      */
     static ifObject(value, callback, defaultValue = null) {
-        return (typeof value === 'object' && value !== null && !Array.isArray(value)) ? 
+        return (typeof value === 'object' && value !== null && !Array.isArray(value)) ?
             callback(value) : defaultValue;
     }
 }

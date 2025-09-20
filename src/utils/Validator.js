@@ -1,4 +1,4 @@
-import { isEmptyArray } from './arrayUtils.js';
+import {isEmptyArray} from './arrayUtils.js';
 
 /**
  * Unified validation utility that provides a consistent interface

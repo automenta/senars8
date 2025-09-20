@@ -77,17 +77,17 @@ const prepareErrorForLogging = error => {
     return error;
 };
 
-const isKnownErrorType = error => 
+const isKnownErrorType = error =>
     error instanceof ValidationError ||
     error instanceof ParseError ||
     error instanceof InferenceError ||
     error instanceof PlanningError ||
     error instanceof MemoryError;
 
-const handleError = (error, context, shouldThrow = true) => 
+const handleError = (error, context, shouldThrow = true) =>
     shouldThrow ? logAndThrow(error, context) : logAndReturn(error, context, null);
 
-const handleErrorWithDefault = (error, context, defaultValue = null) => 
+const handleErrorWithDefault = (error, context, defaultValue = null) =>
     logAndReturn(error, context, defaultValue);
 
 const safeAsync = async (operation, context, defaultValue = null) => {

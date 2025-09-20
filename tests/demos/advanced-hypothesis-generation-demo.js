@@ -7,7 +7,7 @@ import {info} from '../../src/utils/logger.js';
 /**
  * A unified demo that demonstrates advanced hypothesis generation capabilities.
  * Can be run as a standalone example or as a unit test.
- * 
+ *
  * @param {object} options - Configuration options
  * @param {Function} [options.assertions] - Optional assertions for testing
  * @param {Function} [options.preCycleCallback] - Optional callback before cycles run
@@ -29,12 +29,12 @@ async function advancedHypothesisGenerationDemo(options = {}) {
                 type: 'creative',
                 num: 5
             });
-            
+
             info(`Generated ${hypotheses.length} creative hypotheses:`);
-            
+
             info("Evaluating and ranking hypotheses...");
             const rankedHypotheses = await system.lm.evaluateAndRankHypotheses(system.memory.getAllTasks(), hypotheses);
-            
+
             info(`Ranked hypotheses (${rankedHypotheses.length} total):`);
             rankedHypotheses.slice(0, 3).forEach((hypothesis, index) => {
                 info(`  ${index + 1}. ${hypothesis.termKey} | Frequency: ${hypothesis.state.truthValue.frequency.toFixed(2)}, Confidence: ${hypothesis.state.truthValue.confidence.toFixed(2)}`);

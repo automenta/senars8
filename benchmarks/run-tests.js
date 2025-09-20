@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { CognitiveTestSuite } from './index.js';
+import {CognitiveTestSuite} from './index.js';
 
 async function main() {
     const suite = new CognitiveTestSuite();

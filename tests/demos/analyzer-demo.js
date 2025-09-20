@@ -184,7 +184,7 @@ async function analyzerDemo(options = {}) {
 
             info("Generating HTML report...");
             const htmlReport = await analyzer.generateDetailedReport('html');
-            
+
             // Save HTML report
             writeFileSync('./test-analysis-report.html', htmlReport);
             info("HTML report saved to test-analysis-report.html");

@@ -23,117 +23,155 @@ describe('Demos as Tests', () => {
     jest.setTimeout(30000);
 
     test('basic-demo should run without errors', async () => {
-        await basicDemo({ assertions: (system) => {
-            expect(system).toBeDefined();
-            expect(system.introspection).toBeDefined();
-        }});
+        await basicDemo({
+            assertions: (system) => {
+                expect(system).toBeDefined();
+                expect(system.introspection).toBeDefined();
+            }
+        });
     });
 
     test('math-inference-demo should run without errors', async () => {
-        await mathInferenceDemo({ assertions: (system) => {
-            expect(system).toBeDefined();
-        }});
+        await mathInferenceDemo({
+            assertions: (system) => {
+                expect(system).toBeDefined();
+            }
+        });
     });
 
     test('nlp-integration-demo should run without errors', async () => {
-        await nlpIntegrationDemo({ assertions: (system) => {
-            expect(system).toBeDefined();
-        }});
+        await nlpIntegrationDemo({
+            assertions: (system) => {
+                expect(system).toBeDefined();
+            }
+        });
     });
 
     test('showcase-demo should run without errors', async () => {
-        await showcaseDemo({ assertions: (system) => {
-            expect(system).toBeDefined();
-        }});
+        await showcaseDemo({
+            assertions: (system) => {
+                expect(system).toBeDefined();
+            }
+        });
     });
 
     test('advanced-hypothesis-generation-demo should run without errors', async () => {
-        await advancedHypothesisGenerationDemo({ assertions: (system) => {
-            expect(system).toBeDefined();
-        }});
+        await advancedHypothesisGenerationDemo({
+            assertions: (system) => {
+                expect(system).toBeDefined();
+            }
+        });
     });
 
     test('advanced-lm-demo should run without errors', async () => {
-        await advancedLMDemo({ assertions: (system) => {
-            expect(system).toBeDefined();
-        }});
+        await advancedLMDemo({
+            assertions: (system) => {
+                expect(system).toBeDefined();
+            }
+        });
     });
 
     test('advanced-truth-value-revision-demo should run without errors', async () => {
-        await advancedTruthValueRevisionDemo({ assertions: (system) => {
-            expect(system).toBeDefined();
-        }});
+        await advancedTruthValueRevisionDemo({
+            assertions: (system) => {
+                expect(system).toBeDefined();
+            }
+        });
     });
 
     test('analyzer-demo should run without errors', async () => {
-        await analyzerDemo({ assertions: (system) => {
-            expect(system).toBeDefined();
-        }});
+        await analyzerDemo({
+            assertions: (system) => {
+                expect(system).toBeDefined();
+            }
+        });
     });
 
     test('comprehensive-action-demo should run without errors', async () => {
-        await comprehensiveActionDemo({ assertions: (system) => {
-            expect(system).toBeDefined();
-        }});
+        await comprehensiveActionDemo({
+            assertions: (system) => {
+                expect(system).toBeDefined();
+            }
+        });
     });
 
     test('comprehensive-contradiction-demo should run without errors', async () => {
-        await comprehensiveContradictionDemo({ assertions: (system) => {
-            expect(system).toBeDefined();
-        }});
+        await comprehensiveContradictionDemo({
+            assertions: (system) => {
+                expect(system).toBeDefined();
+            }
+        });
     });
 
     test('comprehensive-system-demo should run without errors', async () => {
-        await comprehensiveSystemDemo({ assertions: (system) => {
-            expect(system).toBeDefined();
-        }});
+        await comprehensiveSystemDemo({
+            assertions: (system) => {
+                expect(system).toBeDefined();
+            }
+        });
     });
 
     test('debug-contradictions-demo should run without errors', async () => {
-        await debugContradictionsDemo({ assertions: (system) => {
-            expect(system).toBeDefined();
-        }});
+        await debugContradictionsDemo({
+            assertions: (system) => {
+                expect(system).toBeDefined();
+            }
+        });
     });
 
     test('enhanced-narsese-demo should run without errors', async () => {
-        await enhancedNarseseDemo({ assertions: (system) => {
-            expect(system).toBeDefined();
-        }});
+        await enhancedNarseseDemo({
+            assertions: (system) => {
+                expect(system).toBeDefined();
+            }
+        });
     });
 
     test('enhanced-perception-demo should run without errors', async () => {
-        await enhancedPerceptionDemo({ assertions: (system) => {
-            expect(system).toBeDefined();
-        }});
+        await enhancedPerceptionDemo({
+            assertions: (system) => {
+                expect(system).toBeDefined();
+            }
+        });
     });
 
     test('enhanced-temporal-reasoning-demo should run without errors', async () => {
-        await enhancedTemporalReasoningDemo({ assertions: (system) => {
-            expect(system).toBeDefined();
-        }});
+        await enhancedTemporalReasoningDemo({
+            assertions: (system) => {
+                expect(system).toBeDefined();
+            }
+        });
     });
 
     test('extended-inference-rules-demo should run without errors', async () => {
-        await extendedInferenceRulesDemo({ assertions: (system) => {
-            expect(system).toBeDefined();
-        }});
+        await extendedInferenceRulesDemo({
+            assertions: (system) => {
+                expect(system).toBeDefined();
+            }
+        });
     });
 
     test('forgetting-mechanism-demo should run without errors', async () => {
-        await forgettingMechanismDemo({ assertions: (system) => {
-            expect(system).toBeDefined();
-        }});
+        await forgettingMechanismDemo({
+            assertions: (system) => {
+                expect(system).toBeDefined();
+            }
+        });
     });
 
     test('library-usage-demo should run without errors', async () => {
-        await libraryUsageDemo({ assertions: (system) => {
-            expect(system).toBeDefined();
-        }});
+        await libraryUsageDemo({
+            assertions: (system) => {
+                expect(system).toBeDefined();
+            }
+        });
     });
 
     test('strategy-comparison-demo should run without errors', async () => {
-        await strategyComparisonDemo({ assertions: (system) => {
-            expect(system).toBeDefined();
-        }});
+        await strategyComparisonDemo({
+            assertions: (system) => {
+                expect(system).toBeDefined();
+            }
+        });
     });
 });

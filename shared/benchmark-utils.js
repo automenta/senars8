@@ -1,5 +1,5 @@
-import { SystemFactory } from '../src/index.js';
-import { createTask } from './demo-utils.js';
+import {SystemFactory} from '../src/index.js';
+import {createTask} from './demo-utils.js';
 
 /**
  * A standardized runner for executing a single benchmark test.
@@ -26,4 +26,4 @@ async function runBenchmarkTest(initialTaskDefs, verifyCallback, cycleCount = 5)
     return await verifyCallback(testSystem);
 }
 
-export { runBenchmarkTest };
+export {runBenchmarkTest};

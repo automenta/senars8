@@ -20,9 +20,9 @@ async function comprehensiveActionDemo(options = {}) {
             handler: async (action) => info(`Action: Activating ${action.name.replace('activate_', '')}`)
         },
     ];
-    
+
     const system1 = await runDemo('Simple Action Execution', simpleActionTasks, {
-        cycleCount: 3, 
+        cycleCount: 3,
         actionHandlers: simpleActionHandlers,
         ...options
     });
@@ -37,7 +37,7 @@ async function comprehensiveActionDemo(options = {}) {
         {name: 'drink', handler: async (action) => info(`Action: Drinking ${action.parameters[0]}`)},
         {name: 'monitor', handler: async (action) => info(`Action: Monitoring ${action.parameters[0]}`)},
     ];
-    
+
     const system2 = await runDemo('Complex Action Execution', complexActionTasks, {
         cycleCount: 4,
         actionHandlers: complexActionHandlers,
@@ -53,7 +53,7 @@ async function comprehensiveActionDemo(options = {}) {
         {name: 'get_cup', handler: async () => info("Action: Getting a cup.")},
         {name: 'get_water', handler: async () => info("Action: Getting water.")},
     ];
-    
+
     const system3 = await runDemo('Simple Planning', planningTasks, {
         cycleCount: 8,
         actionHandlers: planningActionHandlers,
