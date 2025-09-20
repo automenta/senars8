@@ -16,9 +16,7 @@ const MALFORMED_PATTERNS = [
 const MALFORMED_REGEX = new RegExp(MALFORMED_PATTERNS);
 
 function validateTermKey(termKey) {
-    if (!termKey || typeof termKey !== 'string' || !termKey.length) return false;
-    if (termKey.includes("(") && MALFORMED_REGEX.test(termKey)) return false;
-    return true;
+    return !termKey || typeof termKey !== 'string' || !termKey.length ? false : !(termKey.includes("(") && MALFORMED_REGEX.test(termKey));
 }
 
 export {

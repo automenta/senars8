@@ -82,7 +82,7 @@ class Memory {
         if (!(term instanceof Term)) {
             throw new Error('Can only add valid Term instances to memory');
         }
-        
+
         return errorHandler.safeSync(() => {
             if (this.terms.has(term.key)) {
                 debug(`Term '${term.key}' already exists, skipping.`);
@@ -277,15 +277,11 @@ class Memory {
                 this.clear();
             }, 'importState');
         }
-        
-        // Try to parse JSON and throw error directly if it fails
+
+        // For invalid JSON, we throw directly to match test expectations
         let state;
-        try {
-            state = JSON.parse(jsonState);
-        } catch (error) {
-            throw error; // Re-throw to match test expectations
-        }
-        
+        state = JSON.parse(jsonState);
+
         return errorHandler.safeSync(() => {
             this.clear();
             state.terms?.forEach(termData => {

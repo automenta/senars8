@@ -7,8 +7,8 @@ import ReportGenerator from './ReportGenerator.js';
 const errorHandler = createModuleErrorHandler('Analyzer');
 
 class UnitTestAnalyzer {
-    constructor(config = {}, 
-                ingestor = new DataIngestor(config), 
+    constructor(config = {},
+                ingestor = new DataIngestor(config),
                 translator = new NarseseTranslator(config),
                 engine = new AnalysisEngine(config),
                 reportGenerator = new ReportGenerator(config)) {

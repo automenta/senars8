@@ -21,7 +21,7 @@ async function strategyComparisonDemo(options = {}) {
     });
 
     info("\n--- Running with BruteForceStrategy ---");
-    const system2 = await runDemo('Strategy Comparison (Brute Force)', taskDefs, {
+    return await runDemo('Strategy Comparison (Brute Force)', taskDefs, {
         cycleCount: 5,
         config: {
             reasoner: {
@@ -33,9 +33,6 @@ async function strategyComparisonDemo(options = {}) {
         },
         ...options
     });
-
-    // Return the last system instance for testing purposes
-    return system2;
 }
 
 export default strategyComparisonDemo;

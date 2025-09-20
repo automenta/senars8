@@ -13,7 +13,7 @@ const STRATEGIES = {
     BagSampling: BagSamplingStrategy,
 };
 
-const getCombinationKey = (ruleName, tasks) => 
+const getCombinationKey = (ruleName, tasks) =>
     `${ruleName}:${tasks.map(task => task.id).sort().join(',')}`;
 
 class Reasoner {
@@ -35,12 +35,12 @@ class Reasoner {
         if (!Array.isArray(focusSet)) {
             return errorHandler.handle(new Error(`Focus set must be an array, received: ${typeof focusSet}`), 'performInference', []);
         }
-        
+
         const maxDerivedTasks = options.maxDerivedTasks ?? Infinity;
         debug(`Performing inference on ${focusSet.length} tasks with max ${maxDerivedTasks} derived tasks`);
 
         const symbolicTasks = this._performSymbolicInference(focusSet, maxDerivedTasks);
-        const temporalTasks = symbolicTasks.length < maxDerivedTasks ? 
+        const temporalTasks = symbolicTasks.length < maxDerivedTasks ?
             this._performTemporalInference(focusSet) : [];
         const finalTasks = [...symbolicTasks, ...temporalTasks].slice(0, maxDerivedTasks);
 
@@ -69,12 +69,12 @@ class Reasoner {
                     debug(`Skipping invalid combination for rule ${rule.name}`);
                     continue;
                 }
-                
+
                 const derived = this._applyRule(rule, tasks, processedCombinations);
                 if (derived) derivedTasks.push(derived);
             }
         }
-        
+
         debug(`Symbolic inference produced ${derivedTasks.length} derived tasks`);
         return derivedTasks;
     }
@@ -135,7 +135,7 @@ class Reasoner {
             if (!rulesByArity[arity]) rulesByArity[arity] = [];
             rulesByArity[arity].push(rule.name);
         });
-        
+
         return {
             totalRules: this.rules.length,
             ruleNames: this.getRuleNames(),

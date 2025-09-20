@@ -33,7 +33,7 @@ async function comprehensiveContradictionDemo(options = {}) {
         {sentence: '(<black_swan> --> black).', truth: [1.0, 0.95]},
     ];
 
-    const system2 = await runDemo('Enhanced Contradiction Resolution', enhancedContradictionTasks, {
+    return await runDemo('Enhanced Contradiction Resolution', enhancedContradictionTasks, {
         cycleCount: 7,
         postCycleCallback: (system) => {
             info("Checking for meta-cognitive tasks (e.g., questions for clarification)...");
@@ -49,9 +49,6 @@ async function comprehensiveContradictionDemo(options = {}) {
         },
         ...options
     });
-
-    // Return the last system instance for testing purposes
-    return system2;
 }
 
 export default comprehensiveContradictionDemo;

@@ -2,7 +2,7 @@
 // Description: Showcases enhanced perception, processing various event types and sensory inputs into tasks.
 
 import {runDemo} from '../../shared/demo-utils.js';
-import {parseTerm} from '../../src/parser/parse-utils.js';
+import {parseTerm} from '../../src/index.js';
 import Task from '../../src/core/Task.js';
 import {info} from '../../src/utils/logger.js';
 

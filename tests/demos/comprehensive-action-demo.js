@@ -54,7 +54,7 @@ async function comprehensiveActionDemo(options = {}) {
         {name: 'get_water', handler: async () => info("Action: Getting water.")},
     ];
 
-    const system3 = await runDemo('Simple Planning', planningTasks, {
+    return await runDemo('Simple Planning', planningTasks, {
         cycleCount: 8,
         actionHandlers: planningActionHandlers,
         postCycleCallback: (system) => {
@@ -67,9 +67,6 @@ async function comprehensiveActionDemo(options = {}) {
         },
         ...options
     });
-
-    // Return the last system instance for testing purposes
-    return system3;
 }
 
 export default comprehensiveActionDemo;

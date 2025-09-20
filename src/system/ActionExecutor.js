@@ -50,7 +50,7 @@ class ActionExecutor {
                 reject
             });
         });
-        this._processQueue();
+        await this._processQueue();
         return promise;
     }
 

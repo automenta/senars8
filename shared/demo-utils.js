@@ -1,5 +1,5 @@
 import Task from '../src/core/Task.js';
-import {parseTerm} from '../src/parser/parse-utils.js';
+import {parseTerm} from '../src/index.js';
 import SystemFactory from '../src/system/SystemFactory.js';
 import {debug, warn} from '../src/utils/logger.js';
 

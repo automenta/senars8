@@ -14,7 +14,7 @@ class ConditionalLogic {
      * @returns {*} Result based on matching condition or default value
      */
     static switch(value, conditions, defaultValue = null) {
-        if (conditions.hasOwnProperty(value)) {
+        if (Object.prototype.hasOwnProperty.call(conditions, value)) {
             const result = conditions[value];
             return typeof result === 'function' ? result() : result;
         }

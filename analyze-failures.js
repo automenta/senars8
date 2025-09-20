@@ -10,20 +10,20 @@ async function analyzeActualFailures() {
         // Read the actual test results
         console.log("Reading actual test results...");
         const testResultsData = JSON.parse(fs.readFileSync('./test-results.json', 'utf8'));
-        
+
         // Check if there are any failures
         const hasFailures = testResultsData.testResults.some(suite => suite.numFailingTests > 0);
-        
+
         if (!hasFailures) {
             console.log("All tests are passing! No failures to analyze.");
             return;
         }
-        
+
         // Filter to only suites with failures
         const failingSuites = testResultsData.testResults.filter(suite => suite.numFailingTests > 0);
-        
+
         console.log(`Found ${failingSuites.length} test suites with failures.`);
-        
+
         // Create analyzer
         const analyzer = new UnitTestAnalyzer({
             enableCoverageAnalysis: false,
@@ -32,7 +32,7 @@ async function analyzeActualFailures() {
 
         // Process test data
         console.log("Processing actual test failure data...");
-        const results = await analyzer.analyzeTestData({ testResults: failingSuites }, null, null);
+        const results = await analyzer.analyzeTestData({testResults: failingSuites}, null, null);
 
         if (!results) {
             console.error("Analysis failed!");
