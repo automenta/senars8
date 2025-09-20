@@ -4,6 +4,7 @@ import Term from './core/Term.js';
 import {parseTerm} from './parser/parse-utils.js';
 import SystemFactory from './system/SystemFactory.js';
 
+// Core classes and utilities
 export {
     System,
     Task,

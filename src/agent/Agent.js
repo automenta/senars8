@@ -18,7 +18,7 @@ class Agent {
 
     async initialize() {
         if (this.isInitialized) return;
-        await errorHandler.safeAsync(async () => {
+        return errorHandler.safeAsync(async () => {
             this.system = await SystemFactory.createSystem(this.config);
             this.isInitialized = true;
             debug('Agent initialized successfully.');
@@ -54,17 +54,14 @@ class Agent {
         const tool = this.tools[action.tool];
         if (!tool) throw new Error(`Tool not found: ${action.tool}`);
 
-        const {
-            handler,
-            parameters: toolParamsDef
-        } = tool;
+        const {handler, parameters: toolParamsDef} = tool;
         const paramNames = Object.keys(toolParamsDef?.properties || {});
-        const params = {};
-        for (let i = 0; i < action.parameters.length; i++) {
-            if (paramNames[i]) {
-                params[paramNames[i]] = action.parameters[i];
+        const params = paramNames.reduce((acc, paramName, i) => {
+            if (action.parameters[i]) {
+                acc[paramName] = action.parameters[i];
             }
-        }
+            return acc;
+        }, {});
 
         return handler(params);
     }
@@ -78,11 +75,10 @@ class Agent {
             case 'SequentialConjunction':
             case 'Conjunction': {
                 const [nameTerm, ...paramTerms] = term.terms;
-                if (!nameTerm) return null;
-                return {
+                return nameTerm ? {
                     tool: nameTerm.key,
                     parameters: paramTerms.map(t => t.key.replace(/"/g, ''))
-                };
+                } : null;
             }
             default:
                 warn(`Cannot parse term of type '${term.type}' to an action:`, term);
@@ -91,7 +87,7 @@ class Agent {
     }
 
     async createPlan(goalString) {
-        return await errorHandler.safeAsync(async () => {
+        return errorHandler.safeAsync(async () => {
             const goalTerm = parseTerm(goalString);
             if (!goalTerm) {
                 warn(`Could not parse goal string: ${goalString}`);

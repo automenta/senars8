@@ -1,4 +1,5 @@
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {categorizeCoverage, categorizePerformance} from './NarseseTranslator.js';
 
 const errorHandler = createModuleErrorHandler('AnalysisEngine');
 
