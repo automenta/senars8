@@ -1,13 +1,12 @@
 const {
-    System,
+    SystemFactory,
     Task,
     parseTerm
 } = require('../../src/index');
 
 async function testNewFunctionality() {
     console.log('Testing new System functionality...');
-    const system = new System();
-    await system.initialize();
+    const system = await SystemFactory.createSystem();
     console.log('System initialized');
 
     const tasks = [
@@ -32,13 +31,13 @@ async function testNewFunctionality() {
     console.log('Added initial tasks');
 
     console.log('\nTesting queryTasks...');
-    const animalBeliefs = system.queryTasks({
-        termKey: '(bird --> animal)',
+    const animalBeliefs = system.components.memory.query({
+        term: parseTerm('(bird --> animal)'),
         punctuation: '.'
     });
     console.log('Animal beliefs:', animalBeliefs.map(t => t.toString()));
 
-    const highConfidenceTasks = system.queryTasks({
+    const highConfidenceTasks = system.components.memory.query({
         minConfidence: 0.8,
         limit: 2
     });
@@ -51,34 +50,33 @@ async function testNewFunctionality() {
             frequency: 0.95,
             confidence: 0.85
         };
-        const revisedTruthValue = await system.reviseTaskTruthValue(birdAnimalTask.id, newEvidence, 0.7);
+        const revisedTruthValue = await system.components.memory.reviseTruthValue(birdAnimalTask.id, newEvidence, 0.7);
         console.log('Revised truth value:', revisedTruthValue);
-        const updatedTask = system.queryTasks({
-            termKey: '(bird --> animal)'
+        const updatedTask = system.components.memory.query({
+            term: parseTerm('(bird --> animal)')
         })[0];
         console.log('Updated task:', updatedTask.toString());
     }
 
     console.log('\nTesting removeTask...');
-    const catAnimalTask = system.queryTasks({
-        termKey: '(cat --> animal)'
+    const catAnimalTask = system.components.memory.query({
+        term: parseTerm('(cat --> animal)')
     })[0];
     if (catAnimalTask) {
-        console.log('Before removal, tasks count:', system.queryTasks({}).length);
-        await system.removeTask(catAnimalTask.id);
-        console.log('After removal, tasks count:', system.queryTasks({}).length);
+        console.log('Before removal, tasks count:', system.components.memory.query({}).length);
+        await system.components.memory.remove(catAnimalTask.id);
+        console.log('After removal, tasks count:', system.components.memory.query({}).length);
     }
 
     console.log('\nTesting export/import...');
-    const exportedState = system.exportMemoryState();
+    const exportedState = system.components.memory.exportState();
     console.log('Exported state with', exportedState.terms.length, 'terms and', exportedState.tasks.length, 'tasks');
 
-    const newSystem = new System();
-    await newSystem.initialize();
+    const newSystem = await SystemFactory.createSystem();
     try {
-        await newSystem.importMemoryState(exportedState);
+        await newSystem.components.memory.importState(exportedState);
         console.log('Imported state into new system');
-        console.log('New system tasks count:', newSystem.queryTasks({}).length);
+        console.log('New system tasks count:', newSystem.components.memory.query({}).length);
     } catch (err) {
         console.log('Import functionality needs further work:', err.message);
     }

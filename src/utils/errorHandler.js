@@ -1,44 +1,30 @@
-import {error as logError} from './logger.js';
+import {
+    error as logError
+} from './logger.js';
 
-class ValidationError extends Error {
-    constructor(message, context = null) {
-        super(message);
-        this.name = 'ValidationError';
-        this.context = context;
-    }
-}
+const createErrorClass = (name) => {
+    const NewError = class extends Error {
+        constructor(message, context = null) {
+            super(message);
+            this.name = name;
+            this.context = context;
+        }
+    };
+    Object.defineProperty(NewError, 'name', {
+        value: name
+    });
+    return NewError;
+};
 
-class ParseError extends Error {
-    constructor(message, context = null) {
-        super(message);
-        this.name = 'ParseError';
-        this.context = context;
-    }
-}
+const ValidationError = createErrorClass('ValidationError');
+const ParseError = createErrorClass('ParseError');
+const InferenceError = createErrorClass('InferenceError');
+const PlanningError = createErrorClass('PlanningError');
+const MemoryError = createErrorClass('MemoryError');
 
-class InferenceError extends Error {
-    constructor(message, context = null) {
-        super(message);
-        this.name = 'InferenceError';
-        this.context = context;
-    }
-}
+const ERROR_TYPES = [ValidationError, ParseError, InferenceError, PlanningError, MemoryError];
 
-class PlanningError extends Error {
-    constructor(message, context = null) {
-        super(message);
-        this.name = 'PlanningError';
-        this.context = context;
-    }
-}
-
-class MemoryError extends Error {
-    constructor(message, context = null) {
-        super(message);
-        this.name = 'MemoryError';
-        this.context = context;
-    }
-}
+const isKnownErrorType = error => ERROR_TYPES.some(type => error instanceof type);
 
 const logAndReturn = (error, context, returnValue = null) => {
     const preparedError = prepareErrorForLogging(error);
@@ -76,13 +62,6 @@ const prepareErrorForLogging = error => {
     }
     return error;
 };
-
-const isKnownErrorType = error =>
-    error instanceof ValidationError ||
-    error instanceof ParseError ||
-    error instanceof InferenceError ||
-    error instanceof PlanningError ||
-    error instanceof MemoryError;
 
 const handleError = (error, context, shouldThrow = true) =>
     shouldThrow ? logAndThrow(error, context) : logAndReturn(error, context, null);

@@ -1,5 +1,10 @@
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
-import {debug, info} from '../utils/logger.js'; // Added debug import
+import {
+    createModuleErrorHandler
+} from '../utils/errorHandler.js';
+import {
+    debug,
+    info
+} from '../utils/logger.js'; // Added debug import
 import ConfigManager from '../config/ConfigManager.js';
 import System from './System.js';
 import Cycle from './Cycle.js';
@@ -19,12 +24,12 @@ import CONSTITUTION_TASKS from './Constitution.js';
 const errorHandler = createModuleErrorHandler('SystemFactory');
 
 class SystemFactory {
-    _assembleComponents(configManager, components) {
+    _assembleComponents(configManager, initialComponents) {
         info('SystemFactory: Assembling components...');
-        debug('SystemFactory: Components received:', components);
+        debug('SystemFactory: Components received:', initialComponents);
 
         const get = (name, defaultComponent) => {
-            const component = components[name] || defaultComponent;
+            const component = initialComponents[name] || defaultComponent;
             debug(`SystemFactory: Assembled component ${name}:`, component);
             return component;
         };
@@ -56,7 +61,8 @@ class SystemFactory {
             temporalReasoner,
             priorityManager
         }));
-        const system = get('system', new System(configManager, {
+
+        const components = {
             memory,
             reasoner,
             lm,
@@ -64,8 +70,14 @@ class SystemFactory {
             cycle,
             planner,
             metaCognition,
-            perception
-        }));
+            perception,
+            temporalReasoner,
+            priorityManager,
+            contradictionAnalyzer,
+            resolutionStrategy,
+        };
+
+        const system = get('system', new System(configManager, components));
 
         info('SystemFactory: Components assembled.');
         debug('SystemFactory: Returning system from _assembleComponents:', system);
