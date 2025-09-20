@@ -2,6 +2,7 @@ export default {
     testEnvironment: 'node',
     testMatch: ['**/tests/**/*.test.js'],
     collectCoverage: false,
+    maxWorkers: '50%',
     transform: {
         '^.+\\.js$': 'babel-jest',
     },
