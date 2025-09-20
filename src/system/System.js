@@ -1,5 +1,7 @@
-import '../utils/onnxSuppression.js';
+import {suppressOnnxWarnings} from '../utils/onnxSuppression.js';
 import registerDefaultActions from './default-actions.js';
+
+suppressOnnxWarnings();
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
 import {debug, error as logError, info, warn} from '../utils/logger.js';
 import {normalizeToArray} from '../utils/core.js';
@@ -134,6 +136,14 @@ class System {
             this.memory.addTasks(tasksToAdd);
             info(`Successfully added ${tasksToAdd.length} tasks.`);
         }, 'addTasks');
+    }
+
+    reset() {
+        errorHandler.safeSync(() => {
+            this.memory.clear();
+            this.cycleCount = 0;
+            info('System has been reset.');
+        }, 'reset');
     }
 }
 

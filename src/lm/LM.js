@@ -1,5 +1,4 @@
 import {Ollama} from '@langchain/community/llms/ollama';
-import {suppressOnnxWarnings} from '../utils/onnxSuppression.js';
 import Term from '../core/Term.js';
 import XenovaLLM from './XenovaLLM.js';
 import {LLMChain} from 'langchain/chains';
@@ -108,7 +107,6 @@ class LM {
         }
 
         if (provider === 'xenova') {
-            suppressOnnxWarnings();
             const pipeline = await this._pipelineFactory.get(
                 PIPELINE_TYPES.TEXT_GENERATION,
                 this.config.getString('LM.TEXT_GENERATION_MODEL', 'Xenova/distilgpt2'), {

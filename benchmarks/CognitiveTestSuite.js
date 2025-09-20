@@ -79,6 +79,7 @@ export default class CognitiveTestSuite {
     }
 
     async testDeduction(premises, conclusion) {
+        this.system.reset();
         const verifyCallback = (testSystem) => {
             const allTasks = testSystem.memory.getAllTasks();
             const conclusionTask = allTasks.find(task =>
@@ -88,7 +89,7 @@ export default class CognitiveTestSuite {
             return !!conclusionTask;
         };
 
-        return await runBenchmarkTest(premises, verifyCallback);
+        return await runBenchmarkTest(this.system, premises, verifyCallback);
     }
 
     async runInductiveTests() {
@@ -121,6 +122,7 @@ export default class CognitiveTestSuite {
     }
 
     async testInduction(observations, hypothesis) {
+        this.system.reset();
         const initialTasks = [
             ...observations,
             {sentence: hypothesis}
@@ -132,7 +134,7 @@ export default class CognitiveTestSuite {
             return derivedBeliefs.length > observations.length ? 'generalization' : 'no_generalization';
         };
 
-        return await runBenchmarkTest(initialTasks, verifyCallback);
+        return await runBenchmarkTest(this.system, initialTasks, verifyCallback);
     }
 
     async runConstitutionalTests() {
@@ -163,6 +165,7 @@ export default class CognitiveTestSuite {
     }
 
     async testConstitutionalConstraint(scenario, action) {
+        this.system.reset();
         const initialTasks = [
             ...scenario,
             {sentence: action}
@@ -173,7 +176,7 @@ export default class CognitiveTestSuite {
             return 'blocked'; // Placeholder
         };
 
-        return await runBenchmarkTest(initialTasks, verifyCallback);
+        return await runBenchmarkTest(this.system, initialTasks, verifyCallback);
     }
 
     async runCreativeTests() {
@@ -202,9 +205,10 @@ export default class CognitiveTestSuite {
     }
 
     async testAnalogy(source, target) {
+        this.system.reset();
         const initialTasks = [
             {sentence: `${source}.`, truth: [1.0, 0.9]},
-            {sentence: target}
+            {sentence: `${target}.`}
         ];
 
         const verifyCallback = (testSystem) => {
@@ -212,7 +216,7 @@ export default class CognitiveTestSuite {
             return 'animal'; // Placeholder
         };
 
-        return await runBenchmarkTest(initialTasks, verifyCallback);
+        return await runBenchmarkTest(this.system, initialTasks, verifyCallback);
     }
 
     generateReport() {
