@@ -1,5 +1,5 @@
 import Task from '../core/Task.js';
-import {filterByProperty} from './arrayUtils.js';
+import {filterByProperty} from './core.js';
 
 const isBelief = task => task?.punctuation === '.';
 const isGoal = task => task?.punctuation === '!';

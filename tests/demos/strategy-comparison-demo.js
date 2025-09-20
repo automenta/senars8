@@ -1,25 +1,27 @@
 // Category: Reasoning
 // Description: Compares different reasoning strategies, such as Brute-Force vs. Priority-based Bag Sampling.
 
-import {runDemo} from '../shared/demo-utils.js';
+import {runDemo} from '../../shared/demo-utils.js';
+import {info} from '../../src/utils/logger.js';
 
-async function strategyComparisonDemo() {
+async function strategyComparisonDemo(options = {}) {
     const taskDefs = [
         {sentence: '(HighPriority --> result).', truth: [1.0, 0.99]},
         {sentence: '(MediumPriority --> result).', truth: [1.0, 0.5]},
         {sentence: '(LowPriority --> result).', truth: [1.0, 0.1]},
     ];
 
-    console.log("--- Running with default BagSamplingStrategy ---");
+    info("--- Running with default BagSamplingStrategy ---");
     await runDemo('Strategy Comparison (Bag Sampling)', taskDefs, {
         cycleCount: 5,
         postCycleCallback: (system) => {
-            console.log("Derived tasks will likely involve 'HighPriority'.");
-        }
+            info("Derived tasks will likely involve 'HighPriority'.");
+        },
+        ...options
     });
 
-    console.log("\n--- Running with BruteForceStrategy ---");
-    await runDemo('Strategy Comparison (Brute Force)', taskDefs, {
+    info("\n--- Running with BruteForceStrategy ---");
+    return await runDemo('Strategy Comparison (Brute Force)', taskDefs, {
         cycleCount: 5,
         config: {
             reasoner: {
@@ -27,8 +29,9 @@ async function strategyComparisonDemo() {
             }
         },
         postCycleCallback: (system) => {
-            console.log("Derived tasks will involve all combinations, regardless of priority.");
-        }
+            info("Derived tasks will involve all combinations, regardless of priority.");
+        },
+        ...options
     });
 }
 

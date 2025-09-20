@@ -1,3 +1,4 @@
+import { createModuleErrorHandler } from '../utils/common.js';
 import TemporalRelationshipInference from './temporal/TemporalRelationshipInference.js';
 import TemporalImplicationInference from './temporal/TemporalImplicationInference.js';
 import TemporalPatternDetection from './temporal/TemporalPatternDetection.js';
@@ -8,7 +9,6 @@ import FutureTaskPrediction from './temporal/FutureTaskPrediction.js';
 import TemporalClusterDetection from './temporal/TemporalClusterDetection.js';
 import TemporalCoherence from './temporal/TemporalCoherence.js';
 import {debug} from '../utils/logger.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
 import ConfigAccessor from '../config/ConfigAccessor.js';
 
 const errorHandler = createModuleErrorHandler('TemporalReasoner');
@@ -36,19 +36,10 @@ class TemporalReasoner {
             return [];
         }
 
-        const results = [];
-        for (const Module of this.inferenceModules) {
-            try {
-                const moduleResults = Module.infer(tasks, config);
-                if (Array.isArray(moduleResults)) {
-                    results.push(...moduleResults);
-                }
-            } catch (error) {
-                debug(`Error in temporal inference module ${Module.name}:`, error.message);
-            }
-        }
-
-        return results;
+        return this.inferenceModules.flatMap(Module => {
+            const results = errorHandler.safeSync(() => Module.infer(tasks, config), `infer:${Module.name}`, []);
+            return Array.isArray(results) ? results : [];
+        });
     }
 }
 

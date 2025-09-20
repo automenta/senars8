@@ -1,9 +1,10 @@
 // Category: Reasoning
 // Description: Demonstrates the use of a wide range of inference rules, including deduction, induction, and abduction.
 
-import {runDemo} from '../shared/demo-utils.js';
+import {runDemo} from '../../shared/demo-utils.js';
+import {info} from '../../src/utils/logger.js';
 
-async function extendedInferenceRulesDemo() {
+async function extendedInferenceRulesDemo(options = {}) {
     const taskDefs = [
         // Premises for deduction
         {sentence: '(mammal --> warm_blooded).', truth: [1.0, 0.9]},
@@ -20,21 +21,22 @@ async function extendedInferenceRulesDemo() {
         {sentence: 'water?'},
     ];
 
-    const postCycleCallback = (system) => {
-        console.log("\nQuerying for inferred conclusions...");
-        const deduction = system.introspection.queryTasks({termKey: '(dog --> warm_blooded)', punctuation: '.'});
-        const induction = system.introspection.queryTasks({termKey: '(swan --> white)', punctuation: '.'});
-        const abduction = system.introspection.queryTasks({termKey: 'water', punctuation: '.'});
+    const defaultOptions = {
+        cycleCount: 10,
+        postCycleCallback: (system) => {
+            info("Querying for inferred conclusions...");
+            const deduction = system.introspection.queryTasks({termKey: '(dog --> warm_blooded)', punctuation: '.'});
+            const induction = system.introspection.queryTasks({termKey: '(swan --> white)', punctuation: '.'});
+            const abduction = system.introspection.queryTasks({termKey: 'water', punctuation: '.'});
 
-        console.log(`Deduced: ${deduction.length > 0}`);
-        console.log(`Induced: ${induction.length > 0}`);
-        console.log(`Abduced: ${abduction.length > 0}`);
+            info(`Deduced: ${deduction.length > 0}`);
+            info(`Induced: ${induction.length > 0}`);
+            info(`Abduced: ${abduction.length > 0}`);
+        }
     };
 
-    await runDemo('Extended Inference Rules Demo', taskDefs, {
-        cycleCount: 10,
-        postCycleCallback
-    });
+    const mergedOptions = {...defaultOptions, ...options};
+    return await runDemo('Extended Inference Rules Demo', taskDefs, mergedOptions);
 }
 
 export default extendedInferenceRulesDemo;

@@ -1,7 +1,7 @@
 import Planners from '../reasoner/index.js';
 import Plan from './Plan.js';
 import {debug, info, warn} from '../utils/logger.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createModuleErrorHandler} from '../utils/common.js';
 
 const errorHandler = createModuleErrorHandler('Planner');
 

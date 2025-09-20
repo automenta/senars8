@@ -1,8 +1,9 @@
-import '../utils/onnxSuppression.js';
+import {suppressOnnxWarnings} from '../utils/onnxSuppression.js';
 import registerDefaultActions from './default-actions.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+
+suppressOnnxWarnings();
+import {createModuleErrorHandler, normalizeToArray} from '../utils/common.js';
 import {debug, error as logError, info, warn} from '../utils/logger.js';
-import {normalizeToArray} from '../utils/arrayUtils.js';
 import Introspection from './Introspection.js';
 import ConfigAccessor from '../config/ConfigAccessor.js';
 
@@ -14,14 +15,30 @@ class System {
         reasoner,
         lm,
         actionExecutor,
-        cycle
+        cycle,
+        planner,
+        metaCognition,
+        perception
     }) {
+        debug('System: Constructor called with components:', {
+            memory,
+            reasoner,
+            lm,
+            actionExecutor,
+            cycle,
+            planner,
+            metaCognition,
+            perception
+        });
         this.config = new ConfigAccessor(configManager);
         this.memory = memory;
         this.reasoner = reasoner;
         this.lm = lm;
         this.actionExecutor = actionExecutor;
         this.cycle = cycle;
+        this.planner = planner;
+        this.metaCognition = metaCognition;
+        this.perception = perception;
         this.isRunning = false;
         this.cycleCount = 0;
         this.introspection = new Introspection(this);
@@ -114,10 +131,20 @@ class System {
             if (!tasksToAdd.length) return;
 
             debug(`Adding ${tasksToAdd.length} new tasks to the system...`);
-            await this._bootstrapTerms(tasksToAdd);
+            await this._bootstrapTerms(tasksToAdd, {
+                sync: true
+            });
             this.memory.addTasks(tasksToAdd);
             info(`Successfully added ${tasksToAdd.length} tasks.`);
         }, 'addTasks');
+    }
+
+    reset() {
+        errorHandler.safeSync(() => {
+            this.memory.clear();
+            this.cycleCount = 0;
+            info('System has been reset.');
+        }, 'reset');
     }
 }
 

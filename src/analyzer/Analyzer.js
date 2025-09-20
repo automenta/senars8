@@ -1,4 +1,4 @@
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createModuleErrorHandler} from '../utils/common.js';
 import NarseseTranslator from './NarseseTranslator.js';
 import DataIngestor from './DataIngestor.js';
 import AnalysisEngine from './AnalysisEngine.js';
@@ -7,7 +7,11 @@ import ReportGenerator from './ReportGenerator.js';
 const errorHandler = createModuleErrorHandler('Analyzer');
 
 class UnitTestAnalyzer {
-    constructor(config = {}) {
+    constructor(config = {},
+                ingestor = new DataIngestor(config),
+                translator = new NarseseTranslator(config),
+                engine = new AnalysisEngine(config),
+                reportGenerator = new ReportGenerator(config)) {
         this.config = {
             enableCoverageAnalysis: config.enableCoverageAnalysis ?? true,
             enablePerformanceAnalysis: config.enablePerformanceAnalysis ?? true,
@@ -15,10 +19,10 @@ class UnitTestAnalyzer {
             ...config
         };
 
-        this.translator = new NarseseTranslator();
-        this.ingestor = new DataIngestor();
-        this.engine = new AnalysisEngine();
-        this.reportGenerator = new ReportGenerator();
+        this.ingestor = ingestor;
+        this.translator = translator;
+        this.engine = engine;
+        this.reportGenerator = reportGenerator;
 
         this.testData = null;
         this.coverageData = null;

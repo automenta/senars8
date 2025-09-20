@@ -1,7 +1,7 @@
 import Term from '../../core/Term.js';
 import TruthValueManager from '../TruthValueManager.js';
 import {createBinaryInheritanceRule} from './rule-factories.js';
-import {createModuleErrorHandler} from '../../utils/errorHandler.js';
+import {createModuleErrorHandler} from '../../utils/common.js';
 
 const errorHandler = createModuleErrorHandler('induction-rule');
 

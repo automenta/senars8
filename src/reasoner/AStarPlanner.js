@@ -109,25 +109,60 @@ class AStarPlanner extends BasePlanner {
         return `${taskKey}|${planKey}`;
     }
 
+    _getExpansions(task) {
+        if (task.type === 'SequentialConjunction') {
+            const subTasks = this._getSubTasks(task);
+            return subTasks ? [{subTasks, method: null, preconditions: []}] : [];
+        }
+
+        const decompositionMethods = this._getDecompositionMethods(task);
+
+        if (decompositionMethods.length === 0) {
+            // This is a primitive action, it "expands" to itself.
+            return [{subTasks: [task], method: null, preconditions: []}];
+        }
+
+        const expansions = [];
+        for (const method of decompositionMethods) {
+            const {subject} = method;
+            let preconditions = [];
+
+            if (subject.type === 'SequentialConjunction') {
+                preconditions = subject.terms.slice(1);
+            }
+
+            if (this._arePreconditionsMet(preconditions)) {
+                const subTasks = this._getSubTasks(method.predicate);
+                if (subTasks) {
+                    expansions.push({subTasks, method, preconditions});
+                }
+            }
+        }
+
+        return expansions;
+    }
+
     async _calculateHeuristic(tasks, visited = new Set()) {
         if (!tasks || tasks.length === 0) return 0;
         let totalCost = 0;
         for (const task of tasks) {
-            if (visited.has(task.key)) return Infinity;
-            visited.add(task.key);
-            totalCost += await this._getMinTaskCost(task, visited);
-            visited.delete(task.key);
+            if (visited.has(task.key)) return Infinity; // Cycle detected
+            const newVisited = new Set(visited);
+            newVisited.add(task.key);
+            totalCost += await this._getMinTaskCost(task, newVisited);
         }
         return totalCost;
     }
 
     async _getMinTaskCost(task, visited) {
-        if (this.heuristicCache.has(task.key)) {
-            return this.heuristicCache.get(task.key);
+        const cacheKey = task.key;
+        if (this.heuristicCache.has(cacheKey)) {
+            return this.heuristicCache.get(cacheKey);
         }
+
         if (this._isPrimitive(task)) {
             const cost = this.costManager.getActionCost(task);
-            this.heuristicCache.set(task.key, cost);
+            this.heuristicCache.set(cacheKey, cost);
             return cost;
         }
 
@@ -136,9 +171,16 @@ class AStarPlanner extends BasePlanner {
 
         let minCost = Infinity;
         for (const expansion of expansions) {
-            minCost = Math.min(minCost, await this._calculateHeuristic(expansion.subTasks, new Set(visited)));
+            minCost = Math.min(minCost, await this._calculateHeuristic(expansion.subTasks, visited));
         }
-        this.heuristicCache.set(task.key, minCost);
+
+        if (minCost === Infinity) {
+            // All expansions lead to cycles or dead ends, cache this
+            this.heuristicCache.set(cacheKey, Infinity);
+            return Infinity;
+        }
+
+        this.heuristicCache.set(cacheKey, minCost);
         return minCost;
     }
 }

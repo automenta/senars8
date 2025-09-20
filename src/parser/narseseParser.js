@@ -115,6 +115,7 @@ class NarseseParser {
             [TOKEN.INDEPENDENT_VAR]: () => this.parseVariable(TOKEN.INDEPENDENT_VAR, OP.INDEPENDENT_VARIABLE),
             [TOKEN.DEPENDENT_VAR]: () => this.parseVariable(TOKEN.DEPENDENT_VAR, OP.DEPENDENT_VARIABLE),
             [TOKEN.QUERY_VAR]: () => this.parseVariable(TOKEN.QUERY_VAR, OP.QUERY_VARIABLE),
+            [TOKEN.QUESTION]: () => this.parseVariable(TOKEN.QUESTION, OP.QUERY_VARIABLE),
             [TOKEN.NUMBER]: () => this.parseNumber(),
         };
         const parser = this.current ? parsers[this.current.type] : null;
@@ -135,7 +136,11 @@ class NarseseParser {
         if (this.current?.type in OPERATOR_MAP) {
             term = this.parseOperator();
         } else {
-            const subject = this.parseTerm();
+            let subject = null;
+            if (!(this.current?.type in BINARY_RELATION_MAP)) {
+                subject = this.parseTerm();
+            }
+
             if (this.current?.type in BINARY_RELATION_MAP) {
                 const relationType = BINARY_RELATION_MAP[this.current.type];
                 term = this.parseBinaryRelation(subject, this.current.type, relationType);
@@ -166,7 +171,7 @@ class NarseseParser {
 
     parseBinaryRelation(subject, tokenType, relationType) {
         this.consume(tokenType);
-        const predicate = this.parseTerm();
+        const predicate = this.match(TOKEN.RPAREN) ? null : this.parseTerm();
         // this.consume(TOKEN.RPAREN); // This was the bug
         return {
             type: relationType,

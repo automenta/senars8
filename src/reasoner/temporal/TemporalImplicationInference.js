@@ -1,6 +1,6 @@
 import {inferTemporalImplications} from '../../utils/temporal.js';
 import {debug} from '../../utils/logger.js';
-import {createModuleErrorHandler} from '../../utils/errorHandler.js';
+import {createModuleErrorHandler} from '../../utils/common.js';
 import config from '../../config/index.js';
 
 const errorHandler = createModuleErrorHandler('TemporalImplicationInference');

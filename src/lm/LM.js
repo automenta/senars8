@@ -1,5 +1,4 @@
 import {Ollama} from '@langchain/community/llms/ollama';
-import {suppressOnnxWarnings} from '../utils/onnxSuppression.js';
 import Term from '../core/Term.js';
 import XenovaLLM from './XenovaLLM.js';
 import {LLMChain} from 'langchain/chains';
@@ -11,8 +10,9 @@ import ExplanationGenerator from './ExplanationGenerator.js';
 import QAService from './QAService.js';
 import PlanRepairer from './PlanRepairer.js';
 import ProactiveEnricher from './ProactiveEnricher.js';
+import NLP from './NLP.js';
 import {debug, info, warn} from '../utils/logger.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createModuleErrorHandler} from '../utils/common.js';
 import ConfigAccessor from '../config/ConfigAccessor.js';
 
 const errorHandler = createModuleErrorHandler('LM');
@@ -33,8 +33,9 @@ class LM {
         this._hypothesisGenerator = new HypothesisGenerator(this);
         this._explanationGenerator = new ExplanationGenerator(this._generate.bind(this));
         this._qaService = new QAService(this._generate.bind(this), this._getQAPipeline.bind(this));
-        this._planRepairer = new PlanRepairer(this._getGenerationPipeline.bind(this), this._createStructuredChain.bind(this), this._parseStructuredResult.bind(this));
-        this._proactiveEnricher = new ProactiveEnricher(this._getGenerationPipeline.bind(this), this._createStructuredChain.bind(this), this._parseStructuredResult.bind(this));
+        this._planRepairer = new PlanRepairer(this.getGenerationPipeline.bind(this), this._createStructuredChain.bind(this), this._parseStructuredResult.bind(this));
+        this._proactiveEnricher = new ProactiveEnricher(this.getGenerationPipeline.bind(this), this._createStructuredChain.bind(this), this._parseStructuredResult.bind(this));
+        this.nlp = new NLP();
 
         this._embeddingQueue = [];
         this._isProcessingEmbeddings = false;
@@ -85,13 +86,13 @@ class LM {
         debug('Memory set for LM');
     }
 
-    async _getFeaturePipeline() {
+    async getFeaturePipeline() {
         debug('Getting feature extraction pipeline');
         const model = this.config.getString('LM.FEATURE_EXTRACTION_MODEL', 'Xenova/all-MiniLM-L6-v2');
         return this._pipelineFactory.get(PIPELINE_TYPES.FEATURE_EXTRACTION, model);
     }
 
-    async _getGenerationPipeline() {
+    async getGenerationPipeline() {
         if (this._llm) return this._llm.pipeline || ((prompt, options) => this._llm.invoke(prompt, options));
 
         const provider = this.config.getString('LM.LLM_PROVIDER', 'xenova');
@@ -106,7 +107,6 @@ class LM {
         }
 
         if (provider === 'xenova') {
-            suppressOnnxWarnings();
             const pipeline = await this._pipelineFactory.get(
                 PIPELINE_TYPES.TEXT_GENERATION,
                 this.config.getString('LM.TEXT_GENERATION_MODEL', 'Xenova/distilgpt2'), {
@@ -134,11 +134,15 @@ class LM {
         }
         return errorHandler.safeAsync(async () => {
             debug('Generating text with prompt length:', prompt.length);
-            await this._getGenerationPipeline();
+            await this.getGenerationPipeline();
             const result = await this._llm.invoke(prompt, options);
             debug('Text generation completed');
             return result;
         }, 'generate', null);
+    }
+
+    _getStructuredOutputParser(outputSchema) {
+        return StructuredOutputParser.fromZodSchema(outputSchema);
     }
 
     _createStructuredChain(promptTemplate, outputSchema, generationOptions) {
@@ -179,7 +183,7 @@ class LM {
     async _generateAndAssignEmbedding(term) {
         await errorHandler.safeAsync(async () => {
             debug(`Generating embedding for term: ${term.key}`);
-            const extractor = await this._getFeaturePipeline();
+            const extractor = await this.getFeaturePipeline();
             const output = await extractor(term.key, {
                 pooling: 'mean',
                 normalize: true

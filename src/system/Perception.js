@@ -1,6 +1,6 @@
 import TaskFactory from '../core/TaskFactory.js';
 import PatternDetector from '../reasoner/PatternDetector.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createModuleErrorHandler} from '../utils/common.js';
 
 const errorHandler = createModuleErrorHandler('Perception');
 

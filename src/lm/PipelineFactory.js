@@ -1,6 +1,6 @@
 import {pipeline} from '@xenova/transformers';
 import {info} from '../utils/logger.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createModuleErrorHandler} from '../utils/common.js';
 
 const errorHandler = createModuleErrorHandler('PipelineFactory');
 

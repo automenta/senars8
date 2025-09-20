@@ -55,7 +55,9 @@ describe('System Introspection API', () => {
         const beliefTask = new Task(parseTerm('(cat --> animal)'), '.');
         const goalTask = new Task(parseTerm('(user --> happy)'), '!');
 
+        console.log('Before adding tasks:', system.introspection.queryTasks({}));
         await system.addTasks([beliefTask, goalTask]);
+        console.log('After adding tasks:', system.introspection.queryTasks({}));
 
         const beliefs = system.introspection.queryTasks({
             punctuation: '.'
@@ -63,6 +65,9 @@ describe('System Introspection API', () => {
         const goals = system.introspection.queryTasks({
             punctuation: '!'
         });
+
+        console.log('Beliefs:', beliefs);
+        console.log('Goals:', goals);
 
         expect(beliefs.some(t => t.id === beliefTask.id)).toBe(true);
         expect(goals.some(t => t.id === goalTask.id)).toBe(true);
@@ -74,6 +79,7 @@ describe('System Introspection API', () => {
         await system.addTasks([new Task(parseTerm(termKey), '.')]);
 
         const term = system.introspection.getTerm(termKey);
+        console.log('Term:', term);
         expect(term).toBeDefined();
         expect(term.key).toBe(termKey);
     });

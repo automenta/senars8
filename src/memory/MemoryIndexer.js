@@ -159,7 +159,7 @@ class MemoryIndexer {
 
     clone() {
         const newIndexer = new MemoryIndexer();
-        newIndexer.implicationIndex = new Map(this.implicationIndex);
+        newIndexer.implicationIndex = new Map(Array.from(this.implicationIndex.entries()).map(([key, value]) => [key, [...value]]));
         newIndexer.beliefIndex = new Map(Array.from(this.beliefIndex.entries()).map(([key, value]) => [key, [...value]]));
         newIndexer.costIndex = new Map(this.costIndex);
         newIndexer.punctuationIndex = new Map(Array.from(this.punctuationIndex.entries()).map(([key, value]) => [key, new Set(value)]));

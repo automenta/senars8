@@ -2,7 +2,7 @@ import Task from './Task.js';
 import {createTemporalTask} from '../utils/temporal.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
-import {safeAsync} from '../utils/errorHandler.js';
+import {safeAsync} from '../utils/common.js';
 
 class TaskFactory {
     constructor(memory, lm) {

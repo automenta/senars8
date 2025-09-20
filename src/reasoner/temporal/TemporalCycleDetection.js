@@ -2,7 +2,7 @@ import Task from '../../core/Task.js';
 import {parseTerm} from '../../parser/narseseParser.js';
 import {detectTemporalCycles} from '../../utils/temporal.js';
 import {debug} from '../../utils/logger.js';
-import {createModuleErrorHandler} from '../../utils/errorHandler.js';
+import {createModuleErrorHandler} from '../../utils/common.js';
 
 const errorHandler = createModuleErrorHandler('TemporalCycleDetection');
 

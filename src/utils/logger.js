@@ -5,7 +5,7 @@ const LOG_LEVELS = {
     DEBUG: 3,
 };
 
-const currentLogLevel = LOG_LEVELS[process.env.LOG_LEVEL] || LOG_LEVELS.INFO;
+const currentLogLevel = LOG_LEVELS[process.env.LOG_LEVEL] || LOG_LEVELS.WARN;
 const shouldLog = level => level <= currentLogLevel;
 
 const log = (level, method, message, ...args) => {

@@ -1,5 +1,4 @@
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
-import {isNonEmptyArray} from '../utils/arrayUtils.js';
+import {createModuleErrorHandler, isNonEmptyArray} from '../utils/common.js';
 import {generateActionId} from '../utils/IdGenerator.js';
 import EventBus from './EventBus.js';
 import ConfigAccessor from '../config/ConfigAccessor.js';
@@ -50,7 +49,7 @@ class ActionExecutor {
                 reject
             });
         });
-        this._processQueue();
+        await this._processQueue();
         return promise;
     }
 

@@ -1,13 +1,15 @@
 import EventBus from './EventBus.js';
-import {safeSync} from '../utils/errorHandler.js';
+import {safeSync} from '../utils/common.js';
 
 class Introspection {
     constructor(system) {
         this.system = system;
         this.memory = system.memory;
         this.reasoner = system.reasoner;
+        this.planner = system.planner;
+        this.metaCognition = system.metaCognition;
         // Use the config accessor if available, otherwise fall back to configManager
-        this.configAccessor = system.config || { getAll: () => system.configManager?.getAll() || {} };
+        this.configAccessor = system.config || {getAll: () => system.configManager?.getAll() || {}};
     }
 
     getStatus() {
@@ -55,6 +57,18 @@ class Introspection {
             arity: rule.arity,
             description: rule.description || 'No description available',
         } : null;
+    }
+
+    getPlan() {
+        if (!this.planner || !this.planner.planCache) {
+            return null;
+        }
+        const plans = Array.from(this.planner.planCache.values());
+        return plans[plans.length - 1] || null;
+    }
+
+    getContradictions() {
+        return this.metaCognition ? this.metaCognition.getContradictions() : [];
     }
 
     on(eventName, callback) {

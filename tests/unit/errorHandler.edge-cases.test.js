@@ -19,7 +19,7 @@ import {
     safeAsync,
     safeSync,
     ValidationError
-} from '../../src/utils/errorHandler.js';
+} from '../../src/utils/common.js';
 
 describe('Error Handler - Edge Cases', () => {
     test('should handle null and undefined errors', async () => {

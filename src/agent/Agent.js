@@ -1,6 +1,6 @@
 import SystemFactory from '../system/SystemFactory.js';
 import {parseTerm} from '../parser/narseseParser.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createModuleErrorHandler} from '../utils/common.js';
 import MCP from './MCP.js';
 import {debug, warn} from '../utils/logger.js';
 import Task from '../core/Task.js';
@@ -18,7 +18,7 @@ class Agent {
 
     async initialize() {
         if (this.isInitialized) return;
-        await errorHandler.safeAsync(async () => {
+        return errorHandler.safeAsync(async () => {
             this.system = await SystemFactory.createSystem(this.config);
             this.isInitialized = true;
             debug('Agent initialized successfully.');
@@ -56,8 +56,10 @@ class Agent {
 
         const {handler, parameters: toolParamsDef} = tool;
         const paramNames = Object.keys(toolParamsDef?.properties || {});
-        const params = action.parameters.reduce((acc, value, i) => {
-            if (paramNames[i]) acc[paramNames[i]] = value;
+        const params = paramNames.reduce((acc, paramName, i) => {
+            if (action.parameters[i]) {
+                acc[paramName] = action.parameters[i];
+            }
             return acc;
         }, {});
 
@@ -73,11 +75,10 @@ class Agent {
             case 'SequentialConjunction':
             case 'Conjunction': {
                 const [nameTerm, ...paramTerms] = term.terms;
-                if (!nameTerm) return null;
-                return {
+                return nameTerm ? {
                     tool: nameTerm.key,
                     parameters: paramTerms.map(t => t.key.replace(/"/g, ''))
-                };
+                } : null;
             }
             default:
                 warn(`Cannot parse term of type '${term.type}' to an action:`, term);
@@ -86,7 +87,7 @@ class Agent {
     }
 
     async createPlan(goalString) {
-        return await errorHandler.safeAsync(async () => {
+        return errorHandler.safeAsync(async () => {
             const goalTerm = parseTerm(goalString);
             if (!goalTerm) {
                 warn(`Could not parse goal string: ${goalString}`);
