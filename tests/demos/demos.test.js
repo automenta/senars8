@@ -1,3 +1,4 @@
+import { createDemoTest } from './test-utils.js';
 import basicDemo from '../demos/basic-demo.js';
 import mathInferenceDemo from '../demos/math-inference-demo.js';
 import nlpIntegrationDemo from '../demos/nlp-integration-demo.js';
@@ -20,158 +21,25 @@ import strategyComparisonDemo from '../demos/strategy-comparison-demo.js';
 
 describe('Demos as Tests', () => {
     // Set a longer timeout for demos since they may involve LLM calls
-    jest.setTimeout(30000);
+    jest.setTimeout(300000);
 
-    test('basic-demo should run without errors', async () => {
-        await basicDemo({
-            assertions: (system) => {
-                expect(system).toBeDefined();
-                expect(system.introspection).toBeDefined();
-            }
-        });
-    });
-
-    test('math-inference-demo should run without errors', async () => {
-        await mathInferenceDemo({
-            assertions: (system) => {
-                expect(system).toBeDefined();
-            }
-        });
-    });
-
-    test('nlp-integration-demo should run without errors', async () => {
-        await nlpIntegrationDemo({
-            assertions: (system) => {
-                expect(system).toBeDefined();
-            }
-        });
-    });
-
-    test('showcase-demo should run without errors', async () => {
-        await showcaseDemo({
-            assertions: (system) => {
-                expect(system).toBeDefined();
-            }
-        });
-    });
-
-    test('advanced-hypothesis-generation-demo should run without errors', async () => {
-        await advancedHypothesisGenerationDemo({
-            assertions: (system) => {
-                expect(system).toBeDefined();
-            }
-        });
-    });
-
-    test('advanced-lm-demo should run without errors', async () => {
-        await advancedLMDemo({
-            assertions: (system) => {
-                expect(system).toBeDefined();
-            }
-        });
-    });
-
-    test('advanced-truth-value-revision-demo should run without errors', async () => {
-        await advancedTruthValueRevisionDemo({
-            assertions: (system) => {
-                expect(system).toBeDefined();
-            }
-        });
-    });
-
-    test('analyzer-demo should run without errors', async () => {
-        await analyzerDemo({
-            assertions: (system) => {
-                expect(system).toBeDefined();
-            }
-        });
-    });
-
-    test('comprehensive-action-demo should run without errors', async () => {
-        await comprehensiveActionDemo({
-            assertions: (system) => {
-                expect(system).toBeDefined();
-            }
-        });
-    });
-
-    test('comprehensive-contradiction-demo should run without errors', async () => {
-        await comprehensiveContradictionDemo({
-            assertions: (system) => {
-                expect(system).toBeDefined();
-            }
-        });
-    });
-
-    test('comprehensive-system-demo should run without errors', async () => {
-        await comprehensiveSystemDemo({
-            assertions: (system) => {
-                expect(system).toBeDefined();
-            }
-        });
-    });
-
-    test('debug-contradictions-demo should run without errors', async () => {
-        await debugContradictionsDemo({
-            assertions: (system) => {
-                expect(system).toBeDefined();
-            }
-        });
-    });
-
-    test('enhanced-narsese-demo should run without errors', async () => {
-        await enhancedNarseseDemo({
-            assertions: (system) => {
-                expect(system).toBeDefined();
-            }
-        });
-    });
-
-    test('enhanced-perception-demo should run without errors', async () => {
-        await enhancedPerceptionDemo({
-            assertions: (system) => {
-                expect(system).toBeDefined();
-            }
-        });
-    });
-
-    test('enhanced-temporal-reasoning-demo should run without errors', async () => {
-        await enhancedTemporalReasoningDemo({
-            assertions: (system) => {
-                expect(system).toBeDefined();
-            }
-        });
-    });
-
-    test('extended-inference-rules-demo should run without errors', async () => {
-        await extendedInferenceRulesDemo({
-            assertions: (system) => {
-                expect(system).toBeDefined();
-            }
-        });
-    });
-
-    test('forgetting-mechanism-demo should run without errors', async () => {
-        await forgettingMechanismDemo({
-            assertions: (system) => {
-                expect(system).toBeDefined();
-            }
-        });
-    });
-
-    test('library-usage-demo should run without errors', async () => {
-        await libraryUsageDemo({
-            assertions: (system) => {
-                expect(system).toBeDefined();
-            }
-        });
-    });
-
-    test('strategy-comparison-demo should run without errors', async () => {
-        await strategyComparisonDemo({
-            assertions: (system) => {
-                expect(system).toBeDefined();
-            }
-        });
-    });
+    createDemoTest('basic-demo', basicDemo, true);
+    createDemoTest('math-inference-demo', mathInferenceDemo, true);
+    createDemoTest('nlp-integration-demo', nlpIntegrationDemo, true);
+    createDemoTest('showcase-demo', showcaseDemo, true);
+    createDemoTest('advanced-hypothesis-generation-demo', advancedHypothesisGenerationDemo, true);
+    createDemoTest('advanced-lm-demo', advancedLMDemo);
+    createDemoTest('advanced-truth-value-revision-demo', advancedTruthValueRevisionDemo, true);
+    createDemoTest('analyzer-demo', analyzerDemo, true);
+    createDemoTest('comprehensive-action-demo', comprehensiveActionDemo, true);
+    createDemoTest('comprehensive-contradiction-demo', comprehensiveContradictionDemo, true);
+    createDemoTest('comprehensive-system-demo', comprehensiveSystemDemo, true);
+    createDemoTest('debug-contradictions-demo', debugContradictionsDemo, true);
+    createDemoTest('enhanced-narsese-demo', enhancedNarseseDemo, true);
+    createDemoTest('enhanced-perception-demo', enhancedPerceptionDemo);
+    createDemoTest('enhanced-temporal-reasoning-demo', enhancedTemporalReasoningDemo, true);
+    createDemoTest('extended-inference-rules-demo', extendedInferenceRulesDemo, true);
+    createDemoTest('forgetting-mechanism-demo', forgettingMechanismDemo, true);
+    createDemoTest('library-usage-demo', libraryUsageDemo, true);
+    createDemoTest('strategy-comparison-demo', strategyComparisonDemo, true);
 });

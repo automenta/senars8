@@ -99,6 +99,7 @@ function printFooter(demoName) {
 async function runDemo(demoName, taskDefs, {
     cycleCount = 5,
     config = {},
+    components = {},
     actionHandlers = [],
     preCycleCallback = null,
     postCycleCallback = null,
@@ -106,7 +107,7 @@ async function runDemo(demoName, taskDefs, {
 } = {}) {
     printHeader(demoName);
 
-    const system = await SystemFactory.createSystem(config);
+    const system = await SystemFactory.createSystem(config, components);
     debug('System created.');
 
     actionHandlers.forEach(handler => system.actionExecutor.registerActionHandler(handler.name, handler.handler));

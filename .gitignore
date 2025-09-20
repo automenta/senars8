@@ -4,3 +4,4 @@ dist/
 results/
 test-analysis-report.html
 coverage
+junit.xml

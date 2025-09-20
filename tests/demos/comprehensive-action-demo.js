@@ -21,7 +21,7 @@ async function comprehensiveActionDemo(options = {}) {
         },
     ];
 
-    const system1 = await runDemo('Simple Action Execution', simpleActionTasks, {
+    await runDemo('Simple Action Execution', simpleActionTasks, {
         cycleCount: 3,
         actionHandlers: simpleActionHandlers,
         ...options
@@ -38,7 +38,7 @@ async function comprehensiveActionDemo(options = {}) {
         {name: 'monitor', handler: async (action) => info(`Action: Monitoring ${action.parameters[0]}`)},
     ];
 
-    const system2 = await runDemo('Complex Action Execution', complexActionTasks, {
+    await runDemo('Complex Action Execution', complexActionTasks, {
         cycleCount: 4,
         actionHandlers: complexActionHandlers,
         ...options

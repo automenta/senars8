@@ -12,7 +12,7 @@ async function comprehensiveContradictionDemo(options = {}) {
         {sentence: '(penguin --> not_fly).', truth: [1.0, 0.9]},
     ];
 
-    const system1 = await runDemo('Simple Contradiction Resolution', simpleContradictionTasks, {
+    await runDemo('Simple Contradiction Resolution', simpleContradictionTasks, {
         cycleCount: 8,
         postCycleCallback: (system) => {
             info("Checking for resolved contradictions...");

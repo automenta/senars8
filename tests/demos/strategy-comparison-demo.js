@@ -12,7 +12,7 @@ async function strategyComparisonDemo(options = {}) {
     ];
 
     info("--- Running with default BagSamplingStrategy ---");
-    const system1 = await runDemo('Strategy Comparison (Bag Sampling)', taskDefs, {
+    await runDemo('Strategy Comparison (Bag Sampling)', taskDefs, {
         cycleCount: 5,
         postCycleCallback: (system) => {
             info("Derived tasks will likely involve 'HighPriority'.");
