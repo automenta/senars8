@@ -1,5 +1,6 @@
-import {createUnifiedErrorHandler, debug, error as logError, warn, normalizeToArray} from '../utils/error.js';
-import {info} from '../utils/logger.js';
+import {createUnifiedErrorHandler} from '../utils/error.js';
+import {debug, error as logError, warn, info} from '../utils/logger.js';
+import {normalizeToArray} from '../utils/collections/index.js';
 import Introspection from './Introspection.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
 import registerDefaultActions from './default-actions.js';

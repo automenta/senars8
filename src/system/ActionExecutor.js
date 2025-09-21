@@ -2,6 +2,7 @@ import {createUnifiedErrorHandler, debug, error as logError, warn, sumBy} from '
 import {info} from '../utils/logger.js';
 import ResourceAllocator from './ResourceAllocator.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
+import EventBus from './EventBus.js';
 
 const errorHandler = createUnifiedErrorHandler('ActionExecutor');
 

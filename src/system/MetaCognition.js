@@ -1,10 +1,10 @@
 import {parseTerm} from '../parser/parse-utils.js';
 import ContradictionAnalyzer from '../reasoner/ContradictionAnalyzer.js';
 import ResolutionStrategy from '../reasoner/strategies/ResolutionStrategy.js';
-import {debug, getBeliefTasks, createUnifiedErrorHandler} from '../utils/error.js';
-import {CONTRADICTION_ANALYSIS_DEPTH, CONTRADICTION_RESOLUTION_DEPTH} from '../config/index.js';
+import {debug, info} from '../utils/logger.js';
+import {getBeliefTasks} from '../utils/task-utils.js';
+import {createUnifiedErrorHandler} from '../utils/error.js';
 import EventBus from './EventBus.js';
-import {info} from '../utils/logger.js';
 
 const errorHandler = createUnifiedErrorHandler('MetaCognition');
 
