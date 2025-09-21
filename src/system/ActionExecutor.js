@@ -1,5 +1,6 @@
-import {createUnifiedErrorHandler, debug, error as logError, warn, sumBy} from '../utils/error.js';
-import {info} from '../utils/logger.js';
+import {createUnifiedErrorHandler} from '../utils/error.js';
+import {debug, error as logError, warn, info} from '../utils/logger.js';
+import {sumBy} from '../utils/collections/index.js';
 import ResourceAllocator from './ResourceAllocator.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
 import EventBus from './EventBus.js';

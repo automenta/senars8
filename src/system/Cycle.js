@@ -1,7 +1,6 @@
 import {debug, info} from '../utils/logger.js';
 import {getGoalTasks} from '../utils/task-utils.js';
 import {createUnifiedErrorHandler} from '../utils/error.js';
-import {FOCUS_SET_SIZE, META_TASK_PRIORITY} from '../config/index.js';
 import EventBus from './EventBus.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
 
