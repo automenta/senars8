@@ -1,6 +1,6 @@
 import createConfigAccessor from '../config/ConfigAccessor.js';
-import { cosineSimilarity } from '../utils/math.js';
-import { calculateTemporalPriority } from '../utils/temporal.js';
+import {cosineSimilarity} from '../utils/math.js';
+import {calculateTemporalPriority} from '../utils/temporal.js';
 
 class PriorityManager {
     constructor(memory, configManager) {

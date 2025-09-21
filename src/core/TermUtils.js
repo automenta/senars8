@@ -1,14 +1,7 @@
-import {
-    tokenize
-} from '../parser/lexer.js';
-import {
-    cosineSimilarity
-} from '../utils/math.js';
+import {tokenize} from '../parser/lexer.js';
+import {cosineSimilarity} from '../utils/math.js';
 import config from '../config/index.js';
-import {
-    createUnifiedErrorHandler
-} from '../utils/errorHandler.js';
-import Term from './Term.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 
 const errorHandler = createUnifiedErrorHandler('TermUtils');
 

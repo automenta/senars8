@@ -1,5 +1,5 @@
 import Term from '../../src/core/Term.js';
-import { structuralSimilarity, findSimilarTerms } from '../../src/core/TermUtils.js';
+import {findSimilarTerms, structuralSimilarity} from '../../src/core/TermUtils.js';
 import EmbeddingStore from '../../src/utils/embeddingStore.js';
 
 describe('Term', () => {

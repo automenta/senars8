@@ -1,6 +1,4 @@
-import {
-    error as logError
-} from './logger.js';
+import {error as logError} from './logger.js';
 
 const createErrorClass = (name) => {
     const NewError = class extends Error {
@@ -141,7 +139,13 @@ const {
 } = IS_ERROR_FUNCTIONS;
 
 const {
-    createValidationError, createParseError, createInferenceError, createPlanningError, createMemoryError, createCLIError, createAnalysisError
+    createValidationError,
+    createParseError,
+    createInferenceError,
+    createPlanningError,
+    createMemoryError,
+    createCLIError,
+    createAnalysisError
 } = CREATE_ERROR_FUNCTIONS;
 
 export {
@@ -154,7 +158,25 @@ export {
     safeSync,
     createModuleErrorHandler,
     logAndExit,
-    ValidationError, ParseError, InferenceError, PlanningError, MemoryError, CLIError, AnalysisError,
-    isValidationError, isParseError, isInferenceError, isPlanningError, isMemoryError, isCLIError, isAnalysisError,
-    createValidationError, createParseError, createInferenceError, createPlanningError, createMemoryError, createCLIError, createAnalysisError
+    ValidationError,
+    ParseError,
+    InferenceError,
+    PlanningError,
+    MemoryError,
+    CLIError,
+    AnalysisError,
+    isValidationError,
+    isParseError,
+    isInferenceError,
+    isPlanningError,
+    isMemoryError,
+    isCLIError,
+    isAnalysisError,
+    createValidationError,
+    createParseError,
+    createInferenceError,
+    createPlanningError,
+    createMemoryError,
+    createCLIError,
+    createAnalysisError
 };

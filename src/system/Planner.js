@@ -18,7 +18,7 @@ class Planner {
             'HTN': HTNPlanner,
             'AStar': AStarPlanner
         };
-        
+
         const PlannerClass = strategyMap[strategyName];
         if (!PlannerClass) {
             throw new Error(`Unknown planner strategy: ${strategyName}`);

@@ -73,7 +73,7 @@ const lexer = moo.compile({
  */
 const tokenize = (text) => {
     if (!text) return [];
-    
+
     const l = lexer.clone().reset(text);
     const tokens = [];
     for (let tok = l.next(); tok; tok = l.next()) {

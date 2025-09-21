@@ -1,5 +1,5 @@
 import Term from '../../src/core/Term.js';
-import { structuralSimilarity } from '../../src/core/TermUtils.js';
+import {structuralSimilarity} from '../../src/core/TermUtils.js';
 
 describe('Term - Edge Cases', () => {
     test('should handle empty embedding arrays', () => {

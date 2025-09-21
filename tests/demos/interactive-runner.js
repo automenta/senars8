@@ -3,7 +3,7 @@
 import fs from 'fs';
 import path from 'path';
 import readline from 'readline';
-import { URL } from 'url';
+import {URL} from 'url';
 
 const DEMO_DIR = path.dirname(new URL(import.meta.url).pathname);
 

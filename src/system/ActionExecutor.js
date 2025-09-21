@@ -2,7 +2,7 @@ import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import ResourceAllocator from './ResourceAllocator.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
 import EventBus from './EventBus.js';
-import { generateActionId } from '../utils/idGenerator.js';
+import {generateActionId} from '../utils/idGenerator.js';
 
 const errorHandler = createUnifiedErrorHandler('ActionExecutor');
 

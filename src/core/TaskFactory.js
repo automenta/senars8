@@ -31,21 +31,21 @@ class TaskFactory {
     _initializeEventHandlers() {
         const handlers = {
             observation: e => this._createTask(
-                e.content || `observed_${Date.now()}`, 
+                e.content || `observed_${Date.now()}`,
                 '.', {
                     frequency: e.confidence || 1.0,
                     confidence: e.confidence || config.DEFAULT_TRUTH_VALUE.confidence
                 }
             ),
             user_input: e => this._createTask(
-                e.content || `user_input_${Date.now()}`, 
+                e.content || `user_input_${Date.now()}`,
                 '?', {
                     frequency: 1.0,
                     confidence: 0.8
                 }
             ),
             sensor_data: e => this._createTask(
-                e.sensorType ? `(sensor_type_${e.sensorType}_value_${e.value})` : `sensor_data_${Date.now()}`, 
+                e.sensorType ? `(sensor_type_${e.sensorType}_value_${e.value})` : `sensor_data_${Date.now()}`,
                 '.', {
                     frequency: 1.0,
                     confidence: e.accuracy || 0.95
@@ -53,21 +53,21 @@ class TaskFactory {
             ),
             temporal_event: e => this._createTemporalEventTask(e),
             communication: e => this._createTask(
-                e.content ? `(communication_${e.sender}_to_${e.recipient}_${e.content})` : `communication_${Date.now()}`, 
+                e.content ? `(communication_${e.sender}_to_${e.recipient}_${e.content})` : `communication_${Date.now()}`,
                 '.', {
                     frequency: e.confidence || 1.0,
                     confidence: e.confidence || config.DEFAULT_TRUTH_VALUE.confidence
                 }
             ),
             action_feedback: e => this._createTask(
-                e.action ? `(action_feedback_${e.action}_${e.result})` : `action_feedback_${Date.now()}`, 
+                e.action ? `(action_feedback_${e.action}_${e.result})` : `action_feedback_${Date.now()}`,
                 '.', {
                     frequency: e.success ? 1.0 : 0.0,
                     confidence: e.confidence || config.DEFAULT_TRUTH_VALUE.confidence
                 }
             ),
             goal_achievement: e => this._createTask(
-                e.goal ? `(goal_achieved_${e.goal})` : `goal_achieved_${Date.now()}`, 
+                e.goal ? `(goal_achieved_${e.goal})` : `goal_achieved_${Date.now()}`,
                 '.', {
                     frequency: 1.0,
                     confidence: e.confidence || 0.95
@@ -77,7 +77,7 @@ class TaskFactory {
             environmental_change: e => this._createEnvironmentalChangeTask(e),
             learning_experience: e => this._createLearningExperienceTask(e),
             default: e => this._createTask(
-                e.description || `event_${Date.now()}`, 
+                e.description || `event_${Date.now()}`,
                 e.punctuation || '.', {
                     frequency: e.frequency || 1.0,
                     confidence: e.confidence || config.DEFAULT_TRUTH_VALUE.confidence
@@ -87,7 +87,7 @@ class TaskFactory {
 
         return Object.fromEntries(
             Object.entries(handlers).map(([name, handler]) => [
-                name, 
+                name,
                 this._createEventHandler(handler, `Error processing ${name} event`)
             ])
         );
@@ -115,8 +115,8 @@ class TaskFactory {
 
     async _createSocialInteractionTask(event) {
         const {
-            participants = [], 
-            interactionType = 'unknown', 
+            participants = [],
+            interactionType = 'unknown',
             emotionalTone = 'neutral'
         } = event;
         const termKey = `(social_interaction_${interactionType}_${participants.join('_')}_${emotionalTone})`;
@@ -155,4 +155,4 @@ class TaskFactory {
 const createTaskFactory = (memory, lm) => new TaskFactory(memory, lm);
 
 export default TaskFactory;
-export { createTaskFactory };
+export {createTaskFactory};

@@ -4,56 +4,80 @@ class MockLM {
             parse: async () => []
         };
     }
+
     async getFeaturePipeline() {
         return () => ({
             data: []
         });
     }
+
     async getGenerationPipeline() {
         return () => "";
     }
+
     async _getQAPipeline() {
         return () => ({
             answer: ""
         });
     }
+
     async bootstrapTerm(termKey) {
         return {
             key: termKey
         };
     }
-    setReasoner() {}
-    setMemory() {}
-    startEmbeddingProcessor() {}
-    stopEmbeddingProcessor() {}
-    processEmbeddingQueue() {}
+
+    setReasoner() {
+    }
+
+    setMemory() {
+    }
+
+    startEmbeddingProcessor() {
+    }
+
+    stopEmbeddingProcessor() {
+    }
+
+    processEmbeddingQueue() {
+    }
+
     generateHypotheses() {
         return [];
     }
+
     evaluateAndRankHypotheses() {
         return [];
     }
+
     refineHypothesis() {
         return null;
     }
+
     explain() {
         return "";
     }
+
     answerQuestion() {
         return "";
     }
+
     suggestPlanRepair() {
         return null;
     }
+
     proactiveEnrichment() {
         return [];
     }
+
     getPipelineStatistics() {
         return {
             pipelineCount: 0
         };
     }
-    dispose() {}
+
+    dispose() {
+    }
 }
 
 export default MockLM;

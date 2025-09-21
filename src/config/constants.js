@@ -47,7 +47,7 @@ export const REL = {
     PROPERTY: '--}',
     PREDICTIVE_IMPLICATION: '=\\>',
     RETROSPECTIVE_IMPLICATION: '=/>',
-    CONCURRENT_IMPLICATION: '=<>',	
+    CONCURRENT_IMPLICATION: '=<>',
     NEGATION: '--,',
     ALWAYS: 'always,',
     EVENTUALLY: 'eventually,',

@@ -9,7 +9,7 @@ export function createDemoTest(demoName, demoFn, useMockLM = false) {
         };
 
         if (useMockLM) {
-            options.components = { lm: new MockLM() };
+            options.components = {lm: new MockLM()};
         }
 
         await demoFn(options);

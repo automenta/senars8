@@ -1,4 +1,4 @@
-import { createDemoTest } from './test-utils.js';
+import {createDemoTest} from './test-utils.js';
 import basicDemo from '../demos/basic-demo.js';
 import mathInferenceDemo from '../demos/math-inference-demo.js';
 import nlpIntegrationDemo from '../demos/nlp-integration-demo.js';

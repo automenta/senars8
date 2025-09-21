@@ -21,7 +21,12 @@ const log = (level, message, ...args) => {
     const otherArgs = args.filter(arg => typeof arg !== 'object' || arg === null);
 
     if (process.env.STRUCTURED_LOGGING === 'true') {
-        const logEntry = { timestamp, level, message, ...context, otherArgs: otherArgs.length > 0 ? otherArgs : undefined };
+        const logEntry = {
+            timestamp,
+            level,
+            message, ...context,
+            otherArgs: otherArgs.length > 0 ? otherArgs : undefined
+        };
         console.log(JSON.stringify(logEntry));
     } else {
         const logFunction = getLogFunction(level);

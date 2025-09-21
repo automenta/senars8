@@ -24,7 +24,8 @@ layout: default
 
 # Synergistic AI: Neural + Symbolic
 
-SeNARS is founded on the principle that the future of AI is not a competition between approaches, but a synergy of their respective strengths.
+SeNARS is founded on the principle that the future of AI is not a competition between approaches, but a synergy of their
+respective strengths.
 
 <div class="grid grid-cols-2 gap-8 mt-4 items-start">
 <div>
@@ -100,7 +101,8 @@ layout: default
 
 # The Core Principle
 
-SeNARS transforms intractable search problems into straightforward inference by creating a **dynamic knowledge hypergraph** that continuously reorganizes itself based on the system's goals.
+SeNARS transforms intractable search problems into straightforward inference by creating a **dynamic knowledge
+hypergraph** that continuously reorganizes itself based on the system's goals.
 
 <div class="center text-lg p-4 mt-4 bg-gradient-to-r from-blue-500 to-purple-500 bg-opacity-20 rounded">
   Instead of searching for a needle in a haystack, SeNARS asks the haystack where the needle is.
@@ -110,7 +112,8 @@ SeNARS transforms intractable search problems into straightforward inference by 
 
 # Grounded in Years of Research
 
-SeNARS stands on the shoulders of giants, integrating decades of research in symbolic AI, cognitive science, and computational logic.
+SeNARS stands on the shoulders of giants, integrating decades of research in symbolic AI, cognitive science, and
+computational logic.
 
 <div class="flex justify-around items-center mt-8">
   <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/ACM_logo.svg/1200px-ACM_logo.svg.png" class="h-12"/>
@@ -169,7 +172,8 @@ graph TD
 
 # A Universe of Applications
 
-SeNARS is a **general-purpose technology** applicable to any domain that requires complex reasoning and decision-making under uncertainty.
+SeNARS is a **general-purpose technology** applicable to any domain that requires complex reasoning and decision-making
+under uncertainty.
 
 ```mermaid
 graph TD
@@ -231,12 +235,12 @@ graph LR
 
 We are seeking funding to accelerate our research and build the foundation for commercialization.
 
-| Focus Area        | Now (Prototype)                 | Next 18 Months (With Funding)                               |
-|-------------------|---------------------------------|-------------------------------------------------------------|
-| **Core Tech**     | Proof of Concept                | Hardened Algorithm, 100x Scalability, Formal Verifications  |
-| **Platform**      | Basic API                       | Robust SDK, Rich Tooling, Cloud-Native Integrations         |
-| **Community**     | Academic Papers                 | Developer Relations, Documentation, First User Conference   |
-| **Commercial**    | N/A                             | 2-3 Strategic Development Partnerships (Pilots)             |
+| Focus Area     | Now (Prototype)  | Next 18 Months (With Funding)                              |
+|----------------|------------------|------------------------------------------------------------|
+| **Core Tech**  | Proof of Concept | Hardened Algorithm, 100x Scalability, Formal Verifications |
+| **Platform**   | Basic API        | Robust SDK, Rich Tooling, Cloud-Native Integrations        |
+| **Community**  | Academic Papers  | Developer Relations, Documentation, First User Conference  |
+| **Commercial** | N/A              | 2-3 Strategic Development Partnerships (Pilots)            |
 
 ---
 

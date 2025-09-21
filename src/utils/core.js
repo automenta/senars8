@@ -1,11 +1,35 @@
 import * as validation from './validation.js';
-import {filterByProperty, normalizeToArray, isNonEmptyArray, isEmptyArray, isPlainObject, isNonEmptyObject, sumBy, safeGet} from './collections/index.js';
+import {
+    filterByProperty,
+    isEmptyArray,
+    isNonEmptyArray,
+    isNonEmptyObject,
+    isPlainObject,
+    normalizeToArray,
+    safeGet,
+    sumBy
+} from './collections/index.js';
 import {cosineSimilarity, embeddingsEqual} from './math.js';
-import {generateSequentialId, generateHashId, generateOptimizedId, generateActionId, generatePlanId} from './idGenerator.js';
-import {isBelief, isGoal, isQuestion, getTasksByType, getBeliefTasks, getGoalTasks, getQuestionTasks, isTask} from './task-utils.js';
+import {
+    generateActionId,
+    generateHashId,
+    generateOptimizedId,
+    generatePlanId,
+    generateSequentialId
+} from './idGenerator.js';
+import {
+    getBeliefTasks,
+    getGoalTasks,
+    getQuestionTasks,
+    getTasksByType,
+    isBelief,
+    isGoal,
+    isQuestion,
+    isTask
+} from './task-utils.js';
 import {parseTerm, validateTermKey} from '../parser/parse-utils.js';
 import {createUnifiedErrorHandler} from './errorHandler.js';
-import {error, warn, info, debug} from './logger.js';
+import {debug, error, info, warn} from './logger.js';
 import EventBus from '../system/EventBus.js';
 
 export {

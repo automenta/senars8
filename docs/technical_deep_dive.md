@@ -10,6 +10,7 @@ transition: slide-up
 ---
 
 # SeNARS
+
 ## A Technical Deep Dive
 
 <div class="center text-sm opacity-75">
@@ -20,12 +21,12 @@ transition: slide-up
 
 # Agenda
 
-1.  **Core Architecture & Philosophy**
-2.  **The Cognitive Cycle: How SeNARS "Thinks"**
-3.  **Knowledge Representation: Narsese Grammar**
-4.  **The Neuro-Symbolic Bridge in Detail**
-5.  **Advanced Reasoning: Temporal & Planning**
-6.  **Getting Involved: The Development Roadmap**
+1. **Core Architecture & Philosophy**
+2. **The Cognitive Cycle: How SeNARS "Thinks"**
+3. **Knowledge Representation: Narsese Grammar**
+4. **The Neuro-Symbolic Bridge in Detail**
+5. **Advanced Reasoning: Temporal & Planning**
+6. **Getting Involved: The Development Roadmap**
 
 ---
 
@@ -99,13 +100,13 @@ flowchart TD
     E --> A
 ```
 
-| Phase             | Description                                                                 |
-|-------------------|-----------------------------------------------------------------------------|
-| **Perception**    | Ingests new information from the environment into `Task`s.                    |
-| **Prioritization**| Calculates the priority of all `Task`s in `Memory`.                         |
-| **Meta-Cognition**| Scans for contradictions and reasoning failures, generating goals to fix them.|
-| **Reasoning**     | Applies formal inference rules to high-priority `Task`s to derive new knowledge.|
-| **Enrichment**    | Triggers LM services for creative input or executes `Action`s on achieved goals.|
+| Phase              | Description                                                                      |
+|--------------------|----------------------------------------------------------------------------------|
+| **Perception**     | Ingests new information from the environment into `Task`s.                       |
+| **Prioritization** | Calculates the priority of all `Task`s in `Memory`.                              |
+| **Meta-Cognition** | Scans for contradictions and reasoning failures, generating goals to fix them.   |
+| **Reasoning**      | Applies formal inference rules to high-priority `Task`s to derive new knowledge. |
+| **Enrichment**     | Triggers LM services for creative input or executes `Action`s on achieved goals. |
 
 ---
 
@@ -113,13 +114,13 @@ flowchart TD
 
 SeNARS uses a rich, formal grammar called Narsese to represent knowledge with precision.
 
-| Type                       | Syntax                     | Example                             | Purpose                                   |
-|----------------------------|----------------------------|-------------------------------------|-------------------------------------------|
-| **Inheritance**            | `<subject --> predicate>`  | `(cat --> mammal)`                  | Represents an "is-a" relationship.        |
-| **Implication**            | `<premise ==> conclusion>` | `(raining ==> wet_streets)`         | Represents a predictive or causal link.   |
-| **Conjunction**            | `(&, term1, term2, ...)`   | `(&, cat, furry)`                   | Represents a logical AND.                 |
-| **Negation**               | `(--, term)`               | `(--, cat)`                         | Represents logical NOT.                   |
-| **Temporal Implication**   | `<premise =/> conclusion>` | `(see_lightning =/> hear_thunder)`  | Represents a temporal sequence.           |
+| Type                     | Syntax                     | Example                            | Purpose                                 |
+|--------------------------|----------------------------|------------------------------------|-----------------------------------------|
+| **Inheritance**          | `<subject --> predicate>`  | `(cat --> mammal)`                 | Represents an "is-a" relationship.      |
+| **Implication**          | `<premise ==> conclusion>` | `(raining ==> wet_streets)`        | Represents a predictive or causal link. |
+| **Conjunction**          | `(&, term1, term2, ...)`   | `(&, cat, furry)`                  | Represents a logical AND.               |
+| **Negation**             | `(--, term)`               | `(--, cat)`                        | Represents logical NOT.                 |
+| **Temporal Implication** | `<premise =/> conclusion>` | `(see_lightning =/> hear_thunder)` | Represents a temporal sequence.         |
 
 This formal grammar is the foundation for the system's rigorous, explainable reasoning capabilities.
 
@@ -158,21 +159,27 @@ graph TD
     style B fill:#8E6C88,stroke:#333,stroke-width:2px
 ```
 
-The **Reasoner** maintains control, calling on the **LM** for specific tasks like generating creative hypotheses when logic reaches an impasse, or translating formal proofs into human-readable text.
+The **Reasoner** maintains control, calling on the **LM** for specific tasks like generating creative hypotheses when
+logic reaches an impasse, or translating formal proofs into human-readable text.
 
 ---
 
 # 5. Advanced Reasoning
 
 ### Temporal Reasoning
+
 SeNARS has specialized mechanisms for reasoning about time.
+
 - **Temporal Relationship Inference**: Determines relationships between events (before, after, concurrent).
 - **Pattern Detection**: Identifies periodic and sequential patterns in data.
 - **Future Prediction**: Forecasts future `Task` occurrences based on learned temporal implications.
 
 ### Planning
+
 The system supports multiple planning strategies, selectable via configuration.
-- **HTN (Hierarchical Task Network)**: The default planner, which decomposes complex goals into primitive, executable actions. It's robust and well-suited for structured problems.
+
+- **HTN (Hierarchical Task Network)**: The default planner, which decomposes complex goals into primitive, executable
+  actions. It's robust and well-suited for structured problems.
 - **A* Search**: An experimental, heuristic-based planner that can find optimal paths in a state space.
 
 ---

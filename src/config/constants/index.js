@@ -1,4 +1,4 @@
-import {PUNCTUATION, OP, REL, TOKEN} from '../config/constants.js';
+import {OP, PUNCTUATION, REL, TOKEN} from '../config/constants.js';
 
 // Export all constants
 export {

@@ -17,9 +17,9 @@ const createConfigAccessor = (configManager, modulePrefix = '') => {
          */
         get(path, defaultValue = undefined) {
             const fullPath = modulePrefix ? `${modulePrefix}.${path}` : path;
-            return errorHandler.executeSync(() => 
-                configManager.get(fullPath, defaultValue), 
-                `get:${fullPath}`, 
+            return errorHandler.executeSync(() =>
+                    configManager.get(fullPath, defaultValue),
+                `get:${fullPath}`,
                 defaultValue
             );
         },
@@ -32,9 +32,9 @@ const createConfigAccessor = (configManager, modulePrefix = '') => {
          */
         getNumber(path, defaultValue = 0) {
             const fullPath = modulePrefix ? `${modulePrefix}.${path}` : path;
-            return errorHandler.executeSync(() => 
-                configManager.getNumber(fullPath, defaultValue), 
-                `getNumber:${fullPath}`, 
+            return errorHandler.executeSync(() =>
+                    configManager.getNumber(fullPath, defaultValue),
+                `getNumber:${fullPath}`,
                 defaultValue
             );
         },
@@ -47,9 +47,9 @@ const createConfigAccessor = (configManager, modulePrefix = '') => {
          */
         getString(path, defaultValue = '') {
             const fullPath = modulePrefix ? `${modulePrefix}.${path}` : path;
-            return errorHandler.executeSync(() => 
-                configManager.getString(fullPath, defaultValue), 
-                `getString:${fullPath}`, 
+            return errorHandler.executeSync(() =>
+                    configManager.getString(fullPath, defaultValue),
+                `getString:${fullPath}`,
                 defaultValue
             );
         },
@@ -62,9 +62,9 @@ const createConfigAccessor = (configManager, modulePrefix = '') => {
          */
         getBoolean(path, defaultValue = false) {
             const fullPath = modulePrefix ? `${modulePrefix}.${path}` : path;
-            return errorHandler.executeSync(() => 
-                configManager.getBoolean(fullPath, defaultValue), 
-                `getBoolean:${fullPath}`, 
+            return errorHandler.executeSync(() =>
+                    configManager.getBoolean(fullPath, defaultValue),
+                `getBoolean:${fullPath}`,
                 defaultValue
             );
         },
@@ -77,9 +77,9 @@ const createConfigAccessor = (configManager, modulePrefix = '') => {
          */
         getObject(path, defaultValue = {}) {
             const fullPath = modulePrefix ? `${modulePrefix}.${path}` : path;
-            return errorHandler.executeSync(() => 
-                configManager.getObject(fullPath, defaultValue), 
-                `getObject:${fullPath}`, 
+            return errorHandler.executeSync(() =>
+                    configManager.getObject(fullPath, defaultValue),
+                `getObject:${fullPath}`,
                 defaultValue
             );
         },
@@ -92,9 +92,9 @@ const createConfigAccessor = (configManager, modulePrefix = '') => {
          */
         getArray(path, defaultValue = []) {
             const fullPath = modulePrefix ? `${modulePrefix}.${path}` : path;
-            return errorHandler.executeSync(() => 
-                configManager.getArray(fullPath, defaultValue), 
-                `getArray:${fullPath}`, 
+            return errorHandler.executeSync(() =>
+                    configManager.getArray(fullPath, defaultValue),
+                `getArray:${fullPath}`,
                 defaultValue
             );
         },
@@ -104,9 +104,9 @@ const createConfigAccessor = (configManager, modulePrefix = '') => {
          * @returns {Object} All configuration values
          */
         getAll() {
-            return errorHandler.executeSync(() => 
-                configManager.getAll(), 
-                'getAll', 
+            return errorHandler.executeSync(() =>
+                    configManager.getAll(),
+                'getAll',
                 {}
             );
         }
