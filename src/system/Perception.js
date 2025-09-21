@@ -1,6 +1,7 @@
 import TaskFactory from '../core/TaskFactory.js';
 import PatternDetector from '../reasoner/PatternDetector.js';
-import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/error.js';
+import {generateActionId} from '../utils/IdGenerator.js';
 
 const errorHandler = createUnifiedErrorHandler('Perception');
 

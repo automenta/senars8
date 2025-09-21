@@ -8,7 +8,7 @@ import TimeBasedForgettingStrategy from './strategies/TimeBasedForgettingStrateg
 import {debug, warn} from '../utils/logger.js';
 import MemoryIndexer from './MemoryIndexer.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
-import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/error.js';
 
 const errorHandler = createUnifiedErrorHandler('Memory');
 

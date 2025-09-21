@@ -1,6 +1,6 @@
 import {
     createUnifiedErrorHandler
-} from '../utils/unifiedErrorHandler.js';
+} from '../utils/error.js';
 import {
     debug,
     info

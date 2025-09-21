@@ -1,6 +1,6 @@
 import {pipeline} from '@xenova/transformers';
 import {info} from '../utils/logger.js';
-import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/error.js';
 
 const errorHandler = createUnifiedErrorHandler('PipelineFactory');
 

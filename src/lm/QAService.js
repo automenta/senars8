@@ -1,4 +1,4 @@
-import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/error.js';
 import {debug} from '../utils/logger.js';
 
 const errorHandler = createUnifiedErrorHandler('QAService');

@@ -1,8 +1,7 @@
-import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
-import {debug, error as logError, info, warn} from '../utils/logger.js';
+import {createUnifiedErrorHandler, debug, error as logError, warn, sumBy} from '../utils/error.js';
+import {info} from '../utils/logger.js';
 import ResourceAllocator from './ResourceAllocator.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
-import {sumBy} from '../utils/collections/index.js';
 
 const errorHandler = createUnifiedErrorHandler('ActionExecutor');
 

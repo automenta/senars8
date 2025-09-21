@@ -1,4 +1,4 @@
-import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/error.js';
 import {debug, warn} from '../utils/logger.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import zod from 'zod';

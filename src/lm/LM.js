@@ -12,7 +12,7 @@ import PlanRepairer from './PlanRepairer.js';
 import ProactiveEnricher from './ProactiveEnricher.js';
 import NLP from './NLP.js';
 import {debug, info, warn} from '../utils/logger.js';
-import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/error.js';
 import {suppressOnnxWarnings} from '../utils/onnxSuppression.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
 

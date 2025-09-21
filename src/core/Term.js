@@ -6,7 +6,7 @@ import {OP, REL} from '../config/constants.js';
 import {Validation} from '../utils/validation.js';
 import BaseEntity from './BaseEntity.js';
 import {isNonEmptyArray} from '../utils/collections/index.js';
-import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/error.js';
 import {tokenize} from '../parser/lexer.js';
 
 const errorHandler = createUnifiedErrorHandler('Term');
