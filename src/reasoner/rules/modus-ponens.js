@@ -1,7 +1,7 @@
 import TruthValueManager from '../TruthValueManager.js';
 import {createModusPonensRule} from './rule-factories.js';
 import Term from '../../core/Term.js';
-import {createUnifiedErrorHandler} from '../../utils/unifiedErrorHandler.js';
+import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
 
 const errorHandler = createUnifiedErrorHandler('modus-ponens-rule');
 

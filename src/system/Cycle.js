@@ -1,6 +1,6 @@
 import {debug, info} from '../utils/logger.js';
 import {getGoalTasks} from '../utils/task-utils.js';
-import {createUnifiedErrorHandler} from '../utils/error.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import EventBus from './EventBus.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
 

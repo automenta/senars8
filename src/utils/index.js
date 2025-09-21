@@ -1,6 +1,6 @@
 import {cosineSimilarity, embeddingsEqual} from './math.js';
 import {filterByProperty, normalizeToArray, isNonEmptyArray, isEmptyArray, isPlainObject, isNonEmptyObject, sumBy, safeGet} from './collections/index.js';
-import {generateSequentialId, generateHashId, generateOptimizedId, generateActionId, generatePlanId} from './IdGenerator.js';
+import {generateSequentialId, generateHashId, generateOptimizedId, generateActionId, generatePlanId} from './idGenerator.js';
 import {isBelief, isGoal, isQuestion, getTasksByType, getBeliefTasks, getGoalTasks, getQuestionTasks, isTask} from './task-utils.js';
 import {parseTerm, validateTermKey} from '../parser/parse-utils.js';
 import {createUnifiedErrorHandler} from './core.js';

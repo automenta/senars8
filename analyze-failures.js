@@ -2,7 +2,7 @@
 
 import fs from 'fs';
 import UnitTestAnalyzer from './src/analyzer/index.js';
-import {logAndExit, safeAsync} from './src/utils/cliErrorHandler.js';
+import {logAndExit, safeAsync} from './src/utils/errorHandler.js';
 
 async function analyzeActualFailures() {
     console.log("=== Unit Test Analyzer - Actual Test Failures ===\n");

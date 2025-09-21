@@ -32,10 +32,10 @@ class ResourceAllocator {
 
     /**
      * Check if resources are available for an action
-     * @param {Array} resourceRequirements - Array of resource requirements
+     * @param {Array} _resourceRequirements - Array of resource requirements
      * @returns {boolean} True if resources are available, false otherwise
      */
-    isAvailable(resourceRequirements) {
+    isAvailable(_resourceRequirements) {
         // For now, always return true as a placeholder
         return true;
     }

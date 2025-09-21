@@ -9,10 +9,10 @@ class TemporalSummaryGeneration {
     /**
      * Generate a summary of temporal patterns in the given tasks
      * @param {Array} tasks - Array of temporal tasks
-     * @param {Object} config - Configuration options
+     * @param {Object} _config - Configuration options
      * @returns {Object} Summary of temporal patterns
      */
-    static infer(tasks, config) {
+    static infer(tasks, _config) {
         if (!Array.isArray(tasks) || tasks.length === 0) {
             return [];
         }

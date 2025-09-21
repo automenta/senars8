@@ -1,16 +1,15 @@
-import {Validation} from './Validation.js';
+import * as validation from './validation.js';
 import {filterByProperty, normalizeToArray, isNonEmptyArray, isEmptyArray, isPlainObject, isNonEmptyObject, sumBy, safeGet} from './collections/index.js';
 import {cosineSimilarity, embeddingsEqual} from './math.js';
-import {generateSequentialId, generateHashId, generateOptimizedId, generateActionId, generatePlanId} from './IdGenerator.js';
+import {generateSequentialId, generateHashId, generateOptimizedId, generateActionId, generatePlanId} from './idGenerator.js';
 import {isBelief, isGoal, isQuestion, getTasksByType, getBeliefTasks, getGoalTasks, getQuestionTasks, isTask} from './task-utils.js';
 import {parseTerm, validateTermKey} from '../parser/parse-utils.js';
-import {createUnifiedErrorHandler} from './error.js';
+import {createUnifiedErrorHandler} from './errorHandler.js';
 import {error, warn, info, debug} from './logger.js';
-import Validator from './Validator.js';
 import EventBus from '../system/EventBus.js';
 
 export {
-    Validation,
+    validation,
     filterByProperty,
     normalizeToArray,
     isNonEmptyArray,
@@ -41,6 +40,5 @@ export {
     warn,
     info,
     debug,
-    Validator,
     EventBus
 };

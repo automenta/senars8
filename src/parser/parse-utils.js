@@ -1,5 +1,5 @@
 import {parseTerm as parseWithMoo} from './narseseParser.js';
-import {createUnifiedErrorHandler} from '../utils/error.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 
 const errorHandler = createUnifiedErrorHandler('parse-utils');
 

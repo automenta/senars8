@@ -1,8 +1,6 @@
-import {createUnifiedErrorHandler} from '../utils/error.js';
-import {debug, info} from '../utils/logger.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
-
-const errorHandler = createUnifiedErrorHandler('PriorityManager');
+import { cosineSimilarity } from '../utils/math.js';
+import { calculateTemporalPriority } from '../utils/temporal.js';
 
 class PriorityManager {
     constructor(memory, configManager) {

@@ -2,7 +2,7 @@ import Task from '../../core/Task.js';
 import {parseTerm} from '../../parser/narseseParser.js';
 import {calculateTemporalCoherence} from '../../utils/temporal/index.js';
 import {debug} from '../../utils/logger.js';
-import {createUnifiedErrorHandler} from '../../utils/unifiedErrorHandler.js';
+import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
 import config from '../../config/index.js';
 
 const errorHandler = createUnifiedErrorHandler('TemporalCoherence');

@@ -1,8 +1,8 @@
-import {generateOptimizedId} from '../utils/IdGenerator.js';
+import {generateOptimizedId} from '../utils/idGenerator.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
 import TruthValueManager from '../reasoner/TruthValueManager.js';
-import {Validation} from '../utils/validation.js';
+import * as validation from '../utils/validation.js';
 import BaseEntity from './BaseEntity.js';
 
 
@@ -23,8 +23,8 @@ class Task extends BaseEntity {
             punctuation = term.punctuation;
         }
 
-        Validation.term(term, 'Task term');
-        Validation.punctuation(punctuation, 'Task punctuation');
+        validation.validateTerm(term, 'Task term');
+        validation.validatePunctuation(punctuation, 'Task punctuation');
 
         const {
             processedTerm,

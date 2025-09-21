@@ -1,5 +1,3 @@
-import Validator from './Validator.js';
-
 let currentId = 0;
 
 function generateSequentialId() {
@@ -7,8 +5,6 @@ function generateSequentialId() {
 }
 
 function generateHashId(content) {
-    Validator.validateString(content, 'Content');
-    
     let hash = 0;
     for (let i = 0; i < content.length; i++) {
         const char = content.charCodeAt(i);

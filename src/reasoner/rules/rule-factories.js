@@ -2,7 +2,7 @@ import Task from '../../core/Task.js';
 import {isBelief} from '../../utils/task-utils.js';
 import {parseTerm, validateTermKey} from '../../parser/parse-utils.js';
 import Term from '../../core/Term.js';
-import {createUnifiedErrorHandler} from '../../utils/unifiedErrorHandler.js';
+import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
 
 const errorHandler = createUnifiedErrorHandler('rule-factories');
 

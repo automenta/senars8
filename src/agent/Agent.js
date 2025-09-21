@@ -1,6 +1,6 @@
 import SystemFactory from '../system/SystemFactory.js';
 import {parseTerm} from '../parser/narseseParser.js';
-import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import MCP from './MCP.js';
 import {debug, warn} from '../utils/logger.js';
 import Task from '../core/Task.js';

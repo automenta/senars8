@@ -1,5 +1,5 @@
 import {debug, error} from '../utils/logger.js';
-import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 
 const errorHandler = createUnifiedErrorHandler('ExplanationGenerator');
 

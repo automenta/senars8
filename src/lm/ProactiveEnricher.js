@@ -1,4 +1,4 @@
-import {createUnifiedErrorHandler} from '../utils/error.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import {debug} from '../utils/logger.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import Task from '../core/Task.js';

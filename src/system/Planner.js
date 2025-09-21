@@ -1,7 +1,8 @@
 import HTNPlanner from '../reasoner/HTNPlanner.js';
 import AStarPlanner from '../reasoner/AStarPlanner.js';
 import Plan from './Plan.js';
-import {createUnifiedErrorHandler} from '../utils/error.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
+import {debug, warn} from '../utils/logger.js';
 
 const errorHandler = createUnifiedErrorHandler('Planner');
 

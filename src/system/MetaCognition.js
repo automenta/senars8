@@ -3,7 +3,7 @@ import ContradictionAnalyzer from '../reasoner/ContradictionAnalyzer.js';
 import ResolutionStrategy from '../reasoner/strategies/ResolutionStrategy.js';
 import {debug, info} from '../utils/logger.js';
 import {getBeliefTasks} from '../utils/task-utils.js';
-import {createUnifiedErrorHandler} from '../utils/error.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import EventBus from './EventBus.js';
 
 const errorHandler = createUnifiedErrorHandler('MetaCognition');

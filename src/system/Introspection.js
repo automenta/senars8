@@ -1,5 +1,5 @@
 import EventBus from './EventBus.js';
-import {safeSync} from '../utils/error.js';
+import {safeSync} from '../utils/errorHandler.js';
 
 class Introspection {
     constructor(system) {

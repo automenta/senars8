@@ -6,12 +6,12 @@ export {default as config} from './config/index.js';
 export {PUNCTUATION, OP, REL, TOKEN} from './config/constants/index.js';
 
 // Utilities
-export {Validation} from './utils/validation.js';
+export * as validation from './utils/validation.js';
 export {cosineSimilarity, embeddingsEqual} from './utils/math.js';
-export {generateSequentialId, generateHashId, generateOptimizedId, generateActionId, generatePlanId} from './utils/IdGenerator.js';
+export {generateSequentialId, generateHashId, generateOptimizedId, generateActionId, generatePlanId} from './utils/idGenerator.js';
 export {filterByProperty, normalizeToArray, isNonEmptyArray, isEmptyArray, isPlainObject, isNonEmptyObject, sumBy, safeGet} from './utils/collections/index.js';
 export {isBelief, isGoal, isQuestion, getTasksByType, getBeliefTasks, getGoalTasks, getQuestionTasks, isTask} from './utils/task-utils.js';
-export {createUnifiedErrorHandler} from './utils/unifiedErrorHandler.js';
+export {createUnifiedErrorHandler} from './utils/errorHandler.js';
 export {error, warn, info, debug} from './utils/logger.js';
 export {parseTerm, validateTermKey} from './parser/parse-utils.js';
 

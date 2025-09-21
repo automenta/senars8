@@ -1,7 +1,7 @@
-import {createErrorHandler} from '../utils/ErrorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 
 const createConfigAccessor = (configManager, modulePrefix = '') => {
-    const errorHandler = createErrorHandler(`ConfigAccessor:${modulePrefix || 'default'}`);
+    const errorHandler = createUnifiedErrorHandler(`ConfigAccessor:${modulePrefix || 'default'}`);
 
     /**
      * A centralized utility for consistent configuration access with error handling

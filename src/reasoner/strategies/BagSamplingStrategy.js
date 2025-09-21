@@ -1,4 +1,4 @@
-import Bag from '../../utils/Bag.js';
+import Bag from '../../utils/bag.js';
 
 class BagSamplingStrategy {
     constructor(samplingFactor = 2) {

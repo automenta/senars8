@@ -1,12 +1,12 @@
 import {parseTerm} from '../parser/parse-utils.js';
 import {cosineSimilarity, embeddingsEqual} from '../utils/math.js';
 import config from '../config/index.js';
-import EmbeddingStore from '../utils/EmbeddingStore.js';
+import EmbeddingStore from '../utils/embeddingStore.js';
 import {OP, REL} from '../config/constants.js';
-import {Validation} from '../utils/validation.js';
+import * as validation from '../utils/validation.js';
 import BaseEntity from './BaseEntity.js';
 import {isNonEmptyArray} from '../utils/collections/index.js';
-import {createUnifiedErrorHandler} from '../utils/error.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import {tokenize} from '../parser/lexer.js';
 
 const errorHandler = createUnifiedErrorHandler('Term');
@@ -20,7 +20,7 @@ class Term extends BaseEntity {
 
     constructor(key, embedding = [], complexity = 1) {
         super();
-        Validation.string(key, 'Term key');
+        validation.string(key, 'Term key');
 
         this.#key = key;
         this.#embeddingRef = isNonEmptyArray(embedding) 

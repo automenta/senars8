@@ -1,6 +1,6 @@
 import {createTemporalAbstraction} from '../../utils/temporal/index.js';
 import {debug} from '../../utils/logger.js';
-import {createUnifiedErrorHandler} from '../../utils/unifiedErrorHandler.js';
+import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
 
 const errorHandler = createUnifiedErrorHandler('TemporalAbstraction');
 

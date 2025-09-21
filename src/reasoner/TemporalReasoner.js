@@ -1,5 +1,5 @@
-import {createUnifiedErrorHandler} from '../utils/error.js';
-import {debug, info} from '../utils/logger.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
+import {debug} from '../utils/logger.js';
 import * as Module from './temporal/index.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
 
@@ -28,8 +28,8 @@ class TemporalReasoner {
             return [];
         }
 
-        return this.inferenceModules.flatMap(Module => {
-            const results = errorHandler.executeSync(() => Module.infer(tasks, config), `infer:${Module.name}`, []);
+        return this.inferenceModules.flatMap(InferenceModule => {
+            const results = errorHandler.executeSync(() => InferenceModule.infer(tasks, config), `infer:${InferenceModule.name}`, []);
             return Array.isArray(results) ? results : [];
         });
     }

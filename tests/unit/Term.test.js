@@ -1,5 +1,5 @@
 import Term from '../../src/core/Term.js';
-import EmbeddingStore from '../../src/utils/EmbeddingStore.js';
+import EmbeddingStore from '../../src/utils/embeddingStore.js';
 
 describe('Term', () => {
     afterEach(() => {
