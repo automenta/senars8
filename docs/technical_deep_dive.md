@@ -218,5 +218,5 @@ We welcome contributions! Please see the `README.md` for details on how to get s
 </div>
 
 <div class="center text-sm opacity-75 mt-4">
-  [github.com/your-repo/SeNARS](https://github.com/your-repo/SeNARS)
+  [github.com/automenta/senars8](https://github.com/automenta/senars8)
 </div>
