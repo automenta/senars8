@@ -1,11 +1,11 @@
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 import {debug} from '../utils/logger.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import Task from '../core/Task.js';
 import {getBeliefTasks} from '../utils/task-utils.js';
 import zod from 'zod';
 
-const errorHandler = createModuleErrorHandler('ProactiveEnricher');
+const errorHandler = createUnifiedErrorHandler('ProactiveEnricher');
 
 class ProactiveEnricher {
     constructor(getGenerationPipeline, createStructuredChain, parseStructuredResult) {
@@ -20,7 +20,7 @@ class ProactiveEnricher {
             return [];
         }
 
-        return await errorHandler.safeAsync(async () => {
+        return await errorHandler.execute(async () => {
             debug(`Performing proactive enrichment on ${tasks.length} tasks`);
             await this._getGenerationPipeline();
 

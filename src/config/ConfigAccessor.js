@@ -1,6 +1,6 @@
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 
-const errorHandler = createModuleErrorHandler('ConfigAccessor');
+const errorHandler = createUnifiedErrorHandler('ConfigAccessor');
 
 /**
  * A centralized utility for consistent configuration access with error handling
@@ -17,7 +17,7 @@ class ConfigAccessor {
      * @returns {*} Configuration value or default
      */
     get(path, defaultValue = undefined) {
-        return errorHandler.safeSync(() => 
+        return errorHandler.executeSync(() => 
             this.configManager.get(path, defaultValue), 
             `get:${path}`, 
             defaultValue
@@ -31,7 +31,7 @@ class ConfigAccessor {
      * @returns {number} Configuration number or default
      */
     getNumber(path, defaultValue = 0) {
-        return errorHandler.safeSync(() => 
+        return errorHandler.executeSync(() => 
             this.configManager.getNumber(path, defaultValue), 
             `getNumber:${path}`, 
             defaultValue
@@ -45,7 +45,7 @@ class ConfigAccessor {
      * @returns {string} Configuration string or default
      */
     getString(path, defaultValue = '') {
-        return errorHandler.safeSync(() => 
+        return errorHandler.executeSync(() => 
             this.configManager.getString(path, defaultValue), 
             `getString:${path}`, 
             defaultValue
@@ -59,7 +59,7 @@ class ConfigAccessor {
      * @returns {boolean} Configuration boolean or default
      */
     getBoolean(path, defaultValue = false) {
-        return errorHandler.safeSync(() => 
+        return errorHandler.executeSync(() => 
             this.configManager.getBoolean(path, defaultValue), 
             `getBoolean:${path}`, 
             defaultValue
@@ -73,7 +73,7 @@ class ConfigAccessor {
      * @returns {Object} Configuration object or default
      */
     getObject(path, defaultValue = {}) {
-        return errorHandler.safeSync(() => 
+        return errorHandler.executeSync(() => 
             this.configManager.getObject(path, defaultValue), 
             `getObject:${path}`, 
             defaultValue
@@ -87,7 +87,7 @@ class ConfigAccessor {
      * @returns {Array} Configuration array or default
      */
     getArray(path, defaultValue = []) {
-        return errorHandler.safeSync(() => 
+        return errorHandler.executeSync(() => 
             this.configManager.getArray(path, defaultValue), 
             `getArray:${path}`, 
             defaultValue
@@ -99,7 +99,7 @@ class ConfigAccessor {
      * @returns {Object} All configuration values
      */
     getAll() {
-        return errorHandler.safeSync(() => 
+        return errorHandler.executeSync(() => 
             this.configManager.getAll(), 
             'getAll', 
             {}

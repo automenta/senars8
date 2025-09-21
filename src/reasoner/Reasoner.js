@@ -3,10 +3,10 @@ import BruteForceStrategy from './strategies/BruteForceStrategy.js';
 import rules from './rules/index.js';
 import TemporalReasoner from './TemporalReasoner.js';
 import {debug, error as logError, info} from '../utils/logger.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 import ConfigAccessor from '../config/ConfigAccessor.js';
 
-const errorHandler = createModuleErrorHandler('Reasoner');
+const errorHandler = createUnifiedErrorHandler('Reasoner');
 
 const STRATEGIES = {
     BruteForce: BruteForceStrategy,
@@ -80,7 +80,7 @@ class Reasoner {
     }
 
     _performTemporalInference(focusSet) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             debug(`Starting temporal inference on ${focusSet.length} tasks`);
             const temporalTasks = this.temporalReasoner.infer(focusSet);
             if (Array.isArray(temporalTasks)) {

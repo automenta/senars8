@@ -1,8 +1,8 @@
 import {pipeline} from '@xenova/transformers';
 import {info} from '../utils/logger.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 
-const errorHandler = createModuleErrorHandler('PipelineFactory');
+const errorHandler = createUnifiedErrorHandler('PipelineFactory');
 
 class PipelineFactory {
     constructor() {
@@ -16,7 +16,7 @@ class PipelineFactory {
         }
 
         info(`Loading pipeline: ${type} - ${model}`);
-        const newPipeline = await errorHandler.safeAsync(
+        const newPipeline = await errorHandler.execute(
             () => pipeline(type, model, options),
             `create-pipeline-${key}`
         );

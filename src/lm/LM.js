@@ -12,10 +12,10 @@ import PlanRepairer from './PlanRepairer.js';
 import ProactiveEnricher from './ProactiveEnricher.js';
 import NLP from './NLP.js';
 import {debug, info, warn} from '../utils/logger.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 import ConfigAccessor from '../config/ConfigAccessor.js';
 
-const errorHandler = createModuleErrorHandler('LM');
+const errorHandler = createUnifiedErrorHandler('LM');
 
 const PIPELINE_TYPES = {
     FEATURE_EXTRACTION: 'feature-extraction',
@@ -66,7 +66,7 @@ class LM {
             const batch = this._embeddingQueue.splice(0, batchSize);
             if (batch.length > 0) {
                 debug(`Processing embedding batch of size ${batch.length}`);
-                await errorHandler.safeAsync(
+                await errorHandler.execute(
                     () => Promise.all(batch.map(term => this._generateAndAssignEmbedding(term))),
                     'processEmbeddingQueue'
                 );
@@ -132,7 +132,7 @@ class LM {
         if (!prompt || typeof prompt !== 'string') {
             throw new Error('Prompt must be a non-empty string');
         }
-        return errorHandler.safeAsync(async () => {
+        return errorHandler.execute(async () => {
             debug('Generating text with prompt length:', prompt.length);
             await this.getGenerationPipeline();
             const result = await this._llm.invoke(prompt, options);
@@ -169,7 +169,7 @@ class LM {
         if (!resultText || typeof resultText !== 'string') {
             return null;
         }
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             debug('Parsing structured result');
             const match = resultText.match(/```json\n(.*)\n```/s);
             const result = match ? JSON.parse(match[1]) : null;
@@ -181,7 +181,7 @@ class LM {
     }
 
     async _generateAndAssignEmbedding(term) {
-        await errorHandler.safeAsync(async () => {
+        await errorHandler.execute(async () => {
             debug(`Generating embedding for term: ${term.key}`);
             const extractor = await this.getFeaturePipeline();
             const output = await extractor(term.key, {

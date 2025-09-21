@@ -1,12 +1,12 @@
 import {createTemporalClusterAbstractions, detectTemporalClusters} from '../../utils/temporal/index.js';
 import {debug} from '../../utils/logger.js';
-import {createModuleErrorHandler} from '../../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../../utils/unifiedErrorHandler.js';
 
-const errorHandler = createModuleErrorHandler('TemporalClusterDetection');
+const errorHandler = createUnifiedErrorHandler('TemporalClusterDetection');
 
 class TemporalClusterDetection {
     static detect(temporalFocusSet) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             debug(`Detecting temporal clusters for ${temporalFocusSet.length} tasks`);
             const clusterTasks = [];
             const clusters = detectTemporalClusters(temporalFocusSet);

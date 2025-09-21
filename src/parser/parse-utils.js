@@ -1,11 +1,11 @@
 import {parseTerm as parseWithMoo} from './narseseParser.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 
-const errorHandler = createModuleErrorHandler('parse-utils');
+const errorHandler = createUnifiedErrorHandler('parse-utils');
 
 function parseTerm(termKey) {
     if (typeof termKey !== 'string' || !termKey.length) return null;
-    return errorHandler.safeSync(() => parseWithMoo(termKey), `parseTerm: ${termKey}`, null);
+    return errorHandler.executeSync(() => parseWithMoo(termKey), `parseTerm: ${termKey}`, null);
 }
 
 const MALFORMED_PATTERNS = [

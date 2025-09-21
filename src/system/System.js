@@ -2,13 +2,13 @@ import {suppressOnnxWarnings} from '../utils/onnxSuppression.js';
 import registerDefaultActions from './default-actions.js';
 
 suppressOnnxWarnings();
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 import {debug, error as logError, info, warn} from '../utils/logger.js';
 import {normalizeToArray} from '../utils/collections/index.js';
 import Introspection from './Introspection.js';
 import ConfigAccessor from '../config/ConfigAccessor.js';
 
-const errorHandler = createModuleErrorHandler('System');
+const errorHandler = createUnifiedErrorHandler('System');
 
 class System {
     constructor(configManager, {
@@ -49,7 +49,7 @@ class System {
     }
 
     async initialize(constitutionTasks) {
-        await errorHandler.safeAsync(async () => {
+        await errorHandler.execute(async () => {
             info('System: Initializing with constitution...');
             if (constitutionTasks?.length > 0) {
                 this.memory.addTasks(constitutionTasks);
@@ -65,7 +65,7 @@ class System {
     async _bootstrapTerms(tasks, options = {
         sync: false
     }) {
-        await errorHandler.safeAsync(async () => {
+        await errorHandler.execute(async () => {
             const newTermKeys = [...new Set(tasks.map(task => task.termKey).filter(key => !this.memory.getTerm(key)))];
             if (!newTermKeys.length) return;
 
@@ -77,7 +77,7 @@ class System {
     }
 
     async runCycle() {
-        return await errorHandler.safeAsync(async () => {
+        return await errorHandler.execute(async () => {
             this.cycleCount++;
             debug(`Running cycle ${this.cycleCount}...`);
             const result = await this.cycle.runOnce();
@@ -87,7 +87,7 @@ class System {
     }
 
     async start(maxCycles = 0) {
-        await errorHandler.safeAsync(async () => {
+        await errorHandler.execute(async () => {
             if (this.isRunning) {
                 warn('System is already running.');
                 return;
@@ -98,7 +98,7 @@ class System {
             this.lm.startEmbeddingProcessor();
 
             while (this.isRunning && (maxCycles === 0 || this.cycleCount < maxCycles)) {
-                const result = await errorHandler.safeAsync(async () => {
+                const result = await errorHandler.execute(async () => {
                     await this.runCycle();
                     const tickDelay = this.config.getNumber('cycle.TICK_DELAY_MS', 50);
                     await new Promise(resolve => setTimeout(resolve, tickDelay));
@@ -118,7 +118,7 @@ class System {
     }
 
     stop() {
-        errorHandler.safeSync(() => {
+        errorHandler.executeSync(() => {
             if (!this.isRunning) return;
             this.isRunning = false;
             this.lm.stopEmbeddingProcessor();
@@ -127,7 +127,7 @@ class System {
     }
 
     async addTasks(tasks) {
-        await errorHandler.safeAsync(async () => {
+        await errorHandler.execute(async () => {
             const tasksToAdd = normalizeToArray(tasks);
             if (!tasksToAdd.length) return;
 
@@ -139,7 +139,7 @@ class System {
     }
 
     reset() {
-        errorHandler.safeSync(() => {
+        errorHandler.executeSync(() => {
             this.memory.clear();
             this.cycleCount = 0;
             info('System has been reset.');

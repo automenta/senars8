@@ -3,10 +3,10 @@ import ContradictionAnalyzer from '../reasoner/ContradictionAnalyzer.js';
 import ResolutionStrategy from '../reasoner/strategies/ResolutionStrategy.js';
 import {debug, info} from '../utils/logger.js';
 import {getBeliefTasks} from '../utils/task-utils.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 import EventBus from './EventBus.js';
 
-const errorHandler = createModuleErrorHandler('MetaCognition');
+const errorHandler = createUnifiedErrorHandler('MetaCognition');
 
 class MetaCognition {
     constructor(configManager, dependencies = {}) {
@@ -21,7 +21,7 @@ class MetaCognition {
     }
 
     findContradictions(tasks) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             debug(`Finding contradictions in ${tasks.length} tasks`);
             const beliefTasks = getBeliefTasks(tasks);
             debug(`Found ${beliefTasks.length} belief tasks`);
@@ -29,12 +29,15 @@ class MetaCognition {
             const parsedBeliefs = beliefTasks
                 .map(task => ({
                     task,
-                    parsed: parseTerm(task.termKey)
+                    term: parseTerm(task.termKey)
                 }))
-                .filter(item => item.parsed);
-            debug(`Successfully parsed ${parsedBeliefs.length} belief tasks`);
+                .filter(item => item.term);
 
-            return this._findContradictionsInParsedBeliefs(parsedBeliefs);
+            const contradictions = this.contradictionAnalyzer.analyze(parsedBeliefs);
+            this.contradictions = contradictions;
+            debug(`Found ${contradictions.length} contradictions`);
+
+            return contradictions;
         }, 'findContradictions', []);
     }
 
@@ -44,7 +47,7 @@ class MetaCognition {
             for (let j = i + 1; j < parsedBeliefs.length; j++) {
                 const item1 = parsedBeliefs[i];
                 const item2 = parsedBeliefs[j];
-                errorHandler.safeSync(() => {
+                errorHandler.executeSync(() => {
                     const contradictionType = this.contradictionAnalyzer.analyze(item1.task, item2.task, item1.parsed, item2.parsed);
                     if (contradictionType) {
                         this.contradictions.push({
@@ -71,7 +74,7 @@ class MetaCognition {
                 contradiction,
                 strategy
             }) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             debug(`Resolving contradiction of type: ${contradiction.type}`);
             const result = this.resolutionStrategy.resolve(contradiction, strategy);
             debug('Contradiction resolution completed');

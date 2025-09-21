@@ -1,11 +1,11 @@
 import SystemFactory from '../system/SystemFactory.js';
 import {parseTerm} from '../parser/narseseParser.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 import MCP from './MCP.js';
 import {debug, warn} from '../utils/logger.js';
 import Task from '../core/Task.js';
 
-const errorHandler = createModuleErrorHandler('Agent');
+const errorHandler = createUnifiedErrorHandler('Agent');
 
 class Agent {
     constructor(config = {}) {
@@ -18,7 +18,7 @@ class Agent {
 
     async initialize() {
         if (this.isInitialized) return;
-        return errorHandler.safeAsync(async () => {
+        return errorHandler.execute(async () => {
             this.system = await SystemFactory.createSystem(this.config);
             this.isInitialized = true;
             debug('Agent initialized successfully.');
@@ -87,7 +87,7 @@ class Agent {
     }
 
     async createPlan(goalString) {
-        return errorHandler.safeAsync(async () => {
+        return errorHandler.execute(async () => {
             const goalTerm = parseTerm(goalString);
             if (!goalTerm) {
                 warn(`Could not parse goal string: ${goalString}`);

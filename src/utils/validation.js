@@ -1,66 +1,13 @@
-import {isEmptyArray} from './collections/index.js';
+import Validator from './Validator.js';
 
-const validateString = (value, name = 'Value') => {
-    if (typeof value !== 'string' || value.length === 0) {
-        throw new Error(`${name} must be a non-empty string`);
-    }
-};
-
-const validateNonEmptyArray = (value, name = 'Value') => {
-    if (isEmptyArray(value)) {
-        throw new Error(`${name} must be a non-empty array`);
-    }
-};
-
-const validateArray = (value, name = 'Value') => {
-    if (!Array.isArray(value)) {
-        throw new Error(`${name} must be an array`);
-    }
-};
-
-const validateObject = (value, name = 'Value') => {
-    if (typeof value !== 'object' || value === null) {
-        throw new Error(`${name} must be a valid object`);
-    }
-};
-
-const validateTask = (value, name = 'Value') => {
-    if (!value || typeof value !== 'object' || !value.id || !value.termKey || !value.punctuation) {
-        throw new Error(`${name} must be a valid Task instance`);
-    }
-};
-
-const validateTerm = (term, name = 'Term') => {
-    const isValidString = typeof term === 'string' && term.length > 0;
-    const isValidObject = typeof term === 'object' && term !== null && typeof term.key === 'string' && term.key.length > 0;
-
-    if (!isValidString && !isValidObject) {
-        throw new Error(`${name} must be a non-empty string or a valid object with a key property`);
-    }
-};
-
-const validatePunctuation = (punctuation, name = 'Punctuation') => {
-    const validPunctuation = ['.', '!', '?'];
-    if (!validPunctuation.includes(punctuation)) {
-        throw new Error(`${name} must be one of: ${validPunctuation.join(', ')}`);
-    }
-};
-
-const validateTruthValue = (truthValue, name = 'TruthValue') => {
-    if (!truthValue || typeof truthValue !== 'object') {
-        throw new Error(`${name} must be an object`);
-    }
-
-    if (typeof truthValue.frequency !== 'number' ||
-        truthValue.frequency < 0 || truthValue.frequency > 1) {
-        throw new Error(`${name}.frequency must be a number between 0 and 1`);
-    }
-
-    if (typeof truthValue.confidence !== 'number' ||
-        truthValue.confidence < 0 || truthValue.confidence > 1) {
-        throw new Error(`${name}.confidence must be a number between 0 and 1`);
-    }
-};
+const validateString = (value, name = 'Value') => Validator.validateString(value, name);
+const validateNonEmptyArray = (value, name = 'Value') => Validator.validateNonEmptyArray(value, name);
+const validateArray = (value, name = 'Value') => Validator.validateArray(value, name);
+const validateObject = (value, name = 'Value') => Validator.validateObject(value, name);
+const validateTask = (value, name = 'Value') => Validator.validateTask(value, name);
+const validateTerm = (term, name = 'Term') => Validator.validateTerm(term, name);
+const validatePunctuation = (punctuation, name = 'Punctuation') => Validator.validatePunctuation(punctuation, name);
+const validateTruthValue = (truthValue, name = 'TruthValue') => Validator.validateTruthValue(truthValue, name);
 
 export {
     validateString,

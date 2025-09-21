@@ -1,10 +1,10 @@
 import {getGoalTasks} from '../utils/task-utils.js';
 import {debug, info} from '../utils/logger.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 import EventBus from './EventBus.js';
 import ConfigAccessor from '../config/ConfigAccessor.js';
 
-const errorHandler = createModuleErrorHandler('Cycle');
+const errorHandler = createUnifiedErrorHandler('Cycle');
 
 class Cycle {
     constructor(configManager, components) {
@@ -23,30 +23,19 @@ class Cycle {
         debug(`Starting cycle ${this.cycleCount}`);
         EventBus.emit('SystemCycleStarted', this.cycleCount);
 
-        await errorHandler.safeAsync(async () => {
+        await errorHandler.execute(async () => {
             const focusSet = this._selectFocusSet();
             const {
                 derivedTasks,
                 actionableGoals
-            } = await this._processFocusSet(focusSet);
+            } = await this._performInference(focusSet);
 
-            this.system.memory.addTasks(derivedTasks);
+            await this._executeActions(actionableGoals);
+            await this._learnFromExperience(derivedTasks);
 
-            // Convert actionable goals to proper action objects
-            const actions = actionableGoals.map(goal => ({
-                name: 'achieve',
-                parameters: [goal.termKey],
-                goal: goal
-            }));
-
-            // Execute each action individually
-            for (const action of actions) {
-                await this.system.actionExecutor.execute(action);
-            }
-
-            debug(`Cycle ${this.cycleCount} finished`);
+            this._updateMemory(derivedTasks);
             EventBus.emit('SystemCycleEnded', this.cycleCount);
-        }, `run cycle ${this.cycleCount}`);
+        }, 'runOnce');
     }
 
     async run() {

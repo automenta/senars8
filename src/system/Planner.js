@@ -1,9 +1,9 @@
 import Planners from '../reasoner/index.js';
 import Plan from './Plan.js';
 import {debug, info, warn} from '../utils/logger.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 
-const errorHandler = createModuleErrorHandler('Planner');
+const errorHandler = createUnifiedErrorHandler('Planner');
 
 class Planner {
     constructor(memory, lm, actionExecutor, configManager) {
@@ -25,7 +25,7 @@ class Planner {
     }
 
     async createPlan(goalTask, failedPlan = null) {
-        return await errorHandler.safeAsync(async () => {
+        return await errorHandler.execute(async () => {
             const goalKey = goalTask.termKey;
             debug(`Creating plan for goal: ${goalKey}`);
 

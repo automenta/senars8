@@ -1,6 +1,6 @@
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 
-const errorHandler = createModuleErrorHandler('ReportGenerator');
+const errorHandler = createUnifiedErrorHandler('ReportGenerator');
 
 class ReportGenerator {
     constructor(config = {}) {
@@ -12,7 +12,7 @@ class ReportGenerator {
     }
 
     generate(analysisResults, format = 'json') {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             switch (format.toLowerCase()) {
                 case 'json':
                     return this._generateJsonReport(analysisResults);
@@ -25,7 +25,7 @@ class ReportGenerator {
     }
 
     async generateDetailed(analysisResults, format = 'html') {
-        return errorHandler.safeAsync(async () => {
+        return errorHandler.execute(async () => {
             switch (format.toLowerCase()) {
                 case 'html':
                     return this._generateHtmlReport(analysisResults);

@@ -1,7 +1,7 @@
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 import Term from '../core/Term.js';
 
-const errorHandler = createModuleErrorHandler('NarseseTranslator');
+const errorHandler = createUnifiedErrorHandler('NarseseTranslator');
 
 // Shared categorization functions
 export const categorizeDuration = (ms) => {
@@ -57,7 +57,7 @@ class NarseseTranslator {
     }
 
     async translate(testData, coverageData = null, profilingData = null) {
-        return errorHandler.safeAsync(async () => {
+        return errorHandler.execute(async () => {
             const narseseData = {
                 facts: [],
                 implications: [],

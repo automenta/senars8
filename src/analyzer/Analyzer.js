@@ -1,10 +1,10 @@
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 import NarseseTranslator from './NarseseTranslator.js';
 import DataIngestor from './DataIngestor.js';
 import AnalysisEngine from './AnalysisEngine.js';
 import ReportGenerator from './ReportGenerator.js';
 
-const errorHandler = createModuleErrorHandler('Analyzer');
+const errorHandler = createUnifiedErrorHandler('Analyzer');
 
 class UnitTestAnalyzer {
     constructor(config = {},
@@ -31,7 +31,7 @@ class UnitTestAnalyzer {
     }
 
     async analyzeTestData(testResults, coverageData = null, profilingData = null) {
-        return errorHandler.safeAsync(async () => {
+        return errorHandler.execute(async () => {
             // Ingest all data sources
             this.testData = await this.ingestor.ingestTestResults(testResults);
 
@@ -54,7 +54,7 @@ class UnitTestAnalyzer {
     }
 
     generateReport(format = 'json') {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             if (!this.analysisResults) {
                 throw new Error('No analysis results available. Run analyzeTestData first.');
             }
@@ -64,7 +64,7 @@ class UnitTestAnalyzer {
     }
 
     async generateDetailedReport(format = 'html') {
-        return errorHandler.safeAsync(async () => {
+        return errorHandler.execute(async () => {
             if (!this.analysisResults) {
                 throw new Error('No analysis results available. Run analyzeTestData first.');
             }

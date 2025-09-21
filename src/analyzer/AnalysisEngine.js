@@ -1,6 +1,6 @@
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 
-const errorHandler = createModuleErrorHandler('AnalysisEngine');
+const errorHandler = createUnifiedErrorHandler('AnalysisEngine');
 
 class AnalysisEngine {
     constructor(config = {}) {
@@ -13,7 +13,7 @@ class AnalysisEngine {
     }
 
     async analyze(narseseData, _config = {}) {
-        return errorHandler.safeAsync(async () => {
+        return errorHandler.execute(async () => {
             const analysis = {
                 issues: [],
                 recommendations: [],

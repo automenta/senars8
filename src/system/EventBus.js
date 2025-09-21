@@ -1,7 +1,7 @@
 import {error, warn} from '../utils/logger.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 
-const errorHandler = createModuleErrorHandler('EventBus');
+const errorHandler = createUnifiedErrorHandler('EventBus');
 
 class EventBus {
     constructor() {
@@ -42,7 +42,7 @@ class EventBus {
             error(`[EventBus] No handler registered for request type: ${requestType}`);
             return null;
         }
-        return errorHandler.safeAsync(() => handler(data), `request: ${requestType}`, null);
+        return errorHandler.execute(() => handler(data), `request: ${requestType}`, null);
     }
 
     clear() {

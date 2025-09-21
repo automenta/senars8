@@ -2,19 +2,19 @@ import Task from '../../core/Task.js';
 import {parseTerm} from '../../parser/narseseParser.js';
 import {detectTemporalCycles} from '../../utils/temporal/index.js';
 import {debug} from '../../utils/logger.js';
-import {createModuleErrorHandler} from '../../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../../utils/unifiedErrorHandler.js';
 
-const errorHandler = createModuleErrorHandler('TemporalCycleDetection');
+const errorHandler = createUnifiedErrorHandler('TemporalCycleDetection');
 
 class TemporalCycleDetection {
     static detect(temporalFocusSet) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             debug(`Detecting temporal cycles for ${temporalFocusSet.length} tasks`);
             const cycleTasks = [];
             const cycles = detectTemporalCycles(temporalFocusSet);
 
             for (const cycle of cycles) {
-                const cycleTask = errorHandler.safeSync(() => {
+                const cycleTask = errorHandler.executeSync(() => {
                     return new Task(
                         parseTerm(`(cyclic_pattern, ${cycle.termKey})`),
                         '.',

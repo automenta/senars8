@@ -1,13 +1,13 @@
 import {createTemporalRelationshipTask, determineTemporalRelationship} from '../../utils/temporal/index.js';
 import {debug} from '../../utils/logger.js';
-import {createModuleErrorHandler} from '../../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../../utils/unifiedErrorHandler.js';
 import config from '../../config/index.js';
 
-const errorHandler = createModuleErrorHandler('TemporalRelationshipInference');
+const errorHandler = createUnifiedErrorHandler('TemporalRelationshipInference');
 
 class TemporalRelationshipInference {
     static infer(temporalFocusSet) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             debug(`Inferring temporal relationships for ${temporalFocusSet.length} tasks`);
             const temporalTasks = [];
             let relationshipCount = 0;

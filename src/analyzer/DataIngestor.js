@@ -1,6 +1,6 @@
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 
-const errorHandler = createModuleErrorHandler('DataIngestor');
+const errorHandler = createUnifiedErrorHandler('DataIngestor');
 
 class DataIngestor {
     constructor(config = {}) {
@@ -30,7 +30,7 @@ class DataIngestor {
     }
 
     async _ingestData(rawData, format, context) {
-        return errorHandler.safeAsync(async () => {
+        return errorHandler.execute(async () => {
             if (!rawData) {
                 if (context === 'ingest-test-results') {
                     throw new Error('No test data provided for ingestion');

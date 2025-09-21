@@ -2,9 +2,9 @@ import Task from '../../core/Task.js';
 import {isBelief} from '../../utils/task-utils.js';
 import {parseTerm, validateTermKey} from '../../parser/parse-utils.js';
 import Term from '../../core/Term.js';
-import {createModuleErrorHandler} from '../../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../../utils/unifiedErrorHandler.js';
 
-const errorHandler = createModuleErrorHandler('rule-factories');
+const errorHandler = createUnifiedErrorHandler('rule-factories');
 
 const prepareTasks = (tasks, arity) => {
     if (tasks.length !== arity) return null;
@@ -20,7 +20,7 @@ function createRule(spec) {
     }
 
     const executeAndWrap = (fn, context, defaultVal) =>
-        (...tasks) => errorHandler.safeSync(() => {
+        (...tasks) => errorHandler.executeSync(() => {
             const parsedTasks = prepareTasks(tasks, arity);
             return parsedTasks ? fn(parsedTasks, tasks) : defaultVal;
         }, context, defaultVal);

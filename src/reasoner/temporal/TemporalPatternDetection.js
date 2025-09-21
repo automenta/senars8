@@ -2,19 +2,19 @@ import Task from '../../core/Task.js';
 import {parseTerm} from '../../parser/narseseParser.js';
 import {createTemporalSequenceTask, detectTemporalPatterns} from '../../utils/temporal/index.js';
 import {debug} from '../../utils/logger.js';
-import {createModuleErrorHandler} from '../../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../../utils/unifiedErrorHandler.js';
 
-const errorHandler = createModuleErrorHandler('TemporalPatternDetection');
+const errorHandler = createUnifiedErrorHandler('TemporalPatternDetection');
 
 class TemporalPatternDetection {
     static detect(temporalFocusSet) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             debug(`Detecting temporal patterns for ${temporalFocusSet.length} tasks`);
             const patternTasks = [];
             const patterns = detectTemporalPatterns(temporalFocusSet);
 
             for (const pattern of patterns) {
-                const patternTask = errorHandler.safeSync(() => {
+                const patternTask = errorHandler.executeSync(() => {
                     if (pattern.type === 'periodic') {
                         const termKey = `(periodic_pattern, ${pattern.tasks[0].termKey})`;
                         const parsedTerm = parseTerm(termKey);

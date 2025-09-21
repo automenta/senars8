@@ -6,10 +6,10 @@ import {OP, REL} from '../config/constants.js';
 import {validateString} from '../utils/validation.js';
 import BaseEntity from './BaseEntity.js';
 import {isNonEmptyArray} from '../utils/collections/index.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 import lexer from '../parser/lexer.js';
 
-const errorHandler = createModuleErrorHandler('Term');
+const errorHandler = createUnifiedErrorHandler('Term');
 
 class Term extends BaseEntity {
     #key;
@@ -68,14 +68,14 @@ class Term extends BaseEntity {
             return (this.#componentCache['terms'] = null);
         }
 
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             const termsArray = structure.terms.map((term, i) => this.#getComponent(`term_${i}`, term));
             return (this.#componentCache['terms'] = termsArray);
         }, 'get-terms', null);
     }
 
     static termsEqual(term1, term2) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             if (term1 === term2) return true;
             if (!term1 || !term2 || term1.key !== term2.key || term1.complexity !== term2.complexity) return false;
 
@@ -93,7 +93,7 @@ class Term extends BaseEntity {
     }
 
     static fromJSON(json) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             return json?.key ? new Term(json.key, json.embedding, json.complexity) : null;
         }, 'fromJSON', null);
     }
@@ -135,7 +135,7 @@ class Term extends BaseEntity {
 
             if (keyBuilder[pTerm.type]) {
                 // Only wrap supported operations in error handler
-                return errorHandler.safeSync(() => keyBuilder[pTerm.type](), 'termKey', '');
+                return errorHandler.executeSync(() => keyBuilder[pTerm.type](), 'termKey', '');
             }
 
             // Throw error for unsupported types without wrapping in error handler
@@ -143,23 +143,23 @@ class Term extends BaseEntity {
         }
 
         // Handle null/undefined cases with error handler
-        return errorHandler.safeSync(() => '', 'termKey', '');
+        return errorHandler.executeSync(() => '', 'termKey', '');
     }
 
     static termKeyInfix(pTerm, op) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             return `(${Term.termKey(pTerm.subject)} ${op} ${Term.termKey(pTerm.predicate)})`;
         }, 'termKeyInfix', '');
     }
 
     static termList(terms) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             return terms?.length ? terms.map(term => Term.termKey(term)).join(',') : '';
         }, 'termList', '');
     }
 
     static structuralSimilarity(termKey1, termKey2) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             // Early return for identical strings
             if (termKey1 === termKey2) {
                 return 1.0;
@@ -233,7 +233,7 @@ class Term extends BaseEntity {
     }
 
     static findSimilarTerms(terms, targetTermKey, maxResults = 10) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             const targetTerm = terms.get(targetTermKey);
             if (!targetTerm?.embedding) return [];
 
@@ -269,7 +269,7 @@ class Term extends BaseEntity {
     }
 
     setEmbedding(embedding) {
-        errorHandler.safeSync(() => {
+        errorHandler.executeSync(() => {
             if (this.#embeddingRef) {
                 EmbeddingStore.release(this.#embeddingRef);
             }
@@ -286,7 +286,7 @@ class Term extends BaseEntity {
     }
 
     clone() {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             const cloned = super.clone();
             cloned.#componentCache = {};
             return cloned;
@@ -294,7 +294,7 @@ class Term extends BaseEntity {
     }
 
     toJSON() {
-        return errorHandler.safeSync(() => ({
+        return errorHandler.executeSync(() => ({
             key: this.#key,
             embedding: this.embedding,
             complexity: this.#complexity
@@ -306,7 +306,7 @@ class Term extends BaseEntity {
     }
 
     hashCode() {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             if (this._hashCode !== undefined) return this._hashCode;
             let hash = 0;
             for (let i = 0; i < this.#key.length; i++) {
@@ -318,7 +318,7 @@ class Term extends BaseEntity {
     }
 
     destroy() {
-        errorHandler.safeSync(() => {
+        errorHandler.executeSync(() => {
             if (this.#embeddingRef) {
                 EmbeddingStore.release(this.#embeddingRef);
                 this.#embeddingRef = null;
@@ -330,7 +330,7 @@ class Term extends BaseEntity {
 
     #getStructure() {
         if (this.#structure === null) {
-            this.#structure = errorHandler.safeSync(() => parseTerm(this.#key), 'get-structure', undefined) || null;
+            this.#structure = errorHandler.executeSync(() => parseTerm(this.#key), 'get-structure', undefined) || null;
         }
         return this.#structure;
     }
@@ -345,7 +345,7 @@ class Term extends BaseEntity {
             return (this.#componentCache[componentName] = null);
         }
 
-        const componentTerm = errorHandler.safeSync(() => {
+        const componentTerm = errorHandler.executeSync(() => {
             const componentKey = Term.termKey(termStructure);
             return componentKey ? new Term(componentKey) : null;
         }, 'get-component', null);

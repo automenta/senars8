@@ -2,19 +2,19 @@ import Task from '../../core/Task.js';
 import {parseTerm} from '../../parser/narseseParser.js';
 import {detectTemporalAnomalies} from '../../utils/temporal/index.js';
 import {debug} from '../../utils/logger.js';
-import {createModuleErrorHandler} from '../../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../../utils/unifiedErrorHandler.js';
 
-const errorHandler = createModuleErrorHandler('TemporalAnomalyDetection');
+const errorHandler = createUnifiedErrorHandler('TemporalAnomalyDetection');
 
 class TemporalAnomalyDetection {
     static detect(temporalFocusSet) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             debug(`Detecting temporal anomalies for ${temporalFocusSet.length} tasks`);
             const anomalyTasks = [];
             const anomalies = detectTemporalAnomalies(temporalFocusSet);
 
             for (const anomaly of anomalies) {
-                const anomalyTask = errorHandler.safeSync(() => {
+                const anomalyTask = errorHandler.executeSync(() => {
                     return new Task(
                         parseTerm(`(temporal_anomaly, ${anomaly.termKey})`),
                         '.',

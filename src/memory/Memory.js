@@ -8,9 +8,9 @@ import TimeBasedForgettingStrategy from './strategies/TimeBasedForgettingStrateg
 import {debug, warn} from '../utils/logger.js';
 import MemoryIndexer from './MemoryIndexer.js';
 import ConfigAccessor from '../config/ConfigAccessor.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 
-const errorHandler = createModuleErrorHandler('Memory');
+const errorHandler = createUnifiedErrorHandler('Memory');
 
 const FORGETTING_STRATEGIES = {
     TimeBased: TimeBasedForgettingStrategy,
@@ -83,7 +83,7 @@ class Memory {
             throw new Error('Can only add valid Term instances to memory');
         }
 
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             if (this.terms.has(term.key)) {
                 debug(`Term '${term.key}' already exists, skipping.`);
                 return;
@@ -95,7 +95,7 @@ class Memory {
     }
 
     getTerm(key) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             if (typeof key !== 'string') {
                 warn(`Invalid term key type: ${typeof key}.`);
                 return null;
@@ -105,11 +105,11 @@ class Memory {
     }
 
     getAllTerms() {
-        return errorHandler.safeSync(() => [...this.terms.values()], 'getAllTerms', []);
+        return errorHandler.executeSync(() => [...this.terms.values()], 'getAllTerms', []);
     }
 
     addTasks(tasks) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             const tasksToAdd = normalizeToArray(tasks);
             if (!tasksToAdd.length) return;
 
@@ -132,11 +132,11 @@ class Memory {
     }
 
     getTask(id) {
-        return errorHandler.safeSync(() => this.shortTermTasks.get(id) || this.longTermTasks.get(id), 'getTask', null);
+        return errorHandler.executeSync(() => this.shortTermTasks.get(id) || this.longTermTasks.get(id), 'getTask', null);
     }
 
     removeTask(taskId) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             if (!taskId) return;
             const task = this.getTask(taskId);
             if (task) {
@@ -149,7 +149,7 @@ class Memory {
     }
 
     getAllTasks() {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             if (!this._cachedAllTasks) {
                 this._cachedAllTasks = [...this.shortTermTasks.values(), ...this.longTermTasks.values()];
             }
@@ -164,7 +164,7 @@ class Memory {
     }
 
     getHighestPriorityTasks(k = 20) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             if (k <= 0) return [];
             const allTasks = this.getAllTasks();
             return this._shouldUsePriorityQueue(k, allTasks.length) ?
@@ -174,7 +174,7 @@ class Memory {
     }
 
     clone() {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             const newMemory = new Memory(this.config.configManager);
             Object.assign(newMemory, {
                 terms: new Map(this.terms),
@@ -189,7 +189,7 @@ class Memory {
     }
 
     removeTerm(key) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             const term = this.terms.get(key);
             if (!term) return;
             term.destroy?.();
@@ -199,7 +199,7 @@ class Memory {
     }
 
     clear() {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             this.terms.forEach(term => term.destroy?.());
             this.terms.clear();
             this.shortTermTasks.clear();
@@ -211,7 +211,7 @@ class Memory {
     }
 
     getStatistics() {
-        return errorHandler.safeSync(() => ({
+        return errorHandler.executeSync(() => ({
             terms: this.terms.size,
             shortTermTasks: this.shortTermTasks.size,
             longTermTasks: this.longTermTasks.size,
@@ -220,19 +220,19 @@ class Memory {
     }
 
     getBeliefs() {
-        return errorHandler.safeSync(() => this.queryTasks({punctuation: '.'}), 'getBeliefs', []);
+        return errorHandler.executeSync(() => this.queryTasks({punctuation: '.'}), 'getBeliefs', []);
     }
 
     getGoals() {
-        return errorHandler.safeSync(() => this.queryTasks({punctuation: '!'}), 'getGoals', []);
+        return errorHandler.executeSync(() => this.queryTasks({punctuation: '!'}), 'getGoals', []);
     }
 
     getQuestions() {
-        return errorHandler.safeSync(() => this.queryTasks({punctuation: '?'}), 'getQuestions', []);
+        return errorHandler.executeSync(() => this.queryTasks({punctuation: '?'}), 'getQuestions', []);
     }
 
     getRecentTasks(count = 10) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             const allTasks = this.getAllTasks();
             return [...allTasks]
                 .sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime))
@@ -241,11 +241,11 @@ class Memory {
     }
 
     queryTasks(filters = {}) {
-        return errorHandler.safeSync(() => this.indexer.queryTasks(this.getAllTasks(), filters), 'queryTasks', []);
+        return errorHandler.executeSync(() => this.indexer.queryTasks(this.getAllTasks(), filters), 'queryTasks', []);
     }
 
     exportState() {
-        return errorHandler.safeSync(() => JSON.stringify({
+        return errorHandler.executeSync(() => JSON.stringify({
             terms: [...this.terms.values()],
             shortTermTasks: [...this.shortTermTasks.values()],
             longTermTasks: [...this.longTermTasks.values()],
@@ -253,7 +253,7 @@ class Memory {
     }
 
     _createTaskFromJSON(json) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             if (!json?.termKey) return null;
             const term = this.getTerm(json.termKey);
             if (!term) return null;
@@ -273,7 +273,7 @@ class Memory {
     importState(jsonState) {
         // For invalid JSON, we throw directly to match test expectations
         if (typeof jsonState !== 'string') {
-            return errorHandler.safeSync(() => {
+            return errorHandler.executeSync(() => {
                 this.clear();
             }, 'importState');
         }
@@ -282,7 +282,7 @@ class Memory {
         let state;
         state = JSON.parse(jsonState);
 
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             this.clear();
             state.terms?.forEach(termData => {
                 const term = Term.fromJSON(termData);

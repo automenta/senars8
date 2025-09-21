@@ -1,6 +1,6 @@
 import {
-    createModuleErrorHandler
-} from '../utils/errorHandler.js';
+    createUnifiedErrorHandler
+} from '../utils/unifiedErrorHandler.js';
 import {
     debug,
     info
@@ -21,7 +21,7 @@ import ContradictionAnalyzer from '../reasoner/ContradictionAnalyzer.js';
 import ResolutionStrategy from '../reasoner/strategies/ResolutionStrategy.js';
 import CONSTITUTION_TASKS from './Constitution.js';
 
-const errorHandler = createModuleErrorHandler('SystemFactory');
+const errorHandler = createUnifiedErrorHandler('SystemFactory');
 
 const getComponent = (components, name, factory) => {
     const component = components[name];
@@ -94,7 +94,7 @@ const initializeSystem = async (system) => {
 };
 
 const createSystem = async (userConfig = {}, components = {}) => {
-    return await errorHandler.safeAsync(async () => {
+    return await errorHandler.execute(async () => {
         info('SystemFactory: Creating new system...');
         debug('SystemFactory: User config:', userConfig);
         debug('SystemFactory: Initial components:', components);

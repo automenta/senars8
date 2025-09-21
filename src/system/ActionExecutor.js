@@ -1,10 +1,10 @@
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 import {isNonEmptyArray} from '../utils/collections/index.js';
 import {generateActionId} from '../utils/IdGenerator.js';
 import EventBus from './EventBus.js';
 import ConfigAccessor from '../config/ConfigAccessor.js';
 
-const errorHandler = createModuleErrorHandler('ActionExecutor');
+const errorHandler = createUnifiedErrorHandler('ActionExecutor');
 
 class ActionExecutor {
     constructor(memory, configManager) {
@@ -40,18 +40,63 @@ class ActionExecutor {
         this.constraints.set(constraintName, constraintFunction);
     }
 
-    async execute(action) {
-        const actionId = generateActionId(action.name);
-        const promise = new Promise((resolve, reject) => {
-            this.actionQueue.push({
-                action,
-                actionId,
-                resolve,
-                reject
-            });
-        });
-        await this._processQueue();
-        return promise;
+    async executeAction(action) {
+        await errorHandler.execute(async () => {
+            this._validateAction(action);
+            const handler = this._findHandler(action.name);
+            if (!handler) {
+                throw new Error(`No handler found for action: ${action.name}`);
+            }
+
+            const actionId = generateActionId(action);
+            const startTime = Date.now();
+
+            try {
+                const result = await handler(action);
+                const endTime = Date.now();
+
+                this.actionHistory.push({
+                    id: actionId,
+                    action: action.name,
+                    parameters: action.parameters,
+                    result,
+                    startTime,
+                    endTime,
+                    duration: endTime - startTime,
+                    status: 'success'
+                });
+
+                EventBus.emit('ActionExecuted', {
+                    id: actionId,
+                    action: action.name,
+                    result,
+                    duration: endTime - startTime
+                });
+
+                return result;
+            } catch (error) {
+                const endTime = Date.now();
+                this.actionHistory.push({
+                    id: actionId,
+                    action: action.name,
+                    parameters: action.parameters,
+                    error: error.message,
+                    startTime,
+                    endTime,
+                    duration: endTime - startTime,
+                    status: 'error'
+                });
+
+                EventBus.emit('ActionFailed', {
+                    id: actionId,
+                    action: action.name,
+                    error: error.message,
+                    duration: endTime - startTime
+                });
+
+                throw error;
+            }
+        }, `executeAction: ${action.name}`);
     }
 
     async _processQueue() {
@@ -71,7 +116,7 @@ class ActionExecutor {
     }
 
     _isActionRunnable(item) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             this._validate(item.action);
             return this._checkResourceAvailability(item.action);
         }, 'isActionRunnable', (validationError) => {
@@ -95,7 +140,7 @@ class ActionExecutor {
         const actionRecord = this._createActionRecord(action, actionId);
 
         this._acquireResources(action);
-        await errorHandler.safeAsync(async () => {
+        await errorHandler.execute(async () => {
             const handler = this._findHandler(action.name);
             if (!handler) throw new Error(`No handler for action: ${action.name}`);
             const result = await handler(action);
@@ -122,20 +167,20 @@ class ActionExecutor {
         return record;
     }
 
-    _validate(action) {
-        if (!action.name || typeof action.name !== 'string') throw new Error('Action must have a valid name');
-        if (action.parameters && !isNonEmptyArray(action.parameters)) throw new Error('Action parameters must be a non-empty array');
-        if (action.resources && !isNonEmptyArray(action.resources)) throw new Error('Action resources must be a non-empty array');
+    _validateAction(action) {
+        return errorHandler.executeSync(() => {
+            if (!action?.name) {
+                throw new Error('Action name is required');
+            }
+            if (this.constraints.size === 0) return true;
 
-        action.parameters?.forEach(param => {
-            if (!this.memory.getTerm(param)) throw new Error(`Parameter term not found in memory: ${param}`);
-        });
-        action.resources?.forEach(resourceName => {
-            if (!this.resources.has(resourceName)) throw new Error(`Resource not registered: ${resourceName}`);
-        });
-        for (const constraint of this.constraints.values()) {
-            if (!constraint(action)) throw new Error('Action violates system constraints');
-        }
+            for (const [name, constraint] of this.constraints) {
+                if (typeof constraint === 'function' && !constraint(action)) {
+                    throw new Error(`Action failed constraint: ${name}`);
+                }
+            }
+            return true;
+        }, '_validateAction');
     }
 
     _recordSuccess(actionRecord, result) {
@@ -172,7 +217,7 @@ class ActionExecutor {
 
     _findHandler(actionName) {
         for (const [pattern, handler] of this.actionHandlers) {
-            if (errorHandler.safeSync(() => new RegExp(pattern).test(actionName), `_findHandler RegExp test for pattern: ${pattern}`, false)) {
+            if (errorHandler.executeSync(() => new RegExp(pattern).test(actionName), `_findHandler RegExp test for pattern: ${pattern}`, false)) {
                 return handler;
             }
         }
