@@ -27,7 +27,7 @@ async function unifiedDemoTemplate(options = {}) {
     const defaultOptions = {
         cycleCount: 5,
         // You can add custom callbacks here
-        postCycleCallback: async (system) => {
+        postCycleCallback: async (_system) => {
             info("Demo completed. Add your custom logic here.");
 
             // If we're running in test mode, the assertions will be run by the runDemo function

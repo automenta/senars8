@@ -164,7 +164,7 @@ async function analyzerDemo(options = {}) {
 
     const defaultOptions = {
         cycleCount: 0, // No cycles needed for this demo
-        postCycleCallback: async (system) => {
+        postCycleCallback: async (_system) => {
             info("Processing test data...");
             const analyzer = new UnitTestAnalyzer({
                 enableCoverageAnalysis: true,

@@ -17,9 +17,11 @@ class ConfigAccessor {
      * @returns {*} Configuration value or default
      */
     get(path, defaultValue = undefined) {
-        return errorHandler.safeSync(() => {
-            return this.configManager.get(path, defaultValue);
-        }, `get:${path}`, defaultValue);
+        return errorHandler.safeSync(() => 
+            this.configManager.get(path, defaultValue), 
+            `get:${path}`, 
+            defaultValue
+        );
     }
 
     /**
@@ -29,9 +31,11 @@ class ConfigAccessor {
      * @returns {number} Configuration number or default
      */
     getNumber(path, defaultValue = 0) {
-        return errorHandler.safeSync(() => {
-            return this.configManager.getNumber(path, defaultValue);
-        }, `getNumber:${path}`, defaultValue);
+        return errorHandler.safeSync(() => 
+            this.configManager.getNumber(path, defaultValue), 
+            `getNumber:${path}`, 
+            defaultValue
+        );
     }
 
     /**
@@ -41,9 +45,11 @@ class ConfigAccessor {
      * @returns {string} Configuration string or default
      */
     getString(path, defaultValue = '') {
-        return errorHandler.safeSync(() => {
-            return this.configManager.getString(path, defaultValue);
-        }, `getString:${path}`, defaultValue);
+        return errorHandler.safeSync(() => 
+            this.configManager.getString(path, defaultValue), 
+            `getString:${path}`, 
+            defaultValue
+        );
     }
 
     /**
@@ -53,9 +59,11 @@ class ConfigAccessor {
      * @returns {boolean} Configuration boolean or default
      */
     getBoolean(path, defaultValue = false) {
-        return errorHandler.safeSync(() => {
-            return this.configManager.getBoolean(path, defaultValue);
-        }, `getBoolean:${path}`, defaultValue);
+        return errorHandler.safeSync(() => 
+            this.configManager.getBoolean(path, defaultValue), 
+            `getBoolean:${path}`, 
+            defaultValue
+        );
     }
 
     /**
@@ -65,9 +73,11 @@ class ConfigAccessor {
      * @returns {Object} Configuration object or default
      */
     getObject(path, defaultValue = {}) {
-        return errorHandler.safeSync(() => {
-            return this.configManager.getObject(path, defaultValue);
-        }, `getObject:${path}`, defaultValue);
+        return errorHandler.safeSync(() => 
+            this.configManager.getObject(path, defaultValue), 
+            `getObject:${path}`, 
+            defaultValue
+        );
     }
 
     /**
@@ -77,9 +87,11 @@ class ConfigAccessor {
      * @returns {Array} Configuration array or default
      */
     getArray(path, defaultValue = []) {
-        return errorHandler.safeSync(() => {
-            return this.configManager.getArray(path, defaultValue);
-        }, `getArray:${path}`, defaultValue);
+        return errorHandler.safeSync(() => 
+            this.configManager.getArray(path, defaultValue), 
+            `getArray:${path}`, 
+            defaultValue
+        );
     }
 
     /**
@@ -87,9 +99,11 @@ class ConfigAccessor {
      * @returns {Object} All configuration values
      */
     getAll() {
-        return errorHandler.safeSync(() => {
-            return this.configManager.getAll();
-        }, 'getAll', {});
+        return errorHandler.safeSync(() => 
+            this.configManager.getAll(), 
+            'getAll', 
+            {}
+        );
     }
 }
 

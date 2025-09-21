@@ -4,7 +4,7 @@ import registerDefaultActions from './default-actions.js';
 suppressOnnxWarnings();
 import {createModuleErrorHandler} from '../utils/errorHandler.js';
 import {debug, error as logError, info, warn} from '../utils/logger.js';
-import {normalizeToArray} from '../utils/core.js';
+import {normalizeToArray} from '../utils/collections/index.js';
 import Introspection from './Introspection.js';
 import ConfigAccessor from '../config/ConfigAccessor.js';
 

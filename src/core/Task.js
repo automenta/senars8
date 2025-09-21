@@ -83,16 +83,17 @@ class Task extends BaseEntity {
     }
 
     #normalizeTruthValue(truthValue) {
-        if (truthValue && typeof truthValue.frequency === 'number' && typeof truthValue.confidence === 'number') {
+        if (truthValue 
+            && typeof truthValue.frequency === 'number' 
+            && typeof truthValue.confidence === 'number') {
             const freq = Math.max(0, Math.min(1, truthValue.frequency));
             const conf = Math.max(0, Math.min(1, truthValue.confidence));
-            if (isNaN(freq) || isNaN(conf)) return {
-                ...DEFAULT_TRUTH_VALUE
-            };
-            return {
-                frequency: freq,
-                confidence: conf
-            };
+            if (!isNaN(freq) && !isNaN(conf)) {
+                return {
+                    frequency: freq,
+                    confidence: conf
+                };
+            }
         }
         return {
             ...DEFAULT_TRUTH_VALUE
@@ -117,15 +118,18 @@ class Task extends BaseEntity {
     }
 
     reviseTruthValue(newEvidence, weight = 0.5) {
-        const revisedTruthValue = TruthValueManager.bayesianRevision(this.#state.truthValue, newEvidence, weight);
+        const revisedTruthValue = TruthValueManager.bayesianRevision(
+            this.#state.truthValue, 
+            newEvidence, 
+            weight
+        );
         this.#state.truthValue = revisedTruthValue;
         return revisedTruthValue;
     }
 
     formatString() {
-        const frequency = this.#state.truthValue.frequency.toFixed(3);
-        const confidence = this.#state.truthValue.confidence.toFixed(3);
-        return `${this.#termKey}${this.#punctuation} (f: ${frequency}, c: ${confidence})`;
+        const {frequency, confidence} = this.#state.truthValue;
+        return `${this.#termKey}${this.#punctuation} (f: ${frequency.toFixed(3)}, c: ${confidence.toFixed(3)})`;
     }
 
     getId() {
@@ -135,11 +139,9 @@ class Task extends BaseEntity {
     clone() {
         const clonedTask = new Task(
             this.#term,
-            this.#punctuation, {
-                ...this.#state.truthValue
-            }, {
-                ...this.#state.stamp
-            }
+            this.#punctuation, 
+            {...this.#state.truthValue}, 
+            {...this.#state.stamp}
         );
         // Preserve the same ID for cloned tasks
         clonedTask.#id = this.#id;

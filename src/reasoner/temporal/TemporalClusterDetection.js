@@ -1,4 +1,4 @@
-import {createTemporalClusterAbstractions, detectTemporalClusters} from '../../utils/temporal.js';
+import {createTemporalClusterAbstractions, detectTemporalClusters} from '../../utils/temporal/index.js';
 import {debug} from '../../utils/logger.js';
 import {createModuleErrorHandler} from '../../utils/errorHandler.js';
 

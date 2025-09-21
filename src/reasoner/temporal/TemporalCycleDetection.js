@@ -1,6 +1,6 @@
 import Task from '../../core/Task.js';
 import {parseTerm} from '../../parser/narseseParser.js';
-import {detectTemporalCycles} from '../../utils/temporal.js';
+import {detectTemporalCycles} from '../../utils/temporal/index.js';
 import {debug} from '../../utils/logger.js';
 import {createModuleErrorHandler} from '../../utils/errorHandler.js';
 

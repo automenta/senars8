@@ -1,4 +1,4 @@
-import {isEmptyArray} from './core.js';
+import {isEmptyArray} from './collections/index.js';
 
 const validateString = (value, name = 'Value') => {
     if (typeof value !== 'string' || value.length === 0) {

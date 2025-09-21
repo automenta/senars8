@@ -2,11 +2,12 @@
 
 import fs from 'fs';
 import UnitTestAnalyzer from './src/analyzer/index.js';
+import {logAndExit, safeAsync} from './src/utils/cliErrorHandler.js';
 
 async function analyzeActualFailures() {
     console.log("=== Unit Test Analyzer - Actual Test Failures ===\n");
 
-    try {
+    await safeAsync(async () => {
         // Read the actual test results
         console.log("Reading actual test results...");
         const testResultsData = JSON.parse(fs.readFileSync('./test-results.json', 'utf8'));
@@ -54,11 +55,8 @@ async function analyzeActualFailures() {
 
         console.log("\n=== ANALYSIS COMPLETE ===");
 
-    } catch (error) {
-        console.error("Analysis failed:", error.message);
-        console.error(error.stack);
-    }
+    }, 'analyzeActualFailures');
 }
 
 // Run the analysis
-analyzeActualFailures();
+analyzeActualFailures().catch(logAndExit);
