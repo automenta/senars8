@@ -1,25 +1,16 @@
 import TruthValueManager from '../TruthValueManager.js';
 import {createModusPonensRule} from './rule-factories.js';
 import Term from '../../core/Term.js';
-import {error as logError} from '../../utils/logger.js';
+import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
 
-/**
- * Modus Ponens Rule
- *
- * Performs modus ponens inference:
- * If A ==> B and A, then B
- *
- * Truth value is calculated using deduction.
- */
+const errorHandler = createUnifiedErrorHandler('modus-ponens-rule');
+
 export default createModusPonensRule(
     'Modus Ponens',
-    (parsed1, _parsed2) => {
-        try {
-            return Term.buildTermKey(parsed1.predicate);
-        } catch (err) {
-            logError('Error building modus ponens term:', err);
-            return null;
-        }
-    },
+    (parsed1, _parsed2) => errorHandler.executeSync(
+        () => Term.termKey(parsed1.predicate),
+        'build-term-key',
+        null
+    ),
     TruthValueManager.deduce
 );

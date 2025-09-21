@@ -1,7 +1,7 @@
 import Task from '../src/core/Task.js';
-import {parseTerm} from '../src/parser/parse-utils.js';
+import {parseTerm} from '../src/index.js';
 import SystemFactory from '../src/system/SystemFactory.js';
-import {debug, info, warn} from '../src/utils/logger.js';
+import {debug, warn} from '../src/utils/logger.js';
 
 const anside = {
     reset: "\x1b[0m",
@@ -19,42 +19,38 @@ const anside = {
 };
 
 /**
- * A utility function to create a Task object from a definition.
- * @param {object} def - The task definition object.
- * @returns {Task|null} A new Task object or null if parsing fails.
- */
-function createTask(def) {
-    // Support for the new macro format
-    if (def.sentence) {
-        return createTaskFromMacro(def);
-    }
-
-    const parsedTerm = parseTerm(def.termKey);
-    if (!parsedTerm) {
-        warn(`Failed to parse term: ${def.termKey}`);
-        return null;
-    }
-    return new Task(parsedTerm, def.punctuation, def.truthValue, def.stamp);
-}
-
-/**
- * Creates a Task from the new macro format { sentence, truth, stamp }.
+ * Creates a Task from a macro definition { sentence, truth, stamp }.
  * @param {object} macro - The macro definition.
  * @returns {Task|null} A new Task object or null if parsing fails.
  */
-function createTaskFromMacro(macro) {
-    const {sentence, truth, stamp} = macro;
-    const punctuation = sentence.slice(-1);
-    const termKey = sentence.slice(0, -1);
+function createTask(macro) {
+    let termKey;
+    let punctuation;
+    let truthValue;
+    let stamp;
 
-    if (!['.', '?', '!'].includes(punctuation)) {
-        warn(`Invalid or missing punctuation in macro sentence: "${sentence}"`);
+    if (macro.term && macro.punctuation) { // It's a Task object
+        termKey = macro.term.key;
+        punctuation = macro.punctuation;
+        truthValue = macro.truth;
+        stamp = macro.stamp;
+    } else if (macro.sentence) { // It's a plain object with a sentence
+        const {sentence, truth, stamp: macroStamp} = macro;
+        punctuation = sentence.slice(-1);
+        termKey = sentence.slice(0, -1);
+        truthValue = (truth && truth.length === 2)
+            ? {frequency: truth[0], confidence: truth[1]}
+            : undefined;
+        stamp = macroStamp;
+    } else {
+        warn(`Invalid macro definition: ${JSON.stringify(macro)}`);
         return null;
     }
 
-    const truthValue = (truth && truth.length === 2)
-        ? {frequency: truth[0], confidence: truth[1]}
-        : undefined;
+    if (!['.', '?', '!'].includes(punctuation)) {
+        warn(`Invalid or missing punctuation in macro sentence: "${termKey}${punctuation}"`);
+        return null;
+    }
 
     const parsedTerm = parseTerm(termKey);
     if (!parsedTerm) {
@@ -97,18 +93,21 @@ function printFooter(demoName) {
  * @param {object[]} [options.actionHandlers=[]] - Custom action handlers to register with the system.
  * @param {Function} [options.preCycleCallback=null] - A callback to run before the cycles start.
  * @param {Function} [options.postCycleCallback=null] - A callback to run after the cycles complete.
+ * @param {Function} [options.assertions=null] - A callback containing test assertions to run.
  * @returns {Promise<System>} The instance of the system after the demo run.
  */
 async function runDemo(demoName, taskDefs, {
     cycleCount = 5,
     config = {},
+    components = {},
     actionHandlers = [],
     preCycleCallback = null,
-    postCycleCallback = null
+    postCycleCallback = null,
+    assertions = null
 } = {}) {
     printHeader(demoName);
 
-    const system = await SystemFactory.createSystem(config);
+    const system = await SystemFactory.createSystem(config, components);
     debug('System created.');
 
     actionHandlers.forEach(handler => system.actionExecutor.registerActionHandler(handler.name, handler.handler));
@@ -131,6 +130,12 @@ async function runDemo(demoName, taskDefs, {
     }
 
     if (postCycleCallback) await postCycleCallback(system, tasks);
+
+    if (assertions) {
+        debug('Running assertions...');
+        await assertions(system);
+        debug('Assertions completed.');
+    }
 
     printFooter(demoName);
     return system;

@@ -5,39 +5,22 @@ class CostManager {
     }
 
     getTaskDifficulty(taskTerm) {
-        const methods = this.memory.implicationIndex.get(taskTerm.key) || [];
-        if (methods.length === 0) {
-            return this.getActionCost(taskTerm);
-        }
+        const methods = this.memory.indexer.implicationIndex.get(taskTerm.key) || [];
+        if (methods.length === 0) return this.getActionCost(taskTerm);
 
-        let minDifficulty = Infinity;
-
-        for (const method of methods) {
+        return methods.reduce((minDifficulty, method) => {
             let methodDifficulty = 0;
-            let preconditions = [];
-            if (method.subject && method.subject.type === 'SequentialConjunction') {
-                preconditions = method.subject.terms.slice(1);
-            }
-
+            const preconditions = method.subject?.type === 'SequentialConjunction' ? method.subject.terms.slice(1) : [];
             for (const precondition of preconditions) {
-                const belief = this.memory.beliefIndex.get(precondition.key);
-                const confidence = belief ? belief.state.truthValue.confidence : 0;
-                methodDifficulty += (1 - confidence);
+                const belief = this.memory.indexer.beliefIndex.get(precondition.key);
+                methodDifficulty += 1 - (belief ? belief.state.truthValue.confidence : 0);
             }
-
-            if (methodDifficulty < minDifficulty) {
-                minDifficulty = methodDifficulty;
-            }
-        }
-
-        return minDifficulty;
+            return Math.min(minDifficulty, methodDifficulty);
+        }, Infinity);
     }
 
     getActionCost(actionTerm) {
-        if (this.memory.costIndex.has(actionTerm.key)) {
-            return this.memory.costIndex.get(actionTerm.key);
-        }
-        return this.defaultCost;
+        return this.memory.indexer.costIndex.get(actionTerm.key) || this.defaultCost;
     }
 
     getPlanCost(plan) {

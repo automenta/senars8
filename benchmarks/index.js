@@ -1,8 +1,6 @@
 // benchmarks/index.js
-const CognitiveTestSuite = require('./CognitiveTestSuite');
-const runBenchmark = require('./run-tests');
+import CognitiveTestSuite from './CognitiveTestSuite.js';
 
-module.exports = {
-    CognitiveTestSuite,
-    runBenchmark
+export {
+    CognitiveTestSuite
 };

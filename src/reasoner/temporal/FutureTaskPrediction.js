@@ -1,17 +1,17 @@
-import {advancedPredictFutureTasks} from '../../utils/temporal.js';
+import {advancedPredictFutureTasks} from '../../utils/temporal/index.js';
 import {debug} from '../../utils/logger.js';
-import {handleErrorWithDefault} from '../../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
+
+const errorHandler = createUnifiedErrorHandler('FutureTaskPrediction');
 
 class FutureTaskPrediction {
     static predict(temporalFocusSet) {
-        try {
+        return errorHandler.executeSync(() => {
             debug(`Predicting future tasks for ${temporalFocusSet.length} tasks`);
             const predictionTasks = advancedPredictFutureTasks(temporalFocusSet, 24 * 60 * 60 * 1000);
             debug(`Predicted ${predictionTasks.length} future tasks`);
             return predictionTasks;
-        } catch (err) {
-            return handleErrorWithDefault(err, 'Future task prediction error', []);
-        }
+        }, 'predict', []);
     }
 }
 

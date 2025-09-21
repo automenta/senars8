@@ -3,120 +3,76 @@ import BruteForceStrategy from './strategies/BruteForceStrategy.js';
 import rules from './rules/index.js';
 import TemporalReasoner from './TemporalReasoner.js';
 import {debug, error as logError, info} from '../utils/logger.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
-import defaultConfig from '../config/default-config.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
+import createConfigAccessor from '../config/ConfigAccessor.js';
 
-const errorHandler = createModuleErrorHandler('Reasoner');
+const errorHandler = createUnifiedErrorHandler('Reasoner');
 
-/**
- * Reasoner performs symbolic logical inference on tasks using a set of predefined rules.
- * It supports different strategies for selecting task combinations and can perform both
- * symbolic and temporal reasoning.
- */
+const STRATEGIES = {
+    BruteForce: BruteForceStrategy,
+    BagSampling: BagSamplingStrategy,
+};
+
+const getCombinationKey = (ruleName, tasks) =>
+    `${ruleName}:${tasks.map(task => task.id).sort().join(',')}`;
+
 class Reasoner {
-    /**
-     * Creates a new Reasoner instance.
-     * @param {object} components - Component dependencies
-     * @param {TemporalReasoner} [components.temporalReasoner] - Temporal reasoner instance
-     * @param {object} config - Reasoner configuration
-     */
-    constructor({temporalReasoner} = {}, config = defaultConfig.reasoner) {
-        // Validate and set configuration with defaults
-        this.config = {
-            strategy: typeof config.strategy === 'string' ? config.strategy : 'BagSampling'
-        };
-
-        this.temporalReasoner = temporalReasoner || new TemporalReasoner();
-        this.strategy = this._initializeStrategy(this.config.strategy);
+    constructor({temporalReasoner} = {}, configManager) {
+        this.config = createConfigAccessor(configManager, 'reasoner');
+        this.temporalReasoner = temporalReasoner || new TemporalReasoner(configManager);
+        const strategyName = this.config.getString('strategy', 'BagSampling');
+        this.strategy = this._initializeStrategy(strategyName);
         this.rules = rules;
         info('Reasoner initialized with strategy:', this.strategy.constructor.name);
     }
 
     _initializeStrategy(strategyName) {
-        const strategyMap = {
-            BruteForce: BruteForceStrategy,
-            BagSampling: BagSamplingStrategy,
-        };
-
-        const StrategyClass = strategyMap[strategyName] || BagSamplingStrategy;
-        return new StrategyClass();
+        return new (STRATEGIES[strategyName] || BagSamplingStrategy)();
     }
 
-    /**
-     * Performs inference on a set of tasks.
-     * @param {Task[]} focusSet - Array of tasks to perform inference on
-     * @param {object} options - Inference options
-     * @param {number} [options.maxDerivedTasks=Infinity] - Maximum number of derived tasks to return
-     * @returns {Task[]} Array of derived tasks
-     */
     performInference(focusSet, options = {}) {
         if (!Array.isArray(focusSet)) {
-            const error = new Error(`Focus set must be an array, received: ${typeof focusSet}`);
-            return errorHandler.handle(error, 'performInference', []);
+            return errorHandler.handle(new Error(`Focus set must be an array, received: ${typeof focusSet}`), 'performInference', []);
         }
 
-        const {maxDerivedTasks = Infinity} = options;
-        debug(`Performing inference on ${focusSet.length} tasks with max ${maxDerivedTasks} derived tasks.`);
+        const maxDerivedTasks = options.maxDerivedTasks ?? Infinity;
+        debug(`Performing inference on ${focusSet.length} tasks with max ${maxDerivedTasks} derived tasks`);
 
-        // Step 1: Perform symbolic inference
         const symbolicTasks = this._performSymbolicInference(focusSet, maxDerivedTasks);
-        debug(`Symbolic inference produced ${symbolicTasks.length} tasks.`);
-
-        // Step 2: If more tasks are needed, perform temporal inference
         let temporalTasks = [];
         if (symbolicTasks.length < maxDerivedTasks) {
-            debug('Performing temporal inference to gather more tasks.');
-            const remainingTasks = maxDerivedTasks - symbolicTasks.length;
-            temporalTasks = this._performTemporalInference(focusSet, remainingTasks);
-            debug(`Temporal inference produced ${temporalTasks.length} tasks.`);
+            temporalTasks = this._performTemporalInference(focusSet);
         }
+        const finalTasks = [...symbolicTasks, ...temporalTasks].slice(0, maxDerivedTasks);
 
-        // Step 3: Combine and truncate the results
-        const allDerivedTasks = [...symbolicTasks, ...temporalTasks];
-        const finalTasks = allDerivedTasks.slice(0, maxDerivedTasks);
-
-        debug(`Total inference produced ${finalTasks.length} derived tasks.`);
+        debug(`Total inference produced ${finalTasks.length} derived tasks`);
         return finalTasks;
     }
 
     _performSymbolicInference(focusSet, maxDerivedTasks) {
         const derivedTasks = [];
         const processedCombinations = new Set();
-
         debug(`Starting symbolic inference with ${this.rules.length} rules`);
 
         for (const rule of this.rules) {
-            if (derivedTasks.length >= maxDerivedTasks) {
-                debug(`Reached maximum derived tasks limit of ${maxDerivedTasks}`);
-                break;
-            }
+            if (derivedTasks.length >= maxDerivedTasks) break;
             if (!rule.arity || rule.arity < 1) {
                 debug(`Skipping rule ${rule.name} due to invalid arity: ${rule.arity}`);
                 continue;
             }
 
-            try {
-                const combinations = this.strategy.selectCombinations(focusSet, rule.arity);
-                debug(`Rule ${rule.name} selected ${combinations.length} combinations to process`);
+            const combinations = this.strategy.selectCombinations(focusSet, rule.arity);
+            debug(`Rule ${rule.name} selected ${combinations.length} combinations`);
 
-                for (const tasks of combinations) {
-                    if (derivedTasks.length >= maxDerivedTasks) {
-                        debug(`Reached maximum derived tasks limit of ${maxDerivedTasks} for rule ${rule.name}`);
-                        break;
-                    }
-                    if (!Array.isArray(tasks) || tasks.length !== rule.arity) {
-                        debug(`Skipping invalid combination for rule ${rule.name}: expected ${rule.arity} tasks, got ${tasks.length}`);
-                        continue;
-                    }
-
-                    const derived = this._applyRule(rule, tasks, processedCombinations);
-                    if (derived) {
-                        derivedTasks.push(derived);
-                        debug(`Rule ${rule.name} produced a new task`);
-                    }
+            for (const tasks of combinations) {
+                if (derivedTasks.length >= maxDerivedTasks) break;
+                if (!Array.isArray(tasks) || tasks.length !== rule.arity) {
+                    debug(`Skipping invalid combination for rule ${rule.name}`);
+                    continue;
                 }
-            } catch (err) {
-                logError(`Error applying rule ${rule.name}:`, err);
+
+                const derived = this._applyRule(rule, tasks, processedCombinations);
+                if (derived) derivedTasks.push(derived);
             }
         }
 
@@ -124,110 +80,74 @@ class Reasoner {
         return derivedTasks;
     }
 
-    _performTemporalInference(focusSet, maxDerivedTasks) {
-        try {
+    _performTemporalInference(focusSet) {
+        return errorHandler.executeSync(() => {
             debug(`Starting temporal inference on ${focusSet.length} tasks`);
             const temporalTasks = this.temporalReasoner.infer(focusSet);
             if (Array.isArray(temporalTasks)) {
                 debug(`Temporal inference produced ${temporalTasks.length} derived tasks`);
-                return temporalTasks.slice(0, maxDerivedTasks);
+                return temporalTasks;
             }
-            debug('Temporal inference returned invalid result, expected array');
+            debug('Temporal inference returned invalid result');
             return [];
-        } catch (err) {
-            logError('Error in temporal inference:', err);
-            return [];
-        }
+        }, 'performTemporalInference', []);
     }
 
     _applyRule(rule, tasks, processedCombinations) {
-        if (!rule || !Array.isArray(tasks) || !processedCombinations) {
-            const error = new Error('Invalid arguments to _applyRule');
-            return errorHandler.handle(error, '_applyRule validation', null);
-        }
-
-        const taskIds = tasks.map(task => task.id).sort();
-        const combinationKey = `${rule.name}:${taskIds.join(',')}`;
-
+        const combinationKey = getCombinationKey(rule.name, tasks);
         if (processedCombinations.has(combinationKey)) {
             debug(`Skipping already processed combination for rule ${rule.name}`);
             return null;
         }
         processedCombinations.add(combinationKey);
 
-        try {
-            if (this._areOperandsValid(rule, tasks) && rule.condition(...tasks)) {
-                const result = rule.action(...tasks);
-                if (result) {
-                    debug(`Rule ${rule.name} applied successfully`);
-                } else {
-                    debug(`Rule ${rule.name} action returned null/undefined`);
-                }
-                return result;
-            }
-            debug(`Rule ${rule.name} condition not met`);
-            return null;
-        } catch (err) {
-            logError(`Error applying rule ${rule.name}:`, err);
-            return null;
+        if (this._areOperandsValid(rule, tasks) && rule.condition(...tasks)) {
+            const result = rule.action(...tasks);
+            debug(`Rule ${rule.name} ${result ? 'applied' : 'condition not met'}`);
+            return result;
         }
+        return null;
     }
 
     _areOperandsValid(rule, tasks) {
-        if (!rule || !Array.isArray(rule.operands) || !Array.isArray(tasks) || tasks.length !== rule.operands.length) {
-            return false;
+        if (!rule.operands) {
+            return true;
         }
-
-        return tasks.every((task, i) => {
-            const validator = rule.operands[i];
+        return rule.operands.every((validator, i) => {
             if (typeof validator !== 'function') {
                 logError(`Operand validator at index ${i} for rule ${rule.name} is not a function.`);
                 return false;
             }
-            try {
-                const isValid = validator(task);
-                if (!isValid) {
-                    debug(`Task at index ${i} failed validation for rule ${rule.name}`);
-                }
-                return isValid;
-            } catch (err) {
-                logError(`Error validating operand at index ${i} for rule ${rule.name}:`, err);
-                return false;
+            const isValid = validator(tasks[i]);
+            if (!isValid) {
+                debug(`Task at index ${i} failed validation for rule ${rule.name}`);
             }
+            return isValid;
         });
     }
 
-    /**
-     * Gets the names of all available rules.
-     * @returns {string[]} Array of rule names
-     */
     getRuleNames() {
         return this.rules.map(rule => rule.name);
     }
 
-    /**
-     * Gets a rule by name.
-     * @param {string} name - The name of the rule
-     * @returns {object|null} The rule object or null if not found
-     */
     getRule(name) {
         return this.rules.find(rule => rule.name === name) || null;
     }
 
-    /**
-     * Gets statistics about available rules.
-     * @returns {object} Object containing rule statistics
-     */
     getRuleStatistics() {
+        const rulesByArity = this.rules.reduce((acc, rule) => {
+            const arity = rule.arity || 0;
+            if (!acc[arity]) {
+                acc[arity] = [];
+            }
+            acc[arity].push(rule.name);
+            return acc;
+        }, {});
+
         return {
             totalRules: this.rules.length,
             ruleNames: this.getRuleNames(),
-            rulesByArity: this.rules.reduce((acc, rule) => {
-                const arity = rule.arity || 0;
-                acc[arity] = acc[arity] || [];
-                acc[arity].push(rule.name);
-                return acc;
-            }, {})
+            rulesByArity
         };
     }
 }

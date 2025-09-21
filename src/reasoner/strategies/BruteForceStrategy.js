@@ -4,38 +4,27 @@ class BruteForceStrategy {
             return;
         }
 
-        if (arity === 1) {
-            for (const task of focusSet) {
-                yield [task];
-            }
-            return;
-        }
+        const indices = new Array(arity).fill(0);
+        const combination = new Array(arity);
 
-        if (arity === 2) {
-            for (let i = 0; i < focusSet.length; i++) {
-                for (let j = 0; j < focusSet.length; j++) {
-                    if (i === j) {
-                        continue;
-                    }
-                    yield [focusSet[i], focusSet[j]];
-                }
+        while (true) {
+            for (let i = 0; i < arity; i++) {
+                combination[i] = focusSet[indices[i]];
             }
-            return;
-        }
+            yield combination;
 
-        if (arity === 3) {
-            for (let i = 0; i < focusSet.length; i++) {
-                for (let j = 0; j < focusSet.length; j++) {
-                    if (i === j) {
-                        continue;
-                    }
-                    for (let k = 0; k < focusSet.length; k++) {
-                        if (k === i || k === j) {
-                            continue;
-                        }
-                        yield [focusSet[i], focusSet[j], focusSet[k]];
-                    }
-                }
+            let next = arity - 1;
+            while (next >= 0 && (indices[next] + 1 >= focusSet.length)) {
+                next--;
+            }
+
+            if (next < 0) {
+                return;
+            }
+
+            indices[next]++;
+            for (let i = next + 1; i < arity; i++) {
+                indices[i] = 0;
             }
         }
     }

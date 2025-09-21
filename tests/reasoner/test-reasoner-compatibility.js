@@ -1,9 +1,9 @@
-const {parseTerm} = require('../src/parser/narseseParser');
+const {
+    parseTerm
+} = require('../src/parser/narseseParser');
 
-// Test that the parser output works with the Reasoner's expectations
 console.log('Testing Reasoner compatibility:');
 
-// Test modus ponens pattern: (A ==> B), A. |- B.
 console.log('\nTesting Modus Ponens pattern:');
 const implication = parseTerm('(cat ==> furry)');
 const belief = parseTerm('cat');
@@ -22,7 +22,6 @@ if (implication?.type === 'Implication' && belief?.type === 'Atomic') {
     console.log('✗ Invalid term types for Modus Ponens');
 }
 
-// Test inheritance chaining pattern: (A --> B), (B --> C) |- (A --> C)
 console.log('\nTesting Inheritance Chaining pattern:');
 const inheritance1 = parseTerm('(cat --> mammal)');
 const inheritance2 = parseTerm('(mammal --> animal)');
@@ -43,7 +42,6 @@ if (inheritance1?.type === 'Inheritance' && inheritance2?.type === 'Inheritance'
     console.log('✗ Invalid term types for Inheritance Chaining');
 }
 
-// Test induction pattern: (A --> B), (C --> B) |- (A --> C)
 console.log('\nTesting Induction pattern:');
 const inheritance3 = parseTerm('(cat --> mammal)');
 const inheritance4 = parseTerm('(dog --> mammal)');
@@ -65,7 +63,6 @@ if (inheritance3?.type === 'Inheritance' && inheritance4?.type === 'Inheritance'
     console.log('✗ Invalid term types for Induction');
 }
 
-// Test abduction pattern: (A --> B), (C --> B) |- (C --> A)
 console.log('\nTesting Abduction pattern:');
 const inheritance5 = parseTerm('(cat --> mammal)');
 const inheritance6 = parseTerm('(dog --> mammal)');
@@ -87,7 +84,6 @@ if (inheritance5?.type === 'Inheritance' && inheritance6?.type === 'Inheritance'
     console.log('✗ Invalid term types for Abduction');
 }
 
-// Test analogy pattern: (A --> B), (C --> D), (A --> C) |- (B --> D)
 console.log('\nTesting Analogy pattern:');
 const inheritance7 = parseTerm('(cat --> mammal)');
 const inheritance8 = parseTerm('(dog --> animal)');
@@ -98,8 +94,6 @@ console.log('Inheritance 8:', JSON.stringify(inheritance8, null, 2));
 console.log('Inheritance 9:', JSON.stringify(inheritance9, null, 2));
 
 if (inheritance7?.type === 'Inheritance' && inheritance8?.type === 'Inheritance' && inheritance9?.type === 'Inheritance') {
-    // Check if we have the pattern for analogy
-    // parsed1.subject === parsed3.subject && parsed2.subject === parsed3.predicate
     if (inheritance7.subject.key === inheritance9.subject.key &&
         inheritance8.subject.key === inheritance9.predicate.key) {
         console.log('✓ Analogy pattern matched');

@@ -1,11 +1,13 @@
-import {inferTemporalImplications} from '../../utils/temporal.js';
+import {inferTemporalImplications} from '../../utils/temporal/index.js';
 import {debug} from '../../utils/logger.js';
-import {handleErrorWithDefault} from '../../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
 import config from '../../config/index.js';
+
+const errorHandler = createUnifiedErrorHandler('TemporalImplicationInference');
 
 class TemporalImplicationInference {
     static infer(temporalFocusSet) {
-        try {
+        return errorHandler.executeSync(() => {
             debug(`Inferring temporal implications for ${temporalFocusSet.length} tasks`);
             const implicationTasks = [];
             let implicationCount = 0;
@@ -26,9 +28,7 @@ class TemporalImplicationInference {
 
             debug(`Found ${implicationCount} temporal implications (${comparisonCount} comparisons)`);
             return implicationTasks;
-        } catch (err) {
-            return handleErrorWithDefault(err, 'Temporal implication inference error', []);
-        }
+        }, 'infer', []);
     }
 }
 

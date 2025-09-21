@@ -13,9 +13,9 @@ export default createRule({
     condition: (parsed1, parsed2) =>
         parsed1?.type === 'Inheritance' &&
         parsed2?.type === 'Inheritance' &&
-        Term.buildTermKey(parsed1.subject) === Term.buildTermKey(parsed2.predicate),
+        Term.termKey(parsed1.subject) === Term.termKey(parsed2.predicate),
     action: (parsed1, parsed2, task1, task2) => {
-        const newTermKey = Term.buildTermKey({
+        const newTermKey = Term.termKey({
             type: 'Inheritance',
             subject: parsed2.subject,
             predicate: parsed1.predicate

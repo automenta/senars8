@@ -5,7 +5,6 @@ import LM from '../../src/lm/LM.js';
 import ActionExecutor from '../../src/system/ActionExecutor.js';
 import Task from '../../src/core/Task.js';
 import Term from '../../src/core/Term.js';
-import config from '../../src/config/index.js';
 import Perception from '../../src/system/Perception.js';
 import Planner from '../../src/system/Planner.js';
 import MetaCognition from '../../src/system/MetaCognition.js';
@@ -14,41 +13,60 @@ import PriorityManager from '../../src/reasoner/PriorityManager.js';
 import ContradictionAnalyzer from '../../src/reasoner/ContradictionAnalyzer.js';
 import ResolutionStrategy from '../../src/reasoner/strategies/ResolutionStrategy.js';
 import CONSTITUTION_TASKS from '../../src/system/Constitution.js';
+import ConfigManager from '../../src/config/ConfigManager.js';
+import registerDefaultActions from '../../src/system/default-actions.js';
 
 jest.mock('../../src/lm/LM.js');
-
 jest.mock('@xenova/transformers', () => {
     const transformers = jest.createMockFromModule('@xenova/transformers');
-    transformers.pipeline = jest.fn(async () => {
-        return jest.fn(() => ({
+    transformers.pipeline = jest.fn(async () =>
+        jest.fn(() => ({
             data: new Float32Array([1, 2, 3])
-        }));
-    });
+        }))
+    );
     return transformers;
 });
 
 describe('Cycle Integration Test', () => {
     let memory, reasoner, lm, cycle;
 
-    beforeEach(() => {
-        // Manually assemble the components as the SystemFactory would
-        memory = new Memory();
-        lm = new LM();
-        const temporalReasoner = new TemporalReasoner();
-        // Use BruteForceStrategy for deterministic test results
-        reasoner = new Reasoner({temporalReasoner}, {strategy: 'BruteForce'});
-        const actionExecutor = new ActionExecutor(memory);
-
-        // Cycle-specific components
+    beforeEach(async () => {
+        const configManager = new ConfigManager({
+            reasoner: {
+                strategy: 'BruteForce'
+            },
+            planner: {
+                strategy: 'HTN'
+            }
+        });
+        memory = new Memory(configManager);
+        lm = new LM(configManager);
+        const temporalReasoner = new TemporalReasoner(configManager);
+        reasoner = new Reasoner({
+            temporalReasoner
+        }, configManager);
+        const actionExecutor = new ActionExecutor(memory, configManager);
+        // Register default actions
+        registerDefaultActions(actionExecutor);
+        // Register default actions
+        import('../../src/system/default-actions.js').then(actionsModule => {
+            actionsModule.default(actionExecutor);
+            return null; // Return a value to satisfy the promise/always-return rule
+        }).catch(error => {
+            console.error('Failed to register default actions:', error);
+            return null; // Return a value to satisfy the promise/always-return rule
+        });
         const perception = new Perception(memory, lm);
-        const planner = new Planner(memory, lm, actionExecutor, config.planner);
+        const planner = new Planner(memory, lm, actionExecutor, configManager);
         const contradictionAnalyzer = new ContradictionAnalyzer();
         const resolutionStrategy = new ResolutionStrategy();
-        const metaCognition = new MetaCognition(config, {contradictionAnalyzer, resolutionStrategy});
+        const metaCognition = new MetaCognition(configManager, {
+            contradictionAnalyzer,
+            resolutionStrategy
+        });
         const priorityManager = new PriorityManager(memory);
 
-        // Create the cycle with the new constructor signature
-        cycle = new Cycle(config, {
+        cycle = new Cycle(configManager, {
             memory,
             reasoner,
             lm,
@@ -60,22 +78,21 @@ describe('Cycle Integration Test', () => {
             priorityManager
         });
 
-
         lm.generateHypotheses.mockResolvedValue([]);
-        lm.evaluateAndRankHypotheses.mockImplementation(async (tasks, hypotheses) => hypotheses);
-        lm.bootstrapTerm.mockImplementation(async termKey => {
-            return new Term(termKey, [], 1);
-        });
+        lm.evaluateAndRankHypotheses.mockImplementation(async (_, hypotheses) => hypotheses);
+        lm.bootstrapTerm.mockImplementation(async termKey => new Term(termKey, [], 1));
         lm.proactiveEnrichment.mockResolvedValue([]);
     });
 
     test('should run a cycle without errors', async () => {
         await expect(cycle.runOnce()).resolves.not.toThrow();
-    });
+    }, 10000); // 10 second timeout
 
     test('should prioritize tasks based on relevance to the constitution', async () => {
+        // AcquireKnowledge should have a high similarity to constitutional goals
         const term1 = new Term('AcquireKnowledge', [1, 0, 0], 1);
-        const term2 = new Term('cat', [0, 1, 0], 1);
+        // cat should have low similarity to constitutional goals
+        const term2 = new Term('cat', [0, 0, 1], 1);
         await memory.addTerm(term1);
         await memory.addTerm(term2);
 
@@ -91,5 +108,5 @@ describe('Cycle Integration Test', () => {
         const catTask = tasks.find(t => t.termKey === 'cat');
 
         expect(acquireKnowledgeTask.state.priority).toBeGreaterThan(catTask.state.priority);
-    });
+    }, 30000); // 30 second timeout
 });

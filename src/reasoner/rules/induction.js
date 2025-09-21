@@ -1,7 +1,9 @@
 import Term from '../../core/Term.js';
 import TruthValueManager from '../TruthValueManager.js';
 import {createBinaryInheritanceRule} from './rule-factories.js';
-import {error as logError} from '../../utils/logger.js';
+import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
+
+const errorHandler = createUnifiedErrorHandler('induction-rule');
 
 /**
  * Induction Rule
@@ -14,16 +16,11 @@ import {error as logError} from '../../utils/logger.js';
 export default createBinaryInheritanceRule(
     'Induction',
     (parsed1, parsed2) => {
-        try {
-            return Term.buildTermKey({
-                type: 'Inheritance',
-                subject: parsed1.subject,
-                predicate: parsed2.subject
-            });
-        } catch (err) {
-            logError('Error building induction term:', err);
-            return null;
-        }
+        return errorHandler.executeSync(() => Term.termKey({
+            type: 'Inheritance',
+            subject: parsed1.subject,
+            predicate: parsed2.subject
+        }), 'build-term-key', null);
     },
     TruthValueManager.induce
 );
