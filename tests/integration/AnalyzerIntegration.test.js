@@ -43,9 +43,9 @@ describe('Analyzer Integration Test', () => {
         const profilingData = {
             functions: [
                 {
-                    name: "Term.structuralSimilarity",
-                    file: "/src/core/Term.js",
-                    lineNumber: 100,
+                    name: "structuralSimilarity",
+                    file: "/src/core/TermUtils.js",
+                    lineNumber: 1,
                     calls: 1000,
                     totalTime: 200,
                     averageTime: 0.2,

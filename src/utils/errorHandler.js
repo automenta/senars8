@@ -16,18 +16,19 @@ const createErrorClass = (name) => {
     return NewError;
 };
 
-const ValidationError = createErrorClass('ValidationError');
-const ParseError = createErrorClass('ParseError');
-const InferenceError = createErrorClass('InferenceError');
-const PlanningError = createErrorClass('PlanningError');
-const MemoryError = createErrorClass('MemoryError');
-const CLIError = createErrorClass('CLIError');
-const AnalysisError = createErrorClass('AnalysisError');
+const ERROR_NAMES = ['ValidationError', 'ParseError', 'InferenceError', 'PlanningError', 'MemoryError', 'CLIError', 'AnalysisError'];
+const ERROR_CLASSES = {};
+const IS_ERROR_FUNCTIONS = {};
+const CREATE_ERROR_FUNCTIONS = {};
 
+ERROR_NAMES.forEach(name => {
+    const errorClass = createErrorClass(name);
+    ERROR_CLASSES[name] = errorClass;
+    IS_ERROR_FUNCTIONS[`is${name}`] = (error) => error instanceof errorClass;
+    CREATE_ERROR_FUNCTIONS[`create${name}`] = (message, context = null) => new errorClass(message, context);
+});
 
-const ERROR_TYPES = [ValidationError, ParseError, InferenceError, PlanningError, MemoryError, CLIError, AnalysisError];
-
-const isKnownErrorType = error => ERROR_TYPES.some(type => error instanceof type);
+const isKnownErrorType = error => Object.values(ERROR_CLASSES).some(type => error instanceof type);
 
 const logAndReturn = (error, context, returnValue = null) => {
     const preparedError = prepareErrorForLogging(error);
@@ -105,127 +106,43 @@ const createModuleErrorHandler = moduleName => ({
         safeSync(operation, `${moduleName}.${context}`, defaultValue),
 });
 
-const createValidationError = (message, context = null) => new ValidationError(message, context);
-const createParseError = (message, context = null) => new ParseError(message, context);
-const createInferenceError = (message, context = null) => new InferenceError(message, context);
-const createPlanningError = (message, context = null) => new PlanningError(message, context);
-const createMemoryError = (message, context = null) => new MemoryError(message, context);
-
-const isValidationError = error => error instanceof ValidationError;
-const isParseError = error => error instanceof ParseError;
-const isInferenceError = error => error instanceof InferenceError;
-const isPlanningError = error => error instanceof PlanningError;
-const isMemoryError = error => error instanceof MemoryError;
-
-/**
- * Unified error handling utility that provides a consistent interface
- * for error handling across the system with reduced boilerplate
- */
 class UnifiedErrorHandler {
     constructor(moduleName) {
         this.moduleName = moduleName;
         this.handler = createModuleErrorHandler(moduleName);
     }
 
-    /**
-     * Execute an async operation with error handling
-     * @param {Function} operation - Async function to execute
-     * @param {string} context - Context for error reporting
-     * @param {*} defaultValue - Default value to return on error
-     * @returns {Promise<*>} Result of operation or default value
-     */
     async execute(operation, context, defaultValue = null) {
         return await this.handler.safeAsync(operation, context, defaultValue);
     }
 
-    /**
-     * Execute a sync operation with error handling
-     * @param {Function} operation - Sync function to execute
-     * @param {string} context - Context for error reporting
-     * @param {*} defaultValue - Default value to return on error
-     * @returns {*} Result of operation or default value
-     */
     executeSync(operation, context, defaultValue = null) {
         return this.handler.safeSync(operation, context, defaultValue);
     }
 
-    /**
-     * Handle an error with a default value
-     * @param {Error} error - Error to handle
-     * @param {string} context - Context for error reporting
-     * @param {*} defaultValue - Default value to return
-     * @returns {*} Default value
-     */
     handleWithDefault(error, context, defaultValue = null) {
         return handleErrorWithDefault(error, `${this.moduleName}.${context}`, defaultValue);
     }
-
-    /**
-     * Create a validation error
-     * @param {string} message - Error message
-     * @param {*} context - Error context
-     * @returns {Error} ValidationError instance
-     */
-    createValidationError(message, context = null) {
-        return createValidationError(message, context);
-    }
-
-    /**
-     * Create a parse error
-     * @param {string} message - Error message
-     * @param {*} context - Error context
-     * @returns {Error} ParseError instance
-     */
-    createParseError(message, context = null) {
-        return createParseError(message, context);
-    }
-
-    /**
-     * Create an inference error
-     * @param {string} message - Error message
-     * @param {*} context - Error context
-     * @returns {Error} InferenceError instance
-     */
-    createInferenceError(message, context = null) {
-        return createInferenceError(message, context);
-    }
-
-    /**
-     * Create a planning error
-     * @param {string} message - Error message
-     * @param {*} context - Error context
-     * @returns {Error} PlanningError instance
-     */
-    createPlanningError(message, context = null) {
-        return createPlanningError(message, context);
-    }
-
-    /**
-     * Create a memory error
-     * @param {string} message - Error message
-     * @param {*} context - Error context
-     * @returns {Error} MemoryError instance
-     */
-    createMemoryError(message, context = null) {
-        return createMemoryError(message, context);
-    }
 }
 
-/**
- * Factory function for creating unified error handlers
- * @param {string} moduleName - Name of the module
- * @returns {UnifiedErrorHandler} Unified error handler instance
- */
 const createUnifiedErrorHandler = (moduleName) => new UnifiedErrorHandler(moduleName);
 
-// Export common error types
-const ErrorTypes = {
-    ValidationError: createValidationError,
-    ParseError: createParseError,
-    InferenceError: createInferenceError,
-    PlanningError: createPlanningError,
-    MemoryError: createMemoryError
-};
+const ErrorTypes = {};
+ERROR_NAMES.forEach(name => {
+    ErrorTypes[name] = CREATE_ERROR_FUNCTIONS[`create${name}`];
+});
+
+const {
+    ValidationError, ParseError, InferenceError, PlanningError, MemoryError, CLIError, AnalysisError
+} = ERROR_CLASSES;
+
+const {
+    isValidationError, isParseError, isInferenceError, isPlanningError, isMemoryError, isCLIError, isAnalysisError
+} = IS_ERROR_FUNCTIONS;
+
+const {
+    createValidationError, createParseError, createInferenceError, createPlanningError, createMemoryError, createCLIError, createAnalysisError
+} = CREATE_ERROR_FUNCTIONS;
 
 export {
     UnifiedErrorHandler,
@@ -236,22 +153,8 @@ export {
     safeAsync,
     safeSync,
     createModuleErrorHandler,
-    createValidationError,
-    createParseError,
-    createInferenceError,
-    createPlanningError,
-    createMemoryError,
-    isValidationError,
-    isParseError,
-    isInferenceError,
-    isPlanningError,
-    isMemoryError,
-    ValidationError,
-    ParseError,
-    InferenceError,
-    PlanningError,
-    MemoryError,
-    CLIError,
-    AnalysisError,
-    logAndExit
+    logAndExit,
+    ValidationError, ParseError, InferenceError, PlanningError, MemoryError, CLIError, AnalysisError,
+    isValidationError, isParseError, isInferenceError, isPlanningError, isMemoryError, isCLIError, isAnalysisError,
+    createValidationError, createParseError, createInferenceError, createPlanningError, createMemoryError, createCLIError, createAnalysisError
 };

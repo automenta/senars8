@@ -8,6 +8,7 @@ import BaseEntity from './BaseEntity.js';
 import {isNonEmptyArray} from '../utils/collections/index.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import {tokenize} from '../parser/lexer.js';
+import {structuralSimilarity, findSimilarTerms} from './TermUtils.js';
 
 const errorHandler = createUnifiedErrorHandler('Term');
 
@@ -97,10 +98,10 @@ class Term extends BaseEntity {
                 [OP.INDEPENDENT_VARIABLE]: () => pTerm.name,
                 [OP.DEPENDENT_VARIABLE]: () => `#${pTerm.name}`,
                 [OP.QUERY_VARIABLE]: () => `?${pTerm.name}`,
-                [OP.INHERITANCE]: () => this.termKeyInfix(pTerm, REL.INHERITANCE),
-                [OP.IMPLICATION]: () => this.termKeyInfix(pTerm, REL.IMPLICATION),
-                [OP.EQUIVALENCE]: () => this.termKeyInfix(pTerm, REL.EQUIVALENCE),
-                [OP.SIMILARITY]: () => this.termKeyInfix(pTerm, REL.SIMILARITY),
+                [OP.INHERITANCE]: () => Term.termKeyInfix(pTerm, REL.INHERITANCE),
+                [OP.IMPLICATION]: () => Term.termKeyInfix(pTerm, REL.IMPLICATION),
+                [OP.EQUIVALENCE]: () => Term.termKeyInfix(pTerm, REL.EQUIVALENCE),
+                [OP.SIMILARITY]: () => Term.termKeyInfix(pTerm, REL.SIMILARITY),
                 [OP.INSTANCE]: () => `(${Term.termKey(pTerm.subject)} ${REL.INSTANCE} ${Term.termKey(pTerm.predicate)})`,
                 [OP.PROPERTY]: () => `(${Term.termKey(pTerm.subject)} ${REL.PROPERTY} ${Term.termKey(pTerm.predicate)})`,
                 [OP.PREDICTIVE_IMPLICATION]: () => `(${Term.termKey(pTerm.subject)} ${REL.PREDICTIVE_IMPLICATION} ${Term.termKey(pTerm.predicate)})`,
@@ -149,104 +150,6 @@ class Term extends BaseEntity {
         }, 'termList', '');
     }
 
-    static structuralSimilarity(termKey1, termKey2) {
-        return errorHandler.executeSync(() => {
-            // Early return for identical strings
-            if (termKey1 === termKey2) {
-                return 1.0;
-            }
-
-            const tokens1 = tokenize(termKey1);
-            const tokens2 = tokenize(termKey2);
-
-            // Optimize for single token case
-            if (tokens1.length === 1 && tokens2.length === 1) {
-                const len1 = termKey1.length;
-                const len2 = termKey2.length;
-                if (len1 < 2 || len2 < 2) return 0;
-
-                const bigrams1 = new Set();
-                for (let i = 0; i < len1 - 1; i++) {
-                    bigrams1.add(termKey1.substring(i, i + 2));
-                }
-
-                let intersection = 0;
-                for (let i = 0; i < len2 - 1; i++) {
-                    if (bigrams1.has(termKey2.substring(i, i + 2))) {
-                        intersection++;
-                    }
-                }
-
-                return (2 * intersection) / (len1 + len2 - 2);
-            }
-
-            // Handle empty cases
-            if (tokens1.length === 0 && tokens2.length === 0) {
-                return 1.0;
-            }
-            if (tokens1.length === 0 || tokens2.length === 0) {
-                return 0.0;
-            }
-
-            // Use Maps for O(1) lookup instead of arrays
-            const map1 = new Map();
-            for (const token of tokens1) {
-                map1.set(token, (map1.get(token) || 0) + 1);
-            }
-
-            const map2 = new Map();
-            for (const token of tokens2) {
-                map2.set(token, (map2.get(token) || 0) + 1);
-            }
-
-            // Calculate intersection more efficiently
-            let intersection = 0;
-            for (const [token, count1] of map1) {
-                const count2 = map2.get(token);
-                if (count2) {
-                    intersection += Math.min(count1, count2);
-                }
-            }
-
-            return (2 * intersection) / (tokens1.length + tokens2.length);
-        }, 'structuralSimilarity', 0);
-    }
-
-    static findSimilarTerms(terms, targetTermKey, maxResults = 10) {
-        return errorHandler.executeSync(() => {
-            const targetTerm = terms.get(targetTermKey);
-            if (!targetTerm?.embedding) return [];
-
-            const {
-                REGULARITY_BOOST,
-                STRUCTURAL_SIMILARITY_WEIGHT
-            } = config.temporal;
-
-            // Pre-filter terms that have embeddings for better performance
-            const termEntries = [];
-            for (const [key, term] of terms.entries()) {
-                if (key !== targetTermKey && term.embedding) {
-                    termEntries.push([key, term]);
-                }
-            }
-
-            // Use map for better performance than chained array methods
-            const similarities = [];
-            for (const [key, term] of termEntries) {
-                const semantic = cosineSimilarity(targetTerm.embedding, term.embedding);
-                const structural = Term.structuralSimilarity(targetTermKey, key);
-                similarities.push({
-                    termKey: key,
-                    similarity: REGULARITY_BOOST * semantic + STRUCTURAL_SIMILARITY_WEIGHT * structural
-                });
-            }
-
-            // Sort and slice in one operation for better performance
-            return similarities
-                .sort((a, b) => b.similarity - a.similarity)
-                .slice(0, maxResults);
-        }, 'findSimilarTerms', []);
-    }
 
     setEmbedding(embedding) {
         errorHandler.executeSync(() => {

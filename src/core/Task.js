@@ -65,43 +65,30 @@ class Task extends BaseEntity {
     }
 
     #processTerm(term) {
-        if (typeof term === 'string') {
-            const processedTerm = parseTerm(term);
-            if (!processedTerm) throw new Error(`Failed to parse term: '${term}'.`);
-            return {
-                processedTerm,
-                termKey: term
-            };
+        const termKey = typeof term === 'string' ? term : term.key;
+        const processedTerm = typeof term === 'string' ? parseTerm(term) : (term.type ? term : parseTerm(term.key));
+
+        if (!processedTerm) {
+            throw new Error(`Failed to parse term: '${termKey}'.`);
         }
-        const termKey = term.key;
-        const processedTerm = term.type ? term : parseTerm(term.key);
-        if (!processedTerm) throw new Error(`Failed to parse term: '${term.key}'.`);
-        return {
-            processedTerm,
-            termKey
-        };
+
+        return { processedTerm, termKey };
     }
 
     #normalizeTruthValue(truthValue) {
-        if (truthValue 
-            && typeof truthValue.frequency === 'number' 
-            && typeof truthValue.confidence === 'number') {
-            const freq = Math.max(0, Math.min(1, truthValue.frequency));
-            const conf = Math.max(0, Math.min(1, truthValue.confidence));
+        const { frequency, confidence } = truthValue || {};
+        if (typeof frequency === 'number' && typeof confidence === 'number') {
+            const freq = Math.max(0, Math.min(1, frequency));
+            const conf = Math.max(0, Math.min(1, confidence));
             if (!isNaN(freq) && !isNaN(conf)) {
-                return {
-                    frequency: freq,
-                    confidence: conf
-                };
+                return { frequency: freq, confidence: conf };
             }
         }
-        return {
-            ...DEFAULT_TRUTH_VALUE
-        };
+        return { ...DEFAULT_TRUTH_VALUE };
     }
 
     #createStamp(stamp) {
-        const now = this.#getCurrentTimestamp();
+        const now = Task.#getCurrentTimestamp();
         return {
             creationTime: now,
             lastAccessed: now,
@@ -109,12 +96,12 @@ class Task extends BaseEntity {
         };
     }
 
-    #getCurrentTimestamp() {
+    static #getCurrentTimestamp() {
         return BigInt(Date.now());
     }
 
     touch() {
-        this.#state.stamp.lastAccessed = this.#getCurrentTimestamp();
+        this.#state.stamp.lastAccessed = Task.#getCurrentTimestamp();
     }
 
     reviseTruthValue(newEvidence, weight = 0.5) {

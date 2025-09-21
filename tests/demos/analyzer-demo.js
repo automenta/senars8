@@ -132,9 +132,9 @@ const mockProfilingData = {
             maxTime: 2.1
         },
         {
-            name: "Term.structuralSimilarity",
-            file: "/src/core/Term.js",
-            lineNumber: 150,
+            name: "structuralSimilarity",
+            file: "/src/core/TermUtils.js",
+            lineNumber: 1,
             calls: 850,
             totalTime: 180,
             averageTime: 0.212,

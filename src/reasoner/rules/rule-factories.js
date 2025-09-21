@@ -9,8 +9,17 @@ const errorHandler = createUnifiedErrorHandler('rule-factories');
 const prepareTasks = (tasks, arity) => {
     if (tasks.length !== arity) return null;
     const parsedTasks = tasks.map(t => parseTerm(t.termKey));
-    return parsedTasks.some(t => !t) ? null : parsedTasks;
+    if (parsedTasks.some(t => !t)) return null;
+    return parsedTasks;
 };
+
+const processActionResult = (result) => {
+    if (!result?.newTermKey || !result.newTruthValue || !validateTermKey(result.newTermKey)) {
+        return null;
+    }
+    const newParsedTerm = parseTerm(result.newTermKey);
+    return newParsedTerm ? new Task(newParsedTerm, '.', result.newTruthValue) : null;
+}
 
 function createRule(spec) {
     const {name, arity, operands, condition, action} = spec;
@@ -39,11 +48,7 @@ function createRule(spec) {
         action: executeAndWrap(
             (parsedTasks, tasks) => {
                 const result = action(...parsedTasks, ...tasks);
-                if (!result?.newTermKey || !result.newTruthValue || !validateTermKey(result.newTermKey)) {
-                    return null;
-                }
-                const newParsedTerm = parseTerm(result.newTermKey);
-                return newParsedTerm ? new Task(newParsedTerm, '.', result.newTruthValue) : null;
+                return processActionResult(result);
             },
             `action-${name}`,
             null

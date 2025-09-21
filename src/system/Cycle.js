@@ -107,26 +107,6 @@ class Cycle {
             debug(`Would add task to memory: ${task.termKey}`);
         });
     }
-
-    async _processFocusSet(focusSet) {
-        // Return empty arrays if reasoner is not available
-        if (!this.system.reasoner) {
-            return {
-                derivedTasks: [],
-                actionableGoals: []
-            };
-        }
-
-        const derivedTasks = await this.system.reasoner.performInference(focusSet);
-        const allTasks = [...focusSet, ...derivedTasks];
-        const actionableGoals = getGoalTasks(allTasks).filter(goal =>
-            goal.state?.priority >= this.config.getNumber('ACTIONABLE_GOAL_PRIORITY_THRESHOLD', 0.1)
-        );
-        return {
-            derivedTasks,
-            actionableGoals
-        };
-    }
 }
 
 export default Cycle;
