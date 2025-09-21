@@ -1,41 +1,32 @@
-# SeNARS Cognitive System
+# SeNARS: A Neuro-Symbolic Reasoning System
 
-## A Blueprint for Principled and Pragmatic Neuro-Symbolic Cognition
+**SeNARS** is a cognitive architecture engineered to create a powerful synergy between formal symbolic reasoning and the semantic richness of Large Language Models (LMs). It provides a robust foundation for building AI systems that are transparent, adaptive, and capable of complex, multi-step reasoning.
 
-SeNARS is a cognitive architecture designed to achieve a synergistic union of formal symbolic reasoning and the semantic
-power of Large Language Models (LMs). Its foundation is a **Unified Knowledge Hypergraph** composed of immutable *
-*`Term`s** (concepts) and stateful, evidence-backed **`Task`s** (beliefs, goals, questions). The system operates in a
-discrete **`Cycle`**, a reasoning loop governed by a principle of **Economic Attention**, which pragmatically
-prioritizes tasks based on their relevance, urgency, confidence, and predicted effort.
+At its heart is a **Unified Knowledge Hypergraph** of immutable **`Term`s** (concepts) and stateful **`Task`s** (beliefs, goals, questions). The system operates in a discrete **`Cycle`**, a core reasoning loop governed by a principle of **Economic Attention**, which pragmatically prioritizes cognitive resources based on relevance, urgency, and confidence.
 
-- **Dual-Engine Design**: A symbolic **Reasoner** performs rigorous, explainable inference, while a neuro-symbolic **LM
-  ** leverages Large Language Models for creativity, grounding, and natural language fluency.
-- **Meta-Cognitive Loop**: Through a powerful **Meta-Cognitive** feedback loop, SeNARS is designed for recursive
-  self-improvement.
-- **Immutable Foundation**: All reasoning is guided by an immutable **`Constitution`** of foundational motives.
+- **🧠 Dual-Engine Cognition**: A symbolic **Reasoner** for rigorous, explainable inference, complemented by a neuro-symbolic **LM** for creativity, semantic grounding, and natural language fluency.
+- **🔄 Meta-Cognitive Loop**: A powerful feedback mechanism for recursive self-improvement, allowing the system to detect and correct its own reasoning failures.
+- **🏛️ Immutable Constitution**: A set of core, unchangeable motives and constraints that ensures all reasoning remains aligned with foundational principles.
+
+This project is in a confident prototype phase, backed by years of academic research, and is now focused on accelerating growth and attracting a community of developers and researchers.
 
 ---
 
-## Design Principles
+## Key Design Principles
 
-- **API-Driven & Pluggable Architecture**: The system is built around a clean, observable API. Core components (
-  `Memory`, `Reasoner`, `LM`, etc.) are assembled by a central `SystemFactory` using dependency injection, allowing for
-  easy extension and replacement of components.
-- **Unified Configuration**: All system parameters are managed through a single, hierarchical configuration object,
-  making the system's behavior transparent and easy to customize.
-- **Introspection as a First-Class Citizen**: A dedicated `Introspection` API (`system.introspection`) provides a
-  comprehensive set of tools for observing the system's internal state, querying memory, and subscribing to events,
-  designed explicitly to support GUIs and other external tools.
-- **Explicit State Management**: All cognitive state is explicitly stored within `Task`s in the central `Memory`
-  component.
-- **Strategy over Implementation**: For complex problems like contradiction resolution and planning, the system favors a
-  `Strategy` pattern, allowing for the dynamic selection of the best algorithm for a given context.
+SeNARS is built on a set of principles that ensure a modular, transparent, and extensible system, making it an ideal platform for both research and development.
+
+- **API-Driven & Pluggable**: Core components (`Memory`, `Reasoner`, `LM`) are assembled via dependency injection, allowing any part of the system to be extended or replaced.
+- **Unified Configuration**: A single, hierarchical configuration object makes the system's behavior transparent and easy to customize.
+- **Introspection First**: A rich `Introspection` API provides comprehensive tools for observing the system's internal state, designed explicitly to support GUIs and external monitoring.
+- **Explicit State Management**: All cognitive state is explicitly stored within `Task`s in the central `Memory` component, providing a single source of truth.
+- **Strategy Over Implementation**: For complex challenges like planning or contradiction resolution, the system uses a `Strategy` pattern, allowing for dynamic selection of the best algorithm for a given context.
 
 ---
 
 ## System Architecture
 
-The SeNARS architecture is designed for modularity and extensibility.
+The SeNARS architecture is designed for modularity and clarity.
 
 ```mermaid
 graph TD
@@ -67,10 +58,23 @@ graph TD
     style A fill:#d4edda,stroke:#333,stroke-width:2px
 ```
 
-The `SystemFactory` is the main entry point for creating a new system. It instantiates all the necessary cognitive
-components and injects them into the main `System` object. The `System` object, in turn, exposes a clean public API for
-interacting with the system, including the powerful `Introspection` API for observability. The `Cycle` object
-orchestrates the flow of information and reasoning between all other components.
+The `SystemFactory` is the main entry point, instantiating and assembling all cognitive components. The `System` object exposes a clean public API, including the powerful `Introspection` API for observability, while the `Cycle` orchestrates the reasoning loop.
+
+---
+
+## Core Concepts
+
+SeNARS is built on a few core concepts that work together to create its cognitive capabilities.
+
+- **`Term`**: An **immutable** representation of a concept. Terms are the fundamental building blocks of knowledge, from simple atoms like `cat` to complex relationships like `(cat --> animal)`. Their immutability ensures conceptual stability.
+
+- **`Task`**: A **stateful** unit of cognitive work, representing a belief, goal, or question. Each `Task` wraps a `Term` and attaches dynamic state to it, such as a **truth value** (confidence) and a **priority** score for the attention mechanism.
+
+- **`Memory`**: The central **knowledge hypergraph** that stores and manages all `Term`s and `Task`s. It uses specialized indexes for efficient retrieval and a forgetting mechanism to prune irrelevant information, keeping the system focused.
+
+- **`Cycle`**: The **heartbeat** of the system. In a continuous loop, the system takes in new information, prioritizes tasks, performs reasoning, and executes actions. This cycle drives the emergent, stream-of-consciousness-like behavior of the system.
+
+For a more detailed explanation of these concepts, see the [Conceptual Overview](./docs/SYSTEM_OVERVIEW.md).
 
 ---
 
@@ -87,18 +91,19 @@ orchestrates the flow of information and reasoning between all other components.
 npm install
 ```
 
-### Running the Interactive Demo
+### See It in Action: Interactive Demos
 
-To explore the system's capabilities, use the interactive demo runner:
+The best way to explore the system's capabilities is to run the interactive demo runner:
 
 ```bash
 npm run start:demo
 ```
 
-This will present a categorized list of available demos, providing the best way to see the system in action. The
-`showcase-demo.js` is the recommended starting point for new users.
+This will present a categorized list of available demos. The `showcase-demo.js` is the recommended starting point for new users, offering a comprehensive tour of the system's features.
 
 ### Running Tests
+
+To verify the integrity of the system and run all unit and integration tests:
 
 ```bash
 npm test
@@ -106,124 +111,64 @@ npm test
 
 ---
 
-## Usage as a Library
+## Using SeNARS as a Library
 
-Integrate the SeNARS system into your own projects. The system is designed to be used as a library, with a clean,
-promise-based, and observable API.
+SeNARS is designed to be integrated into any Node.js project. Its API is clean, promise-based, and highly observable. Here is a simple example of how to use it:
 
 ```javascript
-import {SystemFactory, Task, parseTerm} from 'senars';
+import { SystemFactory, Task, parseTerm } from 'senars';
 
-// Example of a custom configuration to override the defaults
-const customConfig = {
-    // Make the system forget things faster for this demo
-    memory: {
-        MAINTENANCE_CYCLE_FREQUENCY: 3,
-    },
-    // Use the HTN planner (default)
-    planner: {
-        strategy: 'HTN',
-    }
-};
+async function main() {
+  // 1. Create a system instance with default configuration
+  const system = await SystemFactory.createSystem();
 
-async function runSystem() {
-    // 1. Create a system instance using the factory
-    console.log('Creating and initializing system with custom config...');
-    const system = await SystemFactory.createSystem(customConfig);
-    console.log('System created and initialized.');
+  // 2. Add knowledge to the system (a belief)
+  // This tells the system that "a cat is a type of mammal"
+  const belief = new Task(parseTerm('(cat --> mammal)'), '.');
+  await system.addTasks([belief]);
 
-    // 2. Subscribe to events using the Introspection API
-    console.log('Subscribing to '
-    SystemCycleEnded
-    ' event...'
-)
-    ;
-    system.introspection.on('SystemCycleEnded', (result) => {
-        console.log(`EVENT: Cycle ended. Derived ${result.derivedTasks} new tasks.`);
-    });
+  // 3. Ask the system a question
+  // This asks the system to infer if a cat is warm-blooded
+  const question = new Task(parseTerm('(<cat> --> warm_blooded)'), '?');
+  await system.addTasks([question]);
 
-    // 3. Add knowledge to the system
-    console.log('Adding knowledge...');
-    const beliefTerm = parseTerm('(dog --> mammal)');
-    const belief = new Task(beliefTerm, '.');
-    await system.addTasks([belief]);
+  // 4. Run cognitive cycles to allow the system to reason
+  console.log('Running cognitive cycles...');
+  for (let i = 0; i < 5; i++) {
+    await system.runCycle();
+  }
 
-    const questionTerm = parseTerm('(<dog> --> warm_blooded)');
-    const question = new Task(questionTerm, '?');
-    await system.addTasks([question]);
+  // 5. Query the system's memory for the answer
+  const answers = system.introspection.queryTasks({
+    termKey: '(<cat> --> warm_blooded)',
+    punctuation: '.'
+  });
 
-    // 4. Run the cognitive cycles
-    console.log('Running 5 cognitive cycles...');
-    for (let i = 0; i < 5; i++) {
-        await system.runCycle();
-        const status = system.introspection.getStatus();
-        console.log(`  Cycle ${i + 1}: ${status.memory.shortTermTasks} tasks in STM.`);
-    }
+  if (answers.length > 0) {
+    const bestAnswer = answers[0];
+    console.log(
+      `System concluded "(<cat> --> warm_blooded)" with confidence: ${bestAnswer.state.truthValue.confidence.toFixed(2)}`
+    );
+  } else {
+    console.log('System has not yet reached a conclusion.');
+  }
 
-    // 5. Query the final state using the Introspection API
-    console.log('Querying for the answer...');
-    const answers = system.introspection.queryTasks({termKey: '(<dog> --> warm_blooded)', punctuation: '.'});
-
-    if (answers.length > 0) {
-        const bestAnswer = answers.sort((a, b) => b.state.truthValue.confidence - a.state.truthValue.confidence)[0];
-        console.log(`ANSWER: The system believes "(<dog> --> warm_blooded)" is TRUE with confidence ${bestAnswer.state.truthValue.confidence.toFixed(2)}`);
-    } else {
-        console.log('ANSWER: The system has not yet concluded an answer.');
-    }
-
-    // 6. Stop the system
-    system.stop();
-    console.log('System stopped.');
+  // 6. Stop the system
+  system.stop();
 }
 
-runSystem().catch(console.error);
+main().catch(console.error);
 ```
+
+For more detailed examples and deeper integration guides, please refer to the runnable demos in the `/tests/demos` directory.
 
 ### Language Model Configuration
 
-The system can be configured to use different Large Language Model (LLM) providers. This is controlled by the
-`LLM_PROVIDER` setting in the `LM` section of the configuration.
-
-#### Supported Providers
-
-- **`xenova` (Default for testing):** Uses the [`@xenova/transformers`](https://github.com/xenova/transformers.js)
-  library to run models directly within the Node.js process. This is convenient for testing and development as it
-  requires no external setup, but it may not be suitable for production due to performance and logging verbosity.
-- **`ollama` (Recommended for development):** Uses a local [Ollama](https://ollama.com/) server to run LLMs. This is the
-  recommended approach for local development as it offers better performance and a wider range of models.
-
-#### Setting up Ollama
-
-1. **Install Ollama:** Follow the instructions on the [Ollama website](https://ollama.com/) to download and install it
-   on your system.
-2. **Pull a model:** You need to have a model available that matches the `TEXT_GENERATION_MODEL` setting in your
-   configuration. We recommend starting with `llama3.1`. You can pull it by running:
-   ```bash
-   ollama pull llama3.1
-   ```
-3. **Configure the system:** In your configuration object, set the `LLM_PROVIDER` to `'ollama'` and ensure the
-   `TEXT_GENERATION_MODEL` matches the model you pulled. You can also specify the `OLLAMA_BASE_URL` if your Ollama
-   server is not running on the default `http://127.0.0.1:11434`.
-
-   ```javascript
-   const customConfig = {
-       LM: {
-           LLM_PROVIDER: 'ollama',
-           TEXT_GENERATION_MODEL: 'llama3.1', // Make sure this model is available in Ollama
-           // OLLAMA_BASE_URL: 'http://localhost:11434' // Optional
-       }
-   };
-   ```
+SeNARS supports multiple Large Language Model (LLM) providers, controlled via the configuration object. The default provider, `@xenova/transformers`, runs locally and is great for testing, while the recommended provider for development is `Ollama`, which offers better performance and a wider selection of models. See the `default-config.js` file for more details on configuration options.
 
 ### Planning Strategies
 
-The system supports multiple planning algorithms. The active planner can be set in the configuration object passed to
-`SystemFactory`.
-
-- **`HTN` (Hierarchical Task Network):** The default and recommended planner. It's robust and well-suited for complex,
-  multi-step problems.
-- **`AStar`:** An alternative heuristic-based search planner. **Note:** This planner is currently experimental and has
-  known bugs.
+The system includes multiple planning algorithms, such as **HTN (Hierarchical Task Network)** and an experimental **A*** planner. The desired strategy can be easily set in the system configuration, allowing you to choose the best fit for your application's needs.
 
 ---
 
