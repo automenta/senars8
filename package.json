@@ -16,7 +16,9 @@
     "start:showcase": "node --loader ./scripts/set-env.js demos/showcase-demo.js",
     "test": "jest --silent",
     "lint": "eslint src tests",
-    "lint:fix": "eslint src tests --fix"
+    "lint:fix": "eslint src tests --fix",
+    "dev": "slidev",
+    "docs:build": "slidev build"
   },
   "repository": {
     "type": "git",

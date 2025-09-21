@@ -1,126 +1,92 @@
 # SeNARS 🧠
 
-A Neuro-Symbolic Reasoning System
+A new primitive for neuro-symbolic cognition.
 
----
-
-## What is SeNARS?
-
-SeNARS is a **cognitive architecture** that creates a powerful synergy between:
-
-- **🧠 Symbolic Reasoning**: Rigorous, explainable inference
-- **🤖 Neural Processing**: Creative, semantic understanding
-
-It provides a foundation for building **transparent**, **adaptive**, and **complex-reasoning** AI systems.
-
----
+SeNARS is a cognitive architecture that creates a powerful synergy between symbolic reasoning and neural processing. It provides a foundation for building transparent, adaptive, and complex-reasoning AI systems.
 
 ## Core Concepts
 
-### 🔤 Term
-Immutable representation of a concept
-- Example: `cat`, `(cat --> animal)`
+| Concept | Description |
+|---|---|
+| 🔤 **Term** | Immutable representation of a concept. Examples: `cat`, `(cat --> animal)`. |
+| 🎯 **Task** | Stateful unit of cognitive work (a belief, goal, or question). |
+| 💾 **Memory** | Unified knowledge hypergraph storing terms and tasks. |
 
-### 🎯 Task
-Stateful unit of cognitive work
-- Belief `.` | Goal `!` | Question `?`
-- Truth values (frequency, confidence)
-- Dynamic priorities
-
-### 💾 Memory
-Unified knowledge hypergraph
-- Stores Terms & Tasks
-- Specialized indexes for retrieval
-- Forgetting mechanism for focus
-
----
-
-## System Architecture
+## Architecture
 
 ```mermaid
 graph TD
-    subgraph "System Core"
-        A[System API]
-        F[SystemFactory]
-        I[Introspection API]
+    subgraph "Cognitive Cycle"
+        direction LR
+        Perception --> Prioritization --> Reasoning --> MetaCognition --> Enrichment
+        Enrichment --> Perception
     end
 
-    subgraph "Cognitive Components"
-        M[Memory]
-        R[Reasoner]
-        L[LM]
-        P[Planner]
-        AE[Action Executor]
-        C[Cycle]
+    subgraph "Core Components"
+        Memory
+        Reasoner
+        LM
+        Planner
+        ActionExecutor
     end
 
-    F -- Assembles --> A
-    A -- Exposes --> I
-    A -- Delegates to --> C
-    C -- Orchestrates --> M
-    C -- Orchestrates --> R
-    C -- Orchestrates --> L
-    C -- Orchestrates --> P
-    C -- Orchestrates --> AE
+    Cognitive Cycle -- Orchestrates --> Core Components
+
+    subgraph "System"
+        SystemAPI
+        SystemFactory
+        IntrospectionAPI
+    end
+
+    SystemAPI -- Manages --> Cognitive Cycle
+    SystemFactory -- Assembles --> SystemAPI
 ```
-
----
 
 ## Key Features
 
-| Feature | Description |
-|---------|-------------|
-| 🧠 **Dual-Engine** | Symbolic reasoning + Neural creativity |
-| 🔄 **Meta-Cognition** | Self-improvement through failure detection |
-| 🏛️ **Immutable Constitution** | Core motives & safety constraints |
-| 🎯 **Economic Attention** | Prioritizes cognitive resources |
-| 🔌 **Pluggable Design** | Extend or replace any component |
-
----
+- **🧠 Dual-Engine**: Combines the rigor of symbolic logic with the creativity of large language models.
+- **🔄 Meta-Cognition**: Self-improves by detecting and resolving its own reasoning failures.
+- **🏛️ Immutable Constitution**: Core motives and safety constraints are built-in and unchangeable.
+- **🔌 Pluggable Design**: Easily extend or replace any component, from the reasoner to the memory system.
 
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js (v16 or higher)
 - npm
 
 ### Installation
+
 ```bash
 npm install
 ```
 
 ### Run Demos
+
+To see SeNARS in action, run the interactive demo runner:
+
 ```bash
 npm run start:demo
 ```
 
-Start with `showcase-demo.js` for a comprehensive tour.
+For a comprehensive tour of the system's capabilities, run the showcase demo:
+
+```bash
+npm run start:showcase
+```
 
 ### Run Tests
+
 ```bash
 npm test
 ```
 
----
+## Development
 
-## Development Roadmap
+- **Core Logic**: `src/`
+- **Documentation**: `docs/`
+- **Demos**: `demos/`
+- **Tests**: `tests/`
 
-1. **Core Cognition**
-   - Self-tuning planners
-   - Principled goal refinement
-
-2. **Knowledge Architecture**
-   - Vector database integration
-   - Hybrid memory systems
-
-3. **Cognitive Tooling**
-   - Interactive visualizer
-   - Self-diagnosis of failures
-
-4. **Symbiotic Intelligence**
-   - Explainable AI narratives
-   - Proactive augmentation
-
----
-
-For detailed technical information, see the [Conceptual Overview](./docs/SYSTEM_OVERVIEW.md).
+For a deeper dive, see the [SYSTEM_OVERVIEW.md](./docs/SYSTEM_OVERVIEW.md) and the [slide deck](./docs/slides.md).
