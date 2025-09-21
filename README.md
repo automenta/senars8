@@ -137,59 +137,6 @@ npm test
 
 ---
 
-## Using SeNARS as a Library
-
-SeNARS is designed to be integrated into any Node.js project. Its API is clean, promise-based, and highly observable.
-Here is a simple example of how to use it:
-
-```javascript
-import { SystemFactory, Task, parseTerm } from 'senars';
-
-async function main() {
-  // 1. Create a system instance with default configuration
-  const system = await SystemFactory.createSystem();
-
-  // 2. Add knowledge to the system (a belief)
-  // This tells the system that "a cat is a type of mammal"
-  const belief = new Task(parseTerm('(cat --> mammal)'), '.');
-  await system.addTasks([belief]);
-
-  // 3. Ask the system a question
-  // This asks the system to infer if a cat is warm-blooded
-  const question = new Task(parseTerm('(<cat> --> warm_blooded)'), '?');
-  await system.addTasks([question]);
-
-  // 4. Run cognitive cycles to allow the system to reason
-  console.log('Running cognitive cycles...');
-  for (let i = 0; i < 5; i++) {
-    await system.runCycle();
-  }
-
-  // 5. Query the system's memory for the answer
-  const answers = system.introspection.queryTasks({
-    termKey: '(<cat> --> warm_blooded)',
-    punctuation: '.'
-  });
-
-  if (answers.length > 0) {
-    const bestAnswer = answers[0];
-    console.log(
-      `System concluded "(<cat> --> warm_blooded)" with confidence: ${bestAnswer.state.truthValue.confidence.toFixed(2)}`
-    );
-  } else {
-    console.log('System has not yet reached a conclusion.');
-  }
-
-  // 6. Stop the system
-  system.stop();
-}
-
-main().catch(console.error);
-```
-
-For more detailed examples and deeper integration guides, please refer to the runnable demos in the `/tests/demos`
-directory.
-
 ### Language Model Configuration
 
 SeNARS supports multiple Large Language Model (LLM) providers, controlled via the configuration object. The default
@@ -218,15 +165,3 @@ organized into several tracks:
    ultimate goal of having the system accelerate its own development.
 4. **Symbiotic Intelligence & Interfaces**: Centers on developing truly collaborative reasoning, where the AI can
    explain its thinking and act as a proactive cognitive augmenter for the user.
-
----
-
-## Contributing
-
-We welcome contributions! Please follow these guidelines:
-
-1. Fork the repository.
-2. Create a new branch for your feature or bug fix.
-3. Follow the coding style: The code should be clean, self-documenting, and elegant.
-4. Write tests for any new functionality.
-5. Submit a pull request with a clear description of your changes.

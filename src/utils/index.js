@@ -31,6 +31,7 @@ import {createUnifiedErrorHandler} from './core.js';
 import {debug, error, info, warn} from './logger.js';
 import Validator from './Validator.js';
 import EventBus from '../system/EventBus.js';
+import * as validation from './validation.js';
 
 // Re-export commonly used utilities
 export {
@@ -80,6 +81,7 @@ export {
 
     // Validation
     Validator,
+    validation,
 
     // Event system
     EventBus
