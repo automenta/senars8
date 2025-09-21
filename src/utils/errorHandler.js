@@ -1,6 +1,4 @@
-import {
-    error as logError
-} from './logger.js';
+import { error as logError } from './main.js';
 
 const createErrorClass = (name) => {
     const NewError = class extends Error {
@@ -30,6 +28,18 @@ ERROR_NAMES.forEach(name => {
 
 const isKnownErrorType = error => Object.values(ERROR_CLASSES).some(type => error instanceof type);
 
+const prepareErrorForLogging = error => {
+    if (error == null) {
+        const nullError = new Error('Null or undefined error');
+        nullError.originalStack = new Error().stack;
+        return nullError;
+    }
+    if (error.stack && !error.originalStack) {
+        error.originalStack = error.stack;
+    }
+    return error;
+};
+
 const logAndReturn = (error, context, returnValue = null) => {
     const preparedError = prepareErrorForLogging(error);
     const fullContext = context ? `[${context}] ` : '';
@@ -53,18 +63,6 @@ const logAndThrow = (error, context) => {
 
     logError(preparedError.message, preparedError);
     throw preparedError;
-};
-
-const prepareErrorForLogging = error => {
-    if (error == null) {
-        const nullError = new Error('Null or undefined error');
-        nullError.originalStack = new Error().stack;
-        return nullError;
-    }
-    if (error.stack && !error.originalStack) {
-        error.originalStack = error.stack;
-    }
-    return error;
 };
 
 const logAndExit = (error, exitCode = 1) => {

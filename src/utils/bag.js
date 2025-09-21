@@ -1,85 +1,40 @@
+/**
+ * A simple Bag data structure for weighted random sampling.
+ */
 class Bag {
-    constructor(capacity = Infinity) {
-        this.capacity = capacity;
+    constructor() {
         this.items = [];
-        this.isDirty = true;
-        this.cumulativePriorities = [];
-        this.totalPriority = 0;
+        this.weights = [];
+        this.totalWeight = 0;
     }
 
-    put(item, priority) {
-        // Early return for invalid priorities
-        if (typeof priority !== 'number' || priority <= 0) return;
-        
-        this.items.push({ item, priority });
-        this.isDirty = true;
+    put(item, weight = 1) {
+        this.items.push(item);
+        this.weights.push(weight);
+        this.totalWeight += weight;
     }
 
     commit() {
-        // Early return if already committed
-        if (!this.isDirty) return;
-
-        // Sort items by priority (descending)
-        this.items.sort((a, b) => b.priority - a.priority);
-        
-        // Truncate to capacity if needed
-        if (this.items.length > this.capacity) {
-            this.items.length = this.capacity;
-        }
-
-        // Pre-allocate arrays for better performance
-        const length = this.items.length;
-        this.totalPriority = 0;
-        this.cumulativePriorities = new Array(length);
-        
-        // Calculate cumulative priorities in a single pass
-        for (let i = 0; i < length; i++) {
-            this.totalPriority += this.items[i].priority;
-            this.cumulativePriorities[i] = this.totalPriority;
-        }
-
-        this.isDirty = false;
+        // No-op in this simple implementation
     }
 
     sample() {
-        // Early returns for common cases
-        if (this.isDirty) this.commit();
-        if (this.isEmpty()) return null;
-
-        // Use faster random number generation
-        const random = Math.random() * this.totalPriority;
-        
-        // Binary search with bit shifting for faster division
-        let low = 0;
-        let high = this.cumulativePriorities.length - 1;
-        
-        while (low < high) {
-            const mid = (low + high) >> 1; // Bit shift instead of division
-            if (random > this.cumulativePriorities[mid]) {
-                low = mid + 1;
-            } else {
-                high = mid;
-            }
+        if (this.items.length === 0) {
+            return undefined;
         }
-        
-        // Use optional chaining and nullish coalescing for cleaner code
-        return this.items[low]?.item ?? null;
+
+        let random = Math.random() * this.totalWeight;
+        for (let i = 0; i < this.items.length; i++) {
+            if (random < this.weights[i]) {
+                return this.items[i];
+            }
+            random -= this.weights[i];
+        }
+        return this.items[this.items.length - 1];
     }
 
     size() {
         return this.items.length;
-    }
-
-    clear() {
-        // Reuse arrays when possible for better memory performance
-        this.items.length = 0;
-        this.cumulativePriorities.length = 0;
-        this.totalPriority = 0;
-        this.isDirty = true;
-    }
-
-    isEmpty() {
-        return this.items.length === 0;
     }
 }
 

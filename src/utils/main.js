@@ -1,3 +1,7 @@
+/* eslint-disable no-console */
+
+// --- Logger ---
+
 const LOG_LEVELS = {
     ERROR: 0,
     WARN: 1,
@@ -5,10 +9,11 @@ const LOG_LEVELS = {
     DEBUG: 3,
 };
 
-const currentLogLevel = LOG_LEVELS[process.env.LOG_LEVEL] || LOG_LEVELS.WARN;
-const shouldLog = (level) => (LOG_LEVELS[level] ?? LOG_LEVELS.INFO) <= currentLogLevel;
+const currentLogLevel = LOG_LEVELS[process.env.LOG_LEVEL?.toUpperCase()] ?? LOG_LEVELS.WARN;
 
-const getLogFunction = (level) => ({
+const shouldLog = level => (LOG_LEVELS[level] ?? LOG_LEVELS.INFO) <= currentLogLevel;
+
+const getLogFunction = level => ({
     ERROR: console.error,
     WARN: console.warn,
 }[level] || console.log);
@@ -29,15 +34,10 @@ const log = (level, message, ...args) => {
     }
 };
 
-const error = (message, ...args) => log('ERROR', message, ...args);
-const warn = (message, ...args) => log('WARN', message, ...args);
-const info = (message, ...args) => log('INFO', message, ...args);
-const debug = (message, ...args) => log('DEBUG', message, ...args);
+export const error = (message, ...args) => log('ERROR', message, ...args);
+export const warn = (message, ...args) => log('WARN', message, ...args);
+export const info = (message, ...args) => log('INFO', message, ...args);
+export const debug = (message, ...args) => log('DEBUG', message, ...args);
+export { LOG_LEVELS };
 
-export {
-    error,
-    warn,
-    info,
-    debug,
-    LOG_LEVELS
-};
+

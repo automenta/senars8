@@ -1,4 +1,4 @@
-import {warn} from '../utils/logger.js';
+import { warn } from '../utils/index.js';
 import coreSchema from './schemas/coreSchema.js';
 import systemSchema from './schemas/systemSchema.js';
 import memorySchema from './schemas/memorySchema.js';

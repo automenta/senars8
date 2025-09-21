@@ -1,4 +1,4 @@
-import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
+import { createUnifiedErrorHandler } from '../utils/errorHandler.js';
 import NarseseTranslator from './NarseseTranslator.js';
 import DataIngestor from './DataIngestor.js';
 import AnalysisEngine from './AnalysisEngine.js';

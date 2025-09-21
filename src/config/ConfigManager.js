@@ -1,6 +1,6 @@
 import {validateConfig} from './configSchema.js';
 import defaultConfig from './default-config.js';
-import {safeGet} from '../utils/collections/index.js';
+import { safeGet } from '../utils/index.js';
 
 class ConfigManager {
     constructor(userConfig = {}) {

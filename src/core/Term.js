@@ -5,7 +5,7 @@ import EmbeddingStore from '../utils/embeddingStore.js';
 import {OP, REL} from '../config/constants.js';
 import * as validation from '../utils/validation.js';
 import BaseEntity from './BaseEntity.js';
-import {isNonEmptyArray} from '../utils/collections/index.js';
+import { isNonEmptyArray } from '../utils/index.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import {tokenize} from '../parser/lexer.js';
 import {structuralSimilarity, findSimilarTerms} from './TermUtils.js';

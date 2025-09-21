@@ -1,7 +1,7 @@
 import Task from '../src/core/Task.js';
 import {parseTerm} from '../src/index.js';
 import SystemFactory from '../src/system/SystemFactory.js';
-import {debug, warn} from '../src/utils/logger.js';
+import { debug, warn } from '../src/utils/index.js';
 
 const anside = {
     reset: "\x1b[0m",

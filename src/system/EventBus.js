@@ -1,5 +1,5 @@
-import {error, warn} from '../utils/logger.js';
-import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
+import { error, warn } from '../utils/main.js';
+import { createUnifiedErrorHandler } from '../utils/errorHandler.js';
 
 const errorHandler = createUnifiedErrorHandler('EventBus');
 

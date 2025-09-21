@@ -1,11 +1,11 @@
 import Term from '../core/Term.js';
 import Task from '../core/Task.js';
 import EventBus from '../system/EventBus.js';
-import {normalizeToArray} from '../utils/collections/index.js';
-import {isTask} from '../utils/task-utils.js';
+import { normalizeToArray } from '../utils/index.js';
+import { isTask } from '../utils/index.js';
 import {consolidateMemory, getHighestPriorityTasksWithPQ} from './memoryUtils.js';
 import TimeBasedForgettingStrategy from './strategies/TimeBasedForgettingStrategy.js';
-import {debug, warn} from '../utils/logger.js';
+import { debug, warn } from '../utils/main.js';
 import MemoryIndexer from './MemoryIndexer.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';

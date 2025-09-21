@@ -1,6 +1,6 @@
 import BasePlanner from './BasePlanner.js';
 import globalConfig from '../config/index.js';
-import {debug} from '../utils/logger.js';
+import { debug } from '../utils/index.js';
 
 class HTNPlanner extends BasePlanner {
     constructor(memory, lm, config = {}) {

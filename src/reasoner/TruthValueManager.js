@@ -1,6 +1,6 @@
 import config from '../config/index.js';
-import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
-import {getBeliefTasks} from '../utils/task-utils.js';
+import { createUnifiedErrorHandler } from '../utils/errorHandler.js';
+import { getBeliefTasks } from '../utils/task.js';
 
 const errorHandler = createUnifiedErrorHandler('TruthValueManager');
 

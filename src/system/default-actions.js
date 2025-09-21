@@ -1,4 +1,4 @@
-import {info} from '../utils/logger.js';
+import { info } from '../utils/main.js';
 
 const defaultActionHandlers = {
     'print_*': action => ({message: `PRINT ACTION: ${action.parameters.join(' ')}`}),

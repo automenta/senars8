@@ -1,10 +1,5 @@
-import {
-    createUnifiedErrorHandler
-} from '../utils/errorHandler.js';
-import {
-    debug,
-    info
-} from '../utils/logger.js';
+import { createUnifiedErrorHandler } from '../utils/errorHandler.js';
+import { debug, info } from '../utils/main.js';
 import ConfigManager from '../config/ConfigManager.js';
 import System from './System.js';
 import Cycle from './Cycle.js';

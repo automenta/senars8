@@ -1,4 +1,4 @@
-import { isEmptyArray } from './collections/index.js';
+import { isEmptyArray } from './collection.js';
 
 /**
  * Validate that a value is a non-empty string

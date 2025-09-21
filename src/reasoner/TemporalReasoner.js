@@ -1,5 +1,5 @@
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
-import {debug} from '../utils/logger.js';
+import { debug } from '../utils/main.js';
 import * as Module from './temporal/index.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
 

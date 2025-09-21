@@ -1,4 +1,4 @@
-import {generateOptimizedId} from '../utils/idGenerator.js';
+import { generateOptimizedId } from '../utils/index.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
 import TruthValueManager from '../reasoner/TruthValueManager.js';
