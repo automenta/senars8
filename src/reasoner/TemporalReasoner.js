@@ -1,31 +1,23 @@
-import { createUnifiedErrorHandler } from '../utils/unifiedErrorHandler.js';
-import TemporalRelationshipInference from './temporal/TemporalRelationshipInference.js';
-import TemporalImplicationInference from './temporal/TemporalImplicationInference.js';
-import TemporalPatternDetection from './temporal/TemporalPatternDetection.js';
-import TemporalCycleDetection from './temporal/TemporalCycleDetection.js';
-import TemporalAbstraction from './temporal/TemporalAbstraction.js';
-import TemporalAnomalyDetection from './temporal/TemporalAnomalyDetection.js';
-import FutureTaskPrediction from './temporal/FutureTaskPrediction.js';
-import TemporalClusterDetection from './temporal/TemporalClusterDetection.js';
-import TemporalCoherence from './temporal/TemporalCoherence.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 import {debug} from '../utils/logger.js';
-import ConfigAccessor from '../config/ConfigAccessor.js';
+import * as Module from './temporal/index.js';
+import createConfigAccessor from '../config/ConfigAccessor.js';
 
 const errorHandler = createUnifiedErrorHandler('TemporalReasoner');
 
 class TemporalReasoner {
     constructor(configManager) {
-        this.config = new ConfigAccessor(configManager);
+        this.config = createConfigAccessor(configManager, 'temporal');
         this.inferenceModules = [
-            TemporalRelationshipInference,
-            TemporalImplicationInference,
-            TemporalPatternDetection,
-            TemporalCycleDetection,
-            TemporalAbstraction,
-            TemporalAnomalyDetection,
-            FutureTaskPrediction,
-            TemporalClusterDetection,
-            TemporalCoherence,
+            Module.TemporalRelationshipInference,
+            Module.TemporalImplicationInference,
+            Module.TemporalPatternDetection,
+            Module.TemporalCycleDetection,
+            Module.TemporalAbstraction,
+            Module.TemporalAnomalyDetection,
+            Module.FutureTaskPrediction,
+            Module.TemporalClusterDetection,
+            Module.TemporalSummaryGeneration
         ];
     }
 

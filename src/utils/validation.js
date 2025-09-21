@@ -1,15 +1,16 @@
-import Validator from './Validator.js';
+import {Validation} from './Validation.js';
 
-const validateString = (value, name = 'Value') => Validator.validateString(value, name);
-const validateNonEmptyArray = (value, name = 'Value') => Validator.validateNonEmptyArray(value, name);
-const validateArray = (value, name = 'Value') => Validator.validateArray(value, name);
-const validateObject = (value, name = 'Value') => Validator.validateObject(value, name);
-const validateTask = (value, name = 'Value') => Validator.validateTask(value, name);
-const validateTerm = (term, name = 'Term') => Validator.validateTerm(term, name);
-const validatePunctuation = (punctuation, name = 'Punctuation') => Validator.validatePunctuation(punctuation, name);
-const validateTruthValue = (truthValue, name = 'TruthValue') => Validator.validateTruthValue(truthValue, name);
+const validateString = (value, name = 'Value') => Validation.string(value, name);
+const validateNonEmptyArray = (value, name = 'Value') => Validation.nonEmptyArray(value, name);
+const validateArray = (value, name = 'Value') => Validation.array(value, name);
+const validateObject = (value, name = 'Value') => Validation.object(value, name);
+const validateTask = (value, name = 'Value') => Validation.task(value, name);
+const validateTerm = (term, name = 'Term') => Validation.term(term, name);
+const validatePunctuation = (punctuation, name = 'Punctuation') => Validation.punctuation(punctuation, name);
+const validateTruthValue = (truthValue, name = 'TruthValue') => Validation.truthValue(truthValue, name);
 
 export {
+    Validation,
     validateString,
     validateNonEmptyArray,
     validateArray,

@@ -1,13 +1,13 @@
 import {parseTerm} from '../parser/parse-utils.js';
-import {cosineSimilarity} from '../utils/math.js';
+import {cosineSimilarity, embeddingsEqual} from '../utils/math.js';
 import config from '../config/index.js';
 import EmbeddingStore from '../utils/EmbeddingStore.js';
 import {OP, REL} from '../config/constants.js';
-import {validateString} from '../utils/validation.js';
+import {Validation} from '../utils/validation.js';
 import BaseEntity from './BaseEntity.js';
 import {isNonEmptyArray} from '../utils/collections/index.js';
 import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
-import lexer from '../parser/lexer.js';
+import {tokenize} from '../parser/lexer.js';
 
 const errorHandler = createUnifiedErrorHandler('Term');
 
@@ -20,7 +20,7 @@ class Term extends BaseEntity {
 
     constructor(key, embedding = [], complexity = 1) {
         super();
-        validateString(key, 'Term key');
+        Validation.string(key, 'Term key');
 
         this.#key = key;
         this.#embeddingRef = isNonEmptyArray(embedding) 
@@ -79,16 +79,7 @@ class Term extends BaseEntity {
             if (term1 === term2) return true;
             if (!term1 || !term2 || term1.key !== term2.key || term1.complexity !== term2.complexity) return false;
 
-            const embedding1 = term1.embedding;
-            const embedding2 = term2.embedding;
-
-            if (embedding1.length !== embedding2.length) return false;
-
-            for (let i = 0; i < embedding1.length; i++) {
-                if (Math.abs(embedding1[i] - embedding2[i]) >= 1e-6) return false;
-            }
-
-            return true;
+            return embeddingsEqual(term1.embedding, term2.embedding);
         }, 'termsEqual', false);
     }
 
@@ -165,19 +156,8 @@ class Term extends BaseEntity {
                 return 1.0;
             }
 
-            const getTokens = (text) => {
-                const l = lexer.clone().reset(text);
-                const tokens = [];
-                for (let tok = l.next(); tok; tok = l.next()) {
-                    if (tok.type !== 'whitespace') {
-                        tokens.push(tok.value);
-                    }
-                }
-                return tokens;
-            };
-
-            const tokens1 = getTokens(termKey1);
-            const tokens2 = getTokens(termKey2);
+            const tokens1 = tokenize(termKey1);
+            const tokens2 = tokenize(termKey2);
 
             // Optimize for single token case
             if (tokens1.length === 1 && tokens2.length === 1) {

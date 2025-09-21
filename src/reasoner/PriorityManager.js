@@ -1,11 +1,13 @@
-import {cosineSimilarity} from '../utils/math.js';
-import {calculateTemporalPriority} from '../utils/temporal/index.js';
-import ConfigAccessor from '../config/ConfigAccessor.js';
+import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
+import {debug} from '../utils/logger.js';
+import createConfigAccessor from '../config/ConfigAccessor.js';
+
+const errorHandler = createUnifiedErrorHandler('PriorityManager');
 
 class PriorityManager {
     constructor(memory, configManager) {
         this.memory = memory;
-        this.config = new ConfigAccessor(configManager);
+        this.config = createConfigAccessor(configManager);
     }
 
     calculatePriority(task, currentTime, driveEmbeddings) {

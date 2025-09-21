@@ -1,12 +1,9 @@
-import {suppressOnnxWarnings} from '../utils/onnxSuppression.js';
-import registerDefaultActions from './default-actions.js';
-
-suppressOnnxWarnings();
 import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
 import {debug, error as logError, info, warn} from '../utils/logger.js';
 import {normalizeToArray} from '../utils/collections/index.js';
 import Introspection from './Introspection.js';
-import ConfigAccessor from '../config/ConfigAccessor.js';
+import createConfigAccessor from '../config/ConfigAccessor.js';
+import registerDefaultActions from './default-actions.js';
 
 const errorHandler = createUnifiedErrorHandler('System');
 
@@ -31,7 +28,7 @@ class System {
             metaCognition,
             perception
         });
-        this.config = new ConfigAccessor(configManager);
+        this.config = createConfigAccessor(configManager, 'system');
         this.memory = memory;
         this.reasoner = reasoner;
         this.lm = lm;

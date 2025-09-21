@@ -4,7 +4,7 @@ import rules from './rules/index.js';
 import TemporalReasoner from './TemporalReasoner.js';
 import {debug, error as logError, info} from '../utils/logger.js';
 import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
-import ConfigAccessor from '../config/ConfigAccessor.js';
+import createConfigAccessor from '../config/ConfigAccessor.js';
 
 const errorHandler = createUnifiedErrorHandler('Reasoner');
 
@@ -18,9 +18,9 @@ const getCombinationKey = (ruleName, tasks) =>
 
 class Reasoner {
     constructor({temporalReasoner} = {}, configManager) {
-        this.config = new ConfigAccessor(configManager);
+        this.config = createConfigAccessor(configManager, 'reasoner');
         this.temporalReasoner = temporalReasoner || new TemporalReasoner(configManager);
-        const strategyName = this.config.getString('reasoner.strategy', 'BagSampling');
+        const strategyName = this.config.getString('strategy', 'BagSampling');
         this.strategy = this._initializeStrategy(strategyName);
         this.rules = rules;
         info('Reasoner initialized with strategy:', this.strategy.constructor.name);

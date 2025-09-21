@@ -1,5 +1,6 @@
 import {validateConfig} from './configSchema.js';
 import defaultConfig from './default-config.js';
+import {safeGet} from '../utils/collections/index.js';
 
 class ConfigManager {
     constructor(userConfig = {}) {
@@ -31,7 +32,7 @@ class ConfigManager {
     }
 
     get(path, defaultValue = undefined) {
-        return path.split('.').reduce((acc, part) => acc?.[part], this.validatedConfig) ?? defaultValue;
+        return safeGet(this.validatedConfig, path, defaultValue);
     }
 
     getNumber(path, defaultValue = 0) {

@@ -1,26 +1,34 @@
 import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
-import {isNonEmptyArray} from '../utils/collections/index.js';
-import {generateActionId} from '../utils/IdGenerator.js';
-import EventBus from './EventBus.js';
-import ConfigAccessor from '../config/ConfigAccessor.js';
+import {debug, error as logError, info, warn} from '../utils/logger.js';
+import ResourceAllocator from './ResourceAllocator.js';
+import createConfigAccessor from '../config/ConfigAccessor.js';
+import {sumBy} from '../utils/collections/index.js';
 
 const errorHandler = createUnifiedErrorHandler('ActionExecutor');
 
 class ActionExecutor {
     constructor(memory, configManager) {
         this.memory = memory;
-        this.config = new ConfigAccessor(configManager);
+        this.config = createConfigAccessor(configManager, 'ACTION_EXECUTOR');
         this.actionHandlers = new Map();
-        this.actionHistory = [];
         this.resources = new Map();
         this.constraints = new Map();
-        this.actionQueue = [];
-        this.processing = false;
+        this.actionHistory = [];
+        this.resourceAllocator = new ResourceAllocator();
+        this._initializeResources();
+        this._initializeConstraints();
+    }
 
-        this.config.getArray('ACTION_EXECUTOR.RESOURCES', []).forEach(res => this.registerResource(res.name, res));
-        Object.entries(this.config.getObject('ACTION_EXECUTOR.CONSTRAINTS', {})).forEach(([name, func]) => {
+    _initializeResources() {
+        this.config.getArray('RESOURCES', []).forEach(res => this.registerResource(res.name, res));
+        Object.entries(this.config.getObject('CONSTRAINTS', {})).forEach(([name, func]) => {
             this.setConstraint(name, func.bind(this));
         });
+    }
+
+    _initializeConstraints() {
+        // Initialize default constraints if needed
+        // This method can be extended to add default constraints
     }
 
     registerActionHandler(actionPattern, handler) {

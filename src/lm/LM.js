@@ -13,7 +13,10 @@ import ProactiveEnricher from './ProactiveEnricher.js';
 import NLP from './NLP.js';
 import {debug, info, warn} from '../utils/logger.js';
 import {createUnifiedErrorHandler} from '../utils/unifiedErrorHandler.js';
-import ConfigAccessor from '../config/ConfigAccessor.js';
+import {suppressOnnxWarnings} from '../utils/onnxSuppression.js';
+import createConfigAccessor from '../config/ConfigAccessor.js';
+
+suppressOnnxWarnings();
 
 const errorHandler = createUnifiedErrorHandler('LM');
 
@@ -25,7 +28,7 @@ const PIPELINE_TYPES = {
 
 class LM {
     constructor(configManager) {
-        this.config = new ConfigAccessor(configManager);
+        this.config = createConfigAccessor(configManager, 'LM');
         this._pipelineFactory = PipelineFactory;
         this._llm = null;
         this._reasoner = null;
