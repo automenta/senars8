@@ -2,6 +2,7 @@ import Memory from '../../core/memory/Memory.js';
 import Task from '../../core/core/Task.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
 import ConfigManager from '../../core/config/ConfigManager.js';
+import configService from '../../core/config/ConfigService.js';
 
 const createTestConfig = () => new ConfigManager({
     memory: {
@@ -41,11 +42,13 @@ const createTask = (term, {
 
 describe('Memory', () => {
     let memory;
-    let mockEventBus;
 
     beforeEach(() => {
+        // Reset the config service to ensure clean state for each test
+        configService.reset();
+        
         const configManager = createTestConfig();
-        mockEventBus = {
+        const mockEventBus = {
             on: jest.fn(),
             emit: jest.fn(),
         };
@@ -67,7 +70,7 @@ describe('Memory', () => {
         expect(memory.shortTermTasks.size).toBe(2);
 
         // Manually trigger the event handler
-        const systemCycleEndedHandler = mockEventBus.on.mock.calls.find(call => call[0] === 'SystemCycleEnded')[1];
+        const systemCycleEndedHandler = memory.eventBus.on.mock.calls.find(call => call[0] === 'SystemCycleEnded')[1];
         systemCycleEndedHandler();
 
         expect(memory.shortTermTasks.size).toBe(1);
@@ -85,7 +88,7 @@ describe('Memory', () => {
         expect(memory.shortTermTasks.size).toBe(1);
 
         // Manually trigger the event handler
-        const systemCycleEndedHandler = mockEventBus.on.mock.calls.find(call => call[0] === 'SystemCycleEnded')[1];
+        const systemCycleEndedHandler = memory.eventBus.on.mock.calls.find(call => call[0] === 'SystemCycleEnded')[1];
         systemCycleEndedHandler();
 
         expect(memory.shortTermTasks.size).toBe(1);

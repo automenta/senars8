@@ -14,7 +14,7 @@ import NLP from './NLP.js';
 import {debug, info, warn} from '../utils/logger.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import {suppressOnnxWarnings} from '../utils/onnxSuppression.js';
-import createConfigAccessor from '../config/ConfigAccessor.js';
+import { configService } from '../config/index.js';
 
 suppressOnnxWarnings();
 
@@ -28,7 +28,13 @@ const PIPELINE_TYPES = {
 
 class LM {
     constructor(configManager) {
-        this.config = createConfigAccessor(configManager, 'LM');
+        // Initialize config service with the config manager's configuration
+        // Always initialize to ensure we use the correct config for this instance
+        if (configManager) {
+            configService.initialize(configManager.getAll());
+        }
+        
+        this.config = configService;
         this._pipelineFactory = PipelineFactory;
         this._llm = null;
         this._reasoner = null;

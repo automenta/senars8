@@ -3,7 +3,7 @@ import AStarPlanner from '../reasoner/AStarPlanner.js';
 import Plan from './Plan.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import {debug, warn} from '../utils/logger.js';
-import createConfigAccessor from '../config/ConfigAccessor.js';
+import { configService } from '../config/index.js';
 
 const errorHandler = createUnifiedErrorHandler('Planner');
 
@@ -13,8 +13,14 @@ class Planner {
             throw new Error('Planner requires memory, lm, and actionExecutor instances.');
         }
 
-        this.config = createConfigAccessor(configManager, 'planner');
-        const strategyName = this.config.getString('strategy', 'HTN');
+        // Initialize config service with the config manager's configuration
+        // Always initialize to ensure we use the correct config for this instance
+        if (configManager) {
+            configService.initialize(configManager.getAll());
+        }
+        
+        this.config = configService;
+        const strategyName = this.config.getString('planner.strategy', 'HTN');
         const strategyMap = {
             'HTN': HTNPlanner,
             'AStar': AStarPlanner

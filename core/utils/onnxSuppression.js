@@ -17,16 +17,32 @@ export function suppressOnnxWarnings() {
         process.env.ORT_LOGGING_HIDE_TIMESTAMPS = '1';
     }
 
-    env.logLevel = 'error';
+    env.logLevel = 'fatal';
 
     if (env.backends?.onnx) {
-        env.backends.onnx.logLevel = 'error';
+        env.backends.onnx.logLevel = 'fatal';
         if (env.backends.onnx.env) {
-            env.backends.onnx.env.logLevel = 'error';
+            env.backends.onnx.env.logLevel = 'fatal';
             if (env.backends.onnx.env.wasm) {
                 env.backends.onnx.env.wasm.numThreads = 1;
             }
         }
+    }
+    
+    // Additional suppression for ONNX Runtime warnings
+    if (typeof console !== 'undefined') {
+        // Store original console.warn
+        const originalWarn = console.warn;
+        // Override console.warn to filter out ONNX Runtime warnings
+        console.warn = function(...args) {
+            // Check if the warning is from ONNX Runtime
+            if (args.some(arg => typeof arg === 'string' && arg.includes('[W:onnxruntime'))) {
+                // Suppress these warnings
+                return;
+            }
+            // Call original warn for other warnings
+            return originalWarn.apply(console, args);
+        };
     }
 }
 

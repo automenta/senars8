@@ -2,7 +2,7 @@ import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import {debug, error as logError, info, warn} from '../utils/logger.js';
 import {normalizeToArray} from '../utils/collections/index.js';
 import Introspection from './Introspection.js';
-import createConfigAccessor from '../config/ConfigAccessor.js';
+import { configService } from '../config/index.js';
 import registerDefaultActions from './default-actions.js';
 
 const errorHandler = createUnifiedErrorHandler('System');
@@ -20,6 +20,13 @@ class System {
         perception,
         eventBus
     ) {
+        // Initialize config service with the config manager's configuration
+        // Always initialize to ensure we use the correct config for this instance
+        if (configManager) {
+            configService.initialize(configManager.getAll());
+        }
+        
+        this.config = configService;
         debug('System: Constructor called with components:', {
             memory,
             reasoner,
@@ -30,7 +37,6 @@ class System {
             metaCognition,
             perception,
         });
-        this.config = createConfigAccessor(configManager, 'system');
         this.eventBus = eventBus;
         this.memory = memory;
         this.reasoner = reasoner;

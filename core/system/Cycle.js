@@ -1,7 +1,7 @@
 import {debug, info} from '../utils/logger.js';
 import {getGoalTasks} from '../utils/task-utils.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
-import createConfigAccessor from '../config/ConfigAccessor.js';
+import { configService } from '../config/index.js';
 
 const errorHandler = createUnifiedErrorHandler('Cycle');
 
@@ -19,7 +19,13 @@ class Cycle {
         priorityManager,
         eventBus
     ) {
-        this.config = createConfigAccessor(configManager);
+        // Initialize config service with the config manager's configuration
+        // Always initialize to ensure we use the correct config for this instance
+        if (configManager) {
+            configService.initialize(configManager.getAll());
+        }
+        
+        this.config = configService;
         this.memory = memory;
         this.reasoner = reasoner;
         this.lm = lm;
