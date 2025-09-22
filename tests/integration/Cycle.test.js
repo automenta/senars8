@@ -39,12 +39,15 @@ describe('Cycle Integration Test', () => {
                 strategy: 'HTN'
             }
         });
-        memory = new Memory(configManager);
+        const mockEventBus = {
+            on: jest.fn(),
+            emit: jest.fn(),
+            handle: jest.fn(),
+        };
+        memory = new Memory(configManager, mockEventBus);
         lm = new LM(configManager);
         const temporalReasoner = new TemporalReasoner(configManager);
-        reasoner = new Reasoner({
-            temporalReasoner
-        }, configManager);
+        reasoner = new Reasoner(configManager, temporalReasoner);
         const actionExecutor = new ActionExecutor(memory, configManager);
         // Register default actions
         registerDefaultActions(actionExecutor);
@@ -56,17 +59,15 @@ describe('Cycle Integration Test', () => {
             console.error('Failed to register default actions:', error);
             return null; // Return a value to satisfy the promise/always-return rule
         });
-        const perception = new Perception(memory, lm);
+        const perception = new Perception(memory, lm, mockEventBus);
         const planner = new Planner(memory, lm, actionExecutor, configManager);
         const contradictionAnalyzer = new ContradictionAnalyzer();
         const resolutionStrategy = new ResolutionStrategy();
-        const metaCognition = new MetaCognition(configManager, {
-            contradictionAnalyzer,
-            resolutionStrategy
-        });
-        const priorityManager = new PriorityManager(memory);
+        const metaCognition = new MetaCognition(configManager, contradictionAnalyzer, resolutionStrategy, mockEventBus);
+        const priorityManager = new PriorityManager(memory, configManager);
 
-        cycle = new Cycle(configManager, {
+        cycle = new Cycle(
+            configManager,
             memory,
             reasoner,
             lm,
@@ -75,8 +76,9 @@ describe('Cycle Integration Test', () => {
             planner,
             metaCognition,
             temporalReasoner,
-            priorityManager
-        });
+            priorityManager,
+            mockEventBus
+        );
 
         lm.generateHypotheses.mockResolvedValue([]);
         lm.evaluateAndRankHypotheses.mockImplementation(async (_, hypotheses) => hypotheses);

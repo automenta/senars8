@@ -34,9 +34,13 @@ describe('Reasoner Integration Test', () => {
 
     beforeEach(() => {
         const configManager = createTestConfig();
-        memory = new Memory(configManager);
+        const mockEventBus = {
+            on: jest.fn(),
+            emit: jest.fn(),
+        };
+        memory = new Memory(configManager, mockEventBus);
         lm = new LM(configManager);
-        reasoner = new Reasoner({}, configManager);
+        reasoner = new Reasoner(configManager, null); // temporalReasoner is not used in these tests
         lm.bootstrapTerm.mockImplementation(async termKey => new Term(termKey, [], 1));
     });
 

@@ -2,7 +2,6 @@ import Memory from '../../core/memory/Memory.js';
 import Task from '../../core/core/Task.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
 import ConfigManager from '../../core/config/ConfigManager.js';
-import EventBus from '../../core/system/EventBus.js';
 
 const createTestConfig = () => new ConfigManager({
     memory: {
@@ -42,14 +41,15 @@ const createTask = (term, {
 
 describe('Memory', () => {
     let memory;
+    let mockEventBus;
 
     beforeEach(() => {
         const configManager = createTestConfig();
-        memory = new Memory(configManager);
-    });
-
-    afterEach(() => {
-        EventBus.clear();
+        mockEventBus = {
+            on: jest.fn(),
+            emit: jest.fn(),
+        };
+        memory = new Memory(configManager, mockEventBus);
     });
 
     it('should prune expired, unimportant tasks during maintenance', async () => {
@@ -65,7 +65,11 @@ describe('Memory', () => {
         });
         await memory.addTasks([task1, task2]);
         expect(memory.shortTermTasks.size).toBe(2);
-        EventBus.emit('SystemCycleEnded');
+
+        // Manually trigger the event handler
+        const systemCycleEndedHandler = mockEventBus.on.mock.calls.find(call => call[0] === 'SystemCycleEnded')[1];
+        systemCycleEndedHandler();
+
         expect(memory.shortTermTasks.size).toBe(1);
         expect(memory.shortTermTasks.has(task2.id)).toBe(true);
     });
@@ -79,7 +83,11 @@ describe('Memory', () => {
         });
         await memory.addTasks([task1]);
         expect(memory.shortTermTasks.size).toBe(1);
-        EventBus.emit('SystemCycleEnded');
+
+        // Manually trigger the event handler
+        const systemCycleEndedHandler = mockEventBus.on.mock.calls.find(call => call[0] === 'SystemCycleEnded')[1];
+        systemCycleEndedHandler();
+
         expect(memory.shortTermTasks.size).toBe(1);
         expect(memory.shortTermTasks.has(task1.id)).toBe(true);
     });

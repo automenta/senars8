@@ -1,6 +1,5 @@
 import Term from '../core/Term.js';
 import Task from '../core/Task.js';
-import EventBus from '../system/EventBus.js';
 import {normalizeToArray} from '../utils/collections/index.js';
 import {isTask} from '../utils/task-utils.js';
 import {consolidateMemory, getHighestPriorityTasksWithPQ} from './memoryUtils.js';
@@ -17,8 +16,9 @@ const FORGETTING_STRATEGIES = {
 };
 
 class Memory {
-    constructor(configManager) {
+    constructor(configManager, eventBus) {
         this.config = createConfigAccessor(configManager, 'memory');
+        this.eventBus = eventBus;
         this.terms = new Map();
         this.shortTermTasks = new Map();
         this.longTermTasks = new Map();
@@ -36,8 +36,8 @@ class Memory {
     }
 
     _registerEventListeners() {
-        EventBus.on('NewTasksCreated', tasks => this.addTasks(tasks));
-        EventBus.on('SystemCycleEnded', () => this._performMaintenanceIfNeeded());
+        this.eventBus.on('tasks.add', tasks => this.addTasks(tasks));
+        this.eventBus.on('SystemCycleEnded', () => this._performMaintenanceIfNeeded());
     }
 
     _performMaintenanceIfNeeded() {
@@ -175,7 +175,7 @@ class Memory {
 
     clone() {
         return errorHandler.executeSync(() => {
-            const newMemory = new Memory(this.config.configManager);
+            const newMemory = new Memory(this.config.configManager, this.eventBus);
             Object.assign(newMemory, {
                 terms: new Map(this.terms),
                 shortTermTasks: new Map(this.shortTermTasks),

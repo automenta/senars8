@@ -10,7 +10,11 @@ describe('AStarPlanner Debug Test', () => {
 
     beforeEach(() => {
         const configManager = new ConfigManager();
-        memory = new Memory(configManager);
+        const mockEventBus = {
+            on: jest.fn(),
+            emit: jest.fn(),
+        };
+        memory = new Memory(configManager, mockEventBus);
         const lm = {
             bootstrapTerm: async termKey => new Term(termKey, [0.1, 0.2, 0.3])
         };

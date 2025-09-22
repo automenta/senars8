@@ -8,7 +8,8 @@ import registerDefaultActions from './default-actions.js';
 const errorHandler = createUnifiedErrorHandler('System');
 
 class System {
-    constructor(configManager, {
+    constructor(
+        configManager,
         memory,
         reasoner,
         lm,
@@ -16,8 +17,9 @@ class System {
         cycle,
         planner,
         metaCognition,
-        perception
-    }) {
+        perception,
+        eventBus
+    ) {
         debug('System: Constructor called with components:', {
             memory,
             reasoner,
@@ -26,9 +28,10 @@ class System {
             cycle,
             planner,
             metaCognition,
-            perception
+            perception,
         });
         this.config = createConfigAccessor(configManager, 'system');
+        this.eventBus = eventBus;
         this.memory = memory;
         this.reasoner = reasoner;
         this.lm = lm;
@@ -42,6 +45,7 @@ class System {
         this.introspection = new Introspection(this);
 
         registerDefaultActions(this.actionExecutor);
+        this.eventBus.on('tasks.add', (tasks) => this._bootstrapTerms(tasks));
         info('System components created and initialized.');
     }
 
@@ -49,10 +53,7 @@ class System {
         await errorHandler.execute(async () => {
             info('System: Initializing with constitution...');
             if (constitutionTasks?.length > 0) {
-                this.memory.addTasks(constitutionTasks);
-                await this._bootstrapTerms(constitutionTasks, {
-                    sync: true
-                });
+                this.eventBus.emit('tasks.add', constitutionTasks);
             }
             await this.cycle.bootstrap(constitutionTasks);
             info('System: Initialized successfully.');
@@ -129,8 +130,7 @@ class System {
             if (!tasksToAdd.length) return;
 
             debug(`Adding ${tasksToAdd.length} new tasks to the system...`);
-            await this._bootstrapTerms(tasksToAdd);
-            this.memory.addTasks(tasksToAdd);
+            this.eventBus.emit('tasks.add', tasksToAdd);
             info(`Successfully added ${tasksToAdd.length} tasks.`);
         }, 'addTasks');
     }

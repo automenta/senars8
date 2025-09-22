@@ -8,7 +8,11 @@ describe('Memory - Edge Cases', () => {
 
     beforeEach(() => {
         const configManager = new ConfigManager();
-        memory = new Memory(configManager);
+        const mockEventBus = {
+            on: jest.fn(),
+            emit: jest.fn(),
+        };
+        memory = new Memory(configManager, mockEventBus);
     });
 
     test('should handle adding null and undefined terms', () => {

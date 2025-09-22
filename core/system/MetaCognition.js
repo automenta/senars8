@@ -4,20 +4,20 @@ import ResolutionStrategy from '../reasoner/strategies/ResolutionStrategy.js';
 import {debug, info} from '../utils/logger.js';
 import {getBeliefTasks} from '../utils/task-utils.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
-import EventBus from './EventBus.js';
 
 const errorHandler = createUnifiedErrorHandler('MetaCognition');
 
 class MetaCognition {
-    constructor(configManager, dependencies = {}) {
+    constructor(configManager, contradictionAnalyzer, resolutionStrategy, eventBus) {
         this.configManager = configManager;
-        this.contradictionAnalyzer = dependencies.contradictionAnalyzer || new ContradictionAnalyzer();
-        this.resolutionStrategy = dependencies.resolutionStrategy || new ResolutionStrategy();
+        this.contradictionAnalyzer = contradictionAnalyzer;
+        this.resolutionStrategy = resolutionStrategy;
+        this.eventBus = eventBus;
         this.contradictions = [];
         info('MetaCognition initialized');
 
-        EventBus.handle('MetaCognition.findContradictions', this.findContradictions.bind(this));
-        EventBus.handle('MetaCognition.resolve', this.resolve.bind(this));
+        this.eventBus.handle('MetaCognition.findContradictions', this.findContradictions.bind(this));
+        this.eventBus.handle('MetaCognition.resolve', this.resolve.bind(this));
     }
 
     findContradictions(tasks) {

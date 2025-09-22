@@ -1,5 +1,5 @@
-import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
-import {debug, info} from '../utils/logger.js';
+import { createUnifiedErrorHandler } from '../utils/errorHandler.js';
+import { info } from '../utils/logger.js';
 import ConfigManager from '../config/ConfigManager.js';
 import System from './System.js';
 import Cycle from './Cycle.js';
@@ -15,74 +15,51 @@ import PriorityManager from '../reasoner/PriorityManager.js';
 import ContradictionAnalyzer from '../reasoner/ContradictionAnalyzer.js';
 import ResolutionStrategy from '../reasoner/strategies/ResolutionStrategy.js';
 import CONSTITUTION_TASKS from './Constitution.js';
+import DIContainer from './DIContainer.js';
+import EventBus from './EventBus.js';
 
 const errorHandler = createUnifiedErrorHandler('SystemFactory');
 
-const getComponent = (components, name, factory) => {
-    const component = components[name];
-    if (component) {
-        debug(`SystemFactory: Using provided component ${name}:`, component);
-        return component;
+const registerComponents = (container, configManager, components) => {
+    container.registerValue('configManager', configManager);
+    container.registerValue('eventBus', EventBus);
+
+    // Register components with dependencies
+    const singleton = { singleton: true };
+    container.register('lm', LM, ['configManager'], singleton);
+    container.register('temporalReasoner', TemporalReasoner, ['configManager'], singleton);
+    container.register('actionExecutor', ActionExecutor, ['memory', 'configManager'], singleton);
+    container.register('perception', Perception, ['memory', 'lm', 'eventBus'], singleton);
+    container.register('planner', Planner, ['memory', 'lm', 'actionExecutor', 'configManager'], singleton);
+    container.register('priorityManager', PriorityManager, ['memory', 'configManager'], singleton);
+    container.register('contradictionAnalyzer', ContradictionAnalyzer, [], singleton);
+    container.register('resolutionStrategy', ResolutionStrategy, [], singleton);
+
+    // Assuming Reasoner's constructor will be refactored to (configManager, temporalReasoner)
+    container.register('reasoner', Reasoner, ['configManager', 'temporalReasoner'], singleton);
+
+    // Assuming MetaCognition's constructor will be refactored to (configManager, contradictionAnalyzer, resolutionStrategy)
+    container.register('metaCognition', MetaCognition, ['configManager', 'contradictionAnalyzer', 'resolutionStrategy', 'eventBus'], singleton);
+
+    container.register('cycle', Cycle, [
+        'configManager', 'memory', 'reasoner', 'lm', 'actionExecutor', 'perception',
+        'planner', 'metaCognition', 'temporalReasoner', 'priorityManager', 'eventBus'
+    ], singleton);
+
+    container.register('memory', Memory, ['configManager', 'eventBus'], singleton);
+    container.register('system', System, [
+        'configManager', 'memory', 'reasoner', 'lm', 'actionExecutor', 'cycle',
+        'planner', 'metaCognition', 'perception', 'eventBus'
+    ], singleton);
+
+    // Override with any user-provided components
+    for (const [name, instance] of Object.entries(components)) {
+        container.registerValue(name, instance);
     }
-    const defaultComponent = factory();
-    debug(`SystemFactory: Created default component ${name}:`, defaultComponent);
-    return defaultComponent;
-};
-
-const assembleComponents = (configManager, initialComponents = {}) => {
-    info('SystemFactory: Assembling components...');
-
-    const memory = getComponent(initialComponents, 'memory', () => new Memory(configManager));
-    const lm = getComponent(initialComponents, 'lm', () => new LM(configManager));
-    const temporalReasoner = getComponent(initialComponents, 'temporalReasoner', () => new TemporalReasoner(configManager));
-    const reasoner = getComponent(initialComponents, 'reasoner', () => new Reasoner({temporalReasoner}, configManager));
-    const actionExecutor = getComponent(initialComponents, 'actionExecutor', () => new ActionExecutor(memory, configManager));
-    const perception = getComponent(initialComponents, 'perception', () => new Perception(memory, lm));
-    const planner = getComponent(initialComponents, 'planner', () => new Planner(memory, lm, actionExecutor, configManager));
-    const priorityManager = getComponent(initialComponents, 'priorityManager', () => new PriorityManager(memory, configManager));
-    const contradictionAnalyzer = getComponent(initialComponents, 'contradictionAnalyzer', () => new ContradictionAnalyzer());
-    const resolutionStrategy = getComponent(initialComponents, 'resolutionStrategy', () => new ResolutionStrategy());
-    const metaCognition = getComponent(initialComponents, 'metaCognition', () => new MetaCognition(configManager, {
-        contradictionAnalyzer,
-        resolutionStrategy
-    }));
-    const cycle = getComponent(initialComponents, 'cycle', () => new Cycle(configManager, {
-        memory,
-        reasoner,
-        lm,
-        actionExecutor,
-        perception,
-        planner,
-        metaCognition,
-        temporalReasoner,
-        priorityManager
-    }));
-
-    const components = {
-        memory,
-        reasoner,
-        lm,
-        actionExecutor,
-        cycle,
-        planner,
-        metaCognition,
-        perception,
-        temporalReasoner,
-        priorityManager,
-        contradictionAnalyzer,
-        resolutionStrategy,
-    };
-
-    const system = getComponent(initialComponents, 'system', () => new System(configManager, components));
-
-    info('SystemFactory: Components assembled.');
-    debug('SystemFactory: Returning system from assembleComponents:', system);
-    return system;
 };
 
 const initializeSystem = async (system) => {
     info('SystemFactory: Initializing system with constitution...');
-    debug('SystemFactory: System to initialize:', system);
     await system.initialize(CONSTITUTION_TASKS);
     info('SystemFactory: System initialized.');
     return system;
@@ -91,13 +68,17 @@ const initializeSystem = async (system) => {
 const createSystem = async (userConfig = {}, components = {}) => {
     return await errorHandler.execute(async () => {
         info('SystemFactory: Creating new system...');
-        debug('SystemFactory: User config:', userConfig);
-        debug('SystemFactory: Initial components:', components);
+
+        const container = DIContainer; // Use the singleton container
+
         const configManager = new ConfigManager(userConfig);
-        const system = assembleComponents(configManager, components);
+
+        registerComponents(container, configManager, components);
+
+        const system = container.get('system');
         await initializeSystem(system);
+
         info('SystemFactory: System creation complete.');
-        debug('SystemFactory: Returning system from createSystem:', system);
         return system;
     }, 'createSystem');
 };

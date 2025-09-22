@@ -17,9 +17,9 @@ const getCombinationKey = (ruleName, tasks) =>
     `${ruleName}:${tasks.map(task => task.id).sort().join(',')}`;
 
 class Reasoner {
-    constructor({temporalReasoner} = {}, configManager) {
+    constructor(configManager, temporalReasoner) {
         this.config = createConfigAccessor(configManager, 'reasoner');
-        this.temporalReasoner = temporalReasoner || new TemporalReasoner(configManager);
+        this.temporalReasoner = temporalReasoner;
         const strategyName = this.config.getString('strategy', 'BagSampling');
         this.strategy = this._initializeStrategy(strategyName);
         this.rules = rules;
