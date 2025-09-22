@@ -1,23 +1,23 @@
-import React, { useEffect, useRef } from 'react';
+import React, {useEffect, useRef} from 'react';
 
-function Log({ messages }) {
-  const logEndRef = useRef(null);
+function Log({messages}) {
+    const logEndRef = useRef(null);
 
-  useEffect(() => {
-    logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    useEffect(() => {
+        logEndRef.current?.scrollIntoView({behavior: 'smooth'});
+    }, [messages]);
 
-  return (
-    <div className="log-panel">
-      <h2>Log</h2>
-      <pre className="log-content">
+    return (
+        <div className="log-panel">
+            <h2>Log</h2>
+            <pre className="log-content">
         {messages.map((msg, index) => (
-          <div key={index}>{msg}</div>
+            <div key={index}>{msg}</div>
         ))}
-        <div ref={logEndRef} />
+                <div ref={logEndRef}/>
       </pre>
-    </div>
-  );
+        </div>
+    );
 }
 
 export default Log;

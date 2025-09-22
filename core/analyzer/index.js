@@ -5,9 +5,9 @@ import NarseseTranslator from './NarseseTranslator.js';
 import ReportGenerator from './ReportGenerator.js';
 
 export {
-  AnalysisEngine,
-  UnitTestAnalyzer,
-  DataIngestor,
-  NarseseTranslator,
-  ReportGenerator,
+    AnalysisEngine,
+    UnitTestAnalyzer,
+    DataIngestor,
+    NarseseTranslator,
+    ReportGenerator,
 };

@@ -1,8 +1,18 @@
 #!/usr/bin/env node
 
 import fs from 'fs';
-import UnitTestAnalyzer from ../../core/analyzer/index.js';
-import {logAndExit, safeAsync} from ../../core/utils/errorHandler.js';
+import UnitTestAnalyzer from
+
+..
+/../
+core / analyzer / index.js
+';
+import {logAndExit, safeAsync} from
+
+..
+/../
+core / utils / errorHandler.js
+';
 
 async function analyzeActualFailures() {
     console.log("=== Unit Test Analyzer - Actual Test Failures ===\n");
