@@ -2,7 +2,7 @@ const {
     SystemFactory,
     Task,
     parseTerm
-} = require('../../src/index');
+} = require('../../core/index');
 
 async function testNewFunctionality() {
     console.log('Testing new System functionality...');

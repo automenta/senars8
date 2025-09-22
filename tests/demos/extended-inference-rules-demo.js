@@ -1,8 +1,8 @@
 // Category: Reasoning
 // Description: Demonstrates the use of a wide range of inference rules, including deduction, induction, and abduction.
 
-import {runDemo} from '../../shared/demo-utils.js';
-import {info} from '../../src/utils/logger.js';
+import {runDemo} from '../../utils/shared/demo-utils.js';
+import {info} from '../../core/utils/logger.js';
 
 async function extendedInferenceRulesDemo(options = {}) {
     const taskDefs = [

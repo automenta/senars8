@@ -1,12 +1,12 @@
-import Reasoner from '../../src/reasoner/Reasoner.js';
-import Memory from '../../src/memory/Memory.js';
-import Task from '../../src/core/Task.js';
-import Term from '../../src/core/Term.js';
-import {parseTerm} from '../../src/parser/narseseParser.js';
-import LM from '../../src/lm/LM.js';
-import ConfigManager from '../../src/config/ConfigManager.js';
+import Reasoner from '../../core/reasoner/Reasoner.js';
+import Memory from '../../core/memory/Memory.js';
+import Task from '../../core/core/Task.js';
+import Term from '../../core/core/Term.js';
+import {parseTerm} from '../../core/parser/narseseParser.js';
+import LM from '../../core/lm/LM.js';
+import ConfigManager from '../../core/config/ConfigManager.js';
 
-jest.mock('../../src/lm/LM.js');
+jest.mock('../../core/lm/LM.js');
 jest.mock('@xenova/transformers', () => {
     const transformers = jest.createMockFromModule('@xenova/transformers');
     transformers.pipeline = jest.fn(async () =>

@@ -1,5 +1,5 @@
-import ConfigManager from '../../src/config/ConfigManager.js';
-import defaultConfig from '../../src/config/default-config.js';
+import ConfigManager from '../../core/config/ConfigManager.js';
+import defaultConfig from '../../core/config/default-config.js';
 
 describe('ConfigManager', () => {
     it('should initialize with default configuration', () => {

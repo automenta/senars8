@@ -1,8 +1,8 @@
 // Category: Language Model
 // Description: Demonstrates advanced language model integration capabilities.
 
-import {runDemo} from '../../shared/demo-utils.js';
-import {info} from '../../src/utils/logger.js';
+import {runDemo} from '../../utils/shared/demo-utils.js';
+import {info} from '../../core/utils/logger.js';
 
 async function advancedLMDemo(options = {}) {
     const taskDefs = [

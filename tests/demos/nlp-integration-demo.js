@@ -1,7 +1,7 @@
 // Category: Language Model
 // Description: Shows the integration of Natural Language Processing (NLP) for parsing natural language input into Narsese.
 
-import {runDemo} from '../../shared/demo-utils.js';
+import {runDemo} from '../../utils/shared/demo-utils.js';
 
 /**
  * A unified demo that demonstrates NLP integration capabilities.

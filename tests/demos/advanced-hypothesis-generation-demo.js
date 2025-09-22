@@ -1,8 +1,8 @@
 // Category: Language Model
 // Description: Demonstrates the system's advanced hypothesis generation capabilities using large language models.
 
-import {runDemo} from '../../shared/demo-utils.js';
-import {info} from '../../src/utils/logger.js';
+import {runDemo} from '../../utils/shared/demo-utils.js';
+import {info} from '../../core/utils/logger.js';
 
 /**
  * A unified demo that demonstrates advanced hypothesis generation capabilities.

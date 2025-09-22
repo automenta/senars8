@@ -1,7 +1,7 @@
 // Category: Reasoning
 // Description: Demonstrates the system's ability to perform mathematical inference.
 
-import {runDemo} from '../../shared/demo-utils.js';
+import {runDemo} from '../../utils/shared/demo-utils.js';
 
 /**
  * A unified demo that demonstrates mathematical inference capabilities.

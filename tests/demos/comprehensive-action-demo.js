@@ -1,8 +1,8 @@
 // Category: Action & Planning
 // Description: A comprehensive demonstration of the system's planning and action execution capabilities.
 
-import {runDemo} from '../../shared/demo-utils.js';
-import {info} from '../../src/utils/logger.js';
+import {runDemo} from '../../utils/shared/demo-utils.js';
+import {info} from '../../core/utils/logger.js';
 
 async function comprehensiveActionDemo(options = {}) {
     // 1. Simple Action Execution

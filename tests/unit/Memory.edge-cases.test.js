@@ -1,7 +1,7 @@
-import Memory from '../../src/memory/Memory.js';
-import Task from '../../src/core/Task.js';
-import Term from '../../src/core/Term.js';
-import ConfigManager from '../../src/config/ConfigManager.js';
+import Memory from '../../core/memory/Memory.js';
+import Task from '../../core/core/Task.js';
+import Term from '../../core/core/Term.js';
+import ConfigManager from '../../core/config/ConfigManager.js';
 
 describe('Memory - Edge Cases', () => {
     let memory;

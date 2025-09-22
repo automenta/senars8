@@ -1,8 +1,8 @@
-import HTNPlanner from '../../src/reasoner/HTNPlanner.js';
-import Memory from '../../src/memory/Memory.js';
-import Term from '../../src/core/Term.js';
-import Task from '../../src/core/Task.js';
-import ConfigManager from '../../src/config/ConfigManager.js';
+import HTNPlanner from '../../core/reasoner/HTNPlanner.js';
+import Memory from '../../core/memory/Memory.js';
+import Term from '../../core/core/Term.js';
+import Task from '../../core/core/Task.js';
+import ConfigManager from '../../core/config/ConfigManager.js';
 
 describe('HTNPlanner Integration Test', () => {
     let memory;

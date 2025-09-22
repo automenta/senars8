@@ -1,22 +1,22 @@
-import Cycle from '../../src/system/Cycle.js';
-import Memory from '../../src/memory/Memory.js';
-import Reasoner from '../../src/reasoner/Reasoner.js';
-import LM from '../../src/lm/LM.js';
-import ActionExecutor from '../../src/system/ActionExecutor.js';
-import Task from '../../src/core/Task.js';
-import Term from '../../src/core/Term.js';
-import Perception from '../../src/system/Perception.js';
-import Planner from '../../src/system/Planner.js';
-import MetaCognition from '../../src/system/MetaCognition.js';
-import TemporalReasoner from '../../src/reasoner/TemporalReasoner.js';
-import PriorityManager from '../../src/reasoner/PriorityManager.js';
-import ContradictionAnalyzer from '../../src/reasoner/ContradictionAnalyzer.js';
-import ResolutionStrategy from '../../src/reasoner/strategies/ResolutionStrategy.js';
-import CONSTITUTION_TASKS from '../../src/system/Constitution.js';
-import ConfigManager from '../../src/config/ConfigManager.js';
-import registerDefaultActions from '../../src/system/default-actions.js';
+import Cycle from '../../core/system/Cycle.js';
+import Memory from '../../core/memory/Memory.js';
+import Reasoner from '../../core/reasoner/Reasoner.js';
+import LM from '../../core/lm/LM.js';
+import ActionExecutor from '../../core/system/ActionExecutor.js';
+import Task from '../../core/core/Task.js';
+import Term from '../../core/core/Term.js';
+import Perception from '../../core/system/Perception.js';
+import Planner from '../../core/system/Planner.js';
+import MetaCognition from '../../core/system/MetaCognition.js';
+import TemporalReasoner from '../../core/reasoner/TemporalReasoner.js';
+import PriorityManager from '../../core/reasoner/PriorityManager.js';
+import ContradictionAnalyzer from '../../core/reasoner/ContradictionAnalyzer.js';
+import ResolutionStrategy from '../../core/reasoner/strategies/ResolutionStrategy.js';
+import CONSTITUTION_TASKS from '../../core/system/Constitution.js';
+import ConfigManager from '../../core/config/ConfigManager.js';
+import registerDefaultActions from '../../core/system/default-actions.js';
 
-jest.mock('../../src/lm/LM.js');
+jest.mock('../../core/lm/LM.js');
 jest.mock('@xenova/transformers', () => {
     const transformers = jest.createMockFromModule('@xenova/transformers');
     transformers.pipeline = jest.fn(async () =>
@@ -49,7 +49,7 @@ describe('Cycle Integration Test', () => {
         // Register default actions
         registerDefaultActions(actionExecutor);
         // Register default actions
-        import('../../src/system/default-actions.js').then(actionsModule => {
+        import('../../core/system/default-actions.js').then(actionsModule => {
             actionsModule.default(actionExecutor);
             return null; // Return a value to satisfy the promise/always-return rule
         }).catch(error => {

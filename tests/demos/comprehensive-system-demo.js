@@ -1,8 +1,8 @@
 // Category: API Usage
 // Description: A blueprint demonstration of how to create, run, and inspect a SeNARS system using its core API.
 
-import {runDemo} from '../../shared/demo-utils.js';
-import {info} from '../../src/utils/logger.js';
+import {runDemo} from '../../utils/shared/demo-utils.js';
+import {info} from '../../core/utils/logger.js';
 
 /**
  * This demo serves as a template for creating a client application (like a GUI or a bot)

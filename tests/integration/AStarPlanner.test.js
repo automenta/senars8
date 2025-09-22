@@ -1,8 +1,8 @@
-import AStarPlanner from '../../src/reasoner/AStarPlanner.js';
-import Memory from '../../src/memory/Memory.js';
-import Term from '../../src/core/Term.js';
-import Task from '../../src/core/Task.js';
-import ConfigManager from '../../src/config/ConfigManager.js';
+import AStarPlanner from '../../core/reasoner/AStarPlanner.js';
+import Memory from '../../core/memory/Memory.js';
+import Term from '../../core/core/Term.js';
+import Task from '../../core/core/Task.js';
+import ConfigManager from '../../core/config/ConfigManager.js';
 
 describe('AStarPlanner Integration Test', () => {
     let memory;

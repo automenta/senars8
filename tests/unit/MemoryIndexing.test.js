@@ -1,6 +1,6 @@
-import MemoryIndexer from '../../src/memory/MemoryIndexer.js';
-import Task from '../../src/core/Task.js';
-import {parseTerm} from '../../src/parser/narseseParser.js';
+import MemoryIndexer from '../../core/memory/MemoryIndexer.js';
+import Task from '../../core/core/Task.js';
+import {parseTerm} from '../../core/parser/narseseParser.js';
 
 describe('MemoryIndexer', () => {
     let indexer;

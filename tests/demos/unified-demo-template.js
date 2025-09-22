@@ -1,8 +1,8 @@
 // Category: Template
 // Description: A template for creating unified demos that function as both runnable examples and unit tests.
 
-import {runDemo} from '../../shared/demo-utils.js';
-import {info} from '../../src/utils/logger.js';
+import {runDemo} from '../../utils/shared/demo-utils.js';
+import {info} from '../../core/utils/logger.js';
 
 /**
  * A unified demo function that can be run as both a standalone example and a unit test.

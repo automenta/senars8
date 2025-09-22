@@ -1,0 +1,95 @@
+/* General App Layout */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  font-family: sans-serif;
+}
+
+header {
+  background-color: #282c34;
+  padding: 1rem;
+  color: white;
+  text-align: center;
+}
+
+main {
+  flex-grow: 1;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow: hidden; /* Prevent main from scrolling */
+}
+
+.top-panels, .bottom-panels {
+  display: flex;
+  gap: 1rem;
+}
+
+.bottom-panels {
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+/* Panel Styles */
+.status-panel,
+.controls-panel,
+.input-panel,
+.log-panel {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+h2 {
+  margin-top: 0;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Input Panel Specifics */
+.input-panel textarea {
+  width: 100%;
+  min-height: 100px;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+  resize: vertical;
+}
+
+/* Log Panel Specifics */
+.log-panel {
+  flex-grow: 1; /* Allow log panel to take up remaining space */
+  overflow: hidden; /* Hide overflow */
+}
+
+.log-content {
+  flex-grow: 1;
+  background-color: #f5f5f5;
+  padding: 0.5rem;
+  border-radius: 4px;
+  overflow-y: auto; /* Allow scrolling */
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+}
+
+button {
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background-color: #646cff;
+  color: white;
+  font-weight: bold;
+}
+
+button:hover {
+  background-color: #535bf2;
+}

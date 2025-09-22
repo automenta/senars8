@@ -1,7 +1,7 @@
-import Task from '../../src/core/Task.js';
-import Term from '../../src/core/Term.js';
+import Task from '../../core/core/Task.js';
+import Term from '../../core/core/Term.js';
 
-jest.mock('../../src/core/Term.js', () => {
+jest.mock('../../core/core/Term.js', () => {
     return jest.fn().mockImplementation(key => ({
         key
     }));

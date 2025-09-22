@@ -1,8 +1,8 @@
-import * as PlannerUtils from '../../src/reasoner/utils/PlannerUtils.js';
-import Memory from '../../src/memory/Memory.js';
-import Term from '../../src/core/Term.js';
+import * as PlannerUtils from '../../core/reasoner/utils/PlannerUtils.js';
+import Memory from '../../core/memory/Memory.js';
+import Term from '../../core/core/Term.js';
 
-jest.mock('../../src/memory/Memory.js');
+jest.mock('../../core/memory/Memory.js');
 
 describe('PlannerUtils', () => {
     let memory;

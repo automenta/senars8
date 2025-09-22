@@ -1,7 +1,7 @@
-import SystemFactory from '../../src/system/SystemFactory.js';
-import {parseTerm} from '../../src/parser/narseseParser.js';
-import Task from '../../src/core/Task.js';
-import ConfigManager from '../../src/config/ConfigManager.js';
+import SystemFactory from '../../core/system/SystemFactory.js';
+import {parseTerm} from '../../core/parser/narseseParser.js';
+import Task from '../../core/core/Task.js';
+import ConfigManager from '../../core/config/ConfigManager.js';
 
 jest.mock('@xenova/transformers', () => {
     const transformers = jest.createMockFromModule('@xenova/transformers');

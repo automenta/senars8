@@ -7,7 +7,7 @@ import {
     isError,
     safeAsync,
     safeSync
-} from '../../src/utils/errorHandler.js';
+} from '../../core/utils/errorHandler.js';
 
 describe('Error Handler - Edge Cases', () => {
     test('should handle null and undefined errors', async () => {

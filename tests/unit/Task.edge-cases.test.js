@@ -1,5 +1,5 @@
-import Task from '../../src/core/Task.js';
-import Term from '../../src/core/Term.js';
+import Task from '../../core/core/Task.js';
+import Term from '../../core/core/Term.js';
 
 describe('Task - Edge Cases', () => {
     test('should handle invalid truthValue objects with NaN values', () => {

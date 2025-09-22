@@ -1,8 +1,8 @@
 // Category: Narsese Language
 // Description: Demonstrates parsing and reasoning with a richer, more expressive form of Narsese, including temporal operators.
 
-import {runDemo} from '../../shared/demo-utils.js';
-import {info} from '../../src/utils/logger.js';
+import {runDemo} from '../../utils/shared/demo-utils.js';
+import {info} from '../../core/utils/logger.js';
 
 async function enhancedNarseseDemo(options = {}) {
     const taskDefs = [

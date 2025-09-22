@@ -1,8 +1,8 @@
 // Category: Reasoning
 // Description: Demonstrates advanced truth value revision mechanisms.
 
-import {runDemo} from '../../shared/demo-utils.js';
-import {info} from '../../src/utils/logger.js';
+import {runDemo} from '../../utils/shared/demo-utils.js';
+import {info} from '../../core/utils/logger.js';
 
 async function advancedTruthValueRevisionDemo(options = {}) {
     const taskDefs = [

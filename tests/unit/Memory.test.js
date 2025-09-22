@@ -1,8 +1,8 @@
-import Memory from '../../src/memory/Memory.js';
-import Task from '../../src/core/Task.js';
-import {parseTerm} from '../../src/parser/narseseParser.js';
-import ConfigManager from '../../src/config/ConfigManager.js';
-import EventBus from '../../src/system/EventBus.js';
+import Memory from '../../core/memory/Memory.js';
+import Task from '../../core/core/Task.js';
+import {parseTerm} from '../../core/parser/narseseParser.js';
+import ConfigManager from '../../core/config/ConfigManager.js';
+import EventBus from '../../core/system/EventBus.js';
 
 const createTestConfig = () => new ConfigManager({
     memory: {

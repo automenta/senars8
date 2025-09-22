@@ -1,8 +1,8 @@
 // Category: Reasoning
 // Description: A comprehensive demonstration of how the system handles contradictions, from simple resolution to generating clarifying questions.
 
-import {runDemo} from '../../shared/demo-utils.js';
-import {info} from '../../src/utils/logger.js';
+import {runDemo} from '../../utils/shared/demo-utils.js';
+import {info} from '../../core/utils/logger.js';
 
 async function comprehensiveContradictionDemo(options = {}) {
     // 1. Simple Contradiction Resolution

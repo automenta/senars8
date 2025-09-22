@@ -1,8 +1,8 @@
 // Category: Reasoning
 // Description: Demonstrates advanced temporal reasoning, such as inferring event sequences and predicting future events.
 
-import {runDemo} from '../../shared/demo-utils.js';
-import {info} from '../../src/utils/logger.js';
+import {runDemo} from '../../utils/shared/demo-utils.js';
+import {info} from '../../core/utils/logger.js';
 
 async function enhancedTemporalReasoningDemo(options = {}) {
     const now = Date.now();

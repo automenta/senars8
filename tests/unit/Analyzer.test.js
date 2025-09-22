@@ -4,7 +4,7 @@ import {
     NarseseTranslator,
     ReportGenerator,
     UnitTestAnalyzer
-} from '../../src/analyzer/index.js';
+} from '../../core/analyzer/index.js';
 
 describe('Unit Test Analyzer Components', () => {
     test('should create all analyzer components without error', () => {

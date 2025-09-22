@@ -1,7 +1,7 @@
 // Category: Core Reasoning
 // Description: A basic demonstration of the system's core reasoning capabilities, including deduction and inheritance.
 
-import {runDemo} from '../../shared/demo-utils.js';
+import {runDemo} from '../../utils/shared/demo-utils.js';
 
 /**
  * A unified demo that demonstrates basic reasoning capabilities.

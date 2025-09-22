@@ -1,9 +1,9 @@
 // Category: Analysis
 // Description: Demonstrates the unit test analyzer capabilities.
 
-import {runDemo} from '../../shared/demo-utils.js';
-import {info} from '../../src/utils/logger.js';
-import UnitTestAnalyzer from '../../src/analyzer/index.js';
+import {runDemo} from '../../utils/shared/demo-utils.js';
+import {info} from '../../core/utils/logger.js';
+import UnitTestAnalyzer from '../../core/analyzer/index.js';
 import {writeFileSync} from 'fs';
 
 // Mock test data based on the actual test failures we observed
