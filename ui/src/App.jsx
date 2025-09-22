@@ -1,44 +1,56 @@
-import React, {useEffect, useState} from 'react';
-import Status from './components/Status';
-import Controls from './components/Controls';
-import Input from './components/Input';
-import Log from './components/Log';
-import useWebSocket from './hooks/useWebSocket';
+import React, { useEffect } from 'react';
+import agentService from './services/agentService';
+
+// Panels
+import StatusPanel from './components/panels/StatusPanel';
+import ControlPanel from './components/panels/ControlPanel';
+import InputPanel from './components/panels/InputPanel';
+import LogPanel from './components/panels/LogPanel';
+import MemoryViewPanel from './components/panels/MemoryViewPanel';
+import ReasonerTracePanel from './components/panels/ReasonerTracePanel';
+import KnowledgeGraphPanel from './components/panels/KnowledgeGraphPanel';
+
+// Core Styles
 import './App.css';
+import './components/core/Panel.css';
 
 function App() {
-    // Hardcoded for now, will be configurable later
-    const AGENT_URL = 'ws://localhost:8080';
-
-    const {isConnected, lastMessage, sendMessage} = useWebSocket(AGENT_URL);
-    const [messages, setMessages] = useState([]);
-
     useEffect(() => {
-        if (lastMessage !== null) {
-            // For now, just log the raw message.
-            // Later, we can parse it and display it more nicely.
-            setMessages((prevMessages) => [...prevMessages, `[AGENT] ${lastMessage}`]);
-        }
-    }, [lastMessage]);
+        // Connect to the agent when the app mounts
+        agentService.connect();
 
-    const handleUserInput = (input) => {
-        setMessages((prevMessages) => [...prevMessages, `[USER] ${input}`]);
-        sendMessage(input);
-    };
+        // Disconnect on unmount
+        return () => {
+            agentService.disconnect();
+        };
+    }, []);
 
     return (
         <div className="app-container">
-            <header>
-                <h1>Agent UI</h1>
+            <header className="app-header">
+                <h1>SeNARS IDE</h1>
             </header>
-            <main>
-                <div className="top-panels">
-                    <Status isConnected={isConnected}/>
-                    <Controls/>
-                </div>
-                <div className="bottom-panels">
-                    <Input sendMessage={handleUserInput} isConnected={isConnected}/>
-                    <Log messages={messages}/>
+            <main className="app-main">
+                <div className="main-grid">
+                    <div className="grid-top-left">
+                        <StatusPanel />
+                    </div>
+                    <div className="grid-top-right">
+                        <ControlPanel />
+                    </div>
+                    <div className="grid-middle-left">
+                        <InputPanel />
+                    </div>
+                    <div className="grid-middle-right">
+                        <LogPanel />
+                    </div>
+                    <div className="grid-bottom-left">
+                        <MemoryViewPanel />
+                        <ReasonerTracePanel />
+                    </div>
+                    <div className="grid-bottom-right">
+                        <KnowledgeGraphPanel />
+                    </div>
                 </div>
             </main>
         </div>

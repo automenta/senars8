@@ -1,0 +1,27 @@
+.panel {
+    border: 1px solid #3a3a3a;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #2a2a2a;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevents content from overflowing */
+}
+
+.panel-title {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #444;
+    font-size: 1.1rem;
+    color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.panel-content {
+    flex-grow: 1;
+    overflow: auto; /* Allows scrolling for content that overflows */
+    min-height: 0;
+}

@@ -1,9 +1,5 @@
-import SystemFactory from '../system/SystemFactory.js';
-import {parseTerm} from '../parser/narseseParser.js';
-import {agentErrorHandler as errorHandler} from '../utils/errorHandling.js';
+import { SystemFactory, parseTerm, agentErrorHandler as errorHandler, debug, warn, Task } from '@project/core';
 import MCP from './MCP.js';
-import {debug, warn} from '../utils/logger.js';
-import Task from '../core/Task.js';
 
 class Agent {
     constructor(config = {}) {
