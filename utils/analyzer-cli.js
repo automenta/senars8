@@ -3,8 +3,8 @@
 import fs from 'fs';
 import path from 'path';
 import {fileURLToPath} from 'url';
-import UnitTestAnalyzer from '../src/analyzer/index.js';
-import {logAndExit, safeAsync} from '../src/utils/errorHandler.js';
+import UnitTestAnalyzer from '../../core/analyzer/index.js';
+import {logAndExit, safeAsync} from '../../core/utils/errorHandler.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

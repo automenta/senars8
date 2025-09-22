@@ -1,5 +1,5 @@
 // benchmarks/debug-test.js
-const {parseTerm} = require('../src/parser/narseseParser');
+const {parseTerm} = require('../../core/parser/narseseParser');
 
 async function debugTest() {
     console.log('Debugging Term parsing...');

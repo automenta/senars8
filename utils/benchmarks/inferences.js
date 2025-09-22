@@ -1,5 +1,5 @@
-const Reasoner = require('../src/reasoner/Reasoner');
-const Memory = require('../src/memory/Memory');
+const Reasoner = require('../../core/reasoner/Reasoner');
+const Memory = require('../../core/memory/Memory');
 const {createTask} = require('../shared/demo-utils');
 
 function setupMemory(numTerms) {

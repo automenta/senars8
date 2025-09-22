@@ -1,9 +1,9 @@
-import Task from './core/Task.js';
-import Term from './core/Term.js';
-import {parseTerm} from './parser/parse-utils.js';
+import Task from '../core/Task.js';
+import Term from '../core/Term.js';
+import {parseTerm} from '../parser/parse-utils.js';
 
 // Import System after createSystem to avoid circular dependency
-import System from './system/System.js';
+import System from '../system/System.js';
 
 // Core classes and utilities
 export {
