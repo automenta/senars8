@@ -8,6 +8,16 @@ function parseTerm(termKey) {
     return errorHandler.executeSync(() => parseWithMoo(termKey), `parseTerm: ${termKey}`, null);
 }
 
+function parseTermInner(termKey) {
+    // For inner operations, return null instead of going through error handler
+    if (typeof termKey !== 'string' || !termKey.length) return null;
+    try {
+        return parseWithMoo(termKey);
+    } catch (e) {
+        return null;
+    }
+}
+
 const MALFORMED_PATTERNS = [
     /\(\s*-->\s*\)/, /\(\s*==>\s*\)/, /\(\s*<->\s*\)/, /\(\s*<=>\s*\)/,
     /\(\s*{\s*--\s*\)/, /\(\s*--\s*}\s*\)/, /\(\s*=\\>\s*\)/, /\(\s*=\/>\s*\)/,
@@ -19,7 +29,16 @@ function validateTermKey(termKey) {
     return !termKey || typeof termKey !== 'string' || !termKey.length ? false : !(termKey.includes("(") && MALFORMED_REGEX.test(termKey));
 }
 
+function validateTermKeyInner(termKey) {
+    // For inner operations, simplified validation that returns boolean
+    if (!termKey || typeof termKey !== 'string' || !termKey.length) return false;
+    // Skip complex regex check for performance in inner operations
+    return true;
+}
+
 export {
     parseTerm,
-    validateTermKey
+    parseTermInner,
+    validateTermKey,
+    validateTermKeyInner
 };

@@ -135,32 +135,29 @@ export function conditional(condition, validator) {
     if (condition) validator();
 }
 
-/**
- * Validate multiple values at once
- * @param {Array} validations - Array of validation objects {value, validator, name}
+/** 
+ * Inner validation functions that return boolean instead of throwing
+ * These are optimized for inner operations where performance is more important than detailed error messages
  */
-export function all(validations) {
-    validations.forEach(({value, validator, name}) => {
-        if (typeof validator === 'string') {
-            // Use built-in validators
-            const validatorFn = {
-                string,
-                nonEmptyArray,
-                array,
-                object,
-                task,
-                term: validateTerm,
-                punctuation: validatePunctuation,
-                truthValue: validateTruthValue
-            }[validator];
-            if (validatorFn) {
-                validatorFn(value, name);
-            } else {
-                throw new Error(`Unknown validator: ${validator}`);
-            }
-        } else if (typeof validator === 'function') {
-            // Use custom validator function
-            validator(value, name);
-        }
-    });
+
+export function validateTermInner(term) {
+    // For inner operations, return false instead of throwing for invalid terms
+    if (!term) return false;
+    const isValidString = typeof term === 'string' && term.length > 0;
+    const isValidObject = typeof term === 'object' && term !== null && typeof term.key === 'string' && term.key.length > 0;
+    return isValidString || isValidObject;
+}
+
+export function validatePunctuationInner(punctuation) {
+    // For inner operations, return false instead of throwing for invalid punctuation
+    const validPunctuation = ['.', '!', '?'];
+    return validPunctuation.includes(punctuation);
+}
+
+export function validateTruthValueInner(truthValue) {
+    // For inner operations, return false instead of throwing for invalid truth values
+    if (!truthValue || typeof truthValue !== 'object') return false;
+    if (typeof truthValue.frequency !== 'number' || truthValue.frequency < 0 || truthValue.frequency > 1) return false;
+    if (typeof truthValue.confidence !== 'number' || truthValue.confidence < 0 || truthValue.confidence > 1) return false;
+    return true;
 }

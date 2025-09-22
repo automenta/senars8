@@ -17,6 +17,20 @@ class EmbeddingStore {
         return termKey;
     }
 
+    storeInner(termKey, embedding) {
+        // For inner operations, return null instead of throwing for invalid inputs
+        if (!termKey || !embedding || !Array.isArray(embedding)) {
+            return null;
+        }
+
+        this.embeddings.set(termKey, embedding);
+
+        const currentCount = this.referenceCounts.get(termKey) || 0;
+        this.referenceCounts.set(termKey, currentCount + 1);
+
+        return termKey;
+    }
+
     get(termKey) {
         return this.embeddings.get(termKey) || null;
     }
