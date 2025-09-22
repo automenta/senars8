@@ -1,7 +1,7 @@
 import BaseStrategy from '../../../core/reasoner/strategies/BaseStrategy.js';
 
 export default class MockStrategy extends BaseStrategy {
-    selectCombinations(tasks, arity) {
+    selectCombinations(_tasks, _arity) {
         return [];
     }
 }

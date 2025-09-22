@@ -110,7 +110,7 @@ class Term extends BaseEntity {
             // For inner operations, return empty string on failure instead of throwing
             try {
                 return keyBuilder(pTerm);
-            } catch (e) {
+            } catch {
                 return '';
             }
         }
@@ -221,7 +221,7 @@ class Term extends BaseEntity {
             // For inner operations, return null on failure instead of throwing
             try {
                 this.#structure = parseTerm(this.#key) || null;
-            } catch (e) {
+            } catch {
                 this.#structure = null;
             }
         }
@@ -242,7 +242,7 @@ class Term extends BaseEntity {
         try {
             const componentKey = Term.termKeyInner(termStructure); // Use inner method
             return (this.#componentCache[componentName] = componentKey ? Term.createInner(componentKey) : null);
-        } catch (e) {
+        } catch {
             return (this.#componentCache[componentName] = null);
         }
     }
@@ -254,7 +254,7 @@ class Term extends BaseEntity {
 
         try {
             return new Term(key, embedding, complexity);
-        } catch (e) {
+        } catch {
             return null;
         }
     }

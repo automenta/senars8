@@ -2,7 +2,6 @@ import SystemFactory from '../../core/system/SystemFactory.js';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import CONSTITUTION_TASKS from '../../core/system/Constitution.js';
-import { join } from 'path';
 
 jest.mock('@xenova/transformers', () => {
     const transformers = jest.createMockFromModule('@xenova/transformers');
@@ -20,7 +19,7 @@ describe('Cycle Integration Test', () => {
     beforeEach(() => {
         system = SystemFactory.createSystem({
             reasoner: {
-                strategy: 'BruteForceStrategy'
+                strategy: 'BruteForce'
             },
             planner: {
                 strategy: 'HTN'
@@ -28,12 +27,13 @@ describe('Cycle Integration Test', () => {
         });
         memory = system.memory;
         cycle = system.cycle;
+        const lm = system.lm;
 
         // Mock LM methods
-        system.lm.generateHypotheses.mockResolvedValue([]);
-        system.lm.evaluateAndRankHypotheses.mockImplementation(async (_, hypotheses) => hypotheses);
-        system.lm.bootstrapTerm.mockImplementation(async termKey => new Term(termKey, [], 1));
-        system.lm.proactiveEnrichment.mockResolvedValue([]);
+        jest.spyOn(lm, 'generateHypotheses').mockResolvedValue([]);
+        jest.spyOn(lm, 'evaluateAndRankHypotheses').mockImplementation(async (_, hypotheses) => hypotheses);
+        jest.spyOn(lm, 'bootstrapTerm').mockImplementation(async termKey => new Term(termKey, [], 1));
+        jest.spyOn(lm, 'proactiveEnrichment').mockResolvedValue([]);
     });
 
     test('should run a cycle without errors', async () => {

@@ -1,5 +1,5 @@
 class BaseStrategy {
-    selectCombinations(tasks, arity) {
+    selectCombinations(_tasks, _arity) {
         throw new Error('Method "selectCombinations" must be implemented by subclasses');
     }
 }

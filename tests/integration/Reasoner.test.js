@@ -25,13 +25,13 @@ describe('Reasoner Integration Test', () => {
     beforeEach(() => {
         system = SystemFactory.createSystem({
             reasoner: {
-                strategy: 'BruteForceStrategy'
+                strategy: 'BruteForce'
             }
         });
         reasoner = system.reasoner;
         memory = system.memory;
         lm = system.lm;
-        lm.bootstrapTerm.mockImplementation(async termKey => new Term(termKey, [], 1));
+        jest.spyOn(lm, 'bootstrapTerm').mockImplementation(async termKey => new Term(termKey, [], 1));
     });
 
     test('should perform modus ponens', async () => {

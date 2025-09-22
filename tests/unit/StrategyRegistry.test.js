@@ -1,6 +1,4 @@
 import StrategyRegistry from '../../core/reasoner/StrategyRegistry.js';
-import { jest } from '@jest/globals';
-import { join } from 'path';
 
 describe('StrategyRegistry', () => {
     let registry;

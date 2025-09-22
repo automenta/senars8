@@ -2,6 +2,7 @@ import Bag from '../../utils/bag.js';
 import BaseStrategy from './BaseStrategy.js';
 
 class BagSamplingStrategy extends BaseStrategy {
+    static name = 'BagSampling';
     constructor(samplingFactor = 2) {
         super();
         this.samplingFactor = samplingFactor;

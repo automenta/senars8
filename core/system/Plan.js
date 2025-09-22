@@ -55,7 +55,7 @@ class Plan {
         }
         if ((t === 'SequentialConjunction' || t === 'Conjunction') && term.terms?.length > 0) {
             const [nameTerm, ...paramTerms] = term.terms;
-            return new Action(nameTerm.key, paramTerms.map(t => t.key));
+            return new Action(nameTerm.key, paramTerms.map(paramTerm => paramTerm.key));
         }
         return null;
     }

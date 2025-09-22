@@ -13,7 +13,7 @@ function parseTermInner(termKey) {
     if (typeof termKey !== 'string' || !termKey.length) return null;
     try {
         return parseWithMoo(termKey);
-    } catch (e) {
+    } catch {
         return null;
     }
 }

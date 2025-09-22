@@ -1,7 +1,7 @@
 import Task from '../../core/Task.js';
 import {parseTerm} from '../../parser/narseseParser.js';
 import config from '../../config/index.js';
-import {validatePunctuationInner, validateTruthValueInner} from '../validation.js';
+import {validateTruthValueInner} from '../validation.js';
 
 function groupTasksByTermKey(tasks) {
     return tasks.reduce((groups, task) => {
@@ -87,25 +87,6 @@ function createTemporalTask(termKey, punctuation, truthValue, occurrenceTime, en
     return new Task(parseTerm(termKey), punctuation, truthValue, stamp);
 }
 
-function createTemporalTaskInner(termKey, punctuation, truthValue, occurrenceTime, endTime = null) {
-    // For inner operations, return null instead of throwing for invalid inputs
-    try {
-        if (!termKey || typeof termKey !== 'string') return null;
-        if (!validatePunctuationInner(punctuation)) return null;
-        if (!validateTruthValueInner(truthValue)) return null;
-        
-        const stamp = {
-            creationTime: Date.now(),
-            occurrenceTime,
-            endTime
-        };
-        const parsedTerm = parseTerm(termKey);
-        return parsedTerm ? new Task(parsedTerm, punctuation, truthValue, stamp) : null;
-    } catch (e) {
-        return null;
-    }
-}
-
 function createTemporalRelationshipTask(task1, task2, relationship) {
     const termKey = `(${task1.termKey} ${relationship} ${task2.termKey})`;
     return createTemporalTask(termKey, '.', {
@@ -137,39 +118,6 @@ function createTemporalSequenceTask(tasks) {
     });
 }
 
-function createTemporalSequenceTaskInner(tasks) {
-    // For inner operations, return null instead of throwing for invalid inputs
-    try {
-        if (!tasks || !Array.isArray(tasks) || tasks.length < 2) return null;
-        
-        // Validate all tasks have termKey
-        if (!tasks.every(task => task && typeof task.termKey === 'string')) return null;
-        
-        const termKeys = tasks.map(task => task.termKey);
-        const termKey = `(&/, ${termKeys.join(', ')})`;
-        const {
-            frequency,
-            confidence
-        } = tasks.reduce((acc, task) => ({
-            frequency: acc.frequency * (task.state.truthValue?.frequency || 0),
-            confidence: acc.confidence * (task.state.truthValue?.confidence || 0),
-        }), {
-            frequency: 1.0,
-            confidence: 1.0
-        });
-        const finalConfidence = confidence * Math.pow(config.temporal.SEQUENCE_CONFIDENCE_DECAY, tasks.length - 1);
-        const parsedTerm = parseTerm(termKey);
-        return parsedTerm ? new Task(parsedTerm, '.', {
-            frequency,
-            confidence: finalConfidence
-        }, {
-            creationTime: Date.now()
-        }) : null;
-    } catch (e) {
-        return null;
-    }
-}
-
 function createTemporalClusterAbstractions(clusters) {
     return clusters.map(cluster => new Task(
         parseTerm(`(temporal_cluster_${cluster.tasks.length}_events)`),
@@ -197,7 +145,7 @@ function _createImplicationTaskInner(termKey, truthValue) {
         
         const parsedTerm = parseTerm(termKey);
         return parsedTerm ? new Task(parsedTerm, '.', truthValue) : null;
-    } catch (e) {
+    } catch {
         return null;
     }
 }

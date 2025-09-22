@@ -4,7 +4,9 @@
 
 import { lstatSync, readdirSync } from 'fs';
 import { join, parse } from 'path';
-import { error } from '../utils/logger.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
+
+const errorHandler = createUnifiedErrorHandler('DIContainer');
 
 const LIFETIME = {
     TRANSIENT: 'transient',
@@ -105,7 +107,7 @@ class DIContainer {
                 }
             }
         } catch (err) {
-            error(`Error loading modules from ${directoryPath}:`, err);
+            errorHandler.handleWithDefault(err, 'loadModulesFromDirectory');
         }
     }
 }

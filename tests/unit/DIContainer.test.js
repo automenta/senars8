@@ -1,5 +1,4 @@
 import { DIContainer, LIFETIME } from '../../core/system/DIContainer.js';
-import { jest } from '@jest/globals';
 import { join } from 'path';
 
 describe('DIContainer', () => {
@@ -52,10 +51,10 @@ describe('DIContainer', () => {
 
     it('should throw an error for circular dependencies', () => {
         class ServiceE {
-            constructor(serviceF) {}
+            constructor(_serviceF) {}
         }
         class ServiceF {
-            constructor(serviceE) {}
+            constructor(_serviceE) {}
         }
         container.register('serviceE', ServiceE, ['serviceF']);
         container.register('serviceF', ServiceF, ['serviceE']);
