@@ -100,6 +100,25 @@ class Term extends BaseEntity {
         throw new Error(`buildTermKey does not support type: ${pTerm.type}`);
     }
 
+    static termKeyInner(pTerm) {
+        if (!pTerm?.type) {
+            return ''; // Return empty string instead of going through error handler for inner operations
+        }
+
+        const keyBuilder = Term.keyBuilder[pTerm.type];
+        if (keyBuilder) {
+            // For inner operations, return empty string on failure instead of throwing
+            try {
+                return keyBuilder(pTerm);
+            } catch (e) {
+                return '';
+            }
+        }
+
+        // For unsupported types in inner operations, just return empty string
+        return '';
+    }
+
     static termKeyInfix = (pTerm, op) => `(${Term.termKey(pTerm.subject)} ${op} ${Term.termKey(pTerm.predicate)})`;
 
     static termList = terms => (terms?.length ? terms.map(Term.termKey).join(',') : '');
@@ -199,7 +218,12 @@ class Term extends BaseEntity {
 
     #getStructure() {
         if (this.#structure === null) {
-            this.#structure = errorHandler.executeSync(() => parseTerm(this.#key), 'get-structure', undefined) || null;
+            // For inner operations, return null on failure instead of throwing
+            try {
+                this.#structure = parseTerm(this.#key) || null;
+            } catch (e) {
+                this.#structure = null;
+            }
         }
         return this.#structure;
     }
@@ -214,12 +238,25 @@ class Term extends BaseEntity {
             return (this.#componentCache[componentName] = null);
         }
 
-        const componentTerm = errorHandler.executeSync(() => {
-            const componentKey = Term.termKey(termStructure);
-            return componentKey ? new Term(componentKey) : null;
-        }, 'get-component', null);
+        // For inner operations, return null on failure instead of going through error handler
+        try {
+            const componentKey = Term.termKeyInner(termStructure); // Use inner method
+            return (this.#componentCache[componentName] = componentKey ? Term.createInner(componentKey) : null);
+        } catch (e) {
+            return (this.#componentCache[componentName] = null);
+        }
+    }
+    static createInner(key, embedding = [], complexity = 1) {
+        // For inner operations, we just return null instead of throwing for invalid keys
+        if (typeof key !== 'string' || key.length === 0) {
+            return null;
+        }
 
-        return (this.#componentCache[componentName] = componentTerm);
+        try {
+            return new Term(key, embedding, complexity);
+        } catch (e) {
+            return null;
+        }
     }
 }
 
