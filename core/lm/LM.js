@@ -42,6 +42,8 @@ class LM {
 
         this._embeddingQueue = [];
         this._isProcessingEmbeddings = false;
+        this._maxConcurrency = this.config.getNumber('LM.EMBEDDING_MAX_CONCURRENCY', 4);
+        this._activeEmbeddingJobs = 0;
 
         info('LM initialized');
     }
@@ -63,17 +65,23 @@ class LM {
 
     async processEmbeddingQueue() {
         const batchSize = this.config.getNumber('LM.EMBEDDING_BATCH_SIZE', 10);
-        const delay = this.config.getNumber('LM.EMBEDDING_BATCH_DELAY_MS', 100);
 
         while (this._isProcessingEmbeddings) {
-            const batch = this._embeddingQueue.splice(0, batchSize);
-            if (batch.length > 0) {
-                debug(`Processing embedding batch of size ${batch.length}`);
-                await errorHandler.execute(
-                    () => Promise.all(batch.map(term => this._generateAndAssignEmbedding(term))),
-                    'processEmbeddingQueue'
-                );
+            // Process multiple batches concurrently
+            const promises = [];
+            for (let i = 0; i < this._maxConcurrency && this._embeddingQueue.length > 0; i++) {
+                const batch = this._embeddingQueue.splice(0, batchSize);
+                if (batch.length > 0) {
+                    promises.push(this._processEmbeddingBatch(batch));
+                }
             }
+
+            if (promises.length > 0) {
+                await Promise.all(promises);
+            }
+
+            // Adjust delay based on queue size
+            const delay = this._calculateDynamicDelay();
             await new Promise(resolve => setTimeout(resolve, delay));
         }
         debug('Embedding processing loop finished.');
@@ -197,6 +205,11 @@ class LM {
         }, 'generateAndAssignEmbedding');
     }
 
+    async _processEmbeddingBatch(batch) {
+        debug(`Processing embedding batch of size ${batch.length}`);
+        return Promise.all(batch.map(term => this._generateAndAssignEmbedding(term)));
+    }
+
     async bootstrapTerm(termKey, options = {
         sync: false
     }) {
@@ -251,6 +264,13 @@ class LM {
         return {
             pipelineCount: this._pipelineFactory._pipelines.size
         };
+    }
+
+    _calculateDynamicDelay() {
+        // Reduce delay when queue is large, increase when small
+        const baseDelay = this.config.getNumber('LM.EMBEDDING_BATCH_DELAY_MS', 100);
+        const queueFactor = Math.max(0.1, Math.min(1, this._embeddingQueue.length / 100));
+        return baseDelay * (1 - queueFactor * 0.9);
     }
 
     async dispose() {

@@ -6,43 +6,50 @@ import {env} from '@xenova/transformers';
  *
  * It is recommended to call this function once at the application's entry point
  * before any ONNX models are loaded.
- *
- * This function sets the log level of the ONNX runtime to 'error', effectively
- * hiding informational and warning messages.
  */
 export function suppressOnnxWarnings() {
-    if (typeof process !== 'undefined') {
-        process.env.ORT_LOGGING_LEVEL = 'FATAL';
-        process.env.ORT_DEBUG_LOG_SEVERITY_LEVEL = '4';
-        process.env.ORT_LOGGING_HIDE_TIMESTAMPS = '1';
-    }
+    try {
+        // Set environment variables for ONNX Runtime
+        if (typeof process !== 'undefined') {
+            process.env.ORT_LOGGING_LEVEL = 'FATAL';
+            process.env.ORT_DEBUG_LOG_SEVERITY_LEVEL = '4';
+            process.env.ORT_LOGGING_HIDE_TIMESTAMPS = '1';
+        }
 
-    env.logLevel = 'fatal';
+        // Set log levels for transformers library
+        env.logLevel = 'fatal';
 
-    if (env.backends?.onnx) {
-        env.backends.onnx.logLevel = 'fatal';
-        if (env.backends.onnx.env) {
-            env.backends.onnx.env.logLevel = 'fatal';
-            if (env.backends.onnx.env.wasm) {
-                env.backends.onnx.env.wasm.numThreads = 1;
+        // Set log levels for ONNX backend specifically
+        if (env.backends?.onnx) {
+            env.backends.onnx.logLevel = 'fatal';
+            if (env.backends.onnx.env) {
+                env.backends.onnx.env.logLevel = 'fatal';
+                if (env.backends.onnx.env.wasm) {
+                    env.backends.onnx.env.wasm.numThreads = 1;
+                }
             }
         }
-    }
-    
-    // Additional suppression for ONNX Runtime warnings
-    if (typeof console !== 'undefined') {
-        // Store original console.warn
-        const originalWarn = console.warn;
-        // Override console.warn to filter out ONNX Runtime warnings
-        console.warn = function(...args) {
-            // Check if the warning is from ONNX Runtime
-            if (args.some(arg => typeof arg === 'string' && arg.includes('[W:onnxruntime'))) {
-                // Suppress these warnings
-                return;
-            }
-            // Call original warn for other warnings
-            return originalWarn.apply(console, args);
-        };
+        
+        // Filter console warnings
+        if (typeof console !== 'undefined' && console.warn) {
+            const originalWarn = console.warn;
+            console.warn = function(...args) {
+                // Check if the warning is from ONNX Runtime
+                if (args.some(arg => 
+                    typeof arg === 'string' && 
+                    (arg.includes('[W:onnxruntime') || 
+                     arg.includes('Removing initializer') ||
+                     arg.includes('CleanUnusedInitializersAndNodeArgs'))
+                )) {
+                    // Suppress these warnings
+                    return;
+                }
+                // Call original warn for other warnings
+                return originalWarn.apply(console, args);
+            };
+        }
+    } catch (e) {
+        // Ignore any errors in suppression
     }
 }
 

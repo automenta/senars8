@@ -59,6 +59,12 @@ export default {
                 min: 0,
                 max: 10000,
                 default: 100
+            },
+            EMBEDDING_MAX_CONCURRENCY: {
+                type: 'number',
+                min: 1,
+                max: 16,
+                default: 4
             }
         },
         default: {
@@ -68,7 +74,8 @@ export default {
             TEXT_GENERATION_MODEL: 'Xenova/distilgpt2',
             QA_MODEL: 'Xenova/distilbert-base-uncased-distilled-squad',
             EMBEDDING_BATCH_SIZE: 10,
-            EMBEDDING_BATCH_DELAY_MS: 100
+            EMBEDDING_BATCH_DELAY_MS: 100,
+            EMBEDDING_MAX_CONCURRENCY: 4
         }
     }
 };

@@ -28,7 +28,8 @@ export default {
         TEXT_GENERATION_MODEL: 'Xenova/distilgpt2',
         QA_MODEL: 'Xenova/distilbert-base-uncased-distilled-squad',
         EMBEDDING_BATCH_SIZE: 10,
-        EMBEDDING_BATCH_DELAY_MS: 100
+        EMBEDDING_BATCH_DELAY_MS: 100,
+        EMBEDDING_MAX_CONCURRENCY: 4
     },
 
     memory: {
