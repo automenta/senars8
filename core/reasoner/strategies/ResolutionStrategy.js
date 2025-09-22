@@ -1,9 +1,8 @@
-import TruthValueManager from '../TruthValueManager.js';
 import {resolutionStrategies} from './resolution/index.js';
 
 class ResolutionStrategy {
-    constructor() {
-        this.truthValueManager = new TruthValueManager();
+    constructor(truthValueManager) {
+        this.truthValueManager = truthValueManager;
         this.strategies = resolutionStrategies;
     }
 

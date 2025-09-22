@@ -69,8 +69,8 @@ class System {
 
             debug(`Bootstrapping ${newTermKeys.length} new terms...`);
             const newTerms = (await Promise.all(newTermKeys.map(key => this.lm.bootstrapTerm(key, options)))).filter(Boolean);
-            newTerms.forEach(term => this.memory.addTerm(term));
-            info(`Successfully bootstrapped ${newTerms.length} terms.`);
+            newTerms.forEach(term => this.eventBus.emit('term.add', term));
+            info(`Successfully bootstra-pped ${newTerms.length} terms.`);
         }, '_bootstrapTerms');
     }
 
@@ -137,7 +137,7 @@ class System {
 
     reset() {
         errorHandler.executeSync(() => {
-            this.memory.clear();
+            this.eventBus.emit('system.reset');
             this.cycleCount = 0;
             info('System has been reset.');
         }, 'reset');

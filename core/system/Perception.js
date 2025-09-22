@@ -1,14 +1,13 @@
-import TaskFactory from '../core/TaskFactory.js';
 import PatternDetector from '../reasoner/PatternDetector.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 
 const errorHandler = createUnifiedErrorHandler('Perception');
 
 class Perception {
-    constructor(memory, lm) {
+    constructor(memory, taskFactory, eventBus) {
         this.memory = memory;
-        this.lm = lm;
-        this.taskFactory = new TaskFactory(memory, lm);
+        this.taskFactory = taskFactory;
+        this.eventBus = eventBus;
         this.patternDetector = new PatternDetector();
         this.sensoryModalities = new Map();
         this.perceptionHistory = [];
@@ -48,6 +47,8 @@ class Perception {
     clearPerceptionHistory() {
         this.perceptionHistory = [];
     }
+
+
 
     getSensoryModalities() {
         return [...this.sensoryModalities.keys()];

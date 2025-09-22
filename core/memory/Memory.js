@@ -38,6 +38,8 @@ class Memory {
     _registerEventListeners() {
         this.eventBus.on('tasks.add', tasks => this.addTasks(tasks));
         this.eventBus.on('SystemCycleEnded', () => this._performMaintenanceIfNeeded());
+        this.eventBus.on('term.add', term => this.addTerm(term));
+        this.eventBus.on('system.reset', () => this.clear());
     }
 
     _performMaintenanceIfNeeded() {

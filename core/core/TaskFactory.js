@@ -5,16 +5,17 @@ import config from '../config/index.js';
 import {safeAsync} from '../utils/errorHandler.js';
 
 class TaskFactory {
-    constructor(memory, lm) {
+    constructor(memory, lm, eventBus) {
         this.memory = memory;
         this.lm = lm;
+        this.eventBus = eventBus;
         this.eventHandlers = this._initializeEventHandlers();
     }
 
     async _ensureTermExists(termKey) {
         if (!this.memory.getTerm(termKey)) {
             const term = await this.lm.bootstrapTerm(termKey);
-            this.memory.addTerm(term);
+            this.eventBus.emit('term.add', term);
         }
     }
 
@@ -151,8 +152,4 @@ class TaskFactory {
     }
 }
 
-// Factory function for creating TaskFactory instances
-const createTaskFactory = (memory, lm) => new TaskFactory(memory, lm);
-
 export default TaskFactory;
-export {createTaskFactory};

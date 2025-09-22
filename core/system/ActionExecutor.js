@@ -1,15 +1,15 @@
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import ResourceAllocator from './ResourceAllocator.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
-import EventBus from './EventBus.js';
 import {generateActionId} from '../utils/idGenerator.js';
 
 const errorHandler = createUnifiedErrorHandler('ActionExecutor');
 
 class ActionExecutor {
-    constructor(memory, configManager) {
+    constructor(memory, configManager, eventBus) {
         this.memory = memory;
         this.config = createConfigAccessor(configManager, 'ACTION_EXECUTOR');
+        this.eventBus = eventBus;
         this.actionHandlers = new Map();
         this.resources = new Map();
         this.constraints = new Map();
@@ -74,7 +74,7 @@ class ActionExecutor {
                     status: 'success'
                 });
 
-                EventBus.emit('ActionExecuted', {
+                this.eventBus.emit('ActionExecuted', {
                     id: actionId,
                     action: action.name,
                     result,
@@ -95,7 +95,7 @@ class ActionExecutor {
                     status: 'error'
                 });
 
-                EventBus.emit('ActionFailed', {
+                this.eventBus.emit('ActionFailed', {
                     id: actionId,
                     action: action.name,
                     error: error.message,
@@ -157,7 +157,7 @@ class ActionExecutor {
             reject(this._recordFailure(actionRecord, executionError));
         });
         this._releaseResources(action);
-        EventBus.emit('ActionExecuted', actionRecord);
+        this.eventBus.emit('ActionExecuted', actionRecord);
     }
 
     _checkResourceAvailability(action) {

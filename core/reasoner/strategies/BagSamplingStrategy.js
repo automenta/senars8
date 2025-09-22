@@ -1,7 +1,9 @@
 import Bag from '../../utils/bag.js';
+import BaseStrategy from './BaseStrategy.js';
 
-class BagSamplingStrategy {
+class BagSamplingStrategy extends BaseStrategy {
     constructor(samplingFactor = 2) {
+        super();
         this.samplingFactor = samplingFactor;
         this._bagCache = new Map();
     }

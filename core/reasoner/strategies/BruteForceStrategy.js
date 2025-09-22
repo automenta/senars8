@@ -1,4 +1,6 @@
-class BruteForceStrategy {
+import BaseStrategy from './BaseStrategy.js';
+
+class BruteForceStrategy extends BaseStrategy {
     * selectCombinations(focusSet, arity) {
         if (arity <= 0 || focusSet.length < arity) {
             return;

@@ -1,12 +1,8 @@
-import Reasoner from '../../core/reasoner/Reasoner.js';
-import Memory from '../../core/memory/Memory.js';
+import SystemFactory from '../../core/system/SystemFactory.js';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
-import LM from '../../core/lm/LM.js';
-import ConfigManager from '../../core/config/ConfigManager.js';
 
-jest.mock('../../core/lm/LM.js');
 jest.mock('@xenova/transformers', () => {
     const transformers = jest.createMockFromModule('@xenova/transformers');
     transformers.pipeline = jest.fn(async () =>
@@ -17,12 +13,6 @@ jest.mock('@xenova/transformers', () => {
     return transformers;
 });
 
-const createTestConfig = () => new ConfigManager({
-    reasoner: {
-        strategy: 'BruteForce'
-    }
-});
-
 const createTerm = async (lm, memory, termKey) => {
     const term = await lm.bootstrapTerm(termKey);
     memory.addTerm(term);
@@ -30,17 +20,17 @@ const createTerm = async (lm, memory, termKey) => {
 };
 
 describe('Reasoner Integration Test', () => {
-    let reasoner, memory, lm;
+    let system, reasoner, memory, lm;
 
     beforeEach(() => {
-        const configManager = createTestConfig();
-        const mockEventBus = {
-            on: jest.fn(),
-            emit: jest.fn(),
-        };
-        memory = new Memory(configManager, mockEventBus);
-        lm = new LM(configManager);
-        reasoner = new Reasoner(configManager, null); // temporalReasoner is not used in these tests
+        system = SystemFactory.createSystem({
+            reasoner: {
+                strategy: 'BruteForceStrategy'
+            }
+        });
+        reasoner = system.reasoner;
+        memory = system.memory;
+        lm = system.lm;
         lm.bootstrapTerm.mockImplementation(async termKey => new Term(termKey, [], 1));
     });
 

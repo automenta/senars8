@@ -16,7 +16,7 @@ jest.mock('@xenova/transformers', () => {
 describe('System Introspection API', () => {
     let system;
 
-    beforeAll(async () => {
+    beforeAll(() => {
         const customConfig = {
             LM: {
                 LLM_PROVIDER: 'xenova',
@@ -25,12 +25,11 @@ describe('System Introspection API', () => {
                 strategy: 'HTN'
             }
         };
-        const configManager = new ConfigManager(customConfig);
-        system = await SystemFactory.createSystem(configManager);
+        system = SystemFactory.createSystem(customConfig);
     });
 
     afterAll(() => {
-        if (system && system.introspection.getStatus().isRunning) {
+        if (system && system.introspection?.getStatus().isRunning) {
             system.stop();
         }
     });

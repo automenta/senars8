@@ -16,21 +16,22 @@ jest.mock('@xenova/transformers', () => {
 describe('System-level Contradiction Resolution', () => {
     let system;
 
-    beforeEach(async () => {
+    beforeEach(() => {
         const customConfig = {
             reasoner: {
-                strategy: 'BruteForce'
+                strategy: 'BruteForceStrategy'
             },
             temporal: {
                 enabled: false
             }
         };
-        const configManager = new ConfigManager(customConfig);
-        system = await SystemFactory.createSystem(configManager);
+        system = SystemFactory.createSystem(customConfig);
     });
 
     afterEach(() => {
-        system.stop();
+        if (system) {
+            system.stop();
+        }
     });
 
     test('should detect and propose a resolution for a direct contradiction', async () => {

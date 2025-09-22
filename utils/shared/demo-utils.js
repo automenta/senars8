@@ -103,11 +103,12 @@ async function runDemo(demoName, taskDefs, {
     actionHandlers = [],
     preCycleCallback = null,
     postCycleCallback = null,
-    assertions = null
+    assertions = null,
+    strategiesPath = undefined
 } = {}) {
     printHeader(demoName);
 
-    const system = await SystemFactory.createSystem(config, components);
+    const system = SystemFactory.createSystem(config, components, strategiesPath);
     debug('System created.');
 
     actionHandlers.forEach(handler => system.actionExecutor.registerActionHandler(handler.name, handler.handler));

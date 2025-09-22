@@ -1,22 +1,9 @@
-import Cycle from '../../core/system/Cycle.js';
-import Memory from '../../core/memory/Memory.js';
-import Reasoner from '../../core/reasoner/Reasoner.js';
-import LM from '../../core/lm/LM.js';
-import ActionExecutor from '../../core/system/ActionExecutor.js';
+import SystemFactory from '../../core/system/SystemFactory.js';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
-import Perception from '../../core/system/Perception.js';
-import Planner from '../../core/system/Planner.js';
-import MetaCognition from '../../core/system/MetaCognition.js';
-import TemporalReasoner from '../../core/reasoner/TemporalReasoner.js';
-import PriorityManager from '../../core/reasoner/PriorityManager.js';
-import ContradictionAnalyzer from '../../core/reasoner/ContradictionAnalyzer.js';
-import ResolutionStrategy from '../../core/reasoner/strategies/ResolutionStrategy.js';
 import CONSTITUTION_TASKS from '../../core/system/Constitution.js';
-import ConfigManager from '../../core/config/ConfigManager.js';
-import registerDefaultActions from '../../core/system/default-actions.js';
+import { join } from 'path';
 
-jest.mock('../../core/lm/LM.js');
 jest.mock('@xenova/transformers', () => {
     const transformers = jest.createMockFromModule('@xenova/transformers');
     transformers.pipeline = jest.fn(async () =>
@@ -28,62 +15,25 @@ jest.mock('@xenova/transformers', () => {
 });
 
 describe('Cycle Integration Test', () => {
-    let memory, reasoner, lm, cycle;
+    let system, memory, cycle;
 
-    beforeEach(async () => {
-        const configManager = new ConfigManager({
+    beforeEach(() => {
+        system = SystemFactory.createSystem({
             reasoner: {
-                strategy: 'BruteForce'
+                strategy: 'BruteForceStrategy'
             },
             planner: {
                 strategy: 'HTN'
             }
         });
-        const mockEventBus = {
-            on: jest.fn(),
-            emit: jest.fn(),
-            handle: jest.fn(),
-        };
-        memory = new Memory(configManager, mockEventBus);
-        lm = new LM(configManager);
-        const temporalReasoner = new TemporalReasoner(configManager);
-        reasoner = new Reasoner(configManager, temporalReasoner);
-        const actionExecutor = new ActionExecutor(memory, configManager);
-        // Register default actions
-        registerDefaultActions(actionExecutor);
-        // Register default actions
-        import('../../core/system/default-actions.js').then(actionsModule => {
-            actionsModule.default(actionExecutor);
-            return null; // Return a value to satisfy the promise/always-return rule
-        }).catch(error => {
-            console.error('Failed to register default actions:', error);
-            return null; // Return a value to satisfy the promise/always-return rule
-        });
-        const perception = new Perception(memory, lm, mockEventBus);
-        const planner = new Planner(memory, lm, actionExecutor, configManager);
-        const contradictionAnalyzer = new ContradictionAnalyzer();
-        const resolutionStrategy = new ResolutionStrategy();
-        const metaCognition = new MetaCognition(configManager, contradictionAnalyzer, resolutionStrategy, mockEventBus);
-        const priorityManager = new PriorityManager(memory, configManager);
+        memory = system.memory;
+        cycle = system.cycle;
 
-        cycle = new Cycle(
-            configManager,
-            memory,
-            reasoner,
-            lm,
-            actionExecutor,
-            perception,
-            planner,
-            metaCognition,
-            temporalReasoner,
-            priorityManager,
-            mockEventBus
-        );
-
-        lm.generateHypotheses.mockResolvedValue([]);
-        lm.evaluateAndRankHypotheses.mockImplementation(async (_, hypotheses) => hypotheses);
-        lm.bootstrapTerm.mockImplementation(async termKey => new Term(termKey, [], 1));
-        lm.proactiveEnrichment.mockResolvedValue([]);
+        // Mock LM methods
+        system.lm.generateHypotheses.mockResolvedValue([]);
+        system.lm.evaluateAndRankHypotheses.mockImplementation(async (_, hypotheses) => hypotheses);
+        system.lm.bootstrapTerm.mockImplementation(async termKey => new Term(termKey, [], 1));
+        system.lm.proactiveEnrichment.mockResolvedValue([]);
     });
 
     test('should run a cycle without errors', async () => {
