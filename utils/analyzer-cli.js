@@ -3,7 +3,7 @@
 import fs from 'fs';
 import path from 'path';
 import {fileURLToPath} from 'url';
-import UnitTestAnalyzer from '../../core/analyzer/index.js';
+import { UnitTestAnalyzer } from '../../core/analyzer/index.js';
 import {logAndExit, safeAsync} from '../../core/utils/errorHandler.js';
 
 const __filename = fileURLToPath(import.meta.url);

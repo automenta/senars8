@@ -1,4 +1,4 @@
-import UnitTestAnalyzer from '../../core/analyzer/index.js';
+import { UnitTestAnalyzer } from '../../core/analyzer/index.js';
 
 describe('Analyzer Integration Test', () => {
     test('should analyze test data and generate reports', async () => {

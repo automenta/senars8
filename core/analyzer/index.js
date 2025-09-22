@@ -1,21 +1,13 @@
-import Task from '../core/Task.js';
-import Term from '../core/Term.js';
-import {parseTerm} from '../parser/parse-utils.js';
+import AnalysisEngine from './AnalysisEngine.js';
+import UnitTestAnalyzer from './Analyzer.js';
+import DataIngestor from './DataIngestor.js';
+import NarseseTranslator from './NarseseTranslator.js';
+import ReportGenerator from './ReportGenerator.js';
 
-// Import System after createSystem to avoid circular dependency
-import System from '../system/System.js';
-
-// Core classes and utilities
 export {
-    System,
-    Task,
-    Term,
-    parseTerm,
-    createSystem
+  AnalysisEngine,
+  UnitTestAnalyzer,
+  DataIngestor,
+  NarseseTranslator,
+  ReportGenerator,
 };
-
-// Create createSystem function inline to avoid circular dependency
-async function createSystem(userConfig = {}, components = {}) {
-    const SystemFactory = await import('./system/SystemFactory.js');
-    return SystemFactory.default.createSystem(userConfig, components);
-}

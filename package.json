@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "start": "node agent/server.js",
-    "dev": "concurrently \"npm:dev:agent\" \"npm:dev:ui\"",
+    "dev": "concurrently \"npm:dev:agent\" \"npm:dev --prefix ui\"",
     "dev:agent": "node agent/server.js",
     "dev:ui": "npm run dev --prefix ui",
     "test": "jest --silent",
