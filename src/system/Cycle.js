@@ -80,7 +80,7 @@ class Cycle {
 
         // For now, just log the actions that would be executed
         actionableGoals.forEach(goal => {
-            debug(`Would execute action for goal: ${goal.termKey}`);
+            debug(`Execute action for goal: ${goal.termKey}`);
         });
     }
 

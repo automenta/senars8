@@ -16,6 +16,7 @@ Every `Task` gets a priority based on relevance, urgency, and confidence.
 ## The Three Pillars
 
 ### 🔤 Term: Vocabulary of Thought
+
 Immutable representation of a concept
 
 - **Examples**: `cat`, `(cat --> animal)`, `((&, cat, furry) ==> friendly)`
@@ -23,18 +24,22 @@ Immutable representation of a concept
 - **Intelligent Design**: Self-parsing for efficient access
 
 ### 🎯 Task: Atoms of Cognition
+
 Stateful unit of cognitive work
 
 Structure:
+
 - Wraps a `Term`
 - Punctuation: `.` (belief), `!` (goal), `?` (question)
 
 State:
+
 - **Truth Value**: Confidence score
 - **Priority**: Importance in cognitive cycle
 - **Temporal Stamps**: Creation & access times
 
 ### 💾 Memory: Knowledge Hypergraph
+
 Central hub storing Terms & Tasks
 
 - **Dual Storage**: Short-term ↔ Long-term
@@ -68,11 +73,11 @@ flowchart TD
 
 LM is integrated as specialized services, not a black box.
 
-| Service | Purpose |
-|---------|---------|
-| **Hypothesis Generation** | Creative leaps when logic reaches limits |
-| **Plan Repair** | Alternative solutions for failed plans |
-| **Explanation** | Translate formal logic to natural language |
+| Service                   | Purpose                                    |
+|---------------------------|--------------------------------------------|
+| **Hypothesis Generation** | Creative leaps when logic reaches limits   |
+| **Plan Repair**           | Alternative solutions for failed plans     |
+| **Explanation**           | Translate formal logic to natural language |
 
 **Synergy**:
 🧠 Reasoner = Rigor, structure, explainability

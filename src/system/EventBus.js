@@ -10,23 +10,26 @@ class EventBus {
     }
 
     on(event, callback) {
-        if (!this.listeners.has(event)) {
-            this.listeners.set(event, new Set());
+        let listeners = this.listeners.get(event);
+        if (!listeners) {
+            listeners = new Set();
+            this.listeners.set(event, listeners);
         }
-        this.listeners.get(event).add(callback);
+        listeners.add(callback);
     }
 
     off(event, callback) {
-        if (this.listeners.has(event)) {
-            this.listeners.get(event).delete(callback);
-            if (this.listeners.get(event).size === 0) {
+        const listeners = this.listeners.get(event);
+        if (listeners) {
+            listeners.delete(callback);
+            if (listeners.size === 0) {
                 this.listeners.delete(event);
             }
         }
     }
 
     emit(event, data) {
-        this.listeners.get(event)?.forEach(listener => listener(data));
+        this.listeners.get(event)?.forEach(l => l(data));
     }
 
     handle(requestType, handler) {

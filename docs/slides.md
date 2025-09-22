@@ -6,13 +6,12 @@ highlighter:
   engine: shiki
   theme: 'dracula'
 lineNumbers: false
-transition: slide-left
 zoom: 0.8
 ---
 
 # SeNARS 🧠
 
-A New Primitive for Neuro-Symbolic Cognition
+Primitives for Neuro-Symbolic Cognition
 
 <div class="center text-sm opacity-75">
   [github.com/automenta/senars8](https://github.com/automenta/senars8)
@@ -24,7 +23,8 @@ layout: default
 
 # The Paradigm Shift 🔄
 
-SeNARS transforms intractable search problems into straightforward inference by creating a **dynamic knowledge hypergraph** that continuously reorganizes itself based on the system's goals.
+SeNARS transforms intractable search problems into straightforward inference by creating a **dynamic knowledge
+hypergraph** that continuously reorganizes itself based on the system's goals.
 
 <div class="grid grid-cols-2 gap-8 mt-8 items-start">
 <div>
@@ -65,11 +65,11 @@ graph TD
 
 # Core Concepts
 
-| Concept | Description |
-|---|---|
-| 🔤 **Term** | Immutable representation of a concept. Examples: `cat`, `(cat --> animal)`. |
-| 🎯 **Task** | Stateful unit of cognitive work (a belief, goal, or question). |
-| 💾 **Memory** | Unified knowledge hypergraph storing terms and tasks. |
+| Concept       | Description                                                                 |
+|---------------|-----------------------------------------------------------------------------|
+| 🔤 **Term**   | Immutable representation of a concept. Examples: `cat`, `(cat --> animal)`. |
+| 🎯 **Task**   | Stateful unit of cognitive work (a belief, goal, or question).              |
+| 💾 **Memory** | Unified knowledge hypergraph storing terms and tasks.                       |
 
 ---
 

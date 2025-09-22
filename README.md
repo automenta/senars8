@@ -2,15 +2,16 @@
 
 A new primitive for neuro-symbolic cognition.
 
-SeNARS is a cognitive architecture that creates a powerful synergy between symbolic reasoning and neural processing. It provides a foundation for building transparent, adaptive, and complex-reasoning AI systems.
+SeNARS is a cognitive architecture that creates a powerful synergy between symbolic reasoning and neural processing. It
+provides a foundation for building transparent, adaptive, and complex-reasoning AI systems.
 
 ## Core Concepts
 
-| Concept | Description |
-|---|---|
-| 🔤 **Term** | Immutable representation of a concept. Examples: `cat`, `(cat --> animal)`. |
-| 🎯 **Task** | Stateful unit of cognitive work (a belief, goal, or question). |
-| 💾 **Memory** | Unified knowledge hypergraph storing terms and tasks. |
+| Concept       | Description                                                                 |
+|---------------|-----------------------------------------------------------------------------|
+| 🔤 **Term**   | Immutable representation of a concept. Examples: `cat`, `(cat --> animal)`. |
+| 🎯 **Task**   | Stateful unit of cognitive work (a belief, goal, or question).              |
+| 💾 **Memory** | Unified knowledge hypergraph storing terms and tasks.                       |
 
 ## Architecture
 

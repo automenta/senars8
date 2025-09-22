@@ -8,7 +8,7 @@ export {
     safeGet,
     sumBy
 } from './collections/index.js';
-export { cosineSimilarity, embeddingsEqual } from './math.js';
+export {cosineSimilarity, embeddingsEqual} from './math.js';
 export {
     generateActionId,
     generateHashId,
@@ -26,7 +26,7 @@ export {
     isQuestion,
     isTask
 } from './task-utils.js';
-export { parseTerm, validateTermKey } from '../parser/parse-utils.js';
-export { createUnifiedErrorHandler } from './errorHandler.js';
-export { debug, error, info, warn } from './logger.js';
-export { default as EventBus } from '../system/EventBus.js';
+export {parseTerm, validateTermKey} from '../parser/parse-utils.js';
+export {createUnifiedErrorHandler} from './errorHandler.js';
+export {debug, error, info, warn} from './logger.js';
+export {default as EventBus} from '../system/EventBus.js';

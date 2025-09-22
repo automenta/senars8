@@ -16,14 +16,14 @@ const system = await createSystem(config, components);
 
 ### System Methods
 
-| Method | Description |
-|--------|-------------|
+| Method                          | Description                     |
+|---------------------------------|---------------------------------|
 | `initialize(constitutionTasks)` | Initialize with core principles |
-| `addTasks(tasks)` | Add new cognitive tasks |
-| `runCycle()` | Execute one reasoning cycle |
-| `start(maxCycles)` | Start continuous operation |
-| `stop()` | Stop system execution |
-| `reset()` | Clear all memory and state |
+| `addTasks(tasks)`               | Add new cognitive tasks         |
+| `runCycle()`                    | Execute one reasoning cycle     |
+| `start(maxCycles)`              | Start continuous operation      |
+| `stop()`                        | Stop system execution           |
+| `reset()`                       | Clear all memory and state      |
 
 ---
 
@@ -41,6 +41,7 @@ const complexTerm = new Term('(cat --> animal)');
 ```
 
 **Properties:**
+
 - `key` - Unique identifier
 - `embedding` - Semantic vector
 - `complexity` - Structural complexity
@@ -61,6 +62,7 @@ const task = new Task(
 ```
 
 **Properties:**
+
 - `id` - Unique identifier
 - `termKey` - Associated Term
 - `punctuation` - `.` `!` `?`
@@ -76,6 +78,7 @@ Knowledge hypergraph storage.
 ```
 
 **Methods:**
+
 - `addTerm(term)` - Add new Term
 - `getTerm(key)` - Retrieve Term
 - `addTasks(tasks)` - Add new Tasks
@@ -95,6 +98,7 @@ const tasks = system.introspection.queryTasks({ punctuation: '.' });
 ```
 
 **Key Methods:**
+
 - `getStatus()` - System status
 - `getConfig()` - Current configuration
 - `queryTasks(filters)` - Filtered Task search
@@ -127,6 +131,7 @@ const system = await createSystem(config);
 ```
 
 **Key Sections:**
+
 - `LM` - Language model settings
 - `memory` - Memory management
 - `planner` - Planning strategy

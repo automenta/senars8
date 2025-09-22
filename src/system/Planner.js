@@ -13,7 +13,6 @@ class Planner {
         }
 
         const strategyName = configManager.getString('planner.strategy', 'HTN');
-        // Map strategy names to their corresponding classes
         const strategyMap = {
             'HTN': HTNPlanner,
             'AStar': AStarPlanner

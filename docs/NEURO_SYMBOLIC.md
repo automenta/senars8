@@ -28,30 +28,35 @@ graph TD
 ## LM Services
 
 ### HypothesisGenerator 🧠
+
 Creative abduction and pattern discovery
 
 - Generates novel hypotheses when logic reaches limits
 - Creates creative solutions for complex problems
 
 ### PlanRepairer 🛠️
+
 Novel solutions when plans fail
 
 - Suggests alternative approaches for failed plans
 - Creative problem-solving for execution failures
 
 ### ProactiveEnricher 🌱
+
 Expanding knowledge graph based on new info
 
 - Automatically enriches concepts with semantic understanding
 - Proactively identifies related knowledge
 
 ### QAService ❓
+
 Fluent natural language interaction
 
 - Answers questions about system state
 - Provides natural language interface
 
 ### ExplanationGenerator 📝
+
 Translate formal reasoning into natural language
 
 - Converts symbolic logic to human-readable text
@@ -62,12 +67,15 @@ Translate formal reasoning into natural language
 ## Integration Patterns
 
 ### Gap Detection
+
 Reasoner identifies knowledge gaps → Triggers LM services
 
 ### Creative Injection
+
 LM generates novel ideas → Injects into Memory
 
 ### Explanation Generation
+
 Formal proofs → Natural language explanations
 
 ---
@@ -88,10 +96,10 @@ const config = {
 
 ## Benefits
 
-| Benefit | Description |
-|---------|-------------|
-| **Rigor** | Formal logical reasoning |
-| **Creativity** | Semantic understanding and generation |
+| Benefit            | Description                              |
+|--------------------|------------------------------------------|
+| **Rigor**          | Formal logical reasoning                 |
+| **Creativity**     | Semantic understanding and generation    |
 | **Explainability** | Traceable decisions with NL explanations |
-| **Adaptability** | Dynamic knowledge enrichment |
-| **Synergy** | Combined strengths ≠ Black box |
+| **Adaptability**   | Dynamic knowledge enrichment             |
+| **Synergy**        | Combined strengths ≠ Black box           |

@@ -34,24 +34,26 @@ class Plan {
 
     async _executeStep(term) {
         const action = this._parseAction(term);
-        if (!action) {
+        if (action) {
+            const result = await this.actionExecutor.execute(action);
+            return {
+                ...result,
+                action: action.name
+            };
+        } else {
             return {
                 success: false,
                 error: `Could not parse action: ${term.key}`
             };
         }
-        const result = await this.actionExecutor.execute(action);
-        return {
-            ...result,
-            action: action.name
-        };
     }
 
     _parseAction(term) {
-        if (term.type === 'Atomic') {
+        const t = term.type;
+        if (t === 'Atomic') {
             return new Action(term.key);
         }
-        if ((term.type === 'SequentialConjunction' || term.type === 'Conjunction') && term.terms?.length > 0) {
+        if ((t === 'SequentialConjunction' || t === 'Conjunction') && term.terms?.length > 0) {
             const [nameTerm, ...paramTerms] = term.terms;
             return new Action(nameTerm.key, paramTerms.map(t => t.key));
         }

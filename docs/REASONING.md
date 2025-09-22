@@ -6,13 +6,13 @@ SeNARS implements rigorous, explainable reasoning through formal inference rules
 
 ## Inference Rules
 
-| Rule | Structure | Purpose |
-|------|-----------|---------|
-| **Deduction** | `<M --> P>, <S --> M> ⊢ <S --> P>` | Classical logical deduction |
-| **Induction** | `<M --> P>, <M --> S> ⊢ <S --> P>` | Evidence-based generalization |
-| **Abduction** | `<P --> M>, <S --> M> ⊢ <S --> P>` | Hypothesis generation |
-| **Analogy** | `<M --> P>, <M <-> S> ⊢ <S --> P>` | Structure-preserving inference |
-| **Modus Ponens** | `<P ==> Q>, <P> ⊢ <Q>` | Conditional reasoning |
+| Rule             | Structure                          | Purpose                        |
+|------------------|------------------------------------|--------------------------------|
+| **Deduction**    | `<M --> P>, <S --> M> ⊢ <S --> P>` | Classical logical deduction    |
+| **Induction**    | `<M --> P>, <M --> S> ⊢ <S --> P>` | Evidence-based generalization  |
+| **Abduction**    | `<P --> M>, <S --> M> ⊢ <S --> P>` | Hypothesis generation          |
+| **Analogy**      | `<M --> P>, <M <-> S> ⊢ <S --> P>` | Structure-preserving inference |
+| **Modus Ponens** | `<P ==> Q>, <P> ⊢ <Q>`             | Conditional reasoning          |
 
 ---
 
@@ -27,11 +27,11 @@ Specialized temporal reasoning capabilities:
 
 ### Temporal Term Types
 
-| Type | Syntax | Example |
-|------|--------|---------|
-| **Predictive Implication** | `<task1 =/> task2>` | `(see_lightning =/> hear_thunder)` |
-| **Retrospective Implication** | `<task1 \> task2>` | `(rain \> wet_streets)` |
-| **Concurrent Implication** | `<task1 <> task2>` | `(storm <> thunder)` |
+| Type                          | Syntax              | Example                            |
+|-------------------------------|---------------------|------------------------------------|
+| **Predictive Implication**    | `<task1 =/> task2>` | `(see_lightning =/> hear_thunder)` |
+| **Retrospective Implication** | `<task1 \> task2>`  | `(rain \> wet_streets)`            |
+| **Concurrent Implication**    | `<task1 <> task2>`  | `(storm <> thunder)`               |
 
 ---
 
@@ -39,10 +39,10 @@ Specialized temporal reasoning capabilities:
 
 SeNARS supports multiple planning strategies:
 
-| Strategy | Approach | Benefits |
-|----------|----------|----------|
-| **HTN** | Hierarchical Task Network | Structured, systematic planning |
-| **A* Search** | Graph-based pathfinding | Optimal solutions with custom weights |
+| Strategy      | Approach                  | Benefits                              |
+|---------------|---------------------------|---------------------------------------|
+| **HTN**       | Hierarchical Task Network | Structured, systematic planning       |
+| **A* Search** | Graph-based pathfinding   | Optimal solutions with custom weights |
 
 ### Planning Features
 
@@ -63,13 +63,13 @@ Recursive self-improvement mechanisms:
 
 ### Resolution Strategies
 
-| Strategy | Approach | Use Case |
-|----------|----------|----------|
-| **Revision** | Truth value revision | Directly conflicting beliefs |
-| **Reconciliation** | Contextual resolution | Beliefs true in different contexts |
-| **Evidence Gathering** | Generate questions | Need more information |
-| **Temporal Analysis** | Time-based resolution | Temporal conflicts |
-| **Causal Analysis** | Examine causal relationships | Causal contradictions |
+| Strategy               | Approach                     | Use Case                           |
+|------------------------|------------------------------|------------------------------------|
+| **Revision**           | Truth value revision         | Directly conflicting beliefs       |
+| **Reconciliation**     | Contextual resolution        | Beliefs true in different contexts |
+| **Evidence Gathering** | Generate questions           | Need more information              |
+| **Temporal Analysis**  | Time-based resolution        | Temporal conflicts                 |
+| **Causal Analysis**    | Examine causal relationships | Causal contradictions              |
 
 ---
 
@@ -77,18 +77,18 @@ Recursive self-improvement mechanisms:
 
 Comprehensive Narsese expressions:
 
-| Type | Syntax | Example |
-|------|--------|---------|
-| **Atomic Terms** | Simple identifiers | `cat` |
-| **Inheritance** | `<subject --> predicate>` | `(cat --> mammal)` |
-| **Implication** | `<premise ==> conclusion>` | `(cat ==> furry)` |
-| **Negation** | `(--, term)` | `(--, cat)` |
-| **Conjunction** | `(&, term1, term2, ...)` | `(&, cat, dog)` |
-| **Disjunction** | `(\|, term1, term2, ...)` | `(\|, cat, dog)` |
-| **Extensional Difference** | `(-, term1, term2)` | `(-, cat, dog)` |
-| **Instance** | `(term {-- class)` | `(cat {-- animal)` |
-| **Property** | `(term --} property)` | `(cat --} furry)` |
-| **Nested Expressions** | Complex combinations | `(cat --> (&, furry, intelligent))` |
+| Type                       | Syntax                     | Example                             |
+|----------------------------|----------------------------|-------------------------------------|
+| **Atomic Terms**           | Simple identifiers         | `cat`                               |
+| **Inheritance**            | `<subject --> predicate>`  | `(cat --> mammal)`                  |
+| **Implication**            | `<premise ==> conclusion>` | `(cat ==> furry)`                   |
+| **Negation**               | `(--, term)`               | `(--, cat)`                         |
+| **Conjunction**            | `(&, term1, term2, ...)`   | `(&, cat, dog)`                     |
+| **Disjunction**            | `(\|, term1, term2, ...)`  | `(\|, cat, dog)`                    |
+| **Extensional Difference** | `(-, term1, term2)`        | `(-, cat, dog)`                     |
+| **Instance**               | `(term {-- class)`         | `(cat {-- animal)`                  |
+| **Property**               | `(term --} property)`      | `(cat --} furry)`                   |
+| **Nested Expressions**     | Complex combinations       | `(cat --> (&, furry, intelligent))` |
 
 ---
 
@@ -98,12 +98,12 @@ Pragmatic attention mechanism focusing computational resources.
 
 ### Priority Calculation Factors
 
-| Factor | Description | Impact |
-|--------|-------------|--------|
-| **Truth Value** | Confidence and frequency | Higher confidence = higher priority |
-| **Complexity** | Structural complexity | Lower complexity = higher priority |
-| **Relevance** | Relationship to active goals | More relevant = higher priority |
-| **Temporal Factors** | Recency and urgency | More recent/urgent = higher priority |
+| Factor               | Description                  | Impact                               |
+|----------------------|------------------------------|--------------------------------------|
+| **Truth Value**      | Confidence and frequency     | Higher confidence = higher priority  |
+| **Complexity**       | Structural complexity        | Lower complexity = higher priority   |
+| **Relevance**        | Relationship to active goals | More relevant = higher priority      |
+| **Temporal Factors** | Recency and urgency          | More recent/urgent = higher priority |
 
 ---
 
