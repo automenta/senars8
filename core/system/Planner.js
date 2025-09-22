@@ -11,12 +11,6 @@ class Planner {
             throw new Error('Planner requires memory, lm, and actionExecutor instances.');
         }
 
-        // Initialize config service with the config manager's configuration
-        // Always initialize to ensure we use the correct config for this instance
-        if (configManager) {
-            configService.initialize(configManager.getAll());
-        }
-        
         this.config = configService;
         const strategyName = this.config.getString('planner.strategy', 'HTN');
         const strategyMap = {

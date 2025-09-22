@@ -17,12 +17,6 @@ const FORGETTING_STRATEGIES = {
 
 class Memory {
     constructor(configManager, eventBus) {
-        // Initialize config service with the config manager's configuration
-        // Always initialize to ensure we use the correct config for this instance
-        if (configManager) {
-            configService.initialize(configManager.getAll());
-        }
-        
         this.config = configService;
         this.eventBus = eventBus;
         this.terms = new Map();

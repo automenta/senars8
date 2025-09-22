@@ -19,12 +19,6 @@ class Cycle {
         priorityManager,
         eventBus
     ) {
-        // Initialize config service with the config manager's configuration
-        // Always initialize to ensure we use the correct config for this instance
-        if (configManager) {
-            configService.initialize(configManager.getAll());
-        }
-        
         this.config = configService;
         this.memory = memory;
         this.reasoner = reasoner;

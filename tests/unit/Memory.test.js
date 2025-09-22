@@ -48,6 +48,9 @@ describe('Memory', () => {
         configService.reset();
         
         const configManager = createTestConfig();
+        // Initialize configService with test config
+        configService.initialize(configManager.getAll());
+        
         const mockEventBus = {
             on: jest.fn(),
             emit: jest.fn(),
