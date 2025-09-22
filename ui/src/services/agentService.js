@@ -57,8 +57,8 @@ class AgentService extends EventEmitter {
         this.ws.send(JSON.stringify({ type, payload }));
     }
     
-    sendUserInput(text) {
-        this.sendMessage('userInput', { text });
+    sendNarsese(narsese) {
+        this.sendMessage('narsese', narsese);
     }
 
     sendAgentControl(command) {

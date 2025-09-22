@@ -5,6 +5,11 @@
   "main": "core/index.js",
   "module": "core/index.js",
   "private": true,
+  "workspaces": [
+    "core",
+    "agent",
+    "ui"
+  ],
   "files": [
     "core/",
     "agent/",
@@ -13,9 +18,7 @@
   ],
   "scripts": {
     "start": "node agent/server.js",
-    "dev": "concurrently \"npm:dev:agent\" \"npm:dev --prefix ui\"",
-    "dev:agent": "node agent/server.js",
-    "dev:ui": "npm run dev --prefix ui",
+    "dev": "concurrently \"node agent/server.js\" \"npm run dev --prefix ui\"",
     "test": "jest --silent",
     "lint": "eslint core agent tests",
     "lint:fix": "eslint core agent tests --fix",

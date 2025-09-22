@@ -15,7 +15,7 @@ function InputPanel() {
 
     const handleSend = () => {
         if (inputValue.trim()) {
-            agentService.sendUserInput(inputValue);
+            agentService.sendNarsese(inputValue);
             setInputValue('');
         }
     };
@@ -31,7 +31,7 @@ function InputPanel() {
         <Panel title={<><CornerDownLeft size={18} /> User Input</>}>
             <div className="input-wrapper">
                 <textarea
-                    placeholder="Enter a goal for the agent..."
+                    placeholder="Enter Narsese input, e.g. <cat --> animal>."
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleKeyDown}

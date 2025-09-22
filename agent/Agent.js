@@ -1,4 +1,4 @@
-import { SystemFactory, parseTerm, agentErrorHandler as errorHandler, debug, warn, Task } from '@project/core';
+import { createSystem, parseTerm, agentErrorHandler as errorHandler, debug, warn, Task } from '@project/core';
 import MCP from './MCP.js';
 
 class Agent {
@@ -13,7 +13,7 @@ class Agent {
     async initialize() {
         if (this.isInitialized) return;
         return errorHandler.execute(async () => {
-            this.system = await SystemFactory.createSystem(this.config);
+            this.system = await createSystem(this.config);
             this.isInitialized = true;
             debug('Agent initialized successfully.');
         }, 'initialize');

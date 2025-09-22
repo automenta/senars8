@@ -30,7 +30,7 @@ function LogPanel() {
             content = payload;
         }
         
-        const sourceName = source || (type === 'userInput' ? 'user' : 'system');
+        const sourceName = source || (type === 'narsese' ? 'user' : 'system');
 
         return (
             <div key={index} className={`log-message log-${sourceName}`}>

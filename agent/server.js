@@ -21,12 +21,32 @@ agent.initialize().then(() => {
     console.log('Agent initialized');
     broadcast({ type: 'agentStatus', payload: 'initialized' });
 
-    // Example of hooking into an agent event
-    // This requires an event emitter on the agent/system, which we assume for this sketch
-    // For example, if the EventBus is accessible:
-    agent.system.eventBus?.on('cycle', (cycleCount) => {
-        broadcast({ type: 'systemCycle', payload: { cycleCount } });
-    });
+    const eventBus = agent.system.eventBus;
+    if (eventBus) {
+        console.log('Attaching event listeners to EventBus');
+
+        eventBus.on('status_update', (status) => {
+            broadcast({ type: 'status_update', payload: status });
+        });
+
+        eventBus.on('system_cycle', (cycleCount) => {
+            broadcast({ type: 'system_cycle', payload: { cycleCount } });
+        });
+
+        eventBus.on('add_belief', (belief) => {
+            // Assuming belief has a serializable representation
+            broadcast({ type: 'add_belief', payload: belief.toString() });
+        });
+
+        eventBus.on('reasoning_step', (step) => {
+            // Assuming the step object is serializable or has a useful string representation
+            broadcast({ type: 'reasoning_step', payload: step });
+        });
+
+    } else {
+        console.warn('Agent event bus not available. UI will not receive real-time updates.');
+    }
+
 }).catch(error => {
     console.error('Agent initialization failed:', error);
     broadcast({ type: 'agentStatus', payload: 'initialization_failed' });
@@ -60,21 +80,21 @@ async function handleMessage(message, ws) {
     console.log(`received: ${type}`, payload);
 
     switch (type) {
-        case 'userInput': {
+        case 'narsese': {
             // This is a simplified interaction. A real implementation would involve
             // converting natural language to Narsese or handling commands.
-            const goal = payload.text;
-            broadcast({ type: 'log', payload: { source: 'user', message: goal } });
+            const narseseInput = payload;
+            broadcast({ type: 'log', payload: { source: 'user', message: narseseInput } });
             
             // For the sketch, we'll treat input as a goal for the planner.
-            const plan = await agent.createPlan(goal);
+            const plan = await agent.createPlan(narseseInput);
             
             if (plan && plan.steps.length > 0) {
                 const planSteps = plan.steps.map(s => s.toString());
-                broadcast({ type: 'planCreated', payload: { goal, plan: planSteps } });
-                broadcast({ type: 'log', payload: { source: 'agent', message: `Plan created for "${goal}": ${planSteps.join(' -> ')}` } });
+                broadcast({ type: 'planCreated', payload: { goal: narseseInput, plan: planSteps } });
+                broadcast({ type: 'log', payload: { source: 'agent', message: `Plan created for "${narseseInput}": ${planSteps.join(' -> ')}` } });
             } else {
-                broadcast({ type: 'log', payload: { source: 'agent', message: `Could not create a plan for "${goal}".` } });
+                broadcast({ type: 'log', payload: { source: 'agent', message: `Could not create a plan for "${narseseInput}".` } });
             }
             break;
         }
