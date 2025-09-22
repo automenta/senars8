@@ -1,11 +1,9 @@
 import SystemFactory from '../system/SystemFactory.js';
 import {parseTerm} from '../parser/narseseParser.js';
-import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
+import {agentErrorHandler as errorHandler} from '../utils/errorHandling.js';
 import MCP from './MCP.js';
 import {debug, warn} from '../utils/logger.js';
 import Task from '../core/Task.js';
-
-const errorHandler = createUnifiedErrorHandler('Agent');
 
 class Agent {
     constructor(config = {}) {

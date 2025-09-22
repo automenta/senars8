@@ -1,7 +1,5 @@
 import {error, warn} from '../utils/logger.js';
-import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
-
-const errorHandler = createUnifiedErrorHandler('EventBus');
+import {eventBusErrorHandler as errorHandler} from '../utils/errorHandling.js';
 
 class EventBus {
     constructor() {

@@ -1,11 +1,9 @@
 import HTNPlanner from '../reasoner/HTNPlanner.js';
 import AStarPlanner from '../reasoner/AStarPlanner.js';
 import Plan from './Plan.js';
-import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
+import {plannerErrorHandler as errorHandler} from '../utils/errorHandling.js';
 import {debug, warn} from '../utils/logger.js';
 import { configService } from '../config/index.js';
-
-const errorHandler = createUnifiedErrorHandler('Planner');
 
 class Planner {
     constructor(memory, lm, actionExecutor, configManager) {

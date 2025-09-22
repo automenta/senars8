@@ -1,9 +1,7 @@
 import {parseTerm} from '../parser/parse-utils.js';
 import {debug, info} from '../utils/logger.js';
 import {getBeliefTasks} from '../utils/task-utils.js';
-import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
-
-const errorHandler = createUnifiedErrorHandler('MetaCognition');
+import {metaCognitionErrorHandler as errorHandler} from '../utils/errorHandling.js';
 
 class MetaCognition {
     constructor(configManager, contradictionAnalyzer, resolutionStrategy, eventBus) {
