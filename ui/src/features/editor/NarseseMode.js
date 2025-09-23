@@ -1,7 +1,7 @@
 // Custom Ace Editor mode for Narsese
 import ace from 'ace-builds/src-noconflict/ace';
 
-ace.define('ace/mode/narsese', ['require', 'exports', 'module', 'ace/lib/oop', 'ace/mode/text', 'ace/mode/text_highlight_rules'], function(require, exports, module) {
+ace.define('ace/mode/narsese', ['require', 'exports', 'module', 'ace/lib/oop', 'ace/mode/text', 'ace/mode/text_highlight_rules'], function(require, exports, _module) {
     const oop = require('ace/lib/oop');
     const TextMode = require('ace/mode/text').Mode;
     const TextHighlightRules = require('ace/mode/text_highlight_rules').TextHighlightRules;
@@ -21,7 +21,7 @@ ace.define('ace/mode/narsese', ['require', 'exports', 'module', 'ace/lib/oop', '
             '\\(\\*|\\*\\)|<|>|\\[|\\]|\\.|\\?|\\+|\\-|\\*|\\/|:|;|,|\\(|\\)|\\{|\\}|_|\\^'
         );
 
-        const keywordMapper = this.createKeywordMapper({
+        const _keywordMapper = this.createKeywordMapper({
             'keyword': keywords,
             'constant.language': builtinConstants,
             'support.function': builtinFunctions

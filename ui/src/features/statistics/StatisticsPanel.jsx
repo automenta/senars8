@@ -15,7 +15,7 @@ function StatisticsPanel() {
         memoryUsage: 0
     });
 
-    const [cycleTimes, setCycleTimes] = useState([]);
+    const [_cycleTimes, _setCycleTimes] = useState([]);
     const [beliefHistory, setBeliefHistory] = useState([]);
 
     useEffect(() => {
@@ -27,12 +27,6 @@ function StatisticsPanel() {
                     cycleCount: newCycleCount,
                     lastCycleTime: new Date().toISOString()
                 };
-                
-                // Calculate average cycle time
-                if (cycleTimes.length > 0) {
-                    const totalTime = cycleTimes.reduce((sum, time) => sum + time, 0);
-                    newStats.averageCycleTime = totalTime / cycleTimes.length;
-                }
                 
                 return newStats;
             });
@@ -47,14 +41,14 @@ function StatisticsPanel() {
             setBeliefHistory(prev => [...prev.slice(-19), belief]); // Keep last 20 beliefs
         };
 
-        const handlePlanCreated = (planData) => {
+        const handlePlanCreated = (_planData) => {
             setStats(prev => ({
                 ...prev,
                 taskCount: prev.taskCount + 1
             }));
         };
 
-        const handleReasoningStep = (step) => {
+        const handleReasoningStep = (_step) => {
             setStats(prev => ({
                 ...prev,
                 reasoningSteps: prev.reasoningSteps + 1
@@ -72,7 +66,7 @@ function StatisticsPanel() {
             agentService.off('planCreated', handlePlanCreated);
             agentService.off('reasoning_step', handleReasoningStep);
         };
-    }, [cycleTimes]);
+    }, []);
 
     // Calculate some derived statistics
     const beliefsPerCycle = stats.cycleCount > 0 ? (stats.beliefCount / stats.cycleCount).toFixed(2) : 0;

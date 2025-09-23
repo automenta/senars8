@@ -9,7 +9,7 @@ import './TerminalPanel.css';
 const TerminalPanel = () => {
     const terminalRef = useRef(null);
     const {sendMessage, lastMessage} = useConnection();
-    const {yDoc} = useSharedState();
+    const {_yDoc} = useSharedState();
     const [input, setInput] = useState('');
     const [commandHistory, setCommandHistory] = useState([]);
     const [historyIndex, setHistoryIndex] = useState(-1);

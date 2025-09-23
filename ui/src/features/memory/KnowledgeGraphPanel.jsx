@@ -21,7 +21,7 @@ const convertToGraphData = (knowledgeItems) => {
     const nodeIdMap = new Map();
     
     // Create nodes for each unique term/concept
-    knowledgeItems.forEach((item, index) => {
+    knowledgeItems.forEach((_item, _index) => {
         const statement = item.statement || item.term || 'Unknown';
         
         // Extract terms from statement (simplified approach)
@@ -185,8 +185,8 @@ function KnowledgeGraphPanel() {
                     <h4>Knowledge Items ({knowledgeItems.length})</h4>
                     <div className="knowledge-list">
                         {knowledgeItems.length > 0 ? (
-                            knowledgeItems.map((item, index) => (
-                                <div key={index} className="knowledge-item">
+                            knowledgeItems.map((item, _index) => (
+                                <div key={item.id || _index} className="knowledge-item">
                                     <div className="knowledge-statement">
                                         {item.statement || item.term || 'Unknown item'}
                                     </div>

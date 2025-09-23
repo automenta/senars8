@@ -14,8 +14,7 @@ import 'ace-builds/src-noconflict/mode-python';
 import 'ace-builds/src-noconflict/mode-xml';
 import 'ace-builds/src-noconflict/mode-markdown';
 
-// Register the Narsese mode
-import ace from 'ace-builds/src-noconflict/ace';
+
 
 const getMode = (filename) => {
     if (!filename) return 'javascript';
