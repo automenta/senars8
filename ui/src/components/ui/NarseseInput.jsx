@@ -1,31 +1,9 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import './NarseseInput.css';
 
-const highlightSyntax = (text) => {
-    return text
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/\(/g, '<span class="paren">(</span>')
-        .replace(/\)/g, '<span class="paren">)</span>');
-};
-
 function NarseseInput({value, onChange, onSend, history}) {
     const [historyIndex, setHistoryIndex] = useState(-1);
-    const editorRef = useRef(null);
-
-    useEffect(() => {
-        if (editorRef.current && editorRef.current.innerHTML !== highlightSyntax(value)) {
-            editorRef.current.innerHTML = highlightSyntax(value);
-            // Move cursor to end
-            const range = document.createRange();
-            const selection = window.getSelection();
-            range.selectNodeContents(editorRef.current);
-            range.collapse(false);
-            selection.removeAllRanges();
-            selection.addRange(range);
-        }
-    }, [value]);
 
     const handleKeyDown = (e) => {
         if (e.key === 'ArrowUp') {
@@ -47,25 +25,16 @@ function NarseseInput({value, onChange, onSend, history}) {
         }
     };
 
-    const handleInput = (e) => {
-        onChange(e.currentTarget.textContent);
-    };
-
-    const handlePaste = (e) => {
-        e.preventDefault();
-        const text = e.clipboardData.getData('text/plain');
-        document.execCommand('insertText', false, text);
+    const handleChange = (e) => {
+        onChange(e.target.value);
     };
 
     return (
-        <div
-            ref={editorRef}
+        <textarea
             className="narsese-input"
-            contentEditable="true"
-            onInput={handleInput}
+            value={value}
+            onChange={handleChange}
             onKeyDown={handleKeyDown}
-            onPaste={handlePaste}
-            role="textbox"
             aria-label="NARS input field"
             aria-multiline="true"
         />

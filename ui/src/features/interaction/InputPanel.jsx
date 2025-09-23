@@ -16,7 +16,8 @@ function InputPanel() {
         if (inputValue.trim()) {
             agentService.sendNarsese(inputValue);
             addToHistory(inputValue);
-            setInputValue('');
+            // Do not clear the input value after sending, as it is a shared resource.
+            // Users can manually clear it if they choose.
         }
     };
 

@@ -1,4 +1,6 @@
 import {EventEmitter} from 'events';
+import * as Y from 'yjs';
+import {WebsocketProvider} from 'y-websocket';
 
 // Simple logging utility for the UI
 const log = {
@@ -18,12 +20,19 @@ class AgentService extends EventEmitter {
         this.ws = null;
         this.url = 'ws://localhost:8080';
         this.isConnected = false;
+        this.yDoc = new Y.Doc();
+        this.yProvider = null;
+        this.awareness = null;
     }
 
     connect() {
         if (this.ws) {
             this.ws.close();
         }
+
+        // Setup Y.js WebSocket provider
+        this.yProvider = new WebsocketProvider('ws://localhost:8080/crdt', 'senars-room', this.yDoc);
+        this.awareness = this.yProvider.awareness;
 
         this.ws = new WebSocket(this.url);
 
@@ -58,6 +67,9 @@ class AgentService extends EventEmitter {
     disconnect() {
         if (this.ws) {
             this.ws.close();
+        }
+        if (this.yProvider) {
+            this.yProvider.disconnect();
         }
     }
 

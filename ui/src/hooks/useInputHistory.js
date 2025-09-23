@@ -1,12 +1,16 @@
-import {useCallback, useState} from 'react';
+import {useCallback, useState, useContext} from 'react';
+import {SharedStateContext} from '../context/SharedStateProvider';
+import {useYText} from './useYText';
 
 const useInputHistory = () => {
-    const [inputValue, setInputValue] = useState('');
+    const {yDoc} = useContext(SharedStateContext);
+    const yText = yDoc.getText('input');
+    const [inputValue, setInputValue] = useYText(yText);
     const [history, setHistory] = useState([]);
 
     const handleSetInputValue = useCallback((value) => {
         setInputValue(value);
-    }, []);
+    }, [setInputValue]);
 
     const addToHistory = useCallback((command) => {
         if (command.trim()) {
