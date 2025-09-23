@@ -1,5 +1,5 @@
 import React from 'react';
-import Panel from '../core/Panel';
+import Panel from '../../components/core/Panel';
 import { Share2 } from 'lucide-react';
 
 function KnowledgeGraphPanel() {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import Panel from '../core/Panel';
-import agentService from '../../services/agentService';
+import Panel from '../../components/core/Panel';
+import agentService from '../../../services/agentService';
 import { BrainCircuit } from 'lucide-react';
 
 function MemoryViewPanel() {

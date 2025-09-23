@@ -1,17 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import Panel from '../core/Panel';
-import agentService from '../../services/agentService';
+import React, { useState } from 'react';
+import Panel from '../../components/core/Panel';
+import agentService from '../../../services/agentService';
+import { useConnection } from '../../../context/ConnectionContext';
 import { Send, CornerDownLeft } from 'lucide-react';
 
 function InputPanel() {
     const [inputValue, setInputValue] = useState('');
-    const [isConnected, setIsConnected] = useState(agentService.isConnected);
-
-    useEffect(() => {
-        const handleStatusChange = (status) => setIsConnected(status === 'connected');
-        agentService.on('status', handleStatusChange);
-        return () => agentService.off('status', handleStatusChange);
-    }, []);
+    const { isConnected } = useConnection();
 
     const handleSend = () => {
         if (inputValue.trim()) {

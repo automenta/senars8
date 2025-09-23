@@ -1,20 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import Panel from '../core/Panel';
-import agentService from '../../services/agentService';
+import React, { useEffect, useRef } from 'react';
+import Panel from '../../components/core/Panel';
+import { useNarsEventStream } from '../../../hooks/useNarsEventStream';
 import { ScrollText } from 'lucide-react';
 
 function LogPanel() {
-    const [messages, setMessages] = useState([]);
+    const messages = useNarsEventStream();
     const logEndRef = useRef(null);
-
-    useEffect(() => {
-        const handleMessage = (message) => {
-            setMessages(prev => [...prev, message]);
-        };
-
-        agentService.on('message', handleMessage);
-        return () => agentService.off('message', handleMessage);
-    }, []);
 
     useEffect(() => {
         logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -44,7 +35,7 @@ function LogPanel() {
     return (
         <Panel title={<><ScrollText size={18} /> Event Log</>}>
             <pre className="log-container">
-                {messages.map(formatMessage)}
+                {messages.items.map(({ item }, index) => formatMessage(item, index))}
                 <div ref={logEndRef} />
             </pre>
         </Panel>

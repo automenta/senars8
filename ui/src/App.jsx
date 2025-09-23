@@ -1,14 +1,15 @@
 import React, { useEffect } from 'react';
 import agentService from './services/agentService';
+import sonificationService from './services/sonificationService';
 
 // Panels
-import StatusPanel from './components/panels/StatusPanel';
-import ControlPanel from './components/panels/ControlPanel';
-import InputPanel from './components/panels/InputPanel';
-import LogPanel from './components/panels/LogPanel';
-import MemoryViewPanel from './components/panels/MemoryViewPanel';
-import ReasonerTracePanel from './components/panels/ReasonerTracePanel';
-import KnowledgeGraphPanel from './components/panels/KnowledgeGraphPanel';
+import StatusPanel from './features/system/StatusPanel.jsx';
+import ControlPanel from './features/system/ControlPanel.jsx';
+import InputPanel from './features/interaction/InputPanel.jsx';
+import LogPanel from './features/system/LogPanel.jsx';
+import MemoryViewPanel from './features/memory/MemoryViewPanel.jsx';
+import ReasonerTracePanel from './features/reasoning/ReasonerTracePanel.jsx';
+import KnowledgeGraphPanel from './features/memory/KnowledgeGraphPanel.jsx';
 
 // Core Styles
 import './App.css';
@@ -19,9 +20,17 @@ function App() {
         // Connect to the agent when the app mounts
         agentService.connect();
 
+        // Initialize sonification on first user interaction
+        const handleFirstInteraction = () => {
+            sonificationService.initialize();
+            window.removeEventListener('click', handleFirstInteraction);
+        };
+        window.addEventListener('click', handleFirstInteraction);
+
         // Disconnect on unmount
         return () => {
             agentService.disconnect();
+            window.removeEventListener('click', handleFirstInteraction);
         };
     }, []);
 
