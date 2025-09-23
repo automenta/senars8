@@ -1,0 +1,33 @@
+.statusbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #f8f8f8;
+    border-top: 1px solid #ddd;
+    padding: 5px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.toast-container {
+    position: fixed;
+    bottom: 40px; /* Above status bar */
+    right: 10px;
+    z-index: 1000;
+}
+
+.agent-status {
+    /* Base styles for agent status */
+}
+
+.agent-status .status-connected {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.agent-status .status-disconnected {
+    color: #f44336;
+    font-weight: bold;
+}

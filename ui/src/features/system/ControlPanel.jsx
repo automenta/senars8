@@ -1,8 +1,9 @@
 import React from 'react';
 import Panel from '@/components/core/Panel';
 import agentService from '@/services/agentService';
-import {useConnection} from '@/context/ConnectionContext';
+import {useConnection} from '@/context/useConnection';
 import {Play, RotateCcw, Settings, Square} from 'lucide-react';
+import './ControlPanel.css';
 
 function ControlPanel() {
     const {isConnected} = useConnection();
@@ -13,7 +14,7 @@ function ControlPanel() {
 
     return (
         <Panel title={<><Settings size={18}/> Controls</>}>
-            <div style={{display: 'flex', gap: '0.5rem'}}>
+            <div className="control-panel-buttons">
                 <button onClick={handleStart} title="Start Agent" disabled={!isConnected}><Play size={16}/> Start
                 </button>
                 <button onClick={handleStop} title="Stop Agent" disabled={!isConnected}><Square size={16}/> Stop

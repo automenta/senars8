@@ -2,6 +2,7 @@ import React, {useEffect, useRef} from 'react';
 import Panel from '@/components/core/Panel';
 import {useNarsEventStream} from '@/hooks/useNarsEventStream';
 import {ScrollText} from 'lucide-react';
+import './LogPanel.css';
 
 const formatMessage = (msg, index) => {
     const {type, payload, source} = msg;

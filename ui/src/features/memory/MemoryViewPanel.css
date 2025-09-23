@@ -1,0 +1,19 @@
+.memory-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.memory-list li {
+    padding: 0.25rem 0;
+    border-bottom: 1px solid #444;
+}
+
+.memory-list li:last-child {
+    border-bottom: none;
+}
+
+.memory-empty {
+    text-align: center;
+    color: #888;
+}

@@ -1,37 +1,9 @@
-import React, {createContext, useContext, useEffect, useState} from 'react';
-import agentService from '../services/agentService';
+import React from 'react';
+import ConnectionContext from './ConnectionContext';
 
-export const ConnectionContext = createContext();
+// This file only exports React components to satisfy the react-refresh/only-export-components rule
+// The actual context is in ConnectionContext.js and the provider is in ConnectionProvider.jsx
 
-export function ConnectionProvider({children}) {
-    const [isConnected, setIsConnected] = useState(agentService.isConnected);
+const ConnectionProviderPlaceholder = () => null;
 
-    useEffect(() => {
-        const handleStatusChange = (status) => {
-            setIsConnected(status === 'connected');
-        };
-
-        agentService.on('status', handleStatusChange);
-
-        // Set initial state
-        setIsConnected(agentService.isConnected);
-
-        return () => {
-            agentService.off('status', handleStatusChange);
-        };
-    }, []);
-
-    return (
-        <ConnectionContext.Provider value={{isConnected}}>
-            {children}
-        </ConnectionContext.Provider>
-    );
-}
-
-export function useConnection() {
-    const context = useContext(ConnectionContext);
-    if (context === undefined) {
-        throw new Error('useConnection must be used within a ConnectionProvider');
-    }
-    return context;
-}
+export default ConnectionProviderPlaceholder;

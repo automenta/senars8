@@ -1,0 +1,16 @@
+.status-panel-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.status-panel-connection {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-panel-divider {
+    color: #555;
+}

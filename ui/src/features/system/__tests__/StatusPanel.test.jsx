@@ -1,8 +1,8 @@
 import React from 'react';
 import {render, screen} from '@testing-library/react';
-import {ConnectionProvider} from 'context/ConnectionContext';
-import {SettingsProvider} from 'context/SettingsContext';
-import StatusPanel from 'features/system/StatusPanel';
+import {ConnectionProvider} from '@/context/ConnectionProvider';
+import {SettingsProvider} from '@/context/SettingsProvider';
+import StatusPanel from '@/features/system/StatusPanel';
 
 describe('StatusPanel', () => {
     it('renders disconnected status by default', () => {

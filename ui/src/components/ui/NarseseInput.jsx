@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import './ui.css';
+import './NarseseInput.css';
 
 const highlightSyntax = (text) => {
     return text

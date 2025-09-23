@@ -1,6 +1,7 @@
 import React, {useSyncExternalStore} from 'react';
 import notificationService from '@/services/notificationService';
 import {Trash2} from 'lucide-react';
+import './NotificationCenter.css';
 
 const subscribe = (callback) => {
     notificationService.on('change', callback);

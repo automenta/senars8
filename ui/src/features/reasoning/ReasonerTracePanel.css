@@ -1,0 +1,21 @@
+.reasoner-trace-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.reasoner-trace-list li {
+    padding: 0.25rem 0;
+    border-bottom: 1px solid #444;
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+.reasoner-trace-list li:last-child {
+    border-bottom: none;
+}
+
+.reasoner-trace-empty {
+    text-align: center;
+    color: #888;
+}

@@ -1,7 +1,7 @@
 import {useEffect, useMemo} from 'react';
 import agentService from '../services/agentService';
 import sonificationService from '../services/sonificationService';
-import {useSettings} from '../context/SettingsContext';
+import {useSettings} from '../context/useSettings';
 import Bag from '@project/core/utils/bag';
 
 export function useNarsEventStream(capacity = 100) {

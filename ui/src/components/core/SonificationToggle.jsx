@@ -1,6 +1,7 @@
 import React from 'react';
-import {useSettings} from '../../context/SettingsContext';
+import {useSettings} from '../../context/useSettings';
 import {Volume2, VolumeX} from 'lucide-react';
+import './SonificationToggle.css';
 
 function SonificationToggle() {
     const {isSonificationEnabled, toggleSonification} = useSettings();

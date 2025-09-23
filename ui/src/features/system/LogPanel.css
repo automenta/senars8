@@ -1,0 +1,38 @@
+.log-container {
+    background-color: #252526;
+    padding: 0.5rem;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0;
+    height: 100%;
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
+    overflow: auto;
+}
+
+.log-message {
+    margin-bottom: 4px;
+}
+
+.log-time {
+    color: #888;
+    margin-right: 8px;
+}
+
+.log-source {
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+.log-user .log-source {
+    color: #9cdcfe;
+}
+
+.log-agent .log-source {
+    color: #ce9178;
+}
+
+.log-system .log-source {
+    color: #dcdcaa;
+}

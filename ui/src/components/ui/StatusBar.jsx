@@ -2,6 +2,7 @@ import React, {useEffect, useState, useSyncExternalStore} from 'react';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import Toast from './Toast';
+import './StatusBar.css';
 
 const subscribeNotifications = (callback) => {
     notificationService.on('change', callback);
@@ -31,8 +32,8 @@ function StatusBar() {
                     <Toast key={n.id} notification={n} onDismiss={onDismiss}/>
                 ))}
             </div>
-            <div className="agent-status">
-                Agent Status: <span className={`status-${agentStatus}`}>{agentStatus}</span>
+            <div className={`agent-status status-${agentStatus}`}>
+                Agent: {agentStatus}
             </div>
         </div>
     );

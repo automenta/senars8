@@ -1,9 +1,10 @@
 import React, {useEffect, useState} from 'react';
 import Panel from '@/components/core/Panel';
 import agentService from '@/services/agentService';
-import {useConnection} from '@/context/ConnectionContext';
+import {useConnection} from '@/context/useConnection';
 import SonificationToggle from '@/components/core/SonificationToggle';
 import {Server, Wifi, WifiOff} from 'lucide-react';
+import './StatusPanel.css';
 
 function StatusPanel() {
     const {isConnected} = useConnection();
@@ -21,13 +22,13 @@ function StatusPanel() {
 
     return (
         <Panel title={<><Server size={18}/> System Status</>}>
-            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%'}}>
-                <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+            <div className="status-panel-content">
+                <div className="status-panel-connection">
                     {isConnected
                         ? <><Wifi size={16} color="limegreen"/> Connected</>
                         : <><WifiOff size={16} color="red"/> Disconnected</>
                     }
-                    <span style={{color: '#555'}}>|</span>
+                    <span className="status-panel-divider">|</span>
                     <span>Cycle: {cycleCount}</span>
                 </div>
                 <SonificationToggle/>

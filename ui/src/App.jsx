@@ -5,6 +5,7 @@ import panelRegistry from '@/features/panelRegistry';
 import StatusBar from '@/components/ui/StatusBar';
 import useAppInit from '@/hooks/useAppInit';
 import useLayoutModel from '@/hooks/useLayoutModel';
+import './App.css';
 
 const factory = (node) => {
     const componentName = node.getComponent();

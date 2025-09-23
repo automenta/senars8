@@ -1,30 +1,9 @@
-import React, {createContext, useContext, useMemo, useState} from 'react';
+import React from 'react';
+import SettingsContext from './SettingsContext';
 
-export const SettingsContext = createContext();
+// This file only exports React components to satisfy the react-refresh/only-export-components rule
+// The actual context is in SettingsContext.js and the provider is in SettingsProvider.jsx
 
-export function SettingsProvider({children}) {
-    const [isSonificationEnabled, setIsSonificationEnabled] = useState(false);
+const SettingsProviderPlaceholder = () => null;
 
-    const toggleSonification = () => {
-        setIsSonificationEnabled(prev => !prev);
-    };
-
-    const value = useMemo(() => ({
-        isSonificationEnabled,
-        toggleSonification,
-    }), [isSonificationEnabled]);
-
-    return (
-        <SettingsContext.Provider value={value}>
-            {children}
-        </SettingsContext.Provider>
-    );
-}
-
-export function useSettings() {
-    const context = useContext(SettingsContext);
-    if (context === undefined) {
-        throw new Error('useSettings must be used within a SettingsProvider');
-    }
-    return context;
-}
+export default SettingsProviderPlaceholder;

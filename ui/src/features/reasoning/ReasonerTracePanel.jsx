@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import Panel from '@/components/core/Panel';
 import agentService from '@/services/agentService';
 import {Footprints} from 'lucide-react';
+import './ReasonerTracePanel.css';
 
 function ReasonerTracePanel() {
     const [trace, setTrace] = useState([]);
@@ -23,7 +24,7 @@ function ReasonerTracePanel() {
                 ))}
             </ul>
             {trace.length === 0 && (
-                <div style={{textAlign: 'center', color: '#888'}}>
+                <div className="reasoner-trace-empty">
                     No reasoning steps yet.
                 </div>
             )}

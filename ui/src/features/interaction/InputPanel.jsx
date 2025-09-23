@@ -3,9 +3,10 @@ import Panel from '@/components/core/Panel';
 import NarseseInput from '@/components/ui/NarseseInput';
 import SendButton from '@/components/ui/SendButton';
 import agentService from '@/services/agentService';
-import {useConnection} from '@/context/ConnectionContext';
+import {useConnection} from '@/context/useConnection';
 import useInputHistory from '@/hooks/useInputHistory';
 import {CornerDownLeft} from 'lucide-react';
+import './InputPanel.css';
 
 function InputPanel() {
     const {isConnected} = useConnection();

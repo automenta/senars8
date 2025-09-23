@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import Panel from '@/components/core/Panel';
 import agentService from '@/services/agentService';
 import {BrainCircuit} from 'lucide-react';
+import './MemoryViewPanel.css';
 
 function MemoryViewPanel() {
     const [beliefs, setBeliefs] = useState([]);
@@ -23,7 +24,7 @@ function MemoryViewPanel() {
                 ))}
             </ul>
             {beliefs.length === 0 && (
-                <div style={{textAlign: 'center', color: '#888'}}>
+                <div className="memory-empty">
                     No beliefs yet.
                 </div>
             )}
