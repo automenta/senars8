@@ -1,21 +1,27 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import ReactFlow, { MiniMap, Controls, Background } from 'reactflow';
 import 'reactflow/dist/style.css';
 import Panel from '../../components/core/Panel';
 import { Share2 } from 'lucide-react';
-
-const initialNodes = [
-  { id: '1', position: { x: 0, y: 0 }, data: { label: 'Node 1' } },
-  { id: '2', position: { x: 0, y: 100 }, data: { label: 'Node 2' } },
-];
-const initialEdges = [{ id: 'e1-2', source: '1', target: '2' }];
+import agentService from '../../services/agentService';
+import useKnowledgeGraph from '@/hooks/useKnowledgeGraph';
 
 function KnowledgeGraphPanel() {
+    const { nodes, edges, handleNewBelief } = useKnowledgeGraph();
+
+    useEffect(() => {
+        agentService.on('add_belief', handleNewBelief);
+
+        return () => {
+            agentService.off('add_belief', handleNewBelief);
+        };
+    }, [handleNewBelief]);
+
     return (
         <Panel title={<><Share2 size={18} /> Knowledge Graph</>}>
             <ReactFlow
-                nodes={initialNodes}
-                edges={initialEdges}
+                nodes={nodes}
+                edges={edges}
                 fitView
             >
                 <Controls />

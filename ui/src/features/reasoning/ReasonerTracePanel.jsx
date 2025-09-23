@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Panel from '@/components/core/Panel';
 import agentService from '@/services/agentService';
 import { Footprints } from 'lucide-react';
@@ -6,14 +6,14 @@ import { Footprints } from 'lucide-react';
 function ReasonerTracePanel() {
     const [trace, setTrace] = useState([]);
 
-    useEffect(() => {
-        const handleStep = (step) => {
-            setTrace(prev => [...prev, step]);
-        };
+    const handleStep = useCallback((step) => {
+        setTrace(prev => [...prev, step]);
+    }, []);
 
+    useEffect(() => {
         agentService.on('reasoning_step', handleStep);
         return () => agentService.off('reasoning_step', handleStep);
-    }, []);
+    }, [handleStep]);
 
     return (
         <Panel title={<><Footprints size={18} /> Reasoner Trace</>}>

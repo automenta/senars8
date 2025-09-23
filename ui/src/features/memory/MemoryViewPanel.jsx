@@ -19,7 +19,7 @@ function MemoryViewPanel() {
         <Panel title={<><BrainCircuit size={18} /> Memory</>}>
             <ul className="memory-list">
                 {beliefs.map((belief, index) => (
-                    <li key={index}>{belief}</li>
+                    <li key={index}>{belief.replace(/\\/g, '')}</li>
                 ))}
             </ul>
             {beliefs.length === 0 && (

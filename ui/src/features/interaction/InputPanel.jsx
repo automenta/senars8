@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Panel from '@/components/core/Panel';
 import NarseseInput from '@/components/ui/NarseseInput';
 import SendButton from '@/components/ui/SendButton';
 import agentService from '@/services/agentService';
 import { useConnection } from '@/context/ConnectionContext';
+import useInputHistory from '@/hooks/useInputHistory';
 import { CornerDownLeft } from 'lucide-react';
 
 function InputPanel() {
     const { isConnected } = useConnection();
-    const [inputValue, setInputValue] = useState('');
-    const [history, setHistory] = useState([]);
+    const { inputValue, setInputValue, history, addToHistory } = useInputHistory();
 
     const handleSend = () => {
         if (inputValue.trim()) {
             agentService.sendNarsese(inputValue);
-            setHistory(prevHistory => [inputValue, ...prevHistory]);
+            addToHistory(inputValue);
             setInputValue('');
         }
     };

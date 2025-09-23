@@ -1,45 +1,24 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Layout, Model } from 'flexlayout-react';
+import React, { useRef } from 'react';
+import { Layout } from 'flexlayout-react';
 import 'flexlayout-react/style/light.css';
-import agentService from '@/services/agentService';
-import sonificationService from '@/services/sonificationService';
 import panelRegistry from '@/features/panelRegistry';
-import { saveLayout, loadLayout } from '@/features/layoutManager';
-import defaultLayout from '@/features/defaultLayout';
 import StatusBar from '@/components/ui/StatusBar';
+import useAppInit from '@/hooks/useAppInit';
+import useLayoutModel from '@/hooks/useLayoutModel';
 
-const initialModel = Model.fromJson(loadLayout(defaultLayout));
+const factory = (node) => {
+    const componentName = node.getComponent();
+    const PanelComponent = panelRegistry[componentName];
+    if (PanelComponent) {
+        return <PanelComponent />;
+    }
+    return null;
+};
 
 function App() {
-    const [model, setModel] = useState(initialModel);
+    useAppInit();
+    const { model, onModelChange } = useLayoutModel();
     const layoutRef = useRef();
-
-    const onModelChange = (newModel) => {
-        saveLayout(newModel);
-        setModel(newModel);
-    }
-
-    useEffect(() => {
-        agentService.connect();
-        const handleFirstInteraction = () => {
-            sonificationService.initialize();
-            window.removeEventListener('click', handleFirstInteraction);
-        };
-        window.addEventListener('click', handleFirstInteraction);
-        return () => {
-            agentService.disconnect();
-            window.removeEventListener('click', handleFirstInteraction);
-        };
-    }, []);
-
-    const factory = (node) => {
-        const componentName = node.getComponent();
-        const PanelComponent = panelRegistry[componentName];
-        if (PanelComponent) {
-            return <PanelComponent />;
-        }
-        return null;
-    };
 
     return (
         <div className="app-container">
