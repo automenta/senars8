@@ -1,4 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
+import PropTypes from 'prop-types';
 import './NarseseInput.css';
 
 const highlightSyntax = (text) => {
@@ -50,8 +51,17 @@ function NarseseInput({value, onChange, onSend, history}) {
             contentEditable="true"
             onInput={handleInput}
             onKeyDown={handleKeyDown}
+            role="textbox"
+            aria-label="NARS input field"
         />
     );
 }
+
+NarseseInput.propTypes = {
+    value: PropTypes.string.isRequired,
+    onChange: PropTypes.func.isRequired,
+    onSend: PropTypes.func.isRequired,
+    history: PropTypes.arrayOf(PropTypes.string).isRequired,
+};
 
 export default NarseseInput;

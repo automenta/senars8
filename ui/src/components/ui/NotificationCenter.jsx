@@ -1,4 +1,5 @@
 import React, {useSyncExternalStore} from 'react';
+import PropTypes from 'prop-types';
 import notificationService from '@/services/notificationService';
 import {Trash2} from 'lucide-react';
 import './NotificationCenter.css';
@@ -21,7 +22,7 @@ function NotificationCenter() {
         <div className="notification-center">
             <div className="notification-center-header">
                 <h3>Notifications</h3>
-                <button onClick={() => notificationService.clearAll()} title="Clear All">
+                <button onClick={() => notificationService.clearAll()} title="Clear All" aria-label="Clear all notifications">
                     <Trash2 size={16}/>
                 </button>
             </div>
@@ -45,5 +46,7 @@ function NotificationCenter() {
         </div>
     );
 }
+
+NotificationCenter.propTypes = {};
 
 export default NotificationCenter;

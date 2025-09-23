@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import './Panel.css';
 
 function Panel({title, children, className = ''}) {
@@ -11,5 +12,16 @@ function Panel({title, children, className = ''}) {
         </div>
     );
 }
+
+Panel.propTypes = {
+    title: PropTypes.node,
+    children: PropTypes.node.isRequired,
+    className: PropTypes.string,
+};
+
+Panel.defaultProps = {
+    title: null,
+    className: '',
+};
 
 export default Panel;

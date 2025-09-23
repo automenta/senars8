@@ -1,4 +1,5 @@
 import React, {useEffect, useState, useSyncExternalStore} from 'react';
+import PropTypes from 'prop-types';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import Toast from './Toast';
@@ -26,17 +27,19 @@ function StatusBar() {
     }
 
     return (
-        <div className="statusbar">
+        <div className="statusbar" role="status">
             <div className="toast-container">
                 {notifications.map(n => (
                     <Toast key={n.id} notification={n} onDismiss={onDismiss}/>
                 ))}
             </div>
-            <div className={`agent-status status-${agentStatus}`}>
+            <div className={`agent-status status-${agentStatus}`} aria-live="polite">
                 Agent: {agentStatus}
             </div>
         </div>
     );
 }
+
+StatusBar.propTypes = {};
 
 export default StatusBar;

@@ -1,13 +1,29 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {Send} from 'lucide-react';
 import './SendButton.css';
 
 function SendButton({onClick, disabled}) {
     return (
-        <button onClick={onClick} disabled={disabled} title="Send" className="send-button">
+        <button 
+            onClick={onClick} 
+            disabled={disabled} 
+            title="Send" 
+            className="send-button"
+            aria-label="Send input"
+        >
             <Send size={16}/>
         </button>
     );
 }
+
+SendButton.propTypes = {
+    onClick: PropTypes.func.isRequired,
+    disabled: PropTypes.bool,
+};
+
+SendButton.defaultProps = {
+    disabled: false,
+};
 
 export default SendButton;

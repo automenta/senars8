@@ -24,8 +24,8 @@ class SonificationService {
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             this.isInitialized = true;
             log.info('Sonification service initialized.');
-        } catch (error) {
-            log.warn('AudioContext not initialized. Cannot play sound.');
+        } catch (err) {
+            log.warn('AudioContext not initialized. Cannot play sound.', err);
         }
     }
 
@@ -48,6 +48,23 @@ class SonificationService {
 
         oscillator.start();
         oscillator.stop(this.audioContext.currentTime + duration);
+    }
+
+    // Play different sounds based on event type
+    playEventSound(eventType) {
+        switch (eventType) {
+            case 'add_belief':
+                this.playSound(523.25, 0.1); // C5
+                break;
+            case 'reasoning_step':
+                this.playSound(659.25, 0.1); // E5
+                break;
+            case 'system_cycle':
+                this.playSound(783.99, 0.1); // G5
+                break;
+            default:
+                this.playSound(440, 0.1); // A4
+        }
     }
 }
 

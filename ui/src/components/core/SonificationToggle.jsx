@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {useSettings} from '../../context/useSettings';
 import {Volume2, VolumeX} from 'lucide-react';
 import './SonificationToggle.css';
@@ -11,10 +12,13 @@ function SonificationToggle() {
             onClick={toggleSonification}
             title={isSonificationEnabled ? 'Disable Sonification' : 'Enable Sonification'}
             className="icon-button"
+            aria-label={isSonificationEnabled ? 'Disable Sonification' : 'Enable Sonification'}
         >
             {isSonificationEnabled ? <Volume2 size={18}/> : <VolumeX size={18}/>}
         </button>
     );
 }
+
+SonificationToggle.propTypes = {};
 
 export default SonificationToggle;
