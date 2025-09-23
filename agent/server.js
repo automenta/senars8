@@ -1,9 +1,10 @@
 import {WebSocketServer} from 'ws';
-import {Agent} from './services/index.js';
+import {Agent} from './index.js';
+import {debug, info, warn, error as logError} from '@project/core/utils/logger.js';
 
 const wss = new WebSocketServer({port: 8080});
 
-console.log('Agent WebSocket server started on port 8080');
+info('Agent WebSocket server started on port 8080');
 
 const agent = new Agent();
 
@@ -18,12 +19,12 @@ const broadcast = (data) => {
 
 // Initialize and set up agent event listeners
 agent.initialize().then(() => {
-    console.log('Agent initialized');
+    info('Agent initialized');
     broadcast({type: 'agentStatus', payload: 'initialized'});
 
     const eventBus = agent.system.eventBus;
     if (eventBus) {
-        console.log('Attaching event listeners to EventBus');
+        info('Attaching event listeners to EventBus');
 
         eventBus.on('status_update', (status) => {
             broadcast({type: 'status_update', payload: status});
@@ -44,40 +45,42 @@ agent.initialize().then(() => {
         });
 
     } else {
-        console.warn('Agent event bus not available. UI will not receive real-time updates.');
+        warn('Agent event bus not available. UI will not receive real-time updates.');
     }
 
+    return true; // Return a value to satisfy the eslint rule
 }).catch(error => {
-    console.error('Agent initialization failed:', error);
+    logError('Agent initialization failed:', error);
     broadcast({type: 'agentStatus', payload: 'initialization_failed'});
+    return false; // Return a value to satisfy the eslint rule
 });
 
 
 wss.on('connection', (ws) => {
-    console.log('A new client connected');
+    info('A new client connected');
     ws.send(JSON.stringify({type: 'connection_ack', payload: {message: 'Welcome!'}}));
     ws.send(JSON.stringify({type: 'agentStatus', payload: agent.isInitialized ? 'initialized' : 'initializing'}));
 
-    ws.on('error', console.error);
+    ws.on('error', (error) => logError('WebSocket error:', error));
 
     ws.on('message', async (data) => {
         try {
             const message = JSON.parse(data);
             await handleMessage(message, ws);
         } catch (error) {
-            console.error('Failed to handle message:', error);
+            logError('Failed to handle message:', error);
             ws.send(JSON.stringify({type: 'error', payload: {message: 'Invalid message format or handler error.'}}));
         }
     });
 
     ws.on('close', () => {
-        console.log('Client disconnected');
+        info('Client disconnected');
     });
 });
 
 async function handleMessage(message, ws) {
     const {type, payload} = message;
-    console.log(`received: ${type}`, payload);
+    debug(`received: ${type}`, payload);
 
     switch (type) {
         case 'narsese': {

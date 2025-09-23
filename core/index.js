@@ -20,6 +20,12 @@ export {
     warn
 };
 
+// Re-export some commonly used utilities
+export {BaseEntity} from './core/BaseEntity.js';
+export {error, info} from './utils/logger.js';
+export {isBelief, isGoal, isQuestion, getTasksByType} from './utils/task-utils.js';
+export {cosineSimilarity, embeddingsEqual} from './utils/math.js';
+
 // Create createSystem function inline to avoid circular dependency
 async function createSystem(userConfig = {}, components = {}) {
     const SystemFactory = await import('./system/SystemFactory.js');

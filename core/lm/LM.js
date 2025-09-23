@@ -27,7 +27,7 @@ const PIPELINE_TYPES = {
 };
 
 class LM {
-    constructor(configManager) {
+    constructor(_configManager) {
         this.config = configService;
         this._pipelineFactory = PipelineFactory;
         this._llm = null;

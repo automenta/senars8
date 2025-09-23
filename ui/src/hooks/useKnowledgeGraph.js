@@ -1,6 +1,18 @@
 import {useCallback, useState} from 'react';
 import {parseTerm} from '@core/parser/narseseParser.js';
 
+// Simple logging utility for the UI
+const log = {
+    info: (message, ...args) => console.log(`[INFO] ${message}`, ...args),
+    warn: (message, ...args) => console.warn(`[WARN] ${message}`, ...args),
+    error: (message, ...args) => console.error(`[ERROR] ${message}`, ...args),
+    debug: (message, ...args) => {
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`[DEBUG] ${message}`, ...args);
+        }
+    }
+};
+
 const useKnowledgeGraph = () => {
     const [nodes, setNodes] = useState([]);
     const [edges, setEdges] = useState([]);
@@ -43,7 +55,7 @@ const useKnowledgeGraph = () => {
                 }
             }
         } catch (error) {
-            console.error('Failed to parse belief:', belief, error);
+            log.error('Failed to parse belief:', belief, error);
         }
     }, [addNode, addEdge]);
 

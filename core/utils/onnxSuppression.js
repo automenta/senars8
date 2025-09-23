@@ -34,21 +34,18 @@ export function suppressOnnxWarnings() {
         if (typeof console !== 'undefined' && console.warn) {
             const originalWarn = console.warn;
             console.warn = function (...args) {
-                // Check if the warning is from ONNX Runtime
-                if (args.some(arg =>
-                    typeof arg === 'string' &&
-                    (arg.includes('[W:onnxruntime') ||
-                        arg.includes('Removing initializer') ||
-                        arg.includes('CleanUnusedInitializersAndNodeArgs'))
-                )) {
-                    // Suppress these warnings
-                    return;
+                // Filter out ONNX runtime warnings
+                if (args.some(arg => typeof arg === 'string' && (
+                    arg.includes('ONNX Runtime') ||
+                    arg.includes('onnxruntime') ||
+                    arg.includes('InferenceSession')
+                ))) {
+                    return; // Suppress these warnings
                 }
-                // Call original warn for other warnings
-                return originalWarn.apply(console, args);
+                originalWarn.apply(console, args);
             };
         }
-    } catch (e) {
+    } catch {
         // Ignore any errors in suppression
     }
 }

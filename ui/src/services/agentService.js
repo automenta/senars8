@@ -1,5 +1,17 @@
 import {EventEmitter} from 'events';
 
+// Simple logging utility for the UI
+const log = {
+    info: (message, ...args) => console.log(`[INFO] ${message}`, ...args),
+    warn: (message, ...args) => console.warn(`[WARN] ${message}`, ...args),
+    error: (message, ...args) => console.error(`[ERROR] ${message}`, ...args),
+    debug: (message, ...args) => {
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`[DEBUG] ${message}`, ...args);
+        }
+    }
+};
+
 class AgentService extends EventEmitter {
     constructor() {
         super();
@@ -18,13 +30,13 @@ class AgentService extends EventEmitter {
         this.ws.onopen = () => {
             this.isConnected = true;
             this.emit('status', 'connected');
-            console.log('WebSocket connected');
+            log.info('WebSocket connected');
         };
 
         this.ws.onclose = () => {
             this.isConnected = false;
             this.emit('status', 'disconnected');
-            console.log('WebSocket disconnected');
+            log.info('WebSocket disconnected');
         };
 
         this.ws.onmessage = (event) => {
@@ -33,12 +45,12 @@ class AgentService extends EventEmitter {
                 this.emit(message.type, message.payload);
                 this.emit('message', message); // Also emit a generic message event
             } catch (error) {
-                console.error('Failed to parse incoming message:', event.data, error);
+                log.error('Failed to parse incoming message:', event.data, error);
             }
         };
 
         this.ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
+            log.error('WebSocket error:', error);
             this.emit('error', error);
         };
     }
@@ -51,7 +63,7 @@ class AgentService extends EventEmitter {
 
     sendMessage(type, payload) {
         if (!this.isConnected) {
-            console.error('Cannot send message, WebSocket is not connected.');
+            log.error('Cannot send message, WebSocket is not connected.');
             return;
         }
         this.ws.send(JSON.stringify({type, payload}));
