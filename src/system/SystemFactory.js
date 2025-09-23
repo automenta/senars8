@@ -1,5 +1,5 @@
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
-import {info} from '../utils/logger.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
+import {debug, info} from '../utils/logger.js';
 import ConfigManager from '../config/ConfigManager.js';
 import System from './System.js';
 import Cycle from './Cycle.js';
@@ -16,73 +16,92 @@ import ContradictionAnalyzer from '../reasoner/ContradictionAnalyzer.js';
 import ResolutionStrategy from '../reasoner/strategies/ResolutionStrategy.js';
 import CONSTITUTION_TASKS from './Constitution.js';
 
-const errorHandler = createModuleErrorHandler('SystemFactory');
+const errorHandler = createUnifiedErrorHandler('SystemFactory');
 
-class SystemFactory {
-    async createSystem(userConfig = {}, components = {}) {
-        return await errorHandler.safeAsync(async () => {
-            info('SystemFactory: Creating new system...');
-            const configManager = new ConfigManager(userConfig);
-            const assembledComponents = this._assembleComponents(configManager, components);
-            const system = await this._initializeSystem(assembledComponents);
-            info('SystemFactory: System creation complete.');
-            return system;
-        }, 'createSystem');
+const getComponent = (components, name, factory) => {
+    const component = components[name];
+    if (component) {
+        debug(`SystemFactory: Using provided component ${name}:`, component);
+        return component;
     }
+    const defaultComponent = factory();
+    debug(`SystemFactory: Created default component ${name}:`, defaultComponent);
+    return defaultComponent;
+};
 
-    _assembleComponents(configManager, components) {
-        info('SystemFactory: Assembling components...');
+const assembleComponents = (configManager, initialComponents = {}) => {
+    info('SystemFactory: Assembling components...');
 
-        const get = (name, defaultComponent) => components[name] || defaultComponent;
+    const memory = getComponent(initialComponents, 'memory', () => new Memory(configManager));
+    const lm = getComponent(initialComponents, 'lm', () => new LM(configManager));
+    const temporalReasoner = getComponent(initialComponents, 'temporalReasoner', () => new TemporalReasoner(configManager));
+    const reasoner = getComponent(initialComponents, 'reasoner', () => new Reasoner({temporalReasoner}, configManager));
+    const actionExecutor = getComponent(initialComponents, 'actionExecutor', () => new ActionExecutor(memory, configManager));
+    const perception = getComponent(initialComponents, 'perception', () => new Perception(memory, lm));
+    const planner = getComponent(initialComponents, 'planner', () => new Planner(memory, lm, actionExecutor, configManager));
+    const priorityManager = getComponent(initialComponents, 'priorityManager', () => new PriorityManager(memory, configManager));
+    const contradictionAnalyzer = getComponent(initialComponents, 'contradictionAnalyzer', () => new ContradictionAnalyzer());
+    const resolutionStrategy = getComponent(initialComponents, 'resolutionStrategy', () => new ResolutionStrategy());
+    const metaCognition = getComponent(initialComponents, 'metaCognition', () => new MetaCognition(configManager, {
+        contradictionAnalyzer,
+        resolutionStrategy
+    }));
+    const cycle = getComponent(initialComponents, 'cycle', () => new Cycle(configManager, {
+        memory,
+        reasoner,
+        lm,
+        actionExecutor,
+        perception,
+        planner,
+        metaCognition,
+        temporalReasoner,
+        priorityManager
+    }));
 
-        const memory = get('memory', new Memory(configManager));
-        const lm = get('lm', new LM(configManager));
-        const temporalReasoner = get('temporalReasoner', new TemporalReasoner(configManager));
-        const reasoner = get('reasoner', new Reasoner({
-            temporalReasoner
-        }, configManager));
-        const actionExecutor = get('actionExecutor', new ActionExecutor(memory, configManager));
-        const perception = get('perception', new Perception(memory, lm));
-        const planner = get('planner', new Planner(memory, lm, actionExecutor, configManager));
-        const priorityManager = get('priorityManager', new PriorityManager(memory));
-        const contradictionAnalyzer = get('contradictionAnalyzer', new ContradictionAnalyzer());
-        const resolutionStrategy = get('resolutionStrategy', new ResolutionStrategy());
-        const metaCognition = get('metaCognition', new MetaCognition(configManager, {
-            contradictionAnalyzer,
-            resolutionStrategy
-        }));
-        const cycle = get('cycle', new Cycle(configManager, {
-            memory,
-            reasoner,
-            lm,
-            actionExecutor,
-            perception,
-            planner,
-            metaCognition,
-            temporalReasoner,
-            priorityManager
-        }));
-        const system = get('system', new System(configManager, {
-            memory,
-            reasoner,
-            lm,
-            actionExecutor,
-            cycle
-        }));
+    const components = {
+        memory,
+        reasoner,
+        lm,
+        actionExecutor,
+        cycle,
+        planner,
+        metaCognition,
+        perception,
+        temporalReasoner,
+        priorityManager,
+        contradictionAnalyzer,
+        resolutionStrategy,
+    };
 
-        info('SystemFactory: Components assembled.');
-        return {
-            system,
-            ...components
-        };
-    }
+    const system = getComponent(initialComponents, 'system', () => new System(configManager, components));
 
-    async _initializeSystem(components) {
-        info('SystemFactory: Initializing system with constitution...');
-        await components.system.initialize(CONSTITUTION_TASKS);
-        info('SystemFactory: System initialized.');
-        return components.system;
-    }
-}
+    info('SystemFactory: Components assembled.');
+    debug('SystemFactory: Returning system from assembleComponents:', system);
+    return system;
+};
 
-export default new SystemFactory();
+const initializeSystem = async (system) => {
+    info('SystemFactory: Initializing system with constitution...');
+    debug('SystemFactory: System to initialize:', system);
+    await system.initialize(CONSTITUTION_TASKS);
+    info('SystemFactory: System initialized.');
+    return system;
+};
+
+const createSystem = async (userConfig = {}, components = {}) => {
+    return await errorHandler.execute(async () => {
+        info('SystemFactory: Creating new system...');
+        debug('SystemFactory: User config:', userConfig);
+        debug('SystemFactory: Initial components:', components);
+        const configManager = new ConfigManager(userConfig);
+        const system = assembleComponents(configManager, components);
+        await initializeSystem(system);
+        info('SystemFactory: System creation complete.');
+        debug('SystemFactory: Returning system from createSystem:', system);
+        return system;
+    }, 'createSystem');
+};
+
+export default {
+    createSystem
+};

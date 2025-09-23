@@ -1,8 +1,8 @@
 import config from '../config/index.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import {getBeliefTasks} from '../utils/task-utils.js';
 
-const errorHandler = createModuleErrorHandler('TruthValueManager');
+const errorHandler = createUnifiedErrorHandler('TruthValueManager');
 
 class TruthValueManager {
     constructor() {
@@ -50,18 +50,14 @@ class TruthValueManager {
         if (!evidenceSources?.length) return currentTruthValue;
 
         const {
-            totalWeightedFrequency,
-            totalWeight,
-            maxConfidence
+            totalWeightedFrequency: weightedFreq,
+            totalWeight: totalWt,
+            maxConfidence: maxConf
         } = evidenceSources.reduce(
-            ({
-                 totalWeightedFrequency,
-                 totalWeight,
-                 maxConfidence
-             }, evidence) => ({
-                totalWeightedFrequency: totalWeightedFrequency + evidence.frequency * evidence.confidence,
-                totalWeight: totalWeight + evidence.confidence,
-                maxConfidence: Math.max(maxConfidence, evidence.confidence),
+            (acc, evidence) => ({
+                totalWeightedFrequency: acc.totalWeightedFrequency + evidence.frequency * evidence.confidence,
+                totalWeight: acc.totalWeight + evidence.confidence,
+                maxConfidence: Math.max(acc.maxConfidence, evidence.confidence),
             }), {
                 totalWeightedFrequency: currentTruthValue.frequency * currentTruthValue.confidence,
                 totalWeight: currentTruthValue.confidence,
@@ -70,8 +66,8 @@ class TruthValueManager {
         );
 
         return {
-            frequency: totalWeightedFrequency / totalWeight,
-            confidence: Math.min(1.0, maxConfidence),
+            frequency: weightedFreq / totalWt,
+            confidence: Math.min(1.0, maxConf),
         };
     }
 
@@ -257,7 +253,7 @@ class TruthValueManager {
     async maintainTruthValues(tasks, options = {}) {
         const currentTime = Date.now();
         return Promise.all(tasks.map(task =>
-            errorHandler.safeAsync(async () => {
+            errorHandler.execute(async () => {
                 if (options.applyTemporalDecay !== false) {
                     this.temporalDecayRevision(task, currentTime, options.decayRate);
                 }
@@ -284,7 +280,7 @@ class TruthValueManager {
             for (let j = i + 1; j < beliefTasks.length; j++) {
                 const task1 = beliefTasks[i];
                 const task2 = beliefTasks[j];
-                const result = await errorHandler.safeAsync(async () => {
+                const result = await errorHandler.execute(async () => {
                     const similarity = this._calculateSemanticSimilarity(task1, task2);
                     if (similarity > 0.8 && Math.abs(task1.state.truthValue.frequency - task2.state.truthValue.frequency) > 0.7) {
                         const resolvedTruthValue = this.resolveConflict(task1, task2);

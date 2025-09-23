@@ -49,8 +49,12 @@ describe('Cycle Integration Test', () => {
         // Register default actions
         registerDefaultActions(actionExecutor);
         // Register default actions
-        import('../../src/system/default-actions.js').then(registerDefaultActions => {
-            registerDefaultActions.default(actionExecutor);
+        import('../../src/system/default-actions.js').then(actionsModule => {
+            actionsModule.default(actionExecutor);
+            return null; // Return a value to satisfy the promise/always-return rule
+        }).catch(error => {
+            console.error('Failed to register default actions:', error);
+            return null; // Return a value to satisfy the promise/always-return rule
         });
         const perception = new Perception(memory, lm);
         const planner = new Planner(memory, lm, actionExecutor, configManager);

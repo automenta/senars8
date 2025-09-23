@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-const {runAllTests} = require('./index');
+import {CognitiveTestSuite} from './index.js';
 
 async function main() {
-    await runAllTests();
+    const suite = new CognitiveTestSuite();
+    await suite.runAllTests();
+    suite.generateReport();
 }
 
-if (require.main === module) {
-    main();
-}
+main().catch(console.error);

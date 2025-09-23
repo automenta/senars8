@@ -1,4 +1,5 @@
 import Term from '../../src/core/Term.js';
+import {structuralSimilarity} from '../../src/core/TermUtils.js';
 
 describe('Term - Edge Cases', () => {
     test('should handle empty embedding arrays', () => {
@@ -81,23 +82,23 @@ describe('Term - Edge Cases', () => {
     });
 
     test('should handle structural similarity with empty strings', () => {
-        const similarity = Term.structuralSimilarity('', '');
+        const similarity = structuralSimilarity('', '');
         expect(similarity).toBe(1.0);
-        const similarity2 = Term.structuralSimilarity('', 'test');
+        const similarity2 = structuralSimilarity('', 'test');
         expect(similarity2).toBe(0);
     });
 
     test('should handle structural similarity with very short strings', () => {
-        const similarity = Term.structuralSimilarity('a', 'b');
+        const similarity = structuralSimilarity('a', 'b');
         expect(similarity).toBe(0);
-        const similarity2 = Term.structuralSimilarity('ab', 'ac');
+        const similarity2 = structuralSimilarity('ab', 'ac');
         expect(similarity2).toBe(0);
-        const similarity3 = Term.structuralSimilarity('abc', 'abd');
+        const similarity3 = structuralSimilarity('abc', 'abd');
         expect(similarity3).toBeCloseTo(0.5);
     });
 
     test('should handle structural similarity with identical strings', () => {
-        const similarity = Term.structuralSimilarity('(cat --> dog)', '(cat --> dog)');
+        const similarity = structuralSimilarity('(cat --> dog)', '(cat --> dog)');
         expect(similarity).toBe(1.0);
     });
 

@@ -1,36 +1,72 @@
-import {isEmptyArray} from './arrayUtils.js';
+import {isEmptyArray} from './collections/index.js';
 
-function validateString(value, name = 'Value') {
+/**
+ * Validate that a value is a non-empty string
+ * @param {*} value - Value to validate
+ * @param {string} name - Name of the value for error messages
+ * @throws {Error} If validation fails
+ */
+export function string(value, name = 'Value') {
     if (typeof value !== 'string' || value.length === 0) {
         throw new Error(`${name} must be a non-empty string`);
     }
 }
 
-function validateNonEmptyArray(value, name = 'Value') {
+/**
+ * Validate that a value is a non-empty array
+ * @param {*} value - Value to validate
+ * @param {string} name - Name of the value for error messages
+ * @throws {Error} If validation fails
+ */
+export function nonEmptyArray(value, name = 'Value') {
     if (isEmptyArray(value)) {
         throw new Error(`${name} must be a non-empty array`);
     }
 }
 
-function validateArray(value, name = 'Value') {
+/**
+ * Validate that a value is an array
+ * @param {*} value - Value to validate
+ * @param {string} name - Name of the value for error messages
+ * @throws {Error} If validation fails
+ */
+export function array(value, name = 'Value') {
     if (!Array.isArray(value)) {
         throw new Error(`${name} must be an array`);
     }
 }
 
-function validateObject(value, name = 'Value') {
+/**
+ * Validate that a value is a valid object
+ * @param {*} value - Value to validate
+ * @param {string} name - Name of the value for error messages
+ * @throws {Error} If validation fails
+ */
+export function object(value, name = 'Value') {
     if (typeof value !== 'object' || value === null) {
         throw new Error(`${name} must be a valid object`);
     }
 }
 
-function validateTask(value, name = 'Value') {
+/**
+ * Validate that a value is a valid Task instance
+ * @param {*} value - Value to validate
+ * @param {string} name - Name of the value for error messages
+ * @throws {Error} If validation fails
+ */
+export function task(value, name = 'Value') {
     if (!value || typeof value !== 'object' || !value.id || !value.termKey || !value.punctuation) {
         throw new Error(`${name} must be a valid Task instance`);
     }
 }
 
-function validateTerm(term, name = 'Term') {
+/**
+ * Validate that a value is a valid Term
+ * @param {*} term - Term to validate
+ * @param {string} name - Name of the value for error messages
+ * @throws {Error} If validation fails
+ */
+export function validateTerm(term, name = 'Term') {
     const isValidString = typeof term === 'string' && term.length > 0;
     const isValidObject = typeof term === 'object' && term !== null && typeof term.key === 'string' && term.key.length > 0;
 
@@ -39,14 +75,26 @@ function validateTerm(term, name = 'Term') {
     }
 }
 
-function validatePunctuation(punctuation, name = 'Punctuation') {
+/**
+ * Validate that a value is valid punctuation
+ * @param {*} punctuation - Punctuation to validate
+ * @param {string} name - Name of the value for error messages
+ * @throws {Error} If validation fails
+ */
+export function validatePunctuation(punctuation, name = 'Punctuation') {
     const validPunctuation = ['.', '!', '?'];
     if (!validPunctuation.includes(punctuation)) {
         throw new Error(`${name} must be one of: ${validPunctuation.join(', ')}`);
     }
 }
 
-function validateTruthValue(truthValue, name = 'TruthValue') {
+/**
+ * Validate that a value is a valid truth value
+ * @param {*} truthValue - Truth value to validate
+ * @param {string} name - Name of the value for error messages
+ * @throws {Error} If validation fails
+ */
+export function validateTruthValue(truthValue, name = 'TruthValue') {
     if (!truthValue || typeof truthValue !== 'object') {
         throw new Error(`${name} must be an object`);
     }
@@ -62,13 +110,57 @@ function validateTruthValue(truthValue, name = 'TruthValue') {
     }
 }
 
-export {
-    validateString,
-    validateNonEmptyArray,
-    validateArray,
-    validateObject,
-    validateTask,
-    validateTerm,
-    validatePunctuation,
-    validateTruthValue
-};
+/**
+ * Validate a value with a custom validator function
+ * @param {*} value - Value to validate
+ * @param {Function} validator - Validation function that returns true/false
+ * @param {string} errorMessage - Error message if validation fails
+ * @throws {Error} If validation fails
+ */
+export function withValidator(value, validator, errorMessage) {
+    if (typeof validator !== 'function') {
+        throw new Error('Validator must be a function');
+    }
+    if (!validator(value)) {
+        throw new Error(errorMessage);
+    }
+}
+
+/**
+ * Conditional validation - only validate if condition is true
+ * @param {boolean} condition - Condition to check
+ * @param {Function} validator - Validation function to execute if condition is true
+ */
+export function conditional(condition, validator) {
+    if (condition) validator();
+}
+
+/**
+ * Validate multiple values at once
+ * @param {Array} validations - Array of validation objects {value, validator, name}
+ */
+export function all(validations) {
+    validations.forEach(({value, validator, name}) => {
+        if (typeof validator === 'string') {
+            // Use built-in validators
+            const validatorFn = {
+                string,
+                nonEmptyArray,
+                array,
+                object,
+                task,
+                term: validateTerm,
+                punctuation: validatePunctuation,
+                truthValue: validateTruthValue
+            }[validator];
+            if (validatorFn) {
+                validatorFn(value, name);
+            } else {
+                throw new Error(`Unknown validator: ${validator}`);
+            }
+        } else if (typeof validator === 'function') {
+            // Use custom validator function
+            validator(value, name);
+        }
+    });
+}

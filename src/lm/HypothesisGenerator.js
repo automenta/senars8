@@ -66,13 +66,17 @@ class HypothesisGenerator {
 
         const context = this._buildHypothesisContext(tasks, goals, contradictions);
         const selectedPrompt = this._createHypothesisPrompt(type, promptTemplate);
-        const chain = this.lm.createStructuredChain(selectedPrompt, zod.object({term: zod.string().describe('The generated hypothesis in valid Narsese format.')}), {});
+        const formatInstructions = this.lm._getStructuredOutputParser(zod.object({term: zod.string().describe('The generated hypothesis in valid Narsese format.')})).getFormatInstructions();
+        const fullPrompt = `${selectedPrompt}\n${formatInstructions}\nContext: ${context}`;
 
-        const results = await Promise.all(Array(num).fill().map(() => chain.call({context})));
+        const results = await Promise.all(Array(num).fill().map(async () => {
+            const generatedText = await this.lm._generate(fullPrompt, {});
+            return {text: generatedText}; // Wrap in an object to match the previous structure
+        }));
 
         const hypotheses = results
             .map(result => {
-                const parsed = this.lm.parseStructuredResult(result.text);
+                const parsed = this.lm._parseStructuredResult(result.text);
                 if (!parsed?.term) return null;
                 const parsedTerm = parseTerm(parsed.term);
                 return parsedTerm ? new Task(parsedTerm, '.', {confidence: 0.5, frequency: 0.5}) : null;

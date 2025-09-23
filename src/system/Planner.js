@@ -1,9 +1,10 @@
-import Planners from '../reasoner/index.js';
+import HTNPlanner from '../reasoner/HTNPlanner.js';
+import AStarPlanner from '../reasoner/AStarPlanner.js';
 import Plan from './Plan.js';
-import {debug, info, warn} from '../utils/logger.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
+import {debug, warn, info} from '../utils/logger.js';
 
-const errorHandler = createModuleErrorHandler('Planner');
+const errorHandler = createUnifiedErrorHandler('Planner');
 
 class Planner {
     constructor(memory, lm, actionExecutor, configManager) {
@@ -12,20 +13,24 @@ class Planner {
         }
 
         const strategyName = configManager.getString('planner.strategy', 'HTN');
-        const PlannerClass = Planners[`${strategyName}Planner`];
+        // Map strategy names to their corresponding classes
+        const strategyMap = {
+            'HTN': HTNPlanner,
+            'AStar': AStarPlanner
+        };
+
+        const PlannerClass = strategyMap[strategyName];
         if (!PlannerClass) {
             throw new Error(`Unknown planner strategy: ${strategyName}`);
         }
 
         this.strategy = new PlannerClass(memory, lm, configManager);
         this.actionExecutor = actionExecutor;
-        this.planCache = new Map();
-        this.lm = lm;
         info(`Planner initialized with strategy: ${strategyName}`);
     }
 
     async createPlan(goalTask, failedPlan = null) {
-        return await errorHandler.safeAsync(async () => {
+        return await errorHandler.execute(async () => {
             const goalKey = goalTask.termKey;
             debug(`Creating plan for goal: ${goalKey}`);
 

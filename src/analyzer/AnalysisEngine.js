@@ -1,6 +1,6 @@
-import { createModuleErrorHandler } from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 
-const errorHandler = createModuleErrorHandler('AnalysisEngine');
+const errorHandler = createUnifiedErrorHandler('AnalysisEngine');
 
 class AnalysisEngine {
     constructor(config = {}) {
@@ -12,8 +12,8 @@ class AnalysisEngine {
         };
     }
 
-    async analyze(narseseData, config = {}) {
-        return errorHandler.safeAsync(async () => {
+    async analyze(narseseData, _config = {}) {
+        return errorHandler.execute(async () => {
             const analysis = {
                 issues: [],
                 recommendations: [],
@@ -101,7 +101,7 @@ class AnalysisEngine {
         const lowCoverageFacts = narseseData.facts.filter(fact => {
             const key = fact.term.key;
             return (key.includes('_coverage low') || key.includes('_coverage very_low')) &&
-                   fact.truth.frequency < 0.8; // Below 80%
+                fact.truth.frequency < 0.8; // Below 80%
         });
 
         lowCoverageFacts.forEach(fact => {
@@ -161,7 +161,7 @@ class AnalysisEngine {
         const slowFunctions = narseseData.facts.filter(fact => {
             const key = fact.term.key;
             return (key.includes('performance slow') || key.includes('performance very_slow')) &&
-                   fact.truth.frequency < 0.5; // Poor performance
+                fact.truth.frequency < 0.5; // Poor performance
         });
 
         slowFunctions.forEach(fact => {
@@ -199,7 +199,7 @@ class AnalysisEngine {
             // Pattern: slow function implies bottleneck
             const bottleneckMatch = key.match(/\(\((function_[^ ]+) performance (slow|very_slow)\) ==> \((function_[^ ]+) is_bottleneck\)\)/);
             if (bottleneckMatch) {
-                const [, funcKey, , ] = bottleneckMatch;
+                const [, funcKey, ,] = bottleneckMatch;
                 analysis.patterns.push({
                     type: 'performance_causation',
                     function: funcKey,

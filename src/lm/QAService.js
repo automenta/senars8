@@ -1,7 +1,7 @@
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import {debug} from '../utils/logger.js';
 
-const errorHandler = createModuleErrorHandler('QAService');
+const errorHandler = createUnifiedErrorHandler('QAService');
 
 class QAService {
     constructor(generateFunction, getQAPipelineFunction) {
@@ -14,7 +14,7 @@ class QAService {
             return 'Cannot answer an empty question.';
         }
 
-        return await errorHandler.safeAsync(async () => {
+        return await errorHandler.execute(async () => {
             debug(`Answering question: ${question.substring(0, 50)}...`);
             if (context) {
                 const qaPipeline = await this._getQAPipeline();

@@ -1,15 +1,15 @@
 import Task from '../../core/Task.js';
 import {parseTerm} from '../../parser/narseseParser.js';
-import {calculateTemporalCoherence} from '../../utils/temporal.js';
+import {calculateTemporalCoherence} from '../../utils/temporal/index.js';
 import {debug} from '../../utils/logger.js';
-import {createModuleErrorHandler} from '../../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
 import config from '../../config/index.js';
 
-const errorHandler = createModuleErrorHandler('TemporalCoherence');
+const errorHandler = createUnifiedErrorHandler('TemporalCoherence');
 
 class TemporalCoherence {
     static calculate(temporalFocusSet) {
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             debug(`Calculating temporal coherence for ${temporalFocusSet.length} tasks`);
             const coherenceScore = calculateTemporalCoherence(temporalFocusSet);
             const coherenceTask = new Task(

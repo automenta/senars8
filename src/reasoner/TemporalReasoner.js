@@ -1,49 +1,37 @@
-import TemporalRelationshipInference from './temporal/TemporalRelationshipInference.js';
-import TemporalImplicationInference from './temporal/TemporalImplicationInference.js';
-import TemporalPatternDetection from './temporal/TemporalPatternDetection.js';
-import TemporalCycleDetection from './temporal/TemporalCycleDetection.js';
-import TemporalAbstraction from './temporal/TemporalAbstraction.js';
-import TemporalAnomalyDetection from './temporal/TemporalAnomalyDetection.js';
-import FutureTaskPrediction from './temporal/FutureTaskPrediction.js';
-import TemporalClusterDetection from './temporal/TemporalClusterDetection.js';
-import TemporalCoherence from './temporal/TemporalCoherence.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import {debug} from '../utils/logger.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import * as Module from './temporal/index.js';
+import createConfigAccessor from '../config/ConfigAccessor.js';
 
-const errorHandler = createModuleErrorHandler('TemporalReasoner');
+const errorHandler = createUnifiedErrorHandler('TemporalReasoner');
 
 class TemporalReasoner {
     constructor(configManager) {
-        this.configManager = configManager;
+        this.config = createConfigAccessor(configManager, 'temporal');
         this.inferenceModules = [
-            TemporalRelationshipInference,
-            TemporalImplicationInference,
-            TemporalPatternDetection,
-            TemporalCycleDetection,
-            TemporalAbstraction,
-            TemporalAnomalyDetection,
-            FutureTaskPrediction,
-            TemporalClusterDetection,
-            TemporalCoherence,
+            Module.TemporalRelationshipInference,
+            Module.TemporalImplicationInference,
+            Module.TemporalPatternDetection,
+            Module.TemporalCycleDetection,
+            Module.TemporalAbstraction,
+            Module.TemporalAnomalyDetection,
+            Module.FutureTaskPrediction,
+            Module.TemporalClusterDetection,
+            Module.TemporalSummaryGeneration
         ];
     }
 
-    infer(focusSet) {
-        return errorHandler.safeSync(() => {
-            debug(`Temporal reasoning on ${focusSet.length} tasks`);
-            const temporalFocusSet = focusSet.filter(task => task.state.stamp.occurrenceTime);
-            if (temporalFocusSet.length < 2) {
-                debug('Insufficient temporal tasks for reasoning');
-                return [];
-            }
+    infer(tasks) {
+        const config = this.config.get('temporal');
+        if (!config) {
+            debug('Temporal reasoning disabled - no temporal config found');
+            return [];
+        }
 
-            debug(`Processing ${temporalFocusSet.length} temporal tasks`);
-            const config = this.configManager.get('temporal');
-            const allTasks = this.inferenceModules.flatMap(module => module.infer(temporalFocusSet, config));
-
-            debug(`Temporal reasoning produced ${allTasks.length} derived tasks`);
-            return allTasks;
-        }, 'infer', []);
+        return this.inferenceModules.flatMap(InferenceModule => {
+            const results = errorHandler.executeSync(() => InferenceModule.infer(tasks, config), `infer:${InferenceModule.name}`, []);
+            return Array.isArray(results) ? results : [];
+        });
     }
 }
 

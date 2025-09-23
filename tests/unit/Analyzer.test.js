@@ -1,4 +1,10 @@
-import { UnitTestAnalyzer, DataIngestor, NarseseTranslator, AnalysisEngine, ReportGenerator } from '../../src/analyzer/index.js';
+import {
+    AnalysisEngine,
+    DataIngestor,
+    NarseseTranslator,
+    ReportGenerator,
+    UnitTestAnalyzer
+} from '../../src/analyzer/index.js';
 
 describe('Unit Test Analyzer Components', () => {
     test('should create all analyzer components without error', () => {
@@ -15,7 +21,7 @@ describe('Unit Test Analyzer Components', () => {
             testResults: [
                 {
                     testFilePath: "/src/test.js",
-                    perfStats: { runtime: 50 },
+                    perfStats: {runtime: 50},
                     numPassingTests: 1,
                     numFailingTests: 1,
                     numPendingTests: 0,
@@ -52,7 +58,7 @@ describe('Unit Test Analyzer Components', () => {
         const mockData = {
             testResults: [{
                 testFilePath: "/src/test.js",
-                perfStats: { runtime: 50 },
+                perfStats: {runtime: 50},
                 numPassingTests: 1,
                 numFailingTests: 0,
                 numPendingTests: 0,
@@ -67,7 +73,7 @@ describe('Unit Test Analyzer Components', () => {
             }]
         };
 
-        const results = await analyzer.analyzeTestData(mockData);
+        await analyzer.analyzeTestData(mockData);
 
         // Test JSON report
         const jsonReport = analyzer.generateReport('json');

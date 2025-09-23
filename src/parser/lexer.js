@@ -24,7 +24,6 @@ const PUNCTUATION = {
     negation: '--',
     conjunction: '&',
     disjunction: '||',
-    extensionalDifference: '#',
     intensionalDifference: '\\',
     product: '*',
     equivalence: '<=>',
@@ -52,7 +51,7 @@ const STATEMENT_PUNCTUATION = {
 
 const LITERALS = {
     string: /"[^"]*"/,
-    dependentVar: /#\w+/,
+    dependentVar: /#\w*/,
     queryVar: /\?\w+/,
     independentVar: /\$\w+/,
     identifier: /[a-zA-Z_][a-zA-Z0-9_]*/,
@@ -67,4 +66,23 @@ const lexer = moo.compile({
     ...LITERALS,
 });
 
+/**
+ * Tokenize a text string using the Narsese lexer
+ * @param {string} text - Text to tokenize
+ * @returns {Array} Array of tokens
+ */
+const tokenize = (text) => {
+    if (!text) return [];
+
+    const l = lexer.clone().reset(text);
+    const tokens = [];
+    for (let tok = l.next(); tok; tok = l.next()) {
+        if (tok.type !== 'whitespace') {
+            tokens.push(tok.value);
+        }
+    }
+    return tokens;
+};
+
 export default lexer;
+export {tokenize};

@@ -1,5 +1,6 @@
 import Term from '../../src/core/Term.js';
-import EmbeddingStore from '../../src/utils/EmbeddingStore.js';
+import {findSimilarTerms, structuralSimilarity} from '../../src/core/TermUtils.js';
+import EmbeddingStore from '../../src/utils/embeddingStore.js';
 
 describe('Term', () => {
     afterEach(() => {
@@ -66,7 +67,7 @@ describe('Term', () => {
     test('should calculate structural similarity between two term keys', () => {
         const termKey1 = '(a --> b)';
         const termKey2 = '(a --> c)';
-        expect(Term.structuralSimilarity(termKey1, termKey2)).toBeCloseTo(0.8);
+        expect(structuralSimilarity(termKey1, termKey2)).toBeCloseTo(0.8);
     });
 
     test('should find similar terms', () => {
@@ -74,7 +75,7 @@ describe('Term', () => {
         terms.set('a', new Term('a', [1, 0, 0]));
         terms.set('b', new Term('b', [0, 1, 0]));
         terms.set('c', new Term('c', [0.9, 0.1, 0]));
-        const similarTerms = Term.findSimilarTerms(terms, 'a');
+        const similarTerms = findSimilarTerms(terms, 'a');
         expect(similarTerms[0].termKey).toBe('c');
     });
 

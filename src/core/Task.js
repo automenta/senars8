@@ -1,8 +1,8 @@
-import {generateOptimizedId} from '../utils/IdGenerator.js';
+import {generateOptimizedId} from '../utils/idGenerator.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
 import TruthValueManager from '../reasoner/TruthValueManager.js';
-import {validatePunctuation, validateTerm} from '../utils/validation.js';
+import * as validation from '../utils/validation.js';
 import BaseEntity from './BaseEntity.js';
 
 
@@ -19,8 +19,12 @@ class Task extends BaseEntity {
 
     constructor(term, punctuation, truthValue = {}, stamp = {}) {
         super();
-        validateTerm(term, 'Task term');
-        validatePunctuation(punctuation, 'Task punctuation');
+        if (term && typeof term === 'object' && term.punctuation && !punctuation) {
+            punctuation = term.punctuation;
+        }
+
+        validation.validateTerm(term, 'Task term');
+        validation.validatePunctuation(punctuation, 'Task punctuation');
 
         const {
             processedTerm,
@@ -60,36 +64,35 @@ class Task extends BaseEntity {
         return this.#state;
     }
 
+    static #getCurrentTimestamp() {
+        return BigInt(Date.now());
+    }
+
     #processTerm(term) {
-        const isString = typeof term === 'string';
-        const termKey = isString ? term : term.key;
-        const processedTerm = isString || !term.type ? parseTerm(termKey) : term;
+        const termKey = typeof term === 'string' ? term : term.key;
+        const processedTerm = typeof term === 'string' ? parseTerm(term) : (term.type ? term : parseTerm(term.key));
+
         if (!processedTerm) {
             throw new Error(`Failed to parse term: '${termKey}'.`);
         }
-        return {
-            processedTerm,
-            termKey
-        };
+
+        return {processedTerm, termKey};
     }
 
     #normalizeTruthValue(truthValue) {
-        if (truthValue && typeof truthValue.frequency === 'number' && typeof truthValue.confidence === 'number') {
-            const frequency = Math.max(0, Math.min(1, truthValue.frequency));
-            const confidence = Math.max(0, Math.min(1, truthValue.confidence));
-            if (!isNaN(frequency) && !isNaN(confidence)) {
-                return {
-                    frequency,
-                    confidence
-                };
+        const {frequency, confidence} = truthValue || {};
+        if (typeof frequency === 'number' && typeof confidence === 'number') {
+            const freq = Math.max(0, Math.min(1, frequency));
+            const conf = Math.max(0, Math.min(1, confidence));
+            if (!isNaN(freq) && !isNaN(conf)) {
+                return {frequency: freq, confidence: conf};
             }
         }
-        return { ...DEFAULT_TRUTH_VALUE
-        };
+        return {...DEFAULT_TRUTH_VALUE};
     }
 
     #createStamp(stamp) {
-        const now = this.#getCurrentTimestamp();
+        const now = Task.#getCurrentTimestamp();
         return {
             creationTime: now,
             lastAccessed: now,
@@ -97,24 +100,22 @@ class Task extends BaseEntity {
         };
     }
 
-    #getCurrentTimestamp() {
-        return BigInt(Date.now());
-    }
-
     touch() {
-        this.#state.stamp.lastAccessed = this.#getCurrentTimestamp();
+        this.#state.stamp.lastAccessed = Task.#getCurrentTimestamp();
     }
 
     reviseTruthValue(newEvidence, weight = 0.5) {
-        this.#state.truthValue = TruthValueManager.bayesianRevision(this.#state.truthValue, newEvidence, weight);
-        return this.#state.truthValue;
+        const revisedTruthValue = TruthValueManager.bayesianRevision(
+            this.#state.truthValue,
+            newEvidence,
+            weight
+        );
+        this.#state.truthValue = revisedTruthValue;
+        return revisedTruthValue;
     }
 
     formatString() {
-        const {
-            frequency,
-            confidence
-        } = this.#state.truthValue;
+        const {frequency, confidence} = this.#state.truthValue;
         return `${this.#termKey}${this.#punctuation} (f: ${frequency.toFixed(3)}, c: ${confidence.toFixed(3)})`;
     }
 
@@ -125,11 +126,9 @@ class Task extends BaseEntity {
     clone() {
         const clonedTask = new Task(
             this.#term,
-            this.#punctuation, {
-                ...this.#state.truthValue
-            }, {
-                ...this.#state.stamp
-            }
+            this.#punctuation,
+            {...this.#state.truthValue},
+            {...this.#state.stamp}
         );
         // Preserve the same ID for cloned tasks
         clonedTask.#id = this.#id;

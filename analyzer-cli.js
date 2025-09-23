@@ -2,8 +2,9 @@
 
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import {fileURLToPath} from 'url';
 import UnitTestAnalyzer from '../src/analyzer/index.js';
+import {logAndExit, safeAsync} from '../src/utils/errorHandler.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -62,7 +63,7 @@ Examples:
         process.exit(1);
     }
 
-    try {
+    await safeAsync(async () => {
         // Load data files
         const testData = JSON.parse(fs.readFileSync(options.testResults, 'utf8'));
         const coverageData = options.coverage ? JSON.parse(fs.readFileSync(options.coverage, 'utf8')) : null;
@@ -101,13 +102,9 @@ Examples:
         } else {
             console.log(report);
         }
-
-    } catch (error) {
-        console.error('Error:', error.message);
-        process.exit(1);
-    }
+    }, 'main');
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-    main();
+    main().catch(logAndExit);
 }

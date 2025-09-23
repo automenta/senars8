@@ -1,9 +1,9 @@
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import {debug, warn} from '../utils/logger.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import zod from 'zod';
 
-const errorHandler = createModuleErrorHandler('PlanRepairer');
+const errorHandler = createUnifiedErrorHandler('PlanRepairer');
 
 class PlanRepairer {
     constructor(getGenerationPipeline, createStructuredChain, parseStructuredResult) {
@@ -15,7 +15,7 @@ class PlanRepairer {
     async suggestPlanRepair(goalTask, failedPlan) {
         if (!goalTask) throw new Error('Goal task is required');
 
-        return await errorHandler.safeAsync(async () => {
+        return await errorHandler.execute(async () => {
             debug(`Suggesting plan repair for goal: ${goalTask.termKey}`);
             await this._getGenerationPipeline();
 

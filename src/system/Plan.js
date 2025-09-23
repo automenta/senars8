@@ -1,4 +1,4 @@
-import {generatePlanId} from '../utils/IdGenerator.js';
+import {generatePlanId} from '../utils/idGenerator.js';
 import Action from '../core/Action.js';
 
 class Plan {

@@ -1,15 +1,13 @@
 import {parseTerm} from '../parser/parse-utils.js';
-import {cosineSimilarity} from '../utils/math.js';
-import config from '../config/index.js';
-import EmbeddingStore from '../utils/EmbeddingStore.js';
+import {embeddingsEqual} from '../utils/math.js';
+import EmbeddingStore from '../utils/embeddingStore.js';
 import {OP, REL} from '../config/constants.js';
-import {validateString} from '../utils/validation.js';
+import * as validation from '../utils/validation.js';
 import BaseEntity from './BaseEntity.js';
-import {isNonEmptyArray} from '../utils/arrayUtils.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
-import lexer from '../parser/lexer.js';
+import {isNonEmptyArray} from '../utils/collections/index.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 
-const errorHandler = createModuleErrorHandler('Term');
+const errorHandler = createUnifiedErrorHandler('Term');
 
 class Term extends BaseEntity {
     #key;
@@ -20,10 +18,12 @@ class Term extends BaseEntity {
 
     constructor(key, embedding = [], complexity = 1) {
         super();
-        validateString(key, 'Term key');
+        validation.string(key, 'Term key');
 
         this.#key = key;
-        this.#embeddingRef = isNonEmptyArray(embedding) ? EmbeddingStore.store(key, embedding) : null;
+        this.#embeddingRef = isNonEmptyArray(embedding)
+            ? EmbeddingStore.store(key, embedding)
+            : null;
         this.#complexity = complexity;
         this.#structure = null;
         this.#componentCache = {};
@@ -58,181 +58,103 @@ class Term extends BaseEntity {
 
     get terms() {
         if (Object.hasOwn(this.#componentCache, 'terms')) {
-            return this.#componentCache.terms;
+            return this.#componentCache['terms'];
         }
 
         const structure = this.#getStructure();
         if (!structure?.terms) {
-            return (this.#componentCache.terms = null);
+            return (this.#componentCache['terms'] = null);
         }
 
-        return errorHandler.safeSync(() => {
+        return errorHandler.executeSync(() => {
             const termsArray = structure.terms.map((term, i) => this.#getComponent(`term_${i}`, term));
-            return (this.#componentCache.terms = termsArray);
+            return (this.#componentCache['terms'] = termsArray);
         }, 'get-terms', null);
     }
 
     static termsEqual(term1, term2) {
-        if (term1 === term2) return true;
-        if (!term1 || !term2 || term1.key !== term2.key || term1.complexity !== term2.complexity) return false;
+        return errorHandler.executeSync(() => {
+            if (term1 === term2) return true;
+            if (!term1 || !term2 || term1.key !== term2.key || term1.complexity !== term2.complexity) return false;
 
-        const embedding1 = term1.embedding;
-        const embedding2 = term2.embedding;
-
-        if (embedding1.length !== embedding2.length) return false;
-
-        return embedding1.every((v, i) => Math.abs(v - embedding2[i]) < 1e-6);
+            return embeddingsEqual(term1.embedding, term2.embedding);
+        }, 'termsEqual', false);
     }
 
     static fromJSON(json) {
-        return json?.key ? new Term(json.key, json.embedding, json.complexity) : null;
+        return errorHandler.executeSync(() => {
+            return json?.key ? new Term(json.key, json.embedding, json.complexity) : null;
+        }, 'fromJSON', null);
     }
 
     static termKey(pTerm) {
-        if (!pTerm?.type) return '';
+        // Handle the unsupported type case outside of error handler so it can throw
+        if (pTerm?.type) {
+            const keyBuilder = {
+                [OP.ATOMIC]: () => pTerm.key,
+                [OP.INDEPENDENT_VARIABLE]: () => pTerm.name,
+                [OP.DEPENDENT_VARIABLE]: () => `#${pTerm.name}`,
+                [OP.QUERY_VARIABLE]: () => `?${pTerm.name}`,
+                [OP.INHERITANCE]: () => Term.termKeyInfix(pTerm, REL.INHERITANCE),
+                [OP.IMPLICATION]: () => Term.termKeyInfix(pTerm, REL.IMPLICATION),
+                [OP.EQUIVALENCE]: () => Term.termKeyInfix(pTerm, REL.EQUIVALENCE),
+                [OP.SIMILARITY]: () => Term.termKeyInfix(pTerm, REL.SIMILARITY),
+                [OP.INSTANCE]: () => `(${Term.termKey(pTerm.subject)} ${REL.INSTANCE} ${Term.termKey(pTerm.predicate)})`,
+                [OP.PROPERTY]: () => `(${Term.termKey(pTerm.subject)} ${REL.PROPERTY} ${Term.termKey(pTerm.predicate)})`,
+                [OP.PREDICTIVE_IMPLICATION]: () => `(${Term.termKey(pTerm.subject)} ${REL.PREDICTIVE_IMPLICATION} ${Term.termKey(pTerm.predicate)})`,
+                [OP.RETROSPECTIVE_IMPLICATION]: () => `(${Term.termKey(pTerm.subject)} ${REL.RETROSPECTIVE_IMPLICATION} ${Term.termKey(pTerm.predicate)})`,
+                [OP.CONCURRENT_IMPLICATION]: () => `(${Term.termKey(pTerm.subject)} ${REL.CONCURRENT_IMPLICATION} ${Term.termKey(pTerm.predicate)})`,
+                [OP.UNTIL]: () => `(${Term.termKey(pTerm.subject)} until ${Term.termKey(pTerm.predicate)})`,
+                [OP.SINCE]: () => `(${Term.termKey(pTerm.subject)} since ${Term.termKey(pTerm.predicate)})`,
+                [OP.NEGATION]: () => `(${REL.NEGATION}${Term.termKey(pTerm.term)})`,
+                [OP.ALWAYS]: () => `(${REL.ALWAYS}${Term.termKey(pTerm.term)})`,
+                [OP.EVENTUALLY]: () => `(${REL.EVENTUALLY}${Term.termKey(pTerm.term)})`,
+                [OP.NEXT]: () => `(${REL.NEXT}${Term.termKey(pTerm.term)})`,
+                [OP.PREVIOUS]: () => `(${REL.PREVIOUS}${Term.termKey(pTerm.term)})`,
+                [OP.CONJUNCTION]: () => `(${REL.CONJUNCTION}${Term.termList(pTerm.terms || [])})`,
+                [OP.DISJUNCTION]: () => `(${REL.DISJUNCTION}${Term.termList(pTerm.terms || [])})`,
+                [OP.SEQUENTIAL_CONJUNCTION]: () => `(${REL.SEQUENTIAL_CONJUNCTION}${Term.termList(pTerm.terms || [])})`,
+                [OP.PARALLEL_CONJUNCTION]: () => `(${REL.PARALLEL_CONJUNCTION}${Term.termList(pTerm.terms || [])})`,
+                [OP.EXTENSIONAL_DIFFERENCE]: () => `(${REL.EXTENSIONAL_DIFFERENCE}${Term.termList(pTerm.terms || [])})`,
+                [OP.INTENSIONAL_DIFFERENCE]: () => `(${REL.INTENSIONAL_DIFFERENCE}${Term.termList(pTerm.terms || [])})`,
+                [OP.PRODUCT]: () => `(${REL.PRODUCT}${Term.termList(pTerm.terms || [])})`,
+                [OP.EXTENSIONAL_SET]: () => `{${Term.termList(pTerm.terms || [])}}`,
+                [OP.INTENSIONAL_SET]: () => `[${Term.termList(pTerm.terms || [])}]`,
+            };
 
-        const keyBuilder = {
-            [OP.ATOMIC]: () => pTerm.key,
-            [OP.INDEPENDENT_VARIABLE]: () => pTerm.name,
-            [OP.DEPENDENT_VARIABLE]: () => `#${pTerm.name}`,
-            [OP.QUERY_VARIABLE]: () => `?${pTerm.name}`,
-            [OP.INHERITANCE]: () => Term.termKeyInfix(pTerm, REL.INHERITANCE),
-            [OP.IMPLICATION]: () => Term.termKeyInfix(pTerm, REL.IMPLICATION),
-            [OP.EQUIVALENCE]: () => Term.termKeyInfix(pTerm, REL.EQUIVALENCE),
-            [OP.SIMILARITY]: () => Term.termKeyInfix(pTerm, REL.SIMILARITY),
-            [OP.INSTANCE]: () => `(${Term.termKey(pTerm.subject)} ${REL.INSTANCE} ${Term.termKey(pTerm.predicate)})`,
-            [OP.PROPERTY]: () => `(${Term.termKey(pTerm.subject)} ${REL.PROPERTY} ${Term.termKey(pTerm.predicate)})`,
-            [OP.PREDICTIVE_IMPLICATION]: () => `(${Term.termKey(pTerm.subject)} ${REL.PREDICTIVE_IMPLICATION} ${Term.termKey(pTerm.predicate)})`,
-            [OP.RETROSPECTIVE_IMPLICATION]: () => `(${Term.termKey(pTerm.subject)} ${REL.RETROSPECTIVE_IMPLICATION} ${Term.termKey(pTerm.predicate)})`,
-            [OP.CONCURRENT_IMPLICATION]: () => `(${Term.termKey(pTerm.subject)} ${REL.CONCURRENT_IMPLICATION} ${Term.termKey(pTerm.predicate)})`,
-            [OP.UNTIL]: () => `(${Term.termKey(pTerm.subject)} until ${Term.termKey(pTerm.predicate)})`,
-            [OP.SINCE]: () => `(${Term.termKey(pTerm.subject)} since ${Term.termKey(pTerm.predicate)})`,
-            [OP.NEGATION]: () => `(${REL.NEGATION}${Term.termKey(pTerm.term)})`,
-            [OP.ALWAYS]: () => `(${REL.ALWAYS}${Term.termKey(pTerm.term)})`,
-            [OP.EVENTUALLY]: () => `(${REL.EVENTUALLY}${Term.termKey(pTerm.term)})`,
-            [OP.NEXT]: () => `(${REL.NEXT}${Term.termKey(pTerm.term)})`,
-            [OP.PREVIOUS]: () => `(${REL.PREVIOUS}${Term.termKey(pTerm.term)})`,
-            [OP.CONJUNCTION]: () => `(${REL.CONJUNCTION}${Term.termList(pTerm.terms || [])})`,
-            [OP.DISJUNCTION]: () => `(${REL.DISJUNCTION}${Term.termList(pTerm.terms || [])})`,
-            [OP.SEQUENTIAL_CONJUNCTION]: () => `(${REL.SEQUENTIAL_CONJUNCTION}${Term.termList(pTerm.terms || [])})`,
-            [OP.PARALLEL_CONJUNCTION]: () => `(${REL.PARALLEL_CONJUNCTION}${Term.termList(pTerm.terms || [])})`,
-            [OP.EXTENSIONAL_DIFFERENCE]: () => `(${REL.EXTENSIONAL_DIFFERENCE}${Term.termList(pTerm.terms || [])})`,
-            [OP.INTENSIONAL_DIFFERENCE]: () => `(${REL.INTENSIONAL_DIFFERENCE}${Term.termList(pTerm.terms || [])})`,
-            [OP.PRODUCT]: () => `(${REL.PRODUCT}${Term.termList(pTerm.terms || [])})`,
-            [OP.EXTENSIONAL_SET]: () => `{${Term.termList(pTerm.terms || [])}}`,
-            [OP.INTENSIONAL_SET]: () => `[${Term.termList(pTerm.terms || [])}]`,
-        };
+            if (keyBuilder[pTerm.type]) {
+                // Only wrap supported operations in error handler
+                return errorHandler.executeSync(() => keyBuilder[pTerm.type](), 'termKey', '');
+            }
 
-        if (keyBuilder[pTerm.type]) {
-            return keyBuilder[pTerm.type]();
+            // Throw error for unsupported types without wrapping in error handler
+            throw new Error(`buildTermKey does not support type: ${pTerm.type}`);
         }
-        throw new Error(`buildTermKey does not support type: ${pTerm.type}`);
+
+        // Handle null/undefined cases with error handler
+        return errorHandler.executeSync(() => '', 'termKey', '');
     }
 
     static termKeyInfix(pTerm, op) {
-        return `(${Term.termKey(pTerm.subject)} ${op} ${Term.termKey(pTerm.predicate)})`;
+        return errorHandler.executeSync(() => {
+            return `(${Term.termKey(pTerm.subject)} ${op} ${Term.termKey(pTerm.predicate)})`;
+        }, 'termKeyInfix', '');
     }
 
     static termList(terms) {
-        return terms?.length ? terms.map(term => Term.termKey(term)).join(',') : '';
+        return errorHandler.executeSync(() => {
+            return terms?.length ? terms.map(term => Term.termKey(term)).join(',') : '';
+        }, 'termList', '');
     }
 
-    static structuralSimilarity(termKey1, termKey2) {
-        if (termKey1 === termKey2) {
-            return 1.0;
-        }
-
-        const getTokens = (text) => {
-            const l = lexer.clone().reset(text);
-            const tokens = [];
-            for (let tok = l.next(); tok; tok = l.next()) {
-                if (tok.type !== 'whitespace') {
-                    tokens.push(tok.value);
-                }
-            }
-            return tokens;
-        };
-
-        const tokens1 = getTokens(termKey1);
-        const tokens2 = getTokens(termKey2);
-
-        if (tokens1.length === 1 && tokens2.length === 1) {
-            const len1 = termKey1.length;
-            const len2 = termKey2.length;
-            if (len1 < 2 || len2 < 2) return 0;
-
-            const bigrams1 = new Set();
-            for (let i = 0; i < len1 - 1; i++) {
-                bigrams1.add(termKey1.substring(i, i + 2));
-            }
-
-            let intersection = 0;
-            for (let i = 0; i < len2 - 1; i++) {
-                if (bigrams1.has(termKey2.substring(i, i + 2))) {
-                    intersection++;
-                }
-            }
-
-            return (2 * intersection) / (len1 + len2 - 2);
-        }
-
-        if (tokens1.length === 0 && tokens2.length === 0) {
-            return 1.0;
-        }
-        if (tokens1.length === 0 || tokens2.length === 0) {
-            return 0.0;
-        }
-
-        const map1 = new Map();
-        for (const token of tokens1) {
-            map1.set(token, (map1.get(token) || 0) + 1);
-        }
-
-        const map2 = new Map();
-        for (const token of tokens2) {
-            map2.set(token, (map2.get(token) || 0) + 1);
-        }
-
-        let intersection = 0;
-        for (const [token, count1] of map1.entries()) {
-            if (map2.has(token)) {
-                intersection += Math.min(count1, map2.get(token));
-            }
-        }
-
-        return (2 * intersection) / (tokens1.length + tokens2.length);
-    }
-
-    static findSimilarTerms(terms, targetTermKey, maxResults = 10) {
-        const targetTerm = terms.get(targetTermKey);
-        if (!targetTerm?.embedding) return [];
-
-        const {
-            REGULARITY_BOOST,
-            STRUCTURAL_SIMILARITY_WEIGHT
-        } = config.temporal;
-
-        return Array.from(terms.entries())
-            .filter(([key, term]) => key !== targetTermKey && term.embedding)
-            .map(([key, term]) => {
-                const semantic = cosineSimilarity(targetTerm.embedding, term.embedding);
-                const structural = Term.structuralSimilarity(targetTermKey, key);
-                return {
-                    termKey: key,
-                    similarity: REGULARITY_BOOST * semantic + STRUCTURAL_SIMILARITY_WEIGHT * structural
-                };
-            })
-            .sort((a, b) => b.similarity - a.similarity)
-            .slice(0, maxResults);
-    }
 
     setEmbedding(embedding) {
-        if (this.#embeddingRef) {
-            EmbeddingStore.release(this.#embeddingRef);
-        }
-        this.#embeddingRef = isNonEmptyArray(embedding) ?
-            EmbeddingStore.store(this.#key, embedding) :
-            null;
+        errorHandler.executeSync(() => {
+            if (this.#embeddingRef) {
+                EmbeddingStore.release(this.#embeddingRef);
+            }
+            this.#embeddingRef = isNonEmptyArray(embedding) ? EmbeddingStore.store(this.#key, embedding) : null;
+        }, 'setEmbedding');
     }
 
     formatString() {
@@ -244,17 +166,19 @@ class Term extends BaseEntity {
     }
 
     clone() {
-        const cloned = super.clone();
-        cloned.#componentCache = {};
-        return cloned;
+        return errorHandler.executeSync(() => {
+            const cloned = super.clone();
+            cloned.#componentCache = {};
+            return cloned;
+        }, 'clone');
     }
 
     toJSON() {
-        return {
+        return errorHandler.executeSync(() => ({
             key: this.#key,
             embedding: this.embedding,
             complexity: this.#complexity
-        };
+        }), 'toJSON');
     }
 
     toString() {
@@ -262,27 +186,31 @@ class Term extends BaseEntity {
     }
 
     hashCode() {
-        if (this._hashCode !== undefined) return this._hashCode;
-        let hash = 0;
-        for (let i = 0; i < this.#key.length; i++) {
-            hash = ((hash << 5) - hash) + this.#key.charCodeAt(i);
-            hash |= 0; // Convert to 32bit integer
-        }
-        return (this._hashCode = hash);
+        return errorHandler.executeSync(() => {
+            if (this._hashCode !== undefined) return this._hashCode;
+            let hash = 0;
+            for (let i = 0; i < this.#key.length; i++) {
+                hash = ((hash << 5) - hash) + this.#key.charCodeAt(i);
+                hash |= 0; // Convert to 32bit integer
+            }
+            return (this._hashCode = hash);
+        }, 'hashCode', 0);
     }
 
     destroy() {
-        if (this.#embeddingRef) {
-            EmbeddingStore.release(this.#embeddingRef);
-            this.#embeddingRef = null;
-        }
-        this.#componentCache = {};
-        this.#structure = null;
+        errorHandler.executeSync(() => {
+            if (this.#embeddingRef) {
+                EmbeddingStore.release(this.#embeddingRef);
+                this.#embeddingRef = null;
+            }
+            this.#componentCache = {};
+            this.#structure = null;
+        }, 'destroy');
     }
 
     #getStructure() {
         if (this.#structure === null) {
-            this.#structure = errorHandler.safeSync(() => parseTerm(this.#key), 'get-structure', undefined) || null;
+            this.#structure = errorHandler.executeSync(() => parseTerm(this.#key), 'get-structure', undefined) || null;
         }
         return this.#structure;
     }
@@ -294,17 +222,15 @@ class Term extends BaseEntity {
 
         const termStructure = structure || this.#getStructure()?.[componentName];
         if (!termStructure) {
-            this.#componentCache[componentName] = null;
-            return null;
+            return (this.#componentCache[componentName] = null);
         }
 
-        const componentTerm = errorHandler.safeSync(() => {
+        const componentTerm = errorHandler.executeSync(() => {
             const componentKey = Term.termKey(termStructure);
             return componentKey ? new Term(componentKey) : null;
         }, 'get-component', null);
 
-        this.#componentCache[componentName] = componentTerm;
-        return componentTerm;
+        return (this.#componentCache[componentName] = componentTerm);
     }
 }
 

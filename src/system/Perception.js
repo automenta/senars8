@@ -1,8 +1,8 @@
 import TaskFactory from '../core/TaskFactory.js';
 import PatternDetector from '../reasoner/PatternDetector.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 
-const errorHandler = createModuleErrorHandler('Perception');
+const errorHandler = createUnifiedErrorHandler('Perception');
 
 class Perception {
     constructor(memory, lm) {
@@ -21,7 +21,7 @@ class Perception {
     async processSensoryInput(modalityName, input) {
         const processor = this.sensoryModalities.get(modalityName);
         if (!processor) throw new Error(`Unknown sensory modality: ${modalityName}`);
-        return await errorHandler.safeAsync(async () => {
+        return await errorHandler.execute(async () => {
             const tasks = await processor(input);
             this.perceptionHistory.push({
                 modality: modalityName,
@@ -34,7 +34,7 @@ class Perception {
     }
 
     async process(events) {
-        return await errorHandler.safeAsync(async () => {
+        return await errorHandler.execute(async () => {
             const patternTasks = this.patternDetector.detectPatterns(events);
             const eventTasks = events.map(event => this.taskFactory.convertEventToTask(event));
             return (await Promise.all([...patternTasks, ...eventTasks])).filter(Boolean);

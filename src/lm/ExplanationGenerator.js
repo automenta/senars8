@@ -1,7 +1,7 @@
 import {debug, error} from '../utils/logger.js';
-import {createModuleErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 
-const errorHandler = createModuleErrorHandler('ExplanationGenerator');
+const errorHandler = createUnifiedErrorHandler('ExplanationGenerator');
 
 class ExplanationGenerator {
     constructor(generateFunction) {
@@ -18,7 +18,7 @@ class ExplanationGenerator {
         const finalPrompt = promptTemplate || this._getExplanationPrompt(termKey, config);
         const fullPrompt = context ? `Context: ${context}\n${finalPrompt}` : finalPrompt;
 
-        return errorHandler.safeAsync(async () => {
+        return errorHandler.execute(async () => {
             const explanationText = await this._generate(fullPrompt, {max_new_tokens: 300});
             if (!explanationText) {
                 error('Explanation generation failed');

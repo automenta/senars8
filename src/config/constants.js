@@ -104,3 +104,11 @@ export const TOKEN = {
     NUMBER: 'number',
     WHITESPACE: 'whitespace',
 };
+
+// Export all constants as a single object
+export default {
+    PUNCTUATION,
+    OP,
+    REL,
+    TOKEN
+};

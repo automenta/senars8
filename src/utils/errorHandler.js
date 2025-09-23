@@ -1,45 +1,48 @@
-import {
-    error as logError
-} from './logger.js';
+import {error as logError} from './logger.js';
 
-const ERROR_TYPES = {
-    VALIDATION: 'ValidationError',
-    PARSE: 'ParseError',
-    INFERENCE: 'InferenceError',
-    PLANNING: 'PlanningError',
-    MEMORY: 'MemoryError',
-    GENERIC: 'AppError',
+const createErrorClass = (name) => {
+    const NewError = class extends Error {
+        constructor(message, context = null) {
+            super(message);
+            this.name = name;
+            this.context = context;
+        }
+    };
+    Object.defineProperty(NewError, 'name', {
+        value: name
+    });
+    return NewError;
 };
 
-class AppError extends Error {
-    constructor(message, type = ERROR_TYPES.GENERIC, context = null) {
-        super(message);
-        this.name = type;
-        this.context = context;
-    }
-}
+const ERROR_NAMES = ['ValidationError', 'ParseError', 'InferenceError', 'PlanningError', 'MemoryError', 'CLIError', 'AnalysisError'];
+const ERROR_CLASSES = {};
+const IS_ERROR_FUNCTIONS = {};
+const CREATE_ERROR_FUNCTIONS = {};
 
-const createErrorCreator = (type) => (message, context) => new AppError(message, type, context);
+ERROR_NAMES.forEach(name => {
+    const errorClass = createErrorClass(name);
+    ERROR_CLASSES[name] = errorClass;
+    IS_ERROR_FUNCTIONS[`is${name}`] = (error) => error instanceof errorClass;
+    CREATE_ERROR_FUNCTIONS[`create${name}`] = (message, context = null) => new errorClass(message, context);
+});
 
-const createValidationError = createErrorCreator(ERROR_TYPES.VALIDATION);
-const createParseError = createErrorCreator(ERROR_TYPES.PARSE);
-const createInferenceError = createErrorCreator(ERROR_TYPES.INFERENCE);
-const createPlanningError = createErrorCreator(ERROR_TYPES.PLANNING);
-const createMemoryError = createErrorCreator(ERROR_TYPES.MEMORY);
+const isKnownErrorType = error => Object.values(ERROR_CLASSES).some(type => error instanceof type);
 
-const isKnownErrorType = (error) => Object.values(ERROR_TYPES).includes(error.name);
-
-function logAndReturn(error, context, returnValue = null) {
-    const preparedError = prepareErrorForLogging(error, context);
-    logError(preparedError.message, preparedError);
+const logAndReturn = (error, context, returnValue = null) => {
+    const preparedError = prepareErrorForLogging(error);
+    const fullContext = context ? `[${context}] ` : '';
+    logError(`${fullContext}${preparedError.message}`, preparedError);
     return returnValue;
-}
+};
 
-function logAndThrow(error, context) {
-    const preparedError = prepareErrorForLogging(error, context);
+const logAndThrow = (error, context) => {
+    const preparedError = prepareErrorForLogging(error);
+    if (context && !/\[.*?\]/.test(preparedError.message)) {
+        preparedError.message = `[${context}] ${preparedError.message}`;
+    }
 
     if (!isKnownErrorType(preparedError) && !preparedError.originalError) {
-        const newError = new AppError(preparedError.message);
+        const newError = new Error(preparedError.message);
         newError.originalStack = preparedError.stack || preparedError.originalStack;
         newError.originalError = preparedError;
         logError(newError.message, newError);
@@ -48,86 +51,132 @@ function logAndThrow(error, context) {
 
     logError(preparedError.message, preparedError);
     throw preparedError;
-}
+};
 
-function prepareErrorForLogging(error, context) {
+const prepareErrorForLogging = error => {
     if (error == null) {
-        const nullError = new AppError('Null or undefined error', ERROR_TYPES.GENERIC, context);
+        const nullError = new Error('Null or undefined error');
         nullError.originalStack = new Error().stack;
         return nullError;
-    }
-    if (typeof error === 'string') {
-        return new AppError(error, ERROR_TYPES.GENERIC, context);
-    }
-    if (!(error instanceof Error)) {
-        return new AppError(JSON.stringify(error), ERROR_TYPES.GENERIC, context);
-    }
-
-    if (context && !error.message.startsWith(`[${context}]`)) {
-        error.message = `[${context}] ${error.message}`;
     }
     if (error.stack && !error.originalStack) {
         error.originalStack = error.stack;
     }
     return error;
-}
+};
 
-function handleError(error, context, shouldThrow = true) {
-    return shouldThrow ? logAndThrow(error, context) : logAndReturn(error, context, null);
-}
+const logAndExit = (error, exitCode = 1) => {
+    const preparedError = prepareErrorForLogging(error);
+    logError(preparedError.message, preparedError);
+    process.exit(exitCode);
+};
 
-async function safeAsync(operation, context, defaultValue = null) {
+const handleError = (error, context, shouldThrow = true) =>
+    shouldThrow ? logAndThrow(error, context) : logAndReturn(error, context, null);
+
+const handleErrorWithDefault = (error, context, defaultValue = null) =>
+    logAndReturn(error, context, defaultValue);
+
+const safeAsync = async (operation, context, defaultValue = null) => {
     try {
         return await operation();
     } catch (error) {
-        return logAndReturn(error, context, defaultValue);
+        return handleErrorWithDefault(error, context, defaultValue);
     }
-}
+};
 
-function safeSync(operation, context, defaultValue = null) {
+const safeSync = (operation, context, defaultValue = null) => {
     try {
         return operation();
     } catch (error) {
-        return logAndReturn(error, context, defaultValue);
+        return handleErrorWithDefault(error, context, defaultValue);
+    }
+};
+
+const createModuleErrorHandler = moduleName => ({
+    handle: (error, context, shouldThrow = true) =>
+        handleError(error, `${moduleName}.${context}`, shouldThrow),
+    handleWithDefault: (error, context, defaultValue = null) =>
+        handleErrorWithDefault(error, `${moduleName}.${context}`, defaultValue),
+    safeAsync: (operation, context, defaultValue = null) =>
+        safeAsync(operation, `${moduleName}.${context}`, defaultValue),
+    safeSync: (operation, context, defaultValue = null) =>
+        safeSync(operation, `${moduleName}.${context}`, defaultValue),
+});
+
+class UnifiedErrorHandler {
+    constructor(moduleName) {
+        this.moduleName = moduleName;
+        this.handler = createModuleErrorHandler(moduleName);
+    }
+
+    async execute(operation, context, defaultValue = null) {
+        return await this.handler.safeAsync(operation, context, defaultValue);
+    }
+
+    executeSync(operation, context, defaultValue = null) {
+        return this.handler.safeSync(operation, context, defaultValue);
+    }
+
+    handleWithDefault(error, context, defaultValue = null) {
+        return handleErrorWithDefault(error, `${this.moduleName}.${context}`, defaultValue);
     }
 }
 
-function createModuleErrorHandler(moduleName) {
-    const buildContext = (context) => context ? `${moduleName}.${context}` : moduleName;
-    return {
-        handle: (error, context, shouldThrow = true) =>
-            handleError(error, buildContext(context), shouldThrow),
-        safeAsync: (operation, context, defaultValue = null) =>
-            safeAsync(operation, buildContext(context), defaultValue),
-        safeSync: (operation, context, defaultValue = null) =>
-            safeSync(operation, buildContext(context), defaultValue),
-    };
-}
+const createUnifiedErrorHandler = (moduleName) => new UnifiedErrorHandler(moduleName);
 
-const isErrorOfType = (error, type) => error instanceof AppError && error.name === type;
+const ErrorTypes = {};
+ERROR_NAMES.forEach(name => {
+    ErrorTypes[name] = CREATE_ERROR_FUNCTIONS[`create${name}`];
+});
 
-const isValidationError = error => isErrorOfType(error, ERROR_TYPES.VALIDATION);
-const isParseError = error => isErrorOfType(error, ERROR_TYPES.PARSE);
-const isInferenceError = error => isErrorOfType(error, ERROR_TYPES.INFERENCE);
-const isPlanningError = error => isErrorOfType(error, ERROR_TYPES.PLANNING);
-const isMemoryError = error => isErrorOfType(error, ERROR_TYPES.MEMORY);
+const {
+    ValidationError, ParseError, InferenceError, PlanningError, MemoryError, CLIError, AnalysisError
+} = ERROR_CLASSES;
 
+const {
+    isValidationError, isParseError, isInferenceError, isPlanningError, isMemoryError, isCLIError, isAnalysisError
+} = IS_ERROR_FUNCTIONS;
 
-export {
-    AppError,
-    ERROR_TYPES,
-    handleError,
-    safeAsync,
-    safeSync,
-    createModuleErrorHandler,
+const {
     createValidationError,
     createParseError,
     createInferenceError,
     createPlanningError,
     createMemoryError,
+    createCLIError,
+    createAnalysisError
+} = CREATE_ERROR_FUNCTIONS;
+
+export {
+    UnifiedErrorHandler,
+    createUnifiedErrorHandler,
+    ErrorTypes,
+    handleError,
+    handleErrorWithDefault,
+    safeAsync,
+    safeSync,
+    createModuleErrorHandler,
+    logAndExit,
+    ValidationError,
+    ParseError,
+    InferenceError,
+    PlanningError,
+    MemoryError,
+    CLIError,
+    AnalysisError,
     isValidationError,
     isParseError,
     isInferenceError,
     isPlanningError,
     isMemoryError,
+    isCLIError,
+    isAnalysisError,
+    createValidationError,
+    createParseError,
+    createInferenceError,
+    createPlanningError,
+    createMemoryError,
+    createCLIError,
+    createAnalysisError
 };

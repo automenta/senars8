@@ -12,4 +12,5 @@ export {
     ReportGenerator
 };
 
+// For backward compatibility, we maintain the default export
 export default UnitTestAnalyzer;

@@ -6,7 +6,10 @@ class Introspection {
         this.system = system;
         this.memory = system.memory;
         this.reasoner = system.reasoner;
-        this.configManager = system.configManager;
+        this.planner = system.planner;
+        this.metaCognition = system.metaCognition;
+        // Use the config accessor if available, otherwise fall back to configManager
+        this.configAccessor = system.config || {getAll: () => system.configManager?.getAll() || {}};
     }
 
     getStatus() {
@@ -20,7 +23,7 @@ class Introspection {
     }
 
     getConfig() {
-        return safeSync(() => this.configManager.getAll(), 'getConfig', {});
+        return safeSync(() => this.configAccessor.getAll(), 'getConfig', {});
     }
 
     getTask(id) {
@@ -54,6 +57,18 @@ class Introspection {
             arity: rule.arity,
             description: rule.description || 'No description available',
         } : null;
+    }
+
+    getPlan() {
+        if (!this.planner || !this.planner.planCache) {
+            return null;
+        }
+        const plans = Array.from(this.planner.planCache.values());
+        return plans[plans.length - 1] || null;
+    }
+
+    getContradictions() {
+        return this.metaCognition ? this.metaCognition.getContradictions() : [];
     }
 
     on(eventName, callback) {

@@ -1,5 +1,6 @@
 import {validateConfig} from './configSchema.js';
 import defaultConfig from './default-config.js';
+import {safeGet} from '../utils/collections/index.js';
 
 class ConfigManager {
     constructor(userConfig = {}) {
@@ -16,6 +17,10 @@ class ConfigManager {
             const isObject = value !== null && typeof value === 'object' && !Array.isArray(value);
             const defaultIsObject = merged[key] !== null && typeof merged[key] === 'object' && !Array.isArray(merged[key]);
 
+            if (value === null || value === undefined) {
+                continue;
+            }
+
             if (isObject && defaultIsObject) {
                 merged[key] = this._mergeConfigs(merged[key], value);
             } else {
@@ -27,47 +32,35 @@ class ConfigManager {
     }
 
     get(path, defaultValue = undefined) {
-        return path.split('.').reduce((acc, part) => acc?.[part], this.validatedConfig) ?? defaultValue;
+        return safeGet(this.validatedConfig, path, defaultValue);
+    }
+
+    _getTyped(path, defaultValue, type, typeCheck) {
+        const value = this.get(path, defaultValue);
+        if (!typeCheck(value)) {
+            throw new Error(`Configuration value '${path}' must be a ${type}, got ${typeof value}`);
+        }
+        return value;
     }
 
     getNumber(path, defaultValue = 0) {
-        const value = this.get(path, defaultValue);
-        if (typeof value !== 'number') {
-            throw new Error(`Configuration value '${path}' must be a number, got ${typeof value}`);
-        }
-        return value;
+        return this._getTyped(path, defaultValue, 'number', v => typeof v === 'number');
     }
 
     getString(path, defaultValue = '') {
-        const value = this.get(path, defaultValue);
-        if (typeof value !== 'string') {
-            throw new Error(`Configuration value '${path}' must be a string, got ${typeof value}`);
-        }
-        return value;
+        return this._getTyped(path, defaultValue, 'string', v => typeof v === 'string');
     }
 
     getBoolean(path, defaultValue = false) {
-        const value = this.get(path, defaultValue);
-        if (typeof value !== 'boolean') {
-            throw new Error(`Configuration value '${path}' must be a boolean, got ${typeof value}`);
-        }
-        return value;
+        return this._getTyped(path, defaultValue, 'boolean', v => typeof v === 'boolean');
     }
 
     getObject(path, defaultValue = {}) {
-        const value = this.get(path, defaultValue);
-        if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-            throw new Error(`Configuration value '${path}' must be an object, got ${typeof value}`);
-        }
-        return value;
+        return this._getTyped(path, defaultValue, 'object', v => typeof v === 'object' && v !== null && !Array.isArray(v));
     }
 
     getArray(path, defaultValue = []) {
-        const value = this.get(path, defaultValue);
-        if (!Array.isArray(value)) {
-            throw new Error(`Configuration value '${path}' must be an array, got ${typeof value}`);
-        }
-        return value;
+        return this._getTyped(path, defaultValue, 'array', v => Array.isArray(v));
     }
 
     getAll() {

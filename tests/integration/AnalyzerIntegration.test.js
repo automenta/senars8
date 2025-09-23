@@ -13,7 +13,7 @@ describe('Analyzer Integration Test', () => {
             testResults: [
                 {
                     testFilePath: "/src/core/Term.js",
-                    perfStats: { runtime: 150 },
+                    perfStats: {runtime: 150},
                     numPassingTests: 8,
                     numFailingTests: 1,
                     numPendingTests: 0,
@@ -33,19 +33,19 @@ describe('Analyzer Integration Test', () => {
 
         const coverageData = {
             total: {
-                statements: { covered: 450, total: 500, pct: 90 },
-                branches: { covered: 220, total: 250, pct: 88 },
-                functions: { covered: 95, total: 100, pct: 95 },
-                lines: { covered: 450, total: 500, pct: 90 }
+                statements: {covered: 450, total: 500, pct: 90},
+                branches: {covered: 220, total: 250, pct: 88},
+                functions: {covered: 95, total: 100, pct: 95},
+                lines: {covered: 450, total: 500, pct: 90}
             }
         };
 
         const profilingData = {
             functions: [
                 {
-                    name: "Term.structuralSimilarity",
-                    file: "/src/core/Term.js",
-                    lineNumber: 100,
+                    name: "structuralSimilarity",
+                    file: "/src/core/TermUtils.js",
+                    lineNumber: 1,
                     calls: 1000,
                     totalTime: 200,
                     averageTime: 0.2,
