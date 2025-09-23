@@ -1,5 +1,6 @@
-import React, {useMemo, useState} from 'react';
-import SettingsContext from './SettingsContext';
+import React, {createContext, useMemo, useState} from 'react';
+
+export const SettingsContext = createContext(null);
 
 export function SettingsProvider({children}) {
     const [isSonificationEnabled, setIsSonificationEnabled] = useState(false);
