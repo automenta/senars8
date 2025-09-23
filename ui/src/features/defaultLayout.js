@@ -7,69 +7,58 @@ const defaultLayout = {
         children: [
             {
                 type: 'tabset',
-                weight: 50,
+                weight: 20,
+                selected: 0,
                 children: [
                     {
                         type: 'tab',
-                        name: 'Control',
-                        component: 'control',
+                        name: 'Files',
+                        component: 'file-explorer',
                     },
-                    {
-                        type: 'tab',
-                        name: 'Status',
-                        component: 'status',
-                    },
-                    {
-                        type: 'tab',
-                        name: 'Internal State',
-                        component: 'internal-state',
-                    },
-                    {
-                        type: 'tab',
-                        name: 'Notifs',
-                        component: 'notification-center',
-                    }
-                ]
+                ],
             },
             {
-                type: 'tabset',
-                weight: 50,
+                type: 'row',
+                weight: 80,
                 children: [
                     {
-                        type: 'tab',
-                        name: 'Input',
-                        component: 'input',
+                        type: 'tabset',
+                        weight: 70,
+                        selected: 0,
+                        children: [
+                            {
+                                type: 'tab',
+                                name: 'Editor',
+                                component: 'code-editor',
+                            },
+                        ],
                     },
                     {
-                        type: 'tab',
-                        name: 'Log',
-                        component: 'log',
-                    }
-                ]
+                        type: 'tabset',
+                        weight: 30,
+                        selected: 0,
+                        children: [
+                            {
+                                type: 'tab',
+                                name: 'Terminal',
+                                component: 'terminal',
+                            },
+                            {
+                                type: 'tab',
+                                name: 'Input',
+                                component: 'input',
+                            },
+                            {
+                                type: 'tab',
+                                name: 'Log',
+                                component: 'log',
+                            },
+                        ],
+                    },
+                ],
             },
-            {
-                type: 'tabset',
-                weight: 50,
-                children: [
-                    {
-                        type: 'tab',
-                        name: 'Memory View',
-                        component: 'memory-view',
-                    },
-                    {
-                        type: 'tab',
-                        name: 'Reasoner Trace',
-                        component: 'reasoner-trace',
-                    },
-                    {
-                        type: 'tab',
-                        name: 'Knowledge Graph',
-                        component: 'knowledge-graph',
-                    }
-                ]
-            }
-        ]
-    }
+        ],
+    },
 };
 
 export default defaultLayout;

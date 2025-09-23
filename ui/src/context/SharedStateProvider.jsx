@@ -1,4 +1,4 @@
-import React, {createContext, useEffect, useState} from 'react';
+import React, {createContext, useEffect, useState, useCallback, useContext} from 'react';
 import agentService from '../services/agentService';
 
 export const SharedStateContext = createContext(null);
@@ -11,6 +11,10 @@ const randomColor = () => usercolors[Math.floor(Math.random() * usercolors.lengt
 
 export function SharedStateProvider({children}) {
     const [awareness, setAwareness] = useState(null);
+    const [sharedState, setSharedStateInternal] = useState({
+        editorContent: '// Start coding here...',
+        currentOpenFile: null,
+    });
 
     useEffect(() => {
         if (agentService.awareness) {
@@ -24,9 +28,18 @@ export function SharedStateProvider({children}) {
         }
     }, []);
 
+    const setSharedState = useCallback((updater) => {
+        setSharedStateInternal(prevState => {
+            const newState = typeof updater === 'function' ? updater(prevState) : updater;
+            return { ...prevState, ...newState };
+        });
+    }, []);
+
     const value = {
         yDoc: agentService.yDoc,
         awareness: awareness,
+        sharedState,
+        setSharedState,
     };
 
     return (
@@ -35,3 +48,5 @@ export function SharedStateProvider({children}) {
         </SharedStateContext.Provider>
     );
 }
+
+export const useSharedState = () => useContext(SharedStateContext);

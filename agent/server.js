@@ -1,8 +1,23 @@
 import {WebSocketServer} from 'ws';
+import fs from 'fs/promises';
+import path from 'path';
+import {exec as childExec} from 'child_process';
+import {promisify} from 'util';
+const exec = promisify(childExec);
 import {Agent} from './index.js';
-import {debug, info, warn, error as logError} from '@project/core/utils/logger.js';
+import {debug as coreDebug, info as coreInfo, warn as coreWarn, error as coreError} from '@project/core/utils/logger.js';
 
 const wss = new WebSocketServer({port: 8080});
+
+// Wrapper logger functions to also broadcast messages to connected clients
+const broadcastLog = (level, message, ...args) => {
+    broadcast({type: 'logMessage', payload: {level, message, args, timestamp: new Date().toISOString()}});
+};
+
+const debug = (message, ...args) => { coreDebug(message, ...args); broadcastLog('DEBUG', message, ...args); };
+const info = (message, ...args) => { coreInfo(message, ...args); broadcastLog('INFO', message, ...args); };
+const warn = (message, ...args) => { coreWarn(message, ...args); broadcastLog('WARN', message, ...args); };
+const error = (message, ...args) => { coreError(message, ...args); broadcastLog('ERROR', message, ...args); };
 
 info('Agent WebSocket server started on port 8080');
 
@@ -49,8 +64,8 @@ agent.initialize().then(() => {
     }
 
     return true; // Return a value to satisfy the eslint rule
-}).catch(error => {
-    logError('Agent initialization failed:', error);
+}).catch(err => {
+    error('Agent initialization failed:', err);
     broadcast({type: 'agentStatus', payload: 'initialization_failed'});
     return false; // Return a value to satisfy the eslint rule
 });
@@ -61,14 +76,14 @@ wss.on('connection', (ws) => {
     ws.send(JSON.stringify({type: 'connection_ack', payload: {message: 'Welcome!'}}));
     ws.send(JSON.stringify({type: 'agentStatus', payload: agent.isInitialized ? 'initialized' : 'initializing'}));
 
-    ws.on('error', (error) => logError('WebSocket error:', error));
+    ws.on('error', (err) => error('WebSocket error:', err));
 
     ws.on('message', async (data) => {
         try {
             const message = JSON.parse(data);
             await handleMessage(message, ws);
-        } catch (error) {
-            logError('Failed to handle message:', error);
+        } catch (err) {
+            error('Failed to handle message:', err);
             ws.send(JSON.stringify({type: 'error', payload: {message: 'Invalid message format or handler error.'}}));
         }
     });
@@ -82,7 +97,119 @@ async function handleMessage(message, ws) {
     const {type, payload} = message;
     debug(`received: ${type}`, payload);
 
+    const ROOT_DIR = path.resolve(__dirname, '..', '..'); // Project root directory
+
     switch (type) {
+        case 'readDirectory': {
+            const {directoryPath} = payload;
+            const absolutePath = path.join(ROOT_DIR, directoryPath);
+            try {
+                const entries = await fs.readdir(absolutePath, {withFileTypes: true});
+                const files = entries
+                    .filter(dirent => dirent.isFile())
+                    .map(dirent => dirent.name);
+                const directories = entries
+                    .filter(dirent => dirent.isDirectory())
+                    .map(dirent => dirent.name);
+                ws.send(JSON.stringify({type: 'readDirectoryResponse', payload: {files, directories, directoryPath}}));
+            } catch (error) {
+                logError('Failed to read directory:', error);
+                ws.send(JSON.stringify({type: 'error', payload: {message: `Failed to read directory: ${error.message}`}}));
+            }
+            break;
+        }
+
+        case 'readFile': {
+            const {filePath} = payload;
+            const absolutePath = path.join(ROOT_DIR, filePath);
+            try {
+                const content = await fs.readFile(absolutePath, 'utf8');
+                ws.send(JSON.stringify({type: 'readFileResponse', payload: {filePath, content}}));
+            } catch (error) {
+                logError('Failed to read file:', error);
+                ws.send(JSON.stringify({type: 'error', payload: {message: `Failed to read file: ${error.message}`}}));
+            }
+            break;
+        }
+
+        case 'writeFile': {
+            const {filePath, content} = payload;
+            const absolutePath = path.join(ROOT_DIR, filePath);
+            try {
+                await fs.writeFile(absolutePath, content, 'utf8');
+                ws.send(JSON.stringify({type: 'writeFileResponse', payload: {filePath, success: true}}));
+            } catch (error) {
+                logError('Failed to write file:', error);
+                ws.send(JSON.stringify({type: 'error', payload: {message: `Failed to write file: ${error.message}`}}));
+            }
+            break;
+        }
+
+        case 'createFile': {
+            const {filePath} = payload;
+            const absolutePath = path.join(ROOT_DIR, filePath);
+            try {
+                await fs.writeFile(absolutePath, '', 'utf8'); // Create empty file
+                ws.send(JSON.stringify({type: 'createFileResponse', payload: {filePath, success: true}}));
+            } catch (error) {
+                logError('Failed to create file:', error);
+                ws.send(JSON.stringify({type: 'error', payload: {message: `Failed to create file: ${error.message}`}}));
+            }
+            break;
+        }
+
+        case 'createDirectory': {
+            const {directoryPath} = payload;
+            const absolutePath = path.join(ROOT_DIR, directoryPath);
+            try {
+                await fs.mkdir(absolutePath, {recursive: true});
+                ws.send(JSON.stringify({type: 'createDirectoryResponse', payload: {directoryPath, success: true}}));
+            } catch (error) {
+                logError('Failed to create directory:', error);
+                ws.send(JSON.stringify({type: 'error', payload: {message: `Failed to create directory: ${error.message}`}}));
+            }
+            break;
+        }
+
+        case 'deletePath': {
+            const {path: pathToDelete} = payload;
+            const absolutePath = path.join(ROOT_DIR, pathToDelete);
+            try {
+                await fs.rm(absolutePath, {recursive: true, force: true});
+                ws.send(JSON.stringify({type: 'deletePathResponse', payload: {path: pathToDelete, success: true}}));
+            } catch (error) {
+                logError('Failed to delete path:', error);
+                ws.send(JSON.stringify({type: 'error', payload: {message: `Failed to delete path: ${error.message}`}}));
+            }
+            break;
+        }
+
+        case 'renamePath': {
+            const {oldPath, newPath} = payload;
+            const absoluteOldPath = path.join(ROOT_DIR, oldPath);
+            const absoluteNewPath = path.join(ROOT_DIR, newPath);
+            try {
+                await fs.rename(absoluteOldPath, absoluteNewPath);
+                ws.send(JSON.stringify({type: 'renamePathResponse', payload: {oldPath, newPath, success: true}}));
+            } catch (error) {
+                logError('Failed to rename path:', error);
+                ws.send(JSON.stringify({type: 'error', payload: {message: `Failed to rename path: ${error.message}`}}));
+            }
+            break;
+        }
+
+        case 'runCommand': {
+            const {command} = payload;
+            try {
+                const {stdout, stderr} = await exec(command, {cwd: ROOT_DIR});
+                ws.send(JSON.stringify({type: 'commandOutput', payload: {stdout, stderr}}));
+            } catch (error) {
+                logError('Failed to execute command:', error);
+                ws.send(JSON.stringify({type: 'commandOutput', payload: {stdout: '', stderr: error.message}}));
+            }
+            break;
+        }
+
         case 'narsese': {
             // This is a simplified interaction. A real implementation would involve
             // converting natural language to Narsese or handling commands.

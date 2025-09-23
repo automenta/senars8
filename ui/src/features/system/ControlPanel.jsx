@@ -1,7 +1,7 @@
 import React from 'react';
 import Panel from '@/components/core/Panel';
 import agentService from '@/services/agentService';
-import {useConnection} from '@/context/useConnection';
+import {useConnection} from '@/context/ConnectionProvider';
 import {Play, RotateCcw, Settings, Square} from 'lucide-react';
 import './ControlPanel.css';
 
