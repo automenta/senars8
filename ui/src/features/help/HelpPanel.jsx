@@ -1,204 +1,208 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import Panel from '@/components/core/Panel';
-import {HelpCircle, Book, ExternalLink, Code, Users} from 'lucide-react';
+import {HelpCircle, Book, Code, Zap, Network, Brain} from 'lucide-react';
 import './HelpPanel.css';
 
-const helpSections = [
-    {
-        id: 'overview',
-        title: 'Overview',
-        icon: <HelpCircle size={18} />,
-        content: (
-            <div>
-                <h3>SeNARS IDE</h3>
-                <p>
-                    SeNARS IDE is an integrated development environment for Non-Axiomatic Reasoning System (NARS) agents. 
-                    It provides a visual interface for interacting with NARS agents, monitoring their internal state, 
-                    and analyzing their reasoning processes.
-                </p>
-                <h4>Key Features</h4>
-                <ul>
-                    <li>Real-time monitoring of agent beliefs and reasoning</li>
-                    <li>Visual knowledge graph representation</li>
-                    <li>Task management and planning visualization</li>
-                    <li>Performance statistics and metrics</li>
-                    <li>Configuration management</li>
-                </ul>
-            </div>
-        )
-    },
-    {
-        id: 'getting-started',
-        title: 'Getting Started',
-        icon: <Book size={18} />,
-        content: (
-            <div>
-                <h3>Getting Started</h3>
-                <h4>1. Starting the Agent</h4>
-                <p>
-                    Use the Control panel to start the NARS agent. Click the "Start" button to begin the agent's reasoning cycle.
-                </p>
-                
-                <h4>2. Interacting with the Agent</h4>
-                <p>
-                    Use the Input panel to send Narsese statements to the agent. You can input judgments, goals, and questions.
-                </p>
-                <p>
-                    Examples:
-                    <ul>
-                        <li><code>&lt;bird --&gt; animal&gt;.</code> (Judgment)</li>
-                        <li><code>&lt;bird --&gt; fly&gt;!</code> (Goal)</li>
-                        <li><code>&lt;bird --&gt; swim&gt;?</code> (Question)</li>
-                    </ul>
-                </p>
-                
-                <h4>3. Monitoring Activity</h4>
-                <p>
-                    Use the various panels to monitor the agent's activity:
-                </p>
-                <ul>
-                    <li><strong>Memory View</strong>: See the agent's current beliefs</li>
-                    <li><strong>Knowledge Graph</strong>: Visualize relationships between concepts</li>
-                    <li><strong>Reasoner Trace</strong>: Follow the agent's reasoning steps</li>
-                    <li><strong>Statistics</strong>: View performance metrics</li>
-                </ul>
-            </div>
-        )
-    },
-    {
-        id: 'narsese',
-        title: 'Narsese Syntax',
-        icon: <Code size={18} />,
-        content: (
-            <div>
-                <h3>Narsese Syntax</h3>
-                <p>
-                    Narsese is the formal language used by NARS agents. Here are the basic syntax elements:
-                </p>
-                
-                <h4>Statements</h4>
-                <ul>
-                    <li><code>&lt;subject --&gt; predicate&gt;.</code> - Judgment (believed to be true)</li>
-                    <li><code>&lt;subject --&gt; predicate&gt;!</code> - Goal (desired to be true)</li>
-                    <li><code>&lt;subject --&gt; predicate&gt;?</code> - Question (inquire about truth value)</li>
-                </ul>
-                
-                <h4>Compound Terms</h4>
-                <ul>
-                    <li><code>&lt;(A &amp; B) --&gt; C&gt;.</code> - Conjunction</li>
-                    <li><code>&lt;(A | B) --&gt; C&gt;.</code> - Disjunction</li>
-                    <li><code>&lt;(A ~ B) --&gt; C&gt;.</code> - Negation</li>
-                </ul>
-                
-                <h4>Examples</h4>
-                <ul>
-                    <li><code>&lt;robin --&gt; bird&gt;.</code> - Robin is a bird</li>
-                    <li><code>&lt;bird --&gt; animal&gt;.</code> - Birds are animals</li>
-                    <li><code>&lt;(bird &amp; swim) --&gt; happy&gt;!</code> - Birds that swim should be happy (goal)</li>
-                </ul>
-            </div>
-        )
-    },
-    {
-        id: 'panels',
-        title: 'Panel Guide',
-        icon: <Book size={18} />,
-        content: (
-            <div>
-                <h3>Panel Guide</h3>
-                
-                <h4>Control Panel</h4>
-                <p>Start, stop, and reset the agent.</p>
-                
-                <h4>Status Panel</h4>
-                <p>View the current status of the agent.</p>
-                
-                <h4>Input Panel</h4>
-                <p>Send Narsese statements to the agent.</p>
-                
-                <h4>Log Panel</h4>
-                <p>View all events and messages from the agent.</p>
-                
-                <h4>Memory View</h4>
-                <p>See all current beliefs held by the agent.</p>
-                
-                <h4>Knowledge Graph</h4>
-                <p>Visualize relationships between concepts in the agent's memory.</p>
-                
-                <h4>Reasoner Trace</h4>
-                <p>Follow the agent's step-by-step reasoning process.</p>
-                
-                <h4>Statistics</h4>
-                <p>View performance metrics and statistics.</p>
-                
-                <h4>Tasks</h4>
-                <p>Manage and monitor agent tasks and goals.</p>
-                
-                <h4>Settings</h4>
-                <p>Configure agent parameters and export/import settings.</p>
-            </div>
-        )
-    },
-    {
-        id: 'resources',
-        title: 'Resources',
-        icon: <ExternalLink size={18} />,
-        content: (
-            <div>
-                <h3>Additional Resources</h3>
-                
-                <h4>Documentation</h4>
-                <ul>
-                    <li><a href="https://github.com/opennars/opennars" target="_blank" rel="noopener noreferrer">OpenNARS GitHub <ExternalLink size={14} /></a></li>
-                    <li><a href="https://www.cs.umd.edu/~nars/" target="_blank" rel="noopener noreferrer">NARS Website <ExternalLink size={14} /></a></li>
-                </ul>
-                
-                <h4>Research Papers</h4>
-                <ul>
-                    <li><a href="https://www.springer.com/gp/book/9783642578595" target="_blank" rel="noopener noreferrer">Non-Axiomatic Logic <ExternalLink size={14} /></a></li>
-                    <li><a href="https://www.worldscientific.com/worldscibooks/10.1142/8666" target="_blank" rel="noopener noreferrer">The Working Cycle of NARS <ExternalLink size={14} /></a></li>
-                </ul>
-                
-                <h4>Community</h4>
-                <ul>
-                    <li><a href="https://groups.google.com/forum/#!forum/open-nars" target="_blank" rel="noopener noreferrer">OpenNARS Google Group <ExternalLink size={14} /></a></li>
-                </ul>
-            </div>
-        )
-    }
-];
-
-function HelpPanel() {
+const HelpPanel = () => {
     const [activeSection, setActiveSection] = useState('overview');
 
-    const activeContent = helpSections.find(section => section.id === activeSection)?.content || helpSections[0].content;
+    const sections = [
+        { id: 'overview', title: 'Overview', icon: <HelpCircle size={16} /> },
+        { id: 'narsese', title: 'Narsese Guide', icon: <Code size={16} /> },
+        { id: 'panels', title: 'Panels Guide', icon: <Book size={16} /> },
+        { id: 'reasoning', title: 'Reasoning', icon: <Zap size={16} /> },
+        { id: 'knowledge', title: 'Knowledge Graph', icon: <Network size={16} /> },
+        { id: 'memory', title: 'Memory System', icon: <Brain size={16} /> }
+    ];
+
+    const renderContent = () => {
+        switch (activeSection) {
+            case 'overview':
+                return (
+                    <div className="help-content">
+                        <h3>SeNARS IDE Overview</h3>
+                        <p>The SeNARS Integrated Development Environment is a comprehensive tool for working with the NARS cognitive architecture.</p>
+                        
+                        <h4>Key Features:</h4>
+                        <ul>
+                            <li>Real-time interaction with the NARS reasoning engine</li>
+                            <li>Visual representation of knowledge and reasoning processes</li>
+                            <li>Multi-panel interface for monitoring system state</li>
+                            <li>File system integration for persistent knowledge</li>
+                            <li>Terminal access for command-line interaction</li>
+                        </ul>
+                        
+                        <h4>Getting Started:</h4>
+                        <ol>
+                            <li>Make sure the SeNARS backend server is running</li>
+                            <li>Check the connection status in the Status Panel</li>
+                            <li>Use the Input Panel to enter Narsese statements</li>
+                            <li>Monitor reasoning in the Reasoner Trace Panel</li>
+                            <li>Visualize knowledge in the Knowledge Graph Panel</li>
+                        </ol>
+                    </div>
+                );
+                
+            case 'narsese':
+                return (
+                    <div className="help-content">
+                        <h3>Narsese Language Guide</h3>
+                        
+                        <h4>Basic Statements:</h4>
+                        <p>Narsese is the formal language of NARS. Basic statements have the form:</p>
+                        <code>&lt;subject --&gt; predicate&gt;.</code>
+                        <p>For example:</p>
+                        <ul>
+                            <li><code>&lt;bird --&gt; animal&gt;.</code> (Birds are animals)</li>
+                            <li><code>&lt;robin --&gt; bird&gt;.</code> (Robins are birds)</li>
+                            <li><code>&lt;robin --&gt; animal&gt;.</code> (Robins are animals - derived)</li>
+                        </ul>
+                        
+                        <h4>Questions:</h4>
+                        <p>Ask questions by ending with '?':</p>
+                        <ul>
+                            <li><code>&lt;robin --&gt; animal&gt;?</code> (Are robins animals?)</li>
+                            <li><code>(&amp;&amp;, &lt;robin --&gt; bird&gt;, &lt;robin --&gt; animal&gt;)?</code> (Are both true?)</li>
+                        </ul>
+                        
+                        <h4>Connectors:</h4>
+                        <ul>
+                            <li><code>(&amp;&amp; ...)</code> - Conjunction (AND)</li>
+                            <li><code>(|| ...)</code> - Disjunction (OR)</li>
+                            <li><code>(&lt;- ...)</code> - Implication (IF...THEN)</li>
+                            <li><code>(&lt;-&gt; ...)</code> - Equivalence (IF AND ONLY IF)</li>
+                        </ul>
+                    </div>
+                );
+                
+            case 'panels':
+                return (
+                    <div className="help-content">
+                        <h3>Panels Guide</h3>
+                        
+                        <h4>File Explorer</h4>
+                        <p>Browse and manage files in the project directory. Supports all common file operations.</p>
+                        
+                        <h4>Code Editor</h4>
+                        <p>Full-featured editor with syntax highlighting for Narsese and other languages. Supports multiple file formats.</p>
+                        
+                        <h4>Input Panel</h4>
+                        <p>Enter Narsese statements or questions to interact with the reasoning engine.</p>
+                        
+                        <h4>Memory View</h4>
+                        <p>Monitor the system's beliefs, goals, and other memory elements in real-time.</p>
+                        
+                        <h4>Knowledge Graph</h4>
+                        <p>Visual representation of the knowledge network and relationships between concepts.</p>
+                        
+                        <h4>Reasoner Trace</h4>
+                        <p>Track the reasoning steps and inference processes as they occur.</p>
+                        
+                        <h4>Terminal</h4>
+                        <p>Command-line interface for advanced operations and system commands.</p>
+                        
+                        <h4>Internal State</h4>
+                        <p>Monitor system metrics like cycle count, memory usage, temperature, etc.</p>
+                    </div>
+                );
+                
+            case 'reasoning':
+                return (
+                    <div className="help-content">
+                        <h3>Reasoning in NARS</h3>
+                        
+                        <h4>Introduction</h4>
+                        <p>NARS performs non-axiomatic reasoning, meaning it can process uncertain and incomplete information without requiring a complete and consistent knowledge base.</p>
+                        
+                        <h4>Reasoning Types</h4>
+                        <ul>
+                            <li><strong>Deductive:</strong> From general knowledge to specific conclusions</li>
+                            <li><strong>Inductive:</strong> From specific instances to general knowledge</li>
+                            <li><strong>Abductive:</strong> Finding the best explanation for observations</li>
+                            <li><strong>Temporal:</strong> Reasoning about events in time</li>
+                            <li><strong>Conditional:</strong> If-then reasoning</li>
+                        </ul>
+                        
+                        <h4>Confidence and Priority</h4>
+                        <p>Each belief in NARS has a truth-value with frequency and confidence components. The system prioritizes higher-confidence beliefs.</p>
+                    </div>
+                );
+                
+            case 'knowledge':
+                return (
+                    <div className="help-content">
+                        <h3>Knowledge Graph in NARS</h3>
+                        
+                        <h4>Concept Nodes</h4>
+                        <p>Each concept in the system is represented as a node in the knowledge graph. Concepts can be anything: objects, predicates, relations, or complex terms.</p>
+                        
+                        <h4>Relationships</h4>
+                        <p>Directed edges represent relationships between concepts:</p>
+                        <ul>
+                            <li>Instance relationship: &lt;A --&gt; B&gt; (A is an instance of B)</li>
+                            <li>Property relationship: &lt;A --&gt; B&gt; (A has property B)</li>
+                            <li>Implication: &lt;A =?&gt; B&gt; (If A then B)</li>
+                            <li>Equivalence: &lt;A &lt;?&gt; B&gt; (A if and only if B)</li>
+                        </ul>
+                        
+                        <h4>Dynamic Graph</h4>
+                        <p>The knowledge graph evolves as the system processes new information. New concepts and relationships are added, existing ones are refined, and some may be removed based on their usefulness.</p>
+                    </div>
+                );
+                
+            case 'memory':
+                return (
+                    <div className="help-content">
+                        <h3>Memory System in NARS</h3>
+                        
+                        <h4>Working Memory</h4>
+                        <p>Contains recently processed and highly active concepts, beliefs, and goals. This is where active reasoning occurs.</p>
+                        
+                        <h4>Long-term Memory</h4>
+                        <p>Stores less active but persistent knowledge. Items move between working and long-term memory based on activation values.</p>
+                        
+                        <h4>Memory Control</h4>
+                        <p>The system uses attention mechanisms to prioritize important information and forget irrelevant details. Concepts with higher activation values are more likely to participate in reasoning.</p>
+                        
+                        <h4>Concepts</h4>
+                        <p>Each concept contains:</p>
+                        <ul>
+                            <li>Its term (name/identifier)</li>
+                            <li>Associated beliefs about the concept</li>
+                            <li>Associated goals related to the concept</li>
+                            <li>Reference to other concepts</li>
+                        </ul>
+                    </div>
+                );
+                
+            default:
+                return <div className="help-content">Select a section from the menu.</div>;
+        }
+    };
 
     return (
-        <Panel title={<><HelpCircle size={18}/> Help</>}>
+        <Panel title={<><HelpCircle size={18}/> Help & Documentation</>} >
             <div className="help-panel">
                 <div className="help-sidebar">
-                    <nav>
-                        <ul>
-                            {helpSections.map((section) => (
-                                <li key={section.id}>
-                                    <button
-                                        className={activeSection === section.id ? 'active' : ''}
-                                        onClick={() => setActiveSection(section.id)}
-                                    >
-                                        {section.icon}
-                                        {section.title}
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </nav>
+                    <ul>
+                        {sections.map(section => (
+                            <li 
+                                key={section.id}
+                                className={activeSection === section.id ? 'active' : ''}
+                                onClick={() => setActiveSection(section.id)}
+                            >
+                                <span className="icon">{section.icon}</span>
+                                <span className="title">{section.title}</span>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
-                <div className="help-content">
-                    {activeContent}
+                <div className="help-main">
+                    {renderContent()}
                 </div>
             </div>
         </Panel>
     );
-}
+};
 
 export default HelpPanel;

@@ -1,16 +1,36 @@
 .status-panel-content {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
     align-items: center;
     width: 100%;
+    padding: 5px;
 }
 
-.status-panel-connection {
+.status-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 8px;
+    font-size: 13px;
+    color: #ccc;
+    white-space: nowrap;
 }
 
-.status-panel-divider {
-    color: #555;
+.status-item.connection-status {
+    color: #4caf50;
+}
+
+.status-item.connection-status svg {
+    margin-right: 4px;
+}
+
+.status-item svg {
+    flex-shrink: 0;
+}
+
+.sonification-toggle {
+    justify-self: center;
+    width: 100%;
+    text-align: center;
+    grid-column: 1 / -1;
 }

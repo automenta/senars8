@@ -1,19 +1,128 @@
+.memory-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.memory-tabs {
+    display: flex;
+    border-bottom: 1px solid #444;
+    margin-bottom: 10px;
+}
+
+.tab {
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: #ccc;
+    border-bottom: 2px solid transparent;
+}
+
+.tab.active {
+    color: #fff;
+    border-bottom: 2px solid #4a90e2;
+    font-weight: bold;
+}
+
+.tab:hover:not(.active) {
+    background: #333;
+}
+
+.memory-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-container, .sort-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.memory-filter, .memory-sort {
+    padding: 6px 10px;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background: #2a2a2a;
+    color: #fff;
+    font-size: 13px;
+}
+
+.memory-filter:focus, .memory-sort:focus {
+    outline: none;
+    border-color: #4a90e2;
+}
+
+.memory-sort {
+    cursor: pointer;
+}
+
+.clear-memory-btn {
+    padding: 6px 12px;
+    background: #d32f2f;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.clear-memory-btn:hover {
+    background: #b71c1c;
+}
+
+.memory-content {
+    flex: 1;
+    overflow-y: auto;
+}
+
 .memory-list {
     list-style-type: none;
     padding: 0;
     margin: 0;
 }
 
-.memory-list li {
-    padding: 0.25rem 0;
+.memory-item {
+    padding: 10px;
     border-bottom: 1px solid #444;
+    background: #2a2a2a;
+    margin-bottom: 5px;
+    border-radius: 4px;
 }
 
-.memory-list li:last-child {
+.memory-item:last-child {
     border-bottom: none;
+    margin-bottom: 0;
+}
+
+.memory-statement {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    margin-bottom: 5px;
+    word-break: break-word;
+}
+
+.memory-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #aaa;
+}
+
+.confidence, .timestamp {
+    background: #333;
+    padding: 2px 6px;
+    border-radius: 3px;
 }
 
 .memory-empty {
     text-align: center;
     color: #888;
+    padding: 20px;
+    font-style: italic;
 }

@@ -10,6 +10,8 @@ import NotificationCenterPanel from './system/NotificationCenterPanel';
 import FileExplorerPanel from './file-system/FileExplorerPanel';
 import CodeEditorPanel from './editor/CodeEditorPanel';
 import TerminalPanel from './terminal/TerminalPanel';
+import LayoutManagerPanel from './LayoutManagerPanel';
+import HelpPanel from './help/HelpPanel';
 
 const panelRegistry = {
     control: ControlPanel,
@@ -24,6 +26,8 @@ const panelRegistry = {
     'file-explorer': FileExplorerPanel,
     'code-editor': CodeEditorPanel,
     'terminal': TerminalPanel,
+    'layout-manager': LayoutManagerPanel,
+    'help': HelpPanel,
 };
 
 export default panelRegistry;

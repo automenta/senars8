@@ -2,4 +2,134 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    padding: 10px;
+}
+
+.input-panel-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.examples-toggle, .help-toggle {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.examples-toggle:hover, .help-toggle:hover {
+    background: #e0e0e0;
+}
+
+.examples-container {
+    margin-bottom: 10px;
+    padding: 10px;
+    background: #f8f8f8;
+    border-radius: 4px;
+    border: 1px solid #eee;
+}
+
+.examples-container h4 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.examples-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+}
+
+.example-item {
+    padding: 8px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: left;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.example-item:hover {
+    background: #f0f8ff;
+    border-color: #007acc;
+}
+
+.validation-error {
+    color: #d32f2f;
+    font-size: 12px;
+    margin-bottom: 10px;
+    padding: 5px;
+    background: #ffebee;
+    border-radius: 4px;
+    border: 1px solid #ffcdd2;
+}
+
+.input-panel-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    justify-content: flex-end;
+}
+
+.clear-button {
+    padding: 8px 12px;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.clear-button:hover {
+    background: #e0e0e0;
+}
+
+.clear-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.input-history {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+.input-history h4 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.history-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.history-item {
+    padding: 5px 8px;
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.history-item:hover {
+    background: #bbdefb;
 }

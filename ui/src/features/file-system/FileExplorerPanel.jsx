@@ -1,12 +1,16 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import {useConnection} from '@/context/ConnectionProvider';
 import {useSharedState} from '@/context/SharedStateProvider';
+import {Folder, File, FolderOpen, ChevronRight, ChevronDown, Plus, MoreVertical} from 'lucide-react';
+import './FileExplorerPanel.css';
 
 const FileExplorerPanel = () => {
     const {sendMessage, lastMessage} = useConnection();
     const {setSharedState} = useSharedState();
     const [currentPath, setCurrentPath] = useState('.');
     const [entries, setEntries] = useState({files: [], directories: []});
+    const [expandedDirs, setExpandedDirs] = useState(new Set(['.'])); // Root is expanded by default
+    const [contextMenu, setContextMenu] = useState({show: false, x: 0, y: 0, path: '', type: ''});
 
     const fetchDirectoryContents = useCallback((path) => {
         sendMessage('readDirectory', {directoryPath: path});
@@ -34,6 +38,8 @@ const FileExplorerPanel = () => {
     const handleDirectoryClick = (directory) => {
         const newPath = path.join(currentPath, directory);
         setCurrentPath(newPath);
+        // Expand the clicked directory
+        setExpandedDirs(prev => new Set(prev).add(newPath));
     };
 
     const handleFileClick = (file) => {
@@ -82,6 +88,33 @@ const FileExplorerPanel = () => {
         }
     };
 
+    const toggleDirectory = (dirPath) => {
+        setExpandedDirs(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(dirPath)) {
+                newSet.delete(dirPath);
+            } else {
+                newSet.add(dirPath);
+            }
+            return newSet;
+        });
+    };
+
+    const handleContextMenu = (e, itemPath, type) => {
+        e.preventDefault();
+        setContextMenu({
+            show: true,
+            x: e.clientX,
+            y: e.clientY,
+            path: itemPath,
+            type
+        });
+    };
+
+    const closeContextMenu = () => {
+        setContextMenu({show: false, x: 0, y: 0, path: '', type: ''});
+    };
+
     // Helper to join paths, handling '.' correctly
     const path = {
         join: (...args) => {
@@ -100,33 +133,141 @@ const FileExplorerPanel = () => {
         }
     };
 
+    const getFileIcon = (filename) => {
+        if (!filename) return <File size={16} />;
+        const extension = filename.split('.').pop().toLowerCase();
+        switch (extension) {
+            case 'js':
+            case 'jsx':
+            case 'ts':
+            case 'tsx':
+                return <File size={16} />;
+            case 'json':
+                return <File size={16} />;
+            case 'css':
+                return <File size={16} />;
+            case 'html':
+                return <File size={16} />;
+            case 'py':
+                return <File size={16} />;
+            case 'nars':
+            case 'narsese':
+                return <File size={16} color="#ff6b6b" />;
+            default:
+                return <File size={16} />;
+        }
+    };
+
     return (
-        <div style={{padding: '10px', overflow: 'auto', height: '100%'}}>
-            <h3>File Explorer</h3>
-            <p>Current Path: {currentPath}</p>
-            {currentPath !== '.' && (
-                <button onClick={handleGoBack}>.. (Back)</button>
-            )}
-            <div style={{marginTop: '10px'}}>
-                <button onClick={handleCreateFile}>New File</button>
-                <button onClick={handleCreateDirectory} style={{marginLeft: '5px'}}>New Folder</button>
+        <div className="file-explorer-panel">
+            <div className="explorer-header">
+                <h3>File Explorer</h3>
+                <div className="explorer-actions">
+                    <button onClick={handleCreateFile} title="New File" className="action-button">
+                        <Plus size={14} /> New File
+                    </button>
+                    <button onClick={handleCreateDirectory} title="New Directory" className="action-button">
+                        <Folder size={14} /> New Folder
+                    </button>
+                </div>
             </div>
-            <ul>
-                {entries.directories.map(dir => (
-                    <li key={dir} style={{cursor: 'pointer', display: 'flex', alignItems: 'center'}}>
-                        <span onClick={() => handleDirectoryClick(dir)}>📁 {dir}</span>
-                        <button onClick={() => handleDelete(path.join(currentPath, dir))} style={{marginLeft: '10px', fontSize: '0.7em'}}>Delete</button>
-                        <button onClick={() => handleRename(path.join(currentPath, dir), dir)} style={{marginLeft: '5px', fontSize: '0.7em'}}>Rename</button>
-                    </li>
-                ))}
-                {entries.files.map(file => (
-                    <li key={file} style={{cursor: 'pointer', display: 'flex', alignItems: 'center'}}>
-                        <span onClick={() => handleFileClick(file)}>📄 {file}</span>
-                        <button onClick={() => handleDelete(path.join(currentPath, file))} style={{marginLeft: '10px', fontSize: '0.7em'}}>Delete</button>
-                        <button onClick={() => handleRename(path.join(currentPath, file), file)} style={{marginLeft: '5px', fontSize: '0.7em'}}>Rename</button>
-                    </li>
-                ))}
-            </ul>
+            
+            <div className="current-path">
+                <span>Current Path: {currentPath}</span>
+                {currentPath !== '.' && (
+                    <button onClick={handleGoBack} className="back-button">.. (Back)</button>
+                )}
+            </div>
+            
+            <div className="explorer-content">
+                <ul className="explorer-list">
+                    {entries.directories.map(dir => {
+                        const dirPath = path.join(currentPath, dir);
+                        const isExpanded = expandedDirs.has(dirPath);
+                        
+                        return (
+                            <li key={dir} className="explorer-item directory-item">
+                                <div 
+                                    className="item-row"
+                                    onContextMenu={(e) => handleContextMenu(e, dirPath, 'directory')}
+                                >
+                                    <button 
+                                        className="toggle-button"
+                                        onClick={() => toggleDirectory(dirPath)}
+                                    >
+                                        {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                                    </button>
+                                    <span 
+                                        className="directory-name"
+                                        onClick={() => handleDirectoryClick(dir)}
+                                    >
+                                        {isExpanded ? <FolderOpen size={16} /> : <Folder size={16} />} {dir}
+                                    </span>
+                                    <button 
+                                        className="context-menu-button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleContextMenu(e, dirPath, 'directory');
+                                        }}
+                                    >
+                                        <MoreVertical size={14} />
+                                    </button>
+                                </div>
+                                
+                                {isExpanded && (
+                                    <ul className="nested-list">
+                                        {/* This would be populated with subdirectory contents */}
+                                        <li className="placeholder-item">Loading...</li>
+                                    </ul>
+                                )}
+                            </li>
+                        );
+                    })}
+                    
+                    {entries.files.map(file => {
+                        const filePath = path.join(currentPath, file);
+                        return (
+                            <li key={file} className="explorer-item file-item">
+                                <div 
+                                    className="item-row"
+                                    onClick={() => handleFileClick(file)}
+                                    onContextMenu={(e) => handleContextMenu(e, filePath, 'file')}
+                                >
+                                    <span className="spacer"></span>
+                                    <span className="file-name">
+                                        {getFileIcon(file)} {file}
+                                    </span>
+                                    <button 
+                                        className="context-menu-button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleContextMenu(e, filePath, 'file');
+                                        }}
+                                    >
+                                        <MoreVertical size={14} />
+                                    </button>
+                                </div>
+                            </li>
+                        );
+                    })}
+                </ul>
+            </div>
+            
+            {/* Context Menu */}
+            {contextMenu.show && (
+                <div 
+                    className="context-menu"
+                    style={{ top: contextMenu.y, left: contextMenu.x }}
+                    onClick={closeContextMenu}
+                >
+                    <button onClick={() => handleRename(contextMenu.path, contextMenu.path.split('/').pop())}>
+                        Rename
+                    </button>
+                    <button onClick={() => handleDelete(contextMenu.path)}>
+                        Delete
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

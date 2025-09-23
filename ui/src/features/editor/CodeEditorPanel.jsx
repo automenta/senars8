@@ -1,7 +1,8 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import AceEditor from 'react-ace';
 import {useSharedState} from '@/context/SharedStateProvider';
 import {useConnection} from '@/context/ConnectionProvider';
+import './NarseseMode'; // Import our custom Narsese mode
 
 import 'ace-builds/src-noconflict/mode-javascript';
 import 'ace-builds/src-noconflict/theme-monokai';
@@ -13,9 +14,12 @@ import 'ace-builds/src-noconflict/mode-python';
 import 'ace-builds/src-noconflict/mode-xml';
 import 'ace-builds/src-noconflict/mode-markdown';
 
+// Register the Narsese mode
+import ace from 'ace-builds/src-noconflict/ace';
+
 const getMode = (filename) => {
     if (!filename) return 'javascript';
-    const extension = filename.split('.').pop();
+    const extension = filename.split('.').pop().toLowerCase();
     switch (extension) {
         case 'js':
         case 'jsx':
@@ -35,6 +39,9 @@ const getMode = (filename) => {
             return 'xml';
         case 'md':
             return 'markdown';
+        case 'nars':
+        case 'narsese':
+            return 'narsese'; // Our custom Narsese mode
         default:
             return 'text';
     }
@@ -45,6 +52,13 @@ const CodeEditorPanel = () => {
     const {sendMessage} = useConnection();
     const [code, setCode] = useState(sharedState.editorContent || '// Start coding here...');
     const [currentFile, setCurrentFile] = useState(sharedState.currentOpenFile || null);
+    const [editorTheme, setEditorTheme] = useState('monokai');
+    const [editorMode, setEditorMode] = useState(getMode(currentFile));
+
+    // Update editor mode when file changes
+    useEffect(() => {
+        setEditorMode(getMode(currentFile));
+    }, [currentFile]);
 
     useEffect(() => {
         if (sharedState.editorContent !== undefined) {
@@ -55,30 +69,70 @@ const CodeEditorPanel = () => {
         }
     }, [sharedState.editorContent, sharedState.currentOpenFile]);
 
-    const onChange = (newValue) => {
+    const onChange = useCallback((newValue) => {
         setCode(newValue);
         // Optionally, save to shared state for immediate reflection
         setSharedState(prevState => ({...prevState, editorContent: newValue}));
-    };
+    }, [setSharedState]);
 
     const handleSave = () => {
         if (currentFile) {
             sendMessage('writeFile', {filePath: currentFile, content: code});
-            alert(`File ${currentFile} saved!`); // Basic feedback
+            // Use notification service instead of alert
+            // For now, using a simple alert as placeholder
+            alert(`File ${currentFile} saved!`);
         } else {
             alert('No file open to save.');
         }
     };
 
+    const handleRun = () => {
+        if (currentFile && currentFile.endsWith('.nars')) {
+            // For Narsese files, send content as Narsese statements
+            const lines = code.split('\n').filter(line => line.trim() !== '' && !line.trim().startsWith('//'));
+            lines.forEach(line => {
+                if (line.trim().endsWith('.') || line.trim().endsWith('?')) {
+                    sendMessage('narsese', line.trim());
+                }
+            });
+        } else {
+            // For other files, just save
+            handleSave();
+        }
+    };
+
+    const handleThemeChange = (theme) => {
+        setEditorTheme(theme);
+    };
+
     return (
-        <div style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
-            <div style={{padding: '5px', borderBottom: '1px solid #ccc', display: 'flex', justifyContent: 'space-between'}}>
-                <span>{currentFile ? `Editing: ${currentFile}` : 'No file open'}</span>
-                <button onClick={handleSave} disabled={!currentFile}>Save</button>
+        <div className="code-editor-panel">
+            <div className="editor-header">
+                <div className="file-info">
+                    {currentFile ? `Editing: ${currentFile}` : 'No file open'}
+                </div>
+                <div className="editor-controls">
+                    <select 
+                        value={editorTheme} 
+                        onChange={(e) => handleThemeChange(e.target.value)}
+                        className="theme-selector"
+                    >
+                        <option value="monokai">Monokai</option>
+                        <option value="github">GitHub</option>
+                        <option value="solarized_light">Solarized Light</option>
+                        <option value="solarized_dark">Solarized Dark</option>
+                    </select>
+                    <button onClick={handleRun} disabled={!currentFile} className="run-button">
+                        Run
+                    </button>
+                    <button onClick={handleSave} disabled={!currentFile} className="save-button">
+                        Save
+                    </button>
+                </div>
             </div>
             <AceEditor
-                mode={getMode(currentFile)}
-                theme="monokai"
+                mode={editorMode}
+                theme={editorTheme}
                 onChange={onChange}
                 name="CODE_EDITOR"
                 editorProps={{$blockScrolling: true}}
@@ -89,8 +143,10 @@ const CodeEditorPanel = () => {
                     enableSnippets: true,
                     showLineNumbers: true,
                     tabSize: 2,
+                    fontSize: 14,
+                    fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace'
                 }}
-                style={{width: '100%', flexGrow: 1}}
+                style={{width: '100%', height: 'calc(100% - 50px)'}}
             />
         </div>
     );
