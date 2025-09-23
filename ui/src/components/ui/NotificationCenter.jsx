@@ -1,6 +1,6 @@
-import React, { useSyncExternalStore } from 'react';
+import React, {useSyncExternalStore} from 'react';
 import notificationService from '@/services/notificationService';
-import { Trash2 } from 'lucide-react';
+import {Trash2} from 'lucide-react';
 
 const subscribe = (callback) => {
     notificationService.on('change', callback);
@@ -21,7 +21,7 @@ function NotificationCenter() {
             <div className="notification-center-header">
                 <h3>Notifications</h3>
                 <button onClick={() => notificationService.clearAll()} title="Clear All">
-                    <Trash2 size={16} />
+                    <Trash2 size={16}/>
                 </button>
             </div>
             <div className="notification-list">

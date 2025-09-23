@@ -1,7 +1,7 @@
 import {debug, info} from '../utils/logger.js';
 import {getGoalTasks} from '../utils/task-utils.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
-import { configService } from '../config/index.js';
+import {configService} from '../config/index.js';
 
 const errorHandler = createUnifiedErrorHandler('Cycle');
 

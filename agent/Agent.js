@@ -1,4 +1,4 @@
-import { createSystem, parseTerm, agentErrorHandler as errorHandler, debug, warn, Task } from '@project/core';
+import {agentErrorHandler as errorHandler, createSystem, debug, parseTerm, Task, warn} from '@project/core';
 import MCP from './MCP.js';
 
 class Agent {

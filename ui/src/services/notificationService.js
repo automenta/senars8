@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import {EventEmitter} from 'events';
 
 class NotificationService extends EventEmitter {
     constructor() {

@@ -2,7 +2,7 @@ import {systemErrorHandler as errorHandler} from '../utils/errorHandling.js';
 import {debug, error as logError, info, warn} from '../utils/logger.js';
 import {normalizeToArray} from '../utils/collections/index.js';
 import Introspection from './Introspection.js';
-import { configService } from '../config/index.js';
+import {configService} from '../config/index.js';
 import registerDefaultActions from './default-actions.js';
 
 class System {

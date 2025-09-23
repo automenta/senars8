@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import Panel from '@/components/core/Panel';
 import agentService from '@/services/agentService';
-import { BrainCircuit } from 'lucide-react';
+import {BrainCircuit} from 'lucide-react';
 
 function MemoryViewPanel() {
     const [beliefs, setBeliefs] = useState([]);
@@ -16,16 +16,16 @@ function MemoryViewPanel() {
     }, []);
 
     return (
-        <Panel title={<><BrainCircuit size={18} /> Memory</>}>
+        <Panel title={<><BrainCircuit size={18}/> Memory</>}>
             <ul className="memory-list">
                 {beliefs.map((belief, index) => (
                     <li key={index}>{belief.replace(/\\/g, '')}</li>
                 ))}
             </ul>
             {beliefs.length === 0 && (
-                 <div style={{ textAlign: 'center', color: '#888' }}>
+                <div style={{textAlign: 'center', color: '#888'}}>
                     No beliefs yet.
-                 </div>
+                </div>
             )}
         </Panel>
     );

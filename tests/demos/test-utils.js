@@ -1,5 +1,5 @@
 import MockLM from '../mocks/MockLM.js';
-import { join } from 'path';
+import {join} from 'path';
 
 export function createDemoTest(demoName, demoFn, useMockLM = false) {
     test(`${demoName} should run without errors`, async () => {

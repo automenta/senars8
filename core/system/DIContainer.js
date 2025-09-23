@@ -2,8 +2,8 @@
  * @fileoverview A lightweight dependency injection container.
  */
 
-import { lstatSync, readdirSync } from 'fs';
-import { join, parse } from 'path';
+import {lstatSync, readdirSync} from 'fs';
+import {join, parse} from 'path';
 import {diContainerErrorHandler as errorHandler} from '../utils/errorHandling.js';
 
 const LIFETIME = {
@@ -25,8 +25,8 @@ class DIContainer {
      * @param {object} options - Registration options.
      * @param {string} options.lifetime - The lifetime of the service (e.g., 'singleton', 'transient').
      */
-    register(name, definition, dependencies = [], { lifetime = LIFETIME.TRANSIENT } = {}) {
-        this.services.set(name, { name, definition, dependencies, lifetime, isValue: false });
+    register(name, definition, dependencies = [], {lifetime = LIFETIME.TRANSIENT} = {}) {
+        this.services.set(name, {name, definition, dependencies, lifetime, isValue: false});
     }
 
     /**
@@ -35,7 +35,13 @@ class DIContainer {
      * @param {*} value - The value to register.
      */
     registerValue(name, value) {
-        this.services.set(name, { name, definition: value, dependencies: [], lifetime: LIFETIME.SINGLETON, isValue: true });
+        this.services.set(name, {
+            name,
+            definition: value,
+            dependencies: [],
+            lifetime: LIFETIME.SINGLETON,
+            isValue: true
+        });
     }
 
     /**
@@ -63,7 +69,7 @@ class DIContainer {
             return this.singletons.get(name);
         }
 
-        const { definition, dependencies } = service;
+        const {definition, dependencies} = service;
         const resolvedDependencies = dependencies.map(dep => this.get(dep, [...resolving, name]));
         const instance = new definition(...resolvedDependencies);
 
@@ -80,15 +86,15 @@ class DIContainer {
      * @param {object} options - Options for loading modules.
      * @param {string} options.lifetime - The lifetime to use for all loaded modules.
      */
-    async load(directoryPath, { lifetime = LIFETIME.SINGLETON } = {}) {
+    async load(directoryPath, {lifetime = LIFETIME.SINGLETON} = {}) {
         try {
             const files = readdirSync(directoryPath);
             for (const file of files) {
                 const fullPath = join(directoryPath, file);
                 if (lstatSync(fullPath).isDirectory()) {
-                    await this.load(fullPath, { lifetime });
+                    await this.load(fullPath, {lifetime});
                 } else if (file.endsWith('.js')) {
-                    const { name: moduleName } = parse(file);
+                    const {name: moduleName} = parse(file);
                     const module = await import(fullPath);
                     if (module.default && typeof module.default === 'function') {
                         // A simple way to infer dependencies from constructor parameter names.
@@ -100,7 +106,7 @@ class DIContainer {
                         if (constructorMatch && constructorMatch[1]) {
                             dependencies = constructorMatch[1].split(',').map(param => param.trim()).filter(Boolean);
                         }
-                        this.register(moduleName, module.default, dependencies, { lifetime });
+                        this.register(moduleName, module.default, dependencies, {lifetime});
                     }
                 }
             }
@@ -112,4 +118,4 @@ class DIContainer {
 
 const containerSingleton = new DIContainer();
 export default containerSingleton;
-export { DIContainer, LIFETIME };
+export {DIContainer, LIFETIME};

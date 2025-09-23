@@ -1,4 +1,4 @@
-import { info, warn } from '../utils/logger.js';
+import {info, warn} from '../utils/logger.js';
 
 class StrategyRegistry {
     constructor() {

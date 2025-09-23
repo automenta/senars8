@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useSyncExternalStore } from 'react';
+import React, {useEffect, useState, useSyncExternalStore} from 'react';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import Toast from './Toast';
@@ -28,7 +28,7 @@ function StatusBar() {
         <div className="statusbar">
             <div className="toast-container">
                 {notifications.map(n => (
-                    <Toast key={n.id} notification={n} onDismiss={onDismiss} />
+                    <Toast key={n.id} notification={n} onDismiss={onDismiss}/>
                 ))}
             </div>
             <div className="agent-status">

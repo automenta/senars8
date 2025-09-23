@@ -1,7 +1,7 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { ConnectionProvider } from 'context/ConnectionContext';
-import { SettingsProvider } from 'context/SettingsContext';
+import {render, screen} from '@testing-library/react';
+import {ConnectionProvider} from 'context/ConnectionContext';
+import {SettingsProvider} from 'context/SettingsContext';
 import StatusPanel from 'features/system/StatusPanel';
 
 describe('StatusPanel', () => {
@@ -9,7 +9,7 @@ describe('StatusPanel', () => {
         render(
             <SettingsProvider>
                 <ConnectionProvider>
-                    <StatusPanel />
+                    <StatusPanel/>
                 </ConnectionProvider>
             </SettingsProvider>
         );

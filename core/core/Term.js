@@ -155,6 +155,18 @@ class Term extends BaseEntity {
         [OP.INTENSIONAL_SET]: pTerm => `[${Term.termList(pTerm.terms || [])}]`,
     };
 
+    static createInner(key, embedding = [], complexity = 1) {
+        // For inner operations, we just return null instead of throwing for invalid keys
+        if (typeof key !== 'string' || key.length === 0) {
+            return null;
+        }
+
+        try {
+            return new Term(key, embedding, complexity);
+        } catch {
+            return null;
+        }
+    }
 
     setEmbedding(embedding) {
         errorHandler.executeSync(() => {
@@ -244,18 +256,6 @@ class Term extends BaseEntity {
             return (this.#componentCache[componentName] = componentKey ? Term.createInner(componentKey) : null);
         } catch {
             return (this.#componentCache[componentName] = null);
-        }
-    }
-    static createInner(key, embedding = [], complexity = 1) {
-        // For inner operations, we just return null instead of throwing for invalid keys
-        if (typeof key !== 'string' || key.length === 0) {
-            return null;
-        }
-
-        try {
-            return new Term(key, embedding, complexity);
-        } catch {
-            return null;
         }
     }
 }

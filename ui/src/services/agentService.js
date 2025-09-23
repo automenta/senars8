@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import {EventEmitter} from 'events';
 
 class AgentService extends EventEmitter {
     constructor() {
@@ -54,15 +54,15 @@ class AgentService extends EventEmitter {
             console.error('Cannot send message, WebSocket is not connected.');
             return;
         }
-        this.ws.send(JSON.stringify({ type, payload }));
+        this.ws.send(JSON.stringify({type, payload}));
     }
-    
+
     sendNarsese(narsese) {
         this.sendMessage('narsese', narsese);
     }
 
     sendAgentControl(command) {
-        this.sendMessage('agentControl', { command });
+        this.sendMessage('agentControl', {command});
     }
 }
 

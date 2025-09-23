@@ -46,11 +46,11 @@ describe('Memory', () => {
     beforeEach(() => {
         // Reset the config service to ensure clean state for each test
         configService.reset();
-        
+
         const configManager = createTestConfig();
         // Initialize configService with test config
         configService.initialize(configManager.getAll());
-        
+
         const mockEventBus = {
             on: jest.fn(),
             emit: jest.fn(),

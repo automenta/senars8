@@ -1,1 +1,1 @@
-export { default as Agent } from '../Agent.js';
+export {default as Agent} from '../Agent.js';

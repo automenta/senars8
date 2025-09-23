@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import Panel from '@/components/core/Panel';
 import agentService from '@/services/agentService';
-import { useConnection } from '@/context/ConnectionContext';
+import {useConnection} from '@/context/ConnectionContext';
 import SonificationToggle from '@/components/core/SonificationToggle';
-import { Server, Wifi, WifiOff } from 'lucide-react';
+import {Server, Wifi, WifiOff} from 'lucide-react';
 
 function StatusPanel() {
-    const { isConnected } = useConnection();
+    const {isConnected} = useConnection();
     const [cycleCount, setCycleCount] = useState(0);
 
     useEffect(() => {
@@ -20,17 +20,17 @@ function StatusPanel() {
     }, []);
 
     return (
-        <Panel title={<><Server size={18} /> System Status</>}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <Panel title={<><Server size={18}/> System Status</>}>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%'}}>
+                <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
                     {isConnected
-                        ? <><Wifi size={16} color="limegreen" /> Connected</>
-                        : <><WifiOff size={16} color="red" /> Disconnected</>
+                        ? <><Wifi size={16} color="limegreen"/> Connected</>
+                        : <><WifiOff size={16} color="red"/> Disconnected</>
                     }
                     <span style={{color: '#555'}}>|</span>
                     <span>Cycle: {cycleCount}</span>
                 </div>
-                <SonificationToggle />
+                <SonificationToggle/>
             </div>
         </Panel>
     );

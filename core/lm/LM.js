@@ -14,7 +14,7 @@ import NLP from './NLP.js';
 import {debug, info, warn} from '../utils/logger.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import {suppressOnnxWarnings} from '../utils/onnxSuppression.js';
-import { configService } from '../config/index.js';
+import {configService} from '../config/index.js';
 
 suppressOnnxWarnings();
 

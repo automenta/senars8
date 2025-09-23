@@ -1,11 +1,11 @@
-import { info } from '../utils/logger.js';
+import {info} from '../utils/logger.js';
 import ConfigManager from '../config/ConfigManager.js';
-import { DIContainer } from './DIContainer.js';
+import {DIContainer} from './DIContainer.js';
 import registerComponents from './register-components.js';
 import CONSTITUTION_TASKS from './Constitution.js';
 import BagSamplingStrategy from '../reasoner/strategies/BagSamplingStrategy.js';
 import BruteForceStrategy from '../reasoner/strategies/BruteForceStrategy.js';
-import { configService } from '../config/index.js';
+import {configService} from '../config/index.js';
 
 const initializeSystem = (system) => {
     info('SystemFactory: Initializing system with constitution...');
@@ -20,7 +20,7 @@ const createSystem = (userConfig = {}, components = {}) => {
     const container = new DIContainer();
 
     const configManager = new ConfigManager(userConfig);
-    
+
     // Initialize the global config service with the merged configuration
     configService.initialize(configManager.getAll());
 

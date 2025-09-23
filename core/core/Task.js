@@ -68,6 +68,25 @@ class Task extends BaseEntity {
         return BigInt(Date.now());
     }
 
+    static createInner(term, punctuation, truthValue = {}, stamp = {}) {
+        try {
+            // For inner operations, we just return null instead of throwing for invalid inputs
+            validation.validateTerm(term, 'Task term');
+            validation.validatePunctuation(punctuation, 'Task punctuation');
+
+            const processedTerm = typeof term === 'string' ? parseTerm(term) : (term.type ? term : parseTerm(term.key));
+
+            // If we couldn't process the term, return null for inner operations
+            if (!processedTerm) {
+                return null;
+            }
+
+            return new Task(term, punctuation, truthValue, stamp);
+        } catch {
+            return null;
+        }
+    }
+
     #processTerm(term) {
         const termKey = typeof term === 'string' ? term : term.key;
         const processedTerm = typeof term === 'string' ? parseTerm(term) : (term.type ? term : parseTerm(term.key));
@@ -144,25 +163,6 @@ class Task extends BaseEntity {
                 ...this.#state
             }
         };
-    }
-
-    static createInner(term, punctuation, truthValue = {}, stamp = {}) {
-        try {
-            // For inner operations, we just return null instead of throwing for invalid inputs
-            validation.validateTerm(term, 'Task term');
-            validation.validatePunctuation(punctuation, 'Task punctuation');
-
-            const processedTerm = typeof term === 'string' ? parseTerm(term) : (term.type ? term : parseTerm(term.key));
-
-            // If we couldn't process the term, return null for inner operations
-            if (!processedTerm) {
-                return null;
-            }
-
-            return new Task(term, punctuation, truthValue, stamp);
-        } catch {
-            return null;
-        }
     }
 }
 

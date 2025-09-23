@@ -2,9 +2,15 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@core/*": ["core/*"],
-      "@agent/*": ["agent/*"],
-      "@ui/*": ["ui/*"]
+      "@core/*": [
+        "core/*"
+      ],
+      "@agent/*": [
+        "agent/*"
+      ],
+      "@ui/*": [
+        "ui/*"
+      ]
     }
   }
 }

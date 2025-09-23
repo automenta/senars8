@@ -8,13 +8,17 @@ describe('StrategyRegistry', () => {
     });
 
     it('should register a strategy', () => {
-        class MyStrategy {}
+        class MyStrategy {
+        }
+
         registry.register('myStrategy', MyStrategy);
         expect(registry.getStrategyNames()).toContain('myStrategy');
     });
 
     it('should get a strategy instance', () => {
-        class MyStrategy {}
+        class MyStrategy {
+        }
+
         registry.register('myStrategy', MyStrategy);
         const instance = registry.getStrategy('myStrategy');
         expect(instance).toBeInstanceOf(MyStrategy);

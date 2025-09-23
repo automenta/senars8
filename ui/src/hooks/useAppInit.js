@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import {useEffect} from 'react';
 import agentService from '@/services/agentService';
 import sonificationService from '@/services/sonificationService';
 

@@ -6,7 +6,7 @@ import {consolidateMemory, getHighestPriorityTasksWithPQ} from './memoryUtils.js
 import TimeBasedForgettingStrategy from './strategies/TimeBasedForgettingStrategy.js';
 import {debug, warn} from '../utils/logger.js';
 import MemoryIndexer from './MemoryIndexer.js';
-import { configService } from '../config/index.js';
+import {configService} from '../config/index.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 
 const errorHandler = createUnifiedErrorHandler('Memory');

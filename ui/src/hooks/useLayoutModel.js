@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Model } from 'flexlayout-react';
-import { saveLayout, loadLayout } from '@/features/layoutManager';
+import {useState} from 'react';
+import {Model} from 'flexlayout-react';
+import {loadLayout, saveLayout} from '@/features/layoutManager';
 import defaultLayout from '@/features/defaultLayout';
 
 const useLayoutModel = () => {
@@ -11,7 +11,7 @@ const useLayoutModel = () => {
         setModel(newModel);
     };
 
-    return { model, onModelChange };
+    return {model, onModelChange};
 };
 
 export default useLayoutModel;

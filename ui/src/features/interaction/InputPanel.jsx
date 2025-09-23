@@ -3,13 +3,13 @@ import Panel from '@/components/core/Panel';
 import NarseseInput from '@/components/ui/NarseseInput';
 import SendButton from '@/components/ui/SendButton';
 import agentService from '@/services/agentService';
-import { useConnection } from '@/context/ConnectionContext';
+import {useConnection} from '@/context/ConnectionContext';
 import useInputHistory from '@/hooks/useInputHistory';
-import { CornerDownLeft } from 'lucide-react';
+import {CornerDownLeft} from 'lucide-react';
 
 function InputPanel() {
-    const { isConnected } = useConnection();
-    const { inputValue, setInputValue, history, addToHistory } = useInputHistory();
+    const {isConnected} = useConnection();
+    const {inputValue, setInputValue, history, addToHistory} = useInputHistory();
 
     const handleSend = () => {
         if (inputValue.trim()) {
@@ -20,7 +20,7 @@ function InputPanel() {
     };
 
     return (
-        <Panel title={<><CornerDownLeft size={18} /> User Input</>}>
+        <Panel title={<><CornerDownLeft size={18}/> User Input</>}>
             <div className="input-panel-wrapper">
                 <NarseseInput
                     value={inputValue}
@@ -28,7 +28,7 @@ function InputPanel() {
                     onSend={handleSend}
                     history={history}
                 />
-                <SendButton onClick={handleSend} disabled={!isConnected} />
+                <SendButton onClick={handleSend} disabled={!isConnected}/>
             </div>
         </Panel>
     );

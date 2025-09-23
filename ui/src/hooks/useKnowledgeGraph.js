@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { parseTerm } from '@core/parser/narseseParser.js';
+import {useCallback, useState} from 'react';
+import {parseTerm} from '@core/parser/narseseParser.js';
 
 const useKnowledgeGraph = () => {
     const [nodes, setNodes] = useState([]);
@@ -12,8 +12,8 @@ const useKnowledgeGraph = () => {
             }
             const newNode = {
                 id,
-                position: { x: Math.random() * 500, y: Math.random() * 500 },
-                data: { label },
+                position: {x: Math.random() * 500, y: Math.random() * 500},
+                data: {label},
             };
             return [...nds, newNode];
         });
@@ -33,7 +33,7 @@ const useKnowledgeGraph = () => {
         try {
             const parsed = parseTerm(belief);
             if (parsed && parsed.term) {
-                const { subject, predicate } = parsed.term;
+                const {subject, predicate} = parsed.term;
                 if (subject && predicate) {
                     const subjectLabel = subject.key || subject.term.key;
                     const predicateLabel = predicate.key || predicate.term.key;
@@ -47,7 +47,7 @@ const useKnowledgeGraph = () => {
         }
     }, [addNode, addEdge]);
 
-    return { nodes, edges, handleNewBelief };
+    return {nodes, edges, handleNewBelief};
 };
 
 export default useKnowledgeGraph;

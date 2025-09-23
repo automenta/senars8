@@ -1,8 +1,8 @@
-import React, { createContext, useState, useContext, useMemo } from 'react';
+import React, {createContext, useContext, useMemo, useState} from 'react';
 
 export const SettingsContext = createContext();
 
-export function SettingsProvider({ children }) {
+export function SettingsProvider({children}) {
     const [isSonificationEnabled, setIsSonificationEnabled] = useState(false);
 
     const toggleSonification = () => {

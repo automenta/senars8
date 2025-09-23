@@ -135,7 +135,7 @@ export function conditional(condition, validator) {
     if (condition) validator();
 }
 
-/** 
+/**
  * Inner validation functions that return boolean instead of throwing
  * These are optimized for inner operations where performance is more important than detailed error messages
  */

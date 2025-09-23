@@ -1,8 +1,8 @@
 import Task from './core/Task.js';
 import Term from './core/Term.js';
 import {parseTerm} from './parser/parse-utils.js';
-import { agentErrorHandler } from './utils/errorHandling.js';
-import { debug, warn } from './utils/logger.js';
+import {agentErrorHandler} from './utils/errorHandling.js';
+import {debug, warn} from './utils/logger.js';
 
 
 // Import System after createSystem to avoid circular dependency

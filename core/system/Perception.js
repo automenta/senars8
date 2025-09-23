@@ -47,7 +47,6 @@ class Perception {
     }
 
 
-
     getSensoryModalities() {
         return [...this.sensoryModalities.keys()];
     }

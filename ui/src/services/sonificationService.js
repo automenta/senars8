@@ -36,7 +36,8 @@ class SonificationService {
         /* eslint-disable no-unused-vars */
         try {
             frequency += (eventType.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 50) * 10;
-        } catch (_e) { /* ignore errors for non-string types */ }
+        } catch (_e) { /* ignore errors for non-string types */
+        }
         /* eslint-enable no-unused-vars */
 
         oscillator.type = 'sine';

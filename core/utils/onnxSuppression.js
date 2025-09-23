@@ -29,17 +29,17 @@ export function suppressOnnxWarnings() {
                 }
             }
         }
-        
+
         // Filter console warnings
         if (typeof console !== 'undefined' && console.warn) {
             const originalWarn = console.warn;
-            console.warn = function(...args) {
+            console.warn = function (...args) {
                 // Check if the warning is from ONNX Runtime
-                if (args.some(arg => 
-                    typeof arg === 'string' && 
-                    (arg.includes('[W:onnxruntime') || 
-                     arg.includes('Removing initializer') ||
-                     arg.includes('CleanUnusedInitializersAndNodeArgs'))
+                if (args.some(arg =>
+                    typeof arg === 'string' &&
+                    (arg.includes('[W:onnxruntime') ||
+                        arg.includes('Removing initializer') ||
+                        arg.includes('CleanUnusedInitializersAndNodeArgs'))
                 )) {
                     // Suppress these warnings
                     return;

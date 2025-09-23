@@ -1,4 +1,4 @@
-import { createUnifiedErrorHandler } from './errorHandler.js';
+import {createUnifiedErrorHandler} from './errorHandler.js';
 
 // Pre-configured error handlers for common components
 export const agentErrorHandler = createUnifiedErrorHandler('Agent');

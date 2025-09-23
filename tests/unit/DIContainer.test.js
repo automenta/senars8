@@ -1,5 +1,5 @@
-import { DIContainer, LIFETIME } from '../../core/system/DIContainer.js';
-import { join } from 'path';
+import {DIContainer, LIFETIME} from '../../core/system/DIContainer.js';
+import {join} from 'path';
 
 describe('DIContainer', () => {
     let container;
@@ -9,8 +9,10 @@ describe('DIContainer', () => {
     });
 
     it('should register and resolve a transient service', () => {
-        class ServiceA {}
-        container.register('serviceA', ServiceA, [], { lifetime: LIFETIME.TRANSIENT });
+        class ServiceA {
+        }
+
+        container.register('serviceA', ServiceA, [], {lifetime: LIFETIME.TRANSIENT});
         const instance1 = container.get('serviceA');
         const instance2 = container.get('serviceA');
         expect(instance1).toBeInstanceOf(ServiceA);
@@ -19,8 +21,10 @@ describe('DIContainer', () => {
     });
 
     it('should register and resolve a singleton service', () => {
-        class ServiceB {}
-        container.register('serviceB', ServiceB, [], { lifetime: LIFETIME.SINGLETON });
+        class ServiceB {
+        }
+
+        container.register('serviceB', ServiceB, [], {lifetime: LIFETIME.SINGLETON});
         const instance1 = container.get('serviceB');
         const instance2 = container.get('serviceB');
         expect(instance1).toBeInstanceOf(ServiceB);
@@ -29,21 +33,24 @@ describe('DIContainer', () => {
     });
 
     it('should register and resolve a value', () => {
-        const myValue = { message: 'hello' };
+        const myValue = {message: 'hello'};
         container.registerValue('myValue', myValue);
         const resolvedValue = container.get('myValue');
         expect(resolvedValue).toBe(myValue);
     });
 
     it('should handle dependencies', () => {
-        class ServiceD {}
+        class ServiceD {
+        }
+
         class ServiceC {
             constructor(serviceD) {
                 this.serviceD = serviceD;
             }
         }
-        container.register('serviceD', ServiceD, [], { lifetime: LIFETIME.SINGLETON });
-        container.register('serviceC', ServiceC, ['serviceD'], { lifetime: LIFETIME.SINGLETON });
+
+        container.register('serviceD', ServiceD, [], {lifetime: LIFETIME.SINGLETON});
+        container.register('serviceC', ServiceC, ['serviceD'], {lifetime: LIFETIME.SINGLETON});
         const instanceC = container.get('serviceC');
         expect(instanceC).toBeInstanceOf(ServiceC);
         expect(instanceC.serviceD).toBeInstanceOf(ServiceD);
@@ -51,11 +58,15 @@ describe('DIContainer', () => {
 
     it('should throw an error for circular dependencies', () => {
         class ServiceE {
-            constructor(_serviceF) {}
+            constructor(_serviceF) {
+            }
         }
+
         class ServiceF {
-            constructor(_serviceE) {}
+            constructor(_serviceE) {
+            }
         }
+
         container.register('serviceE', ServiceE, ['serviceF']);
         container.register('serviceF', ServiceF, ['serviceE']);
         expect(() => container.get('serviceE')).toThrow('Circular dependency detected: serviceE -> serviceF -> serviceE');

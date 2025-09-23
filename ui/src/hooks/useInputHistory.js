@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import {useCallback, useState} from 'react';
 
 const useInputHistory = () => {
     const [inputValue, setInputValue] = useState('');

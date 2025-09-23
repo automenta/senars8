@@ -1,4 +1,4 @@
-import { LIFETIME } from './DIContainer.js';
+import {LIFETIME} from './DIContainer.js';
 import System from './System.js';
 import Cycle from './Cycle.js';
 import Memory from '../memory/Memory.js';
@@ -26,7 +26,7 @@ const registerComponents = (container, configManager) => {
     container.registerValue('configManager', configManager);
     container.registerValue('eventBus', EventBus);
 
-    const singleton = { lifetime: LIFETIME.SINGLETON };
+    const singleton = {lifetime: LIFETIME.SINGLETON};
 
     container.register('truthValueManager', TruthValueManager, [], singleton);
     container.register('strategyRegistry', StrategyRegistry, [], singleton);

@@ -142,7 +142,7 @@ function _createImplicationTaskInner(termKey, truthValue) {
     try {
         if (!termKey || typeof termKey !== 'string') return null;
         if (!validateTruthValueInner(truthValue)) return null;
-        
+
         const parsedTerm = parseTerm(termKey);
         return parsedTerm ? new Task(parsedTerm, '.', truthValue) : null;
     } catch {

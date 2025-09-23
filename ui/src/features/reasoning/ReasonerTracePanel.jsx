@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import Panel from '@/components/core/Panel';
 import agentService from '@/services/agentService';
-import { Footprints } from 'lucide-react';
+import {Footprints} from 'lucide-react';
 
 function ReasonerTracePanel() {
     const [trace, setTrace] = useState([]);
@@ -16,14 +16,14 @@ function ReasonerTracePanel() {
     }, [handleStep]);
 
     return (
-        <Panel title={<><Footprints size={18} /> Reasoner Trace</>}>
+        <Panel title={<><Footprints size={18}/> Reasoner Trace</>}>
             <ul className="reasoner-trace-list">
                 {trace.map((step, index) => (
                     <li key={index}>{typeof step === 'object' ? JSON.stringify(step) : step}</li>
                 ))}
             </ul>
             {trace.length === 0 && (
-                <div style={{ textAlign: 'center', color: '#888' }}>
+                <div style={{textAlign: 'center', color: '#888'}}>
                     No reasoning steps yet.
                 </div>
             )}

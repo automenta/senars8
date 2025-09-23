@@ -3,7 +3,7 @@ import AStarPlanner from '../reasoner/AStarPlanner.js';
 import Plan from './Plan.js';
 import {plannerErrorHandler as errorHandler} from '../utils/errorHandling.js';
 import {debug, warn} from '../utils/logger.js';
-import { configService } from '../config/index.js';
+import {configService} from '../config/index.js';
 
 class Planner {
     constructor(memory, lm, actionExecutor, configManager) {

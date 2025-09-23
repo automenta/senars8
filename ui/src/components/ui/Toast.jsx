@@ -1,8 +1,7 @@
-import React, { useEffect } from 'react';
-import notificationService from '@/services/notificationService';
-import { X } from 'lucide-react';
+import React, {useEffect} from 'react';
+import {X} from 'lucide-react';
 
-function Toast({ notification, onDismiss }) {
+function Toast({notification, onDismiss}) {
     useEffect(() => {
         if (notification.duration) {
             const timer = setTimeout(() => {
@@ -17,7 +16,7 @@ function Toast({ notification, onDismiss }) {
             <div className="toast-header">
                 <strong>{notification.title}</strong>
                 <button onClick={() => onDismiss(notification.id)} className="close-button">
-                    <X size={16} />
+                    <X size={16}/>
                 </button>
             </div>
             <div className="toast-body">

@@ -1,9 +1,9 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, {createContext, useContext, useEffect, useState} from 'react';
 import agentService from '../services/agentService';
 
 export const ConnectionContext = createContext();
 
-export function ConnectionProvider({ children }) {
+export function ConnectionProvider({children}) {
     const [isConnected, setIsConnected] = useState(agentService.isConnected);
 
     useEffect(() => {
@@ -22,7 +22,7 @@ export function ConnectionProvider({ children }) {
     }, []);
 
     return (
-        <ConnectionContext.Provider value={{ isConnected }}>
+        <ConnectionContext.Provider value={{isConnected}}>
             {children}
         </ConnectionContext.Provider>
     );

@@ -1,10 +1,10 @@
 import React from 'react';
-import { Send } from 'lucide-react';
+import {Send} from 'lucide-react';
 
-function SendButton({ onClick, disabled }) {
+function SendButton({onClick, disabled}) {
     return (
         <button onClick={onClick} disabled={disabled} title="Send">
-            <Send size={16} />
+            <Send size={16}/>
         </button>
     );
 }

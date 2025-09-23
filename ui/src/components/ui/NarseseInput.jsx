@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import './ui.css';
 
 const highlightSyntax = (text) => {
@@ -9,7 +9,7 @@ const highlightSyntax = (text) => {
         .replace(/\)/g, '<span class="paren">)</span>');
 };
 
-function NarseseInput({ value, onChange, onSend, history }) {
+function NarseseInput({value, onChange, onSend, history}) {
     const [historyIndex, setHistoryIndex] = useState(-1);
     const editorRef = useRef(null);
 
