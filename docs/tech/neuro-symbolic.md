@@ -80,18 +80,6 @@ Formal proofs → Natural language explanations
 
 ---
 
-## Configuration
-
-```javascript
-const config = {
-  LM: {
-    LLM_PROVIDER: 'xenova',        // or 'ollama'
-    TEXT_GENERATION_MODEL: 'Xenova/distilgpt2',
-    FEATURE_EXTRACTION_MODEL: 'Xenova/all-MiniLM-L6-v2'
-  }
-};
-```
-
 ---
 
 ## Benefits

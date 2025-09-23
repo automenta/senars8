@@ -90,4 +90,3 @@ npm test
 - **Demos**: `demos/`
 - **Tests**: `tests/`
 
-For a deeper dive, see the [SYSTEM_OVERVIEW.md](./docs/SYSTEM_OVERVIEW.md) and the [slide deck](./docs/slides.md).

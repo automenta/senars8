@@ -207,16 +207,10 @@ We are actively working on several key areas to enhance the system's capabilitie
   </div>
 </div>
 
-We welcome contributions! Please see the `README.md` for details on how to get started.
-
 ---
 
 # Q&A
 
 <div class="center text-lg mt-8">
   Thank you.
-</div>
-
-<div class="center text-sm opacity-75 mt-4">
-  [github.com/automenta/senars8](https://github.com/automenta/senars8)
 </div>
