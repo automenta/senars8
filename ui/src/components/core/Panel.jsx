@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import './Panel.css';
 
-function Panel({title, children, className = ''}) {
+function Panel({title = null, children, className = ''}) {
     return (
         <div className={`panel ${className}`}>
             {title && <h2 className="panel-title">{title}</h2>}
@@ -17,11 +17,6 @@ Panel.propTypes = {
     title: PropTypes.node,
     children: PropTypes.node.isRequired,
     className: PropTypes.string,
-};
-
-Panel.defaultProps = {
-    title: null,
-    className: '',
 };
 
 export default Panel;

@@ -15,6 +15,7 @@ function SonificationToggle() {
             aria-label={isSonificationEnabled ? 'Disable Sonification' : 'Enable Sonification'}
         >
             {isSonificationEnabled ? <Volume2 size={18}/> : <VolumeX size={18}/>}
+            {isSonificationEnabled ? 'Sound On' : 'Sound Off'}
         </button>
     );
 }

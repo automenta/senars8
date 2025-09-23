@@ -17,6 +17,13 @@ function NarseseInput({value, onChange, onSend, history}) {
     useEffect(() => {
         if (editorRef.current && editorRef.current.innerHTML !== highlightSyntax(value)) {
             editorRef.current.innerHTML = highlightSyntax(value);
+            // Move cursor to end
+            const range = document.createRange();
+            const selection = window.getSelection();
+            range.selectNodeContents(editorRef.current);
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
         }
     }, [value]);
 
@@ -44,6 +51,12 @@ function NarseseInput({value, onChange, onSend, history}) {
         onChange(e.currentTarget.textContent);
     };
 
+    const handlePaste = (e) => {
+        e.preventDefault();
+        const text = e.clipboardData.getData('text/plain');
+        document.execCommand('insertText', false, text);
+    };
+
     return (
         <div
             ref={editorRef}
@@ -51,8 +64,10 @@ function NarseseInput({value, onChange, onSend, history}) {
             contentEditable="true"
             onInput={handleInput}
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
             role="textbox"
             aria-label="NARS input field"
+            aria-multiline="true"
         />
     );
 }

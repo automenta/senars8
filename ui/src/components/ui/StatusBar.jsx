@@ -34,6 +34,7 @@ function StatusBar() {
                 ))}
             </div>
             <div className={`agent-status status-${agentStatus}`} aria-live="polite">
+                <span className={`agent-status-indicator ${agentStatus}`}></span>
                 Agent: {agentStatus}
             </div>
         </div>

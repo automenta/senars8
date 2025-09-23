@@ -1,3 +1,22 @@
+.narsese-input {
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 0.5rem;
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    min-height: 60px;
+    outline: none;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.narsese-input:focus {
+    border-color: #007acc;
+}
+
 .narsese-input .paren {
     color: #ff8c00; /* DarkOrange */
     font-weight: bold;

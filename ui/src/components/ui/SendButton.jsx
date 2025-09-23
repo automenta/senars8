@@ -12,7 +12,7 @@ function SendButton({onClick, disabled}) {
             className="send-button"
             aria-label="Send input"
         >
-            <Send size={16}/>
+            <Send size={16}/> Send
         </button>
     );
 }
