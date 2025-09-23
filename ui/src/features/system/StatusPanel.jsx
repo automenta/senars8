@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import Panel from 'components/core/Panel';
-import agentService from 'services/agentService';
-import { useConnection } from 'context/ConnectionContext';
-import SonificationToggle from 'components/core/SonificationToggle';
+import Panel from '@/components/core/Panel';
+import agentService from '@/services/agentService';
+import { useConnection } from '@/context/ConnectionContext';
+import SonificationToggle from '@/components/core/SonificationToggle';
 import { Server, Wifi, WifiOff } from 'lucide-react';
 
 function StatusPanel() {

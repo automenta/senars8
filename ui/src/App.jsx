@@ -1,38 +1,44 @@
-import React, { useEffect } from 'react';
-import agentService from './services/agentService';
-import sonificationService from './services/sonificationService';
+import React, { useEffect, useRef, useState } from 'react';
+import { Layout, Model } from 'flexlayout-react';
+import 'flexlayout-react/style/light.css';
+import agentService from '@/services/agentService';
+import sonificationService from '@/services/sonificationService';
+import panelRegistry from '@/features/panelRegistry';
+import { saveLayout, loadLayout } from '@/features/layoutManager';
+import defaultLayout from '@/features/defaultLayout';
 
-// Panels
-import StatusPanel from './features/system/StatusPanel.jsx';
-import ControlPanel from './features/system/ControlPanel.jsx';
-import InputPanel from './features/interaction/InputPanel.jsx';
-import LogPanel from './features/system/LogPanel.jsx';
-import MemoryViewPanel from './features/memory/MemoryViewPanel.jsx';
-import ReasonerTracePanel from './features/reasoning/ReasonerTracePanel.jsx';
-import KnowledgeGraphPanel from './features/memory/KnowledgeGraphPanel.jsx';
-
-// Core Styles
-import './App.css';
-import './components/core/Panel.css';
+const initialModel = Model.fromJson(loadLayout(defaultLayout));
 
 function App() {
-    useEffect(() => {
-        // Connect to the agent when the app mounts
-        agentService.connect();
+    const [model, setModel] = useState(initialModel);
+    const layoutRef = useRef();
 
-        // Initialize sonification on first user interaction
+    const onModelChange = (newModel) => {
+        saveLayout(newModel);
+        setModel(newModel);
+    }
+
+    useEffect(() => {
+        agentService.connect();
         const handleFirstInteraction = () => {
             sonificationService.initialize();
             window.removeEventListener('click', handleFirstInteraction);
         };
         window.addEventListener('click', handleFirstInteraction);
-
-        // Disconnect on unmount
         return () => {
             agentService.disconnect();
             window.removeEventListener('click', handleFirstInteraction);
         };
     }, []);
+
+    const factory = (node) => {
+        const componentName = node.getComponent();
+        const PanelComponent = panelRegistry[componentName];
+        if (PanelComponent) {
+            return <PanelComponent />;
+        }
+        return null;
+    };
 
     return (
         <div className="app-container">
@@ -40,27 +46,12 @@ function App() {
                 <h1>SeNARS IDE</h1>
             </header>
             <main className="app-main">
-                <div className="main-grid">
-                    <div className="grid-top-left">
-                        <StatusPanel />
-                    </div>
-                    <div className="grid-top-right">
-                        <ControlPanel />
-                    </div>
-                    <div className="grid-middle-left">
-                        <InputPanel />
-                    </div>
-                    <div className="grid-middle-right">
-                        <LogPanel />
-                    </div>
-                    <div className="grid-bottom-left">
-                        <MemoryViewPanel />
-                        <ReasonerTracePanel />
-                    </div>
-                    <div className="grid-bottom-right">
-                        <KnowledgeGraphPanel />
-                    </div>
-                </div>
+                <Layout
+                    ref={layoutRef}
+                    model={model}
+                    factory={factory}
+                    onModelChange={onModelChange}
+                />
             </main>
         </div>
     );

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import Panel from '../../components/core/Panel';
-import { useNarsEventStream } from '../../../hooks/useNarsEventStream';
+import Panel from '@/components/core/Panel';
+import { useNarsEventStream } from '@/hooks/useNarsEventStream';
 import { ScrollText } from 'lucide-react';
 
 function LogPanel() {

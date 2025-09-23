@@ -7,5 +7,7 @@ export default {
     moduleDirectories: ['node_modules', 'src'],
     moduleNameMapper: {
         '\\.css$': '<rootDir>/__mocks__/styleMock.js',
+        '^@/(.*)$': '<rootDir>/src/$1',
+        '^lucide-react$': '<rootDir>/__mocks__/lucide-react.js',
     },
 };
