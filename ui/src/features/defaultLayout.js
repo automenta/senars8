@@ -23,6 +23,11 @@ const defaultLayout = {
                         type: 'tab',
                         name: 'Internal State',
                         component: 'internal-state',
+                    },
+                    {
+                        type: 'tab',
+                        name: 'Notifs',
+                        component: 'notification-center',
                     }
                 ]
             },

@@ -6,6 +6,7 @@ import sonificationService from '@/services/sonificationService';
 import panelRegistry from '@/features/panelRegistry';
 import { saveLayout, loadLayout } from '@/features/layoutManager';
 import defaultLayout from '@/features/defaultLayout';
+import StatusBar from '@/components/ui/StatusBar';
 
 const initialModel = Model.fromJson(loadLayout(defaultLayout));
 
@@ -53,6 +54,7 @@ function App() {
                     onModelChange={onModelChange}
                 />
             </main>
+            <StatusBar />
         </div>
     );
 }

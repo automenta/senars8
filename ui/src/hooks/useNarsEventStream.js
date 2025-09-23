@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react';
 import agentService from '../services/agentService';
 import sonificationService from '../services/sonificationService';
 import { useSettings } from '../context/SettingsContext';
-import Bag from '../../core/utils/bag';
+import Bag from '@project/core/utils/bag';
 
 export function useNarsEventStream(capacity = 100) {
     const { isSonificationEnabled } = useSettings();
