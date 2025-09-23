@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import agentService from '../services/agentService';
 import sonificationService from '../services/sonificationService';
 import { useSettings } from '../context/SettingsContext';
@@ -7,7 +7,6 @@ import Bag from '../../core/utils/bag';
 export function useNarsEventStream(capacity = 100) {
     const { isSonificationEnabled } = useSettings();
     const eventBag = useMemo(() => new Bag(capacity), [capacity]);
-    const [updateCount, setUpdateCount] = useState(0);
 
     useEffect(() => {
         const handleMessage = (message) => {
@@ -18,8 +17,6 @@ export function useNarsEventStream(capacity = 100) {
             if (isSonificationEnabled) {
                 sonificationService.playEventSound(message.type);
             }
-
-            setUpdateCount(c => c + 1);
         };
 
         agentService.on('message', handleMessage);
@@ -27,7 +24,7 @@ export function useNarsEventStream(capacity = 100) {
         return () => {
             agentService.off('message', handleMessage);
         };
-    }, [eventBag]);
+    }, [eventBag, isSonificationEnabled]);
 
     return eventBag;
 }

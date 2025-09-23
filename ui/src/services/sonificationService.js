@@ -33,9 +33,11 @@ class SonificationService {
 
         // Set frequency based on event type (simple hash)
         let frequency = 200;
+        /* eslint-disable no-unused-vars */
         try {
             frequency += (eventType.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 50) * 10;
-        } catch (e) { /* ignore errors for non-string types */ }
+        } catch (_e) { /* ignore errors for non-string types */ }
+        /* eslint-enable no-unused-vars */
 
         oscillator.type = 'sine';
         oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
