@@ -1,6 +1,7 @@
 import React from 'react';
 import { Panel } from '@ui/components';
 import agentService from '@/services/agentService';
+import notificationService from '@/services/notificationService';
 import {useConnection} from '@/context/useConnection';
 import {Play, RotateCcw, Settings, Square} from 'lucide-react';
 import './ControlPanel.css';
@@ -8,9 +9,20 @@ import './ControlPanel.css';
 function ControlPanel() {
     const {isConnected} = useConnection();
 
-    const handleStart = () => agentService.sendAgentControl('start');
-    const handleStop = () => agentService.sendAgentControl('stop');
-    const handleReset = () => agentService.sendAgentControl('reset');
+    const handleStart = () => {
+        agentService.sendAgentControl('start');
+        notificationService.addInfo('Agent Control', 'Start command sent to agent');
+    };
+    
+    const handleStop = () => {
+        agentService.sendAgentControl('stop');
+        notificationService.addInfo('Agent Control', 'Stop command sent to agent');
+    };
+    
+    const handleReset = () => {
+        agentService.sendAgentControl('reset');
+        notificationService.addWarning('Agent Control', 'Reset command sent to agent - all memory cleared');
+    };
 
     return (
         <Panel title={<><Settings size={18}/> Controls</>}>

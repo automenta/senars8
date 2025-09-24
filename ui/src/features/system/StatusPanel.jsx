@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import { Panel, SonificationToggle } from '@ui/components';
 import {useConnection} from '@/context/useConnection';
 import agentService from '@/services/agentService';
-import {Server, Wifi, WifiOff, Activity, Database, Zap, Thermometer, RotateCcw} from 'lucide-react';
+import {Server, Wifi, WifiOff, Activity, Database, Zap, Thermometer, RotateCcw, BarChart2} from 'lucide-react';
 import './StatusPanel.css';
 
 function StatusPanel() {
@@ -15,8 +15,23 @@ function StatusPanel() {
         beliefs: 0,
         goals: 0
     });
+    const [connectionStats, setConnectionStats] = useState({
+        totalConnections: 0,
+        totalFailedConnections: 0,
+        totalReconnections: 0,
+        lastConnectionAttempt: null,
+        lastSuccessfulConnection: null,
+        lastDisconnection: null
+    });
 
     useEffect(() => {
+        // Listen for connection stats updates
+        const handleConnectionStats = (stats) => {
+            setConnectionStats(stats);
+        };
+
+        agentService.on('connection_stats', handleConnectionStats);
+
         const handleCycleUpdate = (payload) => {
             setSystemStats(prev => ({
                 ...prev,
@@ -43,6 +58,7 @@ function StatusPanel() {
         }, 3000); // Update every 3 seconds
 
         return () => {
+            agentService.off('connection_stats', handleConnectionStats);
             agentService.off('system_cycle', handleCycleUpdate);
             agentService.off('system_stats', handleStatsUpdate);
             clearInterval(interval);
@@ -58,7 +74,7 @@ function StatusPanel() {
     };
 
     return (
-        <Panel title={<><Server size={18}/> System Status</>} >
+        <Panel title={<><Server size={18}/> Status</>} >
             <div className="status-panel-content">
                 {/* Connection Status */}
                 <div className={`status-item connection-status ${connectionStatus}`}>
@@ -127,6 +143,22 @@ function StatusPanel() {
                     <SonificationToggle />
                 </div>
                 
+                {/* Connection Statistics */}
+                <div className="status-item">
+                    <BarChart2 size={16} />
+                    <span>Conn: {connectionStats.totalConnections}</span>
+                </div>
+                
+                <div className="status-item">
+                    <BarChart2 size={16} />
+                    <span>Reconn: {connectionStats.totalReconnections}</span>
+                </div>
+                
+                <div className="status-item">
+                    <BarChart2 size={16} />
+                    <span>Fail: {connectionStats.totalFailedConnections}</span>
+                </div>
+
                 {/* Connection Error Display */}
                 {connectionError && (
                     <div className="status-item connection-error">

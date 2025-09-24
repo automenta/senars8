@@ -1,6 +1,7 @@
-import React, {useEffect, useState, useCallback} from 'react';
+import React, {useEffect, useState, useCallback, useMemo} from 'react';
 import { Panel } from '@ui/components';
 import agentService from '@/services/agentService';
+import notificationService from '@/services/notificationService';
 import {BrainCircuit, Search, Filter, AlertCircle, RotateCcw} from 'lucide-react';
 import './MemoryViewPanel.css';
 
@@ -94,6 +95,7 @@ function MemoryViewPanel() {
         setError(null);
         agentService.sendMessage('get_memory_data', {type: 'working'});
         agentService.sendMessage('get_memory_data', {type: 'long_term'});
+        notificationService.addInfo('Memory', 'Refreshing memory data...');
         
         // Set timeout to stop loading indicator if response doesn't come
         setTimeout(() => {
@@ -114,6 +116,7 @@ function MemoryViewPanel() {
             } else {
                 setLongTermMemory([]);
             }
+            notificationService.addWarning('Memory', `${activeTab} memory cleared`);
         }
     };
 
@@ -210,7 +213,7 @@ function MemoryViewPanel() {
                 <div className="memory-content">
                     {filteredMemory.length > 0 ? (
                         <ul className="memory-list">
-                            {filteredMemory.map((item, index) => (
+                            {filteredMemory.slice(0, 100).map((item, index) => (  // Limit to first 100 items for performance
                                 <li key={item.id || `item-${index}`} className="memory-item">
                                     <div className="memory-statement">
                                         {item.statement || item.term || 'Unknown item'}
@@ -225,6 +228,11 @@ function MemoryViewPanel() {
                                     </div>
                                 </li>
                             ))}
+                            {filteredMemory.length > 100 && (
+                                <li className="memory-item info">
+                                    Showing 100 of {filteredMemory.length} items. Please refine your filter.
+                                </li>
+                            )}
                         </ul>
                     ) : isLoading ? (
                         <div className="memory-loading">

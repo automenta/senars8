@@ -26,10 +26,13 @@ function StatusBar() {
         notificationService.removeNotification(id);
     }
 
+    // Filter notifications to only show temporary toast notifications (those with duration)
+    const toastNotifications = notifications.filter(n => n.duration);
+
     return (
         <div className="statusbar" role="status">
             <div className="toast-container">
-                {notifications.map(n => (
+                {toastNotifications.map(n => (
                     <Toast key={n.id} notification={n} onDismiss={onDismiss}/>
                 ))}
             </div>

@@ -46,6 +46,35 @@
         "bottom-left bottom-right";
 }
 
+/* Responsive adjustments for smaller screens */
+@media (max-width: 1024px) {
+    .main-grid {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "top-left"
+            "top-right"
+            "middle-left"
+            "middle-right"
+            "bottom-left"
+            "bottom-right";
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --header-height: 40px;
+        --gap: 0.5rem;
+    }
+    
+    .app-header h1 {
+        font-size: 1.2rem;
+    }
+    
+    .main-grid {
+        gap: calc(var(--gap) / 2);
+    }
+}
+
 .grid-top-left {
     grid-area: top-left;
 }

@@ -15,6 +15,7 @@ class AgentService extends EventEmitter {
         this.maxReconnectAttempts = 10;
         this.reconnectDelay = 3000; // 3 seconds
         this.reconnectTimer = null;
+        this.connectionStartTime = null;
         
         this.yDoc = new Y.Doc();
         this.yProvider = null;
@@ -22,6 +23,16 @@ class AgentService extends EventEmitter {
         
         // Store pending messages when disconnected
         this.pendingMessages = [];
+        
+        // Track connection statistics
+        this.connectionStats = {
+            totalConnections: 0,
+            totalFailedConnections: 0,
+            totalReconnections: 0,
+            lastConnectionAttempt: null,
+            lastSuccessfulConnection: null,
+            lastDisconnection: null
+        };
     }
 
     connect() {
@@ -36,6 +47,8 @@ class AgentService extends EventEmitter {
         }
 
         this.isConnecting = true;
+        this.connectionStartTime = Date.now();
+        this.connectionStats.lastConnectionAttempt = new Date();
         log.info('Attempting to connect to agent service...');
 
         try {
@@ -49,6 +62,8 @@ class AgentService extends EventEmitter {
                 this.isConnected = true;
                 this.isConnecting = false;
                 this.reconnectAttempts = 0; // Reset on successful connection
+                this.connectionStats.totalConnections++;
+                this.connectionStats.lastSuccessfulConnection = new Date();
                 
                 // Clear any reconnect timer that might be active
                 if (this.reconnectTimer) {
@@ -57,6 +72,7 @@ class AgentService extends EventEmitter {
                 }
                 
                 this.emit('status', 'connected');
+                this.emit('connection_stats', this.connectionStats);
                 log.info('WebSocket connected successfully');
                 
                 // Send any pending messages
@@ -66,6 +82,7 @@ class AgentService extends EventEmitter {
             this.ws.onclose = (event) => {
                 this.isConnected = false;
                 this.isConnecting = false;
+                this.connectionStats.lastDisconnection = new Date();
                 
                 log.info(`WebSocket disconnected: ${event.reason || 'no reason'}. Code: ${event.code}`);
                 this.emit('status', 'disconnected');
@@ -94,6 +111,7 @@ class AgentService extends EventEmitter {
         } catch (error) {
             log.error('Failed to establish WebSocket connection:', error);
             this.isConnecting = false;
+            this.connectionStats.totalFailedConnections++;
             this.emit('error', error);
             
             // Attempt to reconnect if connection failed
@@ -104,6 +122,7 @@ class AgentService extends EventEmitter {
     attemptReconnect() {
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectAttempts++;
+            this.connectionStats.totalReconnections++;
             log.warn(`Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
             
             this.reconnectTimer = setTimeout(() => {
@@ -112,7 +131,16 @@ class AgentService extends EventEmitter {
         } else {
             log.error('Max reconnection attempts reached, giving up.');
             this.emit('status', 'failed');
+            this.emit('connection_stats', this.connectionStats);
         }
+    }
+    
+    /**
+     * Get connection statistics
+     * @returns {Object} Connection statistics object
+     */
+    getConnectionStats() {
+        return { ...this.connectionStats };
     }
 
     disconnect() {

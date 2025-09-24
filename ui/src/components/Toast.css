@@ -18,6 +18,22 @@
     margin-bottom: 5px;
 }
 
+.toast-info {
+    border-left: 4px solid #2196F3;
+}
+
+.toast-success {
+    border-left: 4px solid #4CAF50;
+}
+
+.toast-warning {
+    border-left: 4px solid #FF9800;
+}
+
+.toast-error {
+    border-left: 4px solid #F44336;
+}
+
 .toast-header strong {
     color: #e0e0e0;
 }

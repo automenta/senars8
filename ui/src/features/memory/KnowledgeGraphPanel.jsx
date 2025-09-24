@@ -185,7 +185,7 @@ function KnowledgeGraphPanel() {
                     <h4>Knowledge Items ({knowledgeItems.length})</h4>
                     <div className="knowledge-list">
                         {knowledgeItems.length > 0 ? (
-                            knowledgeItems.map((item, _index) => (
+                            knowledgeItems.slice(0, 50).map((item, _index) => (  // Limit to first 50 items for performance
                                 <div key={item.id || _index} className="knowledge-item">
                                     <div className="knowledge-statement">
                                         {item.statement || item.term || 'Unknown item'}
@@ -200,6 +200,11 @@ function KnowledgeGraphPanel() {
                         ) : (
                             <div className="knowledge-empty">
                                 No knowledge items to display.
+                            </div>
+                        )}
+                        {knowledgeItems.length > 50 && (
+                            <div className="knowledge-item info">
+                                Showing 50 of {knowledgeItems.length} items. Filter to see specific items.
                             </div>
                         )}
                     </div>

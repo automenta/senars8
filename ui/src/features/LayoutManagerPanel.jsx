@@ -45,11 +45,14 @@ const LayoutManagerPanel = () => {
         if (file) {
             const reader = new FileReader();
             reader.onload = (e) => {
-                const success = importLayout(e.target.result, model);
-                if (success) {
-                    // Refresh the model after import
-                    const newModel = model.constructor.fromJson(loadPresetLayout('imported', model));
+                try {
+                    const layoutJson = JSON.parse(e.target.result);
+                    // Create a new model from the imported layout
+                    const newModel = model.constructor.fromJson(layoutJson);
                     onModelChange(newModel);
+                } catch (error) {
+                    console.error('Error importing layout:', error);
+                    alert('Error importing layout: ' + error.message);
                 }
             };
             reader.readAsText(file);
@@ -58,7 +61,7 @@ const LayoutManagerPanel = () => {
 
     const handleReset = () => {
         if (window.confirm('Are you sure you want to reset to the default layout?')) {
-            const defaultLayout = resetLayout(model);
+            const defaultLayout = resetLayout();  // resetLayout doesn't take a model parameter
             const newModel = model.constructor.fromJson(defaultLayout);
             onModelChange(newModel);
         }

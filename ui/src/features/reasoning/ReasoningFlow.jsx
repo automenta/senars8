@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Panel } from '@ui/components';
 import { Zap, ArrowRight, Clock, AlertTriangle } from 'lucide-react';
 import './VisualReasoningPanel.css';
@@ -53,42 +53,56 @@ function ReasoningFlow({ steps }) {
         <div className="reasoning-flow-container">
             <div className="reasoning-flow">
                 {flowSteps.length > 0 ? (
-                    flowSteps.map((step, index) => (
-                        <div key={step.id} className="flow-step">
-                            <div className="step-header" style={{borderLeftColor: getConfidenceColor(step.confidence)}}>
-                                <div className="step-icon" title={step.type}>
-                                    {getStepIcon(step.type)}
+                    <>
+                        {flowSteps.slice(0, 50).map((step, index) => (  // Limit to first 50 steps for performance
+                            <div key={step.id} className="flow-step">
+                                <div className="step-header" style={{borderLeftColor: getConfidenceColor(step.confidence)}}>
+                                    <div className="step-icon" title={step.type}>
+                                        {getStepIcon(step.type)}
+                                    </div>
+                                    <div className="step-info">
+                                        <div className="step-type">{step.type || 'Step'}</div>
+                                        <div className="step-timestamp">{formatTimestamp(step.timestamp)}</div>
+                                    </div>
+                                    <div className="step-confidence" title={`Confidence: ${step.confidence}`}>
+                                        <div 
+                                            className="confidence-indicator" 
+                                            style={{backgroundColor: getConfidenceColor(step.confidence)}}
+                                        />
+                                        <span className="confidence-value">{(step.confidence * 100).toFixed(0)}%</span>
+                                    </div>
                                 </div>
-                                <div className="step-info">
-                                    <div className="step-type">{step.type || 'Step'}</div>
-                                    <div className="step-timestamp">{formatTimestamp(step.timestamp)}</div>
+                                <div className="step-content">
+                                    <div className="step-content-text">{step.content}</div>
+                                    {step.conclusion && (
+                                        <div className="step-conclusion">
+                                            <strong>→ Conclusion:</strong> {step.conclusion}
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="step-confidence" title={`Confidence: ${step.confidence}`}>
-                                    <div 
-                                        className="confidence-indicator" 
-                                        style={{backgroundColor: getConfidenceColor(step.confidence)}}
-                                    />
-                                    <span className="confidence-value">{(step.confidence * 100).toFixed(0)}%</span>
-                                </div>
-                            </div>
-                            <div className="step-content">
-                                <div className="step-content-text">{step.content}</div>
-                                {step.conclusion && (
-                                    <div className="step-conclusion">
-                                        <strong>→ Conclusion:</strong> {step.conclusion}
+                                {index < Math.min(50, flowSteps.length) - 1 && ( // Fix connector logic
+                                    <div className="step-connector">
+                                        <ArrowRight size={16} />
                                     </div>
                                 )}
                             </div>
-                            {index < flowSteps.length - 1 && (
-                                <div className="step-connector">
-                                    <ArrowRight size={16} />
-                                </div>
-                            )}
-                        </div>
-                    ))
+                        ))}
+                        {flowSteps.length > 50 && (
+                            <div className="flow-step info">
+                                Showing 50 of {flowSteps.length} steps. Filter to see specific steps.
+                            </div>
+                        )}
+                    </>
                 ) : (
                     <div className="reasoning-flow-empty">
-                        No reasoning steps to display yet.
+                        {steps === undefined || steps === null ? (
+                            <div className="loading-state">
+                                <div className="loading-spinner"></div>
+                                <p>Loading reasoning flow data...</p>
+                            </div>
+                        ) : (
+                            <div>No reasoning steps to display yet.</div>
+                        )}
                     </div>
                 )}
             </div>

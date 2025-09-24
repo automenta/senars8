@@ -13,6 +13,8 @@ function VisualReasoningPanel() {
     const [inferences, setInferences] = useState([]);
     const [reasoningSteps, setReasoningSteps] = useState([]);
     const [filter, setFilter] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [selectedNode, setSelectedNode] = useState(null);
 
     // Subscribe to agent events to collect reasoning data
     useEffect(() => {
@@ -36,12 +38,22 @@ function VisualReasoningPanel() {
             }].slice(-50)); // Keep last 50 steps
         };
 
+        const handleReasoningError = (error) => {
+            console.error('Reasoning error:', error);
+            setIsLoading(false);
+        };
+
         // Subscribe to events
         agentService.on('add_belief', handleBelief);
         agentService.on('add_goal', handleGoal);
         agentService.on('inference', handleInference);
         agentService.on('reasoning_step', handleReasoningStep);
         agentService.on('answer', handleInference); // Treat answers as inferences
+        agentService.on('error', handleReasoningError);
+
+        // Request initial reasoning data
+        setIsLoading(true);
+        agentService.sendMessage('get_reasoning_data', {});
 
         // Cleanup on unmount
         return () => {
@@ -50,8 +62,22 @@ function VisualReasoningPanel() {
             agentService.off('inference', handleInference);
             agentService.off('reasoning_step', handleReasoningStep);
             agentService.off('answer', handleInference);
+            agentService.off('error', handleReasoningError);
         };
     }, []);
+
+    // Handle refresh to get latest reasoning data
+    const handleRefresh = () => {
+        setIsLoading(true);
+        agentService.sendMessage('get_reasoning_data', {});
+        
+        // Set timeout to stop loading indicator if response doesn't come
+        setTimeout(() => {
+            if (isLoading) {
+                setIsLoading(false);
+            }
+        }, 3000);
+    };
 
     // Clear all data
     const handleClearData = () => {
@@ -81,7 +107,7 @@ function VisualReasoningPanel() {
     );
 
     return (
-        <Panel title={<><Network size={18}/> Visual Reasoning</>}>
+        <Panel title={<><Network size={18}/> Visual Reasoning</>} >
             <div className="visual-reasoning-panel">
                 <div className="visual-reasoning-header">
                     <div className="reasoning-controls">
@@ -97,13 +123,29 @@ function VisualReasoningPanel() {
                         </div>
                         
                         <button 
+                            onClick={handleRefresh}
+                            className="refresh-data-btn"
+                            title="Refresh reasoning data"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? <div className="spinner"></div> : <RotateCcw size={16} />}
+                        </button>
+                        
+                        <button 
                             onClick={handleClearData}
                             className="clear-data-btn"
                             title="Clear all reasoning data"
                         >
-                            <RotateCcw size={16} />
+                            Clear
                         </button>
                     </div>
+                </div>
+
+                <div className="reasoning-stats">
+                    <div className="stat-item">Beliefs: {beliefs.length}</div>
+                    <div className="stat-item">Goals: {goals.length}</div>
+                    <div className="stat-item">Inferences: {inferences.length}</div>
+                    <div className="stat-item">Steps: {reasoningSteps.length}</div>
                 </div>
 
                 <div className="reasoning-tabs">
@@ -122,15 +164,24 @@ function VisualReasoningPanel() {
                 </div>
 
                 <div className="visual-reasoning-content">
-                    {activeTab === 'concept-map' ? (
-                        <ConceptMap 
-                            beliefs={filteredBeliefs} 
-                            goals={filteredGoals} 
-                            inferences={filteredInferences} 
-                            selectedNode={setSelectedNode}
-                        />
+                    {isLoading && beliefs.length === 0 && goals.length === 0 && inferences.length === 0 && reasoningSteps.length === 0 ? (
+                        <div className="loading-state">
+                            <div className="loading-spinner"></div>
+                            <p>Loading reasoning data...</p>
+                        </div>
                     ) : (
-                        <ReasoningFlow steps={filteredReasoningSteps} />
+                        <>
+                            {activeTab === 'concept-map' ? (
+                                <ConceptMap 
+                                    beliefs={filteredBeliefs} 
+                                    goals={filteredGoals} 
+                                    inferences={filteredInferences} 
+                                    selectedNode={setSelectedNode}
+                                />
+                            ) : (
+                                <ReasoningFlow steps={filteredReasoningSteps} />
+                            )}
+                        </>
                     )}
                 </div>
 

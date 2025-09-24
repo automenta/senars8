@@ -1,4 +1,4 @@
-import notificationService from '../notificationService';
+import notificationService from '@/services/notificationService';
 
 describe('NotificationService', () => {
     beforeEach(() => {
@@ -21,12 +21,68 @@ describe('NotificationService', () => {
         });
     });
 
-    it('should remove a notification', () => {
-        // Add two notifications
-        notificationService.addNotification({title: 'Test 1', message: 'Message 1'});
-        notificationService.addNotification({title: 'Test 2', message: 'Message 2'});
+    it('should add an info notification with default duration', () => {
+        const id = notificationService.addInfo('Info Title', 'Info message');
         
-        // Remove the first one
+        expect(id).toBe(0);
+        expect(notificationService.notifications).toHaveLength(1);
+        expect(notificationService.notifications[0]).toMatchObject({
+            id: 0,
+            title: 'Info Title',
+            message: 'Info message',
+            type: 'info',
+            duration: 5000
+        });
+    });
+
+    it('should add a success notification with default duration', () => {
+        const id = notificationService.addSuccess('Success Title', 'Success message');
+        
+        expect(id).toBe(0);
+        expect(notificationService.notifications).toHaveLength(1);
+        expect(notificationService.notifications[0]).toMatchObject({
+            id: 0,
+            title: 'Success Title',
+            message: 'Success message',
+            type: 'success',
+            duration: 4000
+        });
+    });
+
+    it('should add a warning notification with default duration', () => {
+        const id = notificationService.addWarning('Warning Title', 'Warning message');
+        
+        expect(id).toBe(0);
+        expect(notificationService.notifications).toHaveLength(1);
+        expect(notificationService.notifications[0]).toMatchObject({
+            id: 0,
+            title: 'Warning Title',
+            message: 'Warning message',
+            type: 'warning',
+            duration: 7000
+        });
+    });
+
+    it('should add an error notification with default duration', () => {
+        const id = notificationService.addError('Error Title', 'Error message');
+        
+        expect(id).toBe(0);
+        expect(notificationService.notifications).toHaveLength(1);
+        expect(notificationService.notifications[0]).toMatchObject({
+            id: 0,
+            title: 'Error Title',
+            message: 'Error message',
+            type: 'error',
+            duration: 8000
+        });
+    });
+
+    it('should remove a notification', () => {
+        notificationService.addNotification({title: 'Test', message: 'Test message'});
+        notificationService.addNotification({title: 'Test2', message: 'Test message2'});
+        
+        expect(notificationService.notifications).toHaveLength(2);
+        
         notificationService.removeNotification(0);
         
         expect(notificationService.notifications).toHaveLength(1);
@@ -34,27 +90,27 @@ describe('NotificationService', () => {
     });
 
     it('should clear all notifications', () => {
-        // Add two notifications
-        notificationService.addNotification({title: 'Test 1', message: 'Message 1'});
-        notificationService.addNotification({title: 'Test 2', message: 'Message 2'});
+        notificationService.addNotification({title: 'Test', message: 'Test message'});
+        notificationService.addNotification({title: 'Test2', message: 'Test message2'});
         
-        // Clear all
+        expect(notificationService.notifications).toHaveLength(2);
+        
         notificationService.clearAll();
         
         expect(notificationService.notifications).toHaveLength(0);
     });
 
-    it('should get notifications', () => {
-        // Add a notification
-        notificationService.addNotification({title: 'Test', message: 'Message'});
+    it('should get all notifications', () => {
+        const notification = {title: 'Test', message: 'Test message'};
+        notificationService.addNotification(notification);
         
         const notifications = notificationService.getNotifications();
         
         expect(notifications).toHaveLength(1);
         expect(notifications[0]).toMatchObject({
-            id: 0,
             title: 'Test',
-            message: 'Message'
+            message: 'Test message',
+            timestamp: expect.any(Date)
         });
     });
 });

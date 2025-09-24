@@ -1,6 +1,7 @@
 import React, {useState, useCallback} from 'react';
 import { Panel, SendButton, EnhancedInput } from '@ui/components';
 import agentService from '@/services/agentService';
+import notificationService from '@/services/notificationService';
 import {useConnection} from '@/context/useConnection';
 import useInputHistory from '@/hooks/useInputHistory';
 import {CornerDownLeft, HelpCircle, BookOpen, MessageCircle, Lightbulb, Bot, AlertCircle, Wifi, WifiOff} from 'lucide-react';
@@ -36,19 +37,60 @@ function InputPanel() {
     const [inputMode, setInputMode] = useState('natural'); // Can be 'natural' or 'narsese'
     const [suggestedResponses, setSuggestedResponses] = useState([]);
 
-    // Validate Narsese input
+    // Enhanced Narsese input validation and sanitization
     const validateNarsese = useCallback((input) => {
         // Basic validation - check if input ends with '.' or '?'
         const trimmed = input.trim();
-        if (trimmed && !trimmed.endsWith('.') && !trimmed.endsWith('?')) {
+        if (!trimmed) {
+            return 'Input cannot be empty';
+        }
+        
+        // Check if input ends with '.' or '?'
+        if (!trimmed.endsWith('.') && !trimmed.endsWith('?')) {
             return 'Narsese statements should end with "." (judgment) or "?" (question)';
         }
+        
+        // Check for balanced angle brackets
+        const openBrackets = (trimmed.match(/</g) || []).length;
+        const closeBrackets = (trimmed.match(/>/g) || []).length;
+        if (openBrackets !== closeBrackets) {
+            return 'Unbalanced angle brackets in statement';
+        }
+        
+        // Check for balanced parentheses in compound terms
+        const roundOpen = (trimmed.match(/\(/g) || []).length;
+        const roundClose = (trimmed.match(/\)/g) || []).length;
+        if (roundOpen !== roundClose) {
+            return 'Unbalanced parentheses in statement';
+        }
+        
+        // Check for potentially dangerous content
+        if (trimmed.includes('<script') || trimmed.includes('javascript:')) {
+            return 'Invalid characters detected';
+        }
+        
+        // Check for maximum length
+        if (trimmed.length > 1000) {
+            return 'Input is too long (max 1000 characters)';
+        }
+        
         return '';
     }, []);
 
-    // Simple intent recognition for natural language
+    // Enhanced intent recognition for natural language with validation
     const recognizeIntent = useCallback((input) => {
-        const lowerInput = input.toLowerCase();
+        // Sanitize input
+        const sanitizedInput = input.replace(/<[^>]*>/g, '').trim(); // Remove HTML tags
+        const lowerInput = sanitizedInput.toLowerCase();
+        
+        // Validation rules
+        if (sanitizedInput.length > 1000) {
+            return { type: 'invalid', action: 'error', error: 'Input too long' };
+        }
+        
+        if (sanitizedInput.includes('<script') || sanitizedInput.includes('javascript:')) {
+            return { type: 'invalid', action: 'error', error: 'Invalid characters detected' };
+        }
         
         // Simple rule-based intent recognition
         if (lowerInput.includes('hello') || lowerInput.includes('hi') || lowerInput.includes('hey')) {
@@ -65,7 +107,10 @@ function InputPanel() {
     }, []);
 
     const handleSend = useCallback(() => {
-        if (!inputValue.trim()) return;
+        if (!inputValue.trim()) {
+            setValidationError('Cannot send: input is empty.');
+            return;
+        }
 
         if (!isConnected) {
             setValidationError('Cannot send: not connected to agent. Please check your connection.');
@@ -77,15 +122,26 @@ function InputPanel() {
             // Recognize intent from natural language
             const intent = recognizeIntent(inputValue);
             
+            // Check for validation errors in intent
+            if (intent.type === 'invalid' && intent.error) {
+                setValidationError(intent.error);
+                return;
+            }
+            
             // Generate suggested follow-up responses based on context
             generateSuggestedResponses(inputValue, intent);
             
+            // Sanitize input before sending
+            const sanitizedInput = inputValue.replace(/<[^>]*>/g, '').trim();
+            
             // Send as natural language request
-            const success = agentService.sendNaturalLanguage(inputValue, intent);
+            const success = agentService.sendNaturalLanguage(sanitizedInput, intent);
             if (success) {
-                addToHistory(inputValue);
+                addToHistory(sanitizedInput);
+                notificationService.addSuccess('Message Sent', 'Natural language message sent successfully');
             } else {
                 setValidationError('Failed to send message. It has been queued for delivery.');
+                notificationService.addWarning('Message Queued', 'Message queued for delivery when connection is restored');
             }
         } else {
             // Narsese mode
@@ -99,8 +155,10 @@ function InputPanel() {
             const success = agentService.sendNarsese(inputValue);
             if (success) {
                 addToHistory(inputValue);
+                notificationService.addSuccess('Narsese Sent', 'Narsese statement sent successfully');
             } else {
                 setValidationError('Failed to send message. It has been queued for delivery.');
+                notificationService.addWarning('Message Queued', 'Message queued for delivery when connection is restored');
             }
         }
         
