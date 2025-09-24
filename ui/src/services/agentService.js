@@ -55,6 +55,11 @@ class AgentService extends EventEmitter {
             // Setup Y.js WebSocket provider
             this.yProvider = new WebsocketProvider(this.crdtUrl, 'senars-room', this.yDoc);
             this.awareness = this.yProvider.awareness;
+            
+            // Listen to awareness changes to emit events
+            this.awareness.on('change', () => {
+                this.emit('awareness_change');
+            });
 
             this.ws = new WebSocket(this.url);
 
@@ -157,11 +162,14 @@ class AgentService extends EventEmitter {
         }
         
         if (this.yProvider) {
-            this.yProvider.disconnect();
+            // Cleanup yjs provider
             this.yProvider.destroy();
             this.yProvider = null;
             this.awareness = null;
         }
+        
+        // Clear any pending messages on disconnect
+        this.pendingMessages = [];
         
         this.isConnected = false;
         this.emit('status', 'disconnected');
@@ -169,6 +177,17 @@ class AgentService extends EventEmitter {
 
     sendMessage(type, payload, options = {}) {
         const { timeout = 10000, retries = 3, priority = 1 } = options;
+        
+        // Validate inputs
+        if (!type) {
+            log.error('Message type is required');
+            return false;
+        }
+        
+        if (typeof payload === 'undefined' || payload === null) {
+            log.warn('Sending message with null/undefined payload:', type);
+            payload = {};
+        }
         
         // Create message object with metadata
         const messageObj = {
@@ -204,7 +223,15 @@ class AgentService extends EventEmitter {
                 messageObj.timeoutId = timeoutId;
             }
             
-            this.ws.send(JSON.stringify({type, payload}));
+            const messageStr = JSON.stringify({type, payload});
+            
+            // Validate that the message string is not too large (avoid WebSocket limits)
+            if (messageStr.length > 64 * 1024) { // 64KB limit
+                log.error(`Message too large to send: ${messageStr.length} bytes`);
+                return false;
+            }
+            
+            this.ws.send(messageStr);
             return true;
         } catch (error) {
             log.error('Failed to send message:', error);
@@ -225,7 +252,13 @@ class AgentService extends EventEmitter {
             this.pendingMessages = []; // Clear the queue
             
             messagesToSend.forEach(message => {
-                this.sendMessage(message.type, message.payload);
+                try {
+                    this.sendMessage(message.type, message.payload);
+                } catch (error) {
+                    log.error('Error sending pending message:', error, message);
+                    // Re-queue the message if there was an error
+                    this.pendingMessages.push(message);
+                }
             });
         }
     }

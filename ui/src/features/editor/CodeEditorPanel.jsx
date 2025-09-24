@@ -2,6 +2,8 @@ import React, {useState, useEffect, useCallback} from 'react';
 import AceEditor from 'react-ace';
 import {useSharedState} from '@/context/useSharedState';
 import {useConnection} from '@/context/useConnection';
+import notificationService from '@/services/notificationService';
+import log from '@/utils/logger';
 import './NarseseMode'; // Import our custom Narsese mode
 
 import 'ace-builds/src-noconflict/mode-javascript';
@@ -47,7 +49,7 @@ const getMode = (filename) => {
 };
 
 const CodeEditorPanel = () => {
-    const {sharedState, setSharedState} = useSharedState();
+    const {sharedState, setSharedState, updateSharedEditorContent} = useSharedState();
     const {sendMessage} = useConnection();
     const [code, setCode] = useState(sharedState.editorContent || '// Start coding here...');
     const [currentFile, setCurrentFile] = useState(sharedState.currentOpenFile || null);
@@ -70,18 +72,25 @@ const CodeEditorPanel = () => {
 
     const onChange = useCallback((newValue) => {
         setCode(newValue);
-        // Optionally, save to shared state for immediate reflection
-        setSharedState(prevState => ({...prevState, editorContent: newValue}));
-    }, [setSharedState]);
+        // Update shared document for collaborative editing
+        if (updateSharedEditorContent) {
+            updateSharedEditorContent(newValue);
+        } else {
+            setSharedState(prevState => ({...prevState, editorContent: newValue}));
+        }
+    }, [setSharedState, updateSharedEditorContent]);
 
     const handleSave = () => {
         if (currentFile) {
-            sendMessage('writeFile', {filePath: currentFile, content: code});
-            // Use notification service instead of alert
-            // For now, using a simple alert as placeholder
-            alert(`File ${currentFile} saved!`);
+            try {
+                sendMessage('writeFile', {filePath: currentFile, content: code});
+                notificationService.addSuccess('File Saved', `File ${currentFile} has been saved successfully.`);
+            } catch (error) {
+                log.error('Error saving file:', error);
+                notificationService.addError('File Save Error', `Failed to save file ${currentFile}`);
+            }
         } else {
-            alert('No file open to save.');
+            notificationService.addWarning('No File', 'No file open to save.');
         }
     };
 

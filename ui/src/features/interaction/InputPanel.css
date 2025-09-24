@@ -173,6 +173,15 @@
     cursor: not-allowed;
 }
 
+.sending-indicator {
+    padding: 8px 12px;
+    color: #007acc;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
 .input-history {
     margin-top: 15px;
     padding-top: 10px;

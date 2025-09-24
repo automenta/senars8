@@ -1,5 +1,6 @@
 import React, {useEffect, useState, useCallback, useMemo} from 'react';
 import agentService from '../services/agentService';
+import log from '@/utils/logger';
 import {ConnectionContext} from './ConnectionContext';
 
 export function ConnectionProvider({children}) {
@@ -34,7 +35,7 @@ export function ConnectionProvider({children}) {
 
         const handleError = (error) => {
             setConnectionError(error);
-            console.error('Agent service error:', error);
+            log.error('Agent service error:', error);
         };
 
         const handleConnectionStats = (stats) => {
@@ -62,14 +63,22 @@ export function ConnectionProvider({children}) {
 
     // Memoized callback to avoid unnecessary re-renders
     const sendMessage = useCallback((type, payload, retries = 3) => {
+        if (!type) {
+            log.error('Message type is required');
+            return false;
+        }
+        
         // Send message and handle retries if needed
         const success = agentService.sendMessage(type, payload);
         
         if (!success && retries > 0) {
-            // If failed, schedule retry after a short delay
+            // If failed, schedule retry after a short delay with exponential backoff
             setTimeout(() => {
+                log.warn(`Retrying message ${type}, attempts left: ${retries - 1}`);
                 agentService.sendMessage(type, payload);
-            }, 500);
+            }, 500 * (4 - retries)); // Exponential backoff: 500ms, 1000ms, 1500ms
+        } else if (!success) {
+            log.error(`Failed to send message ${type} after all retry attempts`);
         }
         
         return success;

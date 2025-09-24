@@ -2,10 +2,12 @@ import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import './NarseseInput.css';
 
-function NarseseInput({value, onChange, onSend, history}) {
+function NarseseInput({value, onChange, onSend, history, disabled = false}) {
     const [historyIndex, setHistoryIndex] = useState(-1);
 
     const handleKeyDown = (e) => {
+        if (disabled) return;
+        
         if (e.key === 'ArrowUp') {
             e.preventDefault();
             const newIndex = Math.min(historyIndex + 1, history.length - 1);
@@ -31,12 +33,13 @@ function NarseseInput({value, onChange, onSend, history}) {
 
     return (
         <textarea
-            className="narsese-input"
             value={value}
-            onChange={handleChange}
+            onChange={(e) => !disabled && onChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            aria-label="NARS input field"
-            aria-multiline="true"
+            className={`narsese-input ${disabled ? 'disabled' : ''}`}
+            placeholder={disabled ? "Input disabled..." : "Enter Narsese statement or natural language query..."}
+            spellCheck="false"
+            disabled={disabled}
         />
     );
 }

@@ -1,6 +1,8 @@
 import React, {useEffect, useState, useCallback, useMemo} from 'react';
 import { Panel } from '@ui/components';
 import agentService from '@/services/agentService';
+import notificationService from '@/services/notificationService';
+import log from '@/utils/logger';
 import {Network} from 'lucide-react';
 import ReactFlow, {
     MiniMap,

@@ -3,6 +3,8 @@ import useLayoutModel from '@/hooks/useLayoutModel';
 import { savePresetLayout, loadPresetLayout, getPresetLayouts, deletePresetLayout, exportLayout, importLayout, resetLayout } from '@/features/layoutManager';
 import { Save, Upload, Download, RotateCcw, Trash2 } from 'lucide-react';
 import { Panel } from '@ui/components';
+import notificationService from '@/services/notificationService';
+import log from '@/utils/logger';
 import './LayoutManagerPanel.css';
 
 const LayoutManagerPanel = () => {
@@ -16,23 +18,52 @@ const LayoutManagerPanel = () => {
 
     const handleSavePreset = () => {
         if (presetName.trim()) {
-            savePresetLayout(presetName.trim(), model);
-            setPresetName('');
+            try {
+                savePresetLayout(presetName.trim(), model);
+                setPresetName('');
+                notificationService.addSuccess('Layout Saved', `Layout preset "${presetName.trim()}" saved successfully`);
+            } catch (error) {
+                log.error('Error saving layout preset:', error);
+                notificationService.addError('Save Error', `Failed to save layout preset: ${error.message}`);
+            }
+        } else {
+            notificationService.addWarning('Invalid Name', 'Please enter a name for the layout preset');
         }
     };
 
     const handleLoadPreset = () => {
         if (selectedPreset) {
-            const presetLayout = loadPresetLayout(selectedPreset, model);
-            const newModel = model.constructor.fromJson(presetLayout);
-            onModelChange(newModel);
+            try {
+                const presetLayout = loadPresetLayout(selectedPreset, model);
+                if (!presetLayout) {
+                    throw new Error(`Preset "${selectedPreset}" could not be loaded`);
+                }
+                const newModel = model.constructor.fromJson(presetLayout);
+                onModelChange(newModel);
+                notificationService.addInfo('Layout Loaded', `Layout preset "${selectedPreset}" loaded successfully`);
+            } catch (error) {
+                log.error('Error loading layout preset:', error);
+                notificationService.addError('Load Error', `Failed to load layout preset: ${error.message}`);
+            }
+        } else {
+            notificationService.addWarning('No Selection', 'Please select a layout preset to load');
         }
     };
 
     const handleDeletePreset = () => {
         if (selectedPreset) {
-            deletePresetLayout(selectedPreset);
-            setSelectedPreset('');
+            if (window.confirm(`Are you sure you want to delete the preset "${selectedPreset}"?`)) {
+                try {
+                    deletePresetLayout(selectedPreset);
+                    setSelectedPreset('');
+                    notificationService.addInfo('Preset Deleted', `Layout preset "${selectedPreset}" has been deleted`);
+                } catch (error) {
+                    log.error('Error deleting layout preset:', error);
+                    notificationService.addError('Delete Error', `Failed to delete layout preset: ${error.message}`);
+                }
+            }
+        } else {
+            notificationService.addWarning('No Selection', 'Please select a layout preset to delete');
         }
     };
 
@@ -47,13 +78,20 @@ const LayoutManagerPanel = () => {
             reader.onload = (e) => {
                 try {
                     const layoutJson = JSON.parse(e.target.result);
+                    if (!layoutJson || typeof layoutJson !== 'object') {
+                        throw new Error('Invalid layout file format');
+                    }
                     // Create a new model from the imported layout
                     const newModel = model.constructor.fromJson(layoutJson);
                     onModelChange(newModel);
+                    notificationService.addSuccess('Layout Imported', 'Layout has been imported successfully');
                 } catch (error) {
-                    console.error('Error importing layout:', error);
-                    alert('Error importing layout: ' + error.message);
+                    log.error('Error importing layout:', error);
+                    notificationService.addError('Import Error', `Invalid layout file: ${error.message}`);
                 }
+            };
+            reader.onerror = () => {
+                notificationService.addError('Import Error', 'Failed to read layout file');
             };
             reader.readAsText(file);
         }
@@ -61,9 +99,18 @@ const LayoutManagerPanel = () => {
 
     const handleReset = () => {
         if (window.confirm('Are you sure you want to reset to the default layout?')) {
-            const defaultLayout = resetLayout();  // resetLayout doesn't take a model parameter
-            const newModel = model.constructor.fromJson(defaultLayout);
-            onModelChange(newModel);
+            try {
+                const defaultLayout = resetLayout();  // resetLayout doesn't take a model parameter
+                if (!defaultLayout) {
+                    throw new Error('Could not load default layout');
+                }
+                const newModel = model.constructor.fromJson(defaultLayout);
+                onModelChange(newModel);
+                notificationService.addInfo('Layout Reset', 'Layout has been reset to default');
+            } catch (error) {
+                log.error('Error resetting layout:', error);
+                notificationService.addError('Reset Error', `Failed to reset layout: ${error.message}`);
+            }
         }
     };
 

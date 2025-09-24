@@ -464,16 +464,17 @@ export const importLayout = (jsonString, model) => {
 
 /**
  * Reset layout to default
- * @param {Object} defaultLayout - The default layout to return
  * @returns {Object} The default layout
  */
-export const resetLayout = (defaultLayout) => {
+export const resetLayout = () => {
     try {
         localStorage.removeItem(LAYOUT_KEY);
         log.info("Layout reset to default");
-        return defaultLayout;
+        // Return the default user-friendly layout
+        return PRESET_LAYOUTS['user-friendly'] || PRESET_LAYOUTS['default'];
     } catch (error) {
         log.error("Could not reset layout:", error);
-        return defaultLayout;
+        // Return the default layout if reset fails
+        return PRESET_LAYOUTS['user-friendly'] || PRESET_LAYOUTS['default'];
     }
 };

@@ -1,9 +1,10 @@
 import React, { useState, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {Mic, MicOff, MessageSquare, Code} from 'lucide-react';
+import NarseseInput from './NarseseInput';
 import './NarseseInput.css'; // Reuse existing input styles
 
-function EnhancedInput({ value, onChange, onSend, history, inputMode = 'narsese', setMode }) {
+function EnhancedInput({ value, onChange, onSend, history, inputMode = 'narsese', setMode, disabled = false }) {
     const [historyIndex, setHistoryIndex] = useState(-1);
     const [isListening, setIsListening] = useState(false);
     const recognitionRef = useRef(null);
@@ -93,46 +94,45 @@ function EnhancedInput({ value, onChange, onSend, history, inputMode = 'narsese'
                 <div className="input-mode-toggle">
                     <button 
                         className={`mode-button ${inputMode === 'natural' ? 'active' : ''}`}
-                        onClick={handleNaturalMode}
-                        aria-pressed={inputMode === 'natural'}
-                        aria-label="Natural language input mode"
+                        onClick={() => setMode('natural')}
+                        disabled={disabled}
+                        title="Switch to natural language mode"
                     >
                         <MessageSquare size={14} /> Natural
                     </button>
                     <button 
                         className={`mode-button ${inputMode === 'narsese' ? 'active' : ''}`}
-                        onClick={handleNarseseMode}
-                        aria-pressed={inputMode === 'narsese'}
-                        aria-label="Narsese input mode"
+                        onClick={() => setMode('narsese')}
+                        disabled={disabled}
+                        title="Switch to Narsese mode"
                     >
                         <Code size={14} /> Narsese
                     </button>
                 </div>
-                
                 {hasSpeechRecognition && (
-                    <button 
+                    <button
                         className={`voice-button ${isListening ? 'listening' : ''}`}
                         onClick={toggleListening}
-                        title={isListening ? "Stop listening" : "Start voice input"}
-                        aria-label={isListening ? "Stop voice input" : "Start voice input"}
-                        aria-pressed={isListening}
+                        disabled={disabled}
+                        title={disabled ? 'Input disabled' : isListening ? 'Stop listening' : 'Start voice input'}
                     >
-                        {isListening ? <MicOff size={14} /> : <Mic size={14} />}
+                        {isListening ? <MicOff size={16} /> : <Mic size={16} />}
                     </button>
                 )}
             </div>
             
-            <textarea
-                className="narsese-input"  // Reuse existing CSS
-                value={value}
-                onChange={handleChange}
-                onKeyDown={handleKeyDown}
-                aria-label={inputMode === 'natural' ? "Natural language input" : "NARS input field"}
-                aria-multiline="true"
-                placeholder={inputMode === 'natural' 
-                    ? "Ask a question or give a command in natural language..." 
-                    : "Enter Narsese statement (e.g., <robin --> bird>.)"
-                }
+            <NarseseInput 
+                value={value} 
+                onChange={onChange} 
+                onSend={onSend} 
+                history={history}
+                disabled={disabled}
+                onKeyDown={(e) => {
+                    if (!disabled && e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        onSend();
+                    }
+                }}
             />
         </div>
     );

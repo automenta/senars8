@@ -2,6 +2,8 @@ import React, {useEffect, useState} from 'react';
 import { Panel, SonificationToggle } from '@ui/components';
 import {useConnection} from '@/context/useConnection';
 import agentService from '@/services/agentService';
+import notificationService from '@/services/notificationService';
+import log from '@/utils/logger';
 import {Server, Wifi, WifiOff, Activity, Database, Zap, Thermometer, RotateCcw, BarChart2} from 'lucide-react';
 import './StatusPanel.css';
 
@@ -30,37 +32,69 @@ function StatusPanel() {
             setConnectionStats(stats);
         };
 
+        const handleConnectionStatsError = (error) => {
+            log.error('Error in connection stats:', error);
+            notificationService.addError('Connection Stats Error', 'Error receiving connection statistics');
+        };
+
         agentService.on('connection_stats', handleConnectionStats);
+        agentService.on('error', handleConnectionStatsError);
 
         const handleCycleUpdate = (payload) => {
-            setSystemStats(prev => ({
-                ...prev,
-                cycleCount: payload.cycleCount || prev.cycleCount
-            }));
+            try {
+                setSystemStats(prev => ({
+                    ...prev,
+                    cycleCount: payload.cycleCount || prev.cycleCount
+                }));
+            } catch (error) {
+                log.error('Error updating cycle stats:', error);
+                notificationService.addError('System Stats Error', 'Error updating system statistics');
+            }
         };
 
         const handleStatsUpdate = (stats) => {
-            setSystemStats(prev => ({
-                ...prev,
-                ...stats
-            }));
+            try {
+                setSystemStats(prev => ({
+                    ...prev,
+                    ...stats
+                }));
+            } catch (error) {
+                log.error('Error updating system stats:', error);
+                notificationService.addError('System Stats Error', 'Error updating system statistics');
+            }
+        };
+
+        const handleStatsError = (error) => {
+            log.error('Error in system stats:', error);
+            notificationService.addError('System Stats Error', 'Error receiving system statistics');
         };
 
         agentService.on('system_cycle', handleCycleUpdate);
         agentService.on('system_stats', handleStatsUpdate);
+        agentService.on('error', handleStatsError);
 
         // Request initial stats
-        agentService.sendMessage('get_system_stats', {});
+        try {
+            agentService.sendMessage('get_system_stats', {});
+        } catch (error) {
+            log.error('Failed to request initial stats:', error);
+        }
 
         // Set up periodic updates
         const interval = setInterval(() => {
-            agentService.sendMessage('get_system_stats', {});
+            try {
+                agentService.sendMessage('get_system_stats', {});
+            } catch (error) {
+                log.error('Failed to request stats update:', error);
+            }
         }, 3000); // Update every 3 seconds
 
         return () => {
             agentService.off('connection_stats', handleConnectionStats);
             agentService.off('system_cycle', handleCycleUpdate);
             agentService.off('system_stats', handleStatsUpdate);
+            agentService.off('error', handleConnectionStatsError);
+            agentService.off('error', handleStatsError);
             clearInterval(interval);
         };
     }, []);

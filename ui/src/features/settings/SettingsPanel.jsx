@@ -1,6 +1,8 @@
 import React, {useState, useEffect} from 'react';
 import { Panel } from '@ui/components';
 import agentService from '@/services/agentService';
+import notificationService from '@/services/notificationService';
+import log from '@/utils/logger';
 import {Settings as SettingsIcon, Save, RotateCcw, Download, Upload, Monitor, Cpu, HardDrive, Zap} from 'lucide-react';
 import './SettingsPanel.css';
 
@@ -63,8 +65,10 @@ function SettingsPanel() {
                 // For now we use the default config
                 setConfig(DEFAULT_CONFIG);
                 setOriginalConfig({...DEFAULT_CONFIG});
+                log.info('Configuration loaded with defaults');
             } catch (error) {
-                console.error('Failed to load config:', error);
+                log.error('Failed to load config:', error);
+                notificationService.addError('Configuration Error', 'Failed to load default configuration');
             }
         };
 
@@ -78,14 +82,45 @@ function SettingsPanel() {
     }, [config, originalConfig]);
 
     const handleConfigChange = (category, key, value) => {
+        // Validate the value is within reasonable bounds
+        // First, ensure it's a number
+        const numValue = parseFloat(value);
+        if (isNaN(numValue)) {
+            notificationService.addWarning('Invalid Value', `The value for ${key} must be a number`);
+            return;
+        }
+        
+        // Add some reasonable bounds checks
+        let finalValue = numValue;
+        if (key.includes('MAX_') || key.includes('SIZE')) {
+            if (numValue < 0) {
+                finalValue = 0;
+                notificationService.addWarning('Invalid Value', `The value for ${key} cannot be negative`);
+            } else if (numValue > 100000) {
+                finalValue = 100000;
+                notificationService.addWarning('Invalid Value', `The value for ${key} is too high (maximum: 100000)`);
+            }
+        } else if (key.includes('PRIORITY') || key.includes('FACTOR') || key.includes('SPEED')) {
+            if (numValue < 0) {
+                finalValue = 0;
+                notificationService.addWarning('Invalid Value', `The value for ${key} cannot be negative`);
+            } else if (numValue > 1.0 && key.includes('PRIORITY')) {
+                finalValue = 1.0;
+                notificationService.addWarning('Invalid Value', `Priority values should not exceed 1.0`);
+            } else if (numValue > 100 && key.includes('FACTOR')) {
+                finalValue = 100;
+                notificationService.addWarning('Invalid Value', `Factor values should not exceed 100`);
+            }
+        }
+        
         setConfig(prev => {
             const newConfig = {...prev};
             if (category === 'root') {
-                newConfig[key] = value;
+                newConfig[key] = finalValue;
             } else {
                 newConfig[category] = {
                     ...newConfig[category],
-                    [key]: value
+                    [key]: finalValue
                 };
             }
             return newConfig;
@@ -93,11 +128,20 @@ function SettingsPanel() {
     };
 
     const handleSave = () => {
-        // Send config to agent
-        agentService.sendMessage('update_config', config);
-        // Update original config to match current
-        setOriginalConfig({...config});
-        console.log('Configuration saved:', config);
+        try {
+            // Send config to agent
+            const success = agentService.sendMessage('update_config', config, { expectResponse: true, timeout: 10000 });
+            if (success) {
+                // Update original config to match current
+                setOriginalConfig({...config});
+                notificationService.addSuccess('Configuration Updated', 'Settings have been saved successfully');
+            } else {
+                notificationService.addWarning('Configuration Queued', 'Settings have been queued and will be applied when connected');
+            }
+        } catch (error) {
+            log.error('Error saving configuration:', error);
+            notificationService.addError('Configuration Error', 'Failed to save configuration');
+        }
     };
 
     const handleReset = () => {
@@ -125,10 +169,15 @@ function SettingsPanel() {
             try {
                 const importedConfig = JSON.parse(e.target.result);
                 setConfig(importedConfig);
+                notificationService.addSuccess('Configuration Imported', 'Settings have been imported successfully');
             } catch (error) {
-                console.error('Failed to parse imported config:', error);
-                alert('Invalid configuration file');
+                log.error('Failed to parse imported config:', error);
+                notificationService.addError('Import Error', 'Invalid configuration file format');
             }
+        };
+        reader.onerror = (error) => {
+            log.error('Error reading configuration file:', error);
+            notificationService.addError('Import Error', 'Failed to read configuration file');
         };
         reader.readAsText(file);
         

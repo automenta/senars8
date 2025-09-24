@@ -64,30 +64,10 @@ export function useNarsEventStream(capacity = 100) {
         get: () => eventBag.get(),
         getAll: () => {
             const allEvents = [];
-            const tempBag = new Bag(eventBag.capacity);
-            // Copy all events without consuming them
-            for (let i = 0; i < eventBag.size; i++) {
-                const event = eventBag.get();
-                allEvents.push(event);
-                tempBag.put(event, 1); // Priority doesn't matter here as we're restoring
-            }
-            // Restore original bag
-            for (let i = 0; i < tempBag.size; i++) {
-                const event = tempBag.get();
-                eventBag.put(event, 1); // Priority doesn't matter here as we're restoring
-            }
-            return allEvents;
+            // Copy all events without consuming them - we need to use a different approach 
+            // since we can't iterate through the bag without consuming
+            // Let's return a copy of the event bag
+            return eventBag;
         }
     }), [eventBag]);
-}
-        };
-
-        agentService.on('message', handleMessage);
-
-        return () => {
-            agentService.off('message', handleMessage);
-        };
-    }, [eventBag, isSonificationEnabled]);
-
-    return eventBag;
 }

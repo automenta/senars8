@@ -4,6 +4,7 @@ import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import {useConnection} from '@/context/useConnection';
 import useInputHistory from '@/hooks/useInputHistory';
+import log from '@/utils/logger';
 import {CornerDownLeft, HelpCircle, BookOpen, MessageCircle, Lightbulb, Bot, AlertCircle, Wifi, WifiOff} from 'lucide-react';
 import './InputPanel.css';
 
@@ -64,6 +65,13 @@ function InputPanel() {
             return 'Unbalanced parentheses in statement';
         }
         
+        // Check for balanced square brackets in compound terms
+        const squareOpen = (trimmed.match(/\[/g) || []).length;
+        const squareClose = (trimmed.match(/\]/g) || []).length;
+        if (squareOpen !== squareClose) {
+            return 'Unbalanced square brackets in statement';
+        }
+        
         // Check for potentially dangerous content
         if (trimmed.includes('<script') || trimmed.includes('javascript:')) {
             return 'Invalid characters detected';
@@ -72,6 +80,44 @@ function InputPanel() {
         // Check for maximum length
         if (trimmed.length > 1000) {
             return 'Input is too long (max 1000 characters)';
+        }
+        
+        // Check for more Narsese syntax patterns
+        if (trimmed.startsWith('<') && !trimmed.includes('-->') && !trimmed.includes('<->')) {
+            return 'Invalid Narsese syntax: missing operator in statement';
+        }
+        
+        // Additional Narsese validation - check for common syntax errors
+        const operators = ['-->', '<->', '==>', '<=>', '&', '|', '~', '^'];
+        const hasValidOperator = operators.some(op => trimmed.includes(op));
+        
+        // If it's a complex statement, it should have operators
+        if (trimmed.includes('<') && trimmed.includes('>') && trimmed.length > 10 && !hasValidOperator) {
+            return 'Invalid Narsese syntax: missing operator in complex statement';
+        }
+        
+        // Check for common Narsese syntax patterns to validate more thoroughly
+        const narseseStatementRegex = /^<.*>[\.\?#]$/;
+        if (!narseseStatementRegex.test(trimmed)) {
+            return 'Invalid Narsese syntax: does not match expected format <statement>operator';
+        }
+        
+        // Check for potential code injection in the statement
+        const injectionPatterns = [
+            /<script/i,
+            /javascript:/i,
+            /vbscript:/i,
+            /data:/i,
+            /onload/i,
+            /onerror/i,
+            /onmouseover/i,
+            /onfocus/i
+        ];
+        
+        for (const pattern of injectionPatterns) {
+            if (pattern.test(trimmed)) {
+                return 'Invalid characters detected';
+            }
         }
         
         return '';
@@ -85,11 +131,34 @@ function InputPanel() {
         
         // Validation rules
         if (sanitizedInput.length > 1000) {
-            return { type: 'invalid', action: 'error', error: 'Input too long' };
+            return { type: 'invalid', action: 'error', error: 'Input too long (max 1000 characters)' };
         }
         
+        // Check for potentially dangerous content
         if (sanitizedInput.includes('<script') || sanitizedInput.includes('javascript:')) {
             return { type: 'invalid', action: 'error', error: 'Invalid characters detected' };
+        }
+        
+        // Check for SQL injection patterns
+        const sqlInjectionPatterns = [
+            /(?:')|(?:--)|(\b(SELECT|INSERT|DELETE|UPDATE|DROP|CREATE|ALTER|EXEC|UNION)\b)/i
+        ];
+        
+        for (const pattern of sqlInjectionPatterns) {
+            if (pattern.test(sanitizedInput)) {
+                return { type: 'invalid', action: 'error', error: 'Potential injection attack detected' };
+            }
+        }
+        
+        // Check for command injection patterns
+        const cmdInjectionPatterns = [
+            /(?:\|\||&&|;|`|\$\(.*\)|\${.*})/
+        ];
+        
+        for (const pattern of cmdInjectionPatterns) {
+            if (pattern.test(sanitizedInput)) {
+                return { type: 'invalid', action: 'error', error: 'Potential command injection detected' };
+            }
         }
         
         // Simple rule-based intent recognition
@@ -101,12 +170,21 @@ function InputPanel() {
             return { type: 'request_info', action: 'provide_info' };
         } else if (lowerInput.includes('help')) {
             return { type: 'help_request', action: 'provide_help' };
+        } else if (lowerInput.includes('thank')) {
+            return { type: 'gratitude', action: 'acknowledge' };
         } else {
             return { type: 'statement', action: 'process' };
         }
     }, []);
 
+    const [isSending, setIsSending] = useState(false);
+
     const handleSend = useCallback(() => {
+        if (isSending) {
+            // Don't process if already sending
+            return;
+        }
+        
         try {
             if (!inputValue.trim()) {
                 setValidationError('Cannot send: input is empty.');
@@ -120,6 +198,9 @@ function InputPanel() {
                 return;
             }
 
+            setIsSending(true);
+            setValidationError(''); // Clear any previous validation errors
+
             // Process based on input mode
             if (inputMode === 'natural') {
                 try {
@@ -130,6 +211,7 @@ function InputPanel() {
                     if (intent.type === 'invalid' && intent.error) {
                         setValidationError(intent.error);
                         notificationService.addWarning('Input Error', intent.error);
+                        setIsSending(false);
                         return;
                     }
                     
@@ -146,7 +228,7 @@ function InputPanel() {
                         notificationService.addSuccess('Message Sent', 'Natural language message sent successfully');
                     } else {
                         setValidationError('Failed to send message. It has been queued for delivery.');
-                        notificationService.addWarning('Message Queued', 'Message queued for delivery when connection is restored');
+                        notificationService.addInfo('Message Queued', 'Message queued for delivery when connection is restored');
                     }
                 } catch (error) {
                     log.error('Error processing natural language input:', error);
@@ -160,6 +242,7 @@ function InputPanel() {
                     if (error) {
                         setValidationError(error);
                         notificationService.addWarning('Narsese Validation Error', error);
+                        setIsSending(false);
                         return;
                     }
                     
@@ -170,7 +253,7 @@ function InputPanel() {
                         notificationService.addSuccess('Narsese Sent', 'Narsese statement sent successfully');
                     } else {
                         setValidationError('Failed to send message. It has been queued for delivery.');
-                        notificationService.addWarning('Message Queued', 'Message queued for delivery when connection is restored');
+                        notificationService.addInfo('Message Queued', 'Message queued for delivery when connection is restored');
                     }
                 } catch (error) {
                     log.error('Error processing Narsese input:', error);
@@ -183,11 +266,14 @@ function InputPanel() {
             setValidationError('An unexpected error occurred while sending the message');
             notificationService.addError('Unexpected Error', 'An error occurred while sending the message');
         } finally {
-            // Always clear input after sending attempt
-            setInputValue('');
-            setValidationError('');
+            // Always clear input and reset sending state after sending attempt
+            setTimeout(() => {
+                setInputValue('');
+                setValidationError('');
+                setIsSending(false);
+            }, 300); // Small delay to show success/failure
         }
-    }, [inputValue, isConnected, inputMode, recognizeIntent, generateSuggestedResponses, addToHistory, validateNarsese, setValidationError, setInputValue]);
+    }, [inputValue, isConnected, inputMode, recognizeIntent, generateSuggestedResponses, addToHistory, validateNarsese, setValidationError, setInputValue, isSending]);
 
     // Generate suggested responses based on user input and intent
     const generateSuggestedResponses = useCallback((input, intent) => {
@@ -313,18 +399,22 @@ function InputPanel() {
                     history={history}
                     inputMode={inputMode}
                     setMode={setInputMode}
+                    disabled={!isConnected || isSending}
                 />
                 
                 <div className="input-panel-actions">
                     <SendButton 
                         onClick={handleSend} 
-                        disabled={!isConnected || !inputValue.trim()} 
-                        title={isConnected ? "Send to agent" : "Connect to agent first"}
+                        disabled={!isConnected || !inputValue.trim() || isSending} 
+                        title={isConnected && !isSending ? "Send to agent" : isSending ? "Sending..." : "Connect to agent first"}
                     />
+                    {isSending && (
+                        <span className="sending-indicator">Sending...</span>
+                    )}
                     <button 
                         className="clear-button"
                         onClick={handleClear}
-                        disabled={!inputValue.trim()}
+                        disabled={!inputValue.trim() || isSending}
                     >
                         Clear
                     </button>

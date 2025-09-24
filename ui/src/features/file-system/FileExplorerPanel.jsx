@@ -4,6 +4,24 @@ import {useSharedState} from '@/context/useSharedState';
 import {Folder, File, FolderOpen, ChevronRight, ChevronDown, Plus, MoreVertical} from 'lucide-react';
 import './FileExplorerPanel.css';
 
+// Path utility functions since we don't have node:path in the browser
+const pathUtils = {
+    join: (...args) => {
+        const resolvedPath = args.reduce((acc, part) => {
+            if (acc === '.') return part;
+            if (part === '.') return acc;
+            return `${acc}/${part}`;
+        }, '.');
+        return resolvedPath.replace(/\/\.\//g, '/').replace(/\/\.$/, '') || '.';
+    },
+    dirname: (p) => {
+        if (p === '.') return '.';
+        const parts = p.split('/');
+        if (parts.length === 1) return '.';
+        return parts.slice(0, -1).join('/') || '.';
+    }
+};
+
 const FileExplorerPanel = () => {
     const {sendMessage, lastMessage} = useConnection();
     const {setSharedState} = useSharedState();
@@ -36,19 +54,19 @@ const FileExplorerPanel = () => {
     }, [lastMessage, currentPath, setSharedState]);
 
     const handleDirectoryClick = (directory) => {
-        const newPath = path.join(currentPath, directory);
+        const newPath = pathUtils.join(currentPath, directory);
         setCurrentPath(newPath);
         // Expand the clicked directory
         setExpandedDirs(prev => new Set(prev).add(newPath));
     };
 
     const handleFileClick = (file) => {
-        const filePath = path.join(currentPath, file);
+        const filePath = pathUtils.join(currentPath, file);
         sendMessage('readFile', {filePath});
     };
 
     const handleGoBack = () => {
-        const parentPath = path.dirname(currentPath);
+        const parentPath = pathUtils.dirname(currentPath);
         if (parentPath !== currentPath) { // Prevent going above root
             setCurrentPath(parentPath);
         }
@@ -57,7 +75,7 @@ const FileExplorerPanel = () => {
     const handleCreateFile = () => {
         const fileName = prompt('Enter new file name:');
         if (fileName) {
-            const filePath = path.join(currentPath, fileName);
+            const filePath = pathUtils.join(currentPath, fileName);
             sendMessage('createFile', {filePath});
             fetchDirectoryContents(currentPath); // Refresh list
         }
@@ -66,7 +84,7 @@ const FileExplorerPanel = () => {
     const handleCreateDirectory = () => {
         const dirName = prompt('Enter new folder name:');
         if (dirName) {
-            const directoryPath = path.join(currentPath, dirName);
+            const directoryPath = pathUtils.join(currentPath, dirName);
             sendMessage('createDirectory', {directoryPath});
             fetchDirectoryContents(currentPath); // Refresh list
         }
@@ -82,7 +100,7 @@ const FileExplorerPanel = () => {
     const handleRename = (oldItemPath, oldName) => {
         const newName = prompt(`Rename ${oldName} to:`, oldName);
         if (newName && newName !== oldName) {
-            const newItemPath = path.join(path.dirname(oldItemPath), newName);
+            const newItemPath = pathUtils.join(pathUtils.dirname(oldItemPath), newName);
             sendMessage('renamePath', {oldPath: oldItemPath, newPath: newItemPath});
             fetchDirectoryContents(currentPath); // Refresh list
         }
@@ -113,24 +131,6 @@ const FileExplorerPanel = () => {
 
     const closeContextMenu = () => {
         setContextMenu({show: false, x: 0, y: 0, path: '', type: ''});
-    };
-
-    // Helper to join paths, handling '.' correctly
-    const path = {
-        join: (...args) => {
-            const resolvedPath = args.reduce((acc, part) => {
-                if (acc === '.') return part;
-                if (part === '.') return acc;
-                return `${acc}/${part}`;
-            }, '.');
-            return resolvedPath.replace(/\/\.\//g, '/').replace(/\/\.$/, '');
-        },
-        dirname: (p) => {
-            if (p === '.') return '.';
-            const parts = p.split('/');
-            if (parts.length === 1) return '.';
-            return parts.slice(0, -1).join('/') || '.';
-        }
     };
 
     const getFileIcon = (filename) => {
@@ -182,7 +182,7 @@ const FileExplorerPanel = () => {
             <div className="explorer-content">
                 <ul className="explorer-list">
                     {entries.directories.map(dir => {
-                        const dirPath = path.join(currentPath, dir);
+                        const dirPath = pathUtils.join(currentPath, dir);
                         const isExpanded = expandedDirs.has(dirPath);
                         
                         return (
@@ -225,7 +225,7 @@ const FileExplorerPanel = () => {
                     })}
                     
                     {entries.files.map(file => {
-                        const filePath = path.join(currentPath, file);
+                        const filePath = pathUtils.join(currentPath, file);
                         return (
                             <li key={file} className="explorer-item file-item">
                                 <div 
@@ -260,7 +260,10 @@ const FileExplorerPanel = () => {
                     style={{ top: contextMenu.y, left: contextMenu.x }}
                     onClick={closeContextMenu}
                 >
-                    <button onClick={() => handleRename(contextMenu.path, contextMenu.path.split('/').pop())}>
+                    <button onClick={() => {
+                        const fileName = contextMenu.path.split('/').pop();
+                        handleRename(contextMenu.path, fileName);
+                    }}>
                         Rename
                     </button>
                     <button onClick={() => handleDelete(contextMenu.path)}>
