@@ -2,6 +2,8 @@ import React, { useState, useRef } from 'react';
 import useLayoutModel from '@/hooks/useLayoutModel';
 import { savePresetLayout, loadPresetLayout, getPresetLayouts, deletePresetLayout, exportLayout, importLayout, resetLayout } from '@/features/layoutManager';
 import { Save, Upload, Download, RotateCcw, Trash2 } from 'lucide-react';
+import Panel from '@/components/Panel'; // Import the new Panel component
+import './LayoutManagerPanel.css';
 
 const LayoutManagerPanel = () => {
     const { model, onModelChange } = useLayoutModel();
@@ -63,9 +65,7 @@ const LayoutManagerPanel = () => {
     };
 
     return (
-        <div className="layout-manager-panel">
-            <h3>Layout Manager</h3>
-            
+        <Panel header={<h3>Layout Manager</h3>} className="layout-manager-panel">
             <div className="layout-section">
                 <h4>Save Current Layout</h4>
                 <div className="input-group">
@@ -129,7 +129,7 @@ const LayoutManagerPanel = () => {
                     <RotateCcw size={16} /> Reset to Default
                 </button>
             </div>
-        </div>
+        </Panel>
     );
 };
 

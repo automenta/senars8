@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useCallback, useMemo} from 'react';
-import Panel from '@/components/core/Panel';
+import Panel from '@/components/Panel';
 import agentService from '@/services/agentService';
 import {Network} from 'lucide-react';
 import ReactFlow, {
@@ -21,7 +21,7 @@ const convertToGraphData = (knowledgeItems) => {
     const nodeIdMap = new Map();
     
     // Create nodes for each unique term/concept
-    knowledgeItems.forEach((_item, _index) => {
+    knowledgeItems.forEach((item, _index) => {
         const statement = item.statement || item.term || 'Unknown';
         
         // Extract terms from statement (simplified approach)

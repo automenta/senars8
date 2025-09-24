@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {useSettings} from '../../context/useSettings';
+import {useSettings} from '@/context/useSettings';
 import {Volume2, VolumeX} from 'lucide-react';
 import './SonificationToggle.css';
 

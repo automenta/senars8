@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
-import Panel from '@/components/core/Panel';
-import NarseseInput from '@/components/ui/NarseseInput';
-import SendButton from '@/components/ui/SendButton';
+import Panel from '@/components/Panel';
+import NarseseInput from '@/components/NarseseInput';
+import SendButton from '@/components/SendButton';
 import agentService from '@/services/agentService';
 import {useConnection} from '@/context/ConnectionProvider';
 import useInputHistory from '@/hooks/useInputHistory';

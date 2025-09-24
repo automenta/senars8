@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from 'react';
-import Panel from '@/components/core/Panel';
+import Panel from '@/components/Panel';
 import agentService from '@/services/agentService';
 import {useConnection} from '@/context/ConnectionProvider';
-import SonificationToggle from '@/components/core/SonificationToggle';
+import SonificationToggle from '@/components/SonificationToggle';
 import {Server, Wifi, WifiOff, Activity, Database, Zap, Thermometer} from 'lucide-react';
 import './StatusPanel.css';
 

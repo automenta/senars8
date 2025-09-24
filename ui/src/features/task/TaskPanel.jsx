@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import Panel from '@/components/core/Panel';
+import Panel from '@/components/Panel';
 import agentService from '@/services/agentService';
 import {ListTodo, Play, Square, RotateCcw, Plus, Trash2} from 'lucide-react';
 import './TaskPanel.css';
