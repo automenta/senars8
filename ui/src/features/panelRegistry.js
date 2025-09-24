@@ -5,6 +5,7 @@ import LogPanel from './system/LogPanel';
 import MemoryViewPanel from './memory/MemoryViewPanel';
 import KnowledgeGraphPanel from './memory/KnowledgeGraphPanel';
 import ReasonerTracePanel from './reasoning/ReasonerTracePanel';
+import VisualReasoningPanel from './reasoning/VisualReasoningPanel';
 import InternalStatePanel from './system/InternalStatePanel';
 import NotificationCenterPanel from './system/NotificationCenterPanel';
 import FileExplorerPanel from './file-system/FileExplorerPanel';
@@ -19,6 +20,7 @@ const panelRegistry = {
     status: StatusPanel,
     input: InputPanel,
     'conversation-history': ConversationHistoryPanel,
+    'visual-reasoning': VisualReasoningPanel,
     log: LogPanel,
     'memory-view': MemoryViewPanel,
     'knowledge-graph': KnowledgeGraphPanel,

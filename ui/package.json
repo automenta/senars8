@@ -21,6 +21,7 @@
     "react": "^18.2.0",
     "react-ace": "^11.0.1",
     "react-dom": "^18.2.0",
+    "react-force-graph-2d": "^1.29.0",
     "react-xtermjs": "^1.0.10",
     "reactflow": "^11.11.4",
     "y-websocket": "^2.0.3",

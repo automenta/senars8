@@ -124,6 +124,11 @@ const PRESET_LAYOUTS = {
                                 },
                                 {
                                     type: 'tab',
+                                    name: 'Visual Reasoning',
+                                    component: 'visual-reasoning',
+                                },
+                                {
+                                    type: 'tab',
                                     name: 'Reasoner Trace',
                                     component: 'reasoner-trace',
                                 },
@@ -191,6 +196,11 @@ const PRESET_LAYOUTS = {
                             children: [
                                 {
                                     type: 'tab',
+                                    name: 'Visual Reasoning',
+                                    component: 'visual-reasoning',
+                                },
+                                {
+                                    type: 'tab',
                                     name: 'Reasoner Trace',
                                     component: 'reasoner-trace',
                                 },
@@ -237,6 +247,11 @@ const PRESET_LAYOUTS = {
                     children: [
                         {
                             type: 'tab',
+                            name: 'Visual Reasoning',
+                            component: 'visual-reasoning',
+                        },
+                        {
+                            type: 'tab',
                             name: 'Conversation',
                             component: 'conversation-history',
                         },
@@ -244,11 +259,6 @@ const PRESET_LAYOUTS = {
                             type: 'tab',
                             name: 'Reasoning Trace',
                             component: 'reasoner-trace',
-                        },
-                        {
-                            type: 'tab',
-                            name: 'Internal State',
-                            component: 'internal-state',
                         },
                     ],
                 },
