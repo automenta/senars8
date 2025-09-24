@@ -26,23 +26,25 @@ function App() {
     };
 
     return (
-        <div className="app-container" data-theme={theme}>
-            <header className="app-header" role="banner">
-                <h1>SeNARS IDE</h1>
-                <div className="header-controls">
-                    <GlobalSearch />
-                </div>
-            </header>
-            <main className="app-main" role="main">
-                <Layout
-                    model={model}
-                    factory={factory}
-                    onModelChange={onModelChange}
-                    className="app-layout"
-                />
-            </main>
-            <StatusBar />
-        </div>
+        <SearchProvider>
+            <div className="app-container" data-theme={theme}>
+                <header className="app-header" role="banner">
+                    <h1>SeNARS IDE</h1>
+                    <div className="header-controls">
+                        <GlobalSearch />
+                    </div>
+                </header>
+                <main className="app-main" role="main">
+                    <Layout
+                        model={model}
+                        factory={factory}
+                        onModelChange={onModelChange}
+                        className="app-layout"
+                    />
+                </main>
+                <StatusBar />
+            </div>
+        </SearchProvider>
     );
 }
 

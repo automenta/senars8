@@ -18,8 +18,10 @@ import SettingsPanel from './settings/SettingsPanel';
 import TaskPanel from './task/TaskPanel';
 import SessionPanel from './system/SessionPanel';
 import DebugPanel from './debug/DebugPanel';
+import Chat from './Chat/Chat';
 
 const panelRegistry = {
+    'chat': Chat,
     'control': ControlPanel,
     'status': StatusPanel,
     'input': InputPanel,

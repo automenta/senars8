@@ -13,12 +13,12 @@ const defaultLayout = {
                     {
                         type: 'tab',
                         name: 'Chat',
-                        component: 'input',  // Enhanced input panel
+                        component: 'chat',
                     },
                     {
                         type: 'tab',
                         name: 'Memory',
-                        component: 'memory-view',
+                        component: 'knowledge-graph',
                     },
                 ],
             },
