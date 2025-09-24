@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useCallback} from 'react';
-import {useConnection} from '@/context/ConnectionProvider';
-import {useSharedState} from '@/context/SharedStateProvider';
+import {useConnection} from '@/context/useConnection';
+import {useSharedState} from '@/context/useSharedState';
 import {Folder, File, FolderOpen, ChevronRight, ChevronDown, Plus, MoreVertical} from 'lucide-react';
 import './FileExplorerPanel.css';
 

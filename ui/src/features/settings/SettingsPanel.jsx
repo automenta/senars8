@@ -150,42 +150,7 @@ function SettingsPanel() {
         </div>
     );
 
-    const renderCategory = (category, categoryConfig) => (
-        <div className="settings-category">
-            <h4>{category.charAt(0).toUpperCase() + category.slice(1)} Settings</h4>
-            {Object.entries(categoryConfig).map(([key, value]) => (
-                <div key={key} className="setting-row">
-                    <label htmlFor={`${category}-${key}`}>{key}</label>
-                    {typeof value === 'number' ? (
-                        <input
-                            id={`${category}-${key}`}
-                            type="number"
-                            value={value}
-                            onChange={(e) => handleConfigChange(category, key, parseFloat(e.target.value))}
-                            step="any"
-                            className="number-input"
-                        />
-                    ) : typeof value === 'string' ? (
-                        <input
-                            id={`${category}-${key}`}
-                            type="text"
-                            value={value}
-                            onChange={(e) => handleConfigChange(category, key, e.target.value)}
-                            className="text-input"
-                        />
-                    ) : (
-                        <input
-                            id={`${category}-${key}`}
-                            type="checkbox"
-                            checked={value}
-                            onChange={(e) => handleConfigChange(category, key, e.target.checked)}
-                            className="checkbox-input"
-                        />
-                    )}
-                </div>
-            ))}
-        </div>
-    );
+    
 
     return (
         <Panel title={<><SettingsIcon size={18}/> Settings</>}>

@@ -13,12 +13,12 @@ import './Panel.css';
  */
 function Panel({ header, children, className = '' }) {
     return (
-        <div className={`panel ${className}`}>
-            {header && <div className="panel-header">{header}</div>}
+        <section className={`panel ${className}`} role="region" aria-label={header ? "Panel" : undefined}>
+            {header && <header className="panel-header" role="presentation">{header}</header>}
             <div className="panel-content">
                 {children}
             </div>
-        </div>
+        </section>
     );
 }
 

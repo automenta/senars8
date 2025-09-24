@@ -1,6 +1,5 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Panel } from '@ui/components';
-import agentService from '@/services/agentService';
 import { Network, Activity, Zap, Brain, Filter } from 'lucide-react';
 import ReactForceGraph2D from 'react-force-graph-2d';
 import './VisualReasoningPanel.css';

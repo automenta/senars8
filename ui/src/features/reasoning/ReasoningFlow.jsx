@@ -1,6 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Panel } from '@ui/components';
-import agentService from '@/services/agentService';
 import { Zap, ArrowRight, Clock, AlertTriangle } from 'lucide-react';
 import './VisualReasoningPanel.css';
 

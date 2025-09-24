@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {Mic, MicOff, MessageSquare, Code} from 'lucide-react';
 import './NarseseInput.css'; // Reuse existing input styles
@@ -41,9 +41,9 @@ function EnhancedInput({ value, onChange, onSend, history, inputMode = 'narsese'
                 recognitionRef.current.stop();
             }
         };
-    }, [hasSpeechRecognition]);
+    }, [hasSpeechRecognition, onChange]);
 
-    const toggleListening = () => {
+    const toggleListening = useCallback(() => {
         if (!hasSpeechRecognition) {
             alert('Speech recognition is not supported in your browser.');
             return;
@@ -56,9 +56,9 @@ function EnhancedInput({ value, onChange, onSend, history, inputMode = 'narsese'
             recognitionRef.current.start();
             setIsListening(true);
         }
-    };
+    }, [hasSpeechRecognition, isListening]);
 
-    const handleKeyDown = (e) => {
+    const handleKeyDown = useCallback((e) => {
         if (e.key === 'ArrowUp') {
             e.preventDefault();
             const newIndex = Math.min(historyIndex + 1, history.length - 1);
@@ -76,29 +76,34 @@ function EnhancedInput({ value, onChange, onSend, history, inputMode = 'narsese'
             onSend();
             setHistoryIndex(-1);
         }
-    };
+    }, [historyIndex, history, onChange, onSend]);
 
-    const handleChange = (e) => {
+    const handleChange = useCallback((e) => {
         onChange(e.target.value);
-    };
+    }, [onChange]);
 
-    const switchMode = () => {
-        setMode(inputMode === 'narsese' ? 'natural' : 'narsese');
-    };
+    
 
+    const handleNaturalMode = useCallback(() => setMode('natural'), [setMode]);
+    const handleNarseseMode = useCallback(() => setMode('narsese'), [setMode]);
+    
     return (
         <div className="enhanced-input-container">
             <div className="input-header">
                 <div className="input-mode-toggle">
                     <button 
                         className={`mode-button ${inputMode === 'natural' ? 'active' : ''}`}
-                        onClick={() => setMode('natural')}
+                        onClick={handleNaturalMode}
+                        aria-pressed={inputMode === 'natural'}
+                        aria-label="Natural language input mode"
                     >
                         <MessageSquare size={14} /> Natural
                     </button>
                     <button 
                         className={`mode-button ${inputMode === 'narsese' ? 'active' : ''}`}
-                        onClick={() => setMode('narsese')}
+                        onClick={handleNarseseMode}
+                        aria-pressed={inputMode === 'narsese'}
+                        aria-label="Narsese input mode"
                     >
                         <Code size={14} /> Narsese
                     </button>
@@ -109,6 +114,8 @@ function EnhancedInput({ value, onChange, onSend, history, inputMode = 'narsese'
                         className={`voice-button ${isListening ? 'listening' : ''}`}
                         onClick={toggleListening}
                         title={isListening ? "Stop listening" : "Start voice input"}
+                        aria-label={isListening ? "Stop voice input" : "Start voice input"}
+                        aria-pressed={isListening}
                     >
                         {isListening ? <MicOff size={14} /> : <Mic size={14} />}
                     </button>

@@ -1,14 +1,4 @@
-// Simple logging utility for the UI
-const log = {
-    info: (message, ...args) => console.log(`[INFO] ${message}`, ...args),
-    warn: (message, ...args) => console.warn(`[WARN] ${message}`, ...args),
-    error: (message, ...args) => console.error(`[ERROR] ${message}`, ...args),
-    debug: (message, ...args) => {
-        if (process.env.NODE_ENV === 'development') {
-            console.log(`[DEBUG] ${message}`, ...args);
-        }
-    }
-};
+import log from '@/utils/logger';
 
 const LAYOUT_KEY = 'senars-ide-layout';
 const PRESET_LAYOUTS_KEY = 'senars-ide-preset-layouts';
@@ -282,6 +272,10 @@ const PRESET_LAYOUTS = {
     }
 };
 
+/**
+ * Save the current layout to localStorage
+ * @param {Object} model - The layout model to save
+ */
 export const saveLayout = (model) => {
     try {
         const json = model.toJson();
@@ -292,6 +286,11 @@ export const saveLayout = (model) => {
     }
 };
 
+/**
+ * Load layout from localStorage or return default if not found
+ * @param {Object} defaultLayout - The default layout to return if none is saved
+ * @returns {Object} The loaded or default layout
+ */
 export const loadLayout = (defaultLayout) => {
     try {
         const savedLayout = localStorage.getItem(LAYOUT_KEY);
@@ -302,7 +301,11 @@ export const loadLayout = (defaultLayout) => {
     }
 };
 
-// Save a named layout preset
+/**
+ * Save a named layout preset
+ * @param {string} name - The name of the preset
+ * @param {Object} model - The layout model to save as preset
+ */
 export const savePresetLayout = (name, model) => {
     try {
         const json = model.toJson();
@@ -315,7 +318,12 @@ export const savePresetLayout = (name, model) => {
     }
 };
 
-// Load a named layout preset
+/**
+ * Load a named layout preset
+ * @param {string} name - The name of the preset to load
+ * @param {Object} defaultLayout - The default layout to return if preset is not found
+ * @returns {Object} The loaded preset layout or default layout
+ */
 export const loadPresetLayout = (name, defaultLayout) => {
     try {
         const presets = getPresetLayouts();
@@ -327,7 +335,10 @@ export const loadPresetLayout = (name, defaultLayout) => {
     }
 };
 
-// Get all preset layouts
+/**
+ * Get all saved preset layouts
+ * @returns {Object} Object containing all preset layouts
+ */
 export const getPresetLayouts = () => {
     try {
         const presets = localStorage.getItem(PRESET_LAYOUTS_KEY);
@@ -338,7 +349,10 @@ export const getPresetLayouts = () => {
     }
 };
 
-// Delete a preset layout
+/**
+ * Delete a named preset layout
+ * @param {string} name - The name of the preset to delete
+ */
 export const deletePresetLayout = (name) => {
     try {
         const presets = getPresetLayouts();
@@ -350,7 +364,10 @@ export const deletePresetLayout = (name) => {
     }
 };
 
-// Export layout as JSON
+/**
+ * Export the current layout as a JSON file for download
+ * @param {Object} model - The layout model to export
+ */
 export const exportLayout = (model) => {
     try {
         const json = model.toJson();
@@ -370,7 +387,12 @@ export const exportLayout = (model) => {
     }
 };
 
-// Import layout from JSON
+/**
+ * Import a layout from a JSON string
+ * @param {string} jsonString - The JSON string representing the layout
+ * @param {Object} model - The layout model to populate
+ * @returns {boolean} True if import was successful, false otherwise
+ */
 export const importLayout = (jsonString, model) => {
     try {
         const layout = JSON.parse(jsonString);
@@ -384,7 +406,11 @@ export const importLayout = (jsonString, model) => {
     }
 };
 
-// Reset to default layout
+/**
+ * Reset layout to default
+ * @param {Object} defaultLayout - The default layout to return
+ * @returns {Object} The default layout
+ */
 export const resetLayout = (defaultLayout) => {
     try {
         localStorage.removeItem(LAYOUT_KEY);

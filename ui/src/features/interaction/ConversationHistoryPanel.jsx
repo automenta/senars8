@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useSyncExternalStore } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Panel } from '@ui/components';
-import agentService from '@/services/agentService';
 import {MessageCircle, Trash2, RotateCcw} from 'lucide-react';
 import './ConversationHistoryPanel.css';
 
 function ConversationHistoryPanel() {
     const [conversationHistory, setConversationHistory] = useState([]);
-    const [selectedConversation, setSelectedConversation] = useState(null);
 
     // Subscribe to agent service messages to capture conversation history
     useEffect(() => {

@@ -1,7 +1,6 @@
-import React, {createContext, useEffect, useState, useContext, useCallback} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import agentService from '../services/agentService';
-
-export const ConnectionContext = createContext(null);
+import {ConnectionContext} from './ConnectionContext';
 
 export function ConnectionProvider({children}) {
     const [connectionStatus, setConnectionStatus] = useState('disconnected'); // 'disconnected', 'connecting', 'connected', 'failed'
@@ -60,5 +59,3 @@ export function ConnectionProvider({children}) {
         </ConnectionContext.Provider>
     );
 }
-
-export const useConnection = () => useContext(ConnectionContext);

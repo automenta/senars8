@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Panel } from '@ui/components';
 import agentService from '@/services/agentService';
 import ConceptMap from './ConceptMap';
@@ -13,7 +13,6 @@ function VisualReasoningPanel() {
     const [inferences, setInferences] = useState([]);
     const [reasoningSteps, setReasoningSteps] = useState([]);
     const [filter, setFilter] = useState('');
-    const [selectedNode, setSelectedNode] = useState(null);
 
     // Subscribe to agent events to collect reasoning data
     useEffect(() => {

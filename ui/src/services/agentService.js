@@ -1,18 +1,7 @@
 import {EventEmitter} from 'events';
 import * as Y from 'yjs';
 import {WebsocketProvider} from 'y-websocket';
-
-// Simple logging utility for the UI
-const log = {
-    info: (message, ...args) => console.log(`[INFO] ${message}`, ...args),
-    warn: (message, ...args) => console.warn(`[WARN] ${message}`, ...args),
-    error: (message, ...args) => console.error(`[ERROR] ${message}`, ...args),
-    debug: (message, ...args) => {
-        if (process.env.NODE_ENV === 'development') {
-            console.log(`[DEBUG] ${message}`, ...args);
-        }
-    }
-};
+import log from '@/utils/logger';
 
 class AgentService extends EventEmitter {
     constructor() {

@@ -1,7 +1,7 @@
-import React, {useState} from 'react';
+import React, {useState, useCallback} from 'react';
 import { Panel, SendButton, EnhancedInput } from '@ui/components';
 import agentService from '@/services/agentService';
-import {useConnection} from '@/context/ConnectionProvider';
+import {useConnection} from '@/context/useConnection';
 import useInputHistory from '@/hooks/useInputHistory';
 import {CornerDownLeft, HelpCircle, BookOpen, MessageCircle, Lightbulb, Bot, AlertCircle, Wifi, WifiOff} from 'lucide-react';
 import './InputPanel.css';
@@ -37,17 +37,17 @@ function InputPanel() {
     const [suggestedResponses, setSuggestedResponses] = useState([]);
 
     // Validate Narsese input
-    const validateNarsese = (input) => {
+    const validateNarsese = useCallback((input) => {
         // Basic validation - check if input ends with '.' or '?'
         const trimmed = input.trim();
         if (trimmed && !trimmed.endsWith('.') && !trimmed.endsWith('?')) {
             return 'Narsese statements should end with "." (judgment) or "?" (question)';
         }
         return '';
-    };
+    }, []);
 
     // Simple intent recognition for natural language
-    const recognizeIntent = (input) => {
+    const recognizeIntent = useCallback((input) => {
         const lowerInput = input.toLowerCase();
         
         // Simple rule-based intent recognition
@@ -62,9 +62,9 @@ function InputPanel() {
         } else {
             return { type: 'statement', action: 'process' };
         }
-    };
+    }, []);
 
-    const handleSend = () => {
+    const handleSend = useCallback(() => {
         if (!inputValue.trim()) return;
 
         if (!isConnected) {
@@ -107,10 +107,10 @@ function InputPanel() {
         // Clear input after sending
         setInputValue('');
         setValidationError('');
-    };
+    }, [inputValue, isConnected, inputMode, recognizeIntent, generateSuggestedResponses, addToHistory, validateNarsese, setValidationError, setInputValue]);
 
     // Generate suggested responses based on user input and intent
-    const generateSuggestedResponses = (input, intent) => {
+    const generateSuggestedResponses = useCallback((input, intent) => {
         const suggestions = [];
         const lowerInput = input.toLowerCase();
 
@@ -132,18 +132,18 @@ function InputPanel() {
         }
 
         setSuggestedResponses(suggestions.slice(0, 3)); // Limit to 3 suggestions
-    };
+    }, [setSuggestedResponses]);
 
-    const handleExampleClick = (example) => {
+    const handleExampleClick = useCallback((example) => {
         setInputValue(example);
         setShowExamples(false);
-    };
+    }, [setInputValue, setShowExamples]);
 
-    const handleClear = () => {
+    const handleClear = useCallback(() => {
         setInputValue('');
         setValidationError('');
         setSuggestedResponses([]);
-    };
+    }, [setInputValue, setValidationError, setSuggestedResponses]);
 
     const currentExamples = inputMode === 'natural' ? NATURAL_EXAMPLES : NARSESE_EXAMPLES;
     const examplesTitle = inputMode === 'natural' ? 'Natural Language Examples' : 'Narsese Examples';

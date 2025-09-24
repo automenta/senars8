@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import AceEditor from 'react-ace';
-import {useSharedState} from '@/context/SharedStateProvider';
-import {useConnection} from '@/context/ConnectionProvider';
+import {useSharedState} from '@/context/useSharedState';
+import {useConnection} from '@/context/useConnection';
 import './NarseseMode'; // Import our custom Narsese mode
 
 import 'ace-builds/src-noconflict/mode-javascript';

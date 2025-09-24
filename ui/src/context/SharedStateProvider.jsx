@@ -1,7 +1,6 @@
-import React, {createContext, useEffect, useState, useCallback, useContext} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import agentService from '../services/agentService';
-
-export const SharedStateContext = createContext(null);
+import {SharedStateContext} from './SharedStateContext';
 
 // Helper to get a random user color
 const usercolors = [
@@ -48,5 +47,3 @@ export function SharedStateProvider({children}) {
         </SharedStateContext.Provider>
     );
 }
-
-export const useSharedState = () => useContext(SharedStateContext);

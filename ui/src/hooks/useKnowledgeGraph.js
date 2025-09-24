@@ -1,17 +1,6 @@
 import {useCallback, useState} from 'react';
 import {parseTerm} from '@core/parser/narseseParser.js';
-
-// Simple logging utility for the UI
-const log = {
-    info: (message, ...args) => console.log(`[INFO] ${message}`, ...args),
-    warn: (message, ...args) => console.warn(`[WARN] ${message}`, ...args),
-    error: (message, ...args) => console.error(`[ERROR] ${message}`, ...args),
-    debug: (message, ...args) => {
-        if (process.env.NODE_ENV === 'development') {
-            console.log(`[DEBUG] ${message}`, ...args);
-        }
-    }
-};
+import log from '@/utils/logger';
 
 const useKnowledgeGraph = () => {
     const [nodes, setNodes] = useState([]);
