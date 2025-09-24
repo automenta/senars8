@@ -275,28 +275,84 @@ const PRESET_LAYOUTS = {
 /**
  * Save the current layout to localStorage
  * @param {Object} model - The layout model to save
+ * @param {string} key - Optional custom key for saving
  */
-export const saveLayout = (model) => {
+export const saveLayout = (model, key = LAYOUT_KEY) => {
     try {
+        if (!model || typeof model.toJson !== 'function') {
+            throw new Error('Invalid layout model provided');
+        }
+        
         const json = model.toJson();
-        localStorage.setItem(LAYOUT_KEY, JSON.stringify(json));
+        // Validate that the JSON is actually a valid layout object
+        if (!json || typeof json !== 'object' || !json.layout) {
+            throw new Error('Invalid layout data structure');
+        }
+        
+        localStorage.setItem(key, JSON.stringify(json));
         log.info("Layout saved successfully");
     } catch (error) {
         log.error("Could not save layout:", error);
+        // Attempt to save a backup of the layout data to session storage
+        try {
+            const backupKey = `${key}_backup`;
+            localStorage.setItem(backupKey, JSON.stringify({ error: error.message, timestamp: Date.now() }));
+        } catch (backupError) {
+            log.error("Could not save layout backup:", backupError);
+        }
     }
 };
 
 /**
  * Load layout from localStorage or return default if not found
  * @param {Object} defaultLayout - The default layout to return if none is saved
+ * @param {string} key - Optional custom key for loading
  * @returns {Object} The loaded or default layout
  */
-export const loadLayout = (defaultLayout) => {
+export const loadLayout = (defaultLayout, key = LAYOUT_KEY) => {
     try {
-        const savedLayout = localStorage.getItem(LAYOUT_KEY);
-        return savedLayout ? JSON.parse(savedLayout) : defaultLayout;
+        // First try to load from main storage
+        let savedLayout = localStorage.getItem(key);
+        
+        if (!savedLayout) {
+            // Check for backup if main storage is empty
+            const backupKey = `${key}_backup`;
+            const backupLayout = localStorage.getItem(backupKey);
+            if (backupLayout) {
+                savedLayout = backupLayout;
+                log.warn("Using backup layout");
+            }
+        }
+        
+        if (!savedLayout) {
+            return defaultLayout;
+        }
+        
+        const parsedLayout = JSON.parse(savedLayout);
+        
+        // Validate the layout structure
+        if (!parsedLayout || typeof parsedLayout !== 'object' || !parsedLayout.layout) {
+            log.error("Invalid layout structure found in storage");
+            return defaultLayout;
+        }
+        
+        return parsedLayout;
     } catch (error) {
         log.error("Could not load layout:", error);
+        
+        // Try to load from backup if available
+        try {
+            const backupKey = `${key}_backup`;
+            const backupLayout = localStorage.getItem(backupKey);
+            if (backupLayout) {
+                const parsedBackup = JSON.parse(backupLayout);
+                log.info("Loaded layout from backup");
+                return parsedBackup;
+            }
+        } catch (backupError) {
+            log.error("Could not load layout backup:", backupError);
+        }
+        
         return defaultLayout;
     }
 };

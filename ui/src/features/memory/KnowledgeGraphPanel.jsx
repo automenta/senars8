@@ -80,24 +80,45 @@ function KnowledgeGraphPanel() {
     // Handle incoming knowledge data
     useEffect(() => {
         const handleKnowledgeUpdate = (data) => {
-            setKnowledgeItems(prev => {
-                // Merge new data with existing data
-                const combined = [...prev, ...data];
-                // Remove duplicates based on statement
-                const unique = Array.from(new Map(combined.map(item => [item.statement || item.term, item])).values());
-                return unique;
-            });
+            try {
+                setKnowledgeItems(prev => {
+                    // Validate the incoming data
+                    if (!Array.isArray(data)) {
+                        log.warn('Invalid knowledge data received:', data);
+                        notificationService.addWarning('Invalid Data', 'Received invalid knowledge data format');
+                        return prev;
+                    }
+                    
+                    // Merge new data with existing data
+                    const combined = [...prev, ...data];
+                    // Remove duplicates based on statement
+                    const unique = Array.from(new Map(combined.map(item => [item.statement || item.term, item])).values());
+                    return unique;
+                });
+                setIsLoading(false);
+            } catch (error) {
+                log.error('Error processing knowledge update:', error);
+                notificationService.addError('Knowledge Update Error', 'Error processing knowledge update');
+                setIsLoading(false);
+            }
+        };
+        
+        const handleKnowledgeError = (error) => {
+            log.error('Knowledge graph error:', error);
+            notificationService.addError('Knowledge Graph Error', error.message || 'Error receiving knowledge data');
             setIsLoading(false);
         };
 
         agentService.on('knowledge_graph_update', handleKnowledgeUpdate);
+        agentService.on('knowledge_graph_error', handleKnowledgeError);
         
         // Request initial knowledge data
         setIsLoading(true);
-        agentService.sendMessage('get_knowledge_graph_data', {});
+        agentService.sendMessage('get_knowledge_graph_data', {}, { expectResponse: true, timeout: 15000 });
         
         return () => {
             agentService.off('knowledge_graph_update', handleKnowledgeUpdate);
+            agentService.off('knowledge_graph_error', handleKnowledgeError);
         };
     }, []);
 
@@ -118,11 +139,16 @@ function KnowledgeGraphPanel() {
 
     // Calculate graph statistics
     const graphStats = useMemo(() => {
-        return {
-            nodes: nodes.length,
-            edges: edges.length,
-            items: knowledgeItems.length
-        };
+        try {
+            return {
+                nodes: nodes.length,
+                edges: edges.length,
+                items: knowledgeItems.length
+            };
+        } catch (error) {
+            log.error('Error calculating graph statistics:', error);
+            return { nodes: 0, edges: 0, items: 0 };
+        }
     }, [nodes, edges, knowledgeItems]);
 
     return (

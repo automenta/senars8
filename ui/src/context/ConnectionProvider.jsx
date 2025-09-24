@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useCallback} from 'react';
+import React, {useEffect, useState, useCallback, useMemo} from 'react';
 import agentService from '../services/agentService';
 import {ConnectionContext} from './ConnectionContext';
 
@@ -6,8 +6,14 @@ export function ConnectionProvider({children}) {
     const [connectionStatus, setConnectionStatus] = useState('disconnected'); // 'disconnected', 'connecting', 'connected', 'failed'
     const [lastMessage, setLastMessage] = useState(null);
     const [connectionError, setConnectionError] = useState(null);
+    const [connectionStats, setConnectionStats] = useState(null);
+
+    // Track message history to prevent infinite loops
+    const [messageHistory, setMessageHistory] = useState([]);
+    const MAX_MESSAGE_HISTORY = 50; // Limit to prevent excessive memory usage
 
     useEffect(() => {
+        // Event handlers
         const handleStatusChange = (status) => {
             setConnectionStatus(status);
             if (status === 'connected') {
@@ -16,6 +22,13 @@ export function ConnectionProvider({children}) {
         };
 
         const handleMessage = (message) => {
+            // Add message to history with timestamp to prevent infinite loops
+            setMessageHistory(prev => {
+                const newHistory = [...prev, { ...message, timestamp: Date.now() }];
+                // Keep only the most recent messages
+                return newHistory.slice(-MAX_MESSAGE_HISTORY);
+            });
+            
             setLastMessage(message);
         };
 
@@ -24,34 +37,67 @@ export function ConnectionProvider({children}) {
             console.error('Agent service error:', error);
         };
 
+        const handleConnectionStats = (stats) => {
+            setConnectionStats(stats);
+        };
+
+        // Register event listeners
         agentService.on('status', handleStatusChange);
         agentService.on('message', handleMessage);
         agentService.on('error', handleError);
+        agentService.on('connection_stats', handleConnectionStats);
 
         // Set initial state
         setConnectionStatus(agentService.isConnected ? 'connected' : 'disconnected');
+        setConnectionStats(agentService.getConnectionStats ? agentService.getConnectionStats() : null);
 
         return () => {
+            // Clean up event listeners
             agentService.off('status', handleStatusChange);
             agentService.off('message', handleMessage);
             agentService.off('error', handleError);
+            agentService.off('connection_stats', handleConnectionStats);
         };
     }, []);
 
-    const sendMessage = useCallback((type, payload) => {
-        return agentService.sendMessage(type, payload);
+    // Memoized callback to avoid unnecessary re-renders
+    const sendMessage = useCallback((type, payload, retries = 3) => {
+        // Send message and handle retries if needed
+        const success = agentService.sendMessage(type, payload);
+        
+        if (!success && retries > 0) {
+            // If failed, schedule retry after a short delay
+            setTimeout(() => {
+                agentService.sendMessage(type, payload);
+            }, 500);
+        }
+        
+        return success;
     }, []);
 
-    const value = {
+    const reconnect = useCallback(() => {
+        agentService.connect();
+    }, []);
+
+    // Memoize the context value to prevent unnecessary re-renders
+    const value = useMemo(() => ({
         isConnected: connectionStatus === 'connected',
         connectionStatus,
         sendMessage,
         lastMessage,
         connectionError,
-        reconnect: () => {
-            agentService.connect();
-        }
-    };
+        connectionStats,
+        messageHistory,
+        reconnect
+    }), [
+        connectionStatus, 
+        sendMessage, 
+        lastMessage, 
+        connectionError, 
+        connectionStats, 
+        messageHistory, 
+        reconnect
+    ]);
 
     return (
         <ConnectionContext.Provider value={value}>

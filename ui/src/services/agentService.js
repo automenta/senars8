@@ -167,15 +167,43 @@ class AgentService extends EventEmitter {
         this.emit('status', 'disconnected');
     }
 
-    sendMessage(type, payload) {
+    sendMessage(type, payload, options = {}) {
+        const { timeout = 10000, retries = 3, priority = 1 } = options;
+        
+        // Create message object with metadata
+        const messageObj = {
+            type,
+            payload,
+            timestamp: Date.now(),
+            id: `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            priority
+        };
+        
         if (!this.isConnected) {
             // Add to pending messages if not connected
-            this.pendingMessages.push({ type, payload });
+            this.pendingMessages.push(messageObj);
             log.warn(`Not connected, queuing message: ${type}. Queue size: ${this.pendingMessages.length}`);
+            
+            // Attempt to reconnect if we haven't recently tried
+            if (!this.isConnecting) {
+                this.connect();
+            }
+            
             return false;
         }
         
         try {
+            // Add timeout mechanism for messages that require responses
+            if (options.expectResponse) {
+                const timeoutId = setTimeout(() => {
+                    log.warn(`Message ${messageObj.id} timed out after ${timeout}ms`);
+                    this.emit('message_timeout', { message: messageObj, timeout });
+                }, timeout);
+                
+                // Store timeout ID for potential cleanup
+                messageObj.timeoutId = timeoutId;
+            }
+            
             this.ws.send(JSON.stringify({type, payload}));
             return true;
         } catch (error) {
@@ -183,7 +211,7 @@ class AgentService extends EventEmitter {
             this.emit('error', { type: 'send_error', message: { type, payload }, error: error.message });
             
             // Add to pending messages and attempt to reconnect
-            this.pendingMessages.push({ type, payload });
+            this.pendingMessages.push(messageObj);
             return false;
         }
     }

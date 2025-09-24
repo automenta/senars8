@@ -91,32 +91,57 @@ function MemoryViewPanel() {
     }, []);
 
     const refreshData = () => {
-        setIsLoading(true);
-        setError(null);
-        agentService.sendMessage('get_memory_data', {type: 'working'});
-        agentService.sendMessage('get_memory_data', {type: 'long_term'});
-        notificationService.addInfo('Memory', 'Refreshing memory data...');
-        
-        // Set timeout to stop loading indicator if response doesn't come
-        setTimeout(() => {
-            if (isLoading) {
-                setIsLoading(false);
+        try {
+            setIsLoading(true);
+            setError(null);
+            const success1 = agentService.sendMessage('get_memory_data', {type: 'working'}, { expectResponse: true, timeout: 10000 });
+            const success2 = agentService.sendMessage('get_memory_data', {type: 'long_term'}, { expectResponse: true, timeout: 10000 });
+            
+            if (!success1 || !success2) {
+                notificationService.addWarning('Memory', 'Failed to request memory data. Check connection.');
+            } else {
+                notificationService.addInfo('Memory', 'Refreshing memory data...');
             }
-        }, 5000);
+            
+            // Set timeout to stop loading indicator if response doesn't come
+            setTimeout(() => {
+                if (isLoading) {
+                    setIsLoading(false);
+                }
+            }, 10000);
+        } catch (error) {
+            log.error('Error refreshing memory data:', error);
+            setError('Error refreshing memory data');
+            notificationService.addError('Memory Refresh Error', 'Failed to refresh memory data');
+            setIsLoading(false);
+        }
     };
 
     const currentMemory = activeTab === 'working' ? workingMemory : longTermMemory;
-    const filteredMemory = filterAndSortMemory(currentMemory);
+    const filteredMemory = useMemo(() => {
+        try {
+            return filterAndSortMemory(currentMemory);
+        } catch (error) {
+            log.error('Error filtering and sorting memory:', error);
+            notificationService.addError('Memory Filter Error', 'Error filtering memory items');
+            return [];
+        }
+    }, [currentMemory, filterAndSortMemory]);
 
     const handleClearMemory = () => {
         if (window.confirm(`Are you sure you want to clear ${activeTab} memory?`)) {
-            agentService.sendMessage('clear_memory', {type: activeTab});
-            if (activeTab === 'working') {
-                setWorkingMemory([]);
-            } else {
-                setLongTermMemory([]);
+            try {
+                agentService.sendMessage('clear_memory', {type: activeTab});
+                if (activeTab === 'working') {
+                    setWorkingMemory([]);
+                } else {
+                    setLongTermMemory([]);
+                }
+                notificationService.addWarning('Memory', `${activeTab} memory cleared`);
+            } catch (error) {
+                log.error('Error clearing memory:', error);
+                notificationService.addError('Memory Clear Error', 'Error clearing memory');
             }
-            notificationService.addWarning('Memory', `${activeTab} memory cleared`);
         }
     };
 

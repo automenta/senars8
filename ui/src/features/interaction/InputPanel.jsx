@@ -107,64 +107,86 @@ function InputPanel() {
     }, []);
 
     const handleSend = useCallback(() => {
-        if (!inputValue.trim()) {
-            setValidationError('Cannot send: input is empty.');
-            return;
-        }
-
-        if (!isConnected) {
-            setValidationError('Cannot send: not connected to agent. Please check your connection.');
-            return;
-        }
-
-        // Process based on input mode
-        if (inputMode === 'natural') {
-            // Recognize intent from natural language
-            const intent = recognizeIntent(inputValue);
-            
-            // Check for validation errors in intent
-            if (intent.type === 'invalid' && intent.error) {
-                setValidationError(intent.error);
+        try {
+            if (!inputValue.trim()) {
+                setValidationError('Cannot send: input is empty.');
+                notificationService.addWarning('Input Error', 'Cannot send empty input');
                 return;
             }
-            
-            // Generate suggested follow-up responses based on context
-            generateSuggestedResponses(inputValue, intent);
-            
-            // Sanitize input before sending
-            const sanitizedInput = inputValue.replace(/<[^>]*>/g, '').trim();
-            
-            // Send as natural language request
-            const success = agentService.sendNaturalLanguage(sanitizedInput, intent);
-            if (success) {
-                addToHistory(sanitizedInput);
-                notificationService.addSuccess('Message Sent', 'Natural language message sent successfully');
+
+            if (!isConnected) {
+                setValidationError('Cannot send: not connected to agent. Please check your connection.');
+                notificationService.addError('Connection Error', 'Not connected to agent. Please check your connection.');
+                return;
+            }
+
+            // Process based on input mode
+            if (inputMode === 'natural') {
+                try {
+                    // Recognize intent from natural language
+                    const intent = recognizeIntent(inputValue);
+                    
+                    // Check for validation errors in intent
+                    if (intent.type === 'invalid' && intent.error) {
+                        setValidationError(intent.error);
+                        notificationService.addWarning('Input Error', intent.error);
+                        return;
+                    }
+                    
+                    // Generate suggested follow-up responses based on context
+                    generateSuggestedResponses(inputValue, intent);
+                    
+                    // Sanitize input before sending
+                    const sanitizedInput = inputValue.replace(/<[^>]*>/g, '').trim();
+                    
+                    // Send as natural language request
+                    const success = agentService.sendNaturalLanguage(sanitizedInput, intent);
+                    if (success) {
+                        addToHistory(sanitizedInput);
+                        notificationService.addSuccess('Message Sent', 'Natural language message sent successfully');
+                    } else {
+                        setValidationError('Failed to send message. It has been queued for delivery.');
+                        notificationService.addWarning('Message Queued', 'Message queued for delivery when connection is restored');
+                    }
+                } catch (error) {
+                    log.error('Error processing natural language input:', error);
+                    setValidationError('Error processing natural language input');
+                    notificationService.addError('Processing Error', 'Failed to process natural language input');
+                }
             } else {
-                setValidationError('Failed to send message. It has been queued for delivery.');
-                notificationService.addWarning('Message Queued', 'Message queued for delivery when connection is restored');
+                // Narsese mode
+                try {
+                    const error = validateNarsese(inputValue);
+                    if (error) {
+                        setValidationError(error);
+                        notificationService.addWarning('Narsese Validation Error', error);
+                        return;
+                    }
+                    
+                    setValidationError('');
+                    const success = agentService.sendNarsese(inputValue);
+                    if (success) {
+                        addToHistory(inputValue);
+                        notificationService.addSuccess('Narsese Sent', 'Narsese statement sent successfully');
+                    } else {
+                        setValidationError('Failed to send message. It has been queued for delivery.');
+                        notificationService.addWarning('Message Queued', 'Message queued for delivery when connection is restored');
+                    }
+                } catch (error) {
+                    log.error('Error processing Narsese input:', error);
+                    setValidationError('Error processing Narsese input');
+                    notificationService.addError('Processing Error', 'Failed to process Narsese input');
+                }
             }
-        } else {
-            // Narsese mode
-            const error = validateNarsese(inputValue);
-            if (error) {
-                setValidationError(error);
-                return;
-            }
-            
+        } catch (error) {
+            log.error('Unexpected error in handleSend:', error);
+            setValidationError('An unexpected error occurred while sending the message');
+            notificationService.addError('Unexpected Error', 'An error occurred while sending the message');
+        } finally {
+            // Always clear input after sending attempt
+            setInputValue('');
             setValidationError('');
-            const success = agentService.sendNarsese(inputValue);
-            if (success) {
-                addToHistory(inputValue);
-                notificationService.addSuccess('Narsese Sent', 'Narsese statement sent successfully');
-            } else {
-                setValidationError('Failed to send message. It has been queued for delivery.');
-                notificationService.addWarning('Message Queued', 'Message queued for delivery when connection is restored');
-            }
         }
-        
-        // Clear input after sending
-        setInputValue('');
-        setValidationError('');
     }, [inputValue, isConnected, inputMode, recognizeIntent, generateSuggestedResponses, addToHistory, validateNarsese, setValidationError, setInputValue]);
 
     // Generate suggested responses based on user input and intent
