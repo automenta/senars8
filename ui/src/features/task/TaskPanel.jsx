@@ -1,136 +1,206 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState } from 'react';
 import { Panel } from '@ui/components';
-import agentService from '@/services/agentService';
-import {ListTodo, Play, Square, RotateCcw, Plus, Trash2} from 'lucide-react';
+import { useTasks } from '@/context/TaskContext';
+import { ListTodo, Play, Square, RotateCcw, Plus, Trash2, CheckCircle, Circle, Clock } from 'lucide-react';
 import './TaskPanel.css';
 
-function TaskPanel() {
-    const [tasks, setTasks] = useState([]);
-    const [newTask, setNewTask] = useState('');
-    const [isAddingTask, setIsAddingTask] = useState(false);
+const TaskPanel = () => {
+    const { tasks, isLoading, addTask, updateTask, deleteTask, completeTask, getTaskCountByStatus } = useTasks();
+    const [newTaskTitle, setNewTaskTitle] = useState('');
+    const [newTaskDesc, setNewTaskDesc] = useState('');
+    const [filter, setFilter] = useState('all'); // 'all', 'pending', 'inProgress', 'completed'
 
-    useEffect(() => {
-        const handleTaskAdded = (task) => {
-            setTasks(prev => [...prev, task]);
-        };
-
-        const handlePlanCreated = (planData) => {
-            const {goal, plan} = planData;
-            const task = {
-                id: Date.now(),
-                goal,
-                plan,
-                status: 'planned',
-                createdAt: new Date().toISOString()
-            };
-            setTasks(prev => [...prev, task]);
-        };
-
-        agentService.on('tasks.add', handleTaskAdded);
-        agentService.on('planCreated', handlePlanCreated);
-
-        return () => {
-            agentService.off('tasks.add', handleTaskAdded);
-            agentService.off('planCreated', handlePlanCreated);
-        };
-    }, []);
-
-    const handleAddTask = () => {
-        if (newTask.trim()) {
-            // For now, we'll just send the task as Narsese input
-            // In a more complete implementation, we would have a specific task creation API
-            agentService.sendNarsese(newTask);
-            setNewTask('');
-            setIsAddingTask(false);
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (newTaskTitle.trim()) {
+            addTask({
+                title: newTaskTitle.trim(),
+                description: newTaskDesc.trim(),
+                priority: 'medium', // default priority
+            });
+            setNewTaskTitle('');
+            setNewTaskDesc('');
         }
     };
 
-    const handleExecuteTask = (taskId) => {
-        // In a more complete implementation, we would have a specific task execution API
-        const task = tasks.find(t => t.id === taskId);
-        if (task) {
-            agentService.sendNarsese(task.goal);
-        }
+    const filteredTasks = tasks.filter(task => {
+        if (filter === 'all') return true;
+        if (filter === 'pending') return task.status === 'pending';
+        if (filter === 'inProgress') return task.status === 'inProgress';
+        if (filter === 'completed') return task.status === 'completed';
+        return true;
+    });
+
+    const statusCounts = getTaskCountByStatus();
+
+    const updateTaskStatus = (taskId, newStatus) => {
+        updateTask(taskId, { status: newStatus });
     };
 
-    const handleRemoveTask = (taskId) => {
-        setTasks(prev => prev.filter(t => t.id !== taskId));
-    };
-
-    const handleClearAllTasks = () => {
-        setTasks([]);
+    const formatDate = (dateString) => {
+        if (!dateString) return 'Not set';
+        return new Date(dateString).toLocaleString();
     };
 
     return (
-        <Panel title={<><ListTodo size={18}/> Task Management</>}>
+        <Panel title={<><ListTodo size={18} /> Tasks</>}>
             <div className="task-panel">
-                <div className="task-actions">
+                {/* Task Stats */}
+                <div className="task-stats">
+                    <div className="stat-card">
+                        <Circle size={16} className="pending-icon" />
+                        <span className="stat-number">{statusCounts.pending}</span>
+                        <span className="stat-label">Pending</span>
+                    </div>
+                    <div className="stat-card">
+                        <Clock size={16} className="in-progress-icon" />
+                        <span className="stat-number">{statusCounts.inProgress}</span>
+                        <span className="stat-label">In Progress</span>
+                    </div>
+                    <div className="stat-card">
+                        <CheckCircle size={16} className="completed-icon" />
+                        <span className="stat-number">{statusCounts.completed}</span>
+                        <span className="stat-label">Completed</span>
+                    </div>
+                </div>
+
+                {/* Add Task Form */}
+                <form onSubmit={handleSubmit} className="add-task-form">
+                    <div className="input-group">
+                        <input
+                            type="text"
+                            value={newTaskTitle}
+                            onChange={(e) => setNewTaskTitle(e.target.value)}
+                            placeholder="Task title..."
+                            className="task-title-input"
+                            maxLength={100}
+                        />
+                    </div>
+                    <div className="input-group">
+                        <textarea
+                            value={newTaskDesc}
+                            onChange={(e) => setNewTaskDesc(e.target.value)}
+                            placeholder="Task description (optional)..."
+                            className="task-desc-input"
+                            rows={2}
+                            maxLength={500}
+                        />
+                    </div>
+                    <button type="submit" className="add-task-btn">
+                        <Plus size={16} /> Add Task
+                    </button>
+                </form>
+
+                {/* Filter Controls */}
+                <div className="filter-controls">
                     <button 
-                        className="btn-primary"
-                        onClick={() => setIsAddingTask(true)}
-                        title="Add new task"
+                        className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
+                        onClick={() => setFilter('all')}
                     >
-                        <Plus size={16}/> Add Task
+                        All
                     </button>
                     <button 
-                        className="btn-secondary"
-                        onClick={handleClearAllTasks}
-                        title="Clear all tasks"
-                        disabled={tasks.length === 0}
+                        className={`filter-btn ${filter === 'pending' ? 'active' : ''}`}
+                        onClick={() => setFilter('pending')}
                     >
-                        <Trash2 size={16}/> Clear All
+                        Pending
+                    </button>
+                    <button 
+                        className={`filter-btn ${filter === 'inProgress' ? 'active' : ''}`}
+                        onClick={() => setFilter('inProgress')}
+                    >
+                        In Progress
+                    </button>
+                    <button 
+                        className={`filter-btn ${filter === 'completed' ? 'active' : ''}`}
+                        onClick={() => setFilter('completed')}
+                    >
+                        Completed
                     </button>
                 </div>
 
-                {isAddingTask && (
-                    <div className="add-task-form">
-                        <input
-                            type="text"
-                            value={newTask}
-                            onChange={(e) => setNewTask(e.target.value)}
-                            placeholder="Enter task goal in Narsese..."
-                            autoFocus
-                        />
-                        <div className="form-actions">
-                            <button onClick={handleAddTask} disabled={!newTask.trim()}>Add</button>
-                            <button onClick={() => setIsAddingTask(false)}>Cancel</button>
-                        </div>
-                    </div>
-                )}
-
+                {/* Task List */}
                 <div className="task-list">
-                    {tasks.length === 0 ? (
-                        <div className="empty-state">
-                            No tasks yet. Add a task to get started.
+                    {isLoading ? (
+                        <div className="loading">
+                            Loading tasks...
+                        </div>
+                    ) : filteredTasks.length === 0 ? (
+                        <div className="no-tasks">
+                            {filter === 'all' 
+                                ? 'No tasks yet. Add a new task to get started.' 
+                                : `No ${filter} tasks.`}
                         </div>
                     ) : (
-                        tasks.map((task) => (
+                        filteredTasks.map((task) => (
                             <div key={task.id} className="task-item">
-                                <div className="task-header">
-                                    <div className="task-goal">{task.goal}</div>
-                                    <div className="task-status">{task.status || 'pending'}</div>
-                                </div>
-                                {task.plan && (
-                                    <div className="task-plan">
-                                        <strong>Plan:</strong> {task.plan.join(' → ')}
+                                <div className="task-content">
+                                    <div className="task-header">
+                                        <h4 className="task-title">{task.title}</h4>
+                                        <div className="task-actions">
+                                            {task.status !== 'completed' ? (
+                                                <>
+                                                    {task.status === 'pending' ? (
+                                                        <button 
+                                                            onClick={() => updateTaskStatus(task.id, 'inProgress')}
+                                                            className="action-btn start-btn"
+                                                            title="Start task"
+                                                        >
+                                                            <Play size={14} />
+                                                        </button>
+                                                    ) : (
+                                                        <button 
+                                                            onClick={() => updateTaskStatus(task.id, 'pending')}
+                                                            className="action-btn pause-btn"
+                                                            title="Pause task"
+                                                        >
+                                                            <Square size={14} />
+                                                        </button>
+                                                    )}
+                                                    <button 
+                                                        onClick={() => completeTask(task.id)}
+                                                        className="action-btn complete-btn"
+                                                        title="Complete task"
+                                                    >
+                                                        <CheckCircle size={14} />
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <button 
+                                                    onClick={() => updateTaskStatus(task.id, 'pending')}
+                                                    className="action-btn restart-btn"
+                                                    title="Restart task"
+                                                >
+                                                    <RotateCcw size={14} />
+                                                </button>
+                                            )}
+                                            <button 
+                                                onClick={() => deleteTask(task.id)}
+                                                className="action-btn delete-btn"
+                                                title="Delete task"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </div>
                                     </div>
-                                )}
-                                <div className="task-actions">
-                                    <button 
-                                        onClick={() => handleExecuteTask(task.id)}
-                                        title="Execute task"
-                                    >
-                                        <Play size={14}/> Execute
-                                    </button>
-                                    <button 
-                                        onClick={() => handleRemoveTask(task.id)}
-                                        title="Remove task"
-                                    >
-                                        <Trash2 size={14}/> Remove
-                                    </button>
-                                </div>
-                                <div className="task-timestamp">
-                                    Created: {new Date(task.createdAt).toLocaleString()}
+                                    
+                                    {task.description && (
+                                        <p className="task-description">{task.description}</p>
+                                    )}
+                                    
+                                    <div className="task-meta">
+                                        <span className={`status-badge ${task.status}`}>
+                                            {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
+                                        </span>
+                                        <span className="task-date">
+                                            Created: {formatDate(task.createdAt)}
+                                        </span>
+                                        {task.completedAt && (
+                                            <span className="task-date">
+                                                Completed: {formatDate(task.completedAt)}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))
@@ -139,6 +209,6 @@ function TaskPanel() {
             </div>
         </Panel>
     );
-}
+};
 
 export default TaskPanel;

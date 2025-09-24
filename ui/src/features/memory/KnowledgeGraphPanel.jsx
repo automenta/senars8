@@ -3,7 +3,7 @@ import { Panel } from '@ui/components';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import log from '@/utils/logger';
-import {Network} from 'lucide-react';
+import {Network, Filter, Search, RotateCcw, Zap, Brain, Database, LayoutList} from 'lucide-react';
 import { MESSAGE_TYPES, UI_CONSTANTS } from '@/constants/ui';
 import ReactFlow, {
     MiniMap,
@@ -12,7 +12,8 @@ import ReactFlow, {
     useNodesState,
     useEdgesState,
     addEdge,
-    MarkerType
+    MarkerType,
+    ReactFlowProvider
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import './KnowledgeGraphPanel.css';
@@ -72,13 +73,43 @@ function KnowledgeGraphPanel() {
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [filter, setFilter] = useState('');
+    const [activeTab, setActiveTab] = useState('graph'); // 'graph', 'list'
+    const [graphLayout, setGraphLayout] = useState('default'); // 'default', 'hierarchical', 'circular'
+    const [nodeTypeFilter, setNodeTypeFilter] = useState('all'); // 'all', 'beliefs', 'goals', 'tasks'
+
+    // Filter knowledge items based on current filters
+    const filteredKnowledgeItems = useMemo(() => {
+        return knowledgeItems.filter(item => {
+            // Apply text filter
+            if (filter && 
+                !((item.statement || '').toLowerCase().includes(filter.toLowerCase()) ||
+                  (item.term || '').toLowerCase().includes(filter.toLowerCase()) ||
+                  (item.type || '').toLowerCase().includes(filter.toLowerCase()))) {
+                return false;
+            }
+            
+            // Apply type filter
+            if (nodeTypeFilter !== 'all') {
+                if (nodeTypeFilter === 'beliefs' && item.type !== 'belief' && !item.statement?.includes('?')) {
+                    return false;
+                } else if (nodeTypeFilter === 'goals' && item.type !== 'goal' && !item.statement?.includes('!')) {
+                    return false;
+                } else if (nodeTypeFilter === 'tasks' && item.type !== 'task') {
+                    return false;
+                }
+            }
+            
+            return true;
+        });
+    }, [knowledgeItems, filter, nodeTypeFilter]);
 
     // Convert knowledge items to graph data when they change
     useEffect(() => {
-        const { nodes: newNodes, edges: newEdges } = convertToGraphData(knowledgeItems);
+        const { nodes: newNodes, edges: newEdges } = convertToGraphData(filteredKnowledgeItems);
         setNodes(newNodes);
         setEdges(newEdges);
-    }, [knowledgeItems, setNodes, setEdges]);
+    }, [filteredKnowledgeItems, setNodes, setEdges]);
 
     // Handle incoming knowledge data
     useEffect(() => {
@@ -182,52 +213,148 @@ function KnowledgeGraphPanel() {
             <div className="knowledge-graph-panel">
                 {/* Controls */}
                 <div className="graph-controls">
-                    <button 
-                        onClick={handleRefresh}
-                        disabled={isLoading}
-                        className="control-button"
-                    >
-                        {isLoading ? 'Loading...' : 'Refresh'}
-                    </button>
-                    <button 
-                        onClick={handleClearGraph}
-                        className="control-button clear-button"
-                    >
-                        Clear Graph
-                    </button>
-                    <div className="graph-stats">
-                        Nodes: {graphStats.nodes} | Edges: {graphStats.edges} | Items: {graphStats.items}
+                    <div className="control-group">
+                        <button 
+                            onClick={handleRefresh}
+                            disabled={isLoading}
+                            className="control-button"
+                            title="Refresh knowledge graph"
+                        >
+                            <RotateCcw size={16} /> {isLoading ? 'Loading...' : 'Refresh'}
+                        </button>
+                        <button 
+                            onClick={handleClearGraph}
+                            className="control-button clear-button"
+                            title="Clear graph"
+                        >
+                            <Database size={16} /> Clear Graph
+                        </button>
+                    </div>
+                    
+                    <div className="control-group">
+                        <div className="filter-controls">
+                            <div className="search-input-group">
+                                <Search size={16} className="search-icon" />
+                                <input
+                                    type="text"
+                                    placeholder="Filter knowledge..."
+                                    value={filter}
+                                    onChange={(e) => setFilter(e.target.value)}
+                                    className="filter-input"
+                                    title="Filter by statement or term"
+                                />
+                            </div>
+                            
+                            <select 
+                                value={nodeTypeFilter} 
+                                onChange={(e) => setNodeTypeFilter(e.target.value)}
+                                className="filter-select"
+                                title="Filter by node type"
+                            >
+                                <option value="all">All Types</option>
+                                <option value="beliefs">Beliefs</option>
+                                <option value="goals">Goals</option>
+                                <option value="tasks">Tasks</option>
+                            </select>
+                            
+                            <select 
+                                value={graphLayout} 
+                                onChange={(e) => setGraphLayout(e.target.value)}
+                                className="filter-select"
+                                title="Select graph layout"
+                            >
+                                <option value="default">Default Layout</option>
+                                <option value="hierarchical">Hierarchical</option>
+                                <option value="circular">Circular</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div className="control-group">
+                        <div className="graph-stats">
+                            Nodes: {graphStats.nodes} | Edges: {graphStats.edges} | Items: {graphStats.items}
+                        </div>
+                        
+                        <div className="view-toggle">
+                            <button 
+                                className={`view-toggle-btn ${activeTab === 'graph' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('graph')}
+                            >
+                                <Network size={16} /> Graph
+                            </button>
+                            <button 
+                                className={`view-toggle-btn ${activeTab === 'list' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('list')}
+                            >
+                                <LayoutList size={16} /> List
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                {/* Graph Visualization */}
-                <div className="graph-container">
-                    {nodes.length > 0 ? (
-                        <ReactFlow
-                            nodes={nodes}
-                            edges={edges}
-                            onNodesChange={onNodesChange}
-                            onEdgesChange={onEdgesChange}
-                            onConnect={onConnect}
-                            fitView
-                            attributionPosition="bottom-left"
-                        >
-                            <Controls />
-                            <MiniMap />
-                            <Background variant="dots" gap={12} size={1} />
-                        </ReactFlow>
-                    ) : (
-                        <div className="graph-empty">
-                            {isLoading ? (
-                                <div className="loading">Loading knowledge graph...</div>
+                {/* Visualization Area */}
+                <div className="visualization-area">
+                    {activeTab === 'graph' ? (
+                        <div className="graph-container">
+                            {nodes.length > 0 ? (
+                                <ReactFlow
+                                    nodes={nodes}
+                                    edges={edges}
+                                    onNodesChange={onNodesChange}
+                                    onEdgesChange={onEdgesChange}
+                                    onConnect={onConnect}
+                                    fitView
+                                    attributionPosition="bottom-left"
+                                >
+                                    <Controls />
+                                    <MiniMap />
+                                    <Background variant="dots" gap={12} size={1} />
+                                </ReactFlow>
                             ) : (
-                                <div>
-                                    <p>No knowledge data available.</p>
-                                    <button onClick={handleRefresh} className="control-button">
-                                        Load Knowledge Data
-                                    </button>
+                                <div className="graph-empty">
+                                    {isLoading ? (
+                                        <div className="loading">Loading knowledge graph...</div>
+                                    ) : (
+                                        <div>
+                                            <p>No knowledge data available.</p>
+                                            <button onClick={handleRefresh} className="control-button">
+                                                Load Knowledge Data
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
+                        </div>
+                    ) : (
+                        // List view
+                        <div className="knowledge-list-container">
+                            <h4>Knowledge Items ({filteredKnowledgeItems.length})</h4>
+                            <div className="knowledge-list">
+                                {filteredKnowledgeItems.length > 0 ? (
+                                    filteredKnowledgeItems.map((item, index) => (
+                                        <div key={item.id || index} className={`knowledge-item ${item.type || 'unknown'}`}>
+                                            <div className="knowledge-statement">
+                                                {item.statement || item.term || 'Unknown item'}
+                                            </div>
+                                            <div className="knowledge-meta">
+                                                <span className="type">
+                                                    {item.type ? item.type.charAt(0).toUpperCase() + item.type.slice(1) : 'Unknown'}
+                                                </span>
+                                                <span className="confidence">
+                                                    Confidence: {item.confidence ? item.confidence.toFixed(3) : 'N/A'}
+                                                </span>
+                                                <span className="timestamp">
+                                                    {item.timestamp ? new Date(item.timestamp).toLocaleTimeString() : 'N/A'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="knowledge-empty">
+                                        No knowledge items match current filters.
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>

@@ -11,6 +11,39 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    
+    /* Theme variables - dark theme as default */
+    --bg-primary: #1e1e1e;
+    --bg-secondary: #2a2a2a;
+    --bg-tertiary: #333333;
+    --text-primary: #d4d4d4;
+    --text-secondary: #a0a0a0;
+    --border-color: #444444;
+    --panel-bg: #252526;
+    --panel-header-bg: #333333;
+    --button-bg: #007acc;
+    --button-hover-bg: #005a9e;
+    --success-color: #4caf50;
+    --warning-color: #ff9800;
+    --error-color: #f44336;
+    --info-color: #2196f3;
+}
+
+[data-theme="light"] {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f5f5;
+    --bg-tertiary: #e0e0e0;
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --border-color: #cccccc;
+    --panel-bg: #ffffff;
+    --panel-header-bg: #f5f5f5;
+    --button-bg: #007acc;
+    --button-hover-bg: #005a9e;
+    --success-color: #4caf50;
+    --warning-color: #ff9800;
+    --error-color: #f44336;
+    --info-color: #2196f3;
 }
 
 a {

@@ -1,17 +1,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Send} from 'lucide-react';
+import {Send, Loader} from 'lucide-react';
 import './SendButton.css';
 
 const SendButton = ({onClick, disabled}) => (
     <button 
         onClick={onClick} 
         disabled={disabled} 
-        title="Send" 
-        className="send-button"
+        title={disabled ? "Input disabled" : "Send"} 
+        className={`send-button ${disabled ? 'disabled' : ''}`}
         aria-label="Send input"
     >
-        <Send size={16}/> Send
+        {disabled ? <Loader size={16} className="sending-spinner" /> : <Send size={16}/>} Send
     </button>
 );
 
@@ -20,10 +20,6 @@ SendButton.displayName = 'SendButton';
 SendButton.propTypes = {
     onClick: PropTypes.func.isRequired,
     disabled: PropTypes.bool,
-};
-
-SendButton.defaultProps = {
-    disabled: false,
 };
 
 export default SendButton;

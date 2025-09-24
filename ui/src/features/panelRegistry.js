@@ -15,25 +15,31 @@ import LayoutManagerPanel from './LayoutManagerPanel';
 import HelpPanel from './help/HelpPanel';
 import ConversationHistoryPanel from './interaction/ConversationHistoryPanel';
 import SettingsPanel from './settings/SettingsPanel';
+import TaskPanel from './task/TaskPanel';
+import SessionPanel from './system/SessionPanel';
+import DebugPanel from './debug/DebugPanel';
 
-const panelRegistry = {
-    control: ControlPanel,
-    status: StatusPanel,
-    input: InputPanel,
-    settings: SettingsPanel,
-    'conversation-history': ConversationHistoryPanel,
-    'visual-reasoning': VisualReasoningPanel,
-    log: LogPanel,
-    'memory-view': MemoryViewPanel,
+export default {
+    'control': ControlPanel,
+    'status': StatusPanel,
+    'input': InputPanel,
+    'log': LogPanel,
+    'memory': MemoryViewPanel,
     'knowledge-graph': KnowledgeGraphPanel,
     'reasoner-trace': ReasonerTracePanel,
+    'visual-reasoning': VisualReasoningPanel,
     'internal-state': InternalStatePanel,
-    'notification-center': NotificationCenterPanel,
+    'notifications': NotificationCenterPanel,
     'file-explorer': FileExplorerPanel,
     'code-editor': CodeEditorPanel,
     'terminal': TerminalPanel,
     'layout-manager': LayoutManagerPanel,
     'help': HelpPanel,
+    'conversation-history': ConversationHistoryPanel,
+    'settings': SettingsPanel,
+    'tasks': TaskPanel,
+    'sessions': SessionPanel,
+    'debug': DebugPanel,
 };
 
 export default panelRegistry;

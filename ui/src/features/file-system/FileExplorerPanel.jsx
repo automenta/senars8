@@ -30,9 +30,19 @@ const FileExplorerPanel = () => {
     const [expandedDirs, setExpandedDirs] = useState(new Set(['.'])); // Root is expanded by default
     const [contextMenu, setContextMenu] = useState({show: false, x: 0, y: 0, path: '', type: ''});
 
+    const [directoryCache, setDirectoryCache] = useState(new Map());
+    
     const fetchDirectoryContents = useCallback((path) => {
-        sendMessage('readDirectory', {directoryPath: path});
-    }, [sendMessage]);
+        // Check if we already have this directory in cache
+        if (directoryCache.has(path)) {
+            const cached = directoryCache.get(path);
+            if (path === currentPath) {
+                setEntries({files: cached.files, directories: cached.directories});
+            }
+        } else {
+            sendMessage('readDirectory', {directoryPath: path});
+        }
+    }, [sendMessage, directoryCache, currentPath]);
 
     useEffect(() => {
         fetchDirectoryContents(currentPath);
@@ -41,8 +51,18 @@ const FileExplorerPanel = () => {
     useEffect(() => {
         if (lastMessage) {
             const message = JSON.parse(lastMessage.data);
-            if (message.type === 'readDirectoryResponse' && message.payload.directoryPath === currentPath) {
-                setEntries({files: message.payload.files, directories: message.payload.directories});
+            if (message.type === 'readDirectoryResponse') {
+                // Cache the directory contents
+                const dirPath = message.payload.directoryPath;
+                setDirectoryCache(prev => new Map(prev).set(dirPath, {
+                    files: message.payload.files,
+                    directories: message.payload.directories
+                }));
+                
+                // Update entries if this is the current path
+                if (dirPath === currentPath) {
+                    setEntries({files: message.payload.files, directories: message.payload.directories});
+                }
             } else if (message.type === 'readFileResponse') {
                 setSharedState(prevState => ({
                     ...prevState,
@@ -215,10 +235,16 @@ const FileExplorerPanel = () => {
                                 </div>
                                 
                                 {isExpanded && (
-                                    <ul className="nested-list">
-                                        {/* This would be populated with subdirectory contents */}
-                                        <li className="placeholder-item">Loading...</li>
-                                    </ul>
+                                    <SubDirectoryContent 
+                                        parentPath={dirPath} 
+                                        directoryCache={directoryCache}
+                                        sendMessage={sendMessage}
+                                        onFileClick={handleFileClick}
+                                        onContextMenu={handleContextMenu}
+                                        expandedDirs={expandedDirs}
+                                        toggleDirectory={toggleDirectory}
+                                        getFileIcon={getFileIcon}
+                                    />
                                 )}
                             </li>
                         );
@@ -272,6 +298,138 @@ const FileExplorerPanel = () => {
                 </div>
             )}
         </div>
+    );
+};
+
+// Subcomponent to render nested directory content
+const SubDirectoryContent = ({ 
+    parentPath, 
+    directoryCache, 
+    sendMessage,
+    onFileClick,
+    onContextMenu,
+    expandedDirs,
+    toggleDirectory,
+    getFileIcon
+}) => {
+    const [subEntries, setSubEntries] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    
+    useEffect(() => {
+        // Only load if directory is expanded and we don't have it cached
+        if (expandedDirs.has(parentPath)) {
+            if (directoryCache.has(parentPath)) {
+                setSubEntries(directoryCache.get(parentPath));
+            } else {
+                // Fetch directory contents if not in cache
+                if (!isLoading) {
+                    setIsLoading(true);
+                    sendMessage('readDirectory', { directoryPath: parentPath });
+                }
+            }
+        }
+    }, [parentPath, expandedDirs, directoryCache, sendMessage, isLoading]);
+
+    // Listen for directory responses to update subentries
+    useEffect(() => {
+        // This useEffect would need to be implemented in a real scenario
+        // where we can listen for specific responses for a given path
+    }, []);
+    
+    // If we don't have entries yet but directory is expanded, show loading
+    if (expandedDirs.has(parentPath) && !subEntries && !directoryCache.has(parentPath)) {
+        return (
+            <ul className="nested-list">
+                <li className="placeholder-item">Loading...</li>
+            </ul>
+        );
+    }
+    
+    if (!subEntries) {
+        return null;
+    }
+
+    return (
+        <ul className="nested-list">
+            {subEntries.directories.map(dir => {
+                const dirPath = pathUtils.join(parentPath, dir);
+                const isExpanded = expandedDirs.has(dirPath);
+                
+                return (
+                    <li key={dir} className="explorer-item directory-item">
+                        <div 
+                            className="item-row"
+                            onContextMenu={(e) => onContextMenu(e, dirPath, 'directory')}
+                        >
+                            <button 
+                                className="toggle-button"
+                                onClick={() => toggleDirectory(dirPath)}
+                            >
+                                {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                            </button>
+                            <span 
+                                className="directory-name"
+                                onClick={() => {
+                                    // If we're navigating into this directory, we should update the main view
+                                    // For now, just expand it
+                                }}
+                            >
+                                {isExpanded ? <FolderOpen size={16} /> : <Folder size={16} />} {dir}
+                            </span>
+                            <button 
+                                className="context-menu-button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onContextMenu(e, dirPath, 'directory');
+                                }}
+                            >
+                                <MoreVertical size={14} />
+                            </button>
+                        </div>
+                        
+                        {isExpanded && (
+                            <SubDirectoryContent
+                                parentPath={dirPath}
+                                directoryCache={directoryCache}
+                                sendMessage={sendMessage}
+                                onFileClick={onFileClick}
+                                onContextMenu={onContextMenu}
+                                expandedDirs={expandedDirs}
+                                toggleDirectory={toggleDirectory}
+                                getFileIcon={getFileIcon}
+                            />
+                        )}
+                    </li>
+                );
+            })}
+            
+            {subEntries.files.map(file => {
+                const filePath = pathUtils.join(parentPath, file);
+                return (
+                    <li key={file} className="explorer-item file-item sub-item">
+                        <div 
+                            className="item-row"
+                            onClick={() => onFileClick(file)}
+                            onContextMenu={(e) => onContextMenu(e, filePath, 'file')}
+                        >
+                            <span className="spacer"></span>
+                            <span className="file-name">
+                                {getFileIcon(file)} {file}
+                            </span>
+                            <button 
+                                className="context-menu-button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onContextMenu(e, filePath, 'file');
+                                }}
+                            >
+                                <MoreVertical size={14} />
+                            </button>
+                        </div>
+                    </li>
+                );
+            })}
+        </ul>
     );
 };
 

@@ -62,4 +62,9 @@ export const MESSAGE_TYPES = {
     ERROR: 'error',
     STATUS: 'status',
     MESSAGE: 'message',
+    SEARCH: 'search',
+    SEARCH_RESULTS: 'search_results',
+    SEARCH_ERROR: 'search_error',
+    TASK_UPDATE: 'task_update',
+    TASK_ERROR: 'task_error',
 };

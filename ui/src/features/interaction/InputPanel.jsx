@@ -1,8 +1,10 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useRef} from 'react';
 import { Panel, SendButton, EnhancedInput } from '@ui/components';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
+import sonificationService from '@/services/sonificationService';
 import {useConnection} from '@/context/useConnection';
+import {useSettings} from '@/context/useSettings';
 import useInputHistory from '@/hooks/useInputHistory';
 import log from '@/utils/logger';
 import {CornerDownLeft, HelpCircle, BookOpen, MessageCircle, Lightbulb, Bot, AlertCircle, Wifi, WifiOff} from 'lucide-react';
@@ -180,113 +182,42 @@ function InputPanel() {
 
     const [isSending, setIsSending] = useState(false);
 
-    const handleSend = useCallback(() => {
-        if (isSending) {
-            // Don't process if already sending
-            return;
-        }
+    const handleSend = useCallback((input) => {
+        if (!input.trim()) return;
+
+        const trimmedInput = input.trim();
+        const isNarsese = input.includes('<') && input.includes('>') || input.includes(':') || input.includes('?') || input.includes('!');
+
+        // Add to input history
+        addToHistory(trimmedInput);
+
+        // Show visual feedback
+        setIsSending(true);
         
-        try {
-            if (!inputValue.trim()) {
-                setValidationError('Cannot send: input is empty.');
-                notificationService.addWarning('Input Error', 'Cannot send empty input');
-                return;
+        // Play sonification if enabled
+        if (isSonificationEnabled) {
+            try {
+                sonificationService.play('send');
+            } catch (error) {
+                log.warn('Could not play sonification:', error);
             }
-
-            if (!isConnected) {
-                setValidationError('Cannot send: not connected to agent. Please check your connection.');
-                notificationService.addError('Connection Error', 'Not connected to agent. Please check your connection.');
-                return;
-            }
-
-            setIsSending(true);
-            setValidationError(''); // Clear any previous validation errors
-
-            // Process based on input mode
-            if (inputMode === 'natural') {
-                try {
-                    // Recognize intent from natural language
-                    const intent = recognizeIntent(inputValue);
-                    
-                    // Check for validation errors in intent
-                    if (intent.type === 'invalid' && intent.error) {
-                        setValidationError(intent.error);
-                        notificationService.addWarning('Input Error', intent.error);
-                        setIsSending(false);
-                        return;
-                    }
-                    
-                    // Generate suggested follow-up responses based on context
-                    generateSuggestedResponses(inputValue, intent);
-                    
-                    // Sanitize input before sending
-                    const sanitizedInput = inputValue.replace(/<[^>]*>/g, '').trim();
-                    
-                    // Send as natural language request
-                    try {
-                        const success = agentService.sendNaturalLanguage(sanitizedInput, intent);
-                        if (success) {
-                            addToHistory(sanitizedInput);
-                            notificationService.addSuccess('Message Sent', 'Natural language message sent successfully');
-                        } else {
-                            setValidationError('Failed to send message. It has been queued for delivery.');
-                            notificationService.addInfo('Message Queued', 'Message queued for delivery when connection is restored');
-                        }
-                    } catch (error) {
-                        log.error('Error sending natural language message:', error);
-                        setValidationError('Failed to send message due to an error.');
-                        notificationService.addError('Send Error', 'Failed to send natural language message');
-                    }
-                } catch (error) {
-                    log.error('Error processing natural language input:', error);
-                    setValidationError('Error processing natural language input');
-                    notificationService.addError('Processing Error', 'Failed to process natural language input');
-                }
-            } else {
-                // Narsese mode
-                try {
-                    const error = validateNarsese(inputValue);
-                    if (error) {
-                        setValidationError(error);
-                        notificationService.addWarning('Narsese Validation Error', error);
-                        setIsSending(false);
-                        return;
-                    }
-                    
-                    setValidationError('');
-                    try {
-                        const success = agentService.sendNarsese(inputValue);
-                        if (success) {
-                            addToHistory(inputValue);
-                            notificationService.addSuccess('Narsese Sent', 'Narsese statement sent successfully');
-                        } else {
-                            setValidationError('Failed to send message. It has been queued for delivery.');
-                            notificationService.addInfo('Message Queued', 'Message queued for delivery when connection is restored');
-                        }
-                    } catch (error) {
-                        log.error('Error sending Narsese message:', error);
-                        setValidationError('Failed to send Narsese message due to an error.');
-                        notificationService.addError('Send Error', 'Failed to send Narsese message');
-                    }
-                } catch (error) {
-                    log.error('Error processing Narsese input:', error);
-                    setValidationError('Error processing Narsese input');
-                    notificationService.addError('Processing Error', 'Failed to process Narsese input');
-                }
-            }
-        } catch (error) {
-            log.error('Unexpected error in handleSend:', error);
-            setValidationError('An unexpected error occurred while sending the message');
-            notificationService.addError('Unexpected Error', 'An error occurred while sending the message');
-        } finally {
-            // Always clear input and reset sending state after sending attempt
-            setTimeout(() => {
-                setInputValue('');
-                setValidationError('');
-                setIsSending(false);
-            }, 300); // Small delay to show success/failure
         }
-    }, [inputValue, isConnected, inputMode, recognizeIntent, generateSuggestedResponses, addToHistory, validateNarsese, setValidationError, setInputValue, isSending]);
+
+        // Send message based on type
+        if (isNarsese) {
+            agentService.sendNarsese(trimmedInput);
+            notificationService.addInfo('Message Sent', `Narsese: ${trimmedInput}`, 3000);
+        } else {
+            agentService.sendNaturalLanguage(trimmedInput);
+            notificationService.addInfo('Message Sent', `Natural Language: ${trimmedInput}`, 3000);
+        }
+
+        // Clear input
+        setInputValue('');
+
+        // Clear sending state after a delay
+        setTimeout(() => setIsSending(false), 1000);
+    }, [addToHistory, isSonificationEnabled]);
 
     // Generate suggested responses based on user input and intent
     const generateSuggestedResponses = useCallback((input, intent) => {
@@ -357,22 +288,36 @@ function InputPanel() {
                 
                 <div className="input-panel-header">
                     <button 
-                        className="examples-toggle"
+                        className={`examples-toggle ${showExamples ? 'active' : ''}`}
                         onClick={() => setShowExamples(!showExamples)}
-                        title="Show/Hide Examples"
+                        title={inputMode === 'natural' ? "Show natural language examples" : "Show Narsese examples"}
+                        aria-expanded={showExamples}
+                        aria-controls="examples-container"
                     >
-                        <BookOpen size={16} />
-                        Examples
+                        <Lightbulb size={16} />
+                        {inputMode === 'natural' ? 'Natural Examples' : 'Narsese Examples'}
                     </button>
                     <button 
                         className="help-toggle"
-                        onClick={() => window.open('https://github.com/opennars/OpenNARS-for-Applications/wiki/Narsese-Guide', '_blank')}
+                        onClick={() => setShowHelp(!showHelp)}
                         title="Narsese Guide"
                     >
                         <HelpCircle size={16} />
                         Help
                     </button>
                 </div>
+                
+                {showHelp && (
+                    <div className="help-content" role="dialog" aria-label="Narsese Guide">
+                        <h4>Narsese Syntax Guide</h4>
+                        <p>Narsese is the formal language for the NARS system. Here are some basic examples:</p>
+                        <ul>
+                            <li><code>&lt;bird --&gt; animal&gt;.</code> - A bird is an animal (inheritance relation)</li>
+                            <li><code>&lt;robin --&gt; bird&gt;?</code> - Is a robin a bird? (question)</li>
+                            <li><code>(&&, &lt;robin --&gt; bird&gt;, &lt;bird --&gt; animal&gt;)</code> - Logical conjunction</li>
+                        </ul>
+                    </div>
+                )}
                 
                 {showExamples && (
                     <div className="examples-container">

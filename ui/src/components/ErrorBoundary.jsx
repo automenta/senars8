@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {AlertCircle, RotateCcw} from 'lucide-react';
+import notificationService from '@/services/notificationService';
 import './ErrorBoundary.css';
 
 class ErrorBoundary extends React.Component {
@@ -29,6 +30,13 @@ class ErrorBoundary extends React.Component {
             errorInfo: errorInfo,
             errorCount: prevState.errorCount + 1
         }));
+        
+        // Send error notification to user
+        notificationService.addError(
+            'Component Error', 
+            `An error occurred in a UI component. Please try reloading the component or page. Error: ${error.message || 'Unknown error'}`, 
+            10000
+        );
         
         // Send error to a logging service in production (if configured)
         if (process.env.NODE_ENV === 'production') {

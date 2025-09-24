@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {Mic, MicOff, MessageSquare, Code} from 'lucide-react';
 import NarseseInput from './NarseseInput';
@@ -10,7 +10,7 @@ function EnhancedInput({ value, onChange, onSend, history, inputMode = 'narsese'
     const recognitionRef = useRef(null);
 
     // Check if browser supports speech recognition
-    const hasSpeechRecognition = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+    const hasSpeechRecognition = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window';
 
     // Initialize voice recognition if supported
     React.useEffect(() => {
@@ -43,6 +43,36 @@ function EnhancedInput({ value, onChange, onSend, history, inputMode = 'narsese'
             }
         };
     }, [hasSpeechRecognition, onChange]);
+
+    // Keyboard shortcut handler for the entire component
+    useEffect(() => {
+        const handleGlobalKeyDown = (e) => {
+            if (disabled) return;
+
+            // Toggle input mode with Ctrl/Cmd + Shift + M
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'M') {
+                e.preventDefault();
+                setMode(inputMode === 'narsese' ? 'natural' : 'narsese');
+            }
+            
+            // Focus input with Ctrl/Cmd + Shift + I
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'I') {
+                e.preventDefault();
+                document.querySelector('.narsese-input')?.focus();
+            }
+            
+            // Clear input with Escape
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                onChange('');
+            }
+        };
+
+        window.addEventListener('keydown', handleGlobalKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleGlobalKeyDown);
+        };
+    }, [disabled, inputMode, setMode, onChange]);
 
     const toggleListening = useCallback(() => {
         if (!hasSpeechRecognition) {

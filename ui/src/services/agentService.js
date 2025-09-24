@@ -285,9 +285,44 @@ class AgentService extends EventEmitter {
         return this.sendMessage('natural_language', { text, intent });
     }
 
-    sendAgentControl(command) {
-        return this.sendMessage('agentControl', {command});
+    sendAgentControl(action) {
+        const message = {
+            type: MESSAGE_TYPES.AGENT_CONTROL,
+            payload: { action },
+        };
+        this.sendMessage(message);
     }
+    
+    search(query, options = {}) {
+        const message = {
+            type: MESSAGE_TYPES.SEARCH,
+            payload: { 
+                query,
+                scope: options.scope || 'all',
+                limit: options.limit || 50,
+                filters: options.filters || {}
+            },
+        };
+        return this.sendMessage(message);
+    }
+    
+    // Task management methods
+    getTasks() {
+        return this.sendMessage('get_tasks', {});
+    }
+    
+    addTask(taskData) {
+        return this.sendMessage('add_task', taskData);
+    }
+    
+    updateTask(taskId, updates) {
+        return this.sendMessage('update_task', { taskId, updates });
+    }
+    
+    deleteTask(taskId) {
+        return this.sendMessage('delete_task', { taskId });
+    }
+}
 }
 
 // Export a singleton instance
