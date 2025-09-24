@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React from 'react';
 import {Layout} from 'flexlayout-react';
 import 'flexlayout-react/style/light.css';
 import panelRegistry from '@/features/panelRegistry';
@@ -11,7 +11,6 @@ import {SearchProvider} from '@/context/SearchContext';
 import './App.css';
 
 function App() {
-    const modelRef = useRef(null);
     const { model, onModelChange } = useLayoutModel();
     const { theme } = useTheme();
     useAppInit();

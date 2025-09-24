@@ -109,9 +109,7 @@ function EnhancedInput({ value, onChange, onSend, history, inputMode = 'narsese'
         }
     }, [historyIndex, history, onChange, onSend]);
 
-    const handleChange = useCallback((e) => {
-        onChange(e.target.value);
-    }, [onChange]);
+
 
 
 

@@ -4,8 +4,6 @@ import {Terminal} from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
 import {useConnection} from '@/context/useConnection';
 import {useSharedState} from '@/context/useSharedState';
-import notificationService from '@/services/notificationService';
-import log from '@/utils/logger';
 import './TerminalPanel.css';
 
 const TerminalPanel = () => {

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState, useMemo} from 'react';
+import React, {useEffect, useState, useMemo} from 'react';
 import { Panel } from '@ui/components';
 import agentService from '@/services/agentService';
 import {Footprints, Filter, Search} from 'lucide-react';
@@ -11,13 +11,7 @@ function ReasonerTracePanel() {
     const [activeTab, setActiveTab] = useState('all'); // 'all', 'inference', 'decision', 'revision'
     const [expandedSteps, setExpandedSteps] = useState(new Set());
 
-    const handleStep = useCallback((step) => {
-        setTrace(prev => [...prev, {
-            ...step,
-            id: Date.now() + Math.random(), // Unique ID for each step
-            timestamp: new Date().toISOString()
-        }]);
-    }, []);
+
 
         useEffect(() => {
         const handleStep = (step) => {

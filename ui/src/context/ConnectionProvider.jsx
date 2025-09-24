@@ -75,7 +75,7 @@ export function ConnectionProvider({children}) {
             agentService.off(MESSAGE_TYPES.ERROR, handleError);
             agentService.off(MESSAGE_TYPES.CONNECTION_STATS, handleConnectionStats);
         };
-    }, []);
+    }, [MAX_MESSAGE_HISTORY]);
 
     // Memoized callback to avoid unnecessary re-renders
     const sendMessage = useCallback((type, payload, retries = 3) => {

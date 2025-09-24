@@ -62,12 +62,5 @@ export function useNarsEventStream(capacity = 100) {
         size: eventBag.size,
         peek: () => eventBag.peek(),
         get: () => eventBag.get(),
-        getAll: () => {
-            const allEvents = [];
-            // Copy all events without consuming them - we need to use a different approach
-            // since we can't iterate through the bag without consuming
-            // Let's return a copy of the event bag
-            return eventBag;
-        }
     }), [eventBag]);
 }

@@ -17,7 +17,7 @@ const DebugPanel = () => {
     const { isSonificationEnabled } = useSettings();
     const { searchResults, isSearching, searchTerm } = useSearch();
     const { tasks } = useTasks();
-    const { activeSession, savedSessions } = useSession();
+    const { savedSessions } = useSession();
 
     const [debugInfo, setDebugInfo] = useState({});
     const [showSystemInfo, setShowSystemInfo] = useState(false);

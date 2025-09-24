@@ -1,5 +1,5 @@
 import React from 'react';
-import {render, screen, fireEvent} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import {ConnectionProvider} from '@/context/ConnectionProvider';
 import {SettingsProvider} from '@/context/SettingsProvider';
 import InputPanel from '@/features/interaction/InputPanel';
