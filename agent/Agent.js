@@ -1,6 +1,18 @@
 import {agentErrorHandler as errorHandler, createSystem, debug, parseTerm, Task, warn} from '@project/core';
 import MCP from './MCP.js';
 
+const termToActionParsers = {
+    Atomic: (term) => ({ tool: term.key, parameters: [] }),
+    SequentialConjunction: (term) => {
+        const [nameTerm, ...paramTerms] = term.terms;
+        return nameTerm ? {
+            tool: nameTerm.key,
+            parameters: paramTerms.map(t => t.key.replace(/"/g, ''))
+        } : null;
+    },
+    Conjunction: (term) => termToActionParsers.SequentialConjunction(term),
+};
+
 class Agent {
     constructor(config = {}) {
         this.system = null;
@@ -48,14 +60,11 @@ class Agent {
         const tool = this.tools[action.tool];
         if (!tool) throw new Error(`Tool not found: ${action.tool}`);
 
-        const {handler, parameters: toolParamsDef} = tool;
+        const { handler, parameters: toolParamsDef } = tool;
         const paramNames = Object.keys(toolParamsDef?.properties || {});
-        const params = paramNames.reduce((acc, paramName, i) => {
-            if (action.parameters[i]) {
-                acc[paramName] = action.parameters[i];
-            }
-            return acc;
-        }, {});
+        const params = Object.fromEntries(
+            paramNames.map((paramName, i) => [paramName, action.parameters[i]])
+        );
 
         return handler(params);
     }
@@ -63,21 +72,13 @@ class Agent {
     _parseTermToAction(term) {
         if (!term) return null;
 
-        switch (term.type) {
-            case 'Atomic':
-                return {tool: term.key, parameters: []};
-            case 'SequentialConjunction':
-            case 'Conjunction': {
-                const [nameTerm, ...paramTerms] = term.terms;
-                return nameTerm ? {
-                    tool: nameTerm.key,
-                    parameters: paramTerms.map(t => t.key.replace(/"/g, ''))
-                } : null;
-            }
-            default:
-                warn(`Cannot parse term of type '${term.type}' to an action:`, term);
-                return null;
+        const parser = termToActionParsers[term.type];
+        if (parser) {
+            return parser(term);
         }
+
+        warn(`Cannot parse term of type '${term.type}' to an action:`, term);
+        return null;
     }
 
     async createPlan(goalString) {
@@ -103,9 +104,8 @@ class Agent {
         if (!this.isInitialized) {
             throw new Error('Agent must be initialized before starting.');
         }
-        if (this.system && typeof this.system.start === 'function') {
-            this.system.start();
-        } else {
+        this.system?.start?.();
+        if (!this.system?.start) {
             debug('System does not have a start method.');
         }
     }
@@ -114,18 +114,15 @@ class Agent {
         if (!this.isInitialized) {
             throw new Error('Agent must be initialized before stopping.');
         }
-        if (this.system && typeof this.system.stop === 'function') {
-            this.system.stop();
-        } else {
+        this.system?.stop?.();
+        if (!this.system?.stop) {
             debug('System does not have a stop method.');
         }
     }
 
     async reset() {
-        if (this.system && typeof this.system.stop === 'function') {
-            this.system.stop(); // Stop any ongoing processes
-        }
-        await this.initialize(); // Re-initialize the agent
+        this.system?.stop?.();
+        await this.initialize();
     }
 }
 

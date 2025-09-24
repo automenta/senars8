@@ -7,46 +7,31 @@ import ReportGenerator from './ReportGenerator.js';
 const errorHandler = createUnifiedErrorHandler('Analyzer');
 
 class UnitTestAnalyzer {
-    constructor(config = {},
-                ingestor = new DataIngestor(config),
-                translator = new NarseseTranslator(config),
-                engine = new AnalysisEngine(config),
-                reportGenerator = new ReportGenerator(config)) {
-        this.config = {
-            enableCoverageAnalysis: config.enableCoverageAnalysis ?? true,
-            enablePerformanceAnalysis: config.enablePerformanceAnalysis ?? true,
-            enableFailureAnalysis: config.enableFailureAnalysis ?? true,
-            ...config
-        };
-
-        this.ingestor = ingestor;
-        this.translator = translator;
-        this.engine = engine;
-        this.reportGenerator = reportGenerator;
-
-        this.testData = null;
-        this.coverageData = null;
-        this.profilingData = null;
+    constructor({
+        enableCoverageAnalysis = true,
+        enablePerformanceAnalysis = true,
+        enableFailureAnalysis = true,
+        ...config
+    } = {}) {
+        this.config = { enableCoverageAnalysis, enablePerformanceAnalysis, enableFailureAnalysis, ...config };
+        this.ingestor = new DataIngestor(this.config);
+        this.translator = new NarseseTranslator(this.config);
+        this.engine = new AnalysisEngine(this.config);
+        this.reportGenerator = new ReportGenerator(this.config);
         this.analysisResults = null;
     }
 
     async analyzeTestData(testResults, coverageData = null, profilingData = null) {
         return errorHandler.execute(async () => {
-            // Ingest all data sources
-            this.testData = await this.ingestor.ingestTestResults(testResults);
+            const { enableCoverageAnalysis, enablePerformanceAnalysis } = this.config;
 
-            if (coverageData && this.config.enableCoverageAnalysis) {
-                this.coverageData = await this.ingestor.ingestCoverageData(coverageData);
-            }
+            const [testData, ingestedCoverageData, ingestedProfilingData] = await Promise.all([
+                this.ingestor.ingestTestResults(testResults),
+                enableCoverageAnalysis && coverageData ? this.ingestor.ingestCoverageData(coverageData) : Promise.resolve(null),
+                enablePerformanceAnalysis && profilingData ? this.ingestor.ingestProfilingData(profilingData) : Promise.resolve(null),
+            ]);
 
-            if (profilingData && this.config.enablePerformanceAnalysis) {
-                this.profilingData = await this.ingestor.ingestProfilingData(profilingData);
-            }
-
-            // Translate to Narsese
-            const narseseData = await this.translator.translate(this.testData, this.coverageData, this.profilingData);
-
-            // Analyze the data
+            const narseseData = await this.translator.translate(testData, ingestedCoverageData, ingestedProfilingData);
             this.analysisResults = await this.engine.analyze(narseseData, this.config);
 
             return this.analysisResults;
@@ -55,22 +40,22 @@ class UnitTestAnalyzer {
 
     generateReport(format = 'json') {
         return errorHandler.executeSync(() => {
-            if (!this.analysisResults) {
-                throw new Error('No analysis results available. Run analyzeTestData first.');
-            }
-
+            this._checkAnalysisResults();
             return this.reportGenerator.generate(this.analysisResults, format);
         }, 'generate-report', null);
     }
 
     async generateDetailedReport(format = 'html') {
         return errorHandler.execute(async () => {
-            if (!this.analysisResults) {
-                throw new Error('No analysis results available. Run analyzeTestData first.');
-            }
-
+            this._checkAnalysisResults();
             return await this.reportGenerator.generateDetailed(this.analysisResults, format);
         }, 'generate-detailed-report', null);
+    }
+
+    _checkAnalysisResults() {
+        if (!this.analysisResults) {
+            throw new Error('No analysis results available. Run analyzeTestData first.');
+        }
     }
 }
 
