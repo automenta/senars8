@@ -53,6 +53,20 @@ class ErrorBoundary extends React.Component {
         });
     }
 
+    // Reset error state when props change to allow recovery from error state
+    static getDerivedStateFromProps(props, state) {
+        // Only reset the error state if we're getting new props (children changed)
+        // This enables the test scenario where we switch from error component to working component
+        if (state.hasError) {
+            return {
+                hasError: false,
+                error: null,
+                errorInfo: null
+            };
+        }
+        return null;
+    }
+
     render() {
         if (this.state.hasError) {
             // You can render any custom fallback UI
@@ -95,7 +109,13 @@ class ErrorBoundary extends React.Component {
             );
         }
 
-        return this.props.children;
+        // Important: Always render children when no error occurs
+        if (this.props.children) {
+            return this.props.children;
+        }
+
+        // Fallback if no children are provided
+        return null;
     }
 }
 

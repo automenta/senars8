@@ -4,7 +4,7 @@ import {useSettings} from '@/context/useSettings';
 import {Volume2, VolumeX} from 'lucide-react';
 import './SonificationToggle.css';
 
-function SonificationToggle() {
+const SonificationToggle = () => {
     const {isSonificationEnabled, toggleSonification} = useSettings();
 
     return (
@@ -18,7 +18,9 @@ function SonificationToggle() {
             {isSonificationEnabled ? 'Sound On' : 'Sound Off'}
         </button>
     );
-}
+};
+
+SonificationToggle.displayName = 'SonificationToggle';
 
 SonificationToggle.propTypes = {};
 

@@ -2,16 +2,17 @@ import React, {useEffect, useState, useCallback, useMemo} from 'react';
 import agentService from '../services/agentService';
 import log from '@/utils/logger';
 import {ConnectionContext} from './ConnectionContext';
+import { UI_CONSTANTS, MESSAGE_TYPES, CONNECTION_STATUS } from '@/constants/ui';
 
 export function ConnectionProvider({children}) {
-    const [connectionStatus, setConnectionStatus] = useState('disconnected'); // 'disconnected', 'connecting', 'connected', 'failed'
+    const [connectionStatus, setConnectionStatus] = useState(CONNECTION_STATUS.DISCONNECTED); // 'disconnected', 'connecting', 'connected', 'failed'
     const [lastMessage, setLastMessage] = useState(null);
     const [connectionError, setConnectionError] = useState(null);
     const [connectionStats, setConnectionStats] = useState(null);
 
     // Track message history to prevent infinite loops
     const [messageHistory, setMessageHistory] = useState([]);
-    const MAX_MESSAGE_HISTORY = 50; // Limit to prevent excessive memory usage
+    const MAX_MESSAGE_HISTORY = UI_CONSTANTS.UI.MAX_MESSAGE_HISTORY; // Limit to prevent excessive memory usage
 
     useEffect(() => {
         // Event handlers
@@ -24,13 +25,23 @@ export function ConnectionProvider({children}) {
 
         const handleMessage = (message) => {
             // Add message to history with timestamp to prevent infinite loops
-            setMessageHistory(prev => {
-                const newHistory = [...prev, { ...message, timestamp: Date.now() }];
-                // Keep only the most recent messages
-                return newHistory.slice(-MAX_MESSAGE_HISTORY);
-            });
-            
-            setLastMessage(message);
+            try {
+                setMessageHistory(prev => {
+                    // Validate message before adding to history
+                    if (!message || typeof message !== 'object') {
+                        log.warn('Invalid message format received, skipping add to history:', message);
+                        return prev;
+                    }
+                    
+                    const newHistory = [...prev, { ...message, timestamp: Date.now() }];
+                    // Keep only the most recent messages
+                    return newHistory.slice(-MAX_MESSAGE_HISTORY);
+                });
+                
+                setLastMessage(message);
+            } catch (error) {
+                log.error('Error handling message:', error);
+            }
         };
 
         const handleError = (error) => {
@@ -43,21 +54,26 @@ export function ConnectionProvider({children}) {
         };
 
         // Register event listeners
-        agentService.on('status', handleStatusChange);
-        agentService.on('message', handleMessage);
-        agentService.on('error', handleError);
-        agentService.on('connection_stats', handleConnectionStats);
+        agentService.on(MESSAGE_TYPES.STATUS, handleStatusChange);
+        agentService.on(MESSAGE_TYPES.MESSAGE, handleMessage);
+        agentService.on(MESSAGE_TYPES.ERROR, handleError);
+        agentService.on(MESSAGE_TYPES.CONNECTION_STATS, handleConnectionStats);
 
         // Set initial state
-        setConnectionStatus(agentService.isConnected ? 'connected' : 'disconnected');
+        setConnectionStatus(agentService.isConnected ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED);
         setConnectionStats(agentService.getConnectionStats ? agentService.getConnectionStats() : null);
+        
+        // Check if agent service is already connected and update status if so
+        if (agentService.isConnected !== undefined) {
+            setConnectionStatus(agentService.isConnected ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED);
+        }
 
         return () => {
             // Clean up event listeners
-            agentService.off('status', handleStatusChange);
-            agentService.off('message', handleMessage);
-            agentService.off('error', handleError);
-            agentService.off('connection_stats', handleConnectionStats);
+            agentService.off(MESSAGE_TYPES.STATUS, handleStatusChange);
+            agentService.off(MESSAGE_TYPES.MESSAGE, handleMessage);
+            agentService.off(MESSAGE_TYPES.ERROR, handleError);
+            agentService.off(MESSAGE_TYPES.CONNECTION_STATS, handleConnectionStats);
         };
     }, []);
 
@@ -90,7 +106,7 @@ export function ConnectionProvider({children}) {
 
     // Memoize the context value to prevent unnecessary re-renders
     const value = useMemo(() => ({
-        isConnected: connectionStatus === 'connected',
+        isConnected: connectionStatus === CONNECTION_STATUS.CONNECTED,
         connectionStatus,
         sendMessage,
         lastMessage,

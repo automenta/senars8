@@ -1,19 +1,26 @@
 import {EventEmitter} from 'events';
 import log from '@/utils/logger';
+import { UI_CONSTANTS, NOTIFICATION_TYPES } from '@/constants/ui';
 
 class NotificationService extends EventEmitter {
     constructor() {
         super();
         this.notifications = [];
         this.nextId = 0;
-        this.maxNotifications = 100; // Limit to prevent memory issues
-        this.defaultDuration = 5000; // Default notification duration
+        this.maxNotifications = UI_CONSTANTS.UI.MAX_NOTIFICATIONS; // Limit to prevent memory issues
+        this.defaultDuration = UI_CONSTANTS.UI.DEFAULT_NOTIFICATION_DURATION; // Default notification duration
     }
 
     addNotification(notification) {
         // Validate notification object
         if (!notification || typeof notification !== 'object') {
             log.error('Invalid notification object provided');
+            return -1;
+        }
+        
+        // Validate required properties
+        if (!notification.title && !notification.message) {
+            log.error('Notification must have at least a title or message');
             return -1;
         }
 
@@ -45,43 +52,41 @@ class NotificationService extends EventEmitter {
         return newNotification.id;
     }
     
-    // Add convenience methods for different notification types
     addInfo(title, message, options = {}) {
         return this.addNotification({
             title,
             message,
-            type: 'info',
-            duration: options.duration || 5000, // Default 5 seconds
+            type: NOTIFICATION_TYPES.INFO,
             ...options
         });
     }
-    
+
     addSuccess(title, message, options = {}) {
         return this.addNotification({
             title,
             message,
-            type: 'success',
-            duration: options.duration || 4000, // Default 4 seconds
+            type: NOTIFICATION_TYPES.SUCCESS,
+            duration: 4000, // Custom duration for success notifications
             ...options
         });
     }
-    
+
     addWarning(title, message, options = {}) {
         return this.addNotification({
             title,
             message,
-            type: 'warning',
-            duration: options.duration || 7000, // Default 7 seconds
+            type: NOTIFICATION_TYPES.WARNING,
+            duration: 7000, // Custom duration for warning notifications
             ...options
         });
     }
-    
+
     addError(title, message, options = {}) {
         return this.addNotification({
             title,
             message,
-            type: 'error',
-            duration: options.duration || 8000, // Default 8 seconds
+            type: NOTIFICATION_TYPES.ERROR,
+            duration: 8000, // Custom duration for error notifications
             ...options
         });
     }

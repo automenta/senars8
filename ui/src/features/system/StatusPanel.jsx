@@ -5,6 +5,7 @@ import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import log from '@/utils/logger';
 import {Server, Wifi, WifiOff, Activity, Database, Zap, Thermometer, RotateCcw, BarChart2} from 'lucide-react';
+import { MESSAGE_TYPES } from '@/constants/ui';
 import './StatusPanel.css';
 
 function StatusPanel() {
@@ -73,12 +74,9 @@ function StatusPanel() {
         agentService.on('system_stats', handleStatsUpdate);
         agentService.on('error', handleStatsError);
 
-        // Request initial stats
-        try {
-            agentService.sendMessage('get_system_stats', {});
-        } catch (error) {
-            log.error('Failed to request initial stats:', error);
-        }
+        const getSystemStats = () => {
+            agentService.sendMessage(MESSAGE_TYPES.SYSTEM_STATS, {}, { expectResponse: true, timeout: 5000 });
+        };
 
         // Set up periodic updates
         const interval = setInterval(() => {

@@ -8,27 +8,35 @@ function NarseseInput({value, onChange, onSend, history, disabled = false}) {
     const handleKeyDown = (e) => {
         if (disabled) return;
         
-        if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            const newIndex = Math.min(historyIndex + 1, history.length - 1);
-            if (newIndex >= 0) {
+        try {
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                const newIndex = Math.min(historyIndex + 1, (history || []).length - 1);
+                if (newIndex >= 0) {
+                    setHistoryIndex(newIndex);
+                    onChange((history || [])[newIndex]);
+                }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                const newIndex = Math.max(historyIndex - 1, -1);
                 setHistoryIndex(newIndex);
-                onChange(history[newIndex]);
+                onChange(newIndex >= 0 ? (history || [])[newIndex] : '');
+            } else if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                onSend();
+                setHistoryIndex(-1);
             }
-        } else if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            const newIndex = Math.max(historyIndex - 1, -1);
-            setHistoryIndex(newIndex);
-            onChange(newIndex >= 0 ? history[newIndex] : '');
-        } else if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            onSend();
-            setHistoryIndex(-1);
+        } catch (error) {
+            console.error('Error in handleKeyDown:', error);
         }
     };
 
     const handleChange = (e) => {
-        onChange(e.target.value);
+        try {
+            onChange(e.target.value);
+        } catch (error) {
+            console.error('Error in handleChange:', error);
+        }
     };
 
     return (

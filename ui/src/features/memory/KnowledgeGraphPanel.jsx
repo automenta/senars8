@@ -4,6 +4,7 @@ import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import log from '@/utils/logger';
 import {Network} from 'lucide-react';
+import { MESSAGE_TYPES, UI_CONSTANTS } from '@/constants/ui';
 import ReactFlow, {
     MiniMap,
     Controls,
@@ -85,16 +86,39 @@ function KnowledgeGraphPanel() {
             try {
                 setKnowledgeItems(prev => {
                     // Validate the incoming data
-                    if (!Array.isArray(data)) {
-                        log.warn('Invalid knowledge data received:', data);
-                        notificationService.addWarning('Invalid Data', 'Received invalid knowledge data format');
+                    if (!data) {
+                        log.warn('Empty knowledge data received');
+                        notificationService.addWarning('Empty Data', 'Received empty knowledge data');
+                        return prev;
+                    }
+                    
+                    // Ensure data is an array
+                    const dataArray = Array.isArray(data) ? data : [data];
+                    
+                    // Validate each item in the array
+                    const validItems = dataArray.filter(item => {
+                        if (!item || typeof item !== 'object') {
+                            log.warn('Invalid knowledge item received:', item);
+                            return false;
+                        }
+                        // At least one of statement or term should exist
+                        if (!item.statement && !item.term) {
+                            log.warn('Knowledge item missing statement or term:', item);
+                            return false;
+                        }
+                        return true;
+                    });
+                    
+                    if (validItems.length === 0) {
+                        log.warn('No valid knowledge items to process');
+                        notificationService.addWarning('Invalid Data', 'No valid knowledge items found');
                         return prev;
                     }
                     
                     // Merge new data with existing data
-                    const combined = [...prev, ...data];
-                    // Remove duplicates based on statement
-                    const unique = Array.from(new Map(combined.map(item => [item.statement || item.term, item])).values());
+                    const combined = [...prev, ...validItems];
+                    // Remove duplicates based on statement or term
+                    const unique = Array.from(new Map(combined.map(item => [item.statement || item.term || item.id, item])).values());
                     return unique;
                 });
                 setIsLoading(false);
@@ -111,16 +135,16 @@ function KnowledgeGraphPanel() {
             setIsLoading(false);
         };
 
-        agentService.on('knowledge_graph_update', handleKnowledgeUpdate);
-        agentService.on('knowledge_graph_error', handleKnowledgeError);
+        agentService.on(MESSAGE_TYPES.KNOWLEDGE_GRAPH_UPDATE, handleKnowledgeUpdate);
+        agentService.on(MESSAGE_TYPES.KNOWLEDGE_GRAPH_ERROR, handleKnowledgeError);
         
         // Request initial knowledge data
         setIsLoading(true);
-        agentService.sendMessage('get_knowledge_graph_data', {}, { expectResponse: true, timeout: 15000 });
+        agentService.sendMessage(MESSAGE_TYPES.KNOWLEDGE_GRAPH_UPDATE.replace('_update', ''), {}, { expectResponse: true, timeout: UI_CONSTANTS.CONNECTION.MESSAGE_TIMEOUT });
         
         return () => {
-            agentService.off('knowledge_graph_update', handleKnowledgeUpdate);
-            agentService.off('knowledge_graph_error', handleKnowledgeError);
+            agentService.off(MESSAGE_TYPES.KNOWLEDGE_GRAPH_UPDATE, handleKnowledgeUpdate);
+            agentService.off(MESSAGE_TYPES.KNOWLEDGE_GRAPH_ERROR, handleKnowledgeError);
         };
     }, []);
 
@@ -128,7 +152,7 @@ function KnowledgeGraphPanel() {
 
     const handleRefresh = () => {
         setIsLoading(true);
-        agentService.sendMessage('get_knowledge_graph_data', {});
+        agentService.sendMessage(MESSAGE_TYPES.KNOWLEDGE_GRAPH_UPDATE.replace('_update', ''), {});
     };
 
     const handleClearGraph = () => {

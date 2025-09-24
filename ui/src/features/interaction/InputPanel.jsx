@@ -6,6 +6,7 @@ import {useConnection} from '@/context/useConnection';
 import useInputHistory from '@/hooks/useInputHistory';
 import log from '@/utils/logger';
 import {CornerDownLeft, HelpCircle, BookOpen, MessageCircle, Lightbulb, Bot, AlertCircle, Wifi, WifiOff} from 'lucide-react';
+import { MESSAGE_TYPES, UI_CONSTANTS } from '@/constants/ui';
 import './InputPanel.css';
 
 // Example natural language inputs for quick access
@@ -78,8 +79,8 @@ function InputPanel() {
         }
         
         // Check for maximum length
-        if (trimmed.length > 1000) {
-            return 'Input is too long (max 1000 characters)';
+        if (trimmed.length > UI_CONSTANTS.VALIDATION.MAX_INPUT_LENGTH) {
+            return `Input is too long (max ${UI_CONSTANTS.VALIDATION.MAX_INPUT_LENGTH} characters)`;
         }
         
         // Check for more Narsese syntax patterns
@@ -130,8 +131,8 @@ function InputPanel() {
         const lowerInput = sanitizedInput.toLowerCase();
         
         // Validation rules
-        if (sanitizedInput.length > 1000) {
-            return { type: 'invalid', action: 'error', error: 'Input too long (max 1000 characters)' };
+        if (sanitizedInput.length > UI_CONSTANTS.VALIDATION.MAX_INPUT_LENGTH) {
+            return { type: 'invalid', action: 'error', error: `Input too long (max ${UI_CONSTANTS.VALIDATION.MAX_INPUT_LENGTH} characters)` };
         }
         
         // Check for potentially dangerous content
@@ -222,13 +223,19 @@ function InputPanel() {
                     const sanitizedInput = inputValue.replace(/<[^>]*>/g, '').trim();
                     
                     // Send as natural language request
-                    const success = agentService.sendNaturalLanguage(sanitizedInput, intent);
-                    if (success) {
-                        addToHistory(sanitizedInput);
-                        notificationService.addSuccess('Message Sent', 'Natural language message sent successfully');
-                    } else {
-                        setValidationError('Failed to send message. It has been queued for delivery.');
-                        notificationService.addInfo('Message Queued', 'Message queued for delivery when connection is restored');
+                    try {
+                        const success = agentService.sendNaturalLanguage(sanitizedInput, intent);
+                        if (success) {
+                            addToHistory(sanitizedInput);
+                            notificationService.addSuccess('Message Sent', 'Natural language message sent successfully');
+                        } else {
+                            setValidationError('Failed to send message. It has been queued for delivery.');
+                            notificationService.addInfo('Message Queued', 'Message queued for delivery when connection is restored');
+                        }
+                    } catch (error) {
+                        log.error('Error sending natural language message:', error);
+                        setValidationError('Failed to send message due to an error.');
+                        notificationService.addError('Send Error', 'Failed to send natural language message');
                     }
                 } catch (error) {
                     log.error('Error processing natural language input:', error);
@@ -247,13 +254,19 @@ function InputPanel() {
                     }
                     
                     setValidationError('');
-                    const success = agentService.sendNarsese(inputValue);
-                    if (success) {
-                        addToHistory(inputValue);
-                        notificationService.addSuccess('Narsese Sent', 'Narsese statement sent successfully');
-                    } else {
-                        setValidationError('Failed to send message. It has been queued for delivery.');
-                        notificationService.addInfo('Message Queued', 'Message queued for delivery when connection is restored');
+                    try {
+                        const success = agentService.sendNarsese(inputValue);
+                        if (success) {
+                            addToHistory(inputValue);
+                            notificationService.addSuccess('Narsese Sent', 'Narsese statement sent successfully');
+                        } else {
+                            setValidationError('Failed to send message. It has been queued for delivery.');
+                            notificationService.addInfo('Message Queued', 'Message queued for delivery when connection is restored');
+                        }
+                    } catch (error) {
+                        log.error('Error sending Narsese message:', error);
+                        setValidationError('Failed to send Narsese message due to an error.');
+                        notificationService.addError('Send Error', 'Failed to send Narsese message');
                     }
                 } catch (error) {
                     log.error('Error processing Narsese input:', error);

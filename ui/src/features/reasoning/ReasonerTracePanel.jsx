@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useState, useMemo} from 'react';
 import { Panel } from '@ui/components';
 import agentService from '@/services/agentService';
 import {Footprints, Filter, Search} from 'lucide-react';
+import { MESSAGE_TYPES } from '@/constants/ui';
 import './ReasonerTracePanel.css';
 
 function ReasonerTracePanel() {
@@ -18,10 +19,21 @@ function ReasonerTracePanel() {
         }]);
     }, []);
 
-    useEffect(() => {
-        agentService.on('reasoning_step', handleStep);
-        return () => agentService.off('reasoning_step', handleStep);
-    }, [handleStep]);
+        useEffect(() => {
+        const handleStep = (step) => {
+            setTrace(prev => [...prev, {
+                ...step,
+                id: Date.now() + Math.random(), // Unique ID for each step
+                timestamp: new Date().toISOString()
+            }]);
+        };
+
+        agentService.on(MESSAGE_TYPES.REASONING_TRACE, handleStep);
+
+        return () => {
+            agentService.off(MESSAGE_TYPES.REASONING_TRACE, handleStep);
+        };
+    }, []);
 
     // Filter and categorize trace steps
     const filteredTrace = useMemo(() => {

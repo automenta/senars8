@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {X} from 'lucide-react';
 import './Toast.css';
 
-function Toast({notification, onDismiss}) {
+const Toast = ({notification, onDismiss}) => {
     useEffect(() => {
         if (notification.duration) {
             const timer = setTimeout(() => {
@@ -28,7 +28,9 @@ function Toast({notification, onDismiss}) {
             </div>
         </div>
     );
-}
+};
+
+Toast.displayName = 'Toast';
 
 Toast.propTypes = {
     notification: PropTypes.shape({

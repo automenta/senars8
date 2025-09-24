@@ -2,6 +2,7 @@ import {EventEmitter} from 'events';
 import * as Y from 'yjs';
 import {WebsocketProvider} from 'y-websocket';
 import log from '@/utils/logger';
+import { UI_CONSTANTS, MESSAGE_TYPES } from '@/constants/ui';
 
 class AgentService extends EventEmitter {
     constructor() {
@@ -12,8 +13,8 @@ class AgentService extends EventEmitter {
         this.isConnected = false;
         this.isConnecting = false;  // Track connection state to avoid multiple connection attempts
         this.reconnectAttempts = 0;
-        this.maxReconnectAttempts = 10;
-        this.reconnectDelay = 3000; // 3 seconds
+        this.maxReconnectAttempts = UI_CONSTANTS.CONNECTION.MAX_RECONNECT_ATTEMPTS;
+        this.reconnectDelay = UI_CONSTANTS.CONNECTION.RECONNECT_DELAY; // 3 seconds
         this.reconnectTimer = null;
         this.connectionStartTime = null;
         
@@ -76,8 +77,8 @@ class AgentService extends EventEmitter {
                     this.reconnectTimer = null;
                 }
                 
-                this.emit('status', 'connected');
-                this.emit('connection_stats', this.connectionStats);
+                this.emit(MESSAGE_TYPES.STATUS, 'connected');
+                this.emit(MESSAGE_TYPES.CONNECTION_STATS, this.connectionStats);
                 log.info('WebSocket connected successfully');
                 
                 // Send any pending messages
@@ -90,7 +91,7 @@ class AgentService extends EventEmitter {
                 this.connectionStats.lastDisconnection = new Date();
                 
                 log.info(`WebSocket disconnected: ${event.reason || 'no reason'}. Code: ${event.code}`);
-                this.emit('status', 'disconnected');
+                this.emit(MESSAGE_TYPES.STATUS, 'disconnected');
                 
                 // Attempt to reconnect unless it was a deliberate close
                 if (event.code !== 1000) { // 1000 is normal closure
@@ -101,17 +102,23 @@ class AgentService extends EventEmitter {
             this.ws.onmessage = (event) => {
                 try {
                     const message = JSON.parse(event.data);
+                    // Validate message structure
+                    if (!message || typeof message !== 'object' || !message.type) {
+                        log.error('Invalid message format received:', event.data);
+                        return;
+                    }
+                    
                     this.emit(message.type, message.payload);
-                    this.emit('message', message); // Also emit a generic message event
+                    this.emit(MESSAGE_TYPES.MESSAGE, message); // Also emit a generic message event
                 } catch (error) {
                     log.error('Failed to parse incoming message:', event.data, error);
-                    this.emit('error', { type: 'parse_error', message: event.data, error: error.message });
+                    this.emit(MESSAGE_TYPES.ERROR, { type: MESSAGE_TYPES.PARSE_ERROR, message: event.data, error: error.message });
                 }
             };
 
             this.ws.onerror = (error) => {
                 log.error('WebSocket error:', error);
-                this.emit('error', error);
+                this.emit(MESSAGE_TYPES.ERROR, error);
             };
         } catch (error) {
             log.error('Failed to establish WebSocket connection:', error);
@@ -135,8 +142,8 @@ class AgentService extends EventEmitter {
             }, this.reconnectDelay);
         } else {
             log.error('Max reconnection attempts reached, giving up.');
-            this.emit('status', 'failed');
-            this.emit('connection_stats', this.connectionStats);
+            this.emit(MESSAGE_TYPES.STATUS, 'failed');
+                this.emit(MESSAGE_TYPES.CONNECTION_STATS, this.connectionStats);
         }
     }
     
@@ -216,7 +223,7 @@ class AgentService extends EventEmitter {
             if (options.expectResponse) {
                 const timeoutId = setTimeout(() => {
                     log.warn(`Message ${messageObj.id} timed out after ${timeout}ms`);
-                    this.emit('message_timeout', { message: messageObj, timeout });
+                    this.emit(MESSAGE_TYPES.MESSAGE_TIMEOUT, { message: messageObj, timeout });
                 }, timeout);
                 
                 // Store timeout ID for potential cleanup
@@ -226,8 +233,15 @@ class AgentService extends EventEmitter {
             const messageStr = JSON.stringify({type, payload});
             
             // Validate that the message string is not too large (avoid WebSocket limits)
-            if (messageStr.length > 64 * 1024) { // 64KB limit
+            if (messageStr.length > UI_CONSTANTS.CONNECTION.PENDING_MESSAGE_MAX_SIZE) { // 64KB limit
                 log.error(`Message too large to send: ${messageStr.length} bytes`);
+                return false;
+            }
+            
+            // Verify WebSocket is still open before sending
+            if (this.ws.readyState !== WebSocket.OPEN) {
+                log.error('WebSocket is not open, cannot send message');
+                this.pendingMessages.push(messageObj);
                 return false;
             }
             
@@ -235,7 +249,7 @@ class AgentService extends EventEmitter {
             return true;
         } catch (error) {
             log.error('Failed to send message:', error);
-            this.emit('error', { type: 'send_error', message: { type, payload }, error: error.message });
+            this.emit(MESSAGE_TYPES.SEND_ERROR, { type: MESSAGE_TYPES.SEND_ERROR, message: { type, payload }, error: error.message });
             
             // Add to pending messages and attempt to reconnect
             this.pendingMessages.push(messageObj);

@@ -44,7 +44,7 @@ describe('NotificationService', () => {
             title: 'Success Title',
             message: 'Success message',
             type: 'success',
-            duration: 4000
+            duration: 4000  // Default success notification duration
         });
     });
 
