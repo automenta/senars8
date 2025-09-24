@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useCallback, useMemo} from 'react';
-import Panel from '@/components/Panel';
+import { Panel } from '@/components';
 import agentService from '@/services/agentService';
 import {Network} from 'lucide-react';
 import ReactFlow, {

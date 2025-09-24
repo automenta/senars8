@@ -1,10 +1,10 @@
 // Core components
-export { default as Panel } from './core/Panel';
-export { default as SonificationToggle } from './core/SonificationToggle';
+export { default as Panel } from '@ui/components/Panel';
+export { default as SonificationToggle } from '@ui/components/SonificationToggle';
 
 // UI components
-export { default as NarseseInput } from './ui/NarseseInput';
-export { default as NotificationCenter } from './ui/NotificationCenter';
-export { default as SendButton } from './ui/SendButton';
-export { default as StatusBar } from './ui/StatusBar';
-export { default as Toast } from './ui/Toast';
+export { default as NarseseInput } from '@ui/components/NarseseInput';
+export { default as NotificationCenter } from '@ui/components/NotificationCenter';
+export { default as SendButton } from '@ui/components/SendButton';
+export { default as StatusBar } from '@ui/components/StatusBar';
+export { default as Toast } from '@ui/components/Toast';

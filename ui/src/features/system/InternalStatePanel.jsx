@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import Panel from '@/components/Panel';
+import { Panel } from '@/components';
 import agentService from '@/services/agentService';
 import {Thermometer, Activity, Brain, Zap, Clock} from 'lucide-react';
 import './InternalStatePanel.css';

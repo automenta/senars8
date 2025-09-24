@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Panel from '@/components/Panel';
+import { Panel } from '@/components';
 import {HelpCircle, Book, Code, Zap, Network, Brain} from 'lucide-react';
 import './HelpPanel.css';
 
