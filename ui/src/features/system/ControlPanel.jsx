@@ -1,5 +1,5 @@
 import React from 'react';
-import { Panel } from '@/components';
+import { Panel } from '@ui/components';
 import agentService from '@/services/agentService';
 import {useConnection} from '@/context/ConnectionProvider';
 import {Play, RotateCcw, Settings, Square} from 'lucide-react';

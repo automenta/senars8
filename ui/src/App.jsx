@@ -2,7 +2,7 @@ import React, {useRef} from 'react';
 import {Layout} from 'flexlayout-react';
 import 'flexlayout-react/style/light.css';
 import panelRegistry from '@/features/panelRegistry';
-import StatusBar from '@/components/StatusBar';
+import StatusBar from '@ui/components/StatusBar';
 import useAppInit from '@/hooks/useAppInit';
 import useLayoutModel from '@/hooks/useLayoutModel';
 import './App.css';

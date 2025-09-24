@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState, useMemo} from 'react';
-import { Panel } from '@/components';
+import { Panel } from '@ui/components';
 import agentService from '@/services/agentService';
 import {Footprints, Filter, Search} from 'lucide-react';
 import './ReasonerTracePanel.css';

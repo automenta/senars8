@@ -85,6 +85,10 @@ class AgentService extends EventEmitter {
         this.sendMessage('narsese', narsese);
     }
 
+    sendNaturalLanguage(text, intent) {
+        this.sendMessage('natural_language', { text, intent });
+    }
+
     sendAgentControl(command) {
         this.sendMessage('agentControl', {command});
     }

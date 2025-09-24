@@ -1,5 +1,5 @@
 import React, {useEffect, useRef} from 'react';
-import { Panel } from '@/components';
+import { Panel } from '@ui/components';
 import {useNarsEventStream} from '@/hooks/useNarsEventStream';
 import {ScrollText} from 'lucide-react';
 import './LogPanel.css';

@@ -7,53 +7,40 @@ const defaultLayout = {
         children: [
             {
                 type: 'tabset',
-                weight: 20,
+                weight: 70,
                 selected: 0,
                 children: [
                     {
                         type: 'tab',
-                        name: 'Files',
-                        component: 'file-explorer',
+                        name: 'Chat',
+                        component: 'input',  // Enhanced input panel
+                    },
+                    {
+                        type: 'tab',
+                        name: 'Memory',
+                        component: 'memory-view',
                     },
                 ],
             },
             {
-                type: 'row',
-                weight: 80,
+                type: 'tabset',
+                weight: 30,
+                selected: 0,
                 children: [
                     {
-                        type: 'tabset',
-                        weight: 70,
-                        selected: 0,
-                        children: [
-                            {
-                                type: 'tab',
-                                name: 'Editor',
-                                component: 'code-editor',
-                            },
-                        ],
+                        type: 'tab',
+                        name: 'Reasoning Trace',
+                        component: 'reasoner-trace',
                     },
                     {
-                        type: 'tabset',
-                        weight: 30,
-                        selected: 0,
-                        children: [
-                            {
-                                type: 'tab',
-                                name: 'Terminal',
-                                component: 'terminal',
-                            },
-                            {
-                                type: 'tab',
-                                name: 'Input',
-                                component: 'input',
-                            },
-                            {
-                                type: 'tab',
-                                name: 'Log',
-                                component: 'log',
-                            },
-                        ],
+                        type: 'tab',
+                        name: 'Internal State',
+                        component: 'internal-state',
+                    },
+                    {
+                        type: 'tab',
+                        name: 'Status',
+                        component: 'status',
                     },
                 ],
             },

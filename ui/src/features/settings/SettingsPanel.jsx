@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import { Panel } from '@/components';
+import { Panel } from '@ui/components';
 import agentService from '@/services/agentService';
 import {Settings as SettingsIcon, Save, RotateCcw, Download, Upload} from 'lucide-react';
 import './SettingsPanel.css';

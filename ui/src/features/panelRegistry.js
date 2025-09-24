@@ -12,11 +12,13 @@ import CodeEditorPanel from './editor/CodeEditorPanel';
 import TerminalPanel from './terminal/TerminalPanel';
 import LayoutManagerPanel from './LayoutManagerPanel';
 import HelpPanel from './help/HelpPanel';
+import ConversationHistoryPanel from './interaction/ConversationHistoryPanel';
 
 const panelRegistry = {
     control: ControlPanel,
     status: StatusPanel,
     input: InputPanel,
+    'conversation-history': ConversationHistoryPanel,
     log: LogPanel,
     'memory-view': MemoryViewPanel,
     'knowledge-graph': KnowledgeGraphPanel,

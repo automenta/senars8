@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useCallback} from 'react';
-import { Panel } from '@/components';
+import { Panel } from '@ui/components';
 import agentService from '@/services/agentService';
 import {BrainCircuit, Search, Filter} from 'lucide-react';
 import './MemoryViewPanel.css';

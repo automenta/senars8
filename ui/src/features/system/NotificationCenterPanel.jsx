@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { Panel, NotificationCenter } from '@/components';
+import { Panel, NotificationCenter } from '@ui/components';
 import notificationService from '@/services/notificationService';
 import {Bell, Filter, SortDesc, Trash2} from 'lucide-react';
 import './NotificationCenterPanel.css';

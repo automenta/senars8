@@ -1,13 +1,24 @@
 import React, {useState} from 'react';
-import { Panel, NarseseInput, SendButton } from '@/components';
+import { Panel, SendButton, EnhancedInput } from '@ui/components';
 import agentService from '@/services/agentService';
 import {useConnection} from '@/context/ConnectionProvider';
 import useInputHistory from '@/hooks/useInputHistory';
-import {CornerDownLeft, HelpCircle, BookOpen} from 'lucide-react';
+import {CornerDownLeft, HelpCircle, BookOpen, MessageCircle, Lightbulb, Bot} from 'lucide-react';
 import './InputPanel.css';
 
+// Example natural language inputs for quick access
+const NATURAL_EXAMPLES = [
+    'Tell me about birds',
+    'What is a robin?',
+    'Do birds fly?',
+    'Explain the concept of animal',
+    'How are birds and animals related?',
+    'What can you tell me about TOM?',
+    'Is the book interesting?',
+];
+
 // Example Narsese statements for quick access
-const EXAMPLES = [
+const NARSESE_EXAMPLES = [
     '<robin --> bird>.',
     '<bird --> animal>.',
     '(&&, <robin --> bird>, <robin --> animal>)?',
@@ -22,7 +33,10 @@ function InputPanel() {
     const {inputValue, setInputValue, history, addToHistory} = useInputHistory();
     const [showExamples, setShowExamples] = useState(false);
     const [validationError, setValidationError] = useState('');
+    const [inputMode, setInputMode] = useState('natural'); // Can be 'natural' or 'narsese'
+    const [suggestedResponses, setSuggestedResponses] = useState([]);
 
+    // Validate Narsese input
     const validateNarsese = (input) => {
         // Basic validation - check if input ends with '.' or '?'
         const trimmed = input.trim();
@@ -32,8 +46,40 @@ function InputPanel() {
         return '';
     };
 
+    // Simple intent recognition for natural language
+    const recognizeIntent = (input) => {
+        const lowerInput = input.toLowerCase();
+        
+        // Simple rule-based intent recognition
+        if (lowerInput.includes('hello') || lowerInput.includes('hi') || lowerInput.includes('hey')) {
+            return { type: 'greeting', action: 'greet' };
+        } else if (lowerInput.includes('what') || lowerInput.includes('how') || lowerInput.includes('?')) {
+            return { type: 'question', action: 'answer' };
+        } else if (lowerInput.includes('tell') || lowerInput.includes('explain')) {
+            return { type: 'request_info', action: 'provide_info' };
+        } else if (lowerInput.includes('help')) {
+            return { type: 'help_request', action: 'provide_help' };
+        } else {
+            return { type: 'statement', action: 'process' };
+        }
+    };
+
     const handleSend = () => {
-        if (inputValue.trim()) {
+        if (!inputValue.trim()) return;
+
+        // Process based on input mode
+        if (inputMode === 'natural') {
+            // Recognize intent from natural language
+            const intent = recognizeIntent(inputValue);
+            
+            // Generate suggested follow-up responses based on context
+            generateSuggestedResponses(inputValue, intent);
+            
+            // Send as natural language request
+            agentService.sendNaturalLanguage(inputValue, intent);
+            addToHistory(inputValue);
+        } else {
+            // Narsese mode
             const error = validateNarsese(inputValue);
             if (error) {
                 setValidationError(error);
@@ -44,6 +90,35 @@ function InputPanel() {
             agentService.sendNarsese(inputValue);
             addToHistory(inputValue);
         }
+        
+        // Clear input after sending
+        setInputValue('');
+        setValidationError('');
+    };
+
+    // Generate suggested responses based on user input and intent
+    const generateSuggestedResponses = (input, intent) => {
+        const suggestions = [];
+        const lowerInput = input.toLowerCase();
+
+        if (intent.type === 'question') {
+            if (lowerInput.includes('bird')) {
+                suggestions.push("What is the relationship between birds and animals?");
+            } else if (lowerInput.includes('animal')) {
+                suggestions.push("Can you give examples of animals?");
+            } else {
+                suggestions.push("Can you elaborate on that?");
+                suggestions.push("What else can you tell me about this?");
+            }
+        } else if (intent.type === 'greeting') {
+            suggestions.push("What can you help me with?");
+            suggestions.push("Tell me something interesting.");
+        } else if (lowerInput.includes('bird') || lowerInput.includes('robin')) {
+            suggestions.push("Do birds fly?");
+            suggestions.push("What other birds are there?");
+        }
+
+        setSuggestedResponses(suggestions.slice(0, 3)); // Limit to 3 suggestions
     };
 
     const handleExampleClick = (example) => {
@@ -54,10 +129,14 @@ function InputPanel() {
     const handleClear = () => {
         setInputValue('');
         setValidationError('');
+        setSuggestedResponses([]);
     };
 
+    const currentExamples = inputMode === 'natural' ? NATURAL_EXAMPLES : NARSESE_EXAMPLES;
+    const examplesTitle = inputMode === 'natural' ? 'Natural Language Examples' : 'Narsese Examples';
+
     return (
-        <Panel title={<><CornerDownLeft size={18}/> User Input</>}>
+        <Panel title={<><MessageCircle size={18}/> Chat</>}>
             <div className="input-panel-wrapper">
                 <div className="input-panel-header">
                     <button 
@@ -80,9 +159,9 @@ function InputPanel() {
                 
                 {showExamples && (
                     <div className="examples-container">
-                        <h4>Common Narsese Examples:</h4>
+                        <h4>{examplesTitle}:</h4>
                         <div className="examples-grid">
-                            {EXAMPLES.map((example, index) => (
+                            {currentExamples.map((example, index) => (
                                 <button
                                     key={index}
                                     className="example-item"
@@ -101,11 +180,13 @@ function InputPanel() {
                     </div>
                 )}
                 
-                <NarseseInput
+                <EnhancedInput
                     value={inputValue}
                     onChange={setInputValue}
                     onSend={handleSend}
                     history={history}
+                    inputMode={inputMode}
+                    setMode={setInputMode}
                 />
                 
                 <div className="input-panel-actions">
@@ -118,6 +199,24 @@ function InputPanel() {
                         Clear
                     </button>
                 </div>
+                
+                {/* Show suggested responses */}
+                {suggestedResponses.length > 0 && (
+                    <div className="suggested-responses">
+                        <h4><Lightbulb size={14} /> Suggestions:</h4>
+                        <div className="suggestions-grid">
+                            {suggestedResponses.map((suggestion, index) => (
+                                <button
+                                    key={index}
+                                    className="suggestion-item"
+                                    onClick={() => setInputValue(suggestion)}
+                                >
+                                    {suggestion}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
                 
                 {history.length > 0 && (
                     <div className="input-history">
