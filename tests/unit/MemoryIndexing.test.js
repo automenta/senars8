@@ -1,7 +1,6 @@
-import MemoryIndexer from '../../src/memory/MemoryIndexer.js';
-import Task from '../../src/core/Task.js';
-import Term from '../../src/core/Term.js';
-import {parseTerm} from '../../src/parser/narseseParser.js';
+import MemoryIndexer from '../../core/memory/MemoryIndexer.js';
+import Task from '../../core/core/Task.js';
+import {parseTerm} from '../../core/parser/narseseParser.js';
 
 describe('MemoryIndexer', () => {
     let indexer;
@@ -11,16 +10,7 @@ describe('MemoryIndexer', () => {
     });
 
     test('should index implication terms correctly', () => {
-        const term = new Term('(goal ==> action)');
-        term.type = 'Implication';
-        term.subject = {
-            key: 'goal',
-            type: 'Atomic'
-        };
-        term.predicate = {
-            key: 'action',
-            type: 'Atomic'
-        };
+        const term = parseTerm('(goal ==> action)');
         indexer.indexTerm(term);
         expect(indexer.implicationIndex.has('goal')).toBe(true);
         expect(indexer.implicationIndex.get('goal')).toContain(term);
@@ -72,16 +62,7 @@ describe('MemoryIndexer', () => {
     });
 
     test('should clone the indexer correctly', () => {
-        const term = new Term('(goal ==> action)');
-        term.type = 'Implication';
-        term.subject = {
-            key: 'goal',
-            type: 'Atomic'
-        };
-        term.predicate = {
-            key: 'action',
-            type: 'Atomic'
-        };
+        const term = parseTerm('(goal ==> action)');
         indexer.indexTerm(term);
         const task = new Task(parseTerm('belief'), '.');
         indexer.indexTask(task);

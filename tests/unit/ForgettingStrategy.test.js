@@ -1,6 +1,6 @@
-import TimeBasedForgettingStrategy from '../../src/memory/strategies/TimeBasedForgettingStrategy.js';
-import Task from '../../src/core/Task.js';
-import {parseTerm} from '../../src/parser/narseseParser.js';
+import TimeBasedForgettingStrategy from '../../core/memory/strategies/TimeBasedForgettingStrategy.js';
+import Task from '../../core/core/Task.js';
+import {parseTerm} from '../../core/parser/narseseParser.js';
 
 const createTask = (term, {
     lastAccessed,

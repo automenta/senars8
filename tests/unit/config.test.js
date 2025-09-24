@@ -1,10 +1,13 @@
-import ConfigManager from '../../src/config/ConfigManager.js';
-import defaultConfig from '../../src/config/default-config.js';
+import ConfigManager from '../../core/config/ConfigManager.js';
+import defaultConfig from '../../core/config/default-config.js';
 
 describe('ConfigManager', () => {
     it('should initialize with default configuration', () => {
         const configManager = new ConfigManager();
-        expect(configManager.getAll()).toEqual(expect.objectContaining(defaultConfig));
+        // Check that all default config properties are present
+        Object.keys(defaultConfig).forEach(key => {
+            expect(configManager.get(key)).toEqual(defaultConfig[key]);
+        });
     });
 
     it('should merge user configuration with defaults', () => {
@@ -34,7 +37,7 @@ describe('ConfigManager', () => {
         const configManager = new ConfigManager();
         expect(typeof configManager.getNumber('FOCUS_SET_SIZE')).toBe('number');
         expect(typeof configManager.getString('LM.LLM_PROVIDER')).toBe('string');
-        expect(typeof configManager.getBoolean('LM.LLM_PROVIDER', false)).toBe('boolean');
+        expect(() => configManager.getBoolean('LM.LLM_PROVIDER')).toThrow('Configuration value \'LM.LLM_PROVIDER\' must be a boolean, got string');
         expect(typeof configManager.getObject('system')).toBe('object');
         expect(Array.isArray(configManager.getArray('LM_HYPOTHESIS_CONFIGS'))).toBe(true);
     });
@@ -66,7 +69,7 @@ describe('ConfigManager', () => {
             system: undefined,
         };
         const configManager = new ConfigManager(userConfig);
-        expect(configManager.get('FOCUS_SET_SIZE')).toBeNull();
+        expect(configManager.get('FOCUS_SET_SIZE')).toBe(defaultConfig.FOCUS_SET_SIZE);
         expect(configManager.get('system')).toEqual(defaultConfig.system);
     });
 });

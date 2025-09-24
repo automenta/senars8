@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@core/*": [
+        "core/*"
+      ],
+      "@agent/*": [
+        "agent/*"
+      ],
+      "@ui/*": [
+        "ui/*"
+      ]
+    }
+  }
+}

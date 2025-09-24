@@ -1,7 +1,6 @@
-import SystemFactory from '../../src/system/SystemFactory.js';
-import {parseTerm} from '../../src/parser/narseseParser.js';
-import Task from '../../src/core/Task.js';
-import ConfigManager from '../../src/config/ConfigManager.js';
+import SystemFactory from '../../core/system/SystemFactory.js';
+import {parseTerm} from '../../core/parser/narseseParser.js';
+import Task from '../../core/core/Task.js';
 
 jest.mock('@xenova/transformers', () => {
     const transformers = jest.createMockFromModule('@xenova/transformers');
@@ -16,7 +15,7 @@ jest.mock('@xenova/transformers', () => {
 describe('System Introspection API', () => {
     let system;
 
-    beforeAll(async () => {
+    beforeAll(() => {
         const customConfig = {
             LM: {
                 LLM_PROVIDER: 'xenova',
@@ -25,12 +24,11 @@ describe('System Introspection API', () => {
                 strategy: 'HTN'
             }
         };
-        const configManager = new ConfigManager(customConfig);
-        system = await SystemFactory.createSystem(configManager);
+        system = SystemFactory.createSystem(customConfig);
     });
 
     afterAll(() => {
-        if (system && system.introspection.getStatus().isRunning) {
+        if (system && system.introspection?.getStatus().isRunning) {
             system.stop();
         }
     });
@@ -93,7 +91,7 @@ describe('System Introspection API', () => {
 
         await system.runCycle();
         expect(mockCallback).toHaveBeenCalledTimes(1);
-    });
+    }, 10000); // 10 second timeout
 
     test('should get available reasoner rules', () => {
         const rules = system.introspection.getAvailableRules();

@@ -1,0 +1,12 @@
+{
+  "name": "@project/agent",
+  "private": true,
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "@project/core": "file:../core"
+  },
+  "scripts": {
+    "dev": "node server.js"
+  }
+}

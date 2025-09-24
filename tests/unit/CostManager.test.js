@@ -1,8 +1,8 @@
-import CostManager from '../../src/reasoner/CostManager.js';
-import Term from '../../src/core/Term.js';
-import Memory from '../../src/memory/Memory.js';
+import CostManager from '../../core/reasoner/CostManager.js';
+import Term from '../../core/core/Term.js';
+import Memory from '../../core/memory/Memory.js';
 
-jest.mock('../../src/core/Term.js', () => {
+jest.mock('../../core/core/Term.js', () => {
     return jest.fn().mockImplementation(key => {
         const termInstance = {
             key,
@@ -20,7 +20,7 @@ jest.mock('../../src/core/Term.js', () => {
         });
     });
 });
-jest.mock('../../src/memory/Memory.js');
+jest.mock('../../core/memory/Memory.js');
 
 describe('CostManager', () => {
     let memory;

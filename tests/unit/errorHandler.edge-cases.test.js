@@ -1,25 +1,13 @@
 import {
-    createInferenceError,
-    createMemoryError,
+    createError,
     createModuleErrorHandler,
-    createParseError,
-    createPlanningError,
-    createValidationError,
+    Errors,
     handleError,
     handleErrorWithDefault,
-    InferenceError,
-    isInferenceError,
-    isMemoryError,
-    isParseError,
-    isPlanningError,
-    isValidationError,
-    MemoryError,
-    ParseError,
-    PlanningError,
+    isError,
     safeAsync,
-    safeSync,
-    ValidationError
-} from '../../src/utils/errorHandler.js';
+    safeSync
+} from '../../core/utils/errorHandler.js';
 
 describe('Error Handler - Edge Cases', () => {
     test('should handle null and undefined errors', async () => {
@@ -62,63 +50,63 @@ describe('Error Handler - Edge Cases', () => {
         const context = 'TestContext';
 
         // Test ValidationError
-        const validationError = createValidationError('validation failed', context);
-        expect(validationError).toBeInstanceOf(ValidationError);
+        const validationError = createError.ValidationError('validation failed', context);
+        expect(validationError).toBeInstanceOf(Errors.ValidationError);
         expect(validationError.context).toBe(context);
 
         // Test ParseError
-        const parseError = createParseError('parse failed', context);
-        expect(parseError).toBeInstanceOf(ParseError);
+        const parseError = createError.ParseError('parse failed', context);
+        expect(parseError).toBeInstanceOf(Errors.ParseError);
         expect(parseError.context).toBe(context);
 
         // Test InferenceError
-        const inferenceError = createInferenceError('inference failed', context);
-        expect(inferenceError).toBeInstanceOf(InferenceError);
+        const inferenceError = createError.InferenceError('inference failed', context);
+        expect(inferenceError).toBeInstanceOf(Errors.InferenceError);
         expect(inferenceError.context).toBe(context);
 
         // Test PlanningError
-        const planningError = createPlanningError('planning failed', context);
-        expect(planningError).toBeInstanceOf(PlanningError);
+        const planningError = createError.PlanningError('planning failed', context);
+        expect(planningError).toBeInstanceOf(Errors.PlanningError);
         expect(planningError.context).toBe(context);
 
         // Test MemoryError
-        const memoryError = createMemoryError('memory failed', context);
-        expect(memoryError).toBeInstanceOf(MemoryError);
+        const memoryError = createError.MemoryError('memory failed', context);
+        expect(memoryError).toBeInstanceOf(Errors.MemoryError);
         expect(memoryError.context).toBe(context);
     });
 
     test('should handle error type checking', () => {
-        const validationError = new ValidationError('validation error');
-        const parseError = new ParseError('parse error');
-        const inferenceError = new InferenceError('inference error');
-        const planningError = new PlanningError('planning error');
-        const memoryError = new MemoryError('memory error');
+        const validationError = new Errors.ValidationError('validation error');
+        const parseError = new Errors.ParseError('parse error');
+        const inferenceError = new Errors.InferenceError('inference error');
+        const planningError = new Errors.PlanningError('planning error');
+        const memoryError = new Errors.MemoryError('memory error');
         const genericError = new Error('generic error');
 
         // Test validation error checking
-        expect(isValidationError(validationError)).toBe(true);
-        expect(isValidationError(parseError)).toBe(false);
-        expect(isValidationError(genericError)).toBe(false);
+        expect(isError.isValidationError(validationError)).toBe(true);
+        expect(isError.isValidationError(parseError)).toBe(false);
+        expect(isError.isValidationError(genericError)).toBe(false);
 
         // Test parse error checking
-        expect(isParseError(parseError)).toBe(true);
-        expect(isParseError(validationError)).toBe(false);
-        expect(isParseError(genericError)).toBe(false);
+        expect(isError.isParseError(parseError)).toBe(true);
+        expect(isError.isParseError(validationError)).toBe(false);
+        expect(isError.isParseError(genericError)).toBe(false);
 
         // Test inference error checking
-        expect(isInferenceError(inferenceError)).toBe(true);
-        expect(isInferenceError(parseError)).toBe(false);
-        expect(isInferenceError(genericError)).toBe(false);
+        expect(isError.isInferenceError(inferenceError)).toBe(true);
+        expect(isError.isInferenceError(parseError)).toBe(false);
+        expect(isError.isInferenceError(genericError)).toBe(false);
 
         // Test planning error checking
-        expect(isPlanningError(planningError)).toBe(true);
-        expect(isPlanningError(inferenceError)).toBe(false);
-        expect(isPlanningError(genericError)).toBe(false);
+        expect(isError.isPlanningError(planningError)).toBe(true);
+        expect(isError.isPlanningError(inferenceError)).toBe(false);
+        expect(isError.isPlanningError(genericError)).toBe(false);
 
         // Test memory error checking
-        expect(isMemoryError(memoryError)).toBe(true);
-        expect(isMemoryError(planningError)).toBe(false);
-        expect(isMemoryError(genericError)).toBe(false);
+        expect(isError.isMemoryError(memoryError)).toBe(true);
+        expect(isError.isMemoryError(planningError)).toBe(false);
+        expect(isError.isMemoryError(genericError)).toBe(false);
     });
 
     test('should handle module error handler edge cases for safeAsync', async () => {

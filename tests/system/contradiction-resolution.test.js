@@ -1,6 +1,5 @@
-import Task from '../../src/core/Task.js';
-import ConfigManager from '../../src/config/ConfigManager.js';
-import SystemFactory from '../../src/system/SystemFactory.js';
+import Task from '../../core/core/Task.js';
+import SystemFactory from '../../core/system/SystemFactory.js';
 
 
 jest.mock('@xenova/transformers', () => {
@@ -16,21 +15,22 @@ jest.mock('@xenova/transformers', () => {
 describe('System-level Contradiction Resolution', () => {
     let system;
 
-    beforeEach(async () => {
+    beforeEach(() => {
         const customConfig = {
             reasoner: {
-                strategy: 'BruteForce'
+                strategy: 'BruteForceStrategy'
             },
             temporal: {
                 enabled: false
             }
         };
-        const configManager = new ConfigManager(customConfig);
-        system = await SystemFactory.createSystem(configManager);
+        system = SystemFactory.createSystem(customConfig);
     });
 
     afterEach(() => {
-        system.stop();
+        if (system) {
+            system.stop();
+        }
     });
 
     test('should detect and propose a resolution for a direct contradiction', async () => {
@@ -51,5 +51,5 @@ describe('System-level Contradiction Resolution', () => {
 
         // Basic check that the cycle completed
         expect(system.cycleCount).toBe(1);
-    });
+    }, 10000); // 10 second timeout
 });

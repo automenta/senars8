@@ -1,0 +1,56 @@
+.notification-center-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 10px;
+}
+
+.notification-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #444;
+    margin-bottom: 10px;
+}
+
+.filter-controls, .sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.filter-select, .sort-select {
+    padding: 6px 10px;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background: #2a2a2a;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.filter-select:focus, .sort-select:focus {
+    outline: none;
+    border-color: #4a90e2;
+}
+
+.clear-filtered-btn {
+    padding: 6px;
+    background: #d32f2f;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.clear-filtered-btn:hover {
+    background: #b71c1c;
+}
+
+.notification-content {
+    flex: 1;
+    overflow-y: auto;
+}

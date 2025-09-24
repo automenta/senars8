@@ -1,0 +1,26 @@
+.terminal-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    background: #1e1e1e;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.terminal-header {
+    background: #252526;
+    color: #ccc;
+    padding: 8px 10px;
+    font-size: 12px;
+    border-bottom: 1px solid #333;
+}
+
+.xterm-viewport {
+    background: #1e1e1e;
+}
+
+.xterm .xterm-rows {
+    background: #1e1e1e;
+    color: #cccccc;
+}

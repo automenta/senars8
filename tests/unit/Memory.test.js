@@ -1,8 +1,8 @@
-import Memory from '../../src/memory/Memory.js';
-import Task from '../../src/core/Task.js';
-import {parseTerm} from '../../src/parser/narseseParser.js';
-import ConfigManager from '../../src/config/ConfigManager.js';
-import EventBus from '../../src/system/EventBus.js';
+import Memory from '../../core/memory/Memory.js';
+import Task from '../../core/core/Task.js';
+import {parseTerm} from '../../core/parser/narseseParser.js';
+import ConfigManager from '../../core/config/ConfigManager.js';
+import configService from '../../core/config/ConfigService.js';
 
 const createTestConfig = () => new ConfigManager({
     memory: {
@@ -44,12 +44,18 @@ describe('Memory', () => {
     let memory;
 
     beforeEach(() => {
-        const configManager = createTestConfig();
-        memory = new Memory(configManager);
-    });
+        // Reset the config service to ensure clean state for each test
+        configService.reset();
 
-    afterEach(() => {
-        EventBus.clear();
+        const configManager = createTestConfig();
+        // Initialize configService with test config
+        configService.initialize(configManager.getAll());
+
+        const mockEventBus = {
+            on: jest.fn(),
+            emit: jest.fn(),
+        };
+        memory = new Memory(configManager, mockEventBus);
     });
 
     it('should prune expired, unimportant tasks during maintenance', async () => {
@@ -65,7 +71,11 @@ describe('Memory', () => {
         });
         await memory.addTasks([task1, task2]);
         expect(memory.shortTermTasks.size).toBe(2);
-        EventBus.emit('SystemCycleEnded');
+
+        // Manually trigger the event handler
+        const systemCycleEndedHandler = memory.eventBus.on.mock.calls.find(call => call[0] === 'SystemCycleEnded')[1];
+        systemCycleEndedHandler();
+
         expect(memory.shortTermTasks.size).toBe(1);
         expect(memory.shortTermTasks.has(task2.id)).toBe(true);
     });
@@ -79,7 +89,11 @@ describe('Memory', () => {
         });
         await memory.addTasks([task1]);
         expect(memory.shortTermTasks.size).toBe(1);
-        EventBus.emit('SystemCycleEnded');
+
+        // Manually trigger the event handler
+        const systemCycleEndedHandler = memory.eventBus.on.mock.calls.find(call => call[0] === 'SystemCycleEnded')[1];
+        systemCycleEndedHandler();
+
         expect(memory.shortTermTasks.size).toBe(1);
         expect(memory.shortTermTasks.has(task1.id)).toBe(true);
     });
