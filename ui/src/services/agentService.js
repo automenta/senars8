@@ -288,9 +288,9 @@ class AgentService extends EventEmitter {
     sendAgentControl(action) {
         const message = {
             type: MESSAGE_TYPES.AGENT_CONTROL,
-            payload: { action },
+            payload: { command: action },
         };
-        this.sendMessage(message);
+        return this.sendMessage(message.type, message.payload);
     }
     
     search(query, options = {}) {
@@ -322,7 +322,6 @@ class AgentService extends EventEmitter {
     deleteTask(taskId) {
         return this.sendMessage('delete_task', { taskId });
     }
-}
 }
 
 // Export a singleton instance

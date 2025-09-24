@@ -10,15 +10,6 @@ import {useTheme} from '@/context/ThemeProvider';
 import {SearchProvider} from '@/context/SearchContext';
 import './App.css';
 
-const factory = (node) => {
-    const componentName = node.getComponent();
-    const PanelComponent = panelRegistry[componentName];
-    if (PanelComponent) {
-        return <ErrorBoundary><PanelComponent/></ErrorBoundary>;
-    }
-    return <ErrorBoundary><div>Panel not found: {componentName}</div></ErrorBoundary>;
-};
-
 function App() {
     const modelRef = useRef(null);
     const { model, onModelChange } = useLayoutModel();

@@ -10,7 +10,7 @@ function EnhancedInput({ value, onChange, onSend, history, inputMode = 'narsese'
     const recognitionRef = useRef(null);
 
     // Check if browser supports speech recognition
-    const hasSpeechRecognition = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window';
+    const hasSpeechRecognition = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
 
     // Initialize voice recognition if supported
     React.useEffect(() => {
@@ -165,12 +165,7 @@ function EnhancedInput({ value, onChange, onSend, history, inputMode = 'narsese'
                 onSend={onSend} 
                 history={history}
                 disabled={disabled}
-                onKeyDown={(e) => {
-                    if (!disabled && e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        onSend();
-                    }
-                }}
+                onKeyDown={handleKeyDown}
             />
         </div>
     );

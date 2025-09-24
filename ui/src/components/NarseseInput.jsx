@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import './NarseseInput.css';
 
-function NarseseInput({value, onChange, onSend, history, disabled = false}) {
+function NarseseInput({value, onChange, onSend, history, disabled = false, onKeyDown}) {
     const [historyIndex, setHistoryIndex] = useState(-1);
 
     const handleKeyDown = (e) => {
@@ -62,7 +62,21 @@ function NarseseInput({value, onChange, onSend, history, disabled = false}) {
             className="narsese-input"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            onKeyDown={handleKeyDown}
+            onKeyDown={(e) => {
+                // Call the prop handler if provided, otherwise use default handler
+                // Only call default handler if the prop handler doesn't prevent default behavior
+                if (onKeyDown) {
+                    onKeyDown(e);
+                    // If the prop handler didn't prevent default, we still want to run default handler
+                    // for other keys like arrow keys
+                    if (!e.defaultPrevented) {
+                        handleKeyDown(e);
+                    }
+                } else {
+                    // Use default handler if no prop handler provided
+                    handleKeyDown(e);
+                }
+            }}
             disabled={disabled}
             placeholder="Enter Narsese... (Ctrl/Cmd+Enter to send, ↑↓ for history, Esc to clear)"
             aria-label="Narsese input"
@@ -78,6 +92,7 @@ NarseseInput.propTypes = {
     onSend: PropTypes.func.isRequired,
     history: PropTypes.array,
     disabled: PropTypes.bool,
+    onKeyDown: PropTypes.func,
 };
 
 export default NarseseInput;

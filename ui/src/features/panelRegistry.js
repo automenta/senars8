@@ -19,7 +19,7 @@ import TaskPanel from './task/TaskPanel';
 import SessionPanel from './system/SessionPanel';
 import DebugPanel from './debug/DebugPanel';
 
-export default {
+const panelRegistry = {
     'control': ControlPanel,
     'status': StatusPanel,
     'input': InputPanel,

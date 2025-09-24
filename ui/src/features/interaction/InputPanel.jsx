@@ -11,6 +11,16 @@ import {CornerDownLeft, HelpCircle, BookOpen, MessageCircle, Lightbulb, Bot, Ale
 import { MESSAGE_TYPES, UI_CONSTANTS } from '@/constants/ui';
 import './InputPanel.css';
 
+function InputPanel() {
+    const {isConnected, connectionStatus, connectionError, reconnect} = useConnection();
+    const {isSonificationEnabled} = useSettings();
+    const {inputValue, setInputValue, history, addToHistory} = useInputHistory();
+    const [showExamples, setShowExamples] = useState(false);
+    const [showHelp, setShowHelp] = useState(false);
+    const [validationError, setValidationError] = useState('');
+    const [inputMode, setInputMode] = useState('natural'); // Can be 'natural' or 'narsese'
+    const [suggestedResponses, setSuggestedResponses] = useState([]);
+
 // Example natural language inputs for quick access
 const NATURAL_EXAMPLES = [
     'Tell me about birds',
@@ -32,14 +42,6 @@ const NARSESE_EXAMPLES = [
     '<<$x --> bird> ==> <$x --> animal>>?',
     '<bird <-> animal>?',
 ];
-
-function InputPanel() {
-    const {isConnected, connectionStatus, connectionError, reconnect} = useConnection();
-    const {inputValue, setInputValue, history, addToHistory} = useInputHistory();
-    const [showExamples, setShowExamples] = useState(false);
-    const [validationError, setValidationError] = useState('');
-    const [inputMode, setInputMode] = useState('natural'); // Can be 'natural' or 'narsese'
-    const [suggestedResponses, setSuggestedResponses] = useState([]);
 
     // Enhanced Narsese input validation and sanitization
     const validateNarsese = useCallback((input) => {

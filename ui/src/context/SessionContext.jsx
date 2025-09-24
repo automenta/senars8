@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { useLayoutModel } from '@/hooks/useLayoutModel';
+import useLayoutModel from '@/hooks/useLayoutModel';
 
 const SessionContext = createContext();
 
