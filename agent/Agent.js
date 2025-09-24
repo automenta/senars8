@@ -98,6 +98,35 @@ class Agent {
             return plan;
         }, `createPlan for goal: ${goalString}`, null);
     }
+
+    start() {
+        if (!this.isInitialized) {
+            throw new Error('Agent must be initialized before starting.');
+        }
+        if (this.system && typeof this.system.start === 'function') {
+            this.system.start();
+        } else {
+            debug('System does not have a start method.');
+        }
+    }
+
+    stop() {
+        if (!this.isInitialized) {
+            throw new Error('Agent must be initialized before stopping.');
+        }
+        if (this.system && typeof this.system.stop === 'function') {
+            this.system.stop();
+        } else {
+            debug('System does not have a stop method.');
+        }
+    }
+
+    async reset() {
+        if (this.system && typeof this.system.stop === 'function') {
+            this.system.stop(); // Stop any ongoing processes
+        }
+        await this.initialize(); // Re-initialize the agent
+    }
 }
 
 export default Agent;

@@ -1,5 +1,5 @@
 import {useCallback, useState} from 'react';
-import {parseTerm} from '@core/parser/narseseParser.js';
+import {parseTerm} from '@core/parser/parse-utils.js';
 import log from '@/utils/logger';
 
 const useKnowledgeGraph = () => {

@@ -14,12 +14,12 @@ const broadcastLog = (level, message, ...args) => {
     broadcast({type: 'logMessage', payload: {level, message, args, timestamp: new Date().toISOString()}});
 };
 
-const debug = (message, ...args) => { coreDebug(message, ...args); broadcastLog('DEBUG', message, ...args); };
-const info = (message, ...args) => { coreInfo(message, ...args); broadcastLog('INFO', message, ...args); };
-const warn = (message, ...args) => { coreWarn(message, ...args); broadcastLog('WARN', message, ...args); };
-const error = (message, ...args) => { coreError(message, ...args); broadcastLog('ERROR', message, ...args); };
+const serverDebug = (message, ...args) => { coreDebug(message, ...args); broadcastLog('DEBUG', message, ...args); };
+const serverInfo = (message, ...args) => { coreInfo(message, ...args); broadcastLog('INFO', message, ...args); };
+const serverWarn = (message, ...args) => { coreWarn(message, ...args); broadcastLog('WARN', message, ...args); };
+const serverError = (message, ...args) => { coreError(message, ...args); broadcastLog('ERROR', message, ...args); };
 
-info('Agent WebSocket server started on port 8080');
+serverInfo('Agent WebSocket server started on port 8080');
 
 const agent = new Agent();
 
@@ -34,12 +34,12 @@ const broadcast = (data) => {
 
 // Initialize and set up agent event listeners
 agent.initialize().then(() => {
-    info('Agent initialized');
+    serverInfo('Agent initialized');
     broadcast({type: 'agentStatus', payload: 'initialized'});
 
     const eventBus = agent.system.eventBus;
     if (eventBus) {
-        info('Attaching event listeners to EventBus');
+        serverInfo('Attaching event listeners to EventBus');
 
         eventBus.on('status_update', (status) => {
             broadcast({type: 'status_update', payload: status});
@@ -60,42 +60,42 @@ agent.initialize().then(() => {
         });
 
     } else {
-        warn('Agent event bus not available. UI will not receive real-time updates.');
+        serverWarn('Agent event bus not available. UI will not receive real-time updates.');
     }
 
     return true; // Return a value to satisfy the eslint rule
 }).catch(err => {
-    error('Agent initialization failed:', err);
+    serverError('Agent initialization failed:', err);
     broadcast({type: 'agentStatus', payload: 'initialization_failed'});
     return false; // Return a value to satisfy the eslint rule
 });
 
 
 wss.on('connection', (ws) => {
-    info('A new client connected');
+    serverInfo('A new client connected');
     ws.send(JSON.stringify({type: 'connection_ack', payload: {message: 'Welcome!'}}));
     ws.send(JSON.stringify({type: 'agentStatus', payload: agent.isInitialized ? 'initialized' : 'initializing'}));
 
-    ws.on('error', (err) => error('WebSocket error:', err));
+    ws.on('error', (err) => serverError('WebSocket error:', err));
 
     ws.on('message', async (data) => {
         try {
             const message = JSON.parse(data);
             await handleMessage(message, ws);
         } catch (err) {
-            error('Failed to handle message:', err);
+            serverError('Failed to handle message:', err);
             ws.send(JSON.stringify({type: 'error', payload: {message: 'Invalid message format or handler error.'}}));
         }
     });
 
     ws.on('close', () => {
-        info('Client disconnected');
+        serverInfo('Client disconnected');
     });
 });
 
 async function handleMessage(message, ws) {
     const {type, payload} = message;
-    debug(`received: ${type}`, payload);
+    serverDebug(`received: ${type}`, payload);
 
     const ROOT_DIR = path.resolve(__dirname, '..', '..'); // Project root directory
 
@@ -113,7 +113,7 @@ async function handleMessage(message, ws) {
                     .map(dirent => dirent.name);
                 ws.send(JSON.stringify({type: 'readDirectoryResponse', payload: {files, directories, directoryPath}}));
             } catch (error) {
-                logError('Failed to read directory:', error);
+                serverError('Failed to read directory:', error);
                 ws.send(JSON.stringify({type: 'error', payload: {message: `Failed to read directory: ${error.message}`}}));
             }
             break;
@@ -126,7 +126,7 @@ async function handleMessage(message, ws) {
                 const content = await fs.readFile(absolutePath, 'utf8');
                 ws.send(JSON.stringify({type: 'readFileResponse', payload: {filePath, content}}));
             } catch (error) {
-                logError('Failed to read file:', error);
+                serverError('Failed to read file:', error);
                 ws.send(JSON.stringify({type: 'error', payload: {message: `Failed to read file: ${error.message}`}}));
             }
             break;
@@ -139,7 +139,7 @@ async function handleMessage(message, ws) {
                 await fs.writeFile(absolutePath, content, 'utf8');
                 ws.send(JSON.stringify({type: 'writeFileResponse', payload: {filePath, success: true}}));
             } catch (error) {
-                logError('Failed to write file:', error);
+                serverError('Failed to write file:', error);
                 ws.send(JSON.stringify({type: 'error', payload: {message: `Failed to write file: ${error.message}`}}));
             }
             break;
@@ -152,7 +152,7 @@ async function handleMessage(message, ws) {
                 await fs.writeFile(absolutePath, '', 'utf8'); // Create empty file
                 ws.send(JSON.stringify({type: 'createFileResponse', payload: {filePath, success: true}}));
             } catch (error) {
-                logError('Failed to create file:', error);
+                serverError('Failed to create file:', error);
                 ws.send(JSON.stringify({type: 'error', payload: {message: `Failed to create file: ${error.message}`}}));
             }
             break;
@@ -165,7 +165,7 @@ async function handleMessage(message, ws) {
                 await fs.mkdir(absolutePath, {recursive: true});
                 ws.send(JSON.stringify({type: 'createDirectoryResponse', payload: {directoryPath, success: true}}));
             } catch (error) {
-                logError('Failed to create directory:', error);
+                serverError('Failed to create directory:', error);
                 ws.send(JSON.stringify({type: 'error', payload: {message: `Failed to create directory: ${error.message}`}}));
             }
             break;
@@ -178,7 +178,7 @@ async function handleMessage(message, ws) {
                 await fs.rm(absolutePath, {recursive: true, force: true});
                 ws.send(JSON.stringify({type: 'deletePathResponse', payload: {path: pathToDelete, success: true}}));
             } catch (error) {
-                logError('Failed to delete path:', error);
+                serverError('Failed to delete path:', error);
                 ws.send(JSON.stringify({type: 'error', payload: {message: `Failed to delete path: ${error.message}`}}));
             }
             break;
@@ -192,7 +192,7 @@ async function handleMessage(message, ws) {
                 await fs.rename(absoluteOldPath, absoluteNewPath);
                 ws.send(JSON.stringify({type: 'renamePathResponse', payload: {oldPath, newPath, success: true}}));
             } catch (error) {
-                logError('Failed to rename path:', error);
+                serverError('Failed to rename path:', error);
                 ws.send(JSON.stringify({type: 'error', payload: {message: `Failed to rename path: ${error.message}`}}));
             }
             break;
@@ -204,7 +204,7 @@ async function handleMessage(message, ws) {
                 const {stdout, stderr} = await exec(command, {cwd: ROOT_DIR});
                 ws.send(JSON.stringify({type: 'commandOutput', payload: {stdout, stderr}}));
             } catch (error) {
-                logError('Failed to execute command:', error);
+                serverError('Failed to execute command:', error);
                 ws.send(JSON.stringify({type: 'commandOutput', payload: {stdout: '', stderr: error.message}}));
             }
             break;
@@ -239,17 +239,17 @@ async function handleMessage(message, ws) {
             switch (payload.command) {
                 case 'start':
                     // Placeholder for starting the agent's continuous cycle
-                    agent.system.start(); // Assuming this method exists
+                    agent.start(); // Assuming this method exists on the Agent
                     broadcast({type: 'log', payload: {source: 'system', message: 'Agent cycling started.'}});
                     break;
                 case 'stop':
                     // Placeholder for stopping the agent's continuous cycle
-                    agent.system.stop(); // Assuming this method exists
+                    agent.stop(); // Assuming this method exists on the Agent
                     broadcast({type: 'log', payload: {source: 'system', message: 'Agent cycling stopped.'}});
                     break;
                 case 'reset':
                     // Placeholder for resetting the agent's state
-                    await agent.initialize(); // Re-initialize
+                    await agent.reset(); // Assuming this method exists on the Agent
                     broadcast({type: 'log', payload: {source: 'system', message: 'Agent reset.'}});
                     break;
             }
