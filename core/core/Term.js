@@ -9,6 +9,44 @@ import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 
 const errorHandler = createUnifiedErrorHandler('Term');
 
+// Key builder helpers
+const termKeyInfix = (pTerm, op, silent) => `(${Term.termKey(pTerm.subject, silent)} ${op} ${Term.termKey(pTerm.predicate, silent)})`;
+const termList = (terms, silent) => (terms?.length ? terms.map(t => Term.termKey(t, silent)).join(',') : '');
+const unaryOp = (op, pTerm, silent) => `(${op}${Term.termKey(pTerm.term, silent)})`;
+const listOp = (op, pTerm, silent) => `(${op}${termList(pTerm.terms || [], silent)})`;
+
+const keyBuilder = {
+    [OP.ATOMIC]: pTerm => pTerm.key,
+    [OP.INDEPENDENT_VARIABLE]: pTerm => pTerm.name,
+    [OP.DEPENDENT_VARIABLE]: pTerm => `#${pTerm.name}`,
+    [OP.QUERY_VARIABLE]: pTerm => `?${pTerm.name}`,
+    [OP.INHERITANCE]: (pTerm, silent) => termKeyInfix(pTerm, REL.INHERITANCE, silent),
+    [OP.IMPLICATION]: (pTerm, silent) => termKeyInfix(pTerm, REL.IMPLICATION, silent),
+    [OP.EQUIVALENCE]: (pTerm, silent) => termKeyInfix(pTerm, REL.EQUIVALENCE, silent),
+    [OP.SIMILARITY]: (pTerm, silent) => termKeyInfix(pTerm, REL.SIMILARITY, silent),
+    [OP.INSTANCE]: (pTerm, silent) => termKeyInfix(pTerm, REL.INSTANCE, silent),
+    [OP.PROPERTY]: (pTerm, silent) => termKeyInfix(pTerm, REL.PROPERTY, silent),
+    [OP.PREDICTIVE_IMPLICATION]: (pTerm, silent) => termKeyInfix(pTerm, REL.PREDICTIVE_IMPLICATION, silent),
+    [OP.RETROSPECTIVE_IMPLICATION]: (pTerm, silent) => termKeyInfix(pTerm, REL.RETROSPECTIVE_IMPLICATION, silent),
+    [OP.CONCURRENT_IMPLICATION]: (pTerm, silent) => termKeyInfix(pTerm, REL.CONCURRENT_IMPLICATION, silent),
+    [OP.UNTIL]: (pTerm, silent) => termKeyInfix(pTerm, 'until', silent),
+    [OP.SINCE]: (pTerm, silent) => termKeyInfix(pTerm, 'since', silent),
+    [OP.NEGATION]: (pTerm, silent) => unaryOp(REL.NEGATION, pTerm, silent),
+    [OP.ALWAYS]: (pTerm, silent) => unaryOp(REL.ALWAYS, pTerm, silent),
+    [OP.EVENTUALLY]: (pTerm, silent) => unaryOp(REL.EVENTUALLY, pTerm, silent),
+    [OP.NEXT]: (pTerm, silent) => unaryOp(REL.NEXT, pTerm, silent),
+    [OP.PREVIOUS]: (pTerm, silent) => unaryOp(REL.PREVIOUS, pTerm, silent),
+    [OP.CONJUNCTION]: (pTerm, silent) => listOp(REL.CONJUNCTION, pTerm, silent),
+    [OP.DISJUNCTION]: (pTerm, silent) => listOp(REL.DISJUNCTION, pTerm, silent),
+    [OP.SEQUENTIAL_CONJUNCTION]: (pTerm, silent) => listOp(REL.SEQUENTIAL_CONJUNCTION, pTerm, silent),
+    [OP.PARALLEL_CONJUNCTION]: (pTerm, silent) => listOp(REL.PARALLEL_CONJUNCTION, pTerm, silent),
+    [OP.EXTENSIONAL_DIFFERENCE]: (pTerm, silent) => listOp(REL.EXTENSIONAL_DIFFERENCE, pTerm, silent),
+    [OP.INTENSIONAL_DIFFERENCE]: (pTerm, silent) => listOp(REL.INTENSIONAL_DIFFERENCE, pTerm, silent),
+    [OP.PRODUCT]: (pTerm, silent) => listOp(REL.PRODUCT, pTerm, silent),
+    [OP.EXTENSIONAL_SET]: (pTerm, silent) => `{${termList(pTerm.terms || [], silent)}}`,
+    [OP.INTENSIONAL_SET]: (pTerm, silent) => `[${termList(pTerm.terms || [], silent)}]`,
+};
+
 class Term extends BaseEntity {
     #key;
     #embeddingRef;
@@ -57,18 +95,13 @@ class Term extends BaseEntity {
     }
 
     get terms() {
-        if (Object.hasOwn(this.#componentCache, 'terms')) {
-            return this.#componentCache['terms'];
-        }
+        if (Object.hasOwn(this.#componentCache, 'terms')) return this.#componentCache.terms;
 
         const structure = this.#getStructure();
-        if (!structure?.terms) {
-            return (this.#componentCache['terms'] = null);
-        }
+        if (!structure?.terms) return (this.#componentCache.terms = null);
 
         return errorHandler.executeSync(() => {
-            const termsArray = structure.terms.map((term, i) => this.#getComponent(`term_${i}`, term));
-            return (this.#componentCache['terms'] = termsArray);
+            return (this.#componentCache.terms = structure.terms.map((term, i) => this.#getComponent(`term_${i}`, term)));
         }, 'get-terms', null);
     }
 
@@ -87,73 +120,27 @@ class Term extends BaseEntity {
         }, 'fromJSON', null);
     }
 
-    static termKey(pTerm) {
+    static termKey(pTerm, silent = false) {
         if (!pTerm?.type) {
+            if (silent) return '';
             return errorHandler.executeSync(() => '', 'termKey', '');
         }
 
-        const keyBuilder = Term.keyBuilder[pTerm.type];
-        if (keyBuilder) {
-            return errorHandler.executeSync(() => keyBuilder(pTerm), 'termKey', '');
+        const builder = keyBuilder[pTerm.type];
+        if (builder) {
+            if (silent) {
+                try {
+                    return builder(pTerm, true);
+                } catch {
+                    return '';
+                }
+            }
+            return errorHandler.executeSync(() => builder(pTerm, false), 'termKey', '');
         }
 
+        if (silent) return '';
         throw new Error(`buildTermKey does not support type: ${pTerm.type}`);
     }
-
-    static termKeyInner(pTerm) {
-        if (!pTerm?.type) {
-            return ''; // Return empty string instead of going through error handler for inner operations
-        }
-
-        const keyBuilder = Term.keyBuilder[pTerm.type];
-        if (keyBuilder) {
-            // For inner operations, return empty string on failure instead of throwing
-            try {
-                return keyBuilder(pTerm);
-            } catch {
-                return '';
-            }
-        }
-
-        // For unsupported types in inner operations, just return empty string
-        return '';
-    }
-
-    static termKeyInfix = (pTerm, op) => `(${Term.termKey(pTerm.subject)} ${op} ${Term.termKey(pTerm.predicate)})`;
-
-    static termList = terms => (terms?.length ? terms.map(Term.termKey).join(',') : '');
-
-    static keyBuilder = {
-        [OP.ATOMIC]: pTerm => pTerm.key,
-        [OP.INDEPENDENT_VARIABLE]: pTerm => pTerm.name,
-        [OP.DEPENDENT_VARIABLE]: pTerm => `#${pTerm.name}`,
-        [OP.QUERY_VARIABLE]: pTerm => `?${pTerm.name}`,
-        [OP.INHERITANCE]: pTerm => Term.termKeyInfix(pTerm, REL.INHERITANCE),
-        [OP.IMPLICATION]: pTerm => Term.termKeyInfix(pTerm, REL.IMPLICATION),
-        [OP.EQUIVALENCE]: pTerm => Term.termKeyInfix(pTerm, REL.EQUIVALENCE),
-        [OP.SIMILARITY]: pTerm => Term.termKeyInfix(pTerm, REL.SIMILARITY),
-        [OP.INSTANCE]: pTerm => `(${Term.termKey(pTerm.subject)} ${REL.INSTANCE} ${Term.termKey(pTerm.predicate)})`,
-        [OP.PROPERTY]: pTerm => `(${Term.termKey(pTerm.subject)} ${REL.PROPERTY} ${Term.termKey(pTerm.predicate)})`,
-        [OP.PREDICTIVE_IMPLICATION]: pTerm => `(${Term.termKey(pTerm.subject)} ${REL.PREDICTIVE_IMPLICATION} ${Term.termKey(pTerm.predicate)})`,
-        [OP.RETROSPECTIVE_IMPLICATION]: pTerm => `(${Term.termKey(pTerm.subject)} ${REL.RETROSPECTIVE_IMPLICATION} ${Term.termKey(pTerm.predicate)})`,
-        [OP.CONCURRENT_IMPLICATION]: pTerm => `(${Term.termKey(pTerm.subject)} ${REL.CONCURRENT_IMplication} ${Term.termKey(pTerm.predicate)})`,
-        [OP.UNTIL]: pTerm => `(${Term.termKey(pTerm.subject)} until ${Term.termKey(pTerm.predicate)})`,
-        [OP.SINCE]: pTerm => `(${Term.termKey(pTerm.subject)} since ${Term.termKey(pTerm.predicate)})`,
-        [OP.NEGATION]: pTerm => `(${REL.NEGATION}${Term.termKey(pTerm.term)})`,
-        [OP.ALWAYS]: pTerm => `(${REL.ALWAYS}${Term.termKey(pTerm.term)})`,
-        [OP.EVENTUALLY]: pTerm => `(${REL.EVENTUALLY}${Term.termKey(pTerm.term)})`,
-        [OP.NEXT]: pTerm => `(${REL.NEXT}${Term.termKey(pTerm.term)})`,
-        [OP.PREVIOUS]: pTerm => `(${REL.PREVIOUS}${Term.termKey(pTerm.term)})`,
-        [OP.CONJUNCTION]: pTerm => `(${REL.CONJUNCTION}${Term.termList(pTerm.terms || [])})`,
-        [OP.DISJUNCTION]: pTerm => `(${REL.DISJUNCTION}${Term.termList(pTerm.terms || [])})`,
-        [OP.SEQUENTIAL_CONJUNCTION]: pTerm => `(${REL.SEQUENTIAL_CONJUNCTION}${Term.termList(pTerm.terms || [])})`,
-        [OP.PARALLEL_CONJUNCTION]: pTerm => `(${REL.PARALLEL_CONJUNCTION}${Term.termList(pTerm.terms || [])})`,
-        [OP.EXTENSIONAL_DIFFERENCE]: pTerm => `(${REL.EXTENSIONAL_DIFFERENCE}${Term.termList(pTerm.terms || [])})`,
-        [OP.INTENSIONAL_DIFFERENCE]: pTerm => `(${REL.INTENSIONAL_DIFFERENCE}${Term.termList(pTerm.terms || [])})`,
-        [OP.PRODUCT]: pTerm => `(${REL.PRODUCT}${Term.termList(pTerm.terms || [])})`,
-        [OP.EXTENSIONAL_SET]: pTerm => `{${Term.termList(pTerm.terms || [])}}`,
-        [OP.INTENSIONAL_SET]: pTerm => `[${Term.termList(pTerm.terms || [])}]`,
-    };
 
     static createInner(key, embedding = [], complexity = 1) {
         // For inner operations, we just return null instead of throwing for invalid keys
@@ -252,7 +239,7 @@ class Term extends BaseEntity {
 
         // For inner operations, return null on failure instead of going through error handler
         try {
-            const componentKey = Term.termKeyInner(termStructure); // Use inner method
+            const componentKey = Term.termKey(termStructure, true); // Use silent option
             return (this.#componentCache[componentName] = componentKey ? Term.createInner(componentKey) : null);
         } catch {
             return (this.#componentCache[componentName] = null);

@@ -10,6 +10,10 @@ class ResolutionStrategy {
         const selectedStrategy = strategy === 'auto' ? this._selectOptimalResolutionStrategy(contradiction) : strategy;
         const executor = this.strategies[selectedStrategy] || this.strategies.monitoring;
 
+        if (!executor) {
+            return this.strategies.monitoring ? this.strategies.monitoring(contradiction, {}) : [];
+        }
+
         const context = {
             truthValueManager: this.truthValueManager
         };
@@ -18,21 +22,24 @@ class ResolutionStrategy {
     }
 
     _selectOptimalResolutionStrategy(contradiction) {
-        const strategyMapping = [
-            { condition: c => c.severity > 0.8, strategy: 'revision' },
-            { condition: c => c.severity > 0.6, strategy: 'reconciliation' },
-            { condition: c => c.tasks.some(t => t.state.stamp?.occurrenceTime), strategy: 'temporal_analysis' },
-            { condition: c => ['inheritance_conflict', 'implication_conflict'].includes(c.type), strategy: 'causal_analysis' },
-            { condition: c => c.type === 'transitive_inheritance_conflict', strategy: 'hierarchical_reconciliation' },
-            { condition: c => c.severity > 0.4, strategy: 'contextual_reconciliation' },
-        ];
-
-        for (const mapping of strategyMapping) {
-            if (mapping.condition(contradiction)) {
-                return mapping.strategy;
-            }
+        if (contradiction.severity > 0.8) {
+            return 'revision';
         }
-
+        if (contradiction.severity > 0.6) {
+            return 'reconciliation';
+        }
+        if (contradiction.tasks.some(t => t.state.stamp?.occurrenceTime)) {
+            return 'temporal_analysis';
+        }
+        if (['inheritance_conflict', 'implication_conflict'].includes(contradiction.type)) {
+            return 'causal_analysis';
+        }
+        if (contradiction.type === 'transitive_inheritance_conflict') {
+            return 'hierarchical_reconciliation';
+        }
+        if (contradiction.severity > 0.4) {
+            return 'contextual_reconciliation';
+        }
         return 'evidence_gathering';
     }
 }

@@ -12,13 +12,7 @@ import {createTask} from './demo-utils.js';
  * @returns {Promise<any>} The result returned by the verifyCallback.
  */
 async function runBenchmarkTest(testSystem, initialTaskDefs, verifyCallback, cycleCount = 5) {
-    const initialTasks = initialTaskDefs.reduce((acc, def) => {
-        const task = createTask(def);
-        if (task) {
-            acc.push(task);
-        }
-        return acc;
-    }, []);
+    const initialTasks = initialTaskDefs.map(def => createTask(def)).filter(Boolean);
     if (initialTasks.length > 0) {
         await testSystem.addTasks(initialTasks);
     }

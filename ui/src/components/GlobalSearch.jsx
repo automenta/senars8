@@ -13,20 +13,16 @@ const GlobalSearch = () => {
         const handleKeyDown = (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
                 e.preventDefault();
-                setIsOpen(prevIsOpen => {
-                    if (!prevIsOpen) {
-                        requestAnimationFrame(() => {
-                            inputRef.current?.focus();
-                        });
-                    }
-                    return !prevIsOpen;
-                });
+                setIsOpen(prev => !prev);
+                if (!isOpen && inputRef.current) {
+                    setTimeout(() => inputRef.current?.focus(), 0);
+                }
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, []);
+    }, [isOpen]);
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -38,14 +34,14 @@ const GlobalSearch = () => {
         setSearchTerm('');
     };
 
-    const iconMap = {
-        memory: <Brain size={16} />,
-        file: <FileText size={16} />,
-        reasoning: <Zap size={16} />,
-        default: <Globe size={16} />,
+    const getIconForType = (type) => {
+        switch (type) {
+            case 'memory': return <Brain size={16} />;
+            case 'file': return <FileText size={16} />;
+            case 'reasoning': return <Zap size={16} />;
+            default: return <Globe size={16} />;
+        }
     };
-
-    const getIconForType = (type) => iconMap[type] || iconMap.default;
 
     return (
         <div className="global-search-container">

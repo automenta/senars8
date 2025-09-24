@@ -21,19 +21,23 @@ const useKnowledgeGraph = () => {
     }, []);
 
     const addEdge = useCallback((source, target, label) => {
-        setEdges((eds) => eds.concat({ id: `e-${source}-${target}`, source, target, label }));
+        const newEdge = {
+            id: `e-${source}-${target}`,
+            source,
+            target,
+            label,
+        };
+        setEdges((eds) => eds.concat(newEdge));
     }, []);
 
     const handleNewBelief = useCallback((belief) => {
         try {
             const parsed = parseTerm(belief);
-            const subject = parsed?.term?.subject;
-            const predicate = parsed?.term?.predicate;
-
-            if (subject && predicate) {
-                const subjectLabel = subject.key || subject.term?.key;
-                const predicateLabel = predicate.key || predicate.term?.key;
-                if (subjectLabel && predicateLabel) {
+            if (parsed && parsed.term) {
+                const {subject, predicate} = parsed.term;
+                if (subject && predicate) {
+                    const subjectLabel = subject.key || subject.term.key;
+                    const predicateLabel = predicate.key || predicate.term.key;
                     addNode(subjectLabel, subjectLabel);
                     addNode(predicateLabel, predicateLabel);
                     addEdge(subjectLabel, predicateLabel, parsed.term.type);

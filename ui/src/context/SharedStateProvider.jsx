@@ -1,5 +1,6 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import agentService from '../services/agentService';
+import log from '@/utils/logger';
 import {SharedStateContext} from './SharedStateContext';
 
 // Helper to get a random user color

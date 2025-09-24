@@ -53,7 +53,8 @@
     text-align: left;
     max-height: 200px;
     overflow-y: auto;
-
+}
+}
 
 .error-title {
     color: #f44336;

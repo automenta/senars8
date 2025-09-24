@@ -183,7 +183,7 @@ class AgentService extends EventEmitter {
     }
 
     sendMessage(type, payload, options = {}) {
-        const { timeout = 10000, priority = 1 } = options;
+        const { timeout = 10000, retries = 3, priority = 1 } = options;
 
         // Validate inputs
         if (!type) {

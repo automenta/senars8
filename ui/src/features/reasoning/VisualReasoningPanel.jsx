@@ -14,6 +14,7 @@ function VisualReasoningPanel() {
     const [reasoningSteps, setReasoningSteps] = useState([]);
     const [filter, setFilter] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedNode, setSelectedNode] = useState(null);
 
     // Subscribe to agent events to collect reasoning data
     useEffect(() => {

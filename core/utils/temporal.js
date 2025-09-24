@@ -20,6 +20,14 @@ function calculateIntervalStats(tasks) {
     }
     const sortedTasks = [...tasks].sort((a, b) => a.state.stamp.occurrenceTime - b.state.stamp.occurrenceTime);
     const intervals = sortedTasks.slice(1).map((task, i) => task.state.stamp.occurrenceTime - sortedTasks[i].state.stamp.occurrenceTime);
+    if (!intervals.length) {
+        return {
+            intervals,
+            avgInterval: 0,
+            variance: 0,
+            stdDev: 0
+        };
+    }
     const sum = intervals.reduce((a, b) => a + b, 0);
     const avgInterval = sum / intervals.length;
     const variance = intervals.reduce((a, b) => a + (b - avgInterval) ** 2, 0) / intervals.length;
@@ -55,8 +63,8 @@ function determineTemporalRelationship(task1, task2) {
     } = task2.state.stamp;
     if (!time1 || !time2) return null;
 
-    const effectiveEnd1 = end1 ?? time1;
-    const effectiveEnd2 = end2 ?? time2;
+    const effectiveEnd1 = end1 || time1;
+    const effectiveEnd2 = end2 || time2;
 
     if (effectiveEnd1 < time2) return 'before';
     if (effectiveEnd2 < time1) return 'after';
@@ -199,22 +207,23 @@ function detectTemporalCycles(tasks) {
     const taskGroups = groupTasksByTermKey(temporalTasks);
     return Object.entries(taskGroups)
         .filter(([, groupTasks]) => groupTasks.length >= 3)
-        .flatMap(([termKey, groupTasks]) => {
+        .map(([termKey, groupTasks]) => {
             const {
                 stdDev,
                 avgInterval
             } = calculateIntervalStats(groupTasks);
             if (stdDev / avgInterval < 0.1) {
-                return [{
+                return {
                     termKey,
                     type: 'cyclic',
                     interval: avgInterval,
                     confidence: 1.0 - (stdDev / avgInterval),
                     tasks: groupTasks,
-                }];
+                };
             }
-            return [];
-        });
+            return null;
+        })
+        .filter(Boolean);
 }
 
 function detectTemporalAnomalies(tasks) {

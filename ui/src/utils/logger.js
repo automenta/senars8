@@ -8,41 +8,63 @@
  * @property {Function} debug - Log debug messages with [DEBUG] prefix in development only
  * @property {Function} trace - Log trace information with [TRACE] prefix
  */
-const logWithTimestamp = (level, message, ...args) => {
-    const timestamp = new Date().toISOString();
-    const formattedMessage = `[${timestamp}] [${level}] ${message}`;
-
-    switch (level) {
-        case 'INFO':
-            console.log(formattedMessage, ...args);
-            break;
-        case 'WARN':
-            console.warn(formattedMessage, ...args);
-            break;
-        case 'ERROR':
-            console.error(formattedMessage, ...args);
-            break;
-        case 'DEBUG':
-            if (process.env.NODE_ENV === 'development') {
-                console.log(formattedMessage, ...args);
-            }
-            break;
-        case 'TRACE':
-            if (process.env.NODE_ENV === 'development') {
-                console.trace(formattedMessage, ...args);
-            } else {
-                console.log(formattedMessage, ...args);
-            }
-            break;
-    }
-};
-
 const log = {
-    info: (...args) => logWithTimestamp('INFO', ...args),
-    warn: (...args) => logWithTimestamp('WARN', ...args),
-    error: (...args) => logWithTimestamp('ERROR', ...args),
-    debug: (...args) => logWithTimestamp('DEBUG', ...args),
-    trace: (...args) => logWithTimestamp('TRACE', ...args),
+    /**
+     * Log an information message
+     * @param {string} message - The message to log
+     * @param {...any} args - Additional arguments to log
+     */
+    info: (message, ...args) => {
+        const timestamp = new Date().toISOString();
+        console.log(`[${timestamp}] [INFO] ${message}`, ...args);
+    },
+
+    /**
+     * Log a warning message
+     * @param {string} message - The message to log
+     * @param {...any} args - Additional arguments to log
+     */
+    warn: (message, ...args) => {
+        const timestamp = new Date().toISOString();
+        console.warn(`[${timestamp}] [WARN] ${message}`, ...args);
+    },
+
+    /**
+     * Log an error message
+     * @param {string} message - The message to log
+     * @param {...any} args - Additional arguments to log
+     */
+    error: (message, ...args) => {
+        const timestamp = new Date().toISOString();
+        console.error(`[${timestamp}] [ERROR] ${message}`, ...args);
+    },
+
+    /**
+     * Log a debug message in development only
+     * @param {string} message - The message to log
+     * @param {...any} args - Additional arguments to log
+     */
+    debug: (message, ...args) => {
+        if (process.env.NODE_ENV === 'development') {
+            const timestamp = new Date().toISOString();
+            console.log(`[${timestamp}] [DEBUG] ${message}`, ...args);
+        }
+    },
+
+    /**
+     * Log trace information
+     * @param {string} message - The message to log
+     * @param {...any} args - Additional arguments to log
+     */
+    trace: (message, ...args) => {
+        if (process.env.NODE_ENV === 'development') {
+            const timestamp = new Date().toISOString();
+            console.trace(`[${timestamp}] [TRACE] ${message}`, ...args);
+        } else {
+            const timestamp = new Date().toISOString();
+            console.log(`[${timestamp}] [TRACE] ${message}`, ...args);
+        }
+    }
 };
 
 export default log;

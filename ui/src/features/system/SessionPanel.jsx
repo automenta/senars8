@@ -7,6 +7,7 @@ import './SessionPanel.css';
 const SessionPanel = () => {
     const {
         activeSession,
+        savedSessions,
         createNewSession,
         loadSession,
         deleteSession,

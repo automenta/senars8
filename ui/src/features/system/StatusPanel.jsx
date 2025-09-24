@@ -74,7 +74,9 @@ function StatusPanel() {
         agentService.on('system_stats', handleStatsUpdate);
         agentService.on('error', handleStatsError);
 
-
+        const getSystemStats = () => {
+            agentService.sendMessage(MESSAGE_TYPES.SYSTEM_STATS, {}, { expectResponse: true, timeout: 5000 });
+        };
 
         // Set up periodic updates
         const interval = setInterval(() => {

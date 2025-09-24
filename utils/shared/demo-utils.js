@@ -24,32 +24,31 @@ const anside = {
  * @returns {Task|null} A new Task object or null if parsing fails.
  */
 function createTask(macro) {
-    const {term, punctuation, truth, stamp, sentence} = macro;
-
     let termKey;
-    let taskPunctuation;
+    let punctuation;
     let truthValue;
-    let taskStamp;
+    let stamp;
 
-    if (term && punctuation) {
-        termKey = term.key;
-        taskPunctuation = punctuation;
-        truthValue = truth;
-        taskStamp = stamp;
-    } else if (sentence) {
-        taskPunctuation = sentence.slice(-1);
+    if (macro.term && macro.punctuation) { // It's a Task object
+        termKey = macro.term.key;
+        punctuation = macro.punctuation;
+        truthValue = macro.truth;
+        stamp = macro.stamp;
+    } else if (macro.sentence) { // It's a plain object with a sentence
+        const {sentence, truth, stamp: macroStamp} = macro;
+        punctuation = sentence.slice(-1);
         termKey = sentence.slice(0, -1);
         truthValue = (truth && truth.length === 2)
             ? {frequency: truth[0], confidence: truth[1]}
             : undefined;
-        taskStamp = stamp;
+        stamp = macroStamp;
     } else {
         warn(`Invalid macro definition: ${JSON.stringify(macro)}`);
         return null;
     }
 
-    if (!['.', '?', '!'].includes(taskPunctuation)) {
-        warn(`Invalid or missing punctuation in macro sentence: "${termKey}${taskPunctuation}"`);
+    if (!['.', '?', '!'].includes(punctuation)) {
+        warn(`Invalid or missing punctuation in macro sentence: "${termKey}${punctuation}"`);
         return null;
     }
 
@@ -59,7 +58,7 @@ function createTask(macro) {
         return null;
     }
 
-    return new Task(parsedTerm, taskPunctuation, truthValue, taskStamp);
+    return new Task(parsedTerm, punctuation, truthValue, stamp);
 }
 
 /**
@@ -97,17 +96,16 @@ function printFooter(demoName) {
  * @param {Function} [options.assertions=null] - A callback containing test assertions to run.
  * @returns {Promise<System>} The instance of the system after the demo run.
  */
-async function runDemo(demoName, taskDefs, options = {}) {
-    const {
-        cycleCount = 5,
-        config = {},
-        components = {},
-        actionHandlers = [],
-        preCycleCallback = null,
-        postCycleCallback = null,
-        assertions = null,
-        strategiesPath,
-    } = options;
+async function runDemo(demoName, taskDefs, {
+    cycleCount = 5,
+    config = {},
+    components = {},
+    actionHandlers = [],
+    preCycleCallback = null,
+    postCycleCallback = null,
+    assertions = null,
+    strategiesPath = undefined
+} = {}) {
     printHeader(demoName);
 
     const system = SystemFactory.createSystem(config, components, strategiesPath);

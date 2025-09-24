@@ -67,10 +67,10 @@ export function task(value, name = 'Value') {
  * @throws {Error} If validation fails
  */
 export function validateTerm(term, name = 'Term') {
-    const isValid = (typeof term === 'string' && term.length > 0) ||
-                    (typeof term === 'object' && term !== null && typeof term.key === 'string' && term.key.length > 0);
+    const isValidString = typeof term === 'string' && term.length > 0;
+    const isValidObject = typeof term === 'object' && term !== null && typeof term.key === 'string' && term.key.length > 0;
 
-    if (!isValid) {
+    if (!isValidString && !isValidObject) {
         throw new Error(`${name} must be a non-empty string or a valid object with a key property`);
     }
 }
@@ -99,13 +99,13 @@ export function validateTruthValue(truthValue, name = 'TruthValue') {
         throw new Error(`${name} must be an object`);
     }
 
-    const { frequency, confidence } = truthValue;
-
-    if (typeof frequency !== 'number' || frequency < 0 || frequency > 1) {
+    if (typeof truthValue.frequency !== 'number' ||
+        truthValue.frequency < 0 || truthValue.frequency > 1) {
         throw new Error(`${name}.frequency must be a number between 0 and 1`);
     }
 
-    if (typeof confidence !== 'number' || confidence < 0 || confidence > 1) {
+    if (typeof truthValue.confidence !== 'number' ||
+        truthValue.confidence < 0 || truthValue.confidence > 1) {
         throw new Error(`${name}.confidence must be a number between 0 and 1`);
     }
 }
@@ -155,10 +155,9 @@ export function validatePunctuationInner(punctuation) {
 }
 
 export function validateTruthValueInner(truthValue) {
-    if (!truthValue || typeof truthValue !== 'object') {
-        return false;
-    }
-    const { frequency, confidence } = truthValue;
-    return typeof frequency === 'number' && frequency >= 0 && frequency <= 1 &&
-           typeof confidence === 'number' && confidence >= 0 && confidence <= 1;
+    // For inner operations, return false instead of throwing for invalid truth values
+    if (!truthValue || typeof truthValue !== 'object') return false;
+    if (typeof truthValue.frequency !== 'number' || truthValue.frequency < 0 || truthValue.frequency > 1) return false;
+    if (typeof truthValue.confidence !== 'number' || truthValue.confidence < 0 || truthValue.confidence > 1) return false;
+    return true;
 }

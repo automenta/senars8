@@ -151,7 +151,7 @@ describe('NotificationService', () => {
             message: 'Will be removed',
             duration: 1000
         };
-        notificationService.addTemporaryNotification(notification);
+        const id = notificationService.addTemporaryNotification(notification);
 
         expect(notificationService.notifications).toHaveLength(1);
 
