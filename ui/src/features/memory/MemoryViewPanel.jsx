@@ -1,7 +1,7 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import { Panel } from '@ui/components';
 import agentService from '@/services/agentService';
-import {BrainCircuit, Search, Filter} from 'lucide-react';
+import {BrainCircuit, Search, Filter, AlertCircle, RotateCcw} from 'lucide-react';
 import './MemoryViewPanel.css';
 
 function MemoryViewPanel() {
@@ -10,6 +10,8 @@ function MemoryViewPanel() {
     const [filter, setFilter] = useState('');
     const [activeTab, setActiveTab] = useState('working'); // 'working' or 'long-term'
     const [sortBy, setSortBy] = useState('confidence'); // 'confidence' or 'timestamp'
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     // Filter and sort memory items
     const filterAndSortMemory = useCallback((memory) => {
@@ -35,35 +37,71 @@ function MemoryViewPanel() {
 
     useEffect(() => {
         const handleWorkingMemoryUpdate = (data) => {
-            setWorkingMemory(prev => {
-                // Ensure we don't duplicate items
-                const existingIds = new Set(prev.map(item => item.id));
-                const newItems = data.filter(item => !existingIds.has(item.id));
-                return [...prev, ...newItems];
-            });
+            if (Array.isArray(data)) {
+                setWorkingMemory(prev => {
+                    // Ensure we don't duplicate items
+                    const existingIds = new Set(prev.map(item => item.id));
+                    const newItems = data.filter(item => item.id && !existingIds.has(item.id));
+                    return [...prev, ...newItems];
+                });
+            }
         };
 
         const handleLongTermMemoryUpdate = (data) => {
-            setLongTermMemory(prev => {
-                // Ensure we don't duplicate items
-                const existingIds = new Set(prev.map(item => item.id));
-                const newItems = data.filter(item => !existingIds.has(item.id));
-                return [...prev, ...newItems];
-            });
+            if (Array.isArray(data)) {
+                setLongTermMemory(prev => {
+                    // Ensure we don't duplicate items
+                    const existingIds = new Set(prev.map(item => item.id));
+                    const newItems = data.filter(item => item.id && !existingIds.has(item.id));
+                    return [...prev, ...newItems];
+                });
+            }
+        };
+
+        const handleError = (error) => {
+            console.error('Memory panel error:', error);
+            setError(error);
+            setIsLoading(false);
         };
 
         agentService.on('working_memory_update', handleWorkingMemoryUpdate);
         agentService.on('long_term_memory_update', handleLongTermMemoryUpdate);
+        agentService.on('error', handleError);
         
         // Request initial memory data
-        agentService.sendMessage('get_memory_data', {type: 'working'});
-        agentService.sendMessage('get_memory_data', {type: 'long_term'});
+        setIsLoading(true);
+        const success1 = agentService.sendMessage('get_memory_data', {type: 'working'});
+        const success2 = agentService.sendMessage('get_memory_data', {type: 'long_term'});
+        
+        if (!success1 || !success2) {
+            setError('Failed to request initial memory data. Retrying...');
+            // Try again after a short delay
+            setTimeout(() => {
+                agentService.sendMessage('get_memory_data', {type: 'working'});
+                agentService.sendMessage('get_memory_data', {type: 'long_term'});
+            }, 1000);
+        }
         
         return () => {
             agentService.off('working_memory_update', handleWorkingMemoryUpdate);
             agentService.off('long_term_memory_update', handleLongTermMemoryUpdate);
+            agentService.off('error', handleError);
         };
     }, []);
+
+    const refreshData = () => {
+        setIsLoading(true);
+        setError(null);
+        agentService.sendMessage('get_memory_data', {type: 'working'});
+        agentService.sendMessage('get_memory_data', {type: 'long_term'});
+        
+        // Set timeout to stop loading indicator if response doesn't come
+        setTimeout(() => {
+            if (isLoading) {
+                setIsLoading(false);
+            }
+        }, 5000);
+    };
 
     const currentMemory = activeTab === 'working' ? workingMemory : longTermMemory;
     const filteredMemory = filterAndSortMemory(currentMemory);
@@ -89,22 +127,36 @@ function MemoryViewPanel() {
     };
 
     return (
-        <Panel title={<><BrainCircuit size={18}/> Memory</>}>
+        <Panel title={<><BrainCircuit size={18}/> Memory</>} >
             <div className="memory-panel">
-                {/* Tabs */}
-                <div className="memory-tabs">
-                    <button 
-                        className={`tab ${activeTab === 'working' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('working')}
-                    >
-                        Working Memory ({workingMemory.length})
-                    </button>
-                    <button 
-                        className={`tab ${activeTab === 'long-term' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('long-term')}
-                    >
-                        Long-term Memory ({longTermMemory.length})
-                    </button>
+                {/* Controls and Status */}
+                <div className="memory-header">
+                    <div className="memory-tabs">
+                        <button 
+                            className={`tab ${activeTab === 'working' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('working')}
+                        >
+                            Working Memory ({workingMemory.length})
+                        </button>
+                        <button 
+                            className={`tab ${activeTab === 'long-term' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('long-term')}
+                        >
+                            Long-term Memory ({longTermMemory.length})
+                        </button>
+                    </div>
+                    
+                    <div className="memory-actions">
+                        <button 
+                            className="refresh-btn"
+                            onClick={refreshData}
+                            title="Refresh memory data"
+                            disabled={isLoading}
+                        >
+                            <RotateCcw size={16} className={isLoading ? 'spinning' : ''} /> 
+                            {isLoading ? 'Loading...' : 'Refresh'}
+                        </button>
+                    </div>
                 </div>
 
                 {/* Controls */}
@@ -140,12 +192,26 @@ function MemoryViewPanel() {
                     </button>
                 </div>
 
+                {/* Error Display */}
+                {error && (
+                    <div className="memory-error">
+                        <AlertCircle size={16} className="error-icon" />
+                        <span className="error-message">{error.toString()}</span>
+                        <button 
+                            className="retry-btn"
+                            onClick={refreshData}
+                        >
+                            Retry
+                        </button>
+                    </div>
+                )}
+
                 {/* Memory List */}
                 <div className="memory-content">
                     {filteredMemory.length > 0 ? (
                         <ul className="memory-list">
                             {filteredMemory.map((item, index) => (
-                                <li key={item.id || index} className="memory-item">
+                                <li key={item.id || `item-${index}`} className="memory-item">
                                     <div className="memory-statement">
                                         {item.statement || item.term || 'Unknown item'}
                                     </div>
@@ -160,9 +226,15 @@ function MemoryViewPanel() {
                                 </li>
                             ))}
                         </ul>
+                    ) : isLoading ? (
+                        <div className="memory-loading">
+                            <div className="loading-spinner"></div>
+                            <span>Loading memory data...</span>
+                        </div>
                     ) : (
                         <div className="memory-empty">
-                            {filter ? 'No matching items found.' : `No items in ${activeTab} memory.`}
+                            {error ? 'Failed to load memory data. Please refresh.' : 
+                             filter ? 'No matching items found.' : `No items in ${activeTab} memory.`}
                         </div>
                     )}
                 </div>

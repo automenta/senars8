@@ -1,13 +1,31 @@
-# React + Vite
+# SeNARS IDE UI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the UI component of the SeNARS (Self-Evolving Neuromorphic-Adaptive Reasoning System) IDE, built with React and Vite.
+The IDE provides a comprehensive interface for interacting with NARS agents, visualizing knowledge graphs, memory, reasoning traces,
+and configuring agent parameters.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react)
-  uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc)
-  uses [SWC](https://swc.rs/) for Fast Refresh
+- **Interactive Chat Interface**: Natural language and Narsese input with examples and suggestions
+- **Memory Visualization**: View and filter working and long-term memory items
+- **Knowledge Graph**: Interactive visualization of concepts and relationships
+- **Reasoning Visualization**: Visual and trace-based reasoning flow visualization
+- **Agent Control**: Start, stop, and reset agent controls
+- **System Monitoring**: Real-time statistics and status indicators
+- **File Management**: File explorer and code editor capabilities
+- **Terminal Interface**: Integrated terminal for command execution
+- **Configuration Panel**: Comprehensive agent configuration settings
+- **Layout Management**: Save, load, and manage different UI layouts
+- **Notification System**: Comprehensive notification and alert system
+
+## Architecture
+
+The UI follows a component-based architecture with:
+- Panel-based layout system using flexlayout-react
+- Context providers for shared state management
+- WebSocket connection to backend agent service
+- CRDT-based collaborative editing capabilities
+- Comprehensive error handling and boundary protection
 
 ## Expanding the ESLint configuration
 

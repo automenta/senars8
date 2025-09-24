@@ -14,11 +14,13 @@ import TerminalPanel from './terminal/TerminalPanel';
 import LayoutManagerPanel from './LayoutManagerPanel';
 import HelpPanel from './help/HelpPanel';
 import ConversationHistoryPanel from './interaction/ConversationHistoryPanel';
+import SettingsPanel from './settings/SettingsPanel';
 
 const panelRegistry = {
     control: ControlPanel,
     status: StatusPanel,
     input: InputPanel,
+    settings: SettingsPanel,
     'conversation-history': ConversationHistoryPanel,
     'visual-reasoning': VisualReasoningPanel,
     log: LogPanel,

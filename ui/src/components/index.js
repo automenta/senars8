@@ -1,6 +1,7 @@
 // Core components
 export { default as Panel } from './Panel';
 export { default as SonificationToggle } from './SonificationToggle';
+export { default as ErrorBoundary } from './ErrorBoundary';
 
 // UI components
 export { default as NarseseInput } from './NarseseInput';

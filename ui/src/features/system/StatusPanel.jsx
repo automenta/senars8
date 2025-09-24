@@ -2,11 +2,11 @@ import React, {useEffect, useState} from 'react';
 import { Panel, SonificationToggle } from '@ui/components';
 import {useConnection} from '@/context/ConnectionProvider';
 import agentService from '@/services/agentService';
-import {Server, Wifi, WifiOff, Activity, Database, Zap, Thermometer} from 'lucide-react';
+import {Server, Wifi, WifiOff, Activity, Database, Zap, Thermometer, RotateCcw} from 'lucide-react';
 import './StatusPanel.css';
 
 function StatusPanel() {
-    const {isConnected} = useConnection();
+    const {isConnected, connectionStatus, connectionError, reconnect} = useConnection();
     const [systemStats, setSystemStats] = useState({
         cycleCount: 0,
         memoryUsage: 0,
@@ -58,15 +58,33 @@ function StatusPanel() {
     };
 
     return (
-        <Panel title={<><Server size={18}/> System Status</>}>
+        <Panel title={<><Server size={18}/> System Status</>} >
             <div className="status-panel-content">
                 {/* Connection Status */}
-                <div className="status-item connection-status">
-                    {isConnected
-                        ? <><Wifi size={16} color="limegreen"/> Connected</>
-                        : <><WifiOff size={16} color="red"/> Disconnected</>
-                    }
+                <div className={`status-item connection-status ${connectionStatus}`}>
+                    {connectionStatus === 'connected' ? (
+                        <><Wifi size={16} color="limegreen"/> Connected</>
+                    ) : connectionStatus === 'connecting' ? (
+                        <><Wifi size={16} color="orange"/> Connecting...</>
+                    ) : connectionStatus === 'failed' ? (
+                        <><WifiOff size={16} color="red"/> Connection Failed</>
+                    ) : (
+                        <><WifiOff size={16} color="gray"/> Disconnected</>
+                    )}
                 </div>
+
+                {/* Reconnect Button */}
+                {!isConnected && connectionStatus !== 'disconnected' && (
+                    <div className="status-item">
+                        <button 
+                            onClick={reconnect}
+                            className="reconnect-button-status"
+                            title="Reconnect to agent"
+                        >
+                            <RotateCcw size={16} /> Reconnect
+                        </button>
+                    </div>
+                )}
 
                 {/* Cycle Counter */}
                 <div className="status-item">
@@ -108,6 +126,13 @@ function StatusPanel() {
                 <div className="status-item sonification-toggle">
                     <SonificationToggle />
                 </div>
+                
+                {/* Connection Error Display */}
+                {connectionError && (
+                    <div className="status-item connection-error">
+                        <span className="error-text">Error: {connectionError.message || connectionError.toString()}</span>
+                    </div>
+                )}
             </div>
         </Panel>
     );

@@ -3,7 +3,7 @@ import { Panel, SendButton, EnhancedInput } from '@ui/components';
 import agentService from '@/services/agentService';
 import {useConnection} from '@/context/ConnectionProvider';
 import useInputHistory from '@/hooks/useInputHistory';
-import {CornerDownLeft, HelpCircle, BookOpen, MessageCircle, Lightbulb, Bot} from 'lucide-react';
+import {CornerDownLeft, HelpCircle, BookOpen, MessageCircle, Lightbulb, Bot, AlertCircle, Wifi, WifiOff} from 'lucide-react';
 import './InputPanel.css';
 
 // Example natural language inputs for quick access
@@ -29,7 +29,7 @@ const NARSESE_EXAMPLES = [
 ];
 
 function InputPanel() {
-    const {isConnected} = useConnection();
+    const {isConnected, connectionStatus, connectionError, reconnect} = useConnection();
     const {inputValue, setInputValue, history, addToHistory} = useInputHistory();
     const [showExamples, setShowExamples] = useState(false);
     const [validationError, setValidationError] = useState('');
@@ -67,6 +67,11 @@ function InputPanel() {
     const handleSend = () => {
         if (!inputValue.trim()) return;
 
+        if (!isConnected) {
+            setValidationError('Cannot send: not connected to agent. Please check your connection.');
+            return;
+        }
+
         // Process based on input mode
         if (inputMode === 'natural') {
             // Recognize intent from natural language
@@ -76,8 +81,12 @@ function InputPanel() {
             generateSuggestedResponses(inputValue, intent);
             
             // Send as natural language request
-            agentService.sendNaturalLanguage(inputValue, intent);
-            addToHistory(inputValue);
+            const success = agentService.sendNaturalLanguage(inputValue, intent);
+            if (success) {
+                addToHistory(inputValue);
+            } else {
+                setValidationError('Failed to send message. It has been queued for delivery.');
+            }
         } else {
             // Narsese mode
             const error = validateNarsese(inputValue);
@@ -87,8 +96,12 @@ function InputPanel() {
             }
             
             setValidationError('');
-            agentService.sendNarsese(inputValue);
-            addToHistory(inputValue);
+            const success = agentService.sendNarsese(inputValue);
+            if (success) {
+                addToHistory(inputValue);
+            } else {
+                setValidationError('Failed to send message. It has been queued for delivery.');
+            }
         }
         
         // Clear input after sending
@@ -136,8 +149,33 @@ function InputPanel() {
     const examplesTitle = inputMode === 'natural' ? 'Natural Language Examples' : 'Narsese Examples';
 
     return (
-        <Panel title={<><MessageCircle size={18}/> Chat</>}>
+        <Panel title={<><MessageCircle size={18}/> Chat</>} >
             <div className="input-panel-wrapper">
+                {/* Connection status indicator */}
+                <div className="connection-status">
+                    <div className={`status-indicator ${connectionStatus}`}>
+                        {connectionStatus === 'connected' ? (
+                            <><Wifi size={14} color="limegreen" className="status-icon" /> Connected</>
+                        ) : connectionStatus === 'connecting' ? (
+                            <><Wifi size={14} color="orange" className="status-icon" /> Connecting...</>
+                        ) : connectionStatus === 'failed' ? (
+                            <><WifiOff size={14} color="red" className="status-icon" /> Connection Failed</>
+                        ) : (
+                            <><WifiOff size={14} color="gray" className="status-icon" /> Disconnected</>
+                        )}
+                    </div>
+                    
+                    {!isConnected && connectionStatus !== 'disconnected' && (
+                        <button 
+                            className="reconnect-button"
+                            onClick={reconnect}
+                            title="Reconnect to agent"
+                        >
+                            Reconnect
+                        </button>
+                    )}
+                </div>
+                
                 <div className="input-panel-header">
                     <button 
                         className="examples-toggle"
@@ -176,7 +214,15 @@ function InputPanel() {
                 
                 {validationError && (
                     <div className="validation-error">
+                        <AlertCircle size={14} className="error-icon" />
                         {validationError}
+                    </div>
+                )}
+                
+                {connectionError && (
+                    <div className="connection-error">
+                        <AlertCircle size={14} className="error-icon" />
+                        Connection error: {connectionError.message || connectionError.toString()}
                     </div>
                 )}
                 
@@ -190,7 +236,11 @@ function InputPanel() {
                 />
                 
                 <div className="input-panel-actions">
-                    <SendButton onClick={handleSend} disabled={!isConnected || !inputValue.trim()} />
+                    <SendButton 
+                        onClick={handleSend} 
+                        disabled={!isConnected || !inputValue.trim()} 
+                        title={isConnected ? "Send to agent" : "Connect to agent first"}
+                    />
                     <button 
                         className="clear-button"
                         onClick={handleClear}

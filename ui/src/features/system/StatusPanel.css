@@ -20,6 +20,45 @@
     color: #4caf50;
 }
 
+.status-item.connection-status.connecting {
+    color: #ff9800;
+}
+
+.status-item.connection-status.failed {
+    color: #f44336;
+}
+
+.reconnect-button-status {
+    background: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+}
+
+.reconnect-button-status:hover {
+    background: #3a7bc8;
+}
+
+.status-item.connection-error {
+    color: #f44336;
+    font-size: 11px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.error-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .status-item.connection-status svg {
     margin-right: 4px;
 }

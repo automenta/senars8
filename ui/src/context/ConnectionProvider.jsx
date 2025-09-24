@@ -4,38 +4,54 @@ import agentService from '../services/agentService';
 export const ConnectionContext = createContext(null);
 
 export function ConnectionProvider({children}) {
-    const [isConnected, setIsConnected] = useState(agentService.isConnected);
+    const [connectionStatus, setConnectionStatus] = useState('disconnected'); // 'disconnected', 'connecting', 'connected', 'failed'
     const [lastMessage, setLastMessage] = useState(null);
+    const [connectionError, setConnectionError] = useState(null);
 
     useEffect(() => {
         const handleStatusChange = (status) => {
-            setIsConnected(status === 'connected');
+            setConnectionStatus(status);
+            if (status === 'connected') {
+                setConnectionError(null);
+            }
         };
 
         const handleMessage = (message) => {
             setLastMessage(message);
         };
 
+        const handleError = (error) => {
+            setConnectionError(error);
+            console.error('Agent service error:', error);
+        };
+
         agentService.on('status', handleStatusChange);
         agentService.on('message', handleMessage);
+        agentService.on('error', handleError);
 
         // Set initial state
-        setIsConnected(agentService.isConnected);
+        setConnectionStatus(agentService.isConnected ? 'connected' : 'disconnected');
 
         return () => {
             agentService.off('status', handleStatusChange);
             agentService.off('message', handleMessage);
+            agentService.off('error', handleError);
         };
     }, []);
 
     const sendMessage = useCallback((type, payload) => {
-        agentService.sendMessage(type, payload);
+        return agentService.sendMessage(type, payload);
     }, []);
 
     const value = {
-        isConnected,
+        isConnected: connectionStatus === 'connected',
+        connectionStatus,
         sendMessage,
         lastMessage,
+        connectionError,
+        reconnect: () => {
+            agentService.connect();
+        }
     };
 
     return (
