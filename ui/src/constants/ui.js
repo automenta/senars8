@@ -56,6 +56,7 @@ export const MESSAGE_TYPES = {
     SYSTEM_STATS: 'system_stats',
     REASONING_TRACE: 'reasoning_trace',
     CONNECTION_STATS: 'connection_stats',
+    AGENT_STATE_UPDATE: 'agentStateUpdate',
     MESSAGE_TIMEOUT: 'message_timeout',
     PARSE_ERROR: 'parse_error',
     SEND_ERROR: 'send_error',

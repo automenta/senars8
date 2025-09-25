@@ -73,3 +73,11 @@
     text-align: center;
     grid-column: 1 / -1;
 }
+
+.status-item.agent-status.running {
+    color: #4caf50; /* Green for running */
+}
+
+.status-item.agent-status.stopped {
+    color: #f44336; /* Red for stopped */
+}

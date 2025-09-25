@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {Panel, SonificationToggle} from '@ui/components';
 import {useConnection} from '@/context/useConnection';
 import agentService from '@/services/agentService';
+import agentIntegrationService from '@/services/agentIntegration';
 import notificationService from '@/services/notificationService';
 import log from '@/utils/logger';
 import {Activity, BarChart2, Database, RotateCcw, Server, Thermometer, Wifi, WifiOff, Zap} from 'lucide-react';
@@ -87,6 +88,23 @@ function StatusPanel() {
             }
         }, 3000); // Update every 3 seconds
 
+        // Set up agent integration updates
+        const agentInterval = setInterval(async () => {
+            try {
+                await agentIntegrationService.initialize();
+                const agentInfo = agentIntegrationService.getAgentInfo();
+                setSystemStats(prev => ({
+                    ...prev,
+                    beliefs: agentInfo.beliefsCount,
+                    goals: agentInfo.goalsCount,
+                    cycleCount: agentInfo.cycleCount,
+                    isRunning: agentInfo.isActive
+                }));
+            } catch (error) {
+                log.warn('Could not get agent info for status panel:', error);
+            }
+        }, 5000); // Update agent stats every 5 seconds
+
         return () => {
             agentService.off('connection_stats', handleConnectionStats);
             agentService.off('system_cycle', handleCycleUpdate);
@@ -94,6 +112,7 @@ function StatusPanel() {
             agentService.off('error', handleConnectionStatsError);
             agentService.off('error', handleStatsError);
             clearInterval(interval);
+            clearInterval(agentInterval);
         };
     }, []);
 
@@ -168,6 +187,12 @@ function StatusPanel() {
                 <div className="status-item">
                     <Zap size={16}/>
                     <span>Goals: {systemStats.goals.toLocaleString()}</span>
+                </div>
+
+                {/* Agent Running Status */}
+                <div className={`status-item agent-status ${systemStats.isRunning ? 'running' : 'stopped'}`}>
+                    <Activity size={16}/>
+                    <span>Agent: {systemStats.isRunning ? 'Running' : 'Stopped'}</span>
                 </div>
 
                 {/* Sonification Toggle */}

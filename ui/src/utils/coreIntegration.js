@@ -1,110 +1,133 @@
 // UI Utilities for Core Module Integration
-import {Task, Term, parseTerm, error as coreError, info as coreInfo, debug as coreDebug} from '@core/index.js';
 import {createUnifiedErrorHandler} from '@core/utils/errorHandler.js';
+import {parseTerm} from '@core/parser/parse-utils.js';
+import {Task, Term} from '@core/index.js';
+import agentIntegrationService from '@/services/agentIntegration.js';
 
 // Create a unified error handler for UI components
 const uiErrorHandler = createUnifiedErrorHandler('UI');
 
-// Enhanced validation utilities
-const validateNarseseStatement = (statement) => {
-    if (!statement || typeof statement !== 'string') {
-        return { valid: false, error: 'Statement must be a non-empty string' };
+// Utility functions for processing core data for UI display
+export const formatCoreDataForUI = (data) => {
+  if (!data) return null;
+  
+  // Process different types of core data for UI display
+  if (Array.isArray(data)) {
+    return data.map(item => formatCoreDataForUI(item));
+  }
+  
+  if (typeof data === 'object') {
+    // Handle Task objects
+    if (data.__proto__?.constructor?.name === 'Task' || data.term || data.punctuation) {
+      return {
+        id: data.id || data.termKey,
+        term: data.term ? data.term.toString() : data.termKey,
+        punctuation: data.punctuation,
+        priority: data.priority,
+        creationTime: data.creationTime,
+        truthValue: data.state?.truthValue || data.truthValue,
+        occurrenceTime: data.occurrenceTime,
+        type: 'task'
+      };
     }
     
-    const trimmed = statement.trim();
-    if (!trimmed) {
-        return { valid: false, error: 'Statement cannot be empty' };
+    // Handle Term objects
+    if (data.__proto__?.constructor?.name === 'Term' || data.key) {
+      return {
+        key: data.key,
+        type: data.type,
+        terms: Array.isArray(data.terms) ? data.terms.map(formatCoreDataForUI) : data.terms,
+        toString: data.toString?.() || data.key,
+        type: 'term'
+      };
     }
-    
-    // Check if it's a valid Narsese statement format
-    if (!trimmed.includes('.') && !trimmed.includes('!') && !trimmed.includes('?')) {
-        return { valid: false, error: 'Statement must end with . (belief), ! (goal), or ? (question)' };
-    }
-    
-    // Try to parse the term
-    try {
-        const parsed = parseTerm(trimmed);
-        if (!parsed) {
-            return { valid: false, error: 'Invalid Narsese syntax' };
-        }
-        
-        return { valid: true, parsed };
-    } catch (parseError) {
-        return { valid: false, error: `Parse error: ${parseError.message}` };
-    }
+  }
+  
+  return data;
 };
 
-// Enhanced task creation utility
-const createTaskFromStatement = (statement, defaultPriority = 0.5) => {
+// Utility for validating Narsese statements
+export const validateNarseseStatement = (statement) => {
+  if (!statement || typeof statement !== 'string') {
+    return { valid: false, error: 'Statement must be a non-empty string' };
+  }
+  
+  const trimmed = statement.trim();
+  if (!trimmed) {
+    return { valid: false, error: 'Statement cannot be empty after trimming' };
+  }
+  
+  try {
+    const parsed = parseTerm(trimmed);
+    return { 
+      valid: !!parsed, 
+      parsed: parsed,
+      error: parsed ? null : 'Failed to parse statement'
+    };
+  } catch (error) {
+    return { valid: false, error: error.message };
+  }
+};
+
+// Create task from statement
+export const createTaskFromStatement = (statement, punctuation = '.', priority = 0.5) => {
+  try {
     const validation = validateNarseseStatement(statement);
-    
     if (!validation.valid) {
-        throw new Error(`Cannot create task: ${validation.error}`);
+      throw new Error(`Invalid statement: ${validation.error}`);
     }
     
-    const trimmed = statement.trim();
-    const punctuation = trimmed[trimmed.length - 1];
-    const term = validation.parsed;
+    return new Task(validation.parsed, punctuation, { priority });
+  } catch (error) {
+    uiErrorHandler(error, 'createTaskFromStatement');
+    throw error;
+  }
+};
+
+// Get agent state information for UI
+export const getAgentStateForUI = () => {
+  try {
+    return agentIntegrationService.getAgentInfo();
+  } catch (error) {
+    uiErrorHandler(error, 'getAgentStateForUI');
+    return {
+      isInitialized: false,
+      isActive: false,
+      beliefsCount: 0,
+      goalsCount: 0,
+      questionsCount: 0,
+      timestamp: Date.now()
+    };
+  }
+};
+
+// Process Narsese through the agent
+export const processNarseseThroughAgent = async (narsese) => {
+  try {
+    if (!narsese || typeof narsese !== 'string' || narsese.trim().length === 0) {
+      throw new Error('Narsese input is required and must be a non-empty string');
+    }
     
-    return new Task(term, punctuation, { priority: defaultPriority });
+    await agentIntegrationService.initialize();
+    return await agentIntegrationService.processNarsese(narsese);
+  } catch (error) {
+    uiErrorHandler(error, 'processNarseseThroughAgent');
+    throw error;
+  }
 };
 
 // Enhanced error handling wrapper for UI operations
-const safeUICall = async (operation, operationName = 'UI Operation') => {
-    try {
-        return await operation();
-    } catch (error) {
-        uiErrorHandler(error, {
-            operation: operationName,
-            error: error.message,
-            stack: error.stack
-        });
-        
-        // Re-throw with more user-friendly message
-        throw new Error(`Operation failed: ${error.message}`);
-    }
-};
-
-// Format core data for UI display
-const formatCoreDataForUI = (coreData) => {
-    if (!coreData) return null;
+export const safeUICall = async (operation, operationName = 'UI Operation') => {
+  try {
+    return await operation();
+  } catch (error) {
+    uiErrorHandler(error, {
+      operation: operationName,
+      error: error.message,
+      stack: error.stack
+    });
     
-    // Format task data
-    if (coreData.hasOwnProperty('termKey') && coreData.hasOwnProperty('punctuation')) {
-        return {
-            id: coreData.id,
-            statement: coreData.termKey,
-            punctuation: coreData.punctuation,
-            priority: coreData.priority || 0,
-            truthValue: coreData.state?.truthValue || null,
-            occurrenceTime: coreData.state?.occurrenceTime || null,
-            type: 'task'
-        };
-    }
-    
-    // Format term data
-    if (coreData.hasOwnProperty('key') && coreData.hasOwnProperty('type')) {
-        return {
-            id: coreData.id,
-            key: coreData.key,
-            type: coreData.type,
-            components: coreData.components || [],
-            complexity: coreData.complexity || 1,
-            type: 'term'
-        };
-    }
-    
-    return coreData;
+    // Re-throw with more user-friendly message
+    throw new Error(`Operation failed: ${error.message}`);
+  }
 };
-
-// Export utilities
-export {
-    validateNarseseStatement,
-    createTaskFromStatement,
-    safeUICall,
-    formatCoreDataForUI,
-    uiErrorHandler
-};
-
-// Export core components with enhanced UI integration
-export { Task, Term, parseTerm, coreError, coreInfo, coreDebug };

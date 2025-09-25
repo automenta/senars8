@@ -1,5 +1,6 @@
 import {createContext, useCallback, useContext, useEffect, useState} from 'react';
 import agentService from '@/services/agentService';
+import agentIntegrationService from '@/services/agentIntegration';
 import {MESSAGE_TYPES} from '@/constants/ui';
 
 const TaskContext = createContext();
@@ -121,6 +122,18 @@ export const TaskProvider = ({children}) => {
         updateTask(taskId, {status: 'completed', completedAt: new Date().toISOString()});
     }, [updateTask]);
 
+    // Get tasks directly from agent (bypassing UI state for fresh data)
+    const getTasksFromAgent = useCallback(async () => {
+        try {
+            await agentIntegrationService.initialize();
+            return agentIntegrationService.getAllTasks();
+        } catch (error) {
+            console.error('Error getting tasks from agent:', error);
+            // Fallback to service-based tasks
+            return agentService.getTasks();
+        }
+    }, []);
+
     const getTaskCountByStatus = useCallback(() => {
         return tasks.reduce((acc, task) => {
             acc[task.status] = (acc[task.status] || 0) + 1;
@@ -136,6 +149,7 @@ export const TaskProvider = ({children}) => {
         deleteTask,
         completeTask,
         getTaskCountByStatus,
+        getTasksFromAgent,
     };
 
     return (
