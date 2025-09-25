@@ -7,8 +7,9 @@ describe('Shared Communication Service Tests', () => {
   beforeAll(async () => {
     console.log('Starting agent server for shared service tests...');
     agentProcess = spawn('node', ['agent/server.js'], {
-      cwd: '../',
-      stdio: 'pipe'
+      cwd: '.',
+      stdio: 'pipe',
+      env: { ...process.env, LOG_LEVEL: 'INFO' },
     });
 
     // Wait for agent to start
@@ -44,7 +45,7 @@ describe('Shared Communication Service Tests', () => {
     }
     
     // Give some time for processes to terminate
-    setTimeout(1000).then(() => done());
+    setTimeout(() => done(), 1000);
   });
 
   test('Shared communication service connects properly in Node.js environment', async () => {
@@ -52,7 +53,7 @@ describe('Shared Communication Service Tests', () => {
       console.log('Testing shared communication service...');
       
       const testScript = `
-        import AgentCommunicationService from './src/services/AgentCommunicationService.js';
+        import AgentCommunicationService from './tui/src/services/AgentCommunicationService.js';
         const service = new AgentCommunicationService('ws://localhost:8080');
         
         service.on('status', (status) => {
@@ -79,7 +80,7 @@ describe('Shared Communication Service Tests', () => {
         service.connect();
       `;
       
-      const testProcess = spawn('node', ['--loader', 'esm', '--eval', testScript], {
+      const testProcess = spawn('node', ['--eval', testScript], {
         cwd: '.',
         stdio: 'pipe'
       });

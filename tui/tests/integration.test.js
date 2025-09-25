@@ -1,5 +1,4 @@
 import { spawn } from 'child_process';
-import { setTimeout } from 'timers/promises';
 
 describe('TUI Integration Tests', () => {
   let agentProcess;
@@ -9,8 +8,9 @@ describe('TUI Integration Tests', () => {
   beforeAll(async () => {
     console.log('Starting agent server...');
     agentProcess = spawn('node', ['agent/server.js'], {
-      cwd: '../',
-      stdio: 'pipe'
+      cwd: '.',
+      stdio: 'pipe',
+      env: { ...process.env, LOG_LEVEL: 'INFO' },
     });
 
     // Wait for agent to start
@@ -50,7 +50,7 @@ describe('TUI Integration Tests', () => {
     }
     
     // Give some time for processes to terminate
-    setTimeout(1000).then(() => done());
+    setTimeout(() => done(), 1000);
   });
 
   test('TUI can connect to agent service', async () => {
@@ -59,7 +59,7 @@ describe('TUI Integration Tests', () => {
       
       // Start the TUI process
       tuiProcess = spawn('node', ['--eval', `
-        import AgentCommunicationService from './src/services/AgentCommunicationService.js';
+        import AgentCommunicationService from './tui/src/services/AgentCommunicationService.js';
         const service = new AgentCommunicationService('ws://localhost:8080');
         
         service.on('status', (status) => {

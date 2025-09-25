@@ -1,4 +1,3 @@
-import {pipeline} from '@xenova/transformers';
 import {info} from '../utils/logger.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 
@@ -14,6 +13,8 @@ class PipelineFactory {
         if (this._pipelines.has(key)) {
             return this._pipelines.get(key);
         }
+
+        const {pipeline} = await import('@xenova/transformers');
 
         info(`Loading pipeline: ${type} - ${model}`);
         const newPipeline = await errorHandler.execute(
