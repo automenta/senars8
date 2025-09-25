@@ -1,6 +1,37 @@
-# SeNARS 🧠
+# senars8
 
-A new primitive for neuro-symbolic cognition.
+SeNARS (Self-Evolving Neuromorphic-Adaptive Reasoning System)
+
+## Overview
+
+SeNARS is a Self-Evolving Neuromorphic-Adaptive Reasoning System implementing the Non-Axiomatic Reasoning System (NARS) framework. It provides both a Web UI and a Terminal UI for interacting with NARS agents.
+
+## Components
+
+- **Core Engine** (`core/`): The main reasoning engine and memory management
+- **Agent Service** (`agent/`): WebSocket server for UI communication
+- **Web UI** (`ui/`): Full-featured React-based interface
+- **TUI** (`tui/`): Lightweight terminal-based interface
+
+## Getting Started
+
+To start the agent service:
+```bash
+cd agent
+node server.js
+```
+
+To start the Web UI:
+```bash
+cd ui
+npm run dev
+```
+
+To start the TUI:
+```bash
+cd tui
+npm start
+```
 
 SeNARS is a cognitive architecture that creates a powerful synergy between symbolic reasoning and neural processing. It
 provides a foundation for building transparent, adaptive, and complex-reasoning AI systems.

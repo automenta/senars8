@@ -1,0 +1,30 @@
+{
+  "name": "@project/tui",
+  "version": "1.0.0",
+  "description": "Text User Interface for the SeNARS (Self-Evolving Neuromorphic-Adaptive Reasoning System)",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node --test",
+    "test:jest": "jest"
+  },
+  "dependencies": {
+    "blessed": "^0.1.81",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jsdom": "^25.0.0"
+  },
+  "keywords": [
+    "nars",
+    "ai",
+    "reasoning",
+    "terminal",
+    "tui"
+  ],
+  "author": "SeNARS Team",
+  "license": "MIT"
+}

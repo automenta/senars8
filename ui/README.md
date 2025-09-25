@@ -30,6 +30,43 @@ The UI follows a component-based architecture with:
 - CRDT-based collaborative editing capabilities
 - Comprehensive error handling and boundary protection
 
+## Enhanced Agent Communication
+
+The Web UI now uses an enhanced agent service that leverages shared communication infrastructure with the TUI:
+
+- **Shared Communication Service**: A common base service used by both Web UI and TUI for consistent communication
+- **Improved Connection Management**: Enhanced reconnection logic and error handling
+- **Message Queuing**: Proper queuing of messages when disconnected with automatic retry
+- **Event Consolidation**: Unified event system for consistent agent updates across interfaces
+
+## Enhanced Backend Integration
+
+Key improvements to backend integration:
+
+- **Y.js Integration**: Maintains collaborative editing features using Y.js CRDTs
+- **Consistent Protocol**: Uses the same communication protocol as the TUI
+- **Better Error Handling**: Improved error handling and logging
+- **Performance Optimizations**: More efficient message handling and UI updates
+
+## Development
+
+To run the Web UI:
+
+```bash
+cd ui
+npm install
+npm run dev
+```
+
+## Integration with Core Components
+
+The Web UI connects to the agent service and integrates with:
+- Core reasoning engine through the agent service
+- Memory systems for task management
+- Event system for real-time updates
+- Configuration system for agent parameters
+- CRDT-based collaborative editing features
+
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check

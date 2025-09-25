@@ -5,19 +5,24 @@ import log from '@/utils/logger';
 import {MESSAGE_TYPES, UI_CONSTANTS, CONNECTION_STATUS} from '@/constants/ui';
 import BaseAgentCommunicationService from '@common/services/AgentCommunicationService.js';
 
-class AgentService extends EventEmitter {
+/**
+ * Enhanced Agent Service for Web UI
+ * Uses shared communication service while maintaining Y.js CRDT functionality
+ */
+class EnhancedAgentService extends EventEmitter {
     constructor() {
         super();
         this.url = 'ws://localhost:8080';
         this.crdtUrl = 'ws://localhost:8080/crdt';
         this.isConnected = false;
-        this.isConnecting = false;  // Track connection state to avoid multiple connection attempts
+        this.isConnecting = false;
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = UI_CONSTANTS.CONNECTION.MAX_RECONNECT_ATTEMPTS;
-        this.reconnectDelay = UI_CONSTANTS.CONNECTION.RECONNECT_DELAY; // 3 seconds
+        this.reconnectDelay = UI_CONSTANTS.CONNECTION.RECONNECT_DELAY;
         this.reconnectTimer = null;
         this.connectionStartTime = null;
 
+        // Initialize Y.js for collaborative features
         this.yDoc = new Y.Doc();
         this.yProvider = null;
         this.awareness = null;
@@ -330,14 +335,7 @@ class AgentService extends EventEmitter {
         }
     }
 
-    sendNarsese(narsese) {
-        return this.sendMessage('narsese', narsese);
-    }
-
-    sendNaturalLanguage(text, intent) {
-        return this.sendMessage('natural_language', {text, intent});
-    }
-
+    // Agent control methods
     sendAgentControl(action) {
         const message = {
             type: MESSAGE_TYPES.AGENT_CONTROL,
@@ -427,6 +425,16 @@ class AgentService extends EventEmitter {
         return this.sendAgentControl('reset');
     }
 
+    // Narsese method
+    sendNarsese(narsese) {
+        return this.sendMessage('narsese', narsese);
+    }
+
+    // Natural language method
+    sendNaturalLanguage(text, intent) {
+        return this.sendMessage('natural_language', {text, intent});
+    }
+
     // Enhanced error handling for agent operations
     async safeAgentOperation(operationName, operation, options = {}) {
         const {retries = 3, timeout = 10000, onError = null} = options;
@@ -468,5 +476,5 @@ class AgentService extends EventEmitter {
 }
 
 // Export a singleton instance
-const agentService = new AgentService();
-export default agentService;
+const enhancedAgentService = new EnhancedAgentService();
+export default enhancedAgentService;
