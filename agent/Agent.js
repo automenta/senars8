@@ -27,6 +27,26 @@ class Agent {
         return errorHandler.execute(async () => {
             this.system = await createSystem(this.config);
             this.isInitialized = true;
+            
+            // Set up event listeners for real-time UI updates
+            if (this.system.eventBus) {
+                this.system.eventBus.on('add_task', (task) => {
+                    this.mcp.log({type: 'task_added', content: task, timestamp: new Date().toISOString()});
+                });
+                
+                this.system.eventBus.on('add_belief', (task) => {
+                    this.mcp.log({type: 'belief_added', content: task, timestamp: new Date().toISOString()});
+                });
+                
+                this.system.eventBus.on('add_goal', (task) => {
+                    this.mcp.log({type: 'goal_added', content: task, timestamp: new Date().toISOString()});
+                });
+                
+                this.system.eventBus.on('add_question', (task) => {
+                    this.mcp.log({type: 'question_added', content: task, timestamp: new Date().toISOString()});
+                });
+            }
+            
             debug('Agent initialized successfully.');
         }, 'initialize');
     }
@@ -123,6 +143,42 @@ class Agent {
     async reset() {
         this.system?.stop?.();
         await this.initialize();
+    }
+
+    // Methods to access agent's memory and tasks for UI integration
+    getBeliefs() {
+        if (!this.isInitialized || !this.system || !this.system.memory) {
+            return [];
+        }
+        return this.system.memory.getBeliefs() || [];
+    }
+
+    getGoals() {
+        if (!this.isInitialized || !this.system || !this.system.memory) {
+            return [];
+        }
+        return this.system.memory.getGoals() || [];
+    }
+
+    getQuestions() {
+        if (!this.isInitialized || !this.system || !this.system.memory) {
+            return [];
+        }
+        return this.system.memory.getQuestions() || [];
+    }
+
+    getAllTasks() {
+        if (!this.isInitialized || !this.system || !this.system.memory) {
+            return [];
+        }
+        return this.system.memory.getAllTasks() || [];
+    }
+
+    getRecentTasks(count = 10) {
+        if (!this.isInitialized || !this.system || !this.system.memory) {
+            return [];
+        }
+        return this.system.memory.getRecentTasks(count) || [];
     }
 }
 

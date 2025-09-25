@@ -1,16 +1,15 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useState, useEffect} from 'react';
 import {EnhancedInput, Panel, SendButton} from '@ui/components';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import sonificationService from '@/services/sonificationService';
 import {useUIErrorHandler} from '@/services/uiErrorHandler';
 import {useConnection} from '@/context/useConnection';
-import {useSettings} from '@/context/useSettings';
-import useInputHistory from '@/hooks/useInputHistory';
+import {formatCoreDataForUI} from '@/utils/coreIntegration';
 import {validateNarseseStatement} from '@/utils/coreIntegration';
-import log from '@/utils/logger';
-import {AlertCircle, HelpCircle, Lightbulb, MessageCircle, Wifi, WifiOff} from 'lucide-react';
-import {UI_CONSTANTS} from '@/constants/ui';
+import {parseTerm} from '@core/parser/parse-utils.js';
+import {Task, Term} from '@core/index.js';
+import {Zap, MessageSquare, Settings, HelpCircle, AlertTriangle, CheckCircle, Wifi, WifiOff, Lightbulb, MessageCircle, AlertCircle} from 'lucide-react';
 import './InputPanel.css';
 
 function InputPanel() {
@@ -122,9 +121,25 @@ function InputPanel() {
         if (!input.trim()) return;
 
         const trimmedInput = input.trim();
-        const isNarsese = input.includes('<') && input.includes('>') || input.includes(':') || input.includes('?') || input.includes('!');
-
+        
         try {
+            // Determine if input is Narsese based on syntax
+            const isNarsese = trimmedInput.includes('<') && trimmedInput.includes('>') || 
+                             trimmedInput.endsWith('.') || 
+                             trimmedInput.endsWith('!') || 
+                             trimmedInput.endsWith('?');
+            
+            // Validate Narsese input if it appears to be Narsese
+            if (isNarsese) {
+                const validation = validateNarseseStatement(trimmedInput);
+                if (!validation.valid) {
+                    notificationService.addWarning('Invalid Narsese', validation.error);
+                    setValidationError(validation.error);
+                    return;
+                }
+                setValidationError(''); // Clear any previous validation errors
+            }
+
             // Add to input history
             addToHistory(trimmedInput);
 
@@ -136,17 +151,17 @@ function InputPanel() {
                 try {
                     sonificationService.play('send');
                 } catch (error) {
-                    log.warn('Could not play sonification:', error);
+                    console.warn('Could not play sonification:', error);
                 }
             }
 
             // Send message based on type
             if (isNarsese) {
                 agentService.sendNarsese(trimmedInput);
-                notificationService.addInfo('Message Sent', `Narsese: ${trimmedInput}`, 3000);
+                notificationService.addSuccess('Narsese Sent', `Statement: ${trimmedInput}`, 3000);
             } else {
                 agentService.sendNaturalLanguage(trimmedInput);
-                notificationService.addInfo('Message Sent', `Natural Language: ${trimmedInput}`, 3000);
+                notificationService.addInfo('NL Sent', `Input: ${trimmedInput}`, 3000);
             }
 
             // Clear input
@@ -156,11 +171,12 @@ function InputPanel() {
                 operation: 'sendMessage',
                 input: trimmedInput
             });
+            notificationService.addError('Send Error', 'Failed to send message to agent');
         } finally {
             // Clear sending state after a delay
             setTimeout(() => setIsSending(false), 1000);
         }
-    }, [addToHistory, isSonificationEnabled, handleError]);
+    }, [addToHistory, isSonificationEnabled, handleError, validateNarseseStatement]);
 
     // Generate suggested responses based on user input and intent
     const generateSuggestedResponses = useCallback((input, intent) => {

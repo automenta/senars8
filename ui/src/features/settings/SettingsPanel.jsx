@@ -1,354 +1,443 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
-import log from '@/utils/logger';
-import {Cpu, Download, HardDrive, Monitor, RotateCcw, Save, Settings as SettingsIcon, Upload, Zap} from 'lucide-react';
+import {useSettings} from '@/context/useSettings';
+import {useUIErrorHandler} from '@/services/uiErrorHandler';
+import {Settings, Palette, Volume2, VolumeX, Monitor, Database, Zap, Globe, RotateCcw, Save, Download, Upload} from 'lucide-react';
 import './SettingsPanel.css';
 
-// Default configuration values
-const DEFAULT_CONFIG = {
-    FOCUS_SET_SIZE: 20,
-    META_TASK_PRIORITY: 0.9,
-    ACTIONABLE_GOAL_PRIORITY_THRESHOLD: 0.1,
-    MAX_GOALS_TO_EXECUTE: 3,
-    RECENCY_DECAY_FACTOR: 10000,
-    SIMILARITY_OFFSET: 0.1,
-    SIMILARITY_SCALE: 1.1,
-    system: {
-        BATCH_SIZE: 10,
-        CONFIDENCE_REDUCTION_FACTOR: 0.1
-    },
-    memory: {
-        MAINTENANCE_CYCLE_FREQUENCY: 10,
-        MAX_BELIEF_CONCEPTS: 10000,
-        MAX_GOAL_CONCEPTS: 1000,
-        MAX_QUESTIONS_PER_CONCEPT: 10,
-        MAX_OPERATIONAL_CONCEPTS: 100,
-        MAX_EXECUTABLES_PER_CONCEPT: 10,
-        MAX_TERMLINKS_PER_CONCEPT: 32,
-        MAX_TASKLINKS_PER_CONCEPT: 64,
-        MAX_PRECONDITIONS: 8
-    },
-    reasoning: {
-        BELIEF_REASONING_PRIORITY: 0.9,
-        QUESTION_REASONING_PRIORITY: 0.95,
-        GOAL_REASONING_PRIORITY: 0.99,
-        OPERATIONAL_INCENTIVE_PRIORITY: 0.9,
-        TASK_SOLVING_PRIORITY_FACTOR: 0.1
-    },
-    temporal: {
-        INTERVAL_ADAPT_SPEED: 0.5,
-        MAX_SEQUENCE_EVENTS: 8,
-        MAX_CONDITION_TERMS: 8
-    },
-    concept: {
-        MAX_BELIEF_EVENTS: 8,
-        MAX_GOAL_EVENTS: 8,
-        MAX_QUESTIONS: 8,
-        MAX_OPERATIONS: 8,
-        MAX_PRECONDITIONS: 8
-    }
-};
+const SettingsPanel = () => {
+    const {handleError} = useUIErrorHandler('SettingsPanel');
+    const {isSonificationEnabled, toggleSonification} = useSettings();
+    const [settings, setSettings] = useState({
+        theme: 'dark',
+        fontSize: 'medium',
+        autoRefresh: true,
+        refreshInterval: 5000,
+        notifications: true,
+        notificationDuration: 5000,
+        autoConnect: true,
+        maxHistory: 100,
+        showTooltips: true,
+        animations: true,
+        debugMode: false,
+        autoSaveLayout: true,
+        defaultView: 'dashboard'
+    });
 
-function SettingsPanel() {
-    const [config, setConfig] = useState(DEFAULT_CONFIG);
-    const [originalConfig, setOriginalConfig] = useState(DEFAULT_CONFIG);
-    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-    const [activeTab, setActiveTab] = useState('agent');
+    const [isSaving, setIsSaving] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(false);
 
-    // Load initial configuration
+    // Load saved settings
     useEffect(() => {
-        const loadConfig = async () => {
-            try {
-                // In a real implementation, this would fetch current config from the agent
-                // For now we use the default config
-                setConfig(DEFAULT_CONFIG);
-                setOriginalConfig({...DEFAULT_CONFIG});
-                log.info('Configuration loaded with defaults');
-            } catch (error) {
-                log.error('Failed to load config:', error);
-                notificationService.addError('Configuration Error', 'Failed to load default configuration');
+        try {
+            const savedSettings = localStorage.getItem('senars-ui-settings');
+            if (savedSettings) {
+                setSettings(JSON.parse(savedSettings));
             }
-        };
-
-        loadConfig();
+            setIsLoaded(true);
+        } catch (error) {
+            handleError(error, {operation: 'loadSettings'});
+        }
     }, []);
 
-    // Check for changes
-    useEffect(() => {
-        const isChanged = JSON.stringify(config) !== JSON.stringify(originalConfig);
-        setHasUnsavedChanges(isChanged);
-    }, [config, originalConfig]);
-
-    const handleConfigChange = (category, key, value) => {
-        // Validate the value is within reasonable bounds
-        // First, ensure it's a number
-        const numValue = parseFloat(value);
-        if (isNaN(numValue)) {
-            notificationService.addWarning('Invalid Value', `The value for ${key} must be a number`);
-            return;
-        }
-
-        // Add some reasonable bounds checks
-        let finalValue = numValue;
-        if (key.includes('MAX_') || key.includes('SIZE')) {
-            if (numValue < 0) {
-                finalValue = 0;
-                notificationService.addWarning('Invalid Value', `The value for ${key} cannot be negative`);
-            } else if (numValue > 100000) {
-                finalValue = 100000;
-                notificationService.addWarning('Invalid Value', `The value for ${key} is too high (maximum: 100000)`);
-            }
-        } else if (key.includes('PRIORITY') || key.includes('FACTOR') || key.includes('SPEED')) {
-            if (numValue < 0) {
-                finalValue = 0;
-                notificationService.addWarning('Invalid Value', `The value for ${key} cannot be negative`);
-            } else if (numValue > 1.0 && key.includes('PRIORITY')) {
-                finalValue = 1.0;
-                notificationService.addWarning('Invalid Value', `Priority values should not exceed 1.0`);
-            } else if (numValue > 100 && key.includes('FACTOR')) {
-                finalValue = 100;
-                notificationService.addWarning('Invalid Value', `Factor values should not exceed 100`);
-            }
-        }
-
-        setConfig(prev => {
-            const newConfig = {...prev};
-            if (category === 'root') {
-                newConfig[key] = finalValue;
-            } else {
-                newConfig[category] = {
-                    ...newConfig[category],
-                    [key]: finalValue
-                };
-            }
-            return newConfig;
-        });
-    };
-
-    const handleSave = () => {
+    // Save settings to localStorage
+    const saveSettings = () => {
+        setIsSaving(true);
         try {
-            // Send config to agent
-            const success = agentService.sendMessage('update_config', config, {expectResponse: true, timeout: 10000});
-            if (success) {
-                // Update original config to match current
-                setOriginalConfig({...config});
-                notificationService.addSuccess('Configuration Updated', 'Settings have been saved successfully');
-            } else {
-                notificationService.addWarning('Configuration Queued', 'Settings have been queued and will be applied when connected');
-            }
+            localStorage.setItem('senars-ui-settings', JSON.stringify(settings));
+            notificationService.addSuccess('Settings Saved', 'UI settings have been saved successfully');
         } catch (error) {
-            log.error('Error saving configuration:', error);
-            notificationService.addError('Configuration Error', 'Failed to save configuration');
+            handleError(error, {operation: 'saveSettings'});
+        } finally {
+            setIsSaving(false);
         }
     };
 
-    const handleReset = () => {
-        setConfig({...originalConfig});
+    // Reset to default settings
+    const resetSettings = () => {
+        if (window.confirm('Are you sure you want to reset all settings to default?')) {
+            const defaultSettings = {
+                theme: 'dark',
+                fontSize: 'medium',
+                autoRefresh: true,
+                refreshInterval: 5000,
+                notifications: true,
+                notificationDuration: 5000,
+                autoConnect: true,
+                maxHistory: 100,
+                showTooltips: true,
+                animations: true,
+                debugMode: false,
+                autoSaveLayout: true,
+                defaultView: 'dashboard'
+            };
+            setSettings(defaultSettings);
+            localStorage.setItem('senars-ui-settings', JSON.stringify(defaultSettings));
+            notificationService.addInfo('Settings Reset', 'Settings have been reset to defaults');
+        }
     };
 
-    const handleExport = () => {
-        const dataStr = JSON.stringify(config, null, 2);
-        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-
-        const exportFileDefaultName = 'senars-config.json';
-
-        const linkElement = document.createElement('a');
-        linkElement.setAttribute('href', dataUri);
-        linkElement.setAttribute('download', exportFileDefaultName);
-        linkElement.click();
+    // Export settings
+    const exportSettings = () => {
+        try {
+            const dataStr = JSON.stringify(settings, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = 'senars-settings.json';
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            notificationService.addSuccess('Settings Exported', 'Settings exported successfully');
+        } catch (error) {
+            handleError(error, {operation: 'exportSettings'});
+        }
     };
 
-    const handleImport = (event) => {
+    // Import settings
+    const importSettings = (event) => {
         const file = event.target.files[0];
         if (!file) return;
-
+        
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
-                const importedConfig = JSON.parse(e.target.result);
-                setConfig(importedConfig);
-                notificationService.addSuccess('Configuration Imported', 'Settings have been imported successfully');
+                const importedSettings = JSON.parse(e.target.result);
+                setSettings(importedSettings);
+                localStorage.setItem('senars-ui-settings', JSON.stringify(importedSettings));
+                notificationService.addSuccess('Settings Imported', 'Settings imported successfully');
             } catch (error) {
-                log.error('Failed to parse imported config:', error);
-                notificationService.addError('Import Error', 'Invalid configuration file format');
+                handleError(error, {operation: 'importSettings'});
+                notificationService.addError('Import Failed', 'Invalid settings file format');
             }
         };
-        reader.onerror = (error) => {
-            log.error('Error reading configuration file:', error);
-            notificationService.addError('Import Error', 'Failed to read configuration file');
-        };
         reader.readAsText(file);
-
+        
         // Reset file input
         event.target.value = '';
     };
 
-    const renderNumberInput = (category, key, value, label) => (
-        <div className="setting-row">
-            <label htmlFor={`${category}-${key}`}>{label}</label>
-            <input
-                id={`${category}-${key}`}
-                type="number"
-                value={value}
-                onChange={(e) => handleConfigChange(category, key, parseFloat(e.target.value))}
-                step="any"
-                className="number-input"
-            />
-        </div>
-    );
+    // Handle setting changes
+    const handleSettingChange = (key, value) => {
+        setSettings(prev => ({
+            ...prev,
+            [key]: value
+        }));
+    };
 
+    // Apply theme to document
+    useEffect(() => {
+        document.documentElement.setAttribute('data-theme', settings.theme);
+    }, [settings.theme]);
+
+    // Apply font size to document
+    useEffect(() => {
+        document.documentElement.style.setProperty('--font-size-multiplier', 
+            settings.fontSize === 'small' ? '0.9' : 
+            settings.fontSize === 'large' ? '1.2' : '1.0'
+        );
+    }, [settings.fontSize]);
+
+    if (!isLoaded) {
+        return (
+            <Panel title={<><Settings size={18}/> Settings</>}>
+                <div className="settings-panel">
+                    <div className="loading">
+                        <div className="spinner"></div>
+                        <span>Loading settings...</span>
+                    </div>
+                </div>
+            </Panel>
+        );
+    }
 
     return (
-        <Panel title={<><SettingsIcon size={18}/> Settings</>}>
+        <Panel title={<><Settings size={18}/> Settings</>}>
             <div className="settings-panel">
-                {/* Tabs for different configuration sections */}
-                <div className="settings-tabs">
+                {/* Controls */}
+                <div className="settings-controls">
                     <button
-                        className={`tab-button ${activeTab === 'agent' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('agent')}
+                        onClick={saveSettings}
+                        disabled={isSaving}
+                        className="save-btn"
+                        title="Save settings"
                     >
-                        <Cpu size={16}/> Agent
+                        <Save size={16} /> {isSaving ? 'Saving...' : 'Save Settings'}
                     </button>
                     <button
-                        className={`tab-button ${activeTab === 'memory' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('memory')}
+                        onClick={resetSettings}
+                        className="reset-btn"
+                        title="Reset to defaults"
                     >
-                        <HardDrive size={16}/> Memory
+                        <RotateCcw size={16} /> Reset
                     </button>
                     <button
-                        className={`tab-button ${activeTab === 'reasoning' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('reasoning')}
+                        onClick={exportSettings}
+                        className="export-btn"
+                        title="Export settings"
                     >
-                        <Zap size={16}/> Reasoning
+                        <Download size={16} /> Export
                     </button>
-                    <button
-                        className={`tab-button ${activeTab === 'temporal' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('temporal')}
-                    >
-                        <Monitor size={16}/> Temporal
-                    </button>
-                    <button
-                        className={`tab-button ${activeTab === 'concept' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('concept')}
-                    >
-                        <Zap size={16}/> Concept
-                    </button>
-                </div>
-
-                <div className="settings-content">
-                    {activeTab === 'agent' && (
-                        <div className="settings-category">
-                            <h4>Agent Settings</h4>
-                            {renderNumberInput('root', 'FOCUS_SET_SIZE', config.FOCUS_SET_SIZE, 'Focus Set Size')}
-                            {renderNumberInput('root', 'META_TASK_PRIORITY', config.META_TASK_PRIORITY, 'Meta Task Priority')}
-                            {renderNumberInput('root', 'ACTIONABLE_GOAL_PRIORITY_THRESHOLD', config.ACTIONABLE_GOAL_PRIORITY_THRESHOLD, 'Actionable Goal Priority Threshold')}
-                            {renderNumberInput('root', 'MAX_GOALS_TO_EXECUTE', config.MAX_GOALS_TO_EXECUTE, 'Max Goals to Execute')}
-                            {renderNumberInput('root', 'RECENCY_DECAY_FACTOR', config.RECENCY_DECAY_FACTOR, 'Recency Decay Factor')}
-                            {renderNumberInput('root', 'SIMILARITY_OFFSET', config.SIMILARITY_OFFSET, 'Similarity Offset')}
-                            {renderNumberInput('root', 'SIMILARITY_SCALE', config.SIMILARITY_SCALE, 'Similarity Scale')}
-
-                            <div className="settings-subcategory">
-                                <h5>System Settings</h5>
-                                {renderNumberInput('system', 'BATCH_SIZE', config.system.BATCH_SIZE, 'Batch Size')}
-                                {renderNumberInput('system', 'CONFIDENCE_REDUCTION_FACTOR', config.system.CONFIDENCE_REDUCTION_FACTOR, 'Confidence Reduction Factor')}
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'memory' && (
-                        <div className="settings-category">
-                            <h4>Memory Settings</h4>
-                            {renderNumberInput('memory', 'MAINTENANCE_CYCLE_FREQUENCY', config.memory.MAINTENANCE_CYCLE_FREQUENCY, 'Maintenance Cycle Frequency')}
-                            {renderNumberInput('memory', 'MAX_BELIEF_CONCEPTS', config.memory.MAX_BELIEF_CONCEPTS, 'Max Belief Concepts')}
-                            {renderNumberInput('memory', 'MAX_GOAL_CONCEPTS', config.memory.MAX_GOAL_CONCEPTS, 'Max Goal Concepts')}
-                            {renderNumberInput('memory', 'MAX_QUESTIONS_PER_CONCEPT', config.memory.MAX_QUESTIONS_PER_CONCEPT, 'Max Questions Per Concept')}
-                            {renderNumberInput('memory', 'MAX_OPERATIONAL_CONCEPTS', config.memory.MAX_OPERATIONAL_CONCEPTS, 'Max Operational Concepts')}
-                            {renderNumberInput('memory', 'MAX_EXECUTABLES_PER_CONCEPT', config.memory.MAX_EXECUTABLES_PER_CONCEPT, 'Max Executables Per Concept')}
-                            {renderNumberInput('memory', 'MAX_TERMLINKS_PER_CONCEPT', config.memory.MAX_TERMLINKS_PER_CONCEPT, 'Max Termlinks Per Concept')}
-                            {renderNumberInput('memory', 'MAX_TASKLINKS_PER_CONCEPT', config.memory.MAX_TASKLINKS_PER_CONCEPT, 'Max Tasklinks Per Concept')}
-                            {renderNumberInput('memory', 'MAX_PRECONDITIONS', config.memory.MAX_PRECONDITIONS, 'Max Preconditions')}
-                        </div>
-                    )}
-
-                    {activeTab === 'reasoning' && (
-                        <div className="settings-category">
-                            <h4>Reasoning Settings</h4>
-                            {renderNumberInput('reasoning', 'BELIEF_REASONING_PRIORITY', config.reasoning.BELIEF_REASONING_PRIORITY, 'Belief Reasoning Priority')}
-                            {renderNumberInput('reasoning', 'QUESTION_REASONING_PRIORITY', config.reasoning.QUESTION_REASONING_PRIORITY, 'Question Reasoning Priority')}
-                            {renderNumberInput('reasoning', 'GOAL_REASONING_PRIORITY', config.reasoning.GOAL_REASONING_PRIORITY, 'Goal Reasoning Priority')}
-                            {renderNumberInput('reasoning', 'OPERATIONAL_INCENTIVE_PRIORITY', config.reasoning.OPERATIONAL_INCENTIVE_PRIORITY, 'Operational Incentive Priority')}
-                            {renderNumberInput('reasoning', 'TASK_SOLVING_PRIORITY_FACTOR', config.reasoning.TASK_SOLVING_PRIORITY_FACTOR, 'Task Solving Priority Factor')}
-                        </div>
-                    )}
-
-                    {activeTab === 'temporal' && (
-                        <div className="settings-category">
-                            <h4>Temporal Settings</h4>
-                            {renderNumberInput('temporal', 'INTERVAL_ADAPT_SPEED', config.temporal.INTERVAL_ADAPT_SPEED, 'Interval Adapt Speed')}
-                            {renderNumberInput('temporal', 'MAX_SEQUENCE_EVENTS', config.temporal.MAX_SEQUENCE_EVENTS, 'Max Sequence Events')}
-                            {renderNumberInput('temporal', 'MAX_CONDITION_TERMS', config.temporal.MAX_CONDITION_TERMS, 'Max Condition Terms')}
-                        </div>
-                    )}
-
-                    {activeTab === 'concept' && (
-                        <div className="settings-category">
-                            <h4>Concept Settings</h4>
-                            {renderNumberInput('concept', 'MAX_BELIEF_EVENTS', config.concept.MAX_BELIEF_EVENTS, 'Max Belief Events')}
-                            {renderNumberInput('concept', 'MAX_GOAL_EVENTS', config.concept.MAX_GOAL_EVENTS, 'Max Goal Events')}
-                            {renderNumberInput('concept', 'MAX_QUESTIONS', config.concept.MAX_QUESTIONS, 'Max Questions')}
-                            {renderNumberInput('concept', 'MAX_OPERATIONS', config.concept.MAX_OPERATIONS, 'Max Operations')}
-                            {renderNumberInput('concept', 'MAX_PRECONDITIONS', config.concept.MAX_PRECONDITIONS, 'Max Preconditions')}
-                        </div>
-                    )}
-                </div>
-
-                {/* Action buttons */}
-                <div className="settings-actions">
-                    <button
-                        onClick={handleSave}
-                        disabled={!hasUnsavedChanges}
-                        className="action-button save-button"
-                        title="Save configuration"
-                    >
-                        <Save size={16}/> Save
-                    </button>
-                    <button
-                        onClick={handleReset}
-                        disabled={!hasUnsavedChanges}
-                        className="action-button reset-button"
-                        title="Reset to previous values"
-                    >
-                        <RotateCcw size={16}/> Reset
-                    </button>
-                    <button
-                        onClick={handleExport}
-                        className="action-button export-button"
-                        title="Export configuration"
-                    >
-                        <Download size={16}/> Export
-                    </button>
-                    <label className="action-button import-button" title="Import configuration">
-                        <Upload size={16}/> Import
-                        <input
-                            type="file"
+                    <label className="import-btn">
+                        <Upload size={16} /> Import
+                        <input 
+                            type="file" 
                             accept=".json"
-                            onChange={handleImport}
+                            onChange={importSettings}
                             style={{display: 'none'}}
                         />
                     </label>
                 </div>
 
-                {/* Status indicator */}
-                {hasUnsavedChanges && (
-                    <div className="settings-status">
-                        <span className="unsaved-indicator">Unsaved changes</span>
+                {/* Theme Settings */}
+                <div className="settings-section">
+                    <h3><Palette size={18} /> Theme Settings</h3>
+                    <div className="setting-group">
+                        <div className="setting-item">
+                            <label htmlFor="theme">Theme:</label>
+                            <select
+                                id="theme"
+                                value={settings.theme}
+                                onChange={(e) => handleSettingChange('theme', e.target.value)}
+                                className="setting-select"
+                            >
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                                <option value="system">System</option>
+                            </select>
+                        </div>
+                        <div className="setting-item">
+                            <label htmlFor="fontSize">Font Size:</label>
+                            <select
+                                id="fontSize"
+                                value={settings.fontSize}
+                                onChange={(e) => handleSettingChange('fontSize', e.target.value)}
+                                className="setting-select"
+                            >
+                                <option value="small">Small</option>
+                                <option value="medium">Medium</option>
+                                <option value="large">Large</option>
+                            </select>
+                        </div>
                     </div>
-                )}
+                </div>
+
+                {/* Audio Settings */}
+                <div className="settings-section">
+                    <h3><Volume2 size={18} /> Audio Settings</h3>
+                    <div className="setting-group">
+                        <div className="setting-item">
+                            <label htmlFor="sonification">Enable Sonification:</label>
+                            <div className="toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    id="sonification"
+                                    checked={isSonificationEnabled}
+                                    onChange={toggleSonification}
+                                    className="toggle-input"
+                                />
+                                <label htmlFor="sonification" className="toggle-label"></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Display Settings */}
+                <div className="settings-section">
+                    <h3><Monitor size={18} /> Display Settings</h3>
+                    <div className="setting-group">
+                        <div className="setting-item">
+                            <label htmlFor="showTooltips">Show Tooltips:</label>
+                            <div className="toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    id="showTooltips"
+                                    checked={settings.showTooltips}
+                                    onChange={(e) => handleSettingChange('showTooltips', e.target.checked)}
+                                    className="toggle-input"
+                                />
+                                <label htmlFor="showTooltips" className="toggle-label"></label>
+                            </div>
+                        </div>
+                        <div className="setting-item">
+                            <label htmlFor="animations">Enable Animations:</label>
+                            <div className="toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    id="animations"
+                                    checked={settings.animations}
+                                    onChange={(e) => handleSettingChange('animations', e.target.checked)}
+                                    className="toggle-input"
+                                />
+                                <label htmlFor="animations" className="toggle-label"></label>
+                            </div>
+                        </div>
+                        <div className="setting-item">
+                            <label htmlFor="debugMode">Debug Mode:</label>
+                            <div className="toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    id="debugMode"
+                                    checked={settings.debugMode}
+                                    onChange={(e) => handleSettingChange('debugMode', e.target.checked)}
+                                    className="toggle-input"
+                                />
+                                <label htmlFor="debugMode" className="toggle-label"></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Notification Settings */}
+                <div className="settings-section">
+                    <h3><Globe size={18} /> Notification Settings</h3>
+                    <div className="setting-group">
+                        <div className="setting-item">
+                            <label htmlFor="notifications">Enable Notifications:</label>
+                            <div className="toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    id="notifications"
+                                    checked={settings.notifications}
+                                    onChange={(e) => handleSettingChange('notifications', e.target.checked)}
+                                    className="toggle-input"
+                                />
+                                <label htmlFor="notifications" className="toggle-label"></label>
+                            </div>
+                        </div>
+                        <div className="setting-item">
+                            <label htmlFor="notificationDuration">Notification Duration (ms):</label>
+                            <input
+                                type="number"
+                                id="notificationDuration"
+                                value={settings.notificationDuration}
+                                onChange={(e) => handleSettingChange('notificationDuration', Number(e.target.value))}
+                                className="setting-input"
+                                min="1000"
+                                max="30000"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Data & Performance Settings */}
+                <div className="settings-section">
+                    <h3><Database size={18} /> Data & Performance</h3>
+                    <div className="setting-group">
+                        <div className="setting-item">
+                            <label htmlFor="autoRefresh">Auto Refresh Data:</label>
+                            <div className="toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    id="autoRefresh"
+                                    checked={settings.autoRefresh}
+                                    onChange={(e) => handleSettingChange('autoRefresh', e.target.checked)}
+                                    className="toggle-input"
+                                />
+                                <label htmlFor="autoRefresh" className="toggle-label"></label>
+                            </div>
+                        </div>
+                        <div className="setting-item">
+                            <label htmlFor="refreshInterval">Refresh Interval (ms):</label>
+                            <input
+                                type="number"
+                                id="refreshInterval"
+                                value={settings.refreshInterval}
+                                onChange={(e) => handleSettingChange('refreshInterval', Number(e.target.value))}
+                                className="setting-input"
+                                min="1000"
+                                max="60000"
+                            />
+                        </div>
+                        <div className="setting-item">
+                            <label htmlFor="maxHistory">Max History Items:</label>
+                            <input
+                                type="number"
+                                id="maxHistory"
+                                value={settings.maxHistory}
+                                onChange={(e) => handleSettingChange('maxHistory', Number(e.target.value))}
+                                className="setting-input"
+                                min="10"
+                                max="1000"
+                            />
+                        </div>
+                        <div className="setting-item">
+                            <label htmlFor="autoSaveLayout">Auto Save Layout:</label>
+                            <div className="toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    id="autoSaveLayout"
+                                    checked={settings.autoSaveLayout}
+                                    onChange={(e) => handleSettingChange('autoSaveLayout', e.target.checked)}
+                                    className="toggle-input"
+                                />
+                                <label htmlFor="autoSaveLayout" className="toggle-label"></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* System Settings */}
+                <div className="settings-section">
+                    <h3><Zap size={18} /> System Settings</h3>
+                    <div className="setting-group">
+                        <div className="setting-item">
+                            <label htmlFor="autoConnect">Auto Connect:</label>
+                            <div className="toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    id="autoConnect"
+                                    checked={settings.autoConnect}
+                                    onChange={(e) => handleSettingChange('autoConnect', e.target.checked)}
+                                    className="toggle-input"
+                                />
+                                <label htmlFor="autoConnect" className="toggle-label"></label>
+                            </div>
+                        </div>
+                        <div className="setting-item">
+                            <label htmlFor="defaultView">Default View:</label>
+                            <select
+                                id="defaultView"
+                                value={settings.defaultView}
+                                onChange={(e) => handleSettingChange('defaultView', e.target.value)}
+                                className="setting-select"
+                            >
+                                <option value="dashboard">Dashboard</option>
+                                <option value="chat">Chat</option>
+                                <option value="knowledge-graph">Knowledge Graph</option>
+                                <option value="reasoner-trace">Reasoner Trace</option>
+                                <option value="status">Status</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Settings Summary */}
+                <div className="settings-summary">
+                    <div className="summary-item">
+                        <span className="summary-label">Theme:</span>
+                        <span className="summary-value">{settings.theme}</span>
+                    </div>
+                    <div className="summary-item">
+                        <span className="summary-label">Font Size:</span>
+                        <span className="summary-value">{settings.fontSize}</span>
+                    </div>
+                    <div className="summary-item">
+                        <span className="summary-label">Auto Refresh:</span>
+                        <span className="summary-value">{settings.autoRefresh ? 'On' : 'Off'}</span>
+                    </div>
+                    <div className="summary-item">
+                        <span className="summary-label">Notifications:</span>
+                        <span className="summary-value">{settings.notifications ? 'On' : 'Off'}</span>
+                    </div>
+                </div>
             </div>
         </Panel>
     );
-}
+};
 
 export default SettingsPanel;

@@ -18,9 +18,13 @@ import ConversationHistoryPanel from './interaction/ConversationHistoryPanel';
 import SettingsPanel from './settings/SettingsPanel';
 import TaskPanel from './task/TaskPanel';
 import TaskInspectorPanel from './task/TaskInspectorPanel';
+import NarseseTaskPanel from './task/NarseseTaskPanel';
 import SessionPanel from './system/SessionPanel';
 import DebugPanel from './debug/DebugPanel';
 import Chat from './Chat/Chat';
+import DashboardPanel from './dashboard/DashboardPanel';
+import ConfigurationEditorPanel from './configuration/ConfigurationEditorPanel';
+import SidebarPanel from './navigation/SidebarPanel';
 
 const panelRegistry = {
     'chat': Chat,
@@ -44,6 +48,10 @@ const panelRegistry = {
     'settings': SettingsPanel,
     'tasks': TaskPanel,
     'task-inspector': TaskInspectorPanel,
+    'narsese-tasks': NarseseTaskPanel,
+    'dashboard': DashboardPanel,
+    'configuration': ConfigurationEditorPanel,
+    'sidebar': SidebarPanel,
     'sessions': SessionPanel,
     'debug': DebugPanel,
 };

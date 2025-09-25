@@ -2,124 +2,281 @@
 import {EventEmitter} from 'events';
 import log from '@/utils/logger';
 import notificationService from '@/services/notificationService';
+import {NOTIFICATION_TYPES} from '@/constants/ui';
 
 class UIErrorHandler extends EventEmitter {
     constructor() {
         super();
-        this.errorHandlers = new Map();
         this.errorCount = 0;
-        this.lastErrorTime = null;
+        this.warningCount = 0;
+        this.maxErrors = 100; // Prevent infinite error loops
+        this.errorBuffer = []; // Buffer for error aggregation
+        this.errorBufferTimeout = null;
+        this.bufferTime = 1000; // 1 second buffer window
     }
 
-    // Register a specific error handler for a component
-    registerComponent(componentName, handler) {
-        this.errorHandlers.set(componentName, handler);
-    }
-
-    // Unregister an error handler
-    unregisterComponent(componentName) {
-        this.errorHandlers.delete(componentName);
-    }
-
-    // Handle an error with context
-    handleError(error, context = {}) {
-        this.errorCount++;
-        this.lastErrorTime = new Date();
-
-        // Create error object with context
-        const errorObj = {
-            id: `ui-error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            message: error.message || String(error),
-            stack: error.stack,
-            context,
-            timestamp: new Date().toISOString(),
-            component: context.component || 'unknown',
-            operation: context.operation || 'unknown'
-        };
-
-        // Log the error
-        log.error(`UI Error in ${errorObj.component}:`, errorObj.message, errorObj);
-
-        // Show notification if it's a user-facing error
-        if (context.showNotification !== false) {
-            notificationService.addError(
-                context.title || 'Error', 
-                context.message || errorObj.message,
-                context.duration || 5000
-            );
-        }
-
-        // Emit error event for any registered handlers
-        this.emit('error', errorObj);
-
-        // Call component-specific error handler if registered
-        const componentHandler = this.errorHandlers.get(context.component);
-        if (componentHandler) {
-            try {
-                componentHandler(error, context);
-            } catch (handlerError) {
-                log.error('Error in component error handler:', handlerError);
-            }
-        }
-
-        // Return error object for potential further processing
-        return errorObj;
-    }
-
-    // Safe execution wrapper with error handling
-    async safeExecute(operation, context = {}) {
+    /**
+     * Enhanced error handling with detailed context
+     * @param {Error|string} error - The error object or message
+     * @param {Object} context - Additional context about where the error occurred
+     * @param {string} operation - Name of the operation that failed
+     */
+    handle(error, context = {}, operation = 'unknown') {
         try {
-            return await operation();
-        } catch (error) {
-            return this.handleError(error, {
-                ...context,
-                operation: context.operation || 'safeExecute'
-            });
+            this.errorCount++;
+            
+            // Create a structured error object
+            const errorObj = {
+                id: `error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                timestamp: new Date().toISOString(),
+                operation,
+                error: error instanceof Error ? error : new Error(error),
+                context,
+                stack: error instanceof Error ? error.stack : new Error().stack
+            };
+
+            // Log to console
+            log.error(`${operation} failed:`, errorObj.error.message, context);
+
+            // Add to notification service for user feedback
+            const userMessage = this.formatUserMessage(errorObj);
+            notificationService.addError(
+                `Error in ${operation.charAt(0).toUpperCase() + operation.slice(1)}`,
+                userMessage,
+                10000 // Show error for 10 seconds
+            );
+
+            // Emit the error event for any listeners
+            this.emit('error', errorObj);
+
+            // Buffer errors for potential aggregation
+            this.bufferError(errorObj);
+
+            // Return error object for caller to handle further
+            return errorObj;
+        } catch (bufferError) {
+            // If error handling itself fails, log but don't throw
+            console.error('Error in error handler:', bufferError);
+            return { error: bufferError };
         }
     }
 
-    // Get error statistics
+    /**
+     * Handle warnings with detailed context
+     */
+    handleWarning(message, context = {}, operation = 'unknown') {
+        try {
+            this.warningCount++;
+            
+            const warningObj = {
+                id: `warning-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                timestamp: new Date().toISOString(),
+                operation,
+                message: typeof message === 'string' ? message : message.toString(),
+                context
+            };
+
+            log.warn(`${operation} warning:`, message, context);
+
+            const userMessage = this.formatUserMessage(warningObj, 'warning');
+            notificationService.addWarning(
+                `Warning in ${operation.charAt(0).toUpperCase() + operation.slice(1)}`,
+                userMessage
+            );
+
+            this.emit('warning', warningObj);
+
+            return warningObj;
+        } catch (error) {
+            console.error('Error in warning handler:', error);
+            return { error };
+        }
+    }
+
+    /**
+     * Safe execution wrapper that handles errors automatically
+     */
+    async safeExecute(fn, operation = 'unknown', context = {}) {
+        try {
+            return await fn();
+        } catch (error) {
+            this.handle(error, context, operation);
+            return null; // Return null to indicate failure
+        }
+    }
+
+    /**
+     * Safe sync execution wrapper
+     */
+    safeExecuteSync(fn, operation = 'unknown', context = {}) {
+        try {
+            return fn();
+        } catch (error) {
+            this.handle(error, context, operation);
+            return null;
+        }
+    }
+
+    /**
+     * Format error message for user display
+     */
+    formatUserMessage(errorObj, type = 'error') {
+        let message = '';
+        
+        if (errorObj.error && errorObj.error.message) {
+            message = errorObj.error.message;
+        } else if (errorObj.message) {
+            message = errorObj.message;
+        } else {
+            message = 'An unexpected error occurred';
+        }
+
+        // Clean up technical details for user display
+        if (message.includes('Failed to fetch') || message.includes('NetworkError')) {
+            return 'Network connection error. Please check your connection to the agent.';
+        }
+        
+        if (message.includes('WebSocket')) {
+            return 'WebSocket connection error. Agent may be unreachable.';
+        }
+        
+        if (message.includes('timeout')) {
+            return 'Operation timed out. Please try again.';
+        }
+
+        // Provide helpful context based on operation type
+        switch (errorObj.operation) {
+            case 'sendMessage':
+                return `Failed to send message to agent: ${message}`;
+            case 'fetchTasks':
+                return `Failed to fetch tasks from agent: ${message}`;
+            case 'connection':
+                return `Connection error: ${message}`;
+            default:
+                return message;
+        }
+    }
+
+    /**
+     * Buffer errors for potential aggregation
+     */
+    bufferError(errorObj) {
+        this.errorBuffer.push(errorObj);
+        
+        // Clear existing timeout
+        if (this.errorBufferTimeout) {
+            clearTimeout(this.errorBufferTimeout);
+        }
+        
+        // Set new timeout to process buffered errors
+        this.errorBufferTimeout = setTimeout(() => {
+            this.processBufferedErrors();
+        }, this.bufferTime);
+    }
+
+    /**
+     * Process and potentially aggregate buffered errors
+     */
+    processBufferedErrors() {
+        if (this.errorBuffer.length === 0) return;
+        
+        // Group similar errors
+        const groupedErrors = this.groupSimilarErrors(this.errorBuffer);
+        
+        // For now, just emit the most recent error
+        const recentError = this.errorBuffer[0];
+        
+        // Reset buffer
+        this.errorBuffer = [];
+        
+        // Could implement error aggregation logic here
+        // For example, if many similar errors occurred, show one with count
+    }
+
+    /**
+     * Group similar errors together
+     */
+    groupSimilarErrors(errors) {
+        const grouped = {};
+        
+        errors.forEach(error => {
+            // Group by error message or operation type
+            const key = error.error?.message || error.operation;
+            if (!grouped[key]) {
+                grouped[key] = [];
+            }
+            grouped[key].push(error);
+        });
+        
+        return grouped;
+    }
+
+    /**
+     * Get error statistics
+     */
     getStats() {
         return {
-            errorCount: this.errorCount,
-            lastErrorTime: this.lastErrorTime,
-            componentCount: this.errorHandlers.size
+            totalErrors: this.errorCount,
+            totalWarnings: this.warningCount,
+            bufferLength: this.errorBuffer.length
         };
     }
 
-    // Clear error statistics
-    clearStats() {
+    /**
+     * Reset error counters
+     */
+    reset() {
         this.errorCount = 0;
-        this.lastErrorTime = null;
+        this.warningCount = 0;
+        this.errorBuffer = [];
+        if (this.errorBufferTimeout) {
+            clearTimeout(this.errorBufferTimeout);
+            this.errorBufferTimeout = null;
+        }
     }
 }
 
-// Create singleton instance
+// Create a singleton instance
 const uiErrorHandler = new UIErrorHandler();
 
-// Export the handler
-export default uiErrorHandler;
+// Export hook for React components to use
+const useUIErrorHandler = (componentName = 'Unknown') => {
+    const safeExecute = (fn, operation = 'unknown', additionalContext = {}) => {
+        return uiErrorHandler.safeExecute(fn, operation, {
+            component: componentName,
+            ...additionalContext
+        });
+    };
 
-// Export utility functions
-export { UIErrorHandler };
+    const safeExecuteSync = (fn, operation = 'unknown', additionalContext = {}) => {
+        return uiErrorHandler.safeExecuteSync(fn, operation, {
+            component: componentName,
+            ...additionalContext
+        });
+    };
 
-// Export a hook for React components
-export const useUIErrorHandler = (componentName) => {
-    // Register component when hook is used
-    uiErrorHandler.registerComponent(componentName, (error, _context) => {
-        log.warn(`Component-level error handling for ${componentName}:`, error.message);
-    });
+    const handleError = (error, context = {}) => {
+        return uiErrorHandler.handle(error, {
+            component: componentName,
+            ...context
+        }, context.operation || 'operation');
+    };
 
-    // Cleanup on unmount
-    const cleanup = () => {
-        uiErrorHandler.unregisterComponent(componentName);
+    const handleWarning = (message, context = {}) => {
+        return uiErrorHandler.handleWarning(message, {
+            component: componentName,
+            ...context
+        }, context.operation || 'operation');
     };
 
     return {
-        handleError: (error, context = {}) => 
-            uiErrorHandler.handleError(error, { ...context, component: componentName }),
-        safeExecute: (operation, context = {}) => 
-            uiErrorHandler.safeExecute(operation, { ...context, component: componentName }),
-        cleanup
+        handleError,
+        handleWarning,
+        safeExecute,
+        safeExecuteSync,
+        errorStats: uiErrorHandler.getStats()
     };
 };
+
+export default uiErrorHandler;
+export { useUIErrorHandler };

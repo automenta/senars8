@@ -9,6 +9,7 @@ import useAppInit from '@/hooks/useAppInit';
 import useLayoutModel from '@/hooks/useLayoutModel';
 import {useTheme} from '@/context/ThemeProvider';
 import {SearchProvider} from '@/context/SearchContext';
+import {NotificationProvider} from '@/context/NotificationContext';
 import './App.css';
 
 const factory = (node) => {
@@ -27,20 +28,22 @@ function App() {
     useAppInit();
 
     return (
-        <SearchProvider>
-            <div className="app-container" data-theme={theme}>
-                <Header/>
-                <main className="app-main" role="main">
-                    <Layout
-                        model={model}
-                        factory={factory}
-                        onModelChange={onModelChange}
-                        className="app-layout"
-                    />
-                </main>
-                <StatusBar/>
-            </div>
-        </SearchProvider>
+        <NotificationProvider>
+            <SearchProvider>
+                <div className="app-container" data-theme={theme}>
+                    <Header/>
+                    <main className="app-main" role="main">
+                        <Layout
+                            model={model}
+                            factory={factory}
+                            onModelChange={onModelChange}
+                            className="app-layout"
+                        />
+                    </main>
+                    <StatusBar/>
+                </div>
+            </SearchProvider>
+        </NotificationProvider>
     );
 }
 

@@ -87,7 +87,6 @@ function ReasoningDebuggerPanel() {
     }, [inputStatement, isConnected]);
 
     const handleClear = useCallback(() => {
-        setResults([]);
         clearDebugResults();
         setInputStatement('');
         setExecutionHistory([]);

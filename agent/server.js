@@ -68,14 +68,109 @@ agent.initialize().then(() => {
         });
 
         eventBus.on('add_belief', (belief) => {
-            // Assuming belief has a serializable representation
-            broadcast({type: 'add_belief', payload: belief.toString()});
+            // Broadcast belief addition with proper formatting
+            const formattedBelief = {
+                id: belief.id,
+                termKey: belief.termKey,
+                punctuation: belief.punctuation,
+                priority: belief.state?.priority || 0,
+                truthValue: belief.state?.truthValue || {frequency: 0.5, confidence: 0.5},
+                occurrenceTime: belief.state?.occurrenceTime || null,
+                creationTime: belief.state?.stamp?.creationTime || Date.now()
+            };
+            broadcast({type: 'add_belief', payload: formattedBelief});
+        });
+
+        eventBus.on('add_goal', (goal) => {
+            // Broadcast goal addition with proper formatting
+            const formattedGoal = {
+                id: goal.id,
+                termKey: goal.termKey,
+                punctuation: goal.punctuation,
+                priority: goal.state?.priority || 0,
+                truthValue: goal.state?.truthValue || {frequency: 0.5, confidence: 0.5},
+                occurrenceTime: goal.state?.occurrenceTime || null,
+                creationTime: goal.state?.stamp?.creationTime || Date.now()
+            };
+            broadcast({type: 'add_goal', payload: formattedGoal});
+        });
+
+        eventBus.on('add_question', (question) => {
+            // Broadcast question addition with proper formatting
+            const formattedQuestion = {
+                id: question.id,
+                termKey: question.termKey,
+                punctuation: question.punctuation,
+                priority: question.state?.priority || 0,
+                truthValue: question.state?.truthValue || {frequency: 0.5, confidence: 0.5},
+                occurrenceTime: question.state?.occurrenceTime || null,
+                creationTime: question.state?.stamp?.creationTime || Date.now()
+            };
+            broadcast({type: 'add_question', payload: formattedQuestion});
+        });
+
+        eventBus.on('add_task', (task) => {
+            // Broadcast any task addition with proper formatting
+            const formattedTask = {
+                id: task.id,
+                termKey: task.termKey,
+                punctuation: task.punctuation,
+                priority: task.state?.priority || 0,
+                truthValue: task.state?.truthValue || {frequency: 0.5, confidence: 0.5},
+                occurrenceTime: task.state?.occurrenceTime || null,
+                creationTime: task.state?.stamp?.creationTime || Date.now()
+            };
+            broadcast({type: 'task_added', payload: formattedTask});
         });
 
         eventBus.on('reasoning_step', (step) => {
             // Assuming the step object is serializable or has a useful string representation
             broadcast({type: 'reasoning_step', payload: step});
         });
+
+        // Listen for memory changes and broadcast updates
+        eventBus.on('memory_changed', (changes) => {
+            broadcast({type: 'memory_update', payload: changes});
+        });
+
+        // Set up periodic system stats broadcasting
+        const systemStatsInterval = setInterval(() => {
+            try {
+                let systemStats = {
+                    cycleCount: agent.system?.cycleCount || 0,
+                    memoryUsage: 0,
+                    cpuUsage: 0,
+                    temperature: 0,
+                    beliefs: 0,
+                    goals: 0,
+                    questions: 0,
+                    tasks: 0
+                };
+
+                if (agent.system && agent.system.memory) {
+                    // Get memory statistics
+                    const memoryStats = agent.system.memory.getStatistics();
+                    systemStats = {
+                        ...systemStats,
+                        memoryUsage: memoryStats.terms + memoryStats.shortTermTasks + memoryStats.longTermTasks,
+                        beliefs: agent.getBeliefs().length,
+                        goals: agent.getGoals().length,
+                        questions: agent.getQuestions().length,
+                        tasks: agent.getAllTasks().length
+                    };
+                }
+
+                broadcast({
+                    type: 'system_stats',
+                    payload: systemStats
+                });
+            } catch (error) {
+                serverError('Error broadcasting system stats:', error);
+            }
+        }, 3000); // Broadcast every 3 seconds
+
+        // Store interval ID to clear it on error
+        agent.systemStatsInterval = systemStatsInterval;
 
     } else {
         serverWarn('Agent event bus not available. UI will not receive real-time updates.');
@@ -85,6 +180,13 @@ agent.initialize().then(() => {
 }).catch(err => {
     serverError('Agent initialization failed:', err);
     broadcast({type: 'agentStatus', payload: 'initialization_failed'});
+    
+    // Clear interval if it was set
+    if (agent.systemStatsInterval) {
+        clearInterval(agent.systemStatsInterval);
+        agent.systemStatsInterval = null;
+    }
+    
     return false; // Return a value to satisfy the eslint rule
 });
 
@@ -276,6 +378,382 @@ async function handleMessage(message, ws) {
                     await agent.reset(); // Assuming this method exists on the Agent
                     broadcast({type: 'log', payload: {source: 'system', message: 'Agent reset.'}});
                     break;
+            }
+            break;
+        }
+
+        case 'get_tasks': {
+            // Return the current tasks from the agent's memory
+            try {
+                // Use agent's methods to get tasks
+                const beliefs = agent.getBeliefs();
+                const goals = agent.getGoals();
+                const questions = agent.getQuestions();
+                
+                // Combine all tasks
+                const allTasks = [...beliefs, ...goals, ...questions];
+                
+                // Apply filters if provided
+                const {filter, priority} = payload;
+                let filteredTasks = allTasks;
+                
+                if (filter && filter !== 'all') {
+                    filteredTasks = filteredTasks.filter(task => {
+                        if (filter === 'belief') return task.punctuation === '.';
+                        if (filter === 'goal') return task.punctuation === '!';
+                        if (filter === 'question') return task.punctuation === '?';
+                        return true;
+                    });
+                }
+                
+                if (priority && priority !== 'all') {
+                    filteredTasks = filteredTasks.filter(task => {
+                        const taskPriority = task.state?.priority || task.priority || 0;
+                        if (priority === 'high') return taskPriority >= 0.7;
+                        if (priority === 'medium') return taskPriority >= 0.3 && taskPriority < 0.7;
+                        if (priority === 'low') return taskPriority < 0.3;
+                        return true;
+                    });
+                }
+                
+                ws.send(JSON.stringify({
+                    type: 'tasks_response',
+                    payload: {
+                        tasks: filteredTasks,
+                        total: filteredTasks.length
+                    }
+                }));
+            } catch (error) {
+                serverError('Failed to get tasks:', error);
+                ws.send(JSON.stringify({
+                    type: 'error',
+                    payload: {message: `Failed to get tasks: ${error.message}`}
+                }));
+            }
+            break;
+        }
+
+        case 'task_action': {
+            try {
+                const {action, taskId, task} = payload;
+                
+                switch (action) {
+                    case 'execute':
+                        // Execute a specific task
+                        if (agent.system && agent.system.actionExecutor) {
+                            // If task is a string (term key), create it
+                            let taskToExecute = task;
+                            if (typeof task === 'string') {
+                                const parsedTerm = await agent.system.parseTerm(task);
+                                taskToExecute = new agent.system.Task(parsedTerm, '!');
+                            }
+                            
+                            if (taskToExecute) {
+                                await agent.system.actionExecutor.execute(taskToExecute);
+                                broadcast({
+                                    type: 'task_execution_result',
+                                    payload: {taskId, status: 'executed', task: taskToExecute}
+                                });
+                            }
+                        }
+                        break;
+                        
+                    case 'pause':
+                        // For now, just broadcast the action for UI feedback
+                        broadcast({
+                            type: 'task_status_change',
+                            payload: {taskId, status: 'paused', task}
+                        });
+                        break;
+                        
+                    default:
+                        ws.send(JSON.stringify({
+                            type: 'error',
+                            payload: {message: `Unknown task action: ${action}`}
+                        }));
+                        break;
+                }
+            } catch (error) {
+                serverError('Failed to execute task action:', error);
+                ws.send(JSON.stringify({
+                    type: 'error',
+                    payload: {message: `Failed task action: ${error.message}`}
+                }));
+            }
+            break;
+        }
+
+        case 'add_task': {
+            try {
+                const {taskData} = payload;
+                
+                if (agent.system && taskData) {
+                    // Create a new task and add it to the system
+                    const parsedTerm = await agent.system.parseTerm(taskData.statement || taskData.termKey);
+                    if (parsedTerm) {
+                        const task = new agent.system.Task(parsedTerm, taskData.punctuation || '!', {
+                            priority: taskData.priority || 0.5,
+                            truthValue: taskData.truthValue || {frequency: 0.5, confidence: 0.5}
+                        });
+                        
+                        // Add the task to the appropriate memory based on punctuation
+                        if (agent.system.memory) {
+                            // Add task to memory - we'll add to the tasks list using the memory interface
+                            agent.system.memory.addTasks([task]);
+                            
+                            // Emit event so UI can be updated
+                            broadcast({
+                                type: 'task_added',
+                                payload: {task: task.toString(), id: task.id}
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                serverError('Failed to add task:', error);
+                ws.send(JSON.stringify({
+                    type: 'error',
+                    payload: {message: `Failed to add task: ${error.message}`}
+                }));
+            }
+            break;
+        }
+
+        case 'search': {
+            try {
+                const {query, scope, limit, filters} = payload || {};
+                
+                if (!query) {
+                    ws.send(JSON.stringify({
+                        type: 'search_results',
+                        payload: {results: [], query, total: 0}
+                    }));
+                    return;
+                }
+                
+                let results = [];
+                
+                if (agent.system && agent.system.memory) {
+                    // Search in beliefs, goals, and questions based on scope
+                    const searchInTasks = (tasks, type) => {
+                        if (!tasks) return [];
+                        
+                        return tasks
+                            .filter(task => 
+                                task.termKey && 
+                                task.termKey.toLowerCase().includes(query.toLowerCase())
+                            )
+                            .slice(0, limit || 50)
+                            .map(task => ({
+                                ...task,
+                                type
+                            }));
+                    };
+                    
+                    if (!scope || scope === 'all' || scope === 'beliefs') {
+                        results = results.concat(searchInTasks(agent.getBeliefs(), 'belief'));
+                    }
+                    if (!scope || scope === 'all' || scope === 'goals') {
+                        results = results.concat(searchInTasks(agent.getGoals(), 'goal'));
+                    }
+                    if (!scope || scope === 'all' || scope === 'questions') {
+                        results = results.concat(searchInTasks(agent.getQuestions(), 'question'));
+                    }
+                }
+                
+                ws.send(JSON.stringify({
+                    type: 'search_results',
+                    payload: {results, query, total: results.length}
+                }));
+            } catch (error) {
+                serverError('Search failed:', error);
+                ws.send(JSON.stringify({
+                    type: 'search_error',
+                    payload: {message: `Search failed: ${error.message}`}
+                }));
+            }
+            break;
+        }
+
+        case 'get_system_stats': {
+            try {
+                let systemStats = {
+                    cycleCount: 0,
+                    memoryUsage: 0,
+                    cpuUsage: 0,
+                    temperature: 0,
+                    beliefs: 0,
+                    goals: 0,
+                    questions: 0,
+                    tasks: 0
+                };
+
+                if (agent.system && agent.system.memory) {
+                    // Get memory statistics
+                    const memoryStats = agent.system.memory.getStatistics();
+                    systemStats = {
+                        ...systemStats,
+                        memoryUsage: memoryStats.terms + memoryStats.shortTermTasks + memoryStats.longTermTasks,
+                        beliefs: agent.getBeliefs().length,
+                        goals: agent.getGoals().length,
+                        questions: agent.getQuestions().length,
+                        tasks: agent.getAllTasks().length
+                    };
+                }
+
+                // Get system cycle count if available
+                if (agent.system && agent.system.cycleCount !== undefined) {
+                    systemStats.cycleCount = agent.system.cycleCount;
+                }
+
+                ws.send(JSON.stringify({
+                    type: 'system_stats',
+                    payload: systemStats
+                }));
+            } catch (error) {
+                serverError('Failed to get system stats:', error);
+                ws.send(JSON.stringify({
+                    type: 'error',
+                    payload: {message: `Failed to get system stats: ${error.message}`}
+                }));
+            }
+            break;
+        }
+
+        case 'system_stats': {
+            // This is handled by the UI
+            ws.send(JSON.stringify({
+                type: 'error',
+                payload: {message: 'system_stats is for server-to-client communication only'}
+            }));
+            break;
+        }
+
+        case 'get_config': {
+            try {
+                // Return the current agent configuration
+                // For now, return a basic config - in a real implementation, 
+                // this would return the actual system configuration
+                const config = {
+                    core: {
+                        CYCLE_DELAY_MS: 50,
+                        FOCUS_SET_SIZE: 20,
+                        META_TASK_PRIORITY: 0.9,
+                        ACTIONABLE_GOAL_PRIORITY_THRESHOLD: 0.1,
+                        MAX_GOALS_TO_EXECUTE: 3,
+                        RECENCY_DECAY_FACTOR: 10000,
+                        SIMILARITY_OFFSET: 0.1
+                    },
+                    memory: {
+                        FORGETTING_STRATEGY_NAME: 'TimeBased',
+                        CONSOLIDATION_PRIORITY_THRESHOLD: 0.8,
+                        CONSOLIDATION_CONFIDENCE_THRESHOLD: 0.9,
+                        MAINTENANCE_CYCLE_FREQUENCY: 10,
+                        MAX_SHORT_TERM_TASKS: 1000,
+                        MAX_LONG_TERM_TASKS: 10000
+                    },
+                    reasoning: {
+                        MAX_REASONING_DEPTH: 5,
+                        MAX_REASONING_STEPS: 100,
+                        SIMILARITY_THRESHOLD: 0.8,
+                        CONTRADICTION_RESOLUTION_ENABLED: true,
+                        TEMPORAL_REASONING_ENABLED: true
+                    },
+                    agent: {
+                        MAX_CYCLES: 0, // 0 means infinite
+                        LOG_LEVEL: 'info',
+                        ENABLE_SELF_MODIFICATION: false
+                    }
+                };
+
+                ws.send(JSON.stringify({
+                    type: 'config_response',
+                    payload: config
+                }));
+            } catch (error) {
+                serverError('Failed to get config:', error);
+                ws.send(JSON.stringify({
+                    type: 'error',
+                    payload: {message: `Failed to get config: ${error.message}`}
+                }));
+            }
+            break;
+        }
+
+        case 'update_config': {
+            try {
+                const {config} = payload;
+                
+                if (!config || typeof config !== 'object') {
+                    ws.send(JSON.stringify({
+                        type: 'error',
+                        payload: {message: 'Invalid config object provided'}
+                    }));
+                    return;
+                }
+
+                // In a real implementation, this would update the actual system configuration
+                // For now, we'll just acknowledge the update
+                serverInfo('Configuration update requested:', config);
+                
+                // TODO: Implement actual configuration updates for the system
+                // This would involve updating the ConfigManager with new values
+                // and potentially restarting certain components with new settings
+                
+                ws.send(JSON.stringify({
+                    type: 'config_updated',
+                    payload: {success: true, message: 'Configuration updated (not yet applied to live system)'}
+                }));
+            } catch (error) {
+                serverError('Failed to update config:', error);
+                ws.send(JSON.stringify({
+                    type: 'error',
+                    payload: {message: `Failed to update config: ${error.message}`}
+                }));
+            }
+            break;
+        }
+
+        case 'reasoning_debug': {
+            try {
+                const {statement, parsedTerm} = payload;
+                
+                // For now, return a mock debug response
+                // In a real implementation, this would perform actual reasoning debugging
+                const debugResponse = {
+                    statement: statement,
+                    parsedTerm: parsedTerm,
+                    reasoningSteps: [
+                        {
+                            type: 'input_processing',
+                            description: 'Input statement parsed and validated',
+                            timestamp: new Date().toISOString()
+                        },
+                        {
+                            type: 'task_creation',
+                            description: 'Created task from input statement',
+                            timestamp: new Date().toISOString()
+                        },
+                        {
+                            type: 'reasoning_cycle',
+                            description: 'Processing in reasoning cycle',
+                            timestamp: new Date().toISOString()
+                        }
+                    ],
+                    newTasks: [],
+                    success: true
+                };
+
+                ws.send(JSON.stringify({
+                    type: 'reasoning_debug_response',
+                    payload: debugResponse
+                }));
+            } catch (error) {
+                serverError('Failed to debug reasoning:', error);
+                ws.send(JSON.stringify({
+                    type: 'error',
+                    payload: {message: `Failed to debug reasoning: ${error.message}`}
+                }));
             }
             break;
         }

@@ -1,0 +1,228 @@
+/* Dashboard Panel Styles */
+.dashboard-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 10px;
+    overflow: hidden;
+    gap: 15px;
+}
+
+/* Overview Cards */
+.dashboard-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.status-card {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: var(--panel-bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.status-card:hover {
+    background: var(--panel-bg-hover);
+    transform: translateY(-2px);
+}
+
+.status-icon {
+    margin-right: 10px;
+    color: var(--accent-color);
+}
+
+.status-content {
+    flex: 1;
+}
+
+.status-value {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+.status-label {
+    font-size: 0.8em;
+    color: var(--text-color-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Connection Status */
+.connection-status {
+    display: flex;
+    justify-content: flex-start;
+    padding: 10px 0;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    background: var(--panel-bg-light);
+    border: 1px solid var(--border-color);
+}
+
+.status-indicator.connected .indicator-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: limegreen;
+    box-shadow: 0 0 5px limegreen;
+}
+
+.status-indicator.disconnected .indicator-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ff6b6b;
+}
+
+/* Dashboard Sections */
+.dashboard-section {
+    display: flex;
+    flex-direction: column;
+    background: var(--panel-bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 15px;
+    flex: 1;
+    min-height: 0;
+}
+
+.dashboard-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 15px 0;
+    color: var(--text-color);
+    font-size: 1.1em;
+}
+
+/* Events List */
+.events-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.event-item {
+    display: flex;
+    gap: 10px;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--panel-bg);
+    transition: all 0.2s ease;
+}
+
+.event-item:hover {
+    background: var(--panel-bg-hover);
+    border-color: var(--accent-color);
+}
+
+.event-icon {
+    color: var(--accent-color);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin-top: 2px;
+}
+
+.event-content {
+    flex: 1;
+}
+
+.event-message {
+    font-size: 0.9em;
+    color: var(--text-color);
+    line-height: 1.4;
+}
+
+.event-timestamp {
+    font-size: 0.75em;
+    color: var(--text-color-secondary);
+    margin-top: 3px;
+}
+
+.no-events {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-color-secondary);
+    gap: 10px;
+    text-align: center;
+}
+
+.no-events svg {
+    opacity: 0.5;
+}
+
+/* System Info Grid */
+.system-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: var(--text-color-secondary);
+    font-weight: 500;
+}
+
+.info-value {
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.info-value.text-success {
+    color: limegreen;
+}
+
+.info-value.text-warning {
+    color: orange;
+}
+
+.info-value.text-error {
+    color: #ff6b6b;
+}
+
+.info-value.text-info {
+    color: #4da6ff;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .dashboard-overview {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .system-info-grid {
+        grid-template-columns: 1fr;
+    }
+}
