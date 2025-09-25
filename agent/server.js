@@ -15,9 +15,18 @@ const exec = promisify(childExec);
 
 const wss = new WebSocketServer({port: 8080});
 
+// Function to broadcast to all clients
+const broadcast = (data) => {
+    wss.clients.forEach(client => {
+        if (client.readyState === client.OPEN) {
+            client.send(JSON.stringify(data));
+        }
+    });
+};
+
 // Wrapper logger functions to also broadcast messages to connected clients
 const broadcastLog = (level, message, ...args) => {
-    broadcast({type: 'logMessage', payload: {level, message, args, timestamp: new Date().toISOString()}});
+    broadcast({type: 'logMessage', payload: {level, message, args, timestamp: new Date().toISOString()}})
 };
 
 const serverDebug = (message, ...args) => {
@@ -40,15 +49,6 @@ const serverError = (message, ...args) => {
 serverInfo('Agent WebSocket server started on port 8080');
 
 const agent = new Agent();
-
-// Function to broadcast to all clients
-const broadcast = (data) => {
-    wss.clients.forEach(client => {
-        if (client.readyState === client.OPEN) {
-            client.send(JSON.stringify(data));
-        }
-    });
-};
 
 // Initialize and set up agent event listeners
 agent.initialize().then(() => {

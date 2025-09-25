@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import App from '@/App';
-import agentService from '@/services/agentService';
-import agentIntegrationService from '@/services/agentIntegration';
-import notificationService from '@/services/notificationService';
+import App from '../App';
+import agentService from '../services/agentService';
+import agentIntegrationService from '../services/agentIntegration';
+import notificationService from '../services/notificationService';
 
 // Mock all services
 jest.mock('@/services/agentService', () => ({
