@@ -53,7 +53,7 @@ const components = { screen, header, statusBox, taskBox, logBox, inputField, com
 
 // Handle command input
 commandInput.on('submit', (data) => {
-  handleCommand(data, components);
+  handleCommand(data, agentService);
   ui.clearCommandInput();
   commandInput.focus();
 });

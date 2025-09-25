@@ -1,31 +1,31 @@
 import blessed from 'blessed';
 
-/**
- * Creates the log box component.
- * @returns {blessed.box} The log box component.
- */
-export function createLogBox() {
-  return blessed.box({
-    top: '70%',
+export const createLogBox = () => {
+  return blessed.log({
+    top: 5,
     left: 0,
-    width: '70%',
-    height: '30%',
-    content: '{bold}Log Messages{/bold}\nLog messages will appear here',
-    tags: true,
+    width: '100%',
+    height: '100%-8',
+    label: 'Log',
     border: {
-      type: 'line'
+      type: 'line',
     },
     style: {
       fg: 'white',
-      bg: 'black',
       border: {
-        fg: 'yellow'
-      }
+        fg: '#f0f0f0',
+      },
     },
     scrollable: true,
     alwaysScroll: true,
-    mouse: true,
-    keys: true,
-    vi: true
+    scrollbar: {
+      ch: ' ',
+      track: {
+        bg: 'yellow',
+      },
+      style: {
+        inverse: true,
+      },
+    },
   });
-}
+};

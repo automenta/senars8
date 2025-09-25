@@ -1,26 +1,20 @@
 import blessed from 'blessed';
 
-/**
- * Creates the status box component.
- * @returns {blessed.box} The status box component.
- */
-export function createStatusBox() {
+export const createStatusBox = () => {
   return blessed.box({
     top: 1,
-    left: '0',
-    width: '100%',
-    height: 'shrink',
-    content: 'Disconnected from agent',
-    tags: true,
+    left: 0,
+    width: '50%',
+    height: 4,
+    label: 'Status',
     border: {
-      type: 'line'
+      type: 'line',
     },
     style: {
       fg: 'white',
-      bg: 'red',
       border: {
-        fg: '#f0f0f0'
-      }
-    }
+        fg: '#f0f0f0',
+      },
+    },
   });
-}
+};

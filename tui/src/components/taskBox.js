@@ -1,31 +1,20 @@
 import blessed from 'blessed';
 
-/**
- * Creates the task box component.
- * @returns {blessed.box} The task box component.
- */
-export function createTaskBox() {
+export const createTaskBox = () => {
   return blessed.box({
-    top: 2,
-    left: 0,
-    width: '70%',
-    height: '70%-2',
-    content: '{bold}Tasks and Events{/bold}\nTasks will appear here',
-    tags: true,
+    top: 1,
+    left: '50%',
+    width: '50%',
+    height: 4,
+    label: 'Tasks',
     border: {
-      type: 'line'
+      type: 'line',
     },
     style: {
-      fg: 'cyan',
-      bg: 'black',
+      fg: 'white',
       border: {
-        fg: 'green'
-      }
+        fg: '#f0f0f0',
+      },
     },
-    scrollable: true,
-    alwaysScroll: true,
-    mouse: true,
-    keys: true,
-    vi: true
   });
-}
+};

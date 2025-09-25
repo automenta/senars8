@@ -1,31 +1,22 @@
 import blessed from 'blessed';
 
-/**
- * Creates the command input component.
- * @returns {blessed.textbox} The command input component.
- */
-export function createCommandInput() {
+export const createCommandInput = () => {
   return blessed.textbox({
-    top: '50%',
-    right: 0,
-    width: '30%',
-    height: '3',
+    bottom: 0,
+    left: 0,
+    width: '100%',
+    height: 3,
+    label: 'Command',
     border: {
-      type: 'line'
+      type: 'line',
     },
     style: {
       fg: 'white',
       bg: 'black',
       border: {
-        fg: 'cyan'
+        fg: 'cyan',
       },
-      focus: {
-        border: {
-          fg: 'yellow'
-        }
-      }
     },
     inputOnFocus: true,
-    tags: true
   });
-}
+};

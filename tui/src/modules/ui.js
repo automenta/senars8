@@ -1,59 +1,49 @@
-import blessed from 'blessed';
+import { appState } from './state.js';
 
 let screen, header, statusBox, taskBox, logBox, inputField, commandInput, helpBox;
 
-export function setScreen(s) { screen = s; }
-export function setHeader(h) { header = h; }
-export function setStatusBox(s) { statusBox = s; }
-export function setTaskBox(t) { taskBox = t; }
-export function setLogBox(l) { logBox = l; }
-export function setInputField(i) { inputField = i; }
-export function setCommandInput(c) { commandInput = c; }
-export function setHelpBox(h) { helpBox = h; }
+export const setScreen = (component) => screen = component;
+export const setHeader = (component) => header = component;
+export const setStatusBox = (component) => statusBox = component;
+export const setTaskBox = (component) => taskBox = component;
+export const setLogBox = (component) => logBox = component;
+export const setInputField = (component) => inputField = component;
+export const setCommandInput = (component) => commandInput = component;
+export const setHelpBox = (component) => helpBox = component;
 
-/**
- * Update the status display.
- * @param {string} text - The text to display.
- * @param {string} color - The background color.
- */
-export function updateStatus(text, color = 'yellow') {
-  if (statusBox) {
-    statusBox.setContent(text);
-    statusBox.style.bg = color;
+export const logMessage = (message) => {
+  logBox.log(message);
+  screen.render();
+};
+
+export const updateStatus = (status) => {
+  appState.agentStatus = status;
+  statusBox.setContent(`Agent Status: ${status.connected ? 'Connected' : 'Disconnected'}\n` +
+                       `NALs: ${status.NARS ? status.NALS_count : 'N/A'}`);
+  screen.render();
+};
+
+export const updateTasks = (tasks) => {
+  appState.tasks = tasks;
+  taskBox.setContent(tasks.map(t => `> ${t.id}: ${t.sentence.value}`).join('\n'));
+  screen.render();
+};
+
+export const clearCommandInput = () => {
+  commandInput.clearValue();
+  screen.render();
+};
+
+export const toggleHelp = () => {
+  helpBox.toggle();
+  screen.render();
+};
+
+export const focusCommandInput = () => {
+    commandInput.focus();
     screen.render();
-  }
 }
 
-/**
- * Update the task display.
- * @param {string} title - The title of the box.
- * @param {string} content - The content to display.
- */
-export function updateTaskDisplay(title, content) {
-  if (taskBox) {
-    taskBox.setContent(`${title}:\n${content}`);
+export const renderScreen = () => {
     screen.render();
-  }
-}
-
-/**
- * Add a message to the log box.
- * @param {string} message - The message to log.
- */
-export function logMessage(message) {
-  if (logBox) {
-    const timestamp = new Date().toISOString().slice(11, 19);
-    logBox.pushLine(`[${timestamp}] ${message}`);
-    logBox.setScrollPerc(100);
-    screen.render();
-  }
-}
-
-/**
- * Clears the command input field.
- */
-export function clearCommandInput() {
-    if (commandInput) {
-        commandInput.clearValue();
-    }
-}
+};

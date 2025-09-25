@@ -1,26 +1,15 @@
 import blessed from 'blessed';
 
-/**
- * Creates the header component.
- * @returns {blessed.box} The header component.
- */
-export function createHeader() {
+export const createHeader = () => {
   return blessed.box({
-    top: '0',
-    left: '0',
+    top: 0,
+    left: 0,
     width: '100%',
-    height: 'shrink',
-    content: '{center}SeNARS TUI - Self-Evolving Neuromorphic-Adaptive Reasoning System{/center}',
-    tags: true,
-    border: {
-      type: 'line'
-    },
+    height: 1,
+    content: ' SeNARS TUI - v1.0.0',
     style: {
-      fg: 'white',
       bg: 'blue',
-      border: {
-        fg: '#f0f0f0'
-      }
-    }
+      fg: 'white',
+    },
   });
-}
+};
