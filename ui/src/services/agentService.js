@@ -2,7 +2,7 @@ import {EventEmitter} from 'events';
 import * as Y from 'yjs';
 import {WebsocketProvider} from 'y-websocket';
 import log from '@/utils/logger';
-import { UI_CONSTANTS, MESSAGE_TYPES } from '@/constants/ui';
+import {MESSAGE_TYPES, UI_CONSTANTS} from '@/constants/ui';
 
 class AgentService extends EventEmitter {
     constructor() {
@@ -112,7 +112,11 @@ class AgentService extends EventEmitter {
                     this.emit(MESSAGE_TYPES.MESSAGE, message); // Also emit a generic message event
                 } catch (error) {
                     log.error('Failed to parse incoming message:', event.data, error);
-                    this.emit(MESSAGE_TYPES.ERROR, { type: MESSAGE_TYPES.PARSE_ERROR, message: event.data, error: error.message });
+                    this.emit(MESSAGE_TYPES.ERROR, {
+                        type: MESSAGE_TYPES.PARSE_ERROR,
+                        message: event.data,
+                        error: error.message
+                    });
                 }
             };
 
@@ -143,7 +147,7 @@ class AgentService extends EventEmitter {
         } else {
             log.error('Max reconnection attempts reached, giving up.');
             this.emit(MESSAGE_TYPES.STATUS, 'failed');
-                this.emit(MESSAGE_TYPES.CONNECTION_STATS, this.connectionStats);
+            this.emit(MESSAGE_TYPES.CONNECTION_STATS, this.connectionStats);
         }
     }
 
@@ -152,7 +156,7 @@ class AgentService extends EventEmitter {
      * @returns {Object} Connection statistics object
      */
     getConnectionStats() {
-        return { ...this.connectionStats };
+        return {...this.connectionStats};
     }
 
     disconnect() {
@@ -183,7 +187,7 @@ class AgentService extends EventEmitter {
     }
 
     sendMessage(type, payload, options = {}) {
-        const { timeout = 10000, retries = 3, priority = 1 } = options;
+        const {timeout = 10000, retries = 3, priority = 1} = options;
 
         // Validate inputs
         if (!type) {
@@ -223,7 +227,7 @@ class AgentService extends EventEmitter {
             if (options.expectResponse) {
                 const timeoutId = setTimeout(() => {
                     log.warn(`Message ${messageObj.id} timed out after ${timeout}ms`);
-                    this.emit(MESSAGE_TYPES.MESSAGE_TIMEOUT, { message: messageObj, timeout });
+                    this.emit(MESSAGE_TYPES.MESSAGE_TIMEOUT, {message: messageObj, timeout});
                 }, timeout);
 
                 // Store timeout ID for potential cleanup
@@ -249,7 +253,11 @@ class AgentService extends EventEmitter {
             return true;
         } catch (error) {
             log.error('Failed to send message:', error);
-            this.emit(MESSAGE_TYPES.SEND_ERROR, { type: MESSAGE_TYPES.SEND_ERROR, message: { type, payload }, error: error.message });
+            this.emit(MESSAGE_TYPES.SEND_ERROR, {
+                type: MESSAGE_TYPES.SEND_ERROR,
+                message: {type, payload},
+                error: error.message
+            });
 
             // Add to pending messages and attempt to reconnect
             this.pendingMessages.push(messageObj);
@@ -282,13 +290,13 @@ class AgentService extends EventEmitter {
     }
 
     sendNaturalLanguage(text, intent) {
-        return this.sendMessage('natural_language', { text, intent });
+        return this.sendMessage('natural_language', {text, intent});
     }
 
     sendAgentControl(action) {
         const message = {
             type: MESSAGE_TYPES.AGENT_CONTROL,
-            payload: { command: action },
+            payload: {command: action},
         };
         return this.sendMessage(message.type, message.payload);
     }
@@ -316,11 +324,11 @@ class AgentService extends EventEmitter {
     }
 
     updateTask(taskId, updates) {
-        return this.sendMessage('update_task', { taskId, updates });
+        return this.sendMessage('update_task', {taskId, updates});
     }
 
     deleteTask(taskId) {
-        return this.sendMessage('delete_task', { taskId });
+        return this.sendMessage('delete_task', {taskId});
     }
 }
 

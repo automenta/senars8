@@ -1,5 +1,5 @@
 import React from 'react';
-import {render, screen, fireEvent} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import {ConnectionProvider} from '@/context/ConnectionProvider';
 import {SettingsProvider} from '@/context/SettingsProvider';
 import InputPanel from '@/features/interaction/InputPanel';
@@ -61,9 +61,9 @@ describe('InputPanel', () => {
     });
 
     it('renders correctly with initial state', () => {
-        renderWithProviders(<InputPanel />);
+        renderWithProviders(<InputPanel/>);
 
         expect(screen.getByRole('textbox')).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /send/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /send/i})).toBeInTheDocument();
     });
 });

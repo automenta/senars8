@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import {useEffect, useState} from 'react';
 import agentService from '@/services/agentService';
 
 const useChat = () => {
@@ -8,7 +8,7 @@ const useChat = () => {
     useEffect(() => {
         const handleMessage = (message) => {
             if (message.type === 'chat') {
-                setMessages((prevMessages) => [...prevMessages, { text: message.content, sender: 'agent' }]);
+                setMessages((prevMessages) => [...prevMessages, {text: message.content, sender: 'agent'}]);
             }
         };
 
@@ -21,14 +21,14 @@ const useChat = () => {
 
     const handleSendMessage = () => {
         if (inputValue.trim()) {
-            const newMessage = { text: inputValue, sender: 'user' };
+            const newMessage = {text: inputValue, sender: 'user'};
             setMessages((prevMessages) => [...prevMessages, newMessage]);
-            agentService.send({ type: 'chat', content: inputValue });
+            agentService.send({type: 'chat', content: inputValue});
             setInputValue('');
         }
     };
 
-    return { messages, inputValue, setInputValue, handleSendMessage };
+    return {messages, inputValue, setInputValue, handleSendMessage};
 };
 
 export default useChat;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import ErrorBoundary from '../ErrorBoundary';
 
 // Mock component that will throw an error
@@ -10,7 +10,8 @@ const ErrorComponent = () => {
 describe('ErrorBoundary', () => {
     beforeEach(() => {
         // Suppress console.error during tests
-        jest.spyOn(console, 'error').mockImplementation(() => {});
+        jest.spyOn(console, 'error').mockImplementation(() => {
+        });
     });
 
     afterEach(() => {
@@ -31,7 +32,7 @@ describe('ErrorBoundary', () => {
     it('catches error and displays fallback UI when child throws error', () => {
         render(
             <ErrorBoundary>
-                <ErrorComponent />
+                <ErrorComponent/>
             </ErrorBoundary>
         );
 
@@ -47,9 +48,9 @@ describe('ErrorBoundary', () => {
     });
 
     it('allows retrying after error', () => {
-        const { rerender } = render(
+        const {rerender} = render(
             <ErrorBoundary>
-                <ErrorComponent />
+                <ErrorComponent/>
             </ErrorBoundary>
         );
 
@@ -70,7 +71,7 @@ describe('ErrorBoundary', () => {
     it('handles multiple errors gracefully', () => {
         render(
             <ErrorBoundary>
-                <ErrorComponent />
+                <ErrorComponent/>
             </ErrorBoundary>
         );
 
@@ -87,7 +88,7 @@ describe('ErrorBoundary', () => {
     it('includes action buttons in the error UI', () => {
         render(
             <ErrorBoundary>
-                <ErrorComponent />
+                <ErrorComponent/>
             </ErrorBoundary>
         );
 

@@ -3,9 +3,15 @@ import fs from 'fs/promises';
 import path from 'path';
 import {exec as childExec} from 'child_process';
 import {promisify} from 'util';
-const exec = promisify(childExec);
 import {Agent} from './index.js';
-import {debug as coreDebug, info as coreInfo, warn as coreWarn, error as coreError} from '@project/core/utils/logger.js';
+import {
+    debug as coreDebug,
+    error as coreError,
+    info as coreInfo,
+    warn as coreWarn
+} from '@project/core/utils/logger.js';
+
+const exec = promisify(childExec);
 
 const wss = new WebSocketServer({port: 8080});
 
@@ -14,10 +20,22 @@ const broadcastLog = (level, message, ...args) => {
     broadcast({type: 'logMessage', payload: {level, message, args, timestamp: new Date().toISOString()}});
 };
 
-const serverDebug = (message, ...args) => { coreDebug(message, ...args); broadcastLog('DEBUG', message, ...args); };
-const serverInfo = (message, ...args) => { coreInfo(message, ...args); broadcastLog('INFO', message, ...args); };
-const serverWarn = (message, ...args) => { coreWarn(message, ...args); broadcastLog('WARN', message, ...args); };
-const serverError = (message, ...args) => { coreError(message, ...args); broadcastLog('ERROR', message, ...args); };
+const serverDebug = (message, ...args) => {
+    coreDebug(message, ...args);
+    broadcastLog('DEBUG', message, ...args);
+};
+const serverInfo = (message, ...args) => {
+    coreInfo(message, ...args);
+    broadcastLog('INFO', message, ...args);
+};
+const serverWarn = (message, ...args) => {
+    coreWarn(message, ...args);
+    broadcastLog('WARN', message, ...args);
+};
+const serverError = (message, ...args) => {
+    coreError(message, ...args);
+    broadcastLog('ERROR', message, ...args);
+};
 
 serverInfo('Agent WebSocket server started on port 8080');
 
@@ -114,7 +132,10 @@ async function handleMessage(message, ws) {
                 ws.send(JSON.stringify({type: 'readDirectoryResponse', payload: {files, directories, directoryPath}}));
             } catch (error) {
                 serverError('Failed to read directory:', error);
-                ws.send(JSON.stringify({type: 'error', payload: {message: `Failed to read directory: ${error.message}`}}));
+                ws.send(JSON.stringify({
+                    type: 'error',
+                    payload: {message: `Failed to read directory: ${error.message}`}
+                }));
             }
             break;
         }
@@ -166,7 +187,10 @@ async function handleMessage(message, ws) {
                 ws.send(JSON.stringify({type: 'createDirectoryResponse', payload: {directoryPath, success: true}}));
             } catch (error) {
                 serverError('Failed to create directory:', error);
-                ws.send(JSON.stringify({type: 'error', payload: {message: `Failed to create directory: ${error.message}`}}));
+                ws.send(JSON.stringify({
+                    type: 'error',
+                    payload: {message: `Failed to create directory: ${error.message}`}
+                }));
             }
             break;
         }

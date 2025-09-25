@@ -17,7 +17,8 @@ const Toast = ({notification, onDismiss}) => {
         <div className={`toast toast-${notification.type || 'info'}`} role="alert">
             <div className="toast-header">
                 <strong>{notification.title}</strong>
-                <button onClick={() => onDismiss(notification.id)} className="close-button" aria-label="Dismiss notification">
+                <button onClick={() => onDismiss(notification.id)} className="close-button"
+                        aria-label="Dismiss notification">
                     <X size={16}/>
                 </button>
             </div>

@@ -1,7 +1,7 @@
-import React, {useState, useEffect} from 'react';
-import { Panel } from '@ui/components';
+import React, {useEffect, useState} from 'react';
+import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
-import {BarChart, Activity, Brain, Clock, TrendingUp} from 'lucide-react';
+import {Activity, BarChart, Brain, Clock, TrendingUp} from 'lucide-react';
 import './StatisticsPanel.css';
 
 function StatisticsPanel() {

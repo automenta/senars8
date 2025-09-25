@@ -1,11 +1,10 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import AceEditor from 'react-ace';
 import {useSharedState} from '@/context/useSharedState';
 import {useConnection} from '@/context/useConnection';
 import notificationService from '@/services/notificationService';
 import log from '@/utils/logger';
 import './NarseseMode'; // Import our custom Narsese mode
-
 import 'ace-builds/src-noconflict/mode-javascript';
 import 'ace-builds/src-noconflict/theme-monokai';
 import 'ace-builds/src-noconflict/ext-language_tools';
@@ -15,7 +14,6 @@ import 'ace-builds/src-noconflict/mode-html';
 import 'ace-builds/src-noconflict/mode-python';
 import 'ace-builds/src-noconflict/mode-xml';
 import 'ace-builds/src-noconflict/mode-markdown';
-
 
 
 const getMode = (filename) => {

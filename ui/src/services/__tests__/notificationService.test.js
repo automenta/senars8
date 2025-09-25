@@ -8,7 +8,7 @@ describe('NotificationService', () => {
     });
 
     it('should add a notification and return its ID', () => {
-        const notification = { title: 'Test', message: 'Test message', type: 'info' };
+        const notification = {title: 'Test', message: 'Test message', type: 'info'};
         const id = notificationService.addNotification(notification);
 
         expect(id).toBe(0);

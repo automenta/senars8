@@ -1,8 +1,8 @@
-import React, {useEffect, useState, useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import agentService from '../services/agentService';
 import log from '@/utils/logger';
 import {ConnectionContext} from './ConnectionContext';
-import { UI_CONSTANTS, MESSAGE_TYPES, CONNECTION_STATUS } from '@/constants/ui';
+import {CONNECTION_STATUS, MESSAGE_TYPES, UI_CONSTANTS} from '@/constants/ui';
 
 export function ConnectionProvider({children}) {
     const [connectionStatus, setConnectionStatus] = useState(CONNECTION_STATUS.DISCONNECTED); // 'disconnected', 'connecting', 'connected', 'failed'
@@ -33,7 +33,7 @@ export function ConnectionProvider({children}) {
                         return prev;
                     }
 
-                    const newHistory = [...prev, { ...message, timestamp: Date.now() }];
+                    const newHistory = [...prev, {...message, timestamp: Date.now()}];
                     // Keep only the most recent messages
                     return newHistory.slice(-MAX_MESSAGE_HISTORY);
                 });

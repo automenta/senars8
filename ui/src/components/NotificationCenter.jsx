@@ -68,7 +68,7 @@ function NotificationCenter({filter = 'all', sortBy = 'newest'}) {
                                     className="dismiss-button"
                                     aria-label="Dismiss notification"
                                 >
-                                    <X size={14} />
+                                    <X size={14}/>
                                 </button>
                             </div>
                             <div className="notification-item-body">

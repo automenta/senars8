@@ -1,5 +1,5 @@
-import {useState, useEffect} from 'react';
-import {diff_match_patch, DIFF_DELETE, DIFF_INSERT, DIFF_EQUAL} from 'diff-match-patch';
+import {useEffect, useState} from 'react';
+import {DIFF_DELETE, DIFF_EQUAL, DIFF_INSERT, diff_match_patch} from 'diff-match-patch';
 
 /**
  * A custom hook to bind a Y.Text object to a React state.

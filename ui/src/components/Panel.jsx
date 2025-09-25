@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import './Panel.css';
 
-const Panel = ({ header, children, className = '' }) => (
+const Panel = ({header, children, className = ''}) => (
     <section className={`panel ${className}`} role="region" aria-label={header || "Panel"}>
         {header && (
             <header className="panel-header" role="presentation">

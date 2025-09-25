@@ -1,9 +1,9 @@
-import React, {useEffect, useState, useCallback, useMemo} from 'react';
-import { Panel } from '@ui/components';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import log from '@/utils/logger';
-import {BrainCircuit, Search, Filter, AlertCircle, RotateCcw} from 'lucide-react';
+import {AlertCircle, BrainCircuit, Filter, RotateCcw, Search} from 'lucide-react';
 import './MemoryViewPanel.css';
 
 function MemoryViewPanel() {
@@ -95,8 +95,14 @@ function MemoryViewPanel() {
         try {
             setIsLoading(true);
             setError(null);
-            const success1 = agentService.sendMessage('get_memory_data', {type: 'working'}, { expectResponse: true, timeout: 10000 });
-            const success2 = agentService.sendMessage('get_memory_data', {type: 'long_term'}, { expectResponse: true, timeout: 10000 });
+            const success1 = agentService.sendMessage('get_memory_data', {type: 'working'}, {
+                expectResponse: true,
+                timeout: 10000
+            });
+            const success2 = agentService.sendMessage('get_memory_data', {type: 'long_term'}, {
+                expectResponse: true,
+                timeout: 10000
+            });
 
             if (!success1 || !success2) {
                 notificationService.addWarning('Memory', 'Failed to request memory data. Check connection.');
@@ -156,7 +162,7 @@ function MemoryViewPanel() {
     };
 
     return (
-        <Panel title={<><BrainCircuit size={18}/> Memory</>} >
+        <Panel title={<><BrainCircuit size={18}/> Memory</>}>
             <div className="memory-panel">
                 {/* Controls and Status */}
                 <div className="memory-header">
@@ -182,7 +188,7 @@ function MemoryViewPanel() {
                             title="Refresh memory data"
                             disabled={isLoading}
                         >
-                            <RotateCcw size={16} className={isLoading ? 'spinning' : ''} />
+                            <RotateCcw size={16} className={isLoading ? 'spinning' : ''}/>
                             {isLoading ? 'Loading...' : 'Refresh'}
                         </button>
                     </div>
@@ -191,7 +197,7 @@ function MemoryViewPanel() {
                 {/* Controls */}
                 <div className="memory-controls">
                     <div className="filter-container">
-                        <Search size={16} />
+                        <Search size={16}/>
                         <input
                             type="text"
                             placeholder="Filter by content..."
@@ -202,7 +208,7 @@ function MemoryViewPanel() {
                     </div>
 
                     <div className="sort-container">
-                        <Filter size={16} />
+                        <Filter size={16}/>
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
@@ -224,7 +230,7 @@ function MemoryViewPanel() {
                 {/* Error Display */}
                 {error && (
                     <div className="memory-error">
-                        <AlertCircle size={16} className="error-icon" />
+                        <AlertCircle size={16} className="error-icon"/>
                         <span className="error-message">{error.toString()}</span>
                         <button
                             className="retry-btn"
@@ -268,7 +274,7 @@ function MemoryViewPanel() {
                     ) : (
                         <div className="memory-empty">
                             {error ? 'Failed to load memory data. Please refresh.' :
-                             filter ? 'No matching items found.' : `No items in ${activeTab} memory.`}
+                                filter ? 'No matching items found.' : `No items in ${activeTab} memory.`}
                         </div>
                     )}
                 </div>

@@ -56,7 +56,9 @@
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .spinner {
@@ -179,8 +181,16 @@
     height: 100%;
     color: #999;
 }
-    gap: 10px;
-    align-items: center;
+
+gap:
+
+10
+px
+
+;
+align-items: center
+
+;
 }
 
 .reasoning-tabs {

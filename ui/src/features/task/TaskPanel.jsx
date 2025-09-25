@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { Panel } from '@ui/components';
-import { useTasks } from '@/context/TaskContext';
-import { ListTodo, Play, Square, RotateCcw, Plus, Trash2, CheckCircle, Circle, Clock } from 'lucide-react';
+import React, {useState} from 'react';
+import {Panel} from '@ui/components';
+import {useTasks} from '@/context/TaskContext';
+import {CheckCircle, Circle, Clock, ListTodo, Play, Plus, RotateCcw, Square, Trash2} from 'lucide-react';
 import './TaskPanel.css';
 
 const TaskPanel = () => {
-    const { tasks, isLoading, addTask, updateTask, deleteTask, completeTask, getTaskCountByStatus } = useTasks();
+    const {tasks, isLoading, addTask, updateTask, deleteTask, completeTask, getTaskCountByStatus} = useTasks();
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const [newTaskDesc, setNewTaskDesc] = useState('');
     const [filter, setFilter] = useState('all'); // 'all', 'pending', 'inProgress', 'completed'
@@ -34,7 +34,7 @@ const TaskPanel = () => {
     const statusCounts = getTaskCountByStatus();
 
     const updateTaskStatus = (taskId, newStatus) => {
-        updateTask(taskId, { status: newStatus });
+        updateTask(taskId, {status: newStatus});
     };
 
     const formatDate = (dateString) => {
@@ -43,22 +43,22 @@ const TaskPanel = () => {
     };
 
     return (
-        <Panel title={<><ListTodo size={18} /> Tasks</>}>
+        <Panel title={<><ListTodo size={18}/> Tasks</>}>
             <div className="task-panel">
                 {/* Task Stats */}
                 <div className="task-stats">
                     <div className="stat-card">
-                        <Circle size={16} className="pending-icon" />
+                        <Circle size={16} className="pending-icon"/>
                         <span className="stat-number">{statusCounts.pending}</span>
                         <span className="stat-label">Pending</span>
                     </div>
                     <div className="stat-card">
-                        <Clock size={16} className="in-progress-icon" />
+                        <Clock size={16} className="in-progress-icon"/>
                         <span className="stat-number">{statusCounts.inProgress}</span>
                         <span className="stat-label">In Progress</span>
                     </div>
                     <div className="stat-card">
-                        <CheckCircle size={16} className="completed-icon" />
+                        <CheckCircle size={16} className="completed-icon"/>
                         <span className="stat-number">{statusCounts.completed}</span>
                         <span className="stat-label">Completed</span>
                     </div>
@@ -87,7 +87,7 @@ const TaskPanel = () => {
                         />
                     </div>
                     <button type="submit" className="add-task-btn">
-                        <Plus size={16} /> Add Task
+                        <Plus size={16}/> Add Task
                     </button>
                 </form>
 
@@ -146,7 +146,7 @@ const TaskPanel = () => {
                                                             className="action-btn start-btn"
                                                             title="Start task"
                                                         >
-                                                            <Play size={14} />
+                                                            <Play size={14}/>
                                                         </button>
                                                     ) : (
                                                         <button
@@ -154,7 +154,7 @@ const TaskPanel = () => {
                                                             className="action-btn pause-btn"
                                                             title="Pause task"
                                                         >
-                                                            <Square size={14} />
+                                                            <Square size={14}/>
                                                         </button>
                                                     )}
                                                     <button
@@ -162,7 +162,7 @@ const TaskPanel = () => {
                                                         className="action-btn complete-btn"
                                                         title="Complete task"
                                                     >
-                                                        <CheckCircle size={14} />
+                                                        <CheckCircle size={14}/>
                                                     </button>
                                                 </>
                                             ) : (
@@ -171,7 +171,7 @@ const TaskPanel = () => {
                                                     className="action-btn restart-btn"
                                                     title="Restart task"
                                                 >
-                                                    <RotateCcw size={14} />
+                                                    <RotateCcw size={14}/>
                                                 </button>
                                             )}
                                             <button
@@ -179,7 +179,7 @@ const TaskPanel = () => {
                                                 className="action-btn delete-btn"
                                                 title="Delete task"
                                             >
-                                                <Trash2 size={14} />
+                                                <Trash2 size={14}/>
                                             </button>
                                         </div>
                                     </div>

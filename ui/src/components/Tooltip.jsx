@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import './Tooltip.css';
 
-const Tooltip = ({ children, content, position = 'top', delay = 500 }) => {
+const Tooltip = ({children, content, position = 'top', delay = 500}) => {
     const [isVisible, setIsVisible] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
     const timeoutRef = useRef(null);

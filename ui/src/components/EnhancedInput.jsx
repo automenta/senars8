@@ -1,10 +1,10 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import {Mic, MicOff, MessageSquare, Code} from 'lucide-react';
+import {Code, MessageSquare, Mic, MicOff} from 'lucide-react';
 import NarseseInput from './NarseseInput';
 import './NarseseInput.css'; // Reuse existing input styles
 
-function EnhancedInput({ value, onChange, onSend, history, inputMode = 'narsese', setMode, disabled = false }) {
+function EnhancedInput({value, onChange, onSend, history, inputMode = 'narsese', setMode, disabled = false}) {
     const [historyIndex, setHistoryIndex] = useState(-1);
     const [isListening, setIsListening] = useState(false);
     const recognitionRef = useRef(null);
@@ -122,7 +122,6 @@ function EnhancedInput({ value, onChange, onSend, history, inputMode = 'narsese'
     }, [onChange]);
 
 
-
     const handleNaturalMode = useCallback(() => setMode('natural'), [setMode]);
     const handleNarseseMode = useCallback(() => setMode('narsese'), [setMode]);
 
@@ -136,7 +135,7 @@ function EnhancedInput({ value, onChange, onSend, history, inputMode = 'narsese'
                         disabled={disabled}
                         title="Switch to natural language mode"
                     >
-                        <MessageSquare size={14} /> Natural
+                        <MessageSquare size={14}/> Natural
                     </button>
                     <button
                         className={`mode-button ${inputMode === 'narsese' ? 'active' : ''}`}
@@ -144,7 +143,7 @@ function EnhancedInput({ value, onChange, onSend, history, inputMode = 'narsese'
                         disabled={disabled}
                         title="Switch to Narsese mode"
                     >
-                        <Code size={14} /> Narsese
+                        <Code size={14}/> Narsese
                     </button>
                 </div>
                 {hasSpeechRecognition && (
@@ -154,7 +153,7 @@ function EnhancedInput({ value, onChange, onSend, history, inputMode = 'narsese'
                         disabled={disabled}
                         title={disabled ? 'Input disabled' : isListening ? 'Stop listening' : 'Start voice input'}
                     >
-                        {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+                        {isListening ? <MicOff size={16}/> : <Mic size={16}/>}
                     </button>
                 )}
             </div>

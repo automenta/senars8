@@ -70,7 +70,7 @@ const categorizeFailures = (failures) => {
         failureCategories[suiteName] = (failureCategories[suiteName] || 0) + 1;
     });
 
-    return { failureCategories, errorPatterns };
+    return {failureCategories, errorPatterns};
 };
 
 const printSummary = (totalFailures, failureCategories, errorPatterns) => {
@@ -109,7 +109,7 @@ const main = () => {
         return;
     }
 
-    const { failureCategories, errorPatterns } = categorizeFailures(failures);
+    const {failureCategories, errorPatterns} = categorizeFailures(failures);
     printSummary(failures.length, failureCategories, errorPatterns);
     printDetailedFailures(failures);
 };

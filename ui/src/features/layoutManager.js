@@ -296,7 +296,7 @@ export const saveLayout = (model, key = LAYOUT_KEY) => {
         // Attempt to save a backup of the layout data to session storage
         try {
             const backupKey = `${key}_backup`;
-            localStorage.setItem(backupKey, JSON.stringify({ error: error.message, timestamp: Date.now() }));
+            localStorage.setItem(backupKey, JSON.stringify({error: error.message, timestamp: Date.now()}));
         } catch (backupError) {
             log.error("Could not save layout backup:", backupError);
         }
@@ -398,10 +398,10 @@ export const loadPresetLayout = (name, defaultLayout) => {
 export const getPresetLayouts = () => {
     try {
         const presets = localStorage.getItem(PRESET_LAYOUTS_KEY);
-        return presets ? JSON.parse(presets) : { ...PRESET_LAYOUTS };
+        return presets ? JSON.parse(presets) : {...PRESET_LAYOUTS};
     } catch (error) {
         log.error("Could not load preset layouts:", error);
-        return { ...PRESET_LAYOUTS };
+        return {...PRESET_LAYOUTS};
     }
 };
 
@@ -428,7 +428,7 @@ export const exportLayout = (model) => {
     try {
         const json = model.toJson();
         const dataStr = JSON.stringify(json, null, 2);
-        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
 
         const exportFileDefaultName = 'senars-layout.json';
 

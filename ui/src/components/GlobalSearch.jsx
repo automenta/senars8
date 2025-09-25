@@ -1,10 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useSearch } from '@/context/SearchContext';
-import { Search as SearchIcon, X, Globe, FileText, Brain, Zap } from 'lucide-react';
+import React, {useEffect, useRef, useState} from 'react';
+import {useSearch} from '@/context/SearchContext';
+import {Brain, FileText, Globe, Search as SearchIcon, X, Zap} from 'lucide-react';
 import './GlobalSearch.css';
 
 const GlobalSearch = () => {
-    const { searchTerm, setSearchTerm, searchResults, isSearching, searchScope, setSearchScope, performSearch, clearSearch } = useSearch();
+    const {
+        searchTerm,
+        setSearchTerm,
+        searchResults,
+        isSearching,
+        searchScope,
+        setSearchScope,
+        performSearch,
+        clearSearch
+    } = useSearch();
     const [isOpen, setIsOpen] = useState(false);
     const inputRef = useRef(null);
 
@@ -36,10 +45,14 @@ const GlobalSearch = () => {
 
     const getIconForType = (type) => {
         switch (type) {
-            case 'memory': return <Brain size={16} />;
-            case 'file': return <FileText size={16} />;
-            case 'reasoning': return <Zap size={16} />;
-            default: return <Globe size={16} />;
+            case 'memory':
+                return <Brain size={16}/>;
+            case 'file':
+                return <FileText size={16}/>;
+            case 'reasoning':
+                return <Zap size={16}/>;
+            default:
+                return <Globe size={16}/>;
         }
     };
 
@@ -50,7 +63,7 @@ const GlobalSearch = () => {
                 onClick={() => setIsOpen(true)}
                 title="Global Search (Ctrl+K)"
             >
-                <SearchIcon size={16} />
+                <SearchIcon size={16}/>
                 <span>Search (Ctrl+K)</span>
             </button>
 
@@ -59,7 +72,7 @@ const GlobalSearch = () => {
                     <div className="global-search-modal">
                         <form onSubmit={handleSearch} className="search-form">
                             <div className="search-input-container">
-                                <SearchIcon size={20} className="search-icon" />
+                                <SearchIcon size={20} className="search-icon"/>
                                 <input
                                     ref={inputRef}
                                     type="text"
@@ -76,7 +89,7 @@ const GlobalSearch = () => {
                                         onClick={handleClear}
                                         title="Clear search"
                                     >
-                                        <X size={16} />
+                                        <X size={16}/>
                                     </button>
                                 )}
                             </div>
@@ -87,28 +100,28 @@ const GlobalSearch = () => {
                                     className={`scope-option ${searchScope === 'all' ? 'active' : ''}`}
                                     onClick={() => setSearchScope('all')}
                                 >
-                                    <Globe size={16} /> All
+                                    <Globe size={16}/> All
                                 </button>
                                 <button
                                     type="button"
                                     className={`scope-option ${searchScope === 'memory' ? 'active' : ''}`}
                                     onClick={() => setSearchScope('memory')}
                                 >
-                                    <Brain size={16} /> Memory
+                                    <Brain size={16}/> Memory
                                 </button>
                                 <button
                                     type="button"
                                     className={`scope-option ${searchScope === 'files' ? 'active' : ''}`}
                                     onClick={() => setSearchScope('files')}
                                 >
-                                    <FileText size={16} /> Files
+                                    <FileText size={16}/> Files
                                 </button>
                                 <button
                                     type="button"
                                     className={`scope-option ${searchScope === 'reasoning' ? 'active' : ''}`}
                                     onClick={() => setSearchScope('reasoning')}
                                 >
-                                    <Zap size={16} /> Reasoning
+                                    <Zap size={16}/> Reasoning
                                 </button>
                             </div>
 

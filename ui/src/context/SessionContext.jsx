@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import {createContext, useCallback, useContext, useEffect, useState} from 'react';
 import useLayoutModel from '@/hooks/useLayoutModel';
 
 const SessionContext = createContext();
@@ -11,8 +11,8 @@ export const useSession = () => {
     return context;
 };
 
-export const SessionProvider = ({ children }) => {
-    const { model } = useLayoutModel();
+export const SessionProvider = ({children}) => {
+    const {model} = useLayoutModel();
     const [activeSession, setActiveSession] = useState(null);
     const [savedSessions, setSavedSessions] = useState({});
 
@@ -59,7 +59,7 @@ export const SessionProvider = ({ children }) => {
     }, [savedSessions]);
 
     const deleteSession = useCallback((sessionId) => {
-        const updatedSessions = { ...savedSessions };
+        const updatedSessions = {...savedSessions};
         delete updatedSessions[sessionId];
         setSavedSessions(updatedSessions);
         localStorage.setItem('senars-sessions', JSON.stringify(updatedSessions));

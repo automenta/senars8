@@ -1,14 +1,21 @@
-import React, { useState, useRef } from 'react';
+import React, {useRef, useState} from 'react';
 import useLayoutModel from '@/hooks/useLayoutModel';
-import { savePresetLayout, loadPresetLayout, getPresetLayouts, deletePresetLayout, exportLayout, importLayout, resetLayout } from '@/features/layoutManager';
-import { Save, Upload, Download, RotateCcw, Trash2 } from 'lucide-react';
-import { Panel } from '@ui/components';
+import {
+    deletePresetLayout,
+    exportLayout,
+    getPresetLayouts,
+    loadPresetLayout,
+    resetLayout,
+    savePresetLayout
+} from '@/features/layoutManager';
+import {Download, RotateCcw, Save, Trash2, Upload} from 'lucide-react';
+import {Panel} from '@ui/components';
 import notificationService from '@/services/notificationService';
 import log from '@/utils/logger';
 import './LayoutManagerPanel.css';
 
 const LayoutManagerPanel = () => {
-    const { model, onModelChange } = useLayoutModel();
+    const {model, onModelChange} = useLayoutModel();
     const [presetName, setPresetName] = useState('');
     const [selectedPreset, setSelectedPreset] = useState('');
     const fileInputRef = useRef(null);
@@ -127,7 +134,7 @@ const LayoutManagerPanel = () => {
                         className="preset-name-input"
                     />
                     <button onClick={handleSavePreset} className="save-button">
-                        <Save size={16} /> Save
+                        <Save size={16}/> Save
                     </button>
                 </div>
             </div>
@@ -149,7 +156,7 @@ const LayoutManagerPanel = () => {
                         Load
                     </button>
                     <button onClick={handleDeletePreset} disabled={!selectedPreset} className="delete-button">
-                        <Trash2 size={16} />
+                        <Trash2 size={16}/>
                     </button>
                 </div>
             </div>
@@ -158,17 +165,17 @@ const LayoutManagerPanel = () => {
                 <h4>Import/Export</h4>
                 <div className="button-group">
                     <button onClick={handleExport} className="export-button">
-                        <Download size={16} /> Export Layout
+                        <Download size={16}/> Export Layout
                     </button>
                     <button onClick={() => fileInputRef.current?.click()} className="import-button">
-                        <Upload size={16} /> Import Layout
+                        <Upload size={16}/> Import Layout
                     </button>
                     <input
                         type="file"
                         ref={fileInputRef}
                         onChange={handleImport}
                         accept=".json"
-                        style={{ display: 'none' }}
+                        style={{display: 'none'}}
                     />
                 </div>
             </div>
@@ -176,7 +183,7 @@ const LayoutManagerPanel = () => {
             <div className="layout-section">
                 <h4>Reset Layout</h4>
                 <button onClick={handleReset} className="reset-button">
-                    <RotateCcw size={16} /> Reset to Default
+                    <RotateCcw size={16}/> Reset to Default
                 </button>
             </div>
         </Panel>

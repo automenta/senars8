@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Panel } from '@ui/components';
-import { Zap, ArrowRight, Clock, AlertTriangle } from 'lucide-react';
+import React, {useCallback, useEffect, useState} from 'react';
+import {AlertTriangle, ArrowRight, Clock, Zap} from 'lucide-react';
 import './VisualReasoningPanel.css';
 
-function ReasoningFlow({ steps }) {
+function ReasoningFlow({steps}) {
     const [flowSteps, setFlowSteps] = useState([]);
 
     useEffect(() => {
@@ -25,13 +24,14 @@ function ReasoningFlow({ steps }) {
 
     // Determine icon based on step type
     const getStepIcon = useCallback((type) => {
-        if (!type) return <AlertTriangle size={14} />;
+        if (!type) return <AlertTriangle size={14}/>;
         const lowerType = type.toLowerCase();
-        if (lowerType.includes('infer') || lowerType.includes('derive')) return <Zap size={14} />;
-        if (lowerType.includes('input') || lowerType.includes('query')) return <ArrowRight size={14} style={{transform: 'rotate(180deg)'}} />;
-        if (lowerType.includes('output') || lowerType.includes('answer')) return <ArrowRight size={14} />;
-        if (lowerType.includes('time') || lowerType.includes('cycle')) return <Clock size={14} />;
-        return <AlertTriangle size={14} />;
+        if (lowerType.includes('infer') || lowerType.includes('derive')) return <Zap size={14}/>;
+        if (lowerType.includes('input') || lowerType.includes('query')) return <ArrowRight size={14}
+                                                                                           style={{transform: 'rotate(180deg)'}}/>;
+        if (lowerType.includes('output') || lowerType.includes('answer')) return <ArrowRight size={14}/>;
+        if (lowerType.includes('time') || lowerType.includes('cycle')) return <Clock size={14}/>;
+        return <AlertTriangle size={14}/>;
     }, []);
 
     // Get confidence color
@@ -56,7 +56,8 @@ function ReasoningFlow({ steps }) {
                     <>
                         {flowSteps.slice(0, 50).map((step, index) => (  // Limit to first 50 steps for performance
                             <div key={step.id} className="flow-step">
-                                <div className="step-header" style={{borderLeftColor: getConfidenceColor(step.confidence)}}>
+                                <div className="step-header"
+                                     style={{borderLeftColor: getConfidenceColor(step.confidence)}}>
                                     <div className="step-icon" title={step.type}>
                                         {getStepIcon(step.type)}
                                     </div>
@@ -82,7 +83,7 @@ function ReasoningFlow({ steps }) {
                                 </div>
                                 {index < Math.min(50, flowSteps.length) - 1 && ( // Fix connector logic
                                     <div className="step-connector">
-                                        <ArrowRight size={16} />
+                                        <ArrowRight size={16}/>
                                     </div>
                                 )}
                             </div>

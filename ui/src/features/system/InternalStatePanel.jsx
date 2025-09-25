@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
-import { Panel } from '@ui/components';
+import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
-import {Thermometer, Activity, Brain, Zap, Clock} from 'lucide-react';
+import {Activity, Brain, Clock, Thermometer, Zap} from 'lucide-react';
 import './InternalStatePanel.css';
 
 function InternalStatePanel() {
@@ -70,11 +70,16 @@ function InternalStatePanel() {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'running': return '#4caf50';
-            case 'paused': return '#ff9800';
-            case 'stopped': return '#f44336';
-            case 'disconnected': return '#9e9e9e';
-            default: return '#9e9e9e';
+            case 'running':
+                return '#4caf50';
+            case 'paused':
+                return '#ff9800';
+            case 'stopped':
+                return '#f44336';
+            case 'disconnected':
+                return '#9e9e9e';
+            default:
+                return '#9e9e9e';
         }
     };
 
@@ -95,7 +100,7 @@ function InternalStatePanel() {
                 <div className="metrics-grid">
                     <div className="metric-card">
                         <div className="metric-header">
-                            <Clock size={16} />
+                            <Clock size={16}/>
                             <span>Uptime</span>
                         </div>
                         <div className="metric-value">{formatUptime(agentState.uptime)}</div>
@@ -103,7 +108,7 @@ function InternalStatePanel() {
 
                     <div className="metric-card">
                         <div className="metric-header">
-                            <Activity size={16} />
+                            <Activity size={16}/>
                             <span>Cycles</span>
                         </div>
                         <div className="metric-value">{agentState.cycles.toLocaleString()}</div>
@@ -111,7 +116,7 @@ function InternalStatePanel() {
 
                     <div className="metric-card">
                         <div className="metric-header">
-                            <Brain size={16} />
+                            <Brain size={16}/>
                             <span>Beliefs</span>
                         </div>
                         <div className="metric-value">{agentState.beliefs.toLocaleString()}</div>
@@ -119,7 +124,7 @@ function InternalStatePanel() {
 
                     <div className="metric-card">
                         <div className="metric-header">
-                            <Zap size={16} />
+                            <Zap size={16}/>
                             <span>Goals</span>
                         </div>
                         <div className="metric-value">{agentState.goals.toLocaleString()}</div>
@@ -127,7 +132,7 @@ function InternalStatePanel() {
 
                     <div className="metric-card">
                         <div className="metric-header">
-                            <Thermometer size={16} />
+                            <Thermometer size={16}/>
                             <span>Temperature</span>
                         </div>
                         <div className="metric-value">{agentState.temperature.toFixed(2)}</div>
@@ -141,7 +146,7 @@ function InternalStatePanel() {
 
                     <div className="metric-card">
                         <div className="metric-header">
-                            <Activity size={16} />
+                            <Activity size={16}/>
                             <span>Memory</span>
                         </div>
                         <div className="metric-value">{formatBytes(agentState.memoryUsage)}</div>
@@ -155,7 +160,7 @@ function InternalStatePanel() {
 
                     <div className="metric-card">
                         <div className="metric-header">
-                            <Zap size={16} />
+                            <Zap size={16}/>
                             <span>CPU</span>
                         </div>
                         <div className="metric-value">{agentState.cpuUsage.toFixed(1)}%</div>
@@ -169,7 +174,7 @@ function InternalStatePanel() {
 
                     <div className="metric-card">
                         <div className="metric-header">
-                            <Activity size={16} />
+                            <Activity size={16}/>
                             <span>Tasks</span>
                         </div>
                         <div className="metric-value">{agentState.tasks.toLocaleString()}</div>

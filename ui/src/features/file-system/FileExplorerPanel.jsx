@@ -1,7 +1,7 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useConnection} from '@/context/useConnection';
 import {useSharedState} from '@/context/useSharedState';
-import {Folder, File, FolderOpen, ChevronRight, ChevronDown, Plus, MoreVertical} from 'lucide-react';
+import {ChevronDown, ChevronRight, File, Folder, FolderOpen, MoreVertical, Plus} from 'lucide-react';
 import './FileExplorerPanel.css';
 
 // Path utility functions since we don't have node:path in the browser
@@ -154,27 +154,27 @@ const FileExplorerPanel = () => {
     };
 
     const getFileIcon = (filename) => {
-        if (!filename) return <File size={16} />;
+        if (!filename) return <File size={16}/>;
         const extension = filename.split('.').pop().toLowerCase();
         switch (extension) {
             case 'js':
             case 'jsx':
             case 'ts':
             case 'tsx':
-                return <File size={16} />;
+                return <File size={16}/>;
             case 'json':
-                return <File size={16} />;
+                return <File size={16}/>;
             case 'css':
-                return <File size={16} />;
+                return <File size={16}/>;
             case 'html':
-                return <File size={16} />;
+                return <File size={16}/>;
             case 'py':
-                return <File size={16} />;
+                return <File size={16}/>;
             case 'nars':
             case 'narsese':
-                return <File size={16} color="#ff6b6b" />;
+                return <File size={16} color="#ff6b6b"/>;
             default:
-                return <File size={16} />;
+                return <File size={16}/>;
         }
     };
 
@@ -184,10 +184,10 @@ const FileExplorerPanel = () => {
                 <h3>File Explorer</h3>
                 <div className="explorer-actions">
                     <button onClick={handleCreateFile} title="New File" className="action-button">
-                        <Plus size={14} /> New File
+                        <Plus size={14}/> New File
                     </button>
                     <button onClick={handleCreateDirectory} title="New Directory" className="action-button">
-                        <Folder size={14} /> New Folder
+                        <Folder size={14}/> New Folder
                     </button>
                 </div>
             </div>
@@ -215,13 +215,13 @@ const FileExplorerPanel = () => {
                                         className="toggle-button"
                                         onClick={() => toggleDirectory(dirPath)}
                                     >
-                                        {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                                        {isExpanded ? <ChevronDown size={16}/> : <ChevronRight size={16}/>}
                                     </button>
                                     <span
                                         className="directory-name"
                                         onClick={() => handleDirectoryClick(dir)}
                                     >
-                                        {isExpanded ? <FolderOpen size={16} /> : <Folder size={16} />} {dir}
+                                        {isExpanded ? <FolderOpen size={16}/> : <Folder size={16}/>} {dir}
                                     </span>
                                     <button
                                         className="context-menu-button"
@@ -230,7 +230,7 @@ const FileExplorerPanel = () => {
                                             handleContextMenu(e, dirPath, 'directory');
                                         }}
                                     >
-                                        <MoreVertical size={14} />
+                                        <MoreVertical size={14}/>
                                     </button>
                                 </div>
 
@@ -270,7 +270,7 @@ const FileExplorerPanel = () => {
                                             handleContextMenu(e, filePath, 'file');
                                         }}
                                     >
-                                        <MoreVertical size={14} />
+                                        <MoreVertical size={14}/>
                                     </button>
                                 </div>
                             </li>
@@ -283,7 +283,7 @@ const FileExplorerPanel = () => {
             {contextMenu.show && (
                 <div
                     className="context-menu"
-                    style={{ top: contextMenu.y, left: contextMenu.x }}
+                    style={{top: contextMenu.y, left: contextMenu.x}}
                     onClick={closeContextMenu}
                 >
                     <button onClick={() => {
@@ -303,15 +303,15 @@ const FileExplorerPanel = () => {
 
 // Subcomponent to render nested directory content
 const SubDirectoryContent = ({
-    parentPath,
-    directoryCache,
-    sendMessage,
-    onFileClick,
-    onContextMenu,
-    expandedDirs,
-    toggleDirectory,
-    getFileIcon
-}) => {
+                                 parentPath,
+                                 directoryCache,
+                                 sendMessage,
+                                 onFileClick,
+                                 onContextMenu,
+                                 expandedDirs,
+                                 toggleDirectory,
+                                 getFileIcon
+                             }) => {
     const [subEntries, setSubEntries] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -324,7 +324,7 @@ const SubDirectoryContent = ({
                 // Fetch directory contents if not in cache
                 if (!isLoading) {
                     setIsLoading(true);
-                    sendMessage('readDirectory', { directoryPath: parentPath });
+                    sendMessage('readDirectory', {directoryPath: parentPath});
                 }
             }
         }
@@ -365,7 +365,7 @@ const SubDirectoryContent = ({
                                 className="toggle-button"
                                 onClick={() => toggleDirectory(dirPath)}
                             >
-                                {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                                {isExpanded ? <ChevronDown size={16}/> : <ChevronRight size={16}/>}
                             </button>
                             <span
                                 className="directory-name"
@@ -374,7 +374,7 @@ const SubDirectoryContent = ({
                                     // For now, just expand it
                                 }}
                             >
-                                {isExpanded ? <FolderOpen size={16} /> : <Folder size={16} />} {dir}
+                                {isExpanded ? <FolderOpen size={16}/> : <Folder size={16}/>} {dir}
                             </span>
                             <button
                                 className="context-menu-button"
@@ -383,7 +383,7 @@ const SubDirectoryContent = ({
                                     onContextMenu(e, dirPath, 'directory');
                                 }}
                             >
-                                <MoreVertical size={14} />
+                                <MoreVertical size={14}/>
                             </button>
                         </div>
 
@@ -423,7 +423,7 @@ const SubDirectoryContent = ({
                                     onContextMenu(e, filePath, 'file');
                                 }}
                             >
-                                <MoreVertical size={14} />
+                                <MoreVertical size={14}/>
                             </button>
                         </div>
                     </li>

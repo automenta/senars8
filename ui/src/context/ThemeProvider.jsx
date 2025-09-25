@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useMemo } from 'react';
+import {createContext, useContext, useMemo, useState} from 'react';
 
 const ThemeContext = createContext();
 
@@ -10,7 +10,7 @@ const useTheme = () => {
     return context;
 };
 
-const ThemeProvider = ({ children, initialTheme = 'dark' }) => {
+const ThemeProvider = ({children, initialTheme = 'dark'}) => {
     const [theme, setTheme] = useState(initialTheme);
 
     const toggleTheme = () => {
@@ -30,4 +30,4 @@ const ThemeProvider = ({ children, initialTheme = 'dark' }) => {
     );
 };
 
-export { ThemeProvider, useTheme };
+export {ThemeProvider, useTheme};

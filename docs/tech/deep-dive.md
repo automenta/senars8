@@ -34,11 +34,16 @@ transition: slide-up
 
 # 1. Core Architecture & Philosophy: The Foundation of Cognitive Intelligence
 
-- **Pragmatism under Scarcity**: The system operates under the fundamental assumption of finite computational resources, implementing sophisticated resource allocation strategies.
-- **Economic Attention**: A dynamic priority system that directs cognitive focus to the most salient `Task`s based on multiple factors including relevance, uncertainty, and potential value.
-- **Unified Knowledge Hypergraph**: All `Term`s and `Task`s reside in an integrated `Memory` component with sophisticated indexing and retrieval mechanisms.
-- **Modularity & Extensibility**: Components are decoupled and assembled by a `SystemFactory`, supporting customization and extension for specialized applications.
-- **Cognitive Transparency**: All reasoning processes are traceable and explainable, ensuring trustworthiness and auditability.
+- **Pragmatism under Scarcity**: The system operates under the fundamental assumption of finite computational resources,
+  implementing sophisticated resource allocation strategies.
+- **Economic Attention**: A dynamic priority system that directs cognitive focus to the most salient `Task`s based on
+  multiple factors including relevance, uncertainty, and potential value.
+- **Unified Knowledge Hypergraph**: All `Term`s and `Task`s reside in an integrated `Memory` component with
+  sophisticated indexing and retrieval mechanisms.
+- **Modularity & Extensibility**: Components are decoupled and assembled by a `SystemFactory`, supporting customization
+  and extension for specialized applications.
+- **Cognitive Transparency**: All reasoning processes are traceable and explainable, ensuring trustworthiness and
+  auditability.
 
 ```mermaid
 graph TD
@@ -77,7 +82,9 @@ graph TD
 ```
 
 **Realizable Potential:**
-The architecture's modular design enables creation of specialized cognitive agents for specific domains while maintaining the core neuro-symbolic capabilities. This supports applications from personal assistants to industrial automation systems, all built on the same robust cognitive foundation.
+The architecture's modular design enables creation of specialized cognitive agents for specific domains while
+maintaining the core neuro-symbolic capabilities. This supports applications from personal assistants to industrial
+automation systems, all built on the same robust cognitive foundation.
 
 ---
 
@@ -108,7 +115,9 @@ The architecture's modular design enables creation of specialized cognitive agen
 
 # 2. The Cognitive Cycle: How SeNARS "Thinks" - The Rhythm of Intelligence
 
-The cognitive cycle represents SeNARS' approach to continuous, real-time reasoning. Unlike batch processing systems, SeNARS operates in discrete cycles that mirror human thought processes, balancing immediate needs with long-term objectives.
+The cognitive cycle represents SeNARS' approach to continuous, real-time reasoning. Unlike batch processing systems,
+SeNARS operates in discrete cycles that mirror human thought processes, balancing immediate needs with long-term
+objectives.
 
 ```mermaid
 flowchart TD
@@ -121,52 +130,59 @@ flowchart TD
     G --> A
 ```
 
-| Phase | Description | Cognitive Load | Output |
-|-------|-------------|----------------|---------|
-| **Perception & Ingestion** | Ingests new information from the environment into `Task`s using `TaskFactory`. Handles multiple input types and validation. | Low to Medium | New `Task` objects with initial state |
-| **Prioritization** | Calculates the priority of all `Task`s in `Memory` using sophisticated algorithms considering relevance, urgency, and cognitive value. | Medium | Prioritized task queues and focus sets |
-| **Meta-Cognition** | Scans for contradictions, reasoning failures, and knowledge gaps, generating goals to address inconsistencies. | High | Contradiction reports and repair goals |
-| **Symbolic Reasoning** | Applies formal inference rules to high-priority `Task`s to derive new knowledge with complete transparency. | High | Derived `Task`s with reasoning traces |
-| **Neural Enrichment** | Triggers LM services for creative input, similarity searches, and natural language processing. | Variable | Enriched knowledge and semantic insights |
-| **Planning & Action** | For goal tasks, executes planning algorithms and action execution for goal achievement. | Medium to High | Action plans and execution results |
-| **Learning & Integration** | Processes experience, updates beliefs, and consolidates learning for future use. | Medium | Updated knowledge base and improved strategies |
+| Phase                      | Description                                                                                                                            | Cognitive Load | Output                                         |
+|----------------------------|----------------------------------------------------------------------------------------------------------------------------------------|----------------|------------------------------------------------|
+| **Perception & Ingestion** | Ingests new information from the environment into `Task`s using `TaskFactory`. Handles multiple input types and validation.            | Low to Medium  | New `Task` objects with initial state          |
+| **Prioritization**         | Calculates the priority of all `Task`s in `Memory` using sophisticated algorithms considering relevance, urgency, and cognitive value. | Medium         | Prioritized task queues and focus sets         |
+| **Meta-Cognition**         | Scans for contradictions, reasoning failures, and knowledge gaps, generating goals to address inconsistencies.                         | High           | Contradiction reports and repair goals         |
+| **Symbolic Reasoning**     | Applies formal inference rules to high-priority `Task`s to derive new knowledge with complete transparency.                            | High           | Derived `Task`s with reasoning traces          |
+| **Neural Enrichment**      | Triggers LM services for creative input, similarity searches, and natural language processing.                                         | Variable       | Enriched knowledge and semantic insights       |
+| **Planning & Action**      | For goal tasks, executes planning algorithms and action execution for goal achievement.                                                | Medium to High | Action plans and execution results             |
+| **Learning & Integration** | Processes experience, updates beliefs, and consolidates learning for future use.                                                       | Medium         | Updated knowledge base and improved strategies |
 
 **Realizable Potential:**
-This cyclical approach enables SeNARS to operate continuously while adapting to new information and changing goals. The system can handle real-time inputs while maintaining focus on important objectives and learning from experience.
+This cyclical approach enables SeNARS to operate continuously while adapting to new information and changing goals. The
+system can handle real-time inputs while maintaining focus on important objectives and learning from experience.
 
 ---
 
 # 3. Knowledge Representation: Narsese Grammar - The Language of Cognition
 
-SeNARS employs a rich, formal grammar called Narsese as the foundation for rigorous, explainable reasoning. This grammar enables precise expression of complex relationships and supports sophisticated cognitive operations including temporal reasoning and causal analysis.
+SeNARS employs a rich, formal grammar called Narsese as the foundation for rigorous, explainable reasoning. This grammar
+enables precise expression of complex relationships and supports sophisticated cognitive operations including temporal
+reasoning and causal analysis.
 
-| Type | Syntax | Example | Cognitive Purpose |
-|------|--------|---------|-------------------|
-| **Inheritance** | `<subject --> predicate>` | `(cat --> mammal)` | Represents "is-a" relationships and hierarchical knowledge. |
-| **Implication** | `<premise ==> conclusion>` | `(raining ==> wet_streets)` | Represents predictive or causal links with temporal aspects. |
-| **Conjunction** | `(&, term1, term2, ...)` | `(&, cat, furry, pet)` | Represents logical AND and complex, multi-faceted concepts. |
-| **Disjunction** | `(\|, term1, term2, ...)` | `(\|, cat, dog, bird)` | Represents logical OR and alternative possibilities. |
-| **Negation** | `(--, term)` | `(--, (cat --> bird))` | Represents logical NOT and contradiction handling. |
-| **Temporal Implication** | `<premise =/> conclusion>` | `(see_lightning =/> hear_thunder)` | Represents temporal sequences and cause-effect relationships. |
+| Type                          | Syntax                      | Example                             | Cognitive Purpose                                                |
+|-------------------------------|-----------------------------|-------------------------------------|------------------------------------------------------------------|
+| **Inheritance**               | `<subject --> predicate>`   | `(cat --> mammal)`                  | Represents "is-a" relationships and hierarchical knowledge.      |
+| **Implication**               | `<premise ==> conclusion>`  | `(raining ==> wet_streets)`         | Represents predictive or causal links with temporal aspects.     |
+| **Conjunction**               | `(&, term1, term2, ...)`    | `(&, cat, furry, pet)`              | Represents logical AND and complex, multi-faceted concepts.      |
+| **Disjunction**               | `(\|, term1, term2, ...)`   | `(\|, cat, dog, bird)`              | Represents logical OR and alternative possibilities.             |
+| **Negation**                  | `(--, term)`                | `(--, (cat --> bird))`              | Represents logical NOT and contradiction handling.               |
+| **Temporal Implication**      | `<premise =/> conclusion>`  | `(see_lightning =/> hear_thunder)`  | Represents temporal sequences and cause-effect relationships.    |
 | **Retrospective Implication** | `<premise =\\> conclusion>` | `(hear_thunder =\\> see_lightning)` | Represents backward temporal reasoning and diagnostic inference. |
-| **Concurrent Implication** | `<premise <> conclusion>` | `(lightning <> thunder)` | Represents synchronous or concurrent relationships. |
-| **Instance** | `(instance {-- class)` | `(fluffy {-- cat)` | Represents specific instances of general concepts. |
-| **Property** | `(object --} property)` | `(cat --} furry)` | Represents attribute relationships and characteristics. |
-| **Operation** | `(&/, action, condition)` | `(&/, clean, dirty_room)` | Represents conditional operations and action planning. |
+| **Concurrent Implication**    | `<premise <> conclusion>`   | `(lightning <> thunder)`            | Represents synchronous or concurrent relationships.              |
+| **Instance**                  | `(instance {-- class)`      | `(fluffy {-- cat)`                  | Represents specific instances of general concepts.               |
+| **Property**                  | `(object --} property)`     | `(cat --} furry)`                   | Represents attribute relationships and characteristics.          |
+| **Operation**                 | `(&/, action, condition)`   | `(&/, clean, dirty_room)`           | Represents conditional operations and action planning.           |
 
 **Advanced Narsese Expressions:**
+
 - **Nested Expressions**: `(cat --> (&, mammal, pet, (furry --> cute)))` - Complex concept combinations
 - **Higher-Order Relations**: `((A --> B) --> (C --> D))` - Relationships between relations
 - **Temporal Sequences**: `(&/, (A =/> B), (B =/> C))` - Complex temporal reasoning
 - **Uncertainty Expressions**: Intrinsic truth value representation with frequency and confidence
 
-This formal grammar is the bedrock of SeNARS' capability for rigorous, explainable reasoning and complex problem-solving.
+This formal grammar is the bedrock of SeNARS' capability for rigorous, explainable reasoning and complex
+problem-solving.
 
 ---
 
 # 4. The Neuro-Symbolic Bridge in Detail: Where Logic Meets Creativity
 
-The integration of neural and symbolic components in SeNARS represents a sophisticated approach to cognitive architecture. Rather than a simple connection, it's a deep, bidirectional integration where each component enhances the other's capabilities.
+The integration of neural and symbolic components in SeNARS represents a sophisticated approach to cognitive
+architecture. Rather than a simple connection, it's a deep, bidirectional integration where each component enhances the
+other's capabilities.
 
 ```mermaid
 graph TD
@@ -205,13 +221,20 @@ graph TD
 ```
 
 **Integration Mechanisms:**
-- **Semantic Embeddings**: Each `Term` maintains vector representations enabling similarity calculations and analogical reasoning
-- **Dynamic Service Invocation**: The symbolic core intelligently calls neural services when symbolic reasoning encounters limitations
-- **Bidirectional Learning**: Neural insights are validated and integrated into the symbolic knowledge base; symbolic structure guides neural processing
-- **Contextual Neural Processing**: Neural services operate with full awareness of current cognitive context and objectives
+
+- **Semantic Embeddings**: Each `Term` maintains vector representations enabling similarity calculations and analogical
+  reasoning
+- **Dynamic Service Invocation**: The symbolic core intelligently calls neural services when symbolic reasoning
+  encounters limitations
+- **Bidirectional Learning**: Neural insights are validated and integrated into the symbolic knowledge base; symbolic
+  structure guides neural processing
+- **Contextual Neural Processing**: Neural services operate with full awareness of current cognitive context and
+  objectives
 
 **Realizable Potential:**
-This integration enables capabilities beyond either component alone: creative hypothesis generation guided by logical constraints, precise reasoning enhanced by semantic understanding, and explainable outputs enriched by natural language fluency.
+This integration enables capabilities beyond either component alone: creative hypothesis generation guided by logical
+constraints, precise reasoning enhanced by semantic understanding, and explainable outputs enriched by natural language
+fluency.
 
 ---
 
@@ -219,45 +242,48 @@ This integration enables capabilities beyond either component alone: creative hy
 
 ### Temporal Reasoning Capabilities
 
-SeNARS implements sophisticated mechanisms for reasoning about time, causality, and change, enabling complex understanding of dynamic situations.
+SeNARS implements sophisticated mechanisms for reasoning about time, causality, and change, enabling complex
+understanding of dynamic situations.
 
 - **Multi-Timescale Analysis**: Reasoning across multiple temporal granularities from milliseconds to years
 - **Causal Chain Analysis**: Inferring cause-effect relationships and understanding how events lead to outcomes
 - **Pattern Recognition in Time**: Identifying periodic, sequential, and cyclical patterns in data
-- **Future Prediction**: Forecasting future `Task` occurrences and potential outcomes based on learned temporal implications
+- **Future Prediction**: Forecasting future `Task` occurrences and potential outcomes based on learned temporal
+  implications
 - **Anomaly Detection**: Identifying temporal anomalies and unexpected deviations from learned patterns
 - **Counterfactual Reasoning**: Exploring "what-if" scenarios with temporal implications
 
 ### Temporal Term Types & Operations
 
-| Type | Syntax | Example | Cognitive Application |
-|------|--------|---------|----------------------|
-| **Predictive Implication** | `<task1 =/> task2>` | `(see_lightning =/> hear_thunder)` | Predicting future events based on current observations |
-| **Retrospective Implication** | `<task1 \> task2>` | `(wet_streets \> rained_last_night)` | Diagnostic reasoning and cause identification |
-| **Concurrent Implication** | `<task1 <> task2>` | `(lightning <> thunder)` | Understanding simultaneous events |
-| **Duration Representation** | `<event [duration]>` | `(meeting [60_minutes])` | Representing event durations and temporal extents |
-| **Temporal Ordering** | `<event1 < event2>` | `(breakfast < lunch)` | Representing sequence relationships |
+| Type                          | Syntax               | Example                              | Cognitive Application                                  |
+|-------------------------------|----------------------|--------------------------------------|--------------------------------------------------------|
+| **Predictive Implication**    | `<task1 =/> task2>`  | `(see_lightning =/> hear_thunder)`   | Predicting future events based on current observations |
+| **Retrospective Implication** | `<task1 \> task2>`   | `(wet_streets \> rained_last_night)` | Diagnostic reasoning and cause identification          |
+| **Concurrent Implication**    | `<task1 <> task2>`   | `(lightning <> thunder)`             | Understanding simultaneous events                      |
+| **Duration Representation**   | `<event [duration]>` | `(meeting [60_minutes])`             | Representing event durations and temporal extents      |
+| **Temporal Ordering**         | `<event1 < event2>`  | `(breakfast < lunch)`                | Representing sequence relationships                    |
 
 ### Planning Architecture
 
 The system supports sophisticated planning strategies with intelligent selection and execution:
 
-- **Hierarchical Task Networks (HTN)**: The default planner decomposes complex goals into structured networks of subtasks
+- **Hierarchical Task Networks (HTN)**: The default planner decomposes complex goals into structured networks of
+  subtasks
 - **A* Search**: Optimal pathfinding planner for problems requiring optimal solutions
-- **Temporal Planning**: Planning with temporal constraints and scheduling requirements  
+- **Temporal Planning**: Planning with temporal constraints and scheduling requirements
 - **Multi-Agent Planning**: Coordinating actions across multiple cognitive agents
 - **Contingency Planning**: Creating alternative plans for different potential future states
 
 ### Planning Features & Capabilities
 
-| Feature | Implementation | Realizable Potential |
-|---------|----------------|---------------------|
-| **Plan Cost Calculation** | Sophisticated cost models considering resources, time, and risk | Optimization of resource allocation and efficiency |
-| **Task Difficulty Assessment** | Dynamic difficulty evaluation based on knowledge availability | Intelligent allocation of cognitive resources |
-| **Dynamic Strategy Selection** | Automatic selection of planning strategy based on problem type | Adaptive problem-solving capabilities |
-| **Plan Validation** | Checking if goals are already achieved or if preconditions are met | Prevention of unnecessary planning cycles |
-| **Plan Repair** | Automatic identification and repair of failed plan components | Robust execution in dynamic environments |
-| **Plan Monitoring** | Real-time monitoring of plan execution and progress | Adaptive response to changing conditions |
+| Feature                        | Implementation                                                     | Realizable Potential                               |
+|--------------------------------|--------------------------------------------------------------------|----------------------------------------------------|
+| **Plan Cost Calculation**      | Sophisticated cost models considering resources, time, and risk    | Optimization of resource allocation and efficiency |
+| **Task Difficulty Assessment** | Dynamic difficulty evaluation based on knowledge availability      | Intelligent allocation of cognitive resources      |
+| **Dynamic Strategy Selection** | Automatic selection of planning strategy based on problem type     | Adaptive problem-solving capabilities              |
+| **Plan Validation**            | Checking if goals are already achieved or if preconditions are met | Prevention of unnecessary planning cycles          |
+| **Plan Repair**                | Automatic identification and repair of failed plan components      | Robust execution in dynamic environments           |
+| **Plan Monitoring**            | Real-time monitoring of plan execution and progress                | Adaptive response to changing conditions           |
 
 ---
 
@@ -265,10 +291,13 @@ The system supports sophisticated planning strategies with intelligent selection
 
 ### Meta-Cognitive Architecture
 
-SeNARS implements sophisticated meta-cognitive capabilities that enable the system to monitor, reflect on, and improve its own cognitive processes:
+SeNARS implements sophisticated meta-cognitive capabilities that enable the system to monitor, reflect on, and improve
+its own cognitive processes:
 
-- **Cognitive State Monitoring**: Continuous assessment of reasoning effectiveness, resource utilization, and performance metrics
-- **Self-Reflection**: Analysis of reasoning patterns, identification of ineffective strategies, and identification of improvement opportunities  
+- **Cognitive State Monitoring**: Continuous assessment of reasoning effectiveness, resource utilization, and
+  performance metrics
+- **Self-Reflection**: Analysis of reasoning patterns, identification of ineffective strategies, and identification of
+  improvement opportunities
 - **Strategy Optimization**: Dynamic adjustment of cognitive strategies based on effectiveness and context
 - **Belief Revision**: Systematic updating of beliefs based on new evidence and reasoning outcomes
 - **Goal Refinement**: Intelligent refinement and adjustment of objectives based on changing circumstances
@@ -285,17 +314,19 @@ SeNARS features sophisticated contradiction handling through multiple layered me
 
 ### Resolution Strategies & Implementation
 
-| Strategy | Approach | Application Domain | Cognitive Benefit |
-|----------|----------|-------------------|-------------------|
-| **Bayesian Revision** | Statistical updating of truth values based on new evidence | Uncertain or probabilistic knowledge | Gradual, evidence-based belief updating |
-| **Contextual Resolution** | Resolution based on situational context and constraints | Context-dependent knowledge | Preservation of valid beliefs in different contexts |
-| **Evidence Gathering** | Generation of questions to collect additional information | Insufficient information scenarios | Informed decision-making through information acquisition |
-| **Temporal Analysis** | Resolution considering temporal aspects and change | Time-dependent contradictions | Proper handling of temporal evolution of beliefs |
-| **Causal Analysis** | Examination of causal relationships to understand conflicts | Cause-effect relationship conflicts | Root-cause identification and resolution |
-| **Priority-Based Resolution** | Resolution based on task priority and importance | Resource-constrained scenarios | Optimal allocation of cognitive resources |
+| Strategy                      | Approach                                                    | Application Domain                   | Cognitive Benefit                                        |
+|-------------------------------|-------------------------------------------------------------|--------------------------------------|----------------------------------------------------------|
+| **Bayesian Revision**         | Statistical updating of truth values based on new evidence  | Uncertain or probabilistic knowledge | Gradual, evidence-based belief updating                  |
+| **Contextual Resolution**     | Resolution based on situational context and constraints     | Context-dependent knowledge          | Preservation of valid beliefs in different contexts      |
+| **Evidence Gathering**        | Generation of questions to collect additional information   | Insufficient information scenarios   | Informed decision-making through information acquisition |
+| **Temporal Analysis**         | Resolution considering temporal aspects and change          | Time-dependent contradictions        | Proper handling of temporal evolution of beliefs         |
+| **Causal Analysis**           | Examination of causal relationships to understand conflicts | Cause-effect relationship conflicts  | Root-cause identification and resolution                 |
+| **Priority-Based Resolution** | Resolution based on task priority and importance            | Resource-constrained scenarios       | Optimal allocation of cognitive resources                |
 
 **Realizable Potential:**
-These meta-cognitive capabilities enable SeNARS to function as a truly autonomous cognitive system that continuously improves its performance, adapts to new situations, and maintains the integrity of its knowledge base over extended operations.
+These meta-cognitive capabilities enable SeNARS to function as a truly autonomous cognitive system that continuously
+improves its performance, adapts to new situations, and maintains the integrity of its knowledge base over extended
+operations.
 
 ---
 
@@ -313,19 +344,20 @@ SeNARS implements multiple layers of optimization to ensure efficient cognitive 
 
 ### Scalability Mechanisms
 
-| Component | Scalability Strategy | Performance Benefit |
-|-----------|---------------------|-------------------|
-| **Memory** | Dual-store architecture with intelligent consolidation and forgetting | Maintains performance as knowledge base grows |
-| **Reasoning** | Focus-set selection and priority-based processing | Processes most important tasks first |
-| **Neural Services** | Batch processing and pipeline optimization | Efficient neural computation |
-| **Inference Rules** | Selective application and conflict-directed reasoning | Reduces redundant inference |
-| **Event Processing** | Asynchronous event handling and queuing | Smooth processing under load |
+| Component            | Scalability Strategy                                                  | Performance Benefit                           |
+|----------------------|-----------------------------------------------------------------------|-----------------------------------------------|
+| **Memory**           | Dual-store architecture with intelligent consolidation and forgetting | Maintains performance as knowledge base grows |
+| **Reasoning**        | Focus-set selection and priority-based processing                     | Processes most important tasks first          |
+| **Neural Services**  | Batch processing and pipeline optimization                            | Efficient neural computation                  |
+| **Inference Rules**  | Selective application and conflict-directed reasoning                 | Reduces redundant inference                   |
+| **Event Processing** | Asynchronous event handling and queuing                               | Smooth processing under load                  |
 
 ---
 
 # 8. Development Roadmap: The Future of Cognitive Architectures
 
-We are actively advancing SeNARS' capabilities across multiple dimensions to realize the full potential of neuro-symbolic cognitive systems.
+We are actively advancing SeNARS' capabilities across multiple dimensions to realize the full potential of
+neuro-symbolic cognitive systems.
 
 <div class="grid grid-cols-2 gap-4 mt-4">
   <div class="p-4 bg-blue-500 bg-opacity-20 rounded">

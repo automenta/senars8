@@ -1,9 +1,9 @@
-import React, {useState, useEffect} from 'react';
-import { Panel } from '@ui/components';
+import React, {useEffect, useState} from 'react';
+import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import log from '@/utils/logger';
-import {Settings as SettingsIcon, Save, RotateCcw, Download, Upload, Monitor, Cpu, HardDrive, Zap} from 'lucide-react';
+import {Cpu, Download, HardDrive, Monitor, RotateCcw, Save, Settings as SettingsIcon, Upload, Zap} from 'lucide-react';
 import './SettingsPanel.css';
 
 // Default configuration values
@@ -130,7 +130,7 @@ function SettingsPanel() {
     const handleSave = () => {
         try {
             // Send config to agent
-            const success = agentService.sendMessage('update_config', config, { expectResponse: true, timeout: 10000 });
+            const success = agentService.sendMessage('update_config', config, {expectResponse: true, timeout: 10000});
             if (success) {
                 // Update original config to match current
                 setOriginalConfig({...config});
@@ -200,7 +200,6 @@ function SettingsPanel() {
     );
 
 
-
     return (
         <Panel title={<><SettingsIcon size={18}/> Settings</>}>
             <div className="settings-panel">
@@ -210,31 +209,31 @@ function SettingsPanel() {
                         className={`tab-button ${activeTab === 'agent' ? 'active' : ''}`}
                         onClick={() => setActiveTab('agent')}
                     >
-                        <Cpu size={16} /> Agent
+                        <Cpu size={16}/> Agent
                     </button>
                     <button
                         className={`tab-button ${activeTab === 'memory' ? 'active' : ''}`}
                         onClick={() => setActiveTab('memory')}
                     >
-                        <HardDrive size={16} /> Memory
+                        <HardDrive size={16}/> Memory
                     </button>
                     <button
                         className={`tab-button ${activeTab === 'reasoning' ? 'active' : ''}`}
                         onClick={() => setActiveTab('reasoning')}
                     >
-                        <Zap size={16} /> Reasoning
+                        <Zap size={16}/> Reasoning
                     </button>
                     <button
                         className={`tab-button ${activeTab === 'temporal' ? 'active' : ''}`}
                         onClick={() => setActiveTab('temporal')}
                     >
-                        <Monitor size={16} /> Temporal
+                        <Monitor size={16}/> Temporal
                     </button>
                     <button
                         className={`tab-button ${activeTab === 'concept' ? 'active' : ''}`}
                         onClick={() => setActiveTab('concept')}
                     >
-                        <Zap size={16} /> Concept
+                        <Zap size={16}/> Concept
                     </button>
                 </div>
 
@@ -313,7 +312,7 @@ function SettingsPanel() {
                         className="action-button save-button"
                         title="Save configuration"
                     >
-                        <Save size={16} /> Save
+                        <Save size={16}/> Save
                     </button>
                     <button
                         onClick={handleReset}
@@ -321,17 +320,17 @@ function SettingsPanel() {
                         className="action-button reset-button"
                         title="Reset to previous values"
                     >
-                        <RotateCcw size={16} /> Reset
+                        <RotateCcw size={16}/> Reset
                     </button>
                     <button
                         onClick={handleExport}
                         className="action-button export-button"
                         title="Export configuration"
                     >
-                        <Download size={16} /> Export
+                        <Download size={16}/> Export
                     </button>
                     <label className="action-button import-button" title="Import configuration">
-                        <Upload size={16} /> Import
+                        <Upload size={16}/> Import
                         <input
                             type="file"
                             accept=".json"

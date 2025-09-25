@@ -1,5 +1,4 @@
 import React, {useEffect, useState, useSyncExternalStore} from 'react';
-import PropTypes from 'prop-types';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import Toast from './Toast';

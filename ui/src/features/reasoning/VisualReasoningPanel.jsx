@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Panel } from '@ui/components';
+import React, {useEffect, useState} from 'react';
+import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
 import ConceptMap from './ConceptMap';
 import ReasoningFlow from './ReasoningFlow';
-import { Network, Zap, Brain, Filter, RotateCcw } from 'lucide-react';
+import {Filter, Network, RotateCcw, Zap} from 'lucide-react';
 import './VisualReasoningPanel.css';
 
 function VisualReasoningPanel() {
@@ -107,12 +107,12 @@ function VisualReasoningPanel() {
     );
 
     return (
-        <Panel title={<><Network size={18}/> Visual Reasoning</>} >
+        <Panel title={<><Network size={18}/> Visual Reasoning</>}>
             <div className="visual-reasoning-panel">
                 <div className="visual-reasoning-header">
                     <div className="reasoning-controls">
                         <div className="filter-container">
-                            <Filter size={16} />
+                            <Filter size={16}/>
                             <input
                                 type="text"
                                 placeholder="Filter reasoning data..."
@@ -128,7 +128,7 @@ function VisualReasoningPanel() {
                             title="Refresh reasoning data"
                             disabled={isLoading}
                         >
-                            {isLoading ? <div className="spinner"></div> : <RotateCcw size={16} />}
+                            {isLoading ? <div className="spinner"></div> : <RotateCcw size={16}/>}
                         </button>
 
                         <button
@@ -153,13 +153,13 @@ function VisualReasoningPanel() {
                         className={`reasoning-tab ${activeTab === 'concept-map' ? 'active' : ''}`}
                         onClick={() => setActiveTab('concept-map')}
                     >
-                        <Network size={14} /> Concept Map
+                        <Network size={14}/> Concept Map
                     </button>
                     <button
                         className={`reasoning-tab ${activeTab === 'reasoning-flow' ? 'active' : ''}`}
                         onClick={() => setActiveTab('reasoning-flow')}
                     >
-                        <Zap size={14} /> Reasoning Flow
+                        <Zap size={14}/> Reasoning Flow
                     </button>
                 </div>
 
@@ -179,7 +179,7 @@ function VisualReasoningPanel() {
                                     selectedNode={setSelectedNode}
                                 />
                             ) : (
-                                <ReasoningFlow steps={filteredReasoningSteps} />
+                                <ReasoningFlow steps={filteredReasoningSteps}/>
                             )}
                         </>
                     )}

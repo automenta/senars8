@@ -1,6 +1,6 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import {createContext, useCallback, useContext, useEffect, useState} from 'react';
 import agentService from '@/services/agentService';
-import { MESSAGE_TYPES } from '@/constants/ui';
+import {MESSAGE_TYPES} from '@/constants/ui';
 
 const SearchContext = createContext();
 
@@ -12,7 +12,7 @@ export const useSearch = () => {
     return context;
 };
 
-export const SearchProvider = ({ children }) => {
+export const SearchProvider = ({children}) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
@@ -53,7 +53,7 @@ export const SearchProvider = ({ children }) => {
 
         try {
             // Use the agent service to perform the search
-            const success = agentService.search(term, { scope });
+            const success = agentService.search(term, {scope});
 
             if (!success) {
                 throw new Error('Failed to send search request');

@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { Panel } from '@ui/components';
-import { Network, Activity, Zap, Brain, Filter } from 'lucide-react';
+import React, {useEffect, useState} from 'react';
 import ReactForceGraph2D from 'react-force-graph-2d';
 import './VisualReasoningPanel.css';
 
@@ -175,9 +173,9 @@ const convertToConceptMapData = (beliefs, goals, inferences) => {
     };
 };
 
-function ConceptMap({ beliefs, goals, inferences, selectedNode }) {
-    const [conceptData, setConceptData] = useState({ nodes: [], edges: [] });
-    const [graphSize, setGraphSize] = useState({ width: 600, height: 400 });
+function ConceptMap({beliefs, goals, inferences, selectedNode}) {
+    const [conceptData, setConceptData] = useState({nodes: [], edges: []});
+    const [graphSize, setGraphSize] = useState({width: 600, height: 400});
 
     // Update graph data when beliefs/goals/inferences change
     useEffect(() => {

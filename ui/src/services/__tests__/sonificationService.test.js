@@ -3,13 +3,13 @@ const mockOscillator = {
     connect: jest.fn(),
     start: jest.fn(),
     stop: jest.fn(),
-    frequency: { value: 0 },
+    frequency: {value: 0},
     type: 'sine'
 };
 
 const mockGainNode = {
     connect: jest.fn(),
-    gain: { value: 0 }
+    gain: {value: 0}
 };
 
 const mockAudioContext = {

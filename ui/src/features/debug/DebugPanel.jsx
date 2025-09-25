@@ -1,23 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { Panel } from '@ui/components';
-import { useConnection } from '@/context/useConnection';
-import { useSharedState } from '@/context/useSharedState';
-import { useSettings } from '@/context/useSettings';
-import { useSearch } from '@/context/SearchContext';
-import { useTasks } from '@/context/TaskContext';
-import { useSession } from '@/context/SessionContext';
-import { Bug, Activity, Database, Cpu, HardDrive, Zap, Eye, Trash2, Play, Pause } from 'lucide-react';
+import React, {useEffect, useState} from 'react';
+import {Panel} from '@ui/components';
+import {useConnection} from '@/context/useConnection';
+import {useSharedState} from '@/context/useSharedState';
+import {useSettings} from '@/context/useSettings';
+import {useSearch} from '@/context/SearchContext';
+import {useTasks} from '@/context/TaskContext';
+import {useSession} from '@/context/SessionContext';
+import {Activity, Bug, Cpu, Database, HardDrive, Trash2, Zap} from 'lucide-react';
 import agentService from '@/services/agentService';
-import { MESSAGE_TYPES } from '@/constants/ui';
 import './DebugPanel.css';
 
 const DebugPanel = () => {
-    const { isConnected, connectionStatus, connectionError, connectionStats, lastMessage } = useConnection();
-    const { sharedState, awareness } = useSharedState();
-    const { isSonificationEnabled } = useSettings();
-    const { searchResults, isSearching, searchTerm } = useSearch();
-    const { tasks } = useTasks();
-    const { activeSession, savedSessions } = useSession();
+    const {isConnected, connectionStatus, connectionError, connectionStats, lastMessage} = useConnection();
+    const {sharedState, awareness} = useSharedState();
+    const {isSonificationEnabled} = useSettings();
+    const {searchResults, isSearching, searchTerm} = useSearch();
+    const {tasks} = useTasks();
+    const {activeSession, savedSessions} = useSession();
 
     const [debugInfo, setDebugInfo] = useState({});
     const [showSystemInfo, setShowSystemInfo] = useState(false);
@@ -47,7 +46,7 @@ const DebugPanel = () => {
     const handleSendMessage = () => {
         try {
             // Send a test message to the agent
-            const success = agentService.sendMessage('debug_ping', { timestamp: Date.now() });
+            const success = agentService.sendMessage('debug_ping', {timestamp: Date.now()});
             if (success) {
                 console.log('Debug ping sent successfully');
             } else {
@@ -71,7 +70,7 @@ const DebugPanel = () => {
     };
 
     return (
-        <Panel title={<><Bug size={18} /> Debug Tools</>}>
+        <Panel title={<><Bug size={18}/> Debug Tools</>}>
             <div className="debug-panel">
                 <div className="debug-controls">
                     <button
@@ -79,14 +78,14 @@ const DebugPanel = () => {
                         onClick={handleSendMessage}
                         title="Send test message to agent"
                     >
-                        <Zap size={16} /> Ping Agent
+                        <Zap size={16}/> Ping Agent
                     </button>
                     <button
                         className="debug-btn secondary"
                         onClick={handleClearDebug}
                         title="Clear debug information"
                     >
-                        <Trash2 size={16} /> Clear
+                        <Trash2 size={16}/> Clear
                     </button>
                 </div>
 
@@ -97,7 +96,7 @@ const DebugPanel = () => {
                             className="section-header"
                             onClick={() => setShowConnectionInfo(!showConnectionInfo)}
                         >
-                            <h4><Activity size={16} /> Connection Info</h4>
+                            <h4><Activity size={16}/> Connection Info</h4>
                             <span className={`toggle ${showConnectionInfo ? 'open' : ''}`}>&#9662;</span>
                         </div>
                         {showConnectionInfo && (
@@ -140,7 +139,7 @@ const DebugPanel = () => {
                             className="section-header"
                             onClick={() => setShowSystemInfo(!showSystemInfo)}
                         >
-                            <h4><Cpu size={16} /> System Info</h4>
+                            <h4><Cpu size={16}/> System Info</h4>
                             <span className={`toggle ${showSystemInfo ? 'open' : ''}`}>&#9662;</span>
                         </div>
                         {showSystemInfo && (
@@ -169,7 +168,7 @@ const DebugPanel = () => {
                             className="section-header"
                             onClick={() => setShowMemoryInfo(!showMemoryInfo)}
                         >
-                            <h4><Database size={16} /> Memory Info</h4>
+                            <h4><Database size={16}/> Memory Info</h4>
                             <span className={`toggle ${showMemoryInfo ? 'open' : ''}`}>&#9662;</span>
                         </div>
                         {showMemoryInfo && (
@@ -206,7 +205,7 @@ const DebugPanel = () => {
                             className="section-header"
                             onClick={() => setShowSharedState(!showSharedState)}
                         >
-                            <h4><HardDrive size={16} /> Shared State</h4>
+                            <h4><HardDrive size={16}/> Shared State</h4>
                             <span className={`toggle ${showSharedState ? 'open' : ''}`}>&#9662;</span>
                         </div>
                         {showSharedState && (

@@ -16,20 +16,20 @@ const factory = (node) => {
     const PanelComponent = panelRegistry[componentName];
     return (
         <ErrorBoundary>
-            {PanelComponent ? <PanelComponent /> : <div>Panel not found: {componentName}</div>}
+            {PanelComponent ? <PanelComponent/> : <div>Panel not found: {componentName}</div>}
         </ErrorBoundary>
     );
 };
 
 function App() {
-    const { model, onModelChange } = useLayoutModel();
-    const { theme } = useTheme();
+    const {model, onModelChange} = useLayoutModel();
+    const {theme} = useTheme();
     useAppInit();
 
     return (
         <SearchProvider>
             <div className="app-container" data-theme={theme}>
-                <Header />
+                <Header/>
                 <main className="app-main" role="main">
                     <Layout
                         model={model}
@@ -38,7 +38,7 @@ function App() {
                         className="app-layout"
                     />
                 </main>
-                <StatusBar />
+                <StatusBar/>
             </div>
         </SearchProvider>
     );

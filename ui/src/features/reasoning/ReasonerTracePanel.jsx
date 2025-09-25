@@ -1,8 +1,8 @@
-import React, {useCallback, useEffect, useState, useMemo} from 'react';
-import { Panel } from '@ui/components';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
-import {Footprints, Filter, Search} from 'lucide-react';
-import { MESSAGE_TYPES } from '@/constants/ui';
+import {Footprints, Search} from 'lucide-react';
+import {MESSAGE_TYPES} from '@/constants/ui';
 import './ReasonerTracePanel.css';
 
 function ReasonerTracePanel() {
@@ -19,7 +19,7 @@ function ReasonerTracePanel() {
         }]);
     }, []);
 
-        useEffect(() => {
+    useEffect(() => {
         const handleStep = (step) => {
             setTrace(prev => [...prev, {
                 ...step,
@@ -109,7 +109,7 @@ function ReasonerTracePanel() {
                 {/* Controls */}
                 <div className="trace-controls">
                     <div className="filter-container">
-                        <Search size={16} />
+                        <Search size={16}/>
                         <input
                             type="text"
                             placeholder="Filter trace..."

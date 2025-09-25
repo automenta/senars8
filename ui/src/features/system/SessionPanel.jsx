@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Panel } from '@ui/components';
-import { useSession } from '@/context/SessionContext';
-import { Save, FolderOpen, Trash2, RotateCcw, FilePlus, Clock } from 'lucide-react';
+import React, {useState} from 'react';
+import {Panel} from '@ui/components';
+import {useSession} from '@/context/SessionContext';
+import {Clock, FilePlus, FolderOpen, Save, Trash2} from 'lucide-react';
 import './SessionPanel.css';
 
 const SessionPanel = () => {
@@ -34,7 +34,7 @@ const SessionPanel = () => {
     };
 
     return (
-        <Panel title={<><FolderOpen size={18} /> Sessions</>}>
+        <Panel title={<><FolderOpen size={18}/> Sessions</>}>
             <div className="session-panel">
                 <div className="session-controls">
                     {!isCreating ? (
@@ -42,7 +42,7 @@ const SessionPanel = () => {
                             className="new-session-btn"
                             onClick={() => setIsCreating(true)}
                         >
-                            <FilePlus size={16} /> New Session
+                            <FilePlus size={16}/> New Session
                         </button>
                     ) : (
                         <div className="create-session-form">
@@ -64,7 +64,7 @@ const SessionPanel = () => {
                                 onClick={handleCreateSession}
                                 disabled={!newSessionName.trim()}
                             >
-                                <Save size={14} /> Create
+                                <Save size={14}/> Create
                             </button>
                             <button
                                 className="cancel-btn"
@@ -83,7 +83,7 @@ const SessionPanel = () => {
                             <div className="session-name">{activeSession.name}</div>
                             <div className="session-meta">
                                 <span className="created-date">
-                                    <Clock size={12} /> Created: {formatDate(activeSession.createdAt)}
+                                    <Clock size={12}/> Created: {formatDate(activeSession.createdAt)}
                                 </span>
                                 <span className="modified-date">
                                     Modified: {formatDate(activeSession.lastModified)}
@@ -107,7 +107,7 @@ const SessionPanel = () => {
                                         </div>
                                         <div className="session-meta">
                                             <span className="created-date">
-                                                <Clock size={10} /> {formatDate(session.createdAt)}
+                                                <Clock size={10}/> {formatDate(session.createdAt)}
                                             </span>
                                         </div>
                                     </div>
@@ -117,7 +117,7 @@ const SessionPanel = () => {
                                             onClick={() => loadSession(session.id)}
                                             title="Load session"
                                         >
-                                            <FolderOpen size={14} />
+                                            <FolderOpen size={14}/>
                                         </button>
                                         <button
                                             className="delete-btn"
@@ -128,7 +128,7 @@ const SessionPanel = () => {
                                             }}
                                             title="Delete session"
                                         >
-                                            <Trash2 size={14} />
+                                            <Trash2 size={14}/>
                                         </button>
                                     </div>
                                 </div>

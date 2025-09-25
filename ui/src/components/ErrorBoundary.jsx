@@ -17,7 +17,21 @@ class ErrorBoundary extends React.Component {
 
     static getDerivedStateFromError(_error) {
         // Update state so the next render will show the fallback UI.
-        return { hasError: true };
+        return {hasError: true};
+    }
+
+    // Reset error state when props change to allow recovery from error state
+    static getDerivedStateFromProps(props, state) {
+        // Only reset the error state if we're getting new props (children changed)
+        // This enables the test scenario where we switch from error component to working component
+        if (state.hasError) {
+            return {
+                hasError: false,
+                error: null,
+                errorInfo: null
+            };
+        }
+        return null;
     }
 
     componentDidCatch(error, errorInfo) {
@@ -61,27 +75,13 @@ class ErrorBoundary extends React.Component {
         });
     }
 
-    // Reset error state when props change to allow recovery from error state
-    static getDerivedStateFromProps(props, state) {
-        // Only reset the error state if we're getting new props (children changed)
-        // This enables the test scenario where we switch from error component to working component
-        if (state.hasError) {
-            return {
-                hasError: false,
-                error: null,
-                errorInfo: null
-            };
-        }
-        return null;
-    }
-
     render() {
         if (this.state.hasError) {
             // You can render any custom fallback UI
             return (
                 <div className="error-boundary" role="alert">
                     <div className="error-content">
-                        <AlertCircle size={48} className="error-icon" />
+                        <AlertCircle size={48} className="error-icon"/>
                         <h2 className="error-title">Something went wrong</h2>
                         <p className="error-message">The component failed to load properly.</p>
                         {process.env.NODE_ENV === 'development' && (
@@ -101,7 +101,7 @@ class ErrorBoundary extends React.Component {
                                 onClick={this.handleRetry}
                                 title="Retry loading the component"
                             >
-                                <RotateCcw size={16} />
+                                <RotateCcw size={16}/>
                                 Try Again
                             </button>
                             <button

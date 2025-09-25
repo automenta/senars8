@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { Panel, NotificationCenter } from '@ui/components';
+import {NotificationCenter, Panel} from '@ui/components';
 import notificationService from '@/services/notificationService';
 import {Bell, Filter, SortDesc, Trash2} from 'lucide-react';
 import './NotificationCenterPanel.css';
@@ -21,7 +21,7 @@ function NotificationCenterPanel() {
                 {/* Controls */}
                 <div className="notification-controls">
                     <div className="filter-controls">
-                        <Filter size={16} />
+                        <Filter size={16}/>
                         <select
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
@@ -35,7 +35,7 @@ function NotificationCenterPanel() {
                     </div>
 
                     <div className="sort-controls">
-                        <SortDesc size={16} />
+                        <SortDesc size={16}/>
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
@@ -51,13 +51,13 @@ function NotificationCenterPanel() {
                         className="clear-filtered-btn"
                         title="Clear filtered notifications"
                     >
-                        <Trash2 size={16} />
+                        <Trash2 size={16}/>
                     </button>
                 </div>
 
                 {/* Notification Center */}
                 <div className="notification-content">
-                    <NotificationCenter filter={filter} sortBy={sortBy} />
+                    <NotificationCenter filter={filter} sortBy={sortBy}/>
                 </div>
             </div>
         </Panel>

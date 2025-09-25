@@ -8,12 +8,12 @@ const errorHandler = createUnifiedErrorHandler('Analyzer');
 
 class UnitTestAnalyzer {
     constructor({
-        enableCoverageAnalysis = true,
-        enablePerformanceAnalysis = true,
-        enableFailureAnalysis = true,
-        ...config
-    } = {}) {
-        this.config = { enableCoverageAnalysis, enablePerformanceAnalysis, enableFailureAnalysis, ...config };
+                    enableCoverageAnalysis = true,
+                    enablePerformanceAnalysis = true,
+                    enableFailureAnalysis = true,
+                    ...config
+                } = {}) {
+        this.config = {enableCoverageAnalysis, enablePerformanceAnalysis, enableFailureAnalysis, ...config};
         this.ingestor = new DataIngestor(this.config);
         this.translator = new NarseseTranslator(this.config);
         this.engine = new AnalysisEngine(this.config);
@@ -23,7 +23,7 @@ class UnitTestAnalyzer {
 
     async analyzeTestData(testResults, coverageData = null, profilingData = null) {
         return errorHandler.execute(async () => {
-            const { enableCoverageAnalysis, enablePerformanceAnalysis } = this.config;
+            const {enableCoverageAnalysis, enablePerformanceAnalysis} = this.config;
 
             const [testData, ingestedCoverageData, ingestedProfilingData] = await Promise.all([
                 this.ingestor.ingestTestResults(testResults),

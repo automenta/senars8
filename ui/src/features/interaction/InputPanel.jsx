@@ -1,5 +1,5 @@
-import React, {useState, useCallback, useRef} from 'react';
-import { Panel, SendButton, EnhancedInput } from '@ui/components';
+import React, {useCallback, useState} from 'react';
+import {EnhancedInput, Panel, SendButton} from '@ui/components';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import sonificationService from '@/services/sonificationService';
@@ -7,8 +7,8 @@ import {useConnection} from '@/context/useConnection';
 import {useSettings} from '@/context/useSettings';
 import useInputHistory from '@/hooks/useInputHistory';
 import log from '@/utils/logger';
-import {CornerDownLeft, HelpCircle, BookOpen, MessageCircle, Lightbulb, Bot, AlertCircle, Wifi, WifiOff} from 'lucide-react';
-import { MESSAGE_TYPES, UI_CONSTANTS } from '@/constants/ui';
+import {AlertCircle, HelpCircle, Lightbulb, MessageCircle, Wifi, WifiOff} from 'lucide-react';
+import {UI_CONSTANTS} from '@/constants/ui';
 import './InputPanel.css';
 
 function InputPanel() {
@@ -22,26 +22,26 @@ function InputPanel() {
     const [suggestedResponses, setSuggestedResponses] = useState([]);
 
 // Example natural language inputs for quick access
-const NATURAL_EXAMPLES = [
-    'Tell me about birds',
-    'What is a robin?',
-    'Do birds fly?',
-    'Explain the concept of animal',
-    'How are birds and animals related?',
-    'What can you tell me about TOM?',
-    'Is the book interesting?',
-];
+    const NATURAL_EXAMPLES = [
+        'Tell me about birds',
+        'What is a robin?',
+        'Do birds fly?',
+        'Explain the concept of animal',
+        'How are birds and animals related?',
+        'What can you tell me about TOM?',
+        'Is the book interesting?',
+    ];
 
 // Example Narsese statements for quick access
-const NARSESE_EXAMPLES = [
-    '<robin --> bird>.',
-    '<bird --> animal>.',
-    '(&&, <robin --> bird>, <robin --> animal>)?',
-    '<(*, TOM, book) --> own>.',
-    '<(*, book, interesting) --> property>.',
-    '<<$x --> bird> ==> <$x --> animal>>?',
-    '<bird <-> animal>?',
-];
+    const NARSESE_EXAMPLES = [
+        '<robin --> bird>.',
+        '<bird --> animal>.',
+        '(&&, <robin --> bird>, <robin --> animal>)?',
+        '<(*, TOM, book) --> own>.',
+        '<(*, book, interesting) --> property>.',
+        '<<$x --> bird> ==> <$x --> animal>>?',
+        '<bird <-> animal>?',
+    ];
 
     // Enhanced Narsese input validation and sanitization
     const validateNarsese = useCallback((input) => {
@@ -136,12 +136,16 @@ const NARSESE_EXAMPLES = [
 
         // Validation rules
         if (sanitizedInput.length > UI_CONSTANTS.VALIDATION.MAX_INPUT_LENGTH) {
-            return { type: 'invalid', action: 'error', error: `Input too long (max ${UI_CONSTANTS.VALIDATION.MAX_INPUT_LENGTH} characters)` };
+            return {
+                type: 'invalid',
+                action: 'error',
+                error: `Input too long (max ${UI_CONSTANTS.VALIDATION.MAX_INPUT_LENGTH} characters)`
+            };
         }
 
         // Check for potentially dangerous content
         if (sanitizedInput.includes('<script') || sanitizedInput.includes('javascript:')) {
-            return { type: 'invalid', action: 'error', error: 'Invalid characters detected' };
+            return {type: 'invalid', action: 'error', error: 'Invalid characters detected'};
         }
 
         // Check for SQL injection patterns
@@ -151,7 +155,7 @@ const NARSESE_EXAMPLES = [
 
         for (const pattern of sqlInjectionPatterns) {
             if (pattern.test(sanitizedInput)) {
-                return { type: 'invalid', action: 'error', error: 'Potential injection attack detected' };
+                return {type: 'invalid', action: 'error', error: 'Potential injection attack detected'};
             }
         }
 
@@ -162,23 +166,23 @@ const NARSESE_EXAMPLES = [
 
         for (const pattern of cmdInjectionPatterns) {
             if (pattern.test(sanitizedInput)) {
-                return { type: 'invalid', action: 'error', error: 'Potential command injection detected' };
+                return {type: 'invalid', action: 'error', error: 'Potential command injection detected'};
             }
         }
 
         // Simple rule-based intent recognition
         if (lowerInput.includes('hello') || lowerInput.includes('hi') || lowerInput.includes('hey')) {
-            return { type: 'greeting', action: 'greet' };
+            return {type: 'greeting', action: 'greet'};
         } else if (lowerInput.includes('what') || lowerInput.includes('how') || lowerInput.includes('?')) {
-            return { type: 'question', action: 'answer' };
+            return {type: 'question', action: 'answer'};
         } else if (lowerInput.includes('tell') || lowerInput.includes('explain')) {
-            return { type: 'request_info', action: 'provide_info' };
+            return {type: 'request_info', action: 'provide_info'};
         } else if (lowerInput.includes('help')) {
-            return { type: 'help_request', action: 'provide_help' };
+            return {type: 'help_request', action: 'provide_help'};
         } else if (lowerInput.includes('thank')) {
-            return { type: 'gratitude', action: 'acknowledge' };
+            return {type: 'gratitude', action: 'acknowledge'};
         } else {
-            return { type: 'statement', action: 'process' };
+            return {type: 'statement', action: 'process'};
         }
     }, []);
 
@@ -261,19 +265,19 @@ const NARSESE_EXAMPLES = [
     const examplesTitle = inputMode === 'natural' ? 'Natural Language Examples' : 'Narsese Examples';
 
     return (
-        <Panel title={<><MessageCircle size={18}/> Chat</>} >
+        <Panel title={<><MessageCircle size={18}/> Chat</>}>
             <div className="input-panel-wrapper">
                 {/* Connection status indicator */}
                 <div className="connection-status">
                     <div className={`status-indicator ${connectionStatus}`}>
                         {connectionStatus === 'connected' ? (
-                            <><Wifi size={14} color="limegreen" className="status-icon" /> Connected</>
+                            <><Wifi size={14} color="limegreen" className="status-icon"/> Connected</>
                         ) : connectionStatus === 'connecting' ? (
-                            <><Wifi size={14} color="orange" className="status-icon" /> Connecting...</>
+                            <><Wifi size={14} color="orange" className="status-icon"/> Connecting...</>
                         ) : connectionStatus === 'failed' ? (
-                            <><WifiOff size={14} color="red" className="status-icon" /> Connection Failed</>
+                            <><WifiOff size={14} color="red" className="status-icon"/> Connection Failed</>
                         ) : (
-                            <><WifiOff size={14} color="gray" className="status-icon" /> Disconnected</>
+                            <><WifiOff size={14} color="gray" className="status-icon"/> Disconnected</>
                         )}
                     </div>
 
@@ -296,7 +300,7 @@ const NARSESE_EXAMPLES = [
                         aria-expanded={showExamples}
                         aria-controls="examples-container"
                     >
-                        <Lightbulb size={16} />
+                        <Lightbulb size={16}/>
                         {inputMode === 'natural' ? 'Natural Examples' : 'Narsese Examples'}
                     </button>
                     <button
@@ -304,7 +308,7 @@ const NARSESE_EXAMPLES = [
                         onClick={() => setShowHelp(!showHelp)}
                         title="Narsese Guide"
                     >
-                        <HelpCircle size={16} />
+                        <HelpCircle size={16}/>
                         Help
                     </button>
                 </div>
@@ -314,9 +318,12 @@ const NARSESE_EXAMPLES = [
                         <h4>Narsese Syntax Guide</h4>
                         <p>Narsese is the formal language for the NARS system. Here are some basic examples:</p>
                         <ul>
-                            <li><code>&lt;bird --&gt; animal&gt;.</code> - A bird is an animal (inheritance relation)</li>
+                            <li><code>&lt;bird --&gt; animal&gt;.</code> - A bird is an animal (inheritance relation)
+                            </li>
                             <li><code>&lt;robin --&gt; bird&gt;?</code> - Is a robin a bird? (question)</li>
-                            <li><code>(&&, &lt;robin --&gt; bird&gt;, &lt;bird --&gt; animal&gt;)</code> - Logical conjunction</li>
+                            <li><code>(&&, &lt;robin --&gt; bird&gt;, &lt;bird --&gt; animal&gt;)</code> - Logical
+                                conjunction
+                            </li>
                         </ul>
                     </div>
                 )}
@@ -340,14 +347,14 @@ const NARSESE_EXAMPLES = [
 
                 {validationError && (
                     <div className="validation-error">
-                        <AlertCircle size={14} className="error-icon" />
+                        <AlertCircle size={14} className="error-icon"/>
                         {validationError}
                     </div>
                 )}
 
                 {connectionError && (
                     <div className="connection-error">
-                        <AlertCircle size={14} className="error-icon" />
+                        <AlertCircle size={14} className="error-icon"/>
                         Connection error: {connectionError.message || connectionError.toString()}
                     </div>
                 )}
@@ -383,7 +390,7 @@ const NARSESE_EXAMPLES = [
                 {/* Show suggested responses */}
                 {suggestedResponses.length > 0 && (
                     <div className="suggested-responses">
-                        <h4><Lightbulb size={14} /> Suggestions:</h4>
+                        <h4><Lightbulb size={14}/> Suggestions:</h4>
                         <div className="suggestions-grid">
                             {suggestedResponses.map((suggestion, index) => (
                                 <button

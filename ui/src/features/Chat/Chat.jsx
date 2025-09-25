@@ -1,10 +1,10 @@
 import React from 'react';
-import { Panel, EnhancedInput, SendButton } from '@ui/components';
+import {EnhancedInput, Panel, SendButton} from '@ui/components';
 import useChat from './useChat';
 import './Chat.css';
 
 const Chat = () => {
-    const { messages, inputValue, setInputValue, handleSendMessage } = useChat();
+    const {messages, inputValue, setInputValue, handleSendMessage} = useChat();
 
     return (
         <Panel title="Chat">
@@ -22,7 +22,7 @@ const Chat = () => {
                     onEnter={handleSendMessage}
                     placeholder="Type a message..."
                 />
-                <SendButton onClick={handleSendMessage} />
+                <SendButton onClick={handleSendMessage}/>
             </div>
         </Panel>
     );

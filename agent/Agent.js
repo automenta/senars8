@@ -2,7 +2,7 @@ import {agentErrorHandler as errorHandler, createSystem, debug, parseTerm, Task,
 import MCP from './MCP.js';
 
 const termToActionParsers = {
-    Atomic: (term) => ({ tool: term.key, parameters: [] }),
+    Atomic: (term) => ({tool: term.key, parameters: []}),
     SequentialConjunction: (term) => {
         const [nameTerm, ...paramTerms] = term.terms;
         return nameTerm ? {
@@ -60,7 +60,7 @@ class Agent {
         const tool = this.tools[action.tool];
         if (!tool) throw new Error(`Tool not found: ${action.tool}`);
 
-        const { handler, parameters: toolParamsDef } = tool;
+        const {handler, parameters: toolParamsDef} = tool;
         const paramNames = Object.keys(toolParamsDef?.properties || {});
         const params = Object.fromEntries(
             paramNames.map((paramName, i) => [paramName, action.parameters[i]])

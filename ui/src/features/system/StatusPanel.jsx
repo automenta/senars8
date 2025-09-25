@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from 'react';
-import { Panel, SonificationToggle } from '@ui/components';
+import {Panel, SonificationToggle} from '@ui/components';
 import {useConnection} from '@/context/useConnection';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import log from '@/utils/logger';
-import {Server, Wifi, WifiOff, Activity, Database, Zap, Thermometer, RotateCcw, BarChart2} from 'lucide-react';
-import { MESSAGE_TYPES } from '@/constants/ui';
+import {Activity, BarChart2, Database, RotateCcw, Server, Thermometer, Wifi, WifiOff, Zap} from 'lucide-react';
+import {MESSAGE_TYPES} from '@/constants/ui';
 import './StatusPanel.css';
 
 function StatusPanel() {
@@ -75,7 +75,7 @@ function StatusPanel() {
         agentService.on('error', handleStatsError);
 
         const getSystemStats = () => {
-            agentService.sendMessage(MESSAGE_TYPES.SYSTEM_STATS, {}, { expectResponse: true, timeout: 5000 });
+            agentService.sendMessage(MESSAGE_TYPES.SYSTEM_STATS, {}, {expectResponse: true, timeout: 5000});
         };
 
         // Set up periodic updates
@@ -106,7 +106,7 @@ function StatusPanel() {
     };
 
     return (
-        <Panel title={<><Server size={18}/> Status</>} >
+        <Panel title={<><Server size={18}/> Status</>}>
             <div className="status-panel-content">
                 {/* Connection Status */}
                 <div className={`status-item connection-status ${connectionStatus}`}>
@@ -129,72 +129,73 @@ function StatusPanel() {
                             className="reconnect-button-status"
                             title="Reconnect to agent"
                         >
-                            <RotateCcw size={16} /> Reconnect
+                            <RotateCcw size={16}/> Reconnect
                         </button>
                     </div>
                 )}
 
                 {/* Cycle Counter */}
                 <div className="status-item">
-                    <Activity size={16} />
+                    <Activity size={16}/>
                     <span>Cycle: {systemStats.cycleCount.toLocaleString()}</span>
                 </div>
 
                 {/* Memory Usage */}
                 <div className="status-item">
-                    <Database size={16} />
+                    <Database size={16}/>
                     <span>Memory: {formatBytes(systemStats.memoryUsage)}</span>
                 </div>
 
                 {/* CPU Usage */}
                 <div className="status-item">
-                    <Zap size={16} />
+                    <Zap size={16}/>
                     <span>CPU: {systemStats.cpuUsage.toFixed(1)}%</span>
                 </div>
 
                 {/* Temperature */}
                 <div className="status-item">
-                    <Thermometer size={16} />
+                    <Thermometer size={16}/>
                     <span>Temp: {systemStats.temperature.toFixed(2)}</span>
                 </div>
 
                 {/* Beliefs Count */}
                 <div className="status-item">
-                    <Database size={16} />
+                    <Database size={16}/>
                     <span>Beliefs: {systemStats.beliefs.toLocaleString()}</span>
                 </div>
 
                 {/* Goals Count */}
                 <div className="status-item">
-                    <Zap size={16} />
+                    <Zap size={16}/>
                     <span>Goals: {systemStats.goals.toLocaleString()}</span>
                 </div>
 
                 {/* Sonification Toggle */}
                 <div className="status-item sonification-toggle">
-                    <SonificationToggle />
+                    <SonificationToggle/>
                 </div>
 
                 {/* Connection Statistics */}
                 <div className="status-item">
-                    <BarChart2 size={16} />
+                    <BarChart2 size={16}/>
                     <span>Conn: {connectionStats.totalConnections}</span>
                 </div>
 
                 <div className="status-item">
-                    <BarChart2 size={16} />
+                    <BarChart2 size={16}/>
                     <span>Reconn: {connectionStats.totalReconnections}</span>
                 </div>
 
                 <div className="status-item">
-                    <BarChart2 size={16} />
+                    <BarChart2 size={16}/>
                     <span>Fail: {connectionStats.totalFailedConnections}</span>
                 </div>
 
                 {/* Connection Error Display */}
                 {connectionError && (
                     <div className="status-item connection-error">
-                        <span className="error-text">Error: {connectionError.message || connectionError.toString()}</span>
+                        <span
+                            className="error-text">Error: {connectionError.message || connectionError.toString()}</span>
                     </div>
                 )}
             </div>

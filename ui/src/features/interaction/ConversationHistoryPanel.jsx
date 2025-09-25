@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Panel } from '@ui/components';
-import {MessageCircle, Trash2, RotateCcw} from 'lucide-react';
+import React, {useEffect, useState} from 'react';
+import {Panel} from '@ui/components';
+import {MessageCircle, Trash2} from 'lucide-react';
 import './ConversationHistoryPanel.css';
 
 function ConversationHistoryPanel() {
@@ -99,7 +99,7 @@ function ConversationHistoryPanel() {
 
     // Format timestamp for display
     const formatTime = (timestamp) => {
-        return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return new Date(timestamp).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
     };
 
     // Handle reusing a previous interaction
@@ -111,7 +111,7 @@ function ConversationHistoryPanel() {
     };
 
     return (
-        <Panel title={<><MessageCircle size={18} /> Conversation History</>}>
+        <Panel title={<><MessageCircle size={18}/> Conversation History</>}>
             <div className="conversation-history-panel">
                 <div className="conversation-controls">
                     <button
@@ -119,7 +119,7 @@ function ConversationHistoryPanel() {
                         onClick={clearHistory}
                         title="Clear History"
                     >
-                        <Trash2 size={16} /> Clear
+                        <Trash2 size={16}/> Clear
                     </button>
                 </div>
 

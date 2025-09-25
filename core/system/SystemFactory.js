@@ -44,7 +44,7 @@ const createSystem = (userConfig = {}, components = {}) => {
     return system;
 };
 
-export { createSystem };
+export {createSystem};
 
 // Keep the default export for backward compatibility
 export default {

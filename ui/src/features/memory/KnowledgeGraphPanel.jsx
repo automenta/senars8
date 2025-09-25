@@ -1,20 +1,11 @@
-import React, {useEffect, useState, useCallback, useMemo} from 'react';
-import { Panel } from '@ui/components';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import log from '@/utils/logger';
-import {Network, Filter, Search, RotateCcw, Zap, Brain, Database, LayoutList} from 'lucide-react';
-import { MESSAGE_TYPES, UI_CONSTANTS } from '@/constants/ui';
-import ReactFlow, {
-    MiniMap,
-    Controls,
-    Background,
-    useNodesState,
-    useEdgesState,
-    addEdge,
-    MarkerType,
-    ReactFlowProvider
-} from 'reactflow';
+import {Database, LayoutList, Network, RotateCcw, Search} from 'lucide-react';
+import {MESSAGE_TYPES, UI_CONSTANTS} from '@/constants/ui';
+import ReactFlow, {addEdge, Background, Controls, MarkerType, MiniMap, useEdgesState, useNodesState} from 'reactflow';
 import 'reactflow/dist/style.css';
 import './KnowledgeGraphPanel.css';
 
@@ -37,8 +28,8 @@ const convertToGraphData = (knowledgeItems) => {
                 nodes.push({
                     id: nodeIdMap.get(cleanTerm),
                     type: 'default',
-                    position: { x: Math.random() * 500, y: Math.random() * 500 },
-                    data: { label: cleanTerm }
+                    position: {x: Math.random() * 500, y: Math.random() * 500},
+                    data: {label: cleanTerm}
                 });
             }
         });
@@ -56,16 +47,16 @@ const convertToGraphData = (knowledgeItems) => {
                         id: `edge-${edges.length}`,
                         source: sourceId,
                         target: targetId,
-                        markerEnd: { type: MarkerType.ArrowClosed },
+                        markerEnd: {type: MarkerType.ArrowClosed},
                         animated: true,
-                        style: { stroke: '#4a90e2' }
+                        style: {stroke: '#4a90e2'}
                     });
                 }
             }
         }
     });
 
-    return { nodes, edges };
+    return {nodes, edges};
 };
 
 function KnowledgeGraphPanel() {
@@ -84,8 +75,8 @@ function KnowledgeGraphPanel() {
             // Apply text filter
             if (filter &&
                 !((item.statement || '').toLowerCase().includes(filter.toLowerCase()) ||
-                  (item.term || '').toLowerCase().includes(filter.toLowerCase()) ||
-                  (item.type || '').toLowerCase().includes(filter.toLowerCase()))) {
+                    (item.term || '').toLowerCase().includes(filter.toLowerCase()) ||
+                    (item.type || '').toLowerCase().includes(filter.toLowerCase()))) {
                 return false;
             }
 
@@ -106,7 +97,7 @@ function KnowledgeGraphPanel() {
 
     // Convert knowledge items to graph data when they change
     useEffect(() => {
-        const { nodes: newNodes, edges: newEdges } = convertToGraphData(filteredKnowledgeItems);
+        const {nodes: newNodes, edges: newEdges} = convertToGraphData(filteredKnowledgeItems);
         setNodes(newNodes);
         setEdges(newEdges);
     }, [filteredKnowledgeItems, setNodes, setEdges]);
@@ -171,7 +162,10 @@ function KnowledgeGraphPanel() {
 
         // Request initial knowledge data
         setIsLoading(true);
-        agentService.sendMessage(MESSAGE_TYPES.KNOWLEDGE_GRAPH_UPDATE.replace('_update', ''), {}, { expectResponse: true, timeout: UI_CONSTANTS.CONNECTION.MESSAGE_TIMEOUT });
+        agentService.sendMessage(MESSAGE_TYPES.KNOWLEDGE_GRAPH_UPDATE.replace('_update', ''), {}, {
+            expectResponse: true,
+            timeout: UI_CONSTANTS.CONNECTION.MESSAGE_TIMEOUT
+        });
 
         return () => {
             agentService.off(MESSAGE_TYPES.KNOWLEDGE_GRAPH_UPDATE, handleKnowledgeUpdate);
@@ -204,7 +198,7 @@ function KnowledgeGraphPanel() {
             };
         } catch (error) {
             log.error('Error calculating graph statistics:', error);
-            return { nodes: 0, edges: 0, items: 0 };
+            return {nodes: 0, edges: 0, items: 0};
         }
     }, [nodes, edges, knowledgeItems]);
 
@@ -220,21 +214,21 @@ function KnowledgeGraphPanel() {
                             className="control-button"
                             title="Refresh knowledge graph"
                         >
-                            <RotateCcw size={16} /> {isLoading ? 'Loading...' : 'Refresh'}
+                            <RotateCcw size={16}/> {isLoading ? 'Loading...' : 'Refresh'}
                         </button>
                         <button
                             onClick={handleClearGraph}
                             className="control-button clear-button"
                             title="Clear graph"
                         >
-                            <Database size={16} /> Clear Graph
+                            <Database size={16}/> Clear Graph
                         </button>
                     </div>
 
                     <div className="control-group">
                         <div className="filter-controls">
                             <div className="search-input-group">
-                                <Search size={16} className="search-icon" />
+                                <Search size={16} className="search-icon"/>
                                 <input
                                     type="text"
                                     placeholder="Filter knowledge..."
@@ -280,13 +274,13 @@ function KnowledgeGraphPanel() {
                                 className={`view-toggle-btn ${activeTab === 'graph' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('graph')}
                             >
-                                <Network size={16} /> Graph
+                                <Network size={16}/> Graph
                             </button>
                             <button
                                 className={`view-toggle-btn ${activeTab === 'list' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('list')}
                             >
-                                <LayoutList size={16} /> List
+                                <LayoutList size={16}/> List
                             </button>
                         </div>
                     </div>
@@ -306,9 +300,9 @@ function KnowledgeGraphPanel() {
                                     fitView
                                     attributionPosition="bottom-left"
                                 >
-                                    <Controls />
-                                    <MiniMap />
-                                    <Background variant="dots" gap={12} size={1} />
+                                    <Controls/>
+                                    <MiniMap/>
+                                    <Background variant="dots" gap={12} size={1}/>
                                 </ReactFlow>
                             ) : (
                                 <div className="graph-empty">
@@ -332,7 +326,8 @@ function KnowledgeGraphPanel() {
                             <div className="knowledge-list">
                                 {filteredKnowledgeItems.length > 0 ? (
                                     filteredKnowledgeItems.map((item, index) => (
-                                        <div key={item.id || index} className={`knowledge-item ${item.type || 'unknown'}`}>
+                                        <div key={item.id || index}
+                                             className={`knowledge-item ${item.type || 'unknown'}`}>
                                             <div className="knowledge-statement">
                                                 {item.statement || item.term || 'Unknown item'}
                                             </div>

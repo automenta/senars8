@@ -1,6 +1,5 @@
-import React, {useEffect, useState, useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import agentService from '../services/agentService';
-import log from '@/utils/logger';
 import {SharedStateContext} from './SharedStateContext';
 
 // Helper to get a random user color
@@ -64,7 +63,7 @@ export function SharedStateProvider({children}) {
     const setSharedState = useCallback((updater) => {
         setSharedStateInternal(prevState => {
             const newState = typeof updater === 'function' ? updater(prevState) : updater;
-            return { ...prevState, ...newState };
+            return {...prevState, ...newState};
         });
     }, []);
 

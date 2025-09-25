@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
-import { Panel } from '@ui/components';
-import {HelpCircle, Book, Code, Zap, Network, Brain} from 'lucide-react';
+import React, {useState} from 'react';
+import {Panel} from '@ui/components';
+import {Book, Brain, Code, HelpCircle, Network, Zap} from 'lucide-react';
 import './HelpPanel.css';
 
 const HelpPanel = () => {
     const [activeSection, setActiveSection] = useState('overview');
 
     const sections = [
-        { id: 'overview', title: 'Overview', icon: <HelpCircle size={16} /> },
-        { id: 'narsese', title: 'Narsese Guide', icon: <Code size={16} /> },
-        { id: 'panels', title: 'Panels Guide', icon: <Book size={16} /> },
-        { id: 'reasoning', title: 'Reasoning', icon: <Zap size={16} /> },
-        { id: 'knowledge', title: 'Knowledge Graph', icon: <Network size={16} /> },
-        { id: 'memory', title: 'Memory System', icon: <Brain size={16} /> }
+        {id: 'overview', title: 'Overview', icon: <HelpCircle size={16}/>},
+        {id: 'narsese', title: 'Narsese Guide', icon: <Code size={16}/>},
+        {id: 'panels', title: 'Panels Guide', icon: <Book size={16}/>},
+        {id: 'reasoning', title: 'Reasoning', icon: <Zap size={16}/>},
+        {id: 'knowledge', title: 'Knowledge Graph', icon: <Network size={16}/>},
+        {id: 'memory', title: 'Memory System', icon: <Brain size={16}/>}
     ];
 
     const renderContent = () => {
@@ -21,7 +21,8 @@ const HelpPanel = () => {
                 return (
                     <div className="help-content">
                         <h3>SeNARS IDE Overview</h3>
-                        <p>The SeNARS Integrated Development Environment is a comprehensive tool for working with the NARS cognitive architecture.</p>
+                        <p>The SeNARS Integrated Development Environment is a comprehensive tool for working with the
+                            NARS cognitive architecture.</p>
 
                         <h4>Key Features:</h4>
                         <ul>
@@ -62,7 +63,9 @@ const HelpPanel = () => {
                         <p>Ask questions by ending with '?':</p>
                         <ul>
                             <li><code>&lt;robin --&gt; animal&gt;?</code> (Are robins animals?)</li>
-                            <li><code>(&amp;&amp;, &lt;robin --&gt; bird&gt;, &lt;robin --&gt; animal&gt;)?</code> (Are both true?)</li>
+                            <li><code>(&amp;&amp;, &lt;robin --&gt; bird&gt;, &lt;robin --&gt; animal&gt;)?</code> (Are
+                                both true?)
+                            </li>
                         </ul>
 
                         <h4>Connectors:</h4>
@@ -84,7 +87,8 @@ const HelpPanel = () => {
                         <p>Browse and manage files in the project directory. Supports all common file operations.</p>
 
                         <h4>Code Editor</h4>
-                        <p>Full-featured editor with syntax highlighting for Narsese and other languages. Supports multiple file formats.</p>
+                        <p>Full-featured editor with syntax highlighting for Narsese and other languages. Supports
+                            multiple file formats.</p>
 
                         <h4>Input Panel</h4>
                         <p>Enter Narsese statements or questions to interact with the reasoning engine.</p>
@@ -112,7 +116,8 @@ const HelpPanel = () => {
                         <h3>Reasoning in NARS</h3>
 
                         <h4>Introduction</h4>
-                        <p>NARS performs non-axiomatic reasoning, meaning it can process uncertain and incomplete information without requiring a complete and consistent knowledge base.</p>
+                        <p>NARS performs non-axiomatic reasoning, meaning it can process uncertain and incomplete
+                            information without requiring a complete and consistent knowledge base.</p>
 
                         <h4>Reasoning Types</h4>
                         <ul>
@@ -124,7 +129,8 @@ const HelpPanel = () => {
                         </ul>
 
                         <h4>Confidence and Priority</h4>
-                        <p>Each belief in NARS has a truth-value with frequency and confidence components. The system prioritizes higher-confidence beliefs.</p>
+                        <p>Each belief in NARS has a truth-value with frequency and confidence components. The system
+                            prioritizes higher-confidence beliefs.</p>
                     </div>
                 );
 
@@ -134,7 +140,8 @@ const HelpPanel = () => {
                         <h3>Knowledge Graph in NARS</h3>
 
                         <h4>Concept Nodes</h4>
-                        <p>Each concept in the system is represented as a node in the knowledge graph. Concepts can be anything: objects, predicates, relations, or complex terms.</p>
+                        <p>Each concept in the system is represented as a node in the knowledge graph. Concepts can be
+                            anything: objects, predicates, relations, or complex terms.</p>
 
                         <h4>Relationships</h4>
                         <p>Directed edges represent relationships between concepts:</p>
@@ -146,7 +153,9 @@ const HelpPanel = () => {
                         </ul>
 
                         <h4>Dynamic Graph</h4>
-                        <p>The knowledge graph evolves as the system processes new information. New concepts and relationships are added, existing ones are refined, and some may be removed based on their usefulness.</p>
+                        <p>The knowledge graph evolves as the system processes new information. New concepts and
+                            relationships are added, existing ones are refined, and some may be removed based on their
+                            usefulness.</p>
                     </div>
                 );
 
@@ -156,13 +165,17 @@ const HelpPanel = () => {
                         <h3>Memory System in NARS</h3>
 
                         <h4>Working Memory</h4>
-                        <p>Contains recently processed and highly active concepts, beliefs, and goals. This is where active reasoning occurs.</p>
+                        <p>Contains recently processed and highly active concepts, beliefs, and goals. This is where
+                            active reasoning occurs.</p>
 
                         <h4>Long-term Memory</h4>
-                        <p>Stores less active but persistent knowledge. Items move between working and long-term memory based on activation values.</p>
+                        <p>Stores less active but persistent knowledge. Items move between working and long-term memory
+                            based on activation values.</p>
 
                         <h4>Memory Control</h4>
-                        <p>The system uses attention mechanisms to prioritize important information and forget irrelevant details. Concepts with higher activation values are more likely to participate in reasoning.</p>
+                        <p>The system uses attention mechanisms to prioritize important information and forget
+                            irrelevant details. Concepts with higher activation values are more likely to participate in
+                            reasoning.</p>
 
                         <h4>Concepts</h4>
                         <p>Each concept contains:</p>
@@ -181,7 +194,7 @@ const HelpPanel = () => {
     };
 
     return (
-        <Panel title={<><HelpCircle size={18}/> Help & Documentation</>} >
+        <Panel title={<><HelpCircle size={18}/> Help & Documentation</>}>
             <div className="help-panel">
                 <div className="help-sidebar">
                     <ul>
