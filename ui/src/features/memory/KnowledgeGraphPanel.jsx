@@ -2,6 +2,8 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
+import {parseTerm} from '@core/parser/parse-utils.js';
+import {formatCoreDataForUI} from '@/utils/coreIntegration';
 import log from '@/utils/logger';
 import {Database, LayoutList, Network, RotateCcw, Search} from 'lucide-react';
 import {MESSAGE_TYPES, UI_CONSTANTS} from '@/constants/ui';

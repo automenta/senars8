@@ -160,40 +160,7 @@ node tests/demos/basic-demo.js
 Each demo will output detailed information about the system's reasoning process to your console, showing how it derives
 new knowledge from initial beliefs and how the cognitive cycle operates.
 
-## 6. Programmatic Integration: Building Your Own Applications
-
-SeNARS can be integrated into your own applications using the core API. Here's a basic example:
-
-```javascript
-import { createSystem } from './core/index.full.js';
-
-// Create a system with custom configuration
-const system = createSystem({
-    // Configuration options for cognitive parameters
-    FOCUS_SET_SIZE: 25,
-    ACTIONABLE_GOAL_PRIORITY_THRESHOLD: 0.2,
-    cycle: {
-        TICK_DELAY_MS: 100
-    }
-});
-
-// Initialize the system with initial knowledge
-await system.initialize([
-    // Initial beliefs and goals
-    { term: 'cat --> animal', punctuation: '.', truthValue: { frequency: 1, confidence: 0.9 } },
-    { term: 'animal --> living_thing', punctuation: '.', truthValue: { frequency: 1, confidence: 0.95 } }
-]);
-
-// Add new tasks dynamically
-await system.addTasks([
-    { term: 'cat --> living_thing', punctuation: '?', truthValue: { frequency: 0, confidence: 0.9 } }
-]);
-
-// Start the cognitive cycle
-system.start(100); // Run for 100 cycles
-```
-
-## 7. Configuration & Customization: Tailoring Cognitive Behavior
+## 6. Configuration & Customization: Tailoring Cognitive Behavior
 
 SeNARS offers extensive configuration options to customize cognitive behavior:
 
@@ -204,7 +171,7 @@ SeNARS offers extensive configuration options to customize cognitive behavior:
 
 Configuration can be set via the config system or through the factory creation method.
 
-## 8. Advanced Development: Extending SeNARS Capabilities
+## 7. Advanced Development: Extending SeNARS Capabilities
 
 SeNARS is designed for extensibility:
 

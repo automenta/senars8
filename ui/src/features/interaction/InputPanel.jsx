@@ -3,15 +3,18 @@ import {EnhancedInput, Panel, SendButton} from '@ui/components';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import sonificationService from '@/services/sonificationService';
+import {useUIErrorHandler} from '@/services/uiErrorHandler';
 import {useConnection} from '@/context/useConnection';
 import {useSettings} from '@/context/useSettings';
 import useInputHistory from '@/hooks/useInputHistory';
+import {validateNarseseStatement} from '@/utils/coreIntegration';
 import log from '@/utils/logger';
 import {AlertCircle, HelpCircle, Lightbulb, MessageCircle, Wifi, WifiOff} from 'lucide-react';
 import {UI_CONSTANTS} from '@/constants/ui';
 import './InputPanel.css';
 
 function InputPanel() {
+    const {handleError, safeExecute} = useUIErrorHandler('InputPanel');
     const {isConnected, connectionStatus, connectionError, reconnect} = useConnection();
     const {isSonificationEnabled} = useSettings();
     const {inputValue, setInputValue, history, addToHistory} = useInputHistory();
@@ -43,89 +46,16 @@ function InputPanel() {
         '<bird <-> animal>?',
     ];
 
-    // Enhanced Narsese input validation and sanitization
+    // Enhanced Narsese input validation and sanitization using core integration
     const validateNarsese = useCallback((input) => {
-        // Basic validation - check if input ends with '.' or '?'
-        const trimmed = input.trim();
-        if (!trimmed) {
-            return 'Input cannot be empty';
+        // Use the core integration utility for validation
+        const validation = validateNarseseStatement(input);
+        
+        if (validation.valid) {
+            return ''; // Valid
         }
-
-        // Check if input ends with '.' or '?'
-        if (!trimmed.endsWith('.') && !trimmed.endsWith('?')) {
-            return 'Narsese statements should end with "." (judgment) or "?" (question)';
-        }
-
-        // Check for balanced angle brackets
-        const openBrackets = (trimmed.match(/</g) || []).length;
-        const closeBrackets = (trimmed.match(/>/g) || []).length;
-        if (openBrackets !== closeBrackets) {
-            return 'Unbalanced angle brackets in statement';
-        }
-
-        // Check for balanced parentheses in compound terms
-        const roundOpen = (trimmed.match(/\(/g) || []).length;
-        const roundClose = (trimmed.match(/\)/g) || []).length;
-        if (roundOpen !== roundClose) {
-            return 'Unbalanced parentheses in statement';
-        }
-
-        // Check for balanced square brackets in compound terms
-        const squareOpen = (trimmed.match(/\[/g) || []).length;
-        const squareClose = (trimmed.match(/\]/g) || []).length;
-        if (squareOpen !== squareClose) {
-            return 'Unbalanced square brackets in statement';
-        }
-
-        // Check for potentially dangerous content
-        if (trimmed.includes('<script') || trimmed.includes('javascript:')) {
-            return 'Invalid characters detected';
-        }
-
-        // Check for maximum length
-        if (trimmed.length > UI_CONSTANTS.VALIDATION.MAX_INPUT_LENGTH) {
-            return `Input is too long (max ${UI_CONSTANTS.VALIDATION.MAX_INPUT_LENGTH} characters)`;
-        }
-
-        // Check for more Narsese syntax patterns
-        if (trimmed.startsWith('<') && !trimmed.includes('-->') && !trimmed.includes('<->')) {
-            return 'Invalid Narsese syntax: missing operator in statement';
-        }
-
-        // Additional Narsese validation - check for common syntax errors
-        const operators = ['-->', '<->', '==>', '<=>', '&', '|', '~', '^'];
-        const hasValidOperator = operators.some(op => trimmed.includes(op));
-
-        // If it's a complex statement, it should have operators
-        if (trimmed.includes('<') && trimmed.includes('>') && trimmed.length > 10 && !hasValidOperator) {
-            return 'Invalid Narsese syntax: missing operator in complex statement';
-        }
-
-        // Check for common Narsese syntax patterns to validate more thoroughly
-        const narseseStatementRegex = /^<.*>[\.\?#]$/;
-        if (!narseseStatementRegex.test(trimmed)) {
-            return 'Invalid Narsese syntax: does not match expected format <statement>operator';
-        }
-
-        // Check for potential code injection in the statement
-        const injectionPatterns = [
-            /<script/i,
-            /javascript:/i,
-            /vbscript:/i,
-            /data:/i,
-            /onload/i,
-            /onerror/i,
-            /onmouseover/i,
-            /onfocus/i
-        ];
-
-        for (const pattern of injectionPatterns) {
-            if (pattern.test(trimmed)) {
-                return 'Invalid characters detected';
-            }
-        }
-
-        return '';
+        
+        return validation.error;
     }, []);
 
     // Enhanced intent recognition for natural language with validation
@@ -188,42 +118,49 @@ function InputPanel() {
 
     const [isSending, setIsSending] = useState(false);
 
-    const handleSend = useCallback((input) => {
+    const handleSend = useCallback(async (input) => {
         if (!input.trim()) return;
 
         const trimmedInput = input.trim();
         const isNarsese = input.includes('<') && input.includes('>') || input.includes(':') || input.includes('?') || input.includes('!');
 
-        // Add to input history
-        addToHistory(trimmedInput);
+        try {
+            // Add to input history
+            addToHistory(trimmedInput);
 
-        // Show visual feedback
-        setIsSending(true);
+            // Show visual feedback
+            setIsSending(true);
 
-        // Play sonification if enabled
-        if (isSonificationEnabled) {
-            try {
-                sonificationService.play('send');
-            } catch (error) {
-                log.warn('Could not play sonification:', error);
+            // Play sonification if enabled
+            if (isSonificationEnabled) {
+                try {
+                    sonificationService.play('send');
+                } catch (error) {
+                    log.warn('Could not play sonification:', error);
+                }
             }
+
+            // Send message based on type
+            if (isNarsese) {
+                agentService.sendNarsese(trimmedInput);
+                notificationService.addInfo('Message Sent', `Narsese: ${trimmedInput}`, 3000);
+            } else {
+                agentService.sendNaturalLanguage(trimmedInput);
+                notificationService.addInfo('Message Sent', `Natural Language: ${trimmedInput}`, 3000);
+            }
+
+            // Clear input
+            setInputValue('');
+        } catch (error) {
+            handleError(error, {
+                operation: 'sendMessage',
+                input: trimmedInput
+            });
+        } finally {
+            // Clear sending state after a delay
+            setTimeout(() => setIsSending(false), 1000);
         }
-
-        // Send message based on type
-        if (isNarsese) {
-            agentService.sendNarsese(trimmedInput);
-            notificationService.addInfo('Message Sent', `Narsese: ${trimmedInput}`, 3000);
-        } else {
-            agentService.sendNaturalLanguage(trimmedInput);
-            notificationService.addInfo('Message Sent', `Natural Language: ${trimmedInput}`, 3000);
-        }
-
-        // Clear input
-        setInputValue('');
-
-        // Clear sending state after a delay
-        setTimeout(() => setIsSending(false), 1000);
-    }, [addToHistory, isSonificationEnabled]);
+    }, [addToHistory, isSonificationEnabled, handleError]);
 
     // Generate suggested responses based on user input and intent
     const generateSuggestedResponses = useCallback((input, intent) => {

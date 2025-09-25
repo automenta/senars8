@@ -5,6 +5,7 @@ import LogPanel from './system/LogPanel';
 import MemoryViewPanel from './memory/MemoryViewPanel';
 import KnowledgeGraphPanel from './memory/KnowledgeGraphPanel';
 import ReasonerTracePanel from './reasoning/ReasonerTracePanel';
+import ReasoningDebuggerPanel from './reasoning/ReasoningDebuggerPanel';
 import VisualReasoningPanel from './reasoning/VisualReasoningPanel';
 import InternalStatePanel from './system/InternalStatePanel';
 import NotificationCenterPanel from './system/NotificationCenterPanel';
@@ -16,6 +17,7 @@ import HelpPanel from './help/HelpPanel';
 import ConversationHistoryPanel from './interaction/ConversationHistoryPanel';
 import SettingsPanel from './settings/SettingsPanel';
 import TaskPanel from './task/TaskPanel';
+import TaskInspectorPanel from './task/TaskInspectorPanel';
 import SessionPanel from './system/SessionPanel';
 import DebugPanel from './debug/DebugPanel';
 import Chat from './Chat/Chat';
@@ -29,6 +31,7 @@ const panelRegistry = {
     'memory': MemoryViewPanel,
     'knowledge-graph': KnowledgeGraphPanel,
     'reasoner-trace': ReasonerTracePanel,
+    'reasoning-debugger': ReasoningDebuggerPanel,
     'visual-reasoning': VisualReasoningPanel,
     'internal-state': InternalStatePanel,
     'notifications': NotificationCenterPanel,
@@ -40,6 +43,7 @@ const panelRegistry = {
     'conversation-history': ConversationHistoryPanel,
     'settings': SettingsPanel,
     'tasks': TaskPanel,
+    'task-inspector': TaskInspectorPanel,
     'sessions': SessionPanel,
     'debug': DebugPanel,
 };
