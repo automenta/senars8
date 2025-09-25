@@ -45,10 +45,19 @@ export default defineConfig({
   ],
   
   // Run your local dev server before starting the tests
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    cwd: './', // Set current working directory to project root
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: [
+    {
+      command: 'npm start',
+      port: 8080,
+      cwd: '..',
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      command: 'npm run dev',
+      port: 5173,
+      cwd: './',
+      reuseExistingServer: !process.env.CI,
+    },
+  ],
+  testMatch: /.*\.spec\.js/,
 });

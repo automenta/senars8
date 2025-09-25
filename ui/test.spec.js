@@ -1,6 +1,8 @@
 import {expect, test} from '@playwright/test';
 
 test.describe('UI-Agent-Core Integration Tests', () => {
+  test.setTimeout(60000);
+
   test.beforeEach(async ({page}) => {
     await page.goto('http://localhost:5173/');
     // Wait for the page to load completely
