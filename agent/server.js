@@ -180,13 +180,13 @@ agent.initialize().then(() => {
 }).catch(err => {
     serverError('Agent initialization failed:', err);
     broadcast({type: 'agentStatus', payload: 'initialization_failed'});
-    
+
     // Clear interval if it was set
     if (agent.systemStatsInterval) {
         clearInterval(agent.systemStatsInterval);
         agent.systemStatsInterval = null;
     }
-    
+
     return false; // Return a value to satisfy the eslint rule
 });
 
@@ -389,14 +389,14 @@ async function handleMessage(message, ws) {
                 const beliefs = agent.getBeliefs();
                 const goals = agent.getGoals();
                 const questions = agent.getQuestions();
-                
+
                 // Combine all tasks
                 const allTasks = [...beliefs, ...goals, ...questions];
-                
+
                 // Apply filters if provided
                 const {filter, priority} = payload;
                 let filteredTasks = allTasks;
-                
+
                 if (filter && filter !== 'all') {
                     filteredTasks = filteredTasks.filter(task => {
                         if (filter === 'belief') return task.punctuation === '.';
@@ -405,7 +405,7 @@ async function handleMessage(message, ws) {
                         return true;
                     });
                 }
-                
+
                 if (priority && priority !== 'all') {
                     filteredTasks = filteredTasks.filter(task => {
                         const taskPriority = task.state?.priority || task.priority || 0;
@@ -415,7 +415,7 @@ async function handleMessage(message, ws) {
                         return true;
                     });
                 }
-                
+
                 ws.send(JSON.stringify({
                     type: 'tasks_response',
                     payload: {
@@ -436,7 +436,7 @@ async function handleMessage(message, ws) {
         case 'task_action': {
             try {
                 const {action, taskId, task} = payload;
-                
+
                 switch (action) {
                     case 'execute':
                         // Execute a specific task
@@ -447,7 +447,7 @@ async function handleMessage(message, ws) {
                                 const parsedTerm = await agent.system.parseTerm(task);
                                 taskToExecute = new agent.system.Task(parsedTerm, '!');
                             }
-                            
+
                             if (taskToExecute) {
                                 await agent.system.actionExecutor.execute(taskToExecute);
                                 broadcast({
@@ -457,7 +457,7 @@ async function handleMessage(message, ws) {
                             }
                         }
                         break;
-                        
+
                     case 'pause':
                         // For now, just broadcast the action for UI feedback
                         broadcast({
@@ -465,7 +465,7 @@ async function handleMessage(message, ws) {
                             payload: {taskId, status: 'paused', task}
                         });
                         break;
-                        
+
                     default:
                         ws.send(JSON.stringify({
                             type: 'error',
@@ -486,7 +486,7 @@ async function handleMessage(message, ws) {
         case 'add_task': {
             try {
                 const {taskData} = payload;
-                
+
                 if (agent.system && taskData) {
                     // Create a new task and add it to the system
                     const parsedTerm = await agent.system.parseTerm(taskData.statement || taskData.termKey);
@@ -495,12 +495,12 @@ async function handleMessage(message, ws) {
                             priority: taskData.priority || 0.5,
                             truthValue: taskData.truthValue || {frequency: 0.5, confidence: 0.5}
                         });
-                        
+
                         // Add the task to the appropriate memory based on punctuation
                         if (agent.system.memory) {
                             // Add task to memory - we'll add to the tasks list using the memory interface
                             agent.system.memory.addTasks([task]);
-                            
+
                             // Emit event so UI can be updated
                             broadcast({
                                 type: 'task_added',
@@ -522,7 +522,7 @@ async function handleMessage(message, ws) {
         case 'search': {
             try {
                 const {query, scope, limit, filters} = payload || {};
-                
+
                 if (!query) {
                     ws.send(JSON.stringify({
                         type: 'search_results',
@@ -530,17 +530,17 @@ async function handleMessage(message, ws) {
                     }));
                     return;
                 }
-                
+
                 let results = [];
-                
+
                 if (agent.system && agent.system.memory) {
                     // Search in beliefs, goals, and questions based on scope
                     const searchInTasks = (tasks, type) => {
                         if (!tasks) return [];
-                        
+
                         return tasks
-                            .filter(task => 
-                                task.termKey && 
+                            .filter(task =>
+                                task.termKey &&
                                 task.termKey.toLowerCase().includes(query.toLowerCase())
                             )
                             .slice(0, limit || 50)
@@ -549,7 +549,7 @@ async function handleMessage(message, ws) {
                                 type
                             }));
                     };
-                    
+
                     if (!scope || scope === 'all' || scope === 'beliefs') {
                         results = results.concat(searchInTasks(agent.getBeliefs(), 'belief'));
                     }
@@ -560,7 +560,7 @@ async function handleMessage(message, ws) {
                         results = results.concat(searchInTasks(agent.getQuestions(), 'question'));
                     }
                 }
-                
+
                 ws.send(JSON.stringify({
                     type: 'search_results',
                     payload: {results, query, total: results.length}
@@ -683,7 +683,7 @@ async function handleMessage(message, ws) {
         case 'update_config': {
             try {
                 const {config} = payload;
-                
+
                 if (!config || typeof config !== 'object') {
                     ws.send(JSON.stringify({
                         type: 'error',
@@ -695,11 +695,11 @@ async function handleMessage(message, ws) {
                 // In a real implementation, this would update the actual system configuration
                 // For now, we'll just acknowledge the update
                 serverInfo('Configuration update requested:', config);
-                
+
                 // TODO: Implement actual configuration updates for the system
                 // This would involve updating the ConfigManager with new values
                 // and potentially restarting certain components with new settings
-                
+
                 ws.send(JSON.stringify({
                     type: 'config_updated',
                     payload: {success: true, message: 'Configuration updated (not yet applied to live system)'}
@@ -717,7 +717,7 @@ async function handleMessage(message, ws) {
         case 'reasoning_debug': {
             try {
                 const {statement, parsedTerm} = payload;
-                
+
                 // For now, return a mock debug response
                 // In a real implementation, this would perform actual reasoning debugging
                 const debugResponse = {

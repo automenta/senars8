@@ -1,11 +1,28 @@
 import React, {useState} from 'react';
 import {Panel} from '@ui/components';
-import {Layout, Brain, BarChart3, MessageSquare, Database, Zap, Settings, FileText, FolderOpen, Terminal, Code, Book, Cpu, Lightbulb, Activity, Users} from 'lucide-react';
+import {
+    Activity,
+    BarChart3,
+    Book,
+    Brain,
+    Code,
+    Cpu,
+    Database,
+    FileText,
+    FolderOpen,
+    Layout,
+    Lightbulb,
+    MessageSquare,
+    Settings,
+    Terminal,
+    Users,
+    Zap
+} from 'lucide-react';
 import './SidebarPanel.css';
 
 const SidebarPanel = ({onPanelSelect, currentPanel = 'dashboard'}) => {
     const [searchTerm, setSearchTerm] = useState('');
-    
+
     const panelGroups = [
         {
             name: 'Overview',
@@ -63,8 +80,8 @@ const SidebarPanel = ({onPanelSelect, currentPanel = 'dashboard'}) => {
     const allPanels = panelGroups.flatMap(group => group.items);
 
     // Filter panels based on search
-    const filteredPanels = searchTerm 
-        ? allPanels.filter(panel => 
+    const filteredPanels = searchTerm
+        ? allPanels.filter(panel =>
             panel.name.toLowerCase().includes(searchTerm.toLowerCase())
         )
         : allPanels;
@@ -102,7 +119,7 @@ const SidebarPanel = ({onPanelSelect, currentPanel = 'dashboard'}) => {
                                             className={`panel-item ${currentPanel === panel.id ? 'active' : ''}`}
                                             onClick={() => handlePanelSelect(panel.id)}
                                         >
-                                            <Icon size={16} />
+                                            <Icon size={16}/>
                                             <span>{panel.name}</span>
                                         </button>
                                     );
@@ -126,7 +143,7 @@ const SidebarPanel = ({onPanelSelect, currentPanel = 'dashboard'}) => {
                                             className={`panel-item ${currentPanel === panel.id ? 'active' : ''}`}
                                             onClick={() => handlePanelSelect(panel.id)}
                                         >
-                                            <Icon size={16} />
+                                            <Icon size={16}/>
                                             <span>{panel.name}</span>
                                         </button>
                                     );
@@ -138,25 +155,25 @@ const SidebarPanel = ({onPanelSelect, currentPanel = 'dashboard'}) => {
 
                 {/* Quick Actions */}
                 <div className="quick-actions">
-                    <button 
+                    <button
                         className="action-btn"
                         onClick={() => onPanelSelect('dashboard')}
                     >
-                        <BarChart3 size={14} />
+                        <BarChart3 size={14}/>
                         Dashboard
                     </button>
-                    <button 
+                    <button
                         className="action-btn"
                         onClick={() => onPanelSelect('configuration')}
                     >
-                        <Settings size={14} />
+                        <Settings size={14}/>
                         Config
                     </button>
-                    <button 
+                    <button
                         className="action-btn"
                         onClick={() => onPanelSelect('help')}
                     >
-                        <Book size={14} />
+                        <Book size={14}/>
                         Help
                     </button>
                 </div>

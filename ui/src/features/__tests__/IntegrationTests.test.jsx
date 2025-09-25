@@ -1,6 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { act } from 'react-dom/test-utils';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import ReasoningDebuggerPanel from '@/features/reasoning/ReasoningDebuggerPanel';
 import TaskInspectorPanel from '@/features/task/TaskInspectorPanel';
 
@@ -58,33 +57,33 @@ describe('ReasoningDebuggerPanel', () => {
     });
 
     test('renders without crashing', () => {
-        render(<ReasoningDebuggerPanel />);
-        
+        render(<ReasoningDebuggerPanel/>);
+
         expect(screen.getByText(/Reasoning Debugger/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/Narsese Statement:/i)).toBeInTheDocument();
     });
 
     test('displays input field and action buttons', () => {
-        render(<ReasoningDebuggerPanel />);
-        
+        render(<ReasoningDebuggerPanel/>);
+
         const input = screen.getByRole('textbox');
         const executeBtn = screen.getByText(/Execute/i);
         const debugBtn = screen.getByText(/Debug/i);
-        
+
         expect(input).toBeInTheDocument();
         expect(executeBtn).toBeInTheDocument();
         expect(debugBtn).toBeInTheDocument();
     });
 
     test('validates Narsese statements properly', async () => {
-        render(<ReasoningDebuggerPanel />);
-        
+        render(<ReasoningDebuggerPanel/>);
+
         const input = screen.getByRole('textbox');
-        
+
         // Test empty input
-        fireEvent.change(input, { target: { value: '' } });
+        fireEvent.change(input, {target: {value: ''}});
         fireEvent.click(screen.getByText(/Debug/i));
-        
+
         // Note: Actual validation behavior depends on the validateNarseseStatement utility
         await waitFor(() => {
             // Validation happens in the component logic
@@ -98,26 +97,26 @@ describe('TaskInspectorPanel', () => {
     });
 
     test('renders without crashing', () => {
-        render(<TaskInspectorPanel />);
-        
+        render(<TaskInspectorPanel/>);
+
         expect(screen.getByText(/Task Inspector/i)).toBeInTheDocument();
     });
 
     test('displays filter controls', () => {
-        render(<TaskInspectorPanel />);
-        
+        render(<TaskInspectorPanel/>);
+
         const filterInput = screen.getByPlaceholderText(/Filter tasks/i);
         const typeFilter = screen.getByDisplayValue('all');
         const priorityFilter = screen.getAllByDisplayValue('all')[1]; // Second 'all' is priority filter
-        
+
         expect(filterInput).toBeInTheDocument();
         expect(typeFilter).toBeInTheDocument();
         expect(priorityFilter).toBeInTheDocument();
     });
 
     test('has refresh button', () => {
-        render(<TaskInspectorPanel />);
-        
+        render(<TaskInspectorPanel/>);
+
         const refreshBtn = screen.getByText(/Refresh/i);
         expect(refreshBtn).toBeInTheDocument();
     });
@@ -126,25 +125,25 @@ describe('TaskInspectorPanel', () => {
 describe('Core Integration Utilities', () => {
     test('validateNarseseStatement works correctly', async () => {
         // Dynamically import to avoid issues during test setup
-        const { validateNarseseStatement } = await import('@/utils/coreIntegration');
-        
+        const {validateNarseseStatement} = await import('@/utils/coreIntegration');
+
         // Test valid statements
         expect(validateNarseseStatement('<bird --> animal>.')).toEqual({
             valid: true,
             parsed: expect.any(Object)
         });
-        
+
         expect(validateNarseseStatement('<robin --> bird>?')).toEqual({
             valid: true,
             parsed: expect.any(Object)
         });
-        
+
         // Test invalid statements
         expect(validateNarseseStatement('')).toEqual({
             valid: false,
             error: expect.any(String)
         });
-        
+
         expect(validateNarseseStatement('invalid')).toEqual({
             valid: false,
             error: expect.any(String)

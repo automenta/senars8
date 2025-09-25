@@ -1,8 +1,8 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
-import {Settings, Save, RotateCcw, Eye, EyeOff, Code, FileText} from 'lucide-react';
+import {Code, FileText, RotateCcw, Save, Settings} from 'lucide-react';
 import './ConfigurationEditorPanel.css';
 
 const ConfigurationEditorPanel = () => {
@@ -62,7 +62,7 @@ const ConfigurationEditorPanel = () => {
         const newConfig = {...config};
         const keys = path.split('.');
         let current = newConfig;
-        
+
         for (let i = 0; i < keys.length - 1; i++) {
             const key = keys[i];
             if (current[key] === undefined || current[key] === null) {
@@ -70,20 +70,20 @@ const ConfigurationEditorPanel = () => {
             }
             current = current[key];
         }
-        
+
         const lastKey = keys[keys.length - 1];
         current[lastKey] = value;
-        
+
         // Check if value changed from original
         const originalValue = getNestedValue(originalConfig, path);
         const newModifiedPaths = new Set(modifiedPaths);
-        
+
         if (JSON.stringify(value) !== JSON.stringify(originalValue)) {
             newModifiedPaths.add(path);
         } else {
             newModifiedPaths.delete(path);
         }
-        
+
         setConfig(newConfig);
         setModifiedPaths(newModifiedPaths);
     };
@@ -92,50 +92,50 @@ const ConfigurationEditorPanel = () => {
     const getNestedValue = (obj, path) => {
         const keys = path.split('.');
         let current = obj;
-        
+
         for (const key of keys) {
             if (current === undefined || current === null) {
                 return undefined;
             }
             current = current[key];
         }
-        
+
         return current;
     };
 
     // Get nested object from config by section path
     const getNestedSection = (obj, path) => {
         if (!path) return obj;
-        
+
         const keys = path.split('.');
         let current = obj;
-        
+
         for (const key of keys) {
             if (current === undefined || current === null) return {};
             current = current[key];
         }
-        
+
         return current || {};
     };
 
     // Filter config based on search
     const filterConfig = (obj, searchTerm) => {
         if (!searchTerm) return obj;
-        
+
         const filtered = {};
         const term = searchTerm.toLowerCase();
-        
+
         const filterRecursive = (current, path = '') => {
             for (const [key, value] of Object.entries(current)) {
                 const currentPath = path ? `${path}.${key}` : key;
-                
+
                 if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
                     const nestedFiltered = filterRecursive(value, searchTerm);
                     if (Object.keys(nestedFiltered).length > 0) {
                         filtered[currentPath.split('.').pop()] = nestedFiltered;
                     }
                 } else if (
-                    key.toLowerCase().includes(term) || 
+                    key.toLowerCase().includes(term) ||
                     String(value).toLowerCase().includes(term)
                 ) {
                     if (path) {
@@ -150,7 +150,7 @@ const ConfigurationEditorPanel = () => {
             }
             return filtered;
         };
-        
+
         filterRecursive(obj);
         return filtered;
     };
@@ -172,7 +172,7 @@ const ConfigurationEditorPanel = () => {
         try {
             // Send to agent
             const success = agentService.sendMessage('update_config', config, {expectResponse: true, timeout: 10000});
-            
+
             if (success) {
                 setOriginalConfig({...config});
                 setModifiedPaths(new Set());
@@ -204,20 +204,20 @@ const ConfigurationEditorPanel = () => {
     // Render config section recursively
     const renderConfigSection = (obj, path = '', level = 0) => {
         if (!obj || typeof obj !== 'object') return null;
-        
-        const entries = Object.entries(obj).filter(([key]) => 
+
+        const entries = Object.entries(obj).filter(([key]) =>
             typeof key === 'string' && !['constructor', '__proto__'].includes(key)
         );
-        
+
         if (entries.length === 0) return null;
-        
+
         return (
             <div className={`config-section level-${level}`}>
                 {entries.map(([key, value]) => {
                     const currentPath = path ? `${path}.${key}` : key;
                     const isModified = modifiedPaths.has(currentPath);
                     const isObject = typeof value === 'object' && value !== null && !Array.isArray(value);
-                    
+
                     return (
                         <div key={currentPath} className="config-item">
                             <div className={`config-header ${isModified ? 'modified' : ''}`}>
@@ -225,7 +225,7 @@ const ConfigurationEditorPanel = () => {
                                     <span className="key-name">{key}</span>
                                     {isModified && <span className="modified-indicator">•</span>}
                                 </div>
-                                
+
                                 {isObject ? (
                                     <button
                                         className="toggle-section-btn"
@@ -241,7 +241,7 @@ const ConfigurationEditorPanel = () => {
                                                 onClick={() => resetValue(currentPath)}
                                                 title="Reset to original value"
                                             >
-                                                <RotateCcw size={14} />
+                                                <RotateCcw size={14}/>
                                             </button>
                                         )}
                                         <span className="value-type">
@@ -250,7 +250,7 @@ const ConfigurationEditorPanel = () => {
                                     </div>
                                 )}
                             </div>
-                            
+
                             {!isObject ? (
                                 <div className="config-value">
                                     {typeof value === 'boolean' ? (
@@ -277,9 +277,10 @@ const ConfigurationEditorPanel = () => {
                                     )}
                                 </div>
                             ) : (
-                                <div className={`config-nested ${expandedSections.has(currentPath) ? 'expanded' : 'collapsed'}`}>
-                                    {expandedSections.has(currentPath) && 
-                                     renderConfigSection(value, currentPath, level + 1)}
+                                <div
+                                    className={`config-nested ${expandedSections.has(currentPath) ? 'expanded' : 'collapsed'}`}>
+                                    {expandedSections.has(currentPath) &&
+                                        renderConfigSection(value, currentPath, level + 1)}
                                 </div>
                             )}
                         </div>
@@ -290,14 +291,14 @@ const ConfigurationEditorPanel = () => {
     };
 
     const filteredConfig = filterConfig(config, searchTerm);
-    
+
     return (
         <Panel title={<><Settings size={18}/> Configuration Editor</>}>
             <div className="configuration-editor-panel">
                 {/* Controls */}
                 <div className="config-controls">
                     <div className="search-container">
-                        <Code size={16} />
+                        <Code size={16}/>
                         <input
                             type="text"
                             placeholder="Search configuration..."
@@ -306,7 +307,7 @@ const ConfigurationEditorPanel = () => {
                             className="config-search"
                         />
                     </div>
-                    
+
                     <div className="action-buttons">
                         <button
                             onClick={resetAllChanges}
@@ -314,26 +315,26 @@ const ConfigurationEditorPanel = () => {
                             className="reset-all-btn"
                             title="Reset all changes"
                         >
-                            <RotateCcw size={16} /> Reset All
+                            <RotateCcw size={16}/> Reset All
                         </button>
-                        
+
                         <button
                             onClick={saveConfiguration}
                             disabled={modifiedPaths.size === 0 || isLoading}
                             className="save-btn"
                             title="Save configuration"
                         >
-                            <Save size={16} /> Save
+                            <Save size={16}/> Save
                         </button>
                     </div>
                 </div>
-                
+
                 {error && (
                     <div className="error-message">
                         <span className="error-text">{error}</span>
                     </div>
                 )}
-                
+
                 {/* Configuration Content */}
                 <div className="config-content">
                     {isLoading ? (
@@ -347,7 +348,7 @@ const ConfigurationEditorPanel = () => {
                                 renderConfigSection(filteredConfig)
                             ) : (
                                 <div className="no-results">
-                                    <FileText size={48} />
+                                    <FileText size={48}/>
                                     <p>No configuration settings match your search</p>
                                 </div>
                             )}
@@ -356,7 +357,7 @@ const ConfigurationEditorPanel = () => {
                         renderConfigSection(config)
                     )}
                 </div>
-                
+
                 {/* Summary */}
                 <div className="config-summary">
                     <div className="summary-item">

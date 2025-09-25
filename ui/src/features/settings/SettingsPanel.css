@@ -34,7 +34,7 @@
     overflow: hidden;
 }
 
-.save-btn:hover:not(:disabled), .reset-btn:hover:not(:disabled), 
+.save-btn:hover:not(:disabled), .reset-btn:hover:not(:disabled),
 .export-btn:hover:not(:disabled), .import-btn:hover:not(:disabled) {
     background: var(--button-bg-hover);
     border-color: var(--accent-color);
@@ -227,8 +227,12 @@
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Responsive */
@@ -236,21 +240,21 @@
     .settings-panel {
         padding: 5px;
     }
-    
+
     .settings-controls {
         flex-direction: column;
     }
-    
+
     .setting-item {
         flex-direction: column;
         align-items: flex-start;
         gap: 5px;
     }
-    
+
     .setting-item label {
         min-width: auto;
     }
-    
+
     .settings-summary {
         grid-template-columns: 1fr;
     }

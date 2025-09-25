@@ -27,26 +27,26 @@ class Agent {
         return errorHandler.execute(async () => {
             this.system = await createSystem(this.config);
             this.isInitialized = true;
-            
+
             // Set up event listeners for real-time UI updates
             if (this.system.eventBus) {
                 this.system.eventBus.on('add_task', (task) => {
                     this.mcp.log({type: 'task_added', content: task, timestamp: new Date().toISOString()});
                 });
-                
+
                 this.system.eventBus.on('add_belief', (task) => {
                     this.mcp.log({type: 'belief_added', content: task, timestamp: new Date().toISOString()});
                 });
-                
+
                 this.system.eventBus.on('add_goal', (task) => {
                     this.mcp.log({type: 'goal_added', content: task, timestamp: new Date().toISOString()});
                 });
-                
+
                 this.system.eventBus.on('add_question', (task) => {
                     this.mcp.log({type: 'question_added', content: task, timestamp: new Date().toISOString()});
                 });
             }
-            
+
             debug('Agent initialized successfully.');
         }, 'initialize');
     }

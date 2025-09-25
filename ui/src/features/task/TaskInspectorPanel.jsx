@@ -1,12 +1,11 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import {useUIErrorHandler} from '@/services/uiErrorHandler';
 import {formatCoreDataForUI} from '@/utils/coreIntegration';
 import {useConnection} from '@/context/useConnection';
-import {Task, Term} from '@core/index.js';
-import {List, Play, Pause, RotateCcw, Search, Filter, Eye, Zap} from 'lucide-react';
+import {Eye, List, Pause, Play, RotateCcw, Search, Zap} from 'lucide-react';
 import './TaskInspectorPanel.css';
 
 function TaskInspectorPanel() {
@@ -69,7 +68,7 @@ function TaskInspectorPanel() {
 
         // Apply text filter
         if (filter) {
-            result = result.filter(task => 
+            result = result.filter(task =>
                 task.statement.toLowerCase().includes(filter.toLowerCase()) ||
                 (task.id && task.id.toLowerCase().includes(filter.toLowerCase()))
             );
@@ -102,7 +101,7 @@ function TaskInspectorPanel() {
     useEffect(() => {
         if (isConnected) {
             fetchTasks();
-            
+
             // Set up periodic refresh
             const interval = setInterval(() => {
                 fetchTasks();
@@ -128,7 +127,7 @@ function TaskInspectorPanel() {
                 taskId: task.id,
                 task: task
             });
-            
+
             notificationService.addInfo('Task Action', `Action '${action}' sent for task ${task.id}`);
         } catch (error) {
             handleError(error, {
@@ -149,10 +148,14 @@ function TaskInspectorPanel() {
 
     const getTaskTypeIcon = (punctuation) => {
         switch (punctuation) {
-            case '.': return <Eye size={14} className="task-icon belief" />;
-            case '!': return <Zap size={14} className="task-icon goal" />;
-            case '?': return <Search size={14} className="task-icon question" />;
-            default: return <List size={14} className="task-icon unknown" />;
+            case '.':
+                return <Eye size={14} className="task-icon belief"/>;
+            case '!':
+                return <Zap size={14} className="task-icon goal"/>;
+            case '?':
+                return <Search size={14} className="task-icon question"/>;
+            default:
+                return <List size={14} className="task-icon unknown"/>;
         }
     };
 
@@ -174,7 +177,7 @@ function TaskInspectorPanel() {
                 <div className="inspector-header">
                     <div className="filter-controls">
                         <div className="search-input-group">
-                            <Search size={16} className="search-icon" />
+                            <Search size={16} className="search-icon"/>
                             <input
                                 type="text"
                                 placeholder="Filter tasks..."
@@ -222,7 +225,7 @@ function TaskInspectorPanel() {
                         <div className="tasks-list-header">
                             <h4>Tasks ({filteredTasks.length})</h4>
                         </div>
-                        
+
                         {isLoading ? (
                             <div className="loading-indicator">
                                 Loading tasks...
@@ -230,8 +233,8 @@ function TaskInspectorPanel() {
                         ) : filteredTasks.length > 0 ? (
                             <div className="tasks-list">
                                 {filteredTasks.map((task, index) => (
-                                    <div 
-                                        key={index} 
+                                    <div
+                                        key={index}
                                         className={`task-item ${selectedTask?.id === task.id ? 'selected' : ''}`}
                                         onClick={() => handleTaskSelect(task)}
                                     >
@@ -251,7 +254,7 @@ function TaskInspectorPanel() {
                                             <span className="task-priority">P: {task.priority?.toFixed(3)}</span>
                                         </div>
                                         <div className="task-controls">
-                                            <button 
+                                            <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleTaskAction('execute', task);
@@ -259,9 +262,9 @@ function TaskInspectorPanel() {
                                                 className="action-btn execute"
                                                 title="Execute task"
                                             >
-                                                <Play size={12} />
+                                                <Play size={12}/>
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleTaskAction('pause', task);
@@ -269,7 +272,7 @@ function TaskInspectorPanel() {
                                                 className="action-btn pause"
                                                 title="Pause task"
                                             >
-                                                <Pause size={12} />
+                                                <Pause size={12}/>
                                             </button>
                                         </div>
                                     </div>
@@ -277,7 +280,7 @@ function TaskInspectorPanel() {
                             </div>
                         ) : (
                             <div className="no-tasks">
-                                <List size={48} className="no-tasks-icon" />
+                                <List size={48} className="no-tasks-icon"/>
                                 <p>No tasks found</p>
                             </div>
                         )}
@@ -287,7 +290,7 @@ function TaskInspectorPanel() {
                         <div className="task-details-container">
                             <div className="task-details-header">
                                 <h4>Task Details</h4>
-                                <button 
+                                <button
                                     className="close-details-btn"
                                     onClick={handleClearSelection}
                                     title="Close details"
@@ -295,66 +298,66 @@ function TaskInspectorPanel() {
                                     ×
                                 </button>
                             </div>
-                            
+
                             <div className="task-details-content">
                                 <div className="detail-item">
                                     <strong>ID:</strong>
                                     <span>{selectedTask.id}</span>
                                 </div>
-                                
+
                                 <div className="detail-item">
                                     <strong>Statement:</strong>
                                     <span className="statement-display">{selectedTask.statement}</span>
                                 </div>
-                                
+
                                 <div className="detail-item">
                                     <strong>Type:</strong>
                                     <span>
-                                        {selectedTask.punctuation === '.' ? 'Belief' : 
-                                         selectedTask.punctuation === '!' ? 'Goal' : 
-                                         selectedTask.punctuation === '?' ? 'Question' : 'Unknown'}
+                                        {selectedTask.punctuation === '.' ? 'Belief' :
+                                            selectedTask.punctuation === '!' ? 'Goal' :
+                                                selectedTask.punctuation === '?' ? 'Question' : 'Unknown'}
                                         <span className="punctuation-mark"> {selectedTask.punctuation}</span>
                                     </span>
                                 </div>
-                                
+
                                 <div className="detail-item">
                                     <strong>Priority:</strong>
                                     <span className={`priority-value ${getPriorityColor(selectedTask.priority)}`}>
                                         {selectedTask.priority?.toFixed(3)} ({getTaskPriorityLabel(selectedTask.priority)})
                                     </span>
                                 </div>
-                                
+
                                 <div className="detail-item">
                                     <strong>Truth Value:</strong>
                                     <span>
-                                        {selectedTask.truthValue ? 
+                                        {selectedTask.truthValue ?
                                             `F: ${selectedTask.truthValue.frequency?.toFixed(3)}, 
-                                             C: ${selectedTask.truthValue.confidence?.toFixed(3)}` : 
+                                             C: ${selectedTask.truthValue.confidence?.toFixed(3)}` :
                                             'N/A'}
                                     </span>
                                 </div>
-                                
+
                                 <div className="detail-item">
                                     <strong>Occurrence Time:</strong>
                                     <span>
-                                        {selectedTask.occurrenceTime ? 
-                                            new Date(selectedTask.occurrenceTime).toLocaleString() : 
+                                        {selectedTask.occurrenceTime ?
+                                            new Date(selectedTask.occurrenceTime).toLocaleString() :
                                             'N/A'}
                                     </span>
                                 </div>
-                                
+
                                 <div className="action-buttons">
-                                    <button 
+                                    <button
                                         onClick={() => handleTaskAction('execute', selectedTask)}
                                         className="action-btn primary"
                                     >
-                                        <Play size={16} /> Execute
+                                        <Play size={16}/> Execute
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => handleTaskAction('pause', selectedTask)}
                                         className="action-btn secondary"
                                     >
-                                        <Pause size={16} /> Pause
+                                        <Pause size={16}/> Pause
                                     </button>
                                 </div>
                             </div>
@@ -364,7 +367,7 @@ function TaskInspectorPanel() {
 
                 {!selectedTask && filteredTasks.length === 0 && !isLoading && (
                     <div className="empty-state">
-                        <List size={64} className="empty-state-icon" />
+                        <List size={64} className="empty-state-icon"/>
                         <h3>No Tasks Found</h3>
                         <p>Try changing your filters or wait for new tasks to be generated</p>
                     </div>

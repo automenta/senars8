@@ -121,11 +121,16 @@ export const NotificationProvider = ({children}) => {
         getRecentNotifications: (count = 5) => notifications.slice(0, count),
         getNotificationCount: (type) => {
             switch (type) {
-                case 'error': return errorCount;
-                case 'warning': return warningCount;
-                case 'info': return infoCount;
-                case 'success': return successCount;
-                default: return notifications.length;
+                case 'error':
+                    return errorCount;
+                case 'warning':
+                    return warningCount;
+                case 'info':
+                    return infoCount;
+                case 'success':
+                    return successCount;
+                default:
+                    return notifications.length;
             }
         }
     };

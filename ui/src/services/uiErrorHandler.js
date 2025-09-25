@@ -2,7 +2,6 @@
 import {EventEmitter} from 'events';
 import log from '@/utils/logger';
 import notificationService from '@/services/notificationService';
-import {NOTIFICATION_TYPES} from '@/constants/ui';
 
 class UIErrorHandler extends EventEmitter {
     constructor() {
@@ -24,7 +23,7 @@ class UIErrorHandler extends EventEmitter {
     handle(error, context = {}, operation = 'unknown') {
         try {
             this.errorCount++;
-            
+
             // Create a structured error object
             const errorObj = {
                 id: `error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -57,7 +56,7 @@ class UIErrorHandler extends EventEmitter {
         } catch (bufferError) {
             // If error handling itself fails, log but don't throw
             console.error('Error in error handler:', bufferError);
-            return { error: bufferError };
+            return {error: bufferError};
         }
     }
 
@@ -67,7 +66,7 @@ class UIErrorHandler extends EventEmitter {
     handleWarning(message, context = {}, operation = 'unknown') {
         try {
             this.warningCount++;
-            
+
             const warningObj = {
                 id: `warning-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                 timestamp: new Date().toISOString(),
@@ -89,7 +88,7 @@ class UIErrorHandler extends EventEmitter {
             return warningObj;
         } catch (error) {
             console.error('Error in warning handler:', error);
-            return { error };
+            return {error};
         }
     }
 
@@ -122,7 +121,7 @@ class UIErrorHandler extends EventEmitter {
      */
     formatUserMessage(errorObj, type = 'error') {
         let message = '';
-        
+
         if (errorObj.error && errorObj.error.message) {
             message = errorObj.error.message;
         } else if (errorObj.message) {
@@ -135,11 +134,11 @@ class UIErrorHandler extends EventEmitter {
         if (message.includes('Failed to fetch') || message.includes('NetworkError')) {
             return 'Network connection error. Please check your connection to the agent.';
         }
-        
+
         if (message.includes('WebSocket')) {
             return 'WebSocket connection error. Agent may be unreachable.';
         }
-        
+
         if (message.includes('timeout')) {
             return 'Operation timed out. Please try again.';
         }
@@ -162,12 +161,12 @@ class UIErrorHandler extends EventEmitter {
      */
     bufferError(errorObj) {
         this.errorBuffer.push(errorObj);
-        
+
         // Clear existing timeout
         if (this.errorBufferTimeout) {
             clearTimeout(this.errorBufferTimeout);
         }
-        
+
         // Set new timeout to process buffered errors
         this.errorBufferTimeout = setTimeout(() => {
             this.processBufferedErrors();
@@ -179,16 +178,16 @@ class UIErrorHandler extends EventEmitter {
      */
     processBufferedErrors() {
         if (this.errorBuffer.length === 0) return;
-        
+
         // Group similar errors
         const groupedErrors = this.groupSimilarErrors(this.errorBuffer);
-        
+
         // For now, just emit the most recent error
         const recentError = this.errorBuffer[0];
-        
+
         // Reset buffer
         this.errorBuffer = [];
-        
+
         // Could implement error aggregation logic here
         // For example, if many similar errors occurred, show one with count
     }
@@ -198,7 +197,7 @@ class UIErrorHandler extends EventEmitter {
      */
     groupSimilarErrors(errors) {
         const grouped = {};
-        
+
         errors.forEach(error => {
             // Group by error message or operation type
             const key = error.error?.message || error.operation;
@@ -207,7 +206,7 @@ class UIErrorHandler extends EventEmitter {
             }
             grouped[key].push(error);
         });
-        
+
         return grouped;
     }
 
@@ -279,4 +278,4 @@ const useUIErrorHandler = (componentName = 'Unknown') => {
 };
 
 export default uiErrorHandler;
-export { useUIErrorHandler };
+export {useUIErrorHandler};

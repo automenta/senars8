@@ -34,7 +34,7 @@ class AgentService extends EventEmitter {
             lastSuccessfulConnection: null,
             lastDisconnection: null
         };
-        
+
         // Store agent state that comes from backend
         this.agentState = {
             isRunning: false,
@@ -119,7 +119,7 @@ class AgentService extends EventEmitter {
 
                     // Handle agent state updates
                     if (message.type === MESSAGE_TYPES.AGENT_STATE_UPDATE) {
-                        this.agentState = { ...this.agentState, ...message.payload };
+                        this.agentState = {...this.agentState, ...message.payload};
                         log.debug('Agent state updated:', this.agentState);
                     }
 
@@ -315,16 +315,16 @@ class AgentService extends EventEmitter {
         };
         return this.sendMessage(message.type, message.payload);
     }
-    
+
     // Additional agent control methods for better integration
     sendAgentStart() {
         return this.sendAgentControl('start');
     }
-    
+
     sendAgentStop() {
         return this.sendAgentControl('stop');
     }
-    
+
     sendAgentReset() {
         return this.sendAgentControl('reset');
     }
@@ -361,7 +361,7 @@ class AgentService extends EventEmitter {
 
     // Agent state access methods
     getAgentState() {
-        return { ...this.agentState };
+        return {...this.agentState};
     }
 
     isAgentRunning() {
@@ -383,41 +383,41 @@ class AgentService extends EventEmitter {
     getCycleCount() {
         return this.agentState.cycleCount;
     }
-    
+
     // Additional methods for agent management
     startAgent() {
         return this.sendAgentControl('start');
     }
-    
+
     stopAgent() {
         return this.sendAgentControl('stop');
     }
-    
+
     resetAgent() {
         return this.sendAgentControl('reset');
     }
-    
+
     // Enhanced error handling for agent operations
     async safeAgentOperation(operationName, operation, options = {}) {
-        const { retries = 3, timeout = 10000, onError = null } = options;
+        const {retries = 3, timeout = 10000, onError = null} = options;
         let attempts = 0;
-        
+
         while (attempts < retries) {
             try {
                 return await Promise.race([
                     operation(),
-                    new Promise((_, reject) => 
+                    new Promise((_, reject) =>
                         setTimeout(() => reject(new Error(`Operation ${operationName} timed out after ${timeout}ms`)), timeout)
                     )
                 ]);
             } catch (error) {
                 attempts++;
                 log.error(`Agent operation ${operationName} failed (attempt ${attempts}/${retries}):`, error.message);
-                
+
                 if (onError) {
                     onError(error, attempts);
                 }
-                
+
                 if (attempts >= retries) {
                     // Emit error event for UI to handle
                     this.emit(MESSAGE_TYPES.ERROR, {
@@ -426,10 +426,10 @@ class AgentService extends EventEmitter {
                         error: error.message,
                         attempts
                     });
-                    
+
                     throw error;
                 }
-                
+
                 // Wait before retry with exponential backoff
                 await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
             }

@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
-import {Activity, Brain, BarChart3, Clock, Zap, Database, Thermometer, Users, Lightbulb} from 'lucide-react';
+import {Activity, BarChart3, Brain, Clock, Database, Lightbulb, Thermometer, Users, Zap} from 'lucide-react';
 import './DashboardPanel.css';
 
 const DashboardPanel = () => {
@@ -139,10 +139,14 @@ const DashboardPanel = () => {
     // Get status color based on value
     const getStatusColor = (status) => {
         switch (status) {
-            case 'active': return 'text-success';
-            case 'warning': return 'text-warning';
-            case 'error': return 'text-error';
-            default: return 'text-info';
+            case 'active':
+                return 'text-success';
+            case 'warning':
+                return 'text-warning';
+            case 'error':
+                return 'text-error';
+            default:
+                return 'text-info';
         }
     };
 
@@ -153,7 +157,7 @@ const DashboardPanel = () => {
                 <div className="dashboard-overview">
                     <div className="status-card">
                         <div className="status-icon">
-                            <Activity size={24} />
+                            <Activity size={24}/>
                         </div>
                         <div className="status-content">
                             <div className="status-value">{systemStats.cycleCount.toLocaleString()}</div>
@@ -163,7 +167,7 @@ const DashboardPanel = () => {
 
                     <div className="status-card">
                         <div className="status-icon">
-                            <Brain size={24} />
+                            <Brain size={24}/>
                         </div>
                         <div className="status-content">
                             <div className="status-value">{systemStats.beliefs.toLocaleString()}</div>
@@ -173,7 +177,7 @@ const DashboardPanel = () => {
 
                     <div className="status-card">
                         <div className="status-icon">
-                            <Zap size={24} />
+                            <Zap size={24}/>
                         </div>
                         <div className="status-content">
                             <div className="status-value">{systemStats.goals.toLocaleString()}</div>
@@ -183,7 +187,7 @@ const DashboardPanel = () => {
 
                     <div className="status-card">
                         <div className="status-icon">
-                            <Lightbulb size={24} />
+                            <Lightbulb size={24}/>
                         </div>
                         <div className="status-content">
                             <div className="status-value">{systemStats.questions.toLocaleString()}</div>
@@ -193,7 +197,7 @@ const DashboardPanel = () => {
 
                     <div className="status-card">
                         <div className="status-icon">
-                            <Database size={24} />
+                            <Database size={24}/>
                         </div>
                         <div className="status-content">
                             <div className="status-value">{formatBytes(systemStats.memoryUsage)}</div>
@@ -203,7 +207,7 @@ const DashboardPanel = () => {
 
                     <div className="status-card">
                         <div className="status-icon">
-                            <Thermometer size={24} />
+                            <Thermometer size={24}/>
                         </div>
                         <div className="status-content">
                             <div className="status-value">{systemStats.temperature.toFixed(2)}</div>
@@ -222,16 +226,16 @@ const DashboardPanel = () => {
 
                 {/* Recent Events */}
                 <div className="dashboard-section">
-                    <h3><Clock size={18} /> Recent Events</h3>
+                    <h3><Clock size={18}/> Recent Events</h3>
                     <div className="events-list">
                         {recentEvents.length > 0 ? (
                             recentEvents.map(event => (
                                 <div key={event.id} className="event-item">
                                     <div className="event-icon">
-                                        {event.type === 'cycle' && <Activity size={16} />}
-                                        {event.type === 'belief' && <Brain size={16} />}
-                                        {event.type === 'goal' && <Zap size={16} />}
-                                        {event.type === 'question' && <Lightbulb size={16} />}
+                                        {event.type === 'cycle' && <Activity size={16}/>}
+                                        {event.type === 'belief' && <Brain size={16}/>}
+                                        {event.type === 'goal' && <Zap size={16}/>}
+                                        {event.type === 'question' && <Lightbulb size={16}/>}
                                     </div>
                                     <div className="event-content">
                                         <div className="event-message">{event.message}</div>
@@ -241,7 +245,7 @@ const DashboardPanel = () => {
                             ))
                         ) : (
                             <div className="no-events">
-                                <Clock size={48} />
+                                <Clock size={48}/>
                                 <p>No recent events</p>
                             </div>
                         )}
@@ -250,7 +254,7 @@ const DashboardPanel = () => {
 
                 {/* System Info */}
                 <div className="dashboard-section">
-                    <h3><Users size={18} /> System Information</h3>
+                    <h3><Users size={18}/> System Information</h3>
                     <div className="system-info-grid">
                         <div className="info-item">
                             <span className="info-label">Reasoning Steps:</span>
@@ -263,8 +267,8 @@ const DashboardPanel = () => {
                         <div className="info-item">
                             <span className="info-label">Last Cycle:</span>
                             <span className="info-value">
-                                {systemStats.lastCycleTime ? 
-                                    new Date(systemStats.lastCycleTime).toLocaleTimeString() : 
+                                {systemStats.lastCycleTime ?
+                                    new Date(systemStats.lastCycleTime).toLocaleTimeString() :
                                     'Never'}
                             </span>
                         </div>

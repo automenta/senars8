@@ -1,10 +1,21 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Panel} from '@ui/components';
-import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import {useSettings} from '@/context/useSettings';
 import {useUIErrorHandler} from '@/services/uiErrorHandler';
-import {Settings, Palette, Volume2, VolumeX, Monitor, Database, Zap, Globe, RotateCcw, Save, Download, Upload} from 'lucide-react';
+import {
+    Database,
+    Download,
+    Globe,
+    Monitor,
+    Palette,
+    RotateCcw,
+    Save,
+    Settings,
+    Upload,
+    Volume2,
+    Zap
+} from 'lucide-react';
 import './SettingsPanel.css';
 
 const SettingsPanel = () => {
@@ -83,15 +94,15 @@ const SettingsPanel = () => {
     const exportSettings = () => {
         try {
             const dataStr = JSON.stringify(settings, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
             const exportFileDefaultName = 'senars-settings.json';
-            
+
             const linkElement = document.createElement('a');
             linkElement.setAttribute('href', dataUri);
             linkElement.setAttribute('download', exportFileDefaultName);
             linkElement.click();
-            
+
             notificationService.addSuccess('Settings Exported', 'Settings exported successfully');
         } catch (error) {
             handleError(error, {operation: 'exportSettings'});
@@ -102,7 +113,7 @@ const SettingsPanel = () => {
     const importSettings = (event) => {
         const file = event.target.files[0];
         if (!file) return;
-        
+
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
@@ -116,7 +127,7 @@ const SettingsPanel = () => {
             }
         };
         reader.readAsText(file);
-        
+
         // Reset file input
         event.target.value = '';
     };
@@ -136,9 +147,9 @@ const SettingsPanel = () => {
 
     // Apply font size to document
     useEffect(() => {
-        document.documentElement.style.setProperty('--font-size-multiplier', 
-            settings.fontSize === 'small' ? '0.9' : 
-            settings.fontSize === 'large' ? '1.2' : '1.0'
+        document.documentElement.style.setProperty('--font-size-multiplier',
+            settings.fontSize === 'small' ? '0.9' :
+                settings.fontSize === 'large' ? '1.2' : '1.0'
         );
     }, [settings.fontSize]);
 
@@ -166,26 +177,26 @@ const SettingsPanel = () => {
                         className="save-btn"
                         title="Save settings"
                     >
-                        <Save size={16} /> {isSaving ? 'Saving...' : 'Save Settings'}
+                        <Save size={16}/> {isSaving ? 'Saving...' : 'Save Settings'}
                     </button>
                     <button
                         onClick={resetSettings}
                         className="reset-btn"
                         title="Reset to defaults"
                     >
-                        <RotateCcw size={16} /> Reset
+                        <RotateCcw size={16}/> Reset
                     </button>
                     <button
                         onClick={exportSettings}
                         className="export-btn"
                         title="Export settings"
                     >
-                        <Download size={16} /> Export
+                        <Download size={16}/> Export
                     </button>
                     <label className="import-btn">
-                        <Upload size={16} /> Import
-                        <input 
-                            type="file" 
+                        <Upload size={16}/> Import
+                        <input
+                            type="file"
                             accept=".json"
                             onChange={importSettings}
                             style={{display: 'none'}}
@@ -195,7 +206,7 @@ const SettingsPanel = () => {
 
                 {/* Theme Settings */}
                 <div className="settings-section">
-                    <h3><Palette size={18} /> Theme Settings</h3>
+                    <h3><Palette size={18}/> Theme Settings</h3>
                     <div className="setting-group">
                         <div className="setting-item">
                             <label htmlFor="theme">Theme:</label>
@@ -228,7 +239,7 @@ const SettingsPanel = () => {
 
                 {/* Audio Settings */}
                 <div className="settings-section">
-                    <h3><Volume2 size={18} /> Audio Settings</h3>
+                    <h3><Volume2 size={18}/> Audio Settings</h3>
                     <div className="setting-group">
                         <div className="setting-item">
                             <label htmlFor="sonification">Enable Sonification:</label>
@@ -248,7 +259,7 @@ const SettingsPanel = () => {
 
                 {/* Display Settings */}
                 <div className="settings-section">
-                    <h3><Monitor size={18} /> Display Settings</h3>
+                    <h3><Monitor size={18}/> Display Settings</h3>
                     <div className="setting-group">
                         <div className="setting-item">
                             <label htmlFor="showTooltips">Show Tooltips:</label>
@@ -294,7 +305,7 @@ const SettingsPanel = () => {
 
                 {/* Notification Settings */}
                 <div className="settings-section">
-                    <h3><Globe size={18} /> Notification Settings</h3>
+                    <h3><Globe size={18}/> Notification Settings</h3>
                     <div className="setting-group">
                         <div className="setting-item">
                             <label htmlFor="notifications">Enable Notifications:</label>
@@ -326,7 +337,7 @@ const SettingsPanel = () => {
 
                 {/* Data & Performance Settings */}
                 <div className="settings-section">
-                    <h3><Database size={18} /> Data & Performance</h3>
+                    <h3><Database size={18}/> Data & Performance</h3>
                     <div className="setting-group">
                         <div className="setting-item">
                             <label htmlFor="autoRefresh">Auto Refresh Data:</label>
@@ -383,7 +394,7 @@ const SettingsPanel = () => {
 
                 {/* System Settings */}
                 <div className="settings-section">
-                    <h3><Zap size={18} /> System Settings</h3>
+                    <h3><Zap size={18}/> System Settings</h3>
                     <div className="setting-group">
                         <div className="setting-item">
                             <label htmlFor="autoConnect">Auto Connect:</label>

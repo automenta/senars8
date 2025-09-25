@@ -221,7 +221,7 @@
     .dashboard-overview {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .system-info-grid {
         grid-template-columns: 1fr;
     }

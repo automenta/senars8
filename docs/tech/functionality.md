@@ -34,20 +34,22 @@ through sophisticated neural processing capabilities.
 **Sub-symbolic Association & Semantic Understanding:**
 Operates on continuous, high-dimensional vector representations to understand nuance, context, and semantic
 relationships.
+
 * **Contextual Retrieval:** Intuitively fetches relevant memories and knowledge based on situational similarity using
-vector embeddings and cosine similarity calculations.
+  vector embeddings and cosine similarity calculations.
 * **Semantic Similarity Judgment:** Advanced assessments of conceptual relatedness through high-dimensional vector space
-analysis.
+  analysis.
 * **Analogical Reasoning:** Identification of structural similarities between different domains enabling transfer
-learning and creative problem-solving.
+  learning and creative problem-solving.
 * **Conceptual Blending:** Generation of novel concepts by combining existing ones in meaningful ways.
 
 **Sophisticated Pattern Matching & Adaptive Heuristics:**
 Executes learned, automatic responses and complex inferences through adaptive neural models.
+
 * **Procedural Knowledge Activation:** Intelligent triggering of well-practiced action sequences based on contextual
-cues.
+  cues.
 * **Adaptive Heuristic Inference:** Sophisticated judgments based on learned patterns that adapt over time to changing
-conditions.
+  conditions.
 * **Anomaly Detection:** Recognition of unusual patterns that deviate from learned expectations.
 * **Predictive Pattern Recognition:** Anticipation of future events based on learned temporal patterns.
 
@@ -66,33 +68,36 @@ complete logical rigor.
 
 **Advanced Formal & Symbolic Modeling:**
 Constructs and manipulates precise, structured models of the world using sophisticated knowledge representation.
+
 * **Narsese Grammar Encoding:** Comprehensive encoding of knowledge in the formal Narsese language supporting complex
-logical expressions and temporal relationships.
+  logical expressions and temporal relationships.
 * **Multi-Domain Integration:** Construction of unified models spanning multiple domains of knowledge and expertise.
 * **Temporal & Causal Modeling:** Sophisticated construction of explicit timelines, cause-effect chains, and temporal
-relationships.
+  relationships.
 * **Uncertainty Representation:** Integration of probabilistic and fuzzy logic within symbolic frameworks.
 
 **Rigorous Deliberative Inference:**
 Executes comprehensive, step-by-step reasoning processes with complete traceability and explainability.
+
 * **Multi-Modal Logical Inference:** Integration of various logical systems including classical logic, modal logic, and
-non-monotonic reasoning.
+  non-monotonic reasoning.
 * **Logical Deduction:** Systematic derivation of necessary conclusions from established premises using multiple
-inference rules.
+  inference rules.
 * **Abductive Explanation:** Sophisticated generation of the most plausible hypotheses for given evidence with
-uncertainty quantification.
+  uncertainty quantification.
 * **Inductive Generalization:** Formation of general principles from specific examples with confidence assessment.
 * **Analogical Inference:** Transfer of knowledge between similar domains based on structural mapping.
 
 **Sophisticated Problem-Solving & Simulation:**
 Advanced formulation and evaluation of solutions to complex, novel problems with multiple constraints and objectives.
+
 * **Hierarchical Goal Decomposition:** Sophisticated breakdown of complex objectives into structured networks of
-subgoals and executable steps.
+  subgoals and executable steps.
 * **Multi-Objective Optimization:** Simultaneous satisfaction of competing requirements and constraints.
 * **Hypothetical & Counterfactual Reasoning:** Comprehensive simulation of "what-if" scenarios to explore alternative
-outcomes, futures, and decision consequences.
+  outcomes, futures, and decision consequences.
 * **Temporal Planning:** Planning with consideration of time constraints, scheduling requirements, and dynamic
-environments.
+  environments.
 * **Uncertainty Reasoning:** Reasoning under uncertainty with probability propagation and risk assessment.
 
 **Realizable Potential:** This system provides the logical foundation for trustworthy, explainable, and auditable AI
@@ -110,43 +115,47 @@ goals, values, and long-term objectives.
 
 **Advanced Attention & Resource Management:**
 Manages the agent's finite cognitive resources through sophisticated economic attention mechanisms.
+
 * **Dynamic Focus Allocation:** Intelligent direction of attention to the most salient information or tasks based on
-multiple factors including goals, novelty, uncertainty, cognitive value, and temporal urgency.
+  multiple factors including goals, novelty, uncertainty, cognitive value, and temporal urgency.
 * **System Arbitration:** Sophisticated determination of when to rely on intuitive processing versus engaging analytical
-reasoning, with dynamic resource allocation.
+  reasoning, with dynamic resource allocation.
 * **Cognitive Load Balancing:** Adaptive management of processing resources to optimize overall cognitive performance.
 * **Selective Attention:** Focused processing of relevant information while filtering out distractions.
 
 **Goal & Drive Management:**
 Provides the agent's autonomous motivation through sophisticated goal management systems.
+
 * **Hierarchical Goal Architecture:** Multi-level goal structures with dependencies, precedence relationships, and
-resource allocation.
+  resource allocation.
 * **Intrinsic Motivation Systems:** Self-generated goals driven by **curiosity** (to reduce uncertainty), *
-*competence-building** (to improve skills), and **efficiency optimization** (to improve cognitive performance).
+  *competence-building** (to improve skills), and **efficiency optimization** (to improve cognitive performance).
 * **Goal Refinement & Prioritization:** Dynamic adjustment of goals based on changing circumstances, new information,
-and strategic priorities.
+  and strategic priorities.
 * **Creative Hypothesis Generation:** Formulation of novel goals, plans, and ideas that expand the agent's capabilities
-and objectives.
+  and objectives.
 
 **Comprehensive Self-Regulation & Performance Optimization:**
 Monitors and continuously improves the agent's cognitive performance through sophisticated meta-cognitive processes.
+
 * **Contradiction & Anomaly Detection:** Advanced identification of internal inconsistencies, logical conflicts, and
-surprising external events with comprehensive analysis.
+  surprising external events with comprehensive analysis.
 * **Cognitive Performance Monitoring:** Continuous tracking of reasoning effectiveness, resource utilization, and
-strategy success rates.
+  strategy success rates.
 * **Adaptive Strategy Selection:** Dynamic selection and switching between reasoning strategies based on effectiveness
-and problem characteristics.
+  and problem characteristics.
 * **Strategic Action Management:** Sophisticated direction of plan execution, progress monitoring, and adaptive response
-to failures or unexpected opportunities.
+  to failures or unexpected opportunities.
 * **Self-Improvement Mechanisms:** Continuous refinement of cognitive capabilities through experience and reflection.
 
 **Social & Multi-Agent Governance:**
 Comprehensive management of the agent's behavior within multi-agent environments and social contexts.
+
 * **Theory of Mind:** Sophisticated modeling of other agents' beliefs, goals, intentions, and cognitive states.
 * **Normative & Ethical Regulation:** Constraints on behavior to align with learned social norms, ethical principles,
-and regulatory requirements.
+  and regulatory requirements.
 * **Strategic Communication:** Advanced dialogue management to achieve goals through explanation, question asking,
-collaboration, and negotiation.
+  collaboration, and negotiation.
 * **Cooperative Intelligence:** Coordination and collaboration with other agents to achieve shared objectives.
 
 **Realizable Potential:** This system enables the agent to function as a truly autonomous, self-managing cognitive
@@ -164,32 +173,35 @@ learns, adapts, and improves over time.
 
 **Sophisticated Knowledge Lifecycle Management:**
 Comprehensive governance of how information is acquired, retained, modified, and utilized.
+
 * **Multi-Source Information Ingestion:** Integration of information from diverse sources including sensors, databases,
-text, and other agents.
+  text, and other agents.
 * **Bayesian Belief Revision:** Sophisticated updating of knowledge based on new evidence using probabilistic reasoning.
 * **Dual-Store Memory Architecture:** Advanced short-term and long-term memory systems with intelligent consolidation
-and retrieval mechanisms.
+  and retrieval mechanisms.
 * **Dynamic Forgetting & Pruning:** Sophisticated forgetting strategies that retain valuable knowledge while efficiently
-removing irrelevant information.
+  removing irrelevant information.
 
 **Advanced Learning Mechanisms:**
 Comprehensive processes for adaptation, growth, and capability expansion.
+
 * **Lifelong Learning:** Continuous learning without catastrophic forgetting, enabling acquisition of new capabilities
-while retaining previous knowledge.
+  while retaining previous knowledge.
 * **Reinforcement Learning Integration:** Strategic modification of behavioral strategies based on action outcomes and
-reward signals.
+  reward signals.
 * **Observational Learning:** Inductive learning of patterns, procedures, and concepts from environmental observations.
 * **Transfer Learning:** Application of knowledge from one domain to improve performance in another domain.
 * **Self-Supervised Learning:** Learning without external supervision by generating internal learning objectives.
 
 **Sophisticated Knowledge Representation:**
 Advanced fundamental units of representation that support uncertainty, value, and cognitive processing.
+
 * **Uncertainty Quantification:** Comprehensive encoding of beliefs with measures of evidential support, confidence, and
-temporal validity.
+  temporal validity.
 * **Value Representation:** Sophisticated encoding of goals and outcomes with measures of utility, priority, importance,
-and strategic value.
+  and strategic value.
 * **Semantic Embedding Integration:** Combination of symbolic representations with neural embeddings for rich conceptual
-understanding.
+  understanding.
 * **Provenance Tracking:** Detailed tracking of information sources, creation history, and modification patterns.
 
 **Realizable Potential:** This substrate enables the agent to function as a continuously learning, self-improving system

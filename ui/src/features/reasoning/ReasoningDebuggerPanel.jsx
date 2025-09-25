@@ -1,14 +1,12 @@
-import React, {useState, useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
-import agentIntegrationService from '@/services/agentIntegration';
 import notificationService from '@/services/notificationService';
 import {useUIErrorHandler} from '@/services/uiErrorHandler';
 import {parseTerm} from '@core/parser/parse-utils.js';
-import {Task, Term} from '@core/index.js';
 import {useConnection} from '@/context/useConnection';
 import useReasoningDebugger from '@/hooks/useReasoningDebugger';
-import {Zap, Play, RotateCcw, Code, AlertCircle, CheckCircle, XCircle} from 'lucide-react';
+import {CheckCircle, Code, Play, RotateCcw, XCircle, Zap} from 'lucide-react';
 import './ReasoningDebuggerPanel.css';
 
 function ReasoningDebuggerPanel() {
@@ -22,12 +20,12 @@ function ReasoningDebuggerPanel() {
         if (!statement.trim()) {
             return 'Statement cannot be empty';
         }
-        
+
         // Check if it's a valid Narsese statement
         if (!statement.includes('.') && !statement.includes('?') && !statement.includes('!')) {
             return 'Statement must end with . (belief), ? (question), or ! (goal)';
         }
-        
+
         // Try to parse the term
         try {
             const parsed = parseTerm(statement);
@@ -37,7 +35,7 @@ function ReasoningDebuggerPanel() {
         } catch (e) {
             return `Parsing error: ${e.message}`;
         }
-        
+
         return null;
     };
 
@@ -50,7 +48,7 @@ function ReasoningDebuggerPanel() {
 
         try {
             const response = await debugReasoning(inputStatement);
-            
+
             setExecutionHistory(prev => [...prev, {
                 id: Date.now(),
                 statement: inputStatement,
@@ -82,7 +80,7 @@ function ReasoningDebuggerPanel() {
         // Send to the agent
         agentService.sendNarsese(inputStatement);
         notificationService.addInfo('Statement Sent', `Executed: ${inputStatement}`);
-        
+
         // Clear input after sending
         setInputStatement('');
     }, [inputStatement, isConnected]);
@@ -174,7 +172,7 @@ function ReasoningDebuggerPanel() {
                     <div className="results-header">
                         <h3>Debug Results</h3>
                     </div>
-                    
+
                     {isDebugProcessing ? (
                         <div className="processing-indicator">
                             <div className="spinner"></div>
@@ -192,7 +190,8 @@ function ReasoningDebuggerPanel() {
                                     {debugResults.parsedTerm && (
                                         <div className="analysis-item">
                                             <strong>Parsed Term:</strong>
-                                            <pre className="parsed-display">{JSON.stringify(debugResults.parsedTerm, null, 2)}</pre>
+                                            <pre
+                                                className="parsed-display">{JSON.stringify(debugResults.parsedTerm, null, 2)}</pre>
                                         </div>
                                     )}
                                     {debugResults.task && (
@@ -208,7 +207,7 @@ function ReasoningDebuggerPanel() {
                                     )}
                                 </div>
                             </div>
-                            
+
                             {debugResults.reasoningSteps && debugResults.reasoningSteps.length > 0 && (
                                 <div className="result-section">
                                     <h4>Reasoning Steps</h4>
@@ -227,7 +226,7 @@ function ReasoningDebuggerPanel() {
                                     </div>
                                 </div>
                             )}
-                            
+
                             {debugResults.newTasks && debugResults.newTasks.length > 0 && (
                                 <div className="result-section">
                                     <h4>Newly Generated Tasks</h4>
@@ -263,8 +262,8 @@ function ReasoningDebuggerPanel() {
                                         {new Date(entry.timestamp).toLocaleString()}
                                     </div>
                                     <div className="history-status">
-                                        {entry.result?.success !== false ? 
-                                            <CheckCircle size={16} className="status-success"/> : 
+                                        {entry.result?.success !== false ?
+                                            <CheckCircle size={16} className="status-success"/> :
                                             <XCircle size={16} className="status-error"/>
                                         }
                                     </div>

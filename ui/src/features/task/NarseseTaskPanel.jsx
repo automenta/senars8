@@ -1,8 +1,8 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
 import {formatCoreDataForUI} from '@/utils/coreIntegration';
-import {CheckCircle, Circle, Clock, ListTodo, Play, Plus, RotateCcw, Square, Trash2, MessageSquare, Zap, Eye} from 'lucide-react';
+import {Eye, ListTodo, MessageSquare, Plus, Zap} from 'lucide-react';
 import './TaskPanel.css';
 
 const NarseseTaskPanel = () => {
@@ -56,7 +56,7 @@ const NarseseTaskPanel = () => {
 
         const handleTaskUpdated = (task) => {
             const formattedTask = formatCoreDataForUI(task);
-            setTasks(prev => 
+            setTasks(prev =>
                 prev.map(t => t.id === formattedTask.id ? formattedTask : t)
             );
         };
@@ -93,7 +93,7 @@ const NarseseTaskPanel = () => {
 
         // Send to agent service
         const success = agentService.sendNarsese(taskStatement);
-        
+
         if (success) {
             // Clear input after successful submission
             setNewTaskInput('');
@@ -133,10 +133,14 @@ const NarseseTaskPanel = () => {
 
     const getTaskTypeIcon = (punctuation) => {
         switch (punctuation) {
-            case '.': return <Eye size={16} className="task-type-icon belief" />;
-            case '!': return <Zap size={16} className="task-type-icon goal" />;
-            case '?': return <MessageSquare size={16} className="task-type-icon question" />;
-            default: return <ListTodo size={16} className="task-type-icon unknown" />;
+            case '.':
+                return <Eye size={16} className="task-type-icon belief"/>;
+            case '!':
+                return <Zap size={16} className="task-type-icon goal"/>;
+            case '?':
+                return <MessageSquare size={16} className="task-type-icon question"/>;
+            default:
+                return <ListTodo size={16} className="task-type-icon unknown"/>;
         }
     };
 
@@ -254,9 +258,9 @@ const NarseseTaskPanel = () => {
                                             <div className="meta-row">
                                                 <span className="meta-label">Type:</span>
                                                 <span className="meta-value">
-                                                    {task.punctuation === '.' ? 'Belief' : 
-                                                     task.punctuation === '!' ? 'Goal' : 
-                                                     task.punctuation === '?' ? 'Question' : 'Unknown'}
+                                                    {task.punctuation === '.' ? 'Belief' :
+                                                        task.punctuation === '!' ? 'Goal' :
+                                                            task.punctuation === '?' ? 'Question' : 'Unknown'}
                                                 </span>
                                             </div>
                                             <div className="meta-row">

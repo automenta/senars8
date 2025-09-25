@@ -415,16 +415,16 @@
     .inspector-content {
         flex-direction: column;
     }
-    
+
     .task-details-container {
         width: 100%;
     }
-    
+
     .filter-controls {
         flex-direction: column;
         align-items: stretch;
     }
-    
+
     .search-input-group {
         min-width: auto;
     }
