@@ -1,6 +1,7 @@
 import React, {useState, useCallback} from 'react';
 import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
+import agentIntegrationService from '@/services/agentIntegration';
 import notificationService from '@/services/notificationService';
 import {useUIErrorHandler} from '@/services/uiErrorHandler';
 import {parseTerm} from '@core/parser/parse-utils.js';

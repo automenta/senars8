@@ -315,6 +315,19 @@ class AgentService extends EventEmitter {
         };
         return this.sendMessage(message.type, message.payload);
     }
+    
+    // Additional agent control methods for better integration
+    sendAgentStart() {
+        return this.sendAgentControl('start');
+    }
+    
+    sendAgentStop() {
+        return this.sendAgentControl('stop');
+    }
+    
+    sendAgentReset() {
+        return this.sendAgentControl('reset');
+    }
 
     search(query, options = {}) {
         const message = {

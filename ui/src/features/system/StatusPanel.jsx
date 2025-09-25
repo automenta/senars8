@@ -17,7 +17,8 @@ function StatusPanel() {
         cpuUsage: 0,
         temperature: 0,
         beliefs: 0,
-        goals: 0
+        goals: 0,
+        questions: 0
     });
     const [connectionStats, setConnectionStats] = useState({
         totalConnections: 0,
@@ -97,6 +98,7 @@ function StatusPanel() {
                     ...prev,
                     beliefs: agentInfo.beliefsCount,
                     goals: agentInfo.goalsCount,
+                    questions: agentInfo.questionsCount,
                     cycleCount: agentInfo.cycleCount,
                     isRunning: agentInfo.isActive
                 }));
@@ -193,6 +195,18 @@ function StatusPanel() {
                 <div className={`status-item agent-status ${systemStats.isRunning ? 'running' : 'stopped'}`}>
                     <Activity size={16}/>
                     <span>Agent: {systemStats.isRunning ? 'Running' : 'Stopped'}</span>
+                </div>
+
+                {/* Questions Count */}
+                <div className="status-item">
+                    <Zap size={16}/>
+                    <span>Questions: {(systemStats.questions || 0).toLocaleString()}</span>
+                </div>
+
+                {/* Agent Integration Status */}
+                <div className="status-item">
+                    <Zap size={16}/>
+                    <span>AI: {agentIntegrationService.getInitializedStatus() ? 'Ready' : 'Initializing'}</span>
                 </div>
 
                 {/* Sonification Toggle */}

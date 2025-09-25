@@ -114,6 +114,11 @@ class AgentIntegrationService {
     };
   }
 
+  // Check if agent integration is initialized
+  getInitializedStatus() {
+    return this.isInitialized;
+  }
+
   // Proxy methods to agent service's data access methods
   getBeliefs() {
     if (!this.isInitialized) {

@@ -1,6 +1,7 @@
 import React from 'react';
 import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
+import agentIntegrationService from '@/services/agentIntegration';
 import notificationService from '@/services/notificationService';
 import {useConnection} from '@/context/useConnection';
 import {Play, RotateCcw, Settings, Square} from 'lucide-react';
@@ -9,19 +10,31 @@ import './ControlPanel.css';
 function ControlPanel() {
     const {isConnected} = useConnection();
 
-    const handleStart = () => {
-        agentService.sendAgentControl('start');
-        notificationService.addInfo('Agent Control', 'Start command sent to agent');
+    const handleStart = async () => {
+        try {
+            await agentIntegrationService.sendAgentCommand('start');
+            notificationService.addInfo('Agent Control', 'Start command sent to agent');
+        } catch (error) {
+            notificationService.addError('Agent Control Error', `Failed to start agent: ${error.message}`);
+        }
     };
 
-    const handleStop = () => {
-        agentService.sendAgentControl('stop');
-        notificationService.addInfo('Agent Control', 'Stop command sent to agent');
+    const handleStop = async () => {
+        try {
+            await agentIntegrationService.sendAgentCommand('stop');
+            notificationService.addInfo('Agent Control', 'Stop command sent to agent');
+        } catch (error) {
+            notificationService.addError('Agent Control Error', `Failed to stop agent: ${error.message}`);
+        }
     };
 
-    const handleReset = () => {
-        agentService.sendAgentControl('reset');
-        notificationService.addWarning('Agent Control', 'Reset command sent to agent - all memory cleared');
+    const handleReset = async () => {
+        try {
+            await agentIntegrationService.sendAgentCommand('reset');
+            notificationService.addWarning('Agent Control', 'Reset command sent to agent - all memory cleared');
+        } catch (error) {
+            notificationService.addError('Agent Control Error', `Failed to reset agent: ${error.message}`);
+        }
     };
 
     return (
