@@ -1,4 +1,4 @@
-import { COLORS, EMOJIS } from '../TuiConstants.js';
+import {COLORS, EMOJIS} from '../TuiConstants.js';
 
 /**
  * Returns the configuration for the header component.

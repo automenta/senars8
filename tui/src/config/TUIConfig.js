@@ -53,7 +53,7 @@ class TUIConfig {
      * Get the entire configuration object
      */
     getAll() {
-        return { ...this.config };
+        return {...this.config};
     }
 
     /**

@@ -1,4 +1,4 @@
-import { createCommandHandler, commandDefinitions } from '../src/services/commandHandler.js';
+import {commandDefinitions, createCommandHandler} from '../src/services/commandHandler.js';
 
 describe('createCommandHandler', () => {
     let mockStateManager;
@@ -97,7 +97,6 @@ describe('createCommandHandler', () => {
         handleCommand('!disconnect');
         expect(mockAgentService.disconnect).toHaveBeenCalled();
     });
-
 
 
     test('should clear log box on !clear command', () => {

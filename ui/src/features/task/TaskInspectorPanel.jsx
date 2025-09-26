@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';

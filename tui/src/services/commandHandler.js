@@ -2,7 +2,7 @@
  * @file commandHandler.js
  * @description Command handling logic for the TUI.
  */
-import { validateNarseseStatement } from '../../../common/utils/coreUtils.js';
+import {validateNarseseStatement} from '../../../common/utils/coreUtils.js';
 
 /**
  * Command definitions containing description, usage, and handler function.
@@ -11,7 +11,7 @@ export const commandDefinitions = {
     '!start': {
         description: 'Starts the agent cycling process.',
         usage: '!start',
-        handler: (args, { agentService, uiManager }) => {
+        handler: (args, {agentService, uiManager}) => {
             agentService.startAgent();
             uiManager.log('Sent !start command.');
         },
@@ -19,7 +19,7 @@ export const commandDefinitions = {
     '!stop': {
         description: 'Stops the agent cycling process.',
         usage: '!stop',
-        handler: (args, { agentService, uiManager }) => {
+        handler: (args, {agentService, uiManager}) => {
             agentService.stopAgent();
             uiManager.log('Sent !stop command.');
         },
@@ -27,7 +27,7 @@ export const commandDefinitions = {
     '!reset': {
         description: 'Resets the agent to its initial state.',
         usage: '!reset',
-        handler: (args, { agentService, uiManager }) => {
+        handler: (args, {agentService, uiManager}) => {
             agentService.resetAgent();
             uiManager.log('Sent !reset command.');
         },
@@ -35,7 +35,7 @@ export const commandDefinitions = {
     '!add': {
         description: 'Adds a new task to the agent.',
         usage: '!add <narsese_task>',
-        handler: (args, { agentService, uiManager }) => {
+        handler: (args, {agentService, uiManager}) => {
             const task = args.join(' ');
             const validation = validateNarseseStatement(task);
             if (validation.valid) {
@@ -49,7 +49,7 @@ export const commandDefinitions = {
     '!query': {
         description: 'Sends a query to the agent.',
         usage: '!query <narsese_query>',
-        handler: (args, { agentService, uiManager }) => {
+        handler: (args, {agentService, uiManager}) => {
             const query = args.join(' ');
             const validation = validateNarseseStatement(query);
             if (validation.valid) {
@@ -63,27 +63,27 @@ export const commandDefinitions = {
     '!stats': {
         description: 'Retrieves system statistics from the agent.',
         usage: '!stats',
-        handler: (args, { agentService }) => agentService.getSystemStats(),
+        handler: (args, {agentService}) => agentService.getSystemStats(),
     },
     '!help': {
         description: 'Shows or hides the help screen.',
         usage: '!help',
-        handler: (args, { uiManager }) => uiManager.toggleHelp(),
+        handler: (args, {uiManager}) => uiManager.toggleHelp(),
     },
     '!connect': {
         description: 'Connects to the agent WebSocket server.',
         usage: '!connect [url]',
-        handler: (args, { agentService }) => agentService.connect(args[0]),
+        handler: (args, {agentService}) => agentService.connect(args[0]),
     },
     '!disconnect': {
         description: 'Disconnects from the agent WebSocket server.',
         usage: '!disconnect',
-        handler: (args, { agentService }) => agentService.disconnect(),
+        handler: (args, {agentService}) => agentService.disconnect(),
     },
     '!clear': {
         description: 'Clears the log view.',
         usage: '!clear',
-        handler: (args, { uiManager }) => uiManager.clearLog(),
+        handler: (args, {uiManager}) => uiManager.clearLog(),
     },
     '!quit': {
         description: 'Exits the TUI application.',
@@ -106,7 +106,7 @@ export function createCommandHandler(stateManager, uiManager, agentService) {
 
         const commandDef = commandDefinitions[cmd];
         if (commandDef) {
-            commandDef.handler(args, { stateManager, uiManager, agentService });
+            commandDef.handler(args, {stateManager, uiManager, agentService});
         } else {
             uiManager.log(`Unknown command: ${command}`);
         }

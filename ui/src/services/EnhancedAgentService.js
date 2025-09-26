@@ -2,7 +2,7 @@ import {EventEmitter} from 'events';
 import * as Y from 'yjs';
 import {WebsocketProvider} from 'y-websocket';
 import log from '@common/utils/logger';
-import {MESSAGE_TYPES, UI_CONSTANTS, CONNECTION_STATUS} from '@/constants/ui';
+import {CONNECTION_STATUS, MESSAGE_TYPES, UI_CONSTANTS} from '@/constants/ui';
 import BaseAgentCommunicationService from '@common/services/AgentCommunicationService.js';
 
 /**

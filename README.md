@@ -4,7 +4,8 @@ SeNARS (Self-Evolving Neuromorphic-Adaptive Reasoning System)
 
 ## Overview
 
-SeNARS is a Self-Evolving Neuromorphic-Adaptive Reasoning System implementing the Non-Axiomatic Reasoning System (NARS) framework. It provides both a Web UI and a Terminal UI for interacting with NARS agents.
+SeNARS is a Self-Evolving Neuromorphic-Adaptive Reasoning System implementing the Non-Axiomatic Reasoning System (NARS)
+framework. It provides both a Web UI and a Terminal UI for interacting with NARS agents.
 
 ## Components
 
@@ -16,18 +17,21 @@ SeNARS is a Self-Evolving Neuromorphic-Adaptive Reasoning System implementing th
 ## Getting Started
 
 To start the agent service:
+
 ```bash
 cd agent
 node server.js
 ```
 
 To start the Web UI:
+
 ```bash
 cd ui
 npm run dev
 ```
 
 To start the TUI:
+
 ```bash
 cd tui
 npm start

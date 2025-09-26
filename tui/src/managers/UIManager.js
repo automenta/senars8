@@ -1,23 +1,23 @@
 import blessed from 'blessed';
 import blessedContrib from 'blessed-contrib';
-import { highlight } from 'cli-highlight';
-import { getHeaderConfig } from '../components/Header.js';
-import { getStatusBarConfig } from '../components/StatusBar.js';
-import { getTaskBoxConfig } from '../components/TaskBox.js';
-import { getLogBoxConfig } from '../components/LogBox.js';
-import { getNarseseInputConfig } from '../components/NarseseInput.js';
-import { getCommandInputConfig } from '../components/CommandInput.js';
-import { createHelpBox } from '../components/HelpBox.js';
-import { createDetailBox } from '../components/DetailBox.js';
-import { getBeliefsBoxConfig } from '../components/BeliefsBox.js';
-import { commandDefinitions } from '../services/commandHandler.js';
-import { EMOJIS, STYLES } from '../TuiConstants.js';
+import {highlight} from 'cli-highlight';
+import {getHeaderConfig} from '../components/Header.js';
+import {getStatusBarConfig} from '../components/StatusBar.js';
+import {getTaskBoxConfig} from '../components/TaskBox.js';
+import {getLogBoxConfig} from '../components/LogBox.js';
+import {getNarseseInputConfig} from '../components/NarseseInput.js';
+import {getCommandInputConfig} from '../components/CommandInput.js';
+import {createHelpBox} from '../components/HelpBox.js';
+import {createDetailBox} from '../components/DetailBox.js';
+import {getBeliefsBoxConfig} from '../components/BeliefsBox.js';
+import {commandDefinitions} from '../services/commandHandler.js';
+import {EMOJIS, STYLES} from '../TuiConstants.js';
 
 export default class UIManager {
     constructor(stateManager) {
         this.stateManager = stateManager;
         this.screen = this.createScreen();
-        this.grid = new blessedContrib.grid({ rows: 12, cols: 12, screen: this.screen });
+        this.grid = new blessedContrib.grid({rows: 12, cols: 12, screen: this.screen});
         this.components = {};
         this.rawTasks = [];
         this.rawBeliefs = [];
@@ -113,7 +113,7 @@ export default class UIManager {
 
     showDetailView(title, data) {
         const jsonString = JSON.stringify(data, null, 2);
-        const highlightedContent = highlight(jsonString, { language: 'json', ignoreIllegals: true });
+        const highlightedContent = highlight(jsonString, {language: 'json', ignoreIllegals: true});
 
         this.components.detailBox.setLabel(` ${EMOJIS.DETAIL} ${title} `);
         this.components.detailBox.setContent(highlightedContent);
@@ -140,7 +140,7 @@ export default class UIManager {
             ].join('\n');
 
             const commands = Object.entries(commandDefinitions)
-                .map(([, { usage, description }]) => `  {bold}${usage}{/bold}\n    L ${description}`)
+                .map(([, {usage, description}]) => `  {bold}${usage}{/bold}\n    L ${description}`)
                 .join('\n\n');
 
             const helpContent = `${keybindings}\n\n{bold}Commands{/bold}\n${commands}`;

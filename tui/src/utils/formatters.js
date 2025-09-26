@@ -1,4 +1,4 @@
-import { appState } from '../modules/state.js';
+import {appState} from '../modules/state.js';
 
 /**
  * Formats tasks for display.
@@ -7,19 +7,19 @@ import { appState } from '../modules/state.js';
  * @returns {string} The formatted task list.
  */
 export function formatTasks(tasks, title = 'Tasks') {
-  if (!tasks || tasks.length === 0) {
-    return `${title}: No items found`;
-  }
+    if (!tasks || tasks.length === 0) {
+        return `${title}: No items found`;
+    }
 
-  return `${title} (${tasks.length}):\n` +
-    tasks.slice(0, 50).map((task, index) => {
-      const termKey = task.termKey || task.statement || task.id || 'Unknown';
-      const priority = (task.priority || task.state?.priority || 0).toFixed(2);
-      const punctuation = task.punctuation || (task.statement?.endsWith('!') ? '!' : task.statement?.endsWith('?') ? '?' : '.');
-      const tv = task.state?.truthValue;
-      const truthValue = tv ? `TV(${tv.frequency.toFixed(2)}, ${tv.confidence.toFixed(2)})` : '';
-      return `  [${index}] ${termKey} ${punctuation} | P: ${priority} ${truthValue}`;
-    }).join('\n');
+    return `${title} (${tasks.length}):\n` +
+        tasks.slice(0, 50).map((task, index) => {
+            const termKey = task.termKey || task.statement || task.id || 'Unknown';
+            const priority = (task.priority || task.state?.priority || 0).toFixed(2);
+            const punctuation = task.punctuation || (task.statement?.endsWith('!') ? '!' : task.statement?.endsWith('?') ? '?' : '.');
+            const tv = task.state?.truthValue;
+            const truthValue = tv ? `TV(${tv.frequency.toFixed(2)}, ${tv.confidence.toFixed(2)})` : '';
+            return `  [${index}] ${termKey} ${punctuation} | P: ${priority} ${truthValue}`;
+        }).join('\n');
 }
 
 /**
@@ -28,9 +28,9 @@ export function formatTasks(tasks, title = 'Tasks') {
  * @returns {string} The formatted system stats.
  */
 export function formatSystemStats(stats) {
-  if (!stats) return 'System stats not available';
+    if (!stats) return 'System stats not available';
 
-  return `System Statistics:
+    return `System Statistics:
 
 {bold}Agent Status:{/bold}
   Cycles: ${stats.cycleCount || 0}
@@ -54,14 +54,14 @@ export function formatSystemStats(stats) {
  * @returns {string} The dashboard content.
  */
 export function createDashboardContent() {
-  const stats = appState.stats || {};
-  const beliefsCount = appState.beliefs.length;
-  const goalsCount = appState.goals.length;
-  const questionsCount = appState.questions.length;
-  const tasksCount = appState.tasks.length;
-  const notificationCount = appState.notifications.length;
+    const stats = appState.stats || {};
+    const beliefsCount = appState.beliefs.length;
+    const goalsCount = appState.goals.length;
+    const questionsCount = appState.questions.length;
+    const tasksCount = appState.tasks.length;
+    const notificationCount = appState.notifications.length;
 
-  return `{bold}SeNARS Real-Time Dashboard{/bold}
+    return `{bold}SeNARS Real-Time Dashboard{/bold}
 
 {bold}System Status{/bold}
   Agent Running: {green}${stats.isRunning ? 'YES' : 'NO'}{/green}
@@ -100,21 +100,21 @@ export function createDashboardContent() {
  * @returns {string} The formatted notification list.
  */
 export function formatNotifications(notifications, title = 'Notifications') {
-  if (!notifications || notifications.length === 0) {
-    return `${title}: No notifications`;
-  }
+    if (!notifications || notifications.length === 0) {
+        return `${title}: No notifications`;
+    }
 
-  return `${title} (${notifications.length}):\n` +
-    notifications.slice(-20).reverse().map((notif) => {
-      const time = notif.timestamp.toLocaleTimeString();
-      const typeSymbol = notif.type === 'error' ? '✗' :
-                        notif.type === 'warning' ? '⚠' :
-                        notif.type === 'success' ? '✓' : 'ℹ';
-      const typeColor = notif.type === 'error' ? 'red' :
-                        notif.type === 'warning' ? 'yellow' :
-                        notif.type === 'success' ? 'green' : 'cyan';
-      return `  {${typeColor}}[${typeSymbol}] {/}${time} - ${notif.message}`;
-    }).join('\n');
+    return `${title} (${notifications.length}):\n` +
+        notifications.slice(-20).reverse().map((notif) => {
+            const time = notif.timestamp.toLocaleTimeString();
+            const typeSymbol = notif.type === 'error' ? '✗' :
+                notif.type === 'warning' ? '⚠' :
+                    notif.type === 'success' ? '✓' : 'ℹ';
+            const typeColor = notif.type === 'error' ? 'red' :
+                notif.type === 'warning' ? 'yellow' :
+                    notif.type === 'success' ? 'green' : 'cyan';
+            return `  {${typeColor}}[${typeSymbol}] {/}${time} - ${notif.message}`;
+        }).join('\n');
 }
 
 /**
@@ -123,24 +123,24 @@ export function formatNotifications(notifications, title = 'Notifications') {
  * @returns {string} The formatted reasoning step.
  */
 export function formatReasoningStep(step) {
-  if (!step) return 'No reasoning step data';
+    if (!step) return 'No reasoning step data';
 
-  let output = '{bold}Reasoning Step{/bold}\n';
-  if (step.description) output += `Description: ${step.description}\n`;
-  if (step.type) output += `Type: ${step.type}\n`;
-  if (step.input) output += `Input: ${typeof step.input === 'string' ? step.input : JSON.stringify(step.input)}\n`;
-  if (step.output) output += `Output: ${typeof step.output === 'string' ? step.output : JSON.stringify(step.output)}\n`;
-  if (step.derivedTasks && step.derivedTasks.length > 0) {
-    output += `Derived Tasks (${step.derivedTasks.length}):\n`;
-    step.derivedTasks.slice(0, 5).forEach((task, idx) => {
-      output += `  ${idx + 1}. ${typeof task === 'string' ? task : JSON.stringify(task)}\n`;
-    });
-    if (step.derivedTasks.length > 5) {
-      output += `  ... and ${step.derivedTasks.length - 5} more\n`;
+    let output = '{bold}Reasoning Step{/bold}\n';
+    if (step.description) output += `Description: ${step.description}\n`;
+    if (step.type) output += `Type: ${step.type}\n`;
+    if (step.input) output += `Input: ${typeof step.input === 'string' ? step.input : JSON.stringify(step.input)}\n`;
+    if (step.output) output += `Output: ${typeof step.output === 'string' ? step.output : JSON.stringify(step.output)}\n`;
+    if (step.derivedTasks && step.derivedTasks.length > 0) {
+        output += `Derived Tasks (${step.derivedTasks.length}):\n`;
+        step.derivedTasks.slice(0, 5).forEach((task, idx) => {
+            output += `  ${idx + 1}. ${typeof task === 'string' ? task : JSON.stringify(task)}\n`;
+        });
+        if (step.derivedTasks.length > 5) {
+            output += `  ... and ${step.derivedTasks.length - 5} more\n`;
+        }
     }
-  }
-  if (step.timestamp) output += `Timestamp: ${step.timestamp}\n`;
-  return output;
+    if (step.timestamp) output += `Timestamp: ${step.timestamp}\n`;
+    return output;
 }
 
 /**
@@ -149,18 +149,18 @@ export function formatReasoningStep(step) {
  * @returns {string} The formatted reasoning trace.
  */
 export function formatReasoningTrace(trace) {
-  if (!trace || !Array.isArray(trace)) return 'No reasoning trace available';
+    if (!trace || !Array.isArray(trace)) return 'No reasoning trace available';
 
-  let output = `{bold}Reasoning Trace (${trace.length} steps){/bold}\n\n`;
+    let output = `{bold}Reasoning Trace (${trace.length} steps){/bold}\n\n`;
 
-  trace.slice(-10).forEach((step, index) => {
-    output += `{underline}Step ${index + 1}:{/underline}\n`;
-    if (step.description) output += `  ${step.description}\n`;
-    if (step.type) output += `  Type: ${step.type}\n`;
-    if (step.input) output += `  Input: ${typeof step.input === 'string' ? step.input : JSON.stringify(step.input).substring(0, 100)}\n`;
-    if (step.output) output += `  Output: ${typeof step.output === 'string' ? step.output : JSON.stringify(step.output).substring(0, 100)}\n`;
-    output += '\n';
-  });
+    trace.slice(-10).forEach((step, index) => {
+        output += `{underline}Step ${index + 1}:{/underline}\n`;
+        if (step.description) output += `  ${step.description}\n`;
+        if (step.type) output += `  Type: ${step.type}\n`;
+        if (step.input) output += `  Input: ${typeof step.input === 'string' ? step.input : JSON.stringify(step.input).substring(0, 100)}\n`;
+        if (step.output) output += `  Output: ${typeof step.output === 'string' ? step.output : JSON.stringify(step.output).substring(0, 100)}\n`;
+        output += '\n';
+    });
 
-  return output;
+    return output;
 }

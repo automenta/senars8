@@ -59,7 +59,7 @@ describe('StateManager', () => {
         stateManager.addLog('Test log');
         expect(stateManager.get('log')).toEqual(['Test log']);
 
-        const tasks = [{ id: 1, term: 'test' }];
+        const tasks = [{id: 1, term: 'test'}];
         stateManager.setTasks(tasks);
         expect(stateManager.get('tasks')).toEqual(tasks);
     });

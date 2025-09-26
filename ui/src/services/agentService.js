@@ -2,7 +2,7 @@ import {EventEmitter} from 'events';
 import * as Y from 'yjs';
 import {WebsocketProvider} from 'y-websocket';
 import log from '@common/utils/logger';
-import {MESSAGE_TYPES, UI_CONSTANTS, CONNECTION_STATUS} from '@/constants/ui';
+import {CONNECTION_STATUS, MESSAGE_TYPES} from '@/constants/ui';
 import AgentCommunicationService from '@common/services/AgentCommunicationService.js';
 
 /**
@@ -154,7 +154,7 @@ class AgentService extends EventEmitter {
     }
 
     sendAgentControl(action) {
-        return this.sendMessage('agentControl', { command: action });
+        return this.sendMessage('agentControl', {command: action});
     }
 
     startAgent() {

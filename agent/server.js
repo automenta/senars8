@@ -35,10 +35,14 @@ const formatTaskForBroadcast = (task) => ({
  */
 const createTaskFilter = (filter) => (task) => {
     switch (filter) {
-        case 'belief': return task.punctuation === '.';
-        case 'goal': return task.punctuation === '!';
-        case 'question': return task.punctuation === '?';
-        default: return true;
+        case 'belief':
+            return task.punctuation === '.';
+        case 'goal':
+            return task.punctuation === '!';
+        case 'question':
+            return task.punctuation === '?';
+        default:
+            return true;
     }
 };
 
@@ -50,10 +54,14 @@ const createTaskFilter = (filter) => (task) => {
 const createPriorityFilter = (priority) => (task) => {
     const taskPriority = task.state?.priority || task.priority || 0;
     switch (priority) {
-        case 'high': return taskPriority >= 0.7;
-        case 'medium': return taskPriority >= 0.3 && taskPriority < 0.7;
-        case 'low': return taskPriority < 0.3;
-        default: return true;
+        case 'high':
+            return taskPriority >= 0.7;
+        case 'medium':
+            return taskPriority >= 0.3 && taskPriority < 0.7;
+        case 'low':
+            return taskPriority < 0.3;
+        default:
+            return true;
     }
 };
 
@@ -86,7 +94,7 @@ const getSystemStats = () => {
     if (agent.system && agent.system.cycleCount !== undefined) {
         systemStats.cycleCount = agent.system.cycleCount;
     }
-    
+
     return systemStats;
 };
 
@@ -381,7 +389,7 @@ async function handleMessage(message, ws) {
                     broadcast({type: 'log', payload: {source: 'system', message: 'Agent reset.'}});
                 }
             };
-            
+
             const command = commands[payload.command];
             if (command) await command();
             break;

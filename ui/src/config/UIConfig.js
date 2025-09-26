@@ -11,7 +11,7 @@ class UIConfig {
                 enableColor: options.tui?.enableColor !== false, // default true
                 enableLogging: options.tui?.enableLogging !== false, // default true
             },
-            
+
             // WebUI Configuration
             webui: {
                 port: options.webui?.port || 3000,
@@ -20,7 +20,7 @@ class UIConfig {
                 maxWebSocketClients: options.webui?.maxWebSocketClients || 100,
                 staticPath: options.webui?.staticPath || '../public',
             },
-            
+
             // Agent Configuration
             agent: {
                 ...options.agentConfig,
@@ -67,28 +67,28 @@ class UIConfig {
      * Get the entire configuration object
      */
     getAll() {
-        return { ...this.config };
+        return {...this.config};
     }
 
     /**
      * Get TUI-specific configuration
      */
     getTUIConfig() {
-        return { ...this.config.tui };
+        return {...this.config.tui};
     }
 
     /**
      * Get WebUI-specific configuration
      */
     getWebUIConfig() {
-        return { ...this.config.webui };
+        return {...this.config.webui};
     }
 
     /**
      * Get Agent-specific configuration
      */
     getAgentConfig() {
-        return { ...this.config.agent };
+        return {...this.config.agent};
     }
 }
 

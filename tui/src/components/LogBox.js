@@ -1,4 +1,4 @@
-import { STYLES, EMOJIS, COLORS } from '../TuiConstants.js';
+import {COLORS, EMOJIS, STYLES} from '../TuiConstants.js';
 
 /**
  * Returns the configuration for the log box component.

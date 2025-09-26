@@ -61,6 +61,7 @@ npm run dev
 ## Integration with Core Components
 
 The Web UI connects to the agent service and integrates with:
+
 - Core reasoning engine through the agent service
 - Memory systems for task management
 - Event system for real-time updates

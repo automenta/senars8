@@ -10,10 +10,43 @@ jest.mock('blessed', () => ({
         on: jest.fn(),
         removeListener: jest.fn(),
     })),
-    box: jest.fn(options => ({ ...options, on: jest.fn(), focus: jest.fn(), style: {}, hide: jest.fn(), show: jest.fn(), setContent: jest.fn(), setLabel: jest.fn() })),
-    list: jest.fn(options => ({ ...options, on: jest.fn(), focus: jest.fn(), style: {}, hide: jest.fn(), show: jest.fn(), setItems: jest.fn() })),
-    log: jest.fn(options => ({ ...options, on: jest.fn(), focus: jest.fn(), style: {}, hide: jest.fn(), show: jest.fn(), log: jest.fn(), setContent: jest.fn() })),
-    textbox: jest.fn(options => ({ ...options, on: jest.fn(), focus: jest.fn(), style: {}, hide: jest.fn(), show: jest.fn() })),
+    box: jest.fn(options => ({
+        ...options,
+        on: jest.fn(),
+        focus: jest.fn(),
+        style: {},
+        hide: jest.fn(),
+        show: jest.fn(),
+        setContent: jest.fn(),
+        setLabel: jest.fn()
+    })),
+    list: jest.fn(options => ({
+        ...options,
+        on: jest.fn(),
+        focus: jest.fn(),
+        style: {},
+        hide: jest.fn(),
+        show: jest.fn(),
+        setItems: jest.fn()
+    })),
+    log: jest.fn(options => ({
+        ...options,
+        on: jest.fn(),
+        focus: jest.fn(),
+        style: {},
+        hide: jest.fn(),
+        show: jest.fn(),
+        log: jest.fn(),
+        setContent: jest.fn()
+    })),
+    textbox: jest.fn(options => ({
+        ...options,
+        on: jest.fn(),
+        focus: jest.fn(),
+        style: {},
+        hide: jest.fn(),
+        show: jest.fn()
+    })),
 }));
 
 jest.mock('blessed-contrib', () => ({
@@ -22,7 +55,7 @@ jest.mock('blessed-contrib', () => ({
             ...options,
             on: jest.fn(),
             focus: jest.fn(),
-            style: { border: {} },
+            style: {border: {}},
             hide: jest.fn(),
             show: jest.fn(),
             log: jest.fn(),
@@ -37,16 +70,33 @@ jest.mock('cli-highlight', () => ({
     highlight: jest.fn(text => text),
 }));
 
-jest.mock('../src/components/Header.js', () => ({ getHeaderConfig: jest.fn(() => ({})) }));
-jest.mock('../src/components/StatusBar.js', () => ({ getStatusBarConfig: jest.fn(() => ({})) }));
-jest.mock('../src/components/TaskBox.js', () => ({ getTaskBoxConfig: jest.fn(() => ({})) }));
-jest.mock('../src/components/LogBox.js', () => ({ getLogBoxConfig: jest.fn(() => ({})) }));
-jest.mock('../src/components/NarseseInput.js', () => ({ getNarseseInputConfig: jest.fn(() => ({})) }));
-jest.mock('../src/components/CommandInput.js', () => ({ getCommandInputConfig: jest.fn(() => ({})) }));
-jest.mock('../src/components/HelpBox.js', () => ({ createHelpBox: jest.fn(() => ({ hide: jest.fn(), show: jest.fn(), focus: jest.fn(), setContent: jest.fn(), visible: false })) }));
-jest.mock('../src/components/DetailBox.js', () => ({ createDetailBox: jest.fn(() => ({ hide: jest.fn(), show: jest.fn(), focus: jest.fn(), setContent: jest.fn(), setLabel: jest.fn(), visible: false })) }));
-jest.mock('../src/components/BeliefsBox.js', () => ({ getBeliefsBoxConfig: jest.fn(() => ({})) }));
-jest.mock('../src/services/commandHandler.js', () => ({ commandDefinitions: {} }));
+jest.mock('../src/components/Header.js', () => ({getHeaderConfig: jest.fn(() => ({}))}));
+jest.mock('../src/components/StatusBar.js', () => ({getStatusBarConfig: jest.fn(() => ({}))}));
+jest.mock('../src/components/TaskBox.js', () => ({getTaskBoxConfig: jest.fn(() => ({}))}));
+jest.mock('../src/components/LogBox.js', () => ({getLogBoxConfig: jest.fn(() => ({}))}));
+jest.mock('../src/components/NarseseInput.js', () => ({getNarseseInputConfig: jest.fn(() => ({}))}));
+jest.mock('../src/components/CommandInput.js', () => ({getCommandInputConfig: jest.fn(() => ({}))}));
+jest.mock('../src/components/HelpBox.js', () => ({
+    createHelpBox: jest.fn(() => ({
+        hide: jest.fn(),
+        show: jest.fn(),
+        focus: jest.fn(),
+        setContent: jest.fn(),
+        visible: false
+    }))
+}));
+jest.mock('../src/components/DetailBox.js', () => ({
+    createDetailBox: jest.fn(() => ({
+        hide: jest.fn(),
+        show: jest.fn(),
+        focus: jest.fn(),
+        setContent: jest.fn(),
+        setLabel: jest.fn(),
+        visible: false
+    }))
+}));
+jest.mock('../src/components/BeliefsBox.js', () => ({getBeliefsBoxConfig: jest.fn(() => ({}))}));
+jest.mock('../src/services/commandHandler.js', () => ({commandDefinitions: {}}));
 
 
 describe('UIManager', () => {

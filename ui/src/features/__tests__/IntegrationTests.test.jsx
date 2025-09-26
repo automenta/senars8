@@ -1,10 +1,10 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import ReasoningDebuggerPanel from '@/features/reasoning/ReasoningDebuggerPanel';
 import TaskInspectorPanel from '@/features/task/TaskInspectorPanel';
-import { ConnectionProvider } from '@/context/ConnectionProvider';
-import { NotificationProvider } from '@/context/NotificationContext';
-import { SettingsProvider } from '@/context/SettingsProvider';
+import {ConnectionProvider} from '@/context/ConnectionProvider';
+import {NotificationProvider} from '@/context/NotificationContext';
+import {SettingsProvider} from '@/context/SettingsProvider';
 
 // Mock lucide-react to prevent SVG rendering issues and make testing easier
 jest.mock('lucide-react', () => {
@@ -23,7 +23,7 @@ jest.mock('lucide-react', () => {
 jest.mock('@/services/agentService');
 jest.mock('@/services/notificationService');
 jest.mock('@/context/useConnection', () => ({
-    useConnection: () => ({ isConnected: true, connectionStatus: 'connected' }),
+    useConnection: () => ({isConnected: true, connectionStatus: 'connected'}),
 }));
 jest.mock('@/hooks/useReasoningDebugger', () => ({
     __esModule: true,
@@ -41,7 +41,7 @@ jest.mock('@/hooks/useInputHistory', () => () => ({
     addToHistory: jest.fn(),
 }));
 
-const TestWrapper = ({ children }) => (
+const TestWrapper = ({children}) => (
     <SettingsProvider>
         <ConnectionProvider>
             <NotificationProvider>{children}</NotificationProvider>
@@ -51,26 +51,26 @@ const TestWrapper = ({ children }) => (
 
 describe('ReasoningDebuggerPanel', () => {
     it('renders without crashing', () => {
-        render(<ReasoningDebuggerPanel />, { wrapper: TestWrapper });
-        expect(screen.getByRole('heading', { name: /Reasoning Debugger/i })).toBeInTheDocument();
+        render(<ReasoningDebuggerPanel/>, {wrapper: TestWrapper});
+        expect(screen.getByRole('heading', {name: /Reasoning Debugger/i})).toBeInTheDocument();
     });
 
     it('displays input field and action buttons', () => {
-        render(<ReasoningDebuggerPanel />, { wrapper: TestWrapper });
-        expect(screen.getByRole('textbox', { name: /Narsese Statement/i })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /Execute/i })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /Debug/i })).toBeInTheDocument();
+        render(<ReasoningDebuggerPanel/>, {wrapper: TestWrapper});
+        expect(screen.getByRole('textbox', {name: /Narsese Statement/i})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /Execute/i})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /Debug/i})).toBeInTheDocument();
     });
 });
 
 describe('TaskInspectorPanel', () => {
     it('renders without crashing', () => {
-        render(<TaskInspectorPanel />, { wrapper: TestWrapper });
-        expect(screen.getByRole('heading', { name: /Task Inspector/i })).toBeInTheDocument();
+        render(<TaskInspectorPanel/>, {wrapper: TestWrapper});
+        expect(screen.getByRole('heading', {name: /Task Inspector/i})).toBeInTheDocument();
     });
 
     it('displays filter controls', () => {
-        render(<TaskInspectorPanel />, { wrapper: TestWrapper });
+        render(<TaskInspectorPanel/>, {wrapper: TestWrapper});
         expect(screen.getByPlaceholderText(/Filter tasks/i)).toBeInTheDocument();
         const selects = screen.getAllByRole('combobox');
         expect(selects[0]).toHaveValue('all'); // Type filter
@@ -80,7 +80,7 @@ describe('TaskInspectorPanel', () => {
 
 describe('Core Integration Utilities', () => {
     it('validateNarseseStatement works correctly', async () => {
-        const { validateNarseseStatement } = await import('@/utils/coreIntegration');
+        const {validateNarseseStatement} = await import('@/utils/coreIntegration');
 
         expect(validateNarseseStatement('<bird --> animal>.')).toEqual({
             valid: true,

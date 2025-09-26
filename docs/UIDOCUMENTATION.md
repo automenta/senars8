@@ -38,6 +38,7 @@ Both interfaces connect to the same backend agent service, ensuring consistent b
 Both UIs use the same WebSocket-based communication protocol to interact with the agent service:
 
 ### Common Message Types
+
 - `narsese` - Send Narsese statements to the agent
 - `agentControl` - Start/stop/reset agent
 - `get_tasks` - Retrieve current tasks
@@ -47,6 +48,7 @@ Both UIs use the same WebSocket-based communication protocol to interact with th
 - `get_config` - Get agent configuration
 
 ### Common Events from Agent
+
 - `system_stats` - System statistics updates
 - `add_belief` - New belief created
 - `add_goal` - New goal created
@@ -60,19 +62,21 @@ To ensure consistent communication behavior, both UIs use a shared communication
 
 - **Location**: `common/services/AgentCommunicationService.js`
 - **Purpose**: Provides consistent connection management, message queuing, and reconnection logic
-- **Adaptation**: 
-  - Web UI: Uses browser WebSocket API
-  - TUI: Uses Node.js `ws` library
+- **Adaptation**:
+    - Web UI: Uses browser WebSocket API
+    - TUI: Uses Node.js `ws` library
 
 ## Integration Points
 
 ### Web UI Integration
+
 - Uses the shared service while maintaining Y.js CRDT functionality for collaboration
 - Enhanced error handling and logging
 - Message queuing and reconnection logic
 - Consistent event system across interfaces
 
 ### TUI Integration
+
 - Lightweight terminal interface for quick interactions
 - Real-time updates from agent
 - Command-based interface with help system
@@ -81,6 +85,7 @@ To ensure consistent communication behavior, both UIs use a shared communication
 ## Backend Components
 
 ### Agent Service (`agent/server.js`)
+
 - WebSocket server for UI connections
 - Event broadcasting to connected clients
 - File system access for file operations
@@ -88,6 +93,7 @@ To ensure consistent communication behavior, both UIs use a shared communication
 - Memory and reasoning integration
 
 ### Core System (`core/`)
+
 - NARS reasoning engine
 - Memory management
 - Task processing
@@ -96,12 +102,14 @@ To ensure consistent communication behavior, both UIs use a shared communication
 ## Development Workflow
 
 ### Adding New Features
+
 1. Define new message types in the protocol
 2. Implement backend support in `agent/server.js`
 3. Add shared communication logic in `common/services/`
 4. Implement UI handling in both Web and TUI interfaces
 
 ### Testing
+
 - Unit tests for shared communication service
 - Integration tests for UI-to-agent communication
 - End-to-end tests for complete workflows
@@ -117,12 +125,14 @@ To ensure consistent communication behavior, both UIs use a shared communication
 ## Troubleshooting
 
 ### Common Issues
+
 - Connection timeouts: Check agent service status
 - Message queuing: Verify WebSocket connection state
 - UI inconsistencies: Ensure both interfaces use the shared service
 - CRDT conflicts: May require Y.js specific handling in Web UI only
 
 ### Debugging
+
 - Enable detailed logging in agent service
 - Monitor WebSocket connections
 - Check protocol message format consistency

@@ -1,4 +1,4 @@
-import { debug, error as logError, warn, info } from '../../core/utils/logger.js';
+import {error as logError, info, warn} from '../../core/utils/logger.js';
 
 /**
  * WebSocket message handler for the WebUI
@@ -74,8 +74,8 @@ class WebSocketHandler {
      * Handle system control commands (start/stop)
      */
     async handleSystemControl(payload, ws) {
-        const { action } = payload;
-        
+        const {action} = payload;
+
         try {
             switch (action) {
                 case 'start':
@@ -83,7 +83,7 @@ class WebSocketHandler {
                         this.agent.start(); // Start the agent
                         this.sendResponse(ws, {
                             type: 'systemControlResponse',
-                            payload: { success: true, action: 'start', message: 'Agent started' }
+                            payload: {success: true, action: 'start', message: 'Agent started'}
                         });
                         info('Agent started via WebSocket');
                     } else {
@@ -95,7 +95,7 @@ class WebSocketHandler {
                         this.agent.stop(); // Stop the agent
                         this.sendResponse(ws, {
                             type: 'systemControlResponse',
-                            payload: { success: true, action: 'stop', message: 'Agent stopped' }
+                            payload: {success: true, action: 'stop', message: 'Agent stopped'}
                         });
                         info('Agent stopped via WebSocket');
                     } else {
@@ -121,7 +121,7 @@ class WebSocketHandler {
                 type: 'addTaskResponse',
                 payload: result
             });
-            
+
             // Broadcast the state update to all clients
             if (this.broadcastCallback) {
                 this.broadcastCallback();
@@ -142,7 +142,7 @@ class WebSocketHandler {
                 type: 'addBeliefResponse',
                 payload: result
             });
-            
+
             // Broadcast the state update to all clients
             if (this.broadcastCallback) {
                 this.broadcastCallback();
@@ -163,7 +163,7 @@ class WebSocketHandler {
                 type: 'addGoalResponse',
                 payload: result
             });
-            
+
             // Broadcast the state update to all clients
             if (this.broadcastCallback) {
                 this.broadcastCallback();
@@ -184,7 +184,7 @@ class WebSocketHandler {
                 type: 'addQuestionResponse',
                 payload: result
             });
-            
+
             // Broadcast the state update to all clients
             if (this.broadcastCallback) {
                 this.broadcastCallback();
@@ -210,7 +210,7 @@ class WebSocketHandler {
     sendErrorResponse(ws, error, originalType) {
         this.sendResponse(ws, {
             type: `${originalType}Response`,
-            payload: { success: false, error }
+            payload: {success: false, error}
         });
     }
 }

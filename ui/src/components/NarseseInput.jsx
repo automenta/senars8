@@ -8,7 +8,7 @@ function NarseseInput({value, onChange, onSend, history, disabled = false, onKey
     const handleKeyDown = (e) => {
         if (disabled) return;
 
-        const mockEvent = (value) => ({ target: { value } });
+        const mockEvent = (value) => ({target: {value}});
 
         try {
             if (e.key === 'ArrowUp') {

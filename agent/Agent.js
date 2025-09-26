@@ -83,7 +83,7 @@ class Agent {
         const params = this._buildToolParameters(tool, action.parameters);
         return tool.handler(params);
     }
-    
+
     _buildToolParameters(tool, actionParams) {
         const toolParamsDef = tool.parameters;
         const paramNames = Object.keys(toolParamsDef?.properties || {});
@@ -176,7 +176,7 @@ class Agent {
         }
         return this.system.memory[methodName]?.() || [];
     }
-    
+
     // Private helper method to reduce duplication in memory access methods with parameters
     _getMemoryItemsWithParams(methodName, ...params) {
         if (!this.isInitialized || !this.system || !this.system.memory) {

@@ -2,8 +2,8 @@
 import {createUnifiedErrorHandler} from '@core/utils/errorHandler.js';
 import agentIntegrationService from '@/services/agentIntegration.js';
 import {
-    validateNarseseStatement as coreValidate,
-    createTaskFromStatement as coreCreateTask
+    createTaskFromStatement as coreCreateTask,
+    validateNarseseStatement as coreValidate
 } from '@common/utils/coreUtils.js';
 
 // Create a unified error handler for UI components

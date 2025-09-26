@@ -1,6 +1,7 @@
 # SeNARS TUI (Text User Interface)
 
-The SeNARS TUI is a terminal-based interface for the Self-Evolving Neuromorphic-Adaptive Reasoning System. It provides a lightweight, efficient way to interact with NARS agents directly from the command line.
+The SeNARS TUI is a terminal-based interface for the Self-Evolving Neuromorphic-Adaptive Reasoning System. It provides a
+lightweight, efficient way to interact with NARS agents directly from the command line.
 
 ## Features
 
@@ -13,6 +14,7 @@ The SeNARS TUI is a terminal-based interface for the Self-Evolving Neuromorphic-
 ## Architecture
 
 The TUI uses:
+
 - `blessed` for terminal UI rendering
 - A shared `AgentCommunicationService` for WebSocket communication with the agent service
 - The same communication protocol as the Web UI for consistent behavior
@@ -34,15 +36,15 @@ Once started, the TUI will attempt to connect to the agent service at `ws://loca
 
 ## Commands
 
-| Command | Description |
-|--------|-------------|
-| `!start` | Start the agent cycling |
-| `!stop` | Stop the agent cycling |
-| `!reset` | Reset the agent |
-| `!add <task>` | Add a new task |
-| `!query <text>` | Query the agent |
-| `!stats` | Get system statistics |
-| `!help` | Show help information |
+| Command         | Description             |
+|-----------------|-------------------------|
+| `!start`        | Start the agent cycling |
+| `!stop`         | Stop the agent cycling  |
+| `!reset`        | Reset the agent         |
+| `!add <task>`   | Add a new task          |
+| `!query <text>` | Query the agent         |
+| `!stats`        | Get system statistics   |
+| `!help`         | Show help information   |
 
 ## Examples
 
@@ -55,6 +57,7 @@ Once started, the TUI will attempt to connect to the agent service at `ws://loca
 ## Integration with Core Components
 
 The TUI connects to the agent service via WebSocket and integrates with:
+
 - Core reasoning engine through the agent service
 - Memory systems for task management
 - Event system for real-time updates
@@ -62,7 +65,9 @@ The TUI connects to the agent service via WebSocket and integrates with:
 
 ## Shared Communication Service
 
-The TUI uses a shared communication service that's also used by the Web UI, ensuring consistent behavior across interfaces. The service handles:
+The TUI uses a shared communication service that's also used by the Web UI, ensuring consistent behavior across
+interfaces. The service handles:
+
 - Connection management and reconnection logic
 - Message queuing when disconnected
 - Event emission for UI updates

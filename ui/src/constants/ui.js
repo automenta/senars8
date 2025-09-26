@@ -1,4 +1,4 @@
-import { CONFIG } from '@common/constants/config.js';
+import {CONFIG} from '@common/constants/config.js';
 import {
     CONNECTION_STATUS as CORE_CONNECTION_STATUS,
     MESSAGE_TYPES as CORE_MESSAGE_TYPES,

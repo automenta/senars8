@@ -1,4 +1,4 @@
-import { debug, error as logError, warn, info } from '../../core/utils/logger.js';
+import {info} from '../../core/utils/logger.js';
 
 /**
  * API module for the WebUI that handles all API endpoints
@@ -88,9 +88,9 @@ class WebUIAPI {
         }
 
         // Parse the content into a term and create a task
-        const { parseTerm, Task } = await import('../../core/index.js');
+        const {parseTerm, Task} = await import('../../core/index.js');
         const term = parseTerm(content);
-        
+
         if (!term) {
             throw new Error(`Could not parse task content: ${content}`);
         }
@@ -110,10 +110,10 @@ class WebUIAPI {
         // Create and add the task to the system
         const task = new Task(term, punctuation);
         await this.agent.system.addTasks([task]);
-        
+
         info(`Task added via API: ${content} with punctuation: ${punctuation}`);
-        
-        return { success: true, message: 'Task added successfully', task: { content, type: punctuation } };
+
+        return {success: true, message: 'Task added successfully', task: {content, type: punctuation}};
     }
 
     /**
@@ -133,9 +133,9 @@ class WebUIAPI {
         }
 
         // Parse the content into a term and create a belief
-        const { parseTerm, Task } = await import('../../core/index.js');
+        const {parseTerm, Task} = await import('../../core/index.js');
         const term = parseTerm(content);
-        
+
         if (!term) {
             throw new Error(`Could not parse belief content: ${content}`);
         }
@@ -143,10 +143,10 @@ class WebUIAPI {
         // Create a belief task with '.' punctuation
         const task = new Task(term, '.');
         await this.agent.system.addTasks([task]);
-        
+
         info(`Belief added via API: ${content}`);
-        
-        return { success: true, message: 'Belief added successfully', belief: { content } };
+
+        return {success: true, message: 'Belief added successfully', belief: {content}};
     }
 
     /**
@@ -166,9 +166,9 @@ class WebUIAPI {
         }
 
         // Parse the content into a term and create a goal
-        const { parseTerm, Task } = await import('../../core/index.js');
+        const {parseTerm, Task} = await import('../../core/index.js');
         const term = parseTerm(content);
-        
+
         if (!term) {
             throw new Error(`Could not parse goal content: ${content}`);
         }
@@ -176,10 +176,10 @@ class WebUIAPI {
         // Create a goal task with '!' punctuation
         const task = new Task(term, '!');
         await this.agent.system.addTasks([task]);
-        
+
         info(`Goal added via API: ${content}`);
-        
-        return { success: true, message: 'Goal added successfully', goal: { content } };
+
+        return {success: true, message: 'Goal added successfully', goal: {content}};
     }
 
     /**
@@ -199,9 +199,9 @@ class WebUIAPI {
         }
 
         // Parse the content into a term and create a question
-        const { parseTerm, Task } = await import('../../core/index.js');
+        const {parseTerm, Task} = await import('../../core/index.js');
         const term = parseTerm(content);
-        
+
         if (!term) {
             throw new Error(`Could not parse question content: ${content}`);
         }
@@ -209,10 +209,10 @@ class WebUIAPI {
         // Create a question task with '?' punctuation
         const task = new Task(term, '?');
         await this.agent.system.addTasks([task]);
-        
+
         info(`Question added via API: ${content}`);
-        
-        return { success: true, message: 'Question added successfully', question: { content } };
+
+        return {success: true, message: 'Question added successfully', question: {content}};
     }
 }
 

@@ -1,5 +1,5 @@
 import readline from 'readline';
-import { debug, error as logError, warn, info } from '../../core/utils/logger.js';
+import {debug, error as logError, info, warn} from '../../core/utils/logger.js';
 
 class TuiView {
     constructor(agent, renderer, config = null) {
@@ -9,16 +9,16 @@ class TuiView {
         this.rl = null;
         this.isRunning = false;
         this.updateInterval = null;
-        
+
         // Use default update interval if config not provided
         this.updateIntervalMs = config ? config.getUpdateInterval() : 1000;
     }
 
     start() {
         if (this.isRunning) return;
-        
+
         this.isRunning = true;
-        
+
         // Create readline interface
         this.rl = readline.createInterface({
             input: process.stdin,
@@ -45,14 +45,14 @@ class TuiView {
 
     stop() {
         if (!this.isRunning) return;
-        
+
         this.isRunning = false;
-        
+
         if (this.updateInterval) {
             clearInterval(this.updateInterval);
             this.updateInterval = null;
         }
-        
+
         if (this.rl) {
             this.rl.close();
             this.rl = null;
@@ -63,7 +63,7 @@ class TuiView {
 
     render() {
         if (!this.isRunning) return;
-        
+
         try {
             // Get system state for rendering
             const systemState = this.getSystemState();
@@ -201,9 +201,9 @@ class TuiView {
             }
 
             // Parse the content into a term and create a task
-            const { parseTerm, Task } = await import('../../core/index.js');
+            const {parseTerm, Task} = await import('../../core/index.js');
             const term = parseTerm(content);
-            
+
             if (!term) {
                 console.log(`Could not parse task content: ${content}`);
                 warn(`TUI addTask: Could not parse content: ${content}`);
@@ -212,10 +212,10 @@ class TuiView {
 
             // Create a task with '?' punctuation (question type) by default
             const task = new Task(term, '?');
-            
+
             // Add the task to the system
             await this.agent.system.addTasks([task]);
-            
+
             console.log(`Task added successfully: ${content}`);
             info(`TUI Task added: ${content}`);
         } catch (error) {
@@ -233,9 +233,9 @@ class TuiView {
             }
 
             // Parse the content into a term and create a belief
-            const { parseTerm, Task } = await import('../../core/index.js');
+            const {parseTerm, Task} = await import('../../core/index.js');
             const term = parseTerm(content);
-            
+
             if (!term) {
                 console.log(`Could not parse belief content: ${content}`);
                 warn(`TUI addBelief: Could not parse content: ${content}`);
@@ -244,10 +244,10 @@ class TuiView {
 
             // Create a belief task with '.' punctuation
             const task = new Task(term, '.');
-            
+
             // Add the task to the system
             await this.agent.system.addTasks([task]);
-            
+
             console.log(`Belief added successfully: ${content}`);
             info(`TUI Belief added: ${content}`);
         } catch (error) {
@@ -257,4 +257,4 @@ class TuiView {
     }
 }
 
-export { TuiView };
+export {TuiView};

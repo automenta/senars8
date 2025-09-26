@@ -1,5 +1,5 @@
 import blessed from 'blessed';
-import { STYLES, EMOJIS } from '../TuiConstants.js';
+import {EMOJIS, STYLES} from '../TuiConstants.js';
 
 /**
  * Creates the detail view box component. This box is shown dynamically.

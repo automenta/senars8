@@ -1,73 +1,74 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import ErrorBoundary from '../ErrorBoundary';
 
 // A component that throws an error for testing purposes
 const ProblemChild = () => {
-  throw new Error('Test Error');
+    throw new Error('Test Error');
 };
 
 describe('ErrorBoundary', () => {
-  let consoleErrorSpy;
+    let consoleErrorSpy;
 
-  beforeEach(() => {
-    // We expect errors in these tests, so we suppress the console output
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-  });
+    beforeEach(() => {
+        // We expect errors in these tests, so we suppress the console output
+        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {
+        });
+    });
 
-  afterEach(() => {
-    consoleErrorSpy.mockRestore();
-  });
+    afterEach(() => {
+        consoleErrorSpy.mockRestore();
+    });
 
-  it('should render children when there is no error', () => {
-    render(
-      <ErrorBoundary>
-        <div>Child content</div>
-      </ErrorBoundary>
-    );
-    expect(screen.getByText('Child content')).toBeInTheDocument();
-  });
+    it('should render children when there is no error', () => {
+        render(
+            <ErrorBoundary>
+                <div>Child content</div>
+            </ErrorBoundary>
+        );
+        expect(screen.getByText('Child content')).toBeInTheDocument();
+    });
 
-  it('should display an error message when a child component throws an error', () => {
-    render(
-      <ErrorBoundary>
-        <ProblemChild />
-      </ErrorBoundary>
-    );
-    expect(screen.getByText('Something went wrong')).toBeInTheDocument();
-  });
+    it('should display an error message when a child component throws an error', () => {
+        render(
+            <ErrorBoundary>
+                <ProblemChild/>
+            </ErrorBoundary>
+        );
+        expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+    });
 
-  it('should allow retrying after an error', () => {
-    let shouldThrow = true;
-    const FlakyComponent = () => {
-        if (shouldThrow) {
-            throw new Error('I am flaky');
-        }
-        return <div>It works now!</div>;
-    };
+    it('should allow retrying after an error', () => {
+        let shouldThrow = true;
+        const FlakyComponent = () => {
+            if (shouldThrow) {
+                throw new Error('I am flaky');
+            }
+            return <div>It works now!</div>;
+        };
 
-    const { rerender } = render(<ErrorBoundary><FlakyComponent/></ErrorBoundary>);
-    expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+        const {rerender} = render(<ErrorBoundary><FlakyComponent/></ErrorBoundary>);
+        expect(screen.getByText('Something went wrong')).toBeInTheDocument();
 
-    shouldThrow = false;
-    fireEvent.click(screen.getByRole('button', { name: /try again/i }));
+        shouldThrow = false;
+        fireEvent.click(screen.getByRole('button', {name: /try again/i}));
 
-    // Re-render the ErrorBoundary with the now-working child
-    rerender(<ErrorBoundary><FlakyComponent/></ErrorBoundary>);
+        // Re-render the ErrorBoundary with the now-working child
+        rerender(<ErrorBoundary><FlakyComponent/></ErrorBoundary>);
 
-    expect(screen.getByText('It works now!')).toBeInTheDocument();
-  });
+        expect(screen.getByText('It works now!')).toBeInTheDocument();
+    });
 
-  it('should reload the page when the reload button is clicked', () => {
-    const mockReload = jest.fn();
+    it('should reload the page when the reload button is clicked', () => {
+        const mockReload = jest.fn();
 
-    render(
-      <ErrorBoundary onReload={mockReload}>
-        <ProblemChild />
-      </ErrorBoundary>
-    );
+        render(
+            <ErrorBoundary onReload={mockReload}>
+                <ProblemChild/>
+            </ErrorBoundary>
+        );
 
-    fireEvent.click(screen.getByRole('button', { name: /reload page/i }));
-    expect(mockReload).toHaveBeenCalled();
-  });
+        fireEvent.click(screen.getByRole('button', {name: /reload page/i}));
+        expect(mockReload).toHaveBeenCalled();
+    });
 });

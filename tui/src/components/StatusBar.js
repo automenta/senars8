@@ -1,4 +1,4 @@
-import { STYLES, COLORS } from '../TuiConstants.js';
+import {COLORS} from '../TuiConstants.js';
 
 /**
  * Returns the configuration for the status bar component.

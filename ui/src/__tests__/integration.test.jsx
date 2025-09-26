@@ -3,16 +3,15 @@ import {fireEvent, render, screen, waitFor, within} from '@testing-library/react
 import userEvent from '@testing-library/user-event';
 import App from '@/App';
 import agentService from '@/services/agentService';
-import agentIntegrationService from '@/services/agentIntegration';
 import notificationService from '@/services/notificationService';
-import { ThemeProvider } from '@/context/ThemeProvider';
-import { SettingsProvider } from '@/context/SettingsProvider';
-import { ConnectionProvider } from '@/context/ConnectionProvider';
-import { SharedStateProvider } from '@/context/SharedStateProvider';
-import { NotificationProvider } from '@/context/NotificationContext';
-import { SearchProvider } from '@/context/SearchContext';
-import { TaskProvider } from '@/context/TaskContext';
-import { SessionProvider } from '@/context/SessionContext';
+import {ThemeProvider} from '@/context/ThemeProvider';
+import {SettingsProvider} from '@/context/SettingsProvider';
+import {ConnectionProvider} from '@/context/ConnectionProvider';
+import {SharedStateProvider} from '@/context/SharedStateProvider';
+import {NotificationProvider} from '@/context/NotificationContext';
+import {SearchProvider} from '@/context/SearchContext';
+import {TaskProvider} from '@/context/TaskContext';
+import {SessionProvider} from '@/context/SessionContext';
 import {Model} from 'flexlayout-react';
 import defaultLayout from '@/features/defaultLayout';
 
@@ -22,7 +21,7 @@ jest.mock('@/services/agentService', () => ({
     off: jest.fn(),
     connect: jest.fn(),
     disconnect: jest.fn(),
-    send: jest.fn(function(message) {
+    send: jest.fn(function (message) {
         if (typeof message === 'object' && message.content) {
             // This logic is a simplified version of what might happen in the real service
             if (message.content.startsWith('<') && message.content.includes('-->')) {
@@ -69,21 +68,21 @@ jest.mock('@/hooks/useLayoutModel', () => ({
 }));
 
 // Mock child components that are not essential for this integration test
-jest.mock('@/features/reasoning/VisualReasoningPanel', () => () => <div data-testid="mock-visual-reasoning-panel" />);
-jest.mock('@/features/reasoning/ConceptMap', () => () => <div data-testid="mock-concept-map" />);
-jest.mock('react-force-graph-2d', () => () => <div data-testid="mock-force-graph" />);
-jest.mock('react-xtermjs', () => ({ XTerm: () => null }));
+jest.mock('@/features/reasoning/VisualReasoningPanel', () => () => <div data-testid="mock-visual-reasoning-panel"/>);
+jest.mock('@/features/reasoning/ConceptMap', () => () => <div data-testid="mock-concept-map"/>);
+jest.mock('react-force-graph-2d', () => () => <div data-testid="mock-force-graph"/>);
+jest.mock('react-xtermjs', () => ({XTerm: () => null}));
 jest.mock('flexlayout-react', () => {
     const original = jest.requireActual('flexlayout-react');
     const React = require('react');
     return {
         ...original,
-        Layout: ({ factory, model }) => {
+        Layout: ({factory, model}) => {
             const components = [];
             model.visitNodes((node) => {
                 if (node.getType() === 'tab') {
                     const element = factory(node);
-                    components.push(React.cloneElement(element, { key: node.getId() }));
+                    components.push(React.cloneElement(element, {key: node.getId()}));
                 }
             });
             return <div data-testid="mock-layout">{components}</div>;
@@ -93,7 +92,7 @@ jest.mock('flexlayout-react', () => {
 
 // Helper function to render with all providers
 const renderWithProviders = (ui, options) => {
-    const AllTheProviders = ({ children }) => (
+    const AllTheProviders = ({children}) => (
         <ThemeProvider>
             <SettingsProvider>
                 <ConnectionProvider>
@@ -110,7 +109,7 @@ const renderWithProviders = (ui, options) => {
             </SettingsProvider>
         </ThemeProvider>
     );
-    return render(ui, { wrapper: AllTheProviders, ...options });
+    return render(ui, {wrapper: AllTheProviders, ...options});
 };
 
 describe('UI-Agent-Core Integration Tests', () => {
@@ -120,7 +119,7 @@ describe('UI-Agent-Core Integration Tests', () => {
 
     describe('Status Panel Integration', () => {
         test('displays agent information correctly', async () => {
-            renderWithProviders(<App />);
+            renderWithProviders(<App/>);
             await waitFor(() => {
                 const cycleCard = screen.getByText(/Cycles/).closest('.status-card');
                 expect(within(cycleCard).getByText('100')).toBeInTheDocument();
@@ -140,12 +139,12 @@ describe('UI-Agent-Core Integration Tests', () => {
     describe('Input Panel Integration', () => {
         test('sends narsese statement to agent', async () => {
             agentService.sendNarsese.mockResolvedValue(true);
-            renderWithProviders(<App />);
+            renderWithProviders(<App/>);
 
             const input = screen.getByLabelText('Narsese input');
             await userEvent.type(input, '<bird --> animal>.');
 
-            const sendButton = screen.getByRole('button', { name: /Send/i });
+            const sendButton = screen.getByRole('button', {name: /Send/i});
             fireEvent.click(sendButton);
 
             await waitFor(() => {
@@ -160,12 +159,12 @@ describe('UI-Agent-Core Integration Tests', () => {
 
         test('sends natural language to agent', async () => {
             agentService.sendNaturalLanguage.mockResolvedValue(true);
-            renderWithProviders(<App />);
+            renderWithProviders(<App/>);
 
             const input = screen.getByLabelText('Narsese input');
             await userEvent.type(input, 'Tell me about birds');
 
-            const sendButton = screen.getByRole('button', { name: /Send/i });
+            const sendButton = screen.getByRole('button', {name: /Send/i});
             fireEvent.click(sendButton);
 
             await waitFor(() => {
@@ -182,12 +181,12 @@ describe('UI-Agent-Core Integration Tests', () => {
     describe('Error Handling Integration', () => {
         test('handles agent service errors gracefully', async () => {
             agentService.sendNarsese.mockResolvedValue(false); // Simulate a failed send
-            renderWithProviders(<App />);
+            renderWithProviders(<App/>);
 
             const input = screen.getByLabelText('Narsese input');
             await userEvent.type(input, '<bird --> animal>.');
 
-            const sendButton = screen.getByRole('button', { name: /Send/i });
+            const sendButton = screen.getByRole('button', {name: /Send/i});
             fireEvent.click(sendButton);
 
             await waitFor(() => {
