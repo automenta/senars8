@@ -1,22 +1,48 @@
-// jest.setup.js
-import '@testing-library/jest-dom';
+import { TextEncoder, TextDecoder } from 'util';
 
-// Add missing globals for TextEncoder/TextDecoder/ReadableStream
-if (typeof global.TextEncoder === 'undefined') {
-    const {TextEncoder, TextDecoder} = require('util');
-    global.TextEncoder = TextEncoder;
-    global.TextDecoder = TextDecoder;
+// Polyfill for TextEncoder and TextDecoder
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+
+// Polyfill for ReadableStream
+if (typeof ReadableStream === 'undefined') {
+  global.ReadableStream = class ReadableStream {
+    constructor() {
+      // No-op constructor
+    }
+    getReader() {
+      return {
+        read: () => Promise.resolve({ done: true, value: undefined }),
+        releaseLock: () => {},
+      };
+    }
+  };
 }
 
-if (typeof global.ReadableStream === 'undefined') {
-    global.ReadableStream = require('stream').Readable;
-}
+// Polyfill for offsetHeight and offsetWidth for flexlayout-react
+Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
+  configurable: true,
+  value: 500,
+});
+Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
+  configurable: true,
+  value: 500,
+});
 
-if (typeof global.WritableStream === 'undefined') {
-    global.WritableStream = require('stream').Writable;
-}
-
-if (typeof global.TransformStream === 'undefined') {
-    const {Transform} = require('stream');
-    global.TransformStream = Transform;
+// Polyfill for ResizeObserver
+if (typeof ResizeObserver === 'undefined') {
+  global.ResizeObserver = class ResizeObserver {
+    constructor(callback) {
+      this.callback = callback;
+    }
+    observe() {
+      // No-op
+    }
+    unobserve() {
+      // No-op
+    }
+    disconnect() {
+      // No-op
+    }
+  };
 }

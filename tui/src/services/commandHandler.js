@@ -2,7 +2,7 @@
  * @file commandHandler.js
  * @description Command handling logic for the TUI.
  */
-import { validateNarseseStatement } from '../../common/utils/coreUtils.js';
+import { validateNarseseStatement } from '../../../common/utils/coreUtils.js';
 
 /**
  * Command definitions containing description, usage, and handler function.

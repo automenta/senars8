@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
@@ -172,7 +172,7 @@ function TaskInspectorPanel() {
     };
 
     return (
-        <Panel title={<><List size={18}/> Task Inspector</>}>
+        <Panel header={<><List size={18}/> Task Inspector</>}>
             <div className="task-inspector-panel">
                 <div className="inspector-header">
                     <div className="filter-controls">

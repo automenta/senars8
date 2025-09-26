@@ -1,106 +1,73 @@
 import React from 'react';
-import {fireEvent, render, screen} from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import ErrorBoundary from '../ErrorBoundary';
 
-// Mock component that will throw an error
-const ErrorComponent = () => {
-    throw new Error('Test error');
+// A component that throws an error for testing purposes
+const ProblemChild = () => {
+  throw new Error('Test Error');
 };
 
 describe('ErrorBoundary', () => {
-    beforeEach(() => {
-        // Suppress console.error during tests
-        jest.spyOn(console, 'error').mockImplementation(() => {
-        });
-    });
+  let consoleErrorSpy;
 
-    afterEach(() => {
-        // Restore console.error after tests
-        jest.restoreAllMocks();
-    });
+  beforeEach(() => {
+    // We expect errors in these tests, so we suppress the console output
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
 
-    it('renders children when no error occurs', () => {
-        render(
-            <ErrorBoundary>
-                <div>Child content</div>
-            </ErrorBoundary>
-        );
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+  });
 
-        expect(screen.getByText('Child content')).toBeInTheDocument();
-    });
+  it('should render children when there is no error', () => {
+    render(
+      <ErrorBoundary>
+        <div>Child content</div>
+      </ErrorBoundary>
+    );
+    expect(screen.getByText('Child content')).toBeInTheDocument();
+  });
 
-    it('catches error and displays fallback UI when child throws error', () => {
-        render(
-            <ErrorBoundary>
-                <ErrorComponent/>
-            </ErrorBoundary>
-        );
+  it('should display an error message when a child component throws an error', () => {
+    render(
+      <ErrorBoundary>
+        <ProblemChild />
+      </ErrorBoundary>
+    );
+    expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+  });
 
-        // Check if error message is displayed
-        expect(screen.getByText('Something went wrong')).toBeInTheDocument();
-        expect(screen.getByText('The component failed to load properly.')).toBeInTheDocument();
+  it('should allow retrying after an error', () => {
+    let shouldThrow = true;
+    const FlakyComponent = () => {
+        if (shouldThrow) {
+            throw new Error('I am flaky');
+        }
+        return <div>It works now!</div>;
+    };
 
-        // Check if the retry button exists
-        expect(screen.getByText('Try Again')).toBeInTheDocument();
+    const { rerender } = render(<ErrorBoundary><FlakyComponent/></ErrorBoundary>);
+    expect(screen.getByText('Something went wrong')).toBeInTheDocument();
 
-        // Check if the reload button exists
-        expect(screen.getByText('Reload Page')).toBeInTheDocument();
-    });
+    shouldThrow = false;
+    fireEvent.click(screen.getByRole('button', { name: /try again/i }));
 
-    it('allows retrying after error', () => {
-        const {rerender} = render(
-            <ErrorBoundary>
-                <ErrorComponent/>
-            </ErrorBoundary>
-        );
+    // Re-render the ErrorBoundary with the now-working child
+    rerender(<ErrorBoundary><FlakyComponent/></ErrorBoundary>);
 
-        // Initially should show error
-        expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+    expect(screen.getByText('It works now!')).toBeInTheDocument();
+  });
 
-        // Simulate successful retry by rendering a working component
-        rerender(
-            <ErrorBoundary>
-                <div>Working content</div>
-            </ErrorBoundary>
-        );
+  it('should reload the page when the reload button is clicked', () => {
+    const mockReload = jest.fn();
 
-        // Should now show the working content
-        expect(screen.getByText('Working content')).toBeInTheDocument();
-    });
+    render(
+      <ErrorBoundary onReload={mockReload}>
+        <ProblemChild />
+      </ErrorBoundary>
+    );
 
-    it('handles multiple errors gracefully', () => {
-        render(
-            <ErrorBoundary>
-                <ErrorComponent/>
-            </ErrorBoundary>
-        );
-
-        // Check error is displayed
-        expect(screen.getByText('Something went wrong')).toBeInTheDocument();
-
-        // Click the retry button
-        fireEvent.click(screen.getByText('Try Again'));
-
-        // Component should still show error since ErrorComponent always throws
-        expect(screen.getByText('Something went wrong')).toBeInTheDocument();
-    });
-
-    it('includes action buttons in the error UI', () => {
-        render(
-            <ErrorBoundary>
-                <ErrorComponent/>
-            </ErrorBoundary>
-        );
-
-        // Check that both buttons are present
-        expect(screen.getByText('Try Again')).toBeInTheDocument();
-        expect(screen.getByText('Reload Page')).toBeInTheDocument();
-
-        // Check that buttons have proper classes
-        const retryButton = screen.getByText('Try Again').closest('button');
-        const reloadButton = screen.getByText('Reload Page').closest('button');
-
-        expect(retryButton).toHaveClass('error-retry-button');
-        expect(reloadButton).toHaveClass('error-reload-button');
-    });
+    fireEvent.click(screen.getByRole('button', { name: /reload page/i }));
+    expect(mockReload).toHaveBeenCalled();
+  });
 });

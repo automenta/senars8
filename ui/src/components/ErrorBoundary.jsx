@@ -20,20 +20,6 @@ class ErrorBoundary extends React.Component {
         return {hasError: true};
     }
 
-    // Reset error state when props change to allow recovery from error state
-    static getDerivedStateFromProps(props, state) {
-        // Only reset the error state if we're getting new props (children changed)
-        // This enables the test scenario where we switch from error component to working component
-        if (state.hasError) {
-            return {
-                hasError: false,
-                error: null,
-                errorInfo: null
-            };
-        }
-        return null;
-    }
-
     componentDidCatch(error, errorInfo) {
         // Log the error to an error reporting service
         console.error('ErrorBoundary caught an error:', error, errorInfo);
@@ -75,6 +61,11 @@ class ErrorBoundary extends React.Component {
         });
     }
 
+    handleReload = () => {
+        const {onReload = () => window.location.reload()} = this.props;
+        onReload();
+    };
+
     render() {
         if (this.state.hasError) {
             // You can render any custom fallback UI
@@ -106,7 +97,7 @@ class ErrorBoundary extends React.Component {
                             </button>
                             <button
                                 className="error-reload-button"
-                                onClick={() => window.location.reload()}
+                                onClick={this.handleReload}
                                 title="Reload the entire page"
                             >
                                 Reload Page
@@ -128,7 +119,8 @@ class ErrorBoundary extends React.Component {
 }
 
 ErrorBoundary.propTypes = {
-    children: PropTypes.node.isRequired
+    children: PropTypes.node.isRequired,
+    onReload: PropTypes.func,
 };
 
 export default ErrorBoundary;

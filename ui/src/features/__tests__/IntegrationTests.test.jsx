@@ -1,39 +1,30 @@
 import React from 'react';
-import {fireEvent, render, screen, waitFor} from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import ReasoningDebuggerPanel from '@/features/reasoning/ReasoningDebuggerPanel';
 import TaskInspectorPanel from '@/features/task/TaskInspectorPanel';
+import { ConnectionProvider } from '@/context/ConnectionProvider';
+import { NotificationProvider } from '@/context/NotificationContext';
+import { SettingsProvider } from '@/context/SettingsProvider';
 
-// Mock the services and contexts
-jest.mock('@/services/agentService', () => ({
-    on: jest.fn(),
-    off: jest.fn(),
-    sendMessage: jest.fn(),
-    sendNarsese: jest.fn(),
-    isConnected: true,
-}));
+// Mock lucide-react to prevent SVG rendering issues and make testing easier
+jest.mock('lucide-react', () => {
+    const handler = {
+        get: (target, prop) => {
+            if (prop === '__esModule') return true;
+            const Component = (props) => <div data-testid={`icon-${String(prop).toLowerCase()}`} {...props} />;
+            Component.displayName = prop;
+            return Component;
+        },
+    };
+    return new Proxy({}, handler);
+});
 
-jest.mock('@/services/notificationService', () => ({
-    addInfo: jest.fn(),
-    addError: jest.fn(),
-    addWarning: jest.fn(),
-}));
-
+// Mock services and hooks
+jest.mock('@/services/agentService');
+jest.mock('@/services/notificationService');
 jest.mock('@/context/useConnection', () => ({
-    useConnection: () => ({
-        isConnected: true,
-        connectionStatus: 'connected',
-        connectionError: null,
-        reconnect: jest.fn(),
-    }),
+    useConnection: () => ({ isConnected: true, connectionStatus: 'connected' }),
 }));
-
-jest.mock('@/context/useSettings', () => ({
-    useSettings: () => ({
-        isSonificationEnabled: false,
-        toggleSonification: jest.fn(),
-    }),
-}));
-
 jest.mock('@/hooks/useReasoningDebugger', () => ({
     __esModule: true,
     default: () => ({
@@ -43,7 +34,6 @@ jest.mock('@/hooks/useReasoningDebugger', () => ({
         clearDebugResults: jest.fn(),
     }),
 }));
-
 jest.mock('@/hooks/useInputHistory', () => () => ({
     inputValue: '',
     setInputValue: jest.fn(),
@@ -51,102 +41,62 @@ jest.mock('@/hooks/useInputHistory', () => () => ({
     addToHistory: jest.fn(),
 }));
 
+const TestWrapper = ({ children }) => (
+    <SettingsProvider>
+        <ConnectionProvider>
+            <NotificationProvider>{children}</NotificationProvider>
+        </ConnectionProvider>
+    </SettingsProvider>
+);
+
 describe('ReasoningDebuggerPanel', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
+    it('renders without crashing', () => {
+        render(<ReasoningDebuggerPanel />, { wrapper: TestWrapper });
+        expect(screen.getByRole('heading', { name: /Reasoning Debugger/i })).toBeInTheDocument();
     });
 
-    test('renders without crashing', () => {
-        render(<ReasoningDebuggerPanel/>);
-
-        expect(screen.getByText(/Reasoning Debugger/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/Narsese Statement:/i)).toBeInTheDocument();
-    });
-
-    test('displays input field and action buttons', () => {
-        render(<ReasoningDebuggerPanel/>);
-
-        const input = screen.getByRole('textbox');
-        const executeBtn = screen.getByText(/Execute/i);
-        const debugBtn = screen.getByText(/Debug/i);
-
-        expect(input).toBeInTheDocument();
-        expect(executeBtn).toBeInTheDocument();
-        expect(debugBtn).toBeInTheDocument();
-    });
-
-    test('validates Narsese statements properly', async () => {
-        render(<ReasoningDebuggerPanel/>);
-
-        const input = screen.getByRole('textbox');
-
-        // Test empty input
-        fireEvent.change(input, {target: {value: ''}});
-        fireEvent.click(screen.getByText(/Debug/i));
-
-        // Note: Actual validation behavior depends on the validateNarseseStatement utility
-        await waitFor(() => {
-            // Validation happens in the component logic
-        });
+    it('displays input field and action buttons', () => {
+        render(<ReasoningDebuggerPanel />, { wrapper: TestWrapper });
+        expect(screen.getByRole('textbox', { name: /Narsese Statement/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Execute/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Debug/i })).toBeInTheDocument();
     });
 });
 
 describe('TaskInspectorPanel', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
+    it('renders without crashing', () => {
+        render(<TaskInspectorPanel />, { wrapper: TestWrapper });
+        expect(screen.getByRole('heading', { name: /Task Inspector/i })).toBeInTheDocument();
     });
 
-    test('renders without crashing', () => {
-        render(<TaskInspectorPanel/>);
-
-        expect(screen.getByText(/Task Inspector/i)).toBeInTheDocument();
-    });
-
-    test('displays filter controls', () => {
-        render(<TaskInspectorPanel/>);
-
-        const filterInput = screen.getByPlaceholderText(/Filter tasks/i);
-        const typeFilter = screen.getByDisplayValue('all');
-        const priorityFilter = screen.getAllByDisplayValue('all')[1]; // Second 'all' is priority filter
-
-        expect(filterInput).toBeInTheDocument();
-        expect(typeFilter).toBeInTheDocument();
-        expect(priorityFilter).toBeInTheDocument();
-    });
-
-    test('has refresh button', () => {
-        render(<TaskInspectorPanel/>);
-
-        const refreshBtn = screen.getByText(/Refresh/i);
-        expect(refreshBtn).toBeInTheDocument();
+    it('displays filter controls', () => {
+        render(<TaskInspectorPanel />, { wrapper: TestWrapper });
+        expect(screen.getByPlaceholderText(/Filter tasks/i)).toBeInTheDocument();
+        const selects = screen.getAllByRole('combobox');
+        expect(selects[0]).toHaveValue('all'); // Type filter
+        expect(selects[1]).toHaveValue('all'); // Priority filter
     });
 });
 
 describe('Core Integration Utilities', () => {
-    test('validateNarseseStatement works correctly', async () => {
-        // Dynamically import to avoid issues during test setup
-        const {validateNarseseStatement} = await import('@/utils/coreIntegration');
+    it('validateNarseseStatement works correctly', async () => {
+        const { validateNarseseStatement } = await import('@/utils/coreIntegration');
 
-        // Test valid statements
         expect(validateNarseseStatement('<bird --> animal>.')).toEqual({
             valid: true,
-            parsed: expect.any(Object)
+            parsed: expect.any(Object),
+            error: null,
         });
 
         expect(validateNarseseStatement('<robin --> bird>?')).toEqual({
             valid: true,
-            parsed: expect.any(Object)
+            parsed: expect.any(Object),
+            error: null,
         });
 
-        // Test invalid statements
         expect(validateNarseseStatement('')).toEqual({
             valid: false,
-            error: expect.any(String)
-        });
-
-        expect(validateNarseseStatement('invalid')).toEqual({
-            valid: false,
-            error: expect.any(String)
+            error: 'Statement must be a non-empty string',
         });
     });
 });

@@ -45,6 +45,14 @@ jest.mock('@/hooks/useInputHistory', () => ({
     })
 }));
 
+// Mock useSettings hook
+jest.mock('@/context/SettingsProvider', () => ({
+    ...jest.requireActual('@/context/SettingsProvider'),
+    useSettings: () => ({
+        isSonificationEnabled: false,
+    }),
+}));
+
 describe('InputPanel', () => {
     const renderWithProviders = (ui) => {
         return render(

@@ -1,14 +1,25 @@
 import React from 'react';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import App from '../App';
 import agentService from '../services/agentService';
 import agentIntegrationService from '../services/agentIntegration';
 import notificationService from '../services/notificationService';
+import { ThemeProvider } from '../context/ThemeProvider';
+import { SettingsProvider } from '../context/SettingsProvider';
+import { ConnectionProvider } from '../context/ConnectionProvider';
+import { SharedStateProvider } from '../context/SharedStateProvider';
+import { NotificationProvider } from '../context/NotificationContext';
+import { SearchProvider } from '../context/SearchContext';
+import { TaskProvider } from '../context/TaskContext';
+import { SessionProvider } from '../context/SessionContext';
 
 // Mock all services
 jest.mock('@/services/agentService', () => ({
     on: jest.fn(),
     off: jest.fn(),
+    connect: jest.fn(),
+    disconnect: jest.fn(),
     sendMessage: jest.fn(),
     sendNarsese: jest.fn(),
     sendNaturalLanguage: jest.fn(),
@@ -30,53 +41,129 @@ jest.mock('@/services/agentIntegration', () => ({
     getInitializedStatus: jest.fn(() => true),
 }));
 
+const mockNotifications = [];
 jest.mock('@/services/notificationService', () => ({
     addInfo: jest.fn(),
     addError: jest.fn(),
     addWarning: jest.fn(),
     addSuccess: jest.fn(),
+    getNotifications: jest.fn(() => mockNotifications),
+    on: jest.fn(),
+    off: jest.fn(),
 }));
 
-jest.mock('@/context/useConnection', () => ({
-    useConnection: () => ({
-        isConnected: true,
-        connectionStatus: 'connected',
-        connectionError: null,
-        reconnect: jest.fn(),
-    }),
-}));
-
-jest.mock('@/context/useSettings', () => ({
-    useSettings: () => ({
-        isSonificationEnabled: false,
-    }),
-}));
-
-jest.mock('@/hooks/useInputHistory', () => () => ({
+// Stable mock values for hooks to prevent re-renders
+const mockUseConnection = {
+    isConnected: true,
+    connectionStatus: 'connected',
+    connectionError: null,
+    reconnect: jest.fn(),
+};
+const mockUseSettings = {
+    isSonificationEnabled: false,
+};
+const mockUseInputHistory = {
     inputValue: '',
     setInputValue: jest.fn(),
     history: [],
     addToHistory: jest.fn(),
+};
+const mockUseReasoningDebugger = {
+    debugResults: null,
+    isProcessing: false,
+    debugReasoning: jest.fn(),
+    clearDebugResults: jest.fn(),
+};
+const mockAgentState = {
+    isInitialized: true,
+    isActive: true,
+    beliefsCount: 5,
+    goalsCount: 2,
+    questionsCount: 1,
+    timestamp: 1234567890, // Fixed timestamp
+};
+
+jest.mock('@/context/useConnection', () => ({
+    useConnection: () => mockUseConnection,
 }));
+
+jest.mock('@/context/useSettings', () => ({
+    useSettings: () => mockUseSettings,
+}));
+
+jest.mock('@/hooks/useInputHistory', () => () => mockUseInputHistory);
+
+import {Model} from 'flexlayout-react';
+import defaultLayout from '@/features/defaultLayout';
+
+const mockModel = Model.fromJson(defaultLayout);
+
+jest.mock('@/hooks/useLayoutModel', () => ({
+    __esModule: true,
+    default: () => ({
+        model: mockModel,
+        onModelChange: jest.fn(),
+    }),
+}));
+
+jest.mock('@/hooks/useReasoningDebugger', () => () => mockUseReasoningDebugger);
 
 // Mock the core integration utilities
 jest.mock('@/utils/coreIntegration', () => ({
     formatCoreDataForUI: jest.fn((data) => data),
     validateNarseseStatement: jest.fn((statement) => ({
-        valid: statement && statement.includes('.') || statement.includes('?') || statement.includes('!'),
+        valid: !!statement,
         error: !statement ? 'Statement cannot be empty' : null,
     })),
     createTaskFromStatement: jest.fn(),
-    getAgentStateForUI: jest.fn(() => ({
-        isInitialized: true,
-        isActive: true,
-        beliefsCount: 5,
-        goalsCount: 2,
-        questionsCount: 1,
-        timestamp: Date.now(),
-    })),
+    getAgentStateForUI: jest.fn(() => mockAgentState),
     processNarseseThroughAgent: jest.fn(),
 }));
+
+// Mock XTerm
+jest.mock('react-xtermjs', () => ({
+    XTerm: () => null,
+}));
+
+jest.mock('flexlayout-react', () => {
+    const original = jest.requireActual('flexlayout-react');
+    const React = require('react');
+    return {
+        ...original,
+        Layout: ({ factory, model }) => {
+            const components = [];
+            model.visitNodes((node) => {
+                if (node.getType() === 'tab') {
+                    components.push(React.createElement(factory(node), { key: node.getId() }));
+                }
+            });
+            return React.createElement('div', { 'data-testid': 'mock-layout' }, components);
+        },
+    };
+});
+
+// Helper function to render with all providers
+const renderWithProviders = (ui, options) => {
+    const AllTheProviders = ({children}) => (
+        <ThemeProvider>
+            <SettingsProvider>
+                <ConnectionProvider>
+                    <SharedStateProvider>
+                        <NotificationProvider>
+                            <SearchProvider>
+                                <TaskProvider>
+                                    <SessionProvider>{children}</SessionProvider>
+                                </TaskProvider>
+                            </SearchProvider>
+                        </NotificationProvider>
+                    </SharedStateProvider>
+                </ConnectionProvider>
+            </SettingsProvider>
+        </ThemeProvider>
+    );
+    return render(ui, {wrapper: AllTheProviders, ...options});
+};
+
 
 describe('UI-Agent-Core Integration Tests', () => {
     beforeEach(() => {
@@ -101,7 +188,7 @@ describe('UI-Agent-Core Integration Tests', () => {
 
     describe('Status Panel Integration', () => {
         test('displays agent information correctly', () => {
-            render(<App/>);
+            renderWithProviders(<App/>);
 
             // Check if status panel shows agent info
             expect(screen.getByText(/Connected/)).toBeInTheDocument();
@@ -121,7 +208,7 @@ describe('UI-Agent-Core Integration Tests', () => {
                 }
             });
 
-            render(<App/>);
+            renderWithProviders(<App/>);
 
             // Verify event listeners are registered
             expect(agentService.on).toHaveBeenCalledWith('system_stats', expect.any(Function));
@@ -133,7 +220,7 @@ describe('UI-Agent-Core Integration Tests', () => {
         test('sends start command to agent', async () => {
             agentIntegrationService.sendAgentCommand.mockResolvedValue(true);
 
-            render(<App/>);
+            renderWithProviders(<App/>);
 
             // Find and click the start button (this requires identifying the control panel)
             const startButton = screen.getByRole('button', {name: /Start/});
@@ -151,7 +238,7 @@ describe('UI-Agent-Core Integration Tests', () => {
         test('sends stop command to agent', async () => {
             agentIntegrationService.sendAgentCommand.mockResolvedValue(true);
 
-            render(<App/>);
+            renderWithProviders(<App/>);
 
             const stopButton = screen.getByRole('button', {name: /Stop/});
             fireEvent.click(stopButton);
@@ -164,7 +251,7 @@ describe('UI-Agent-Core Integration Tests', () => {
         test('sends reset command to agent', async () => {
             agentIntegrationService.sendAgentCommand.mockResolvedValue(true);
 
-            render(<App/>);
+            renderWithProviders(<App/>);
 
             const resetButton = screen.getByRole('button', {name: /Reset/});
             fireEvent.click(resetButton);
@@ -183,7 +270,7 @@ describe('UI-Agent-Core Integration Tests', () => {
         test('sends narsese statement to agent', async () => {
             agentService.sendNarsese.mockReturnValue(true);
 
-            render(<App/>);
+            renderWithProviders(<App/>);
 
             const input = screen.getByRole('textbox');
             fireEvent.change(input, {target: {value: '<bird --> animal>.'}});
@@ -204,7 +291,7 @@ describe('UI-Agent-Core Integration Tests', () => {
         test('sends natural language to agent', async () => {
             agentService.sendNaturalLanguage.mockReturnValue(true);
 
-            render(<App/>);
+            renderWithProviders(<App/>);
 
             const input = screen.getByRole('textbox');
             fireEvent.change(input, {target: {value: 'Tell me about birds'}});
@@ -224,16 +311,17 @@ describe('UI-Agent-Core Integration Tests', () => {
 
         test('validates narsese input before sending', async () => {
             const user = userEvent.setup();
-            const validateNarseseStatement = jest.requireMock('@/utils/coreIntegration').validateNarseseStatement;
+            const {validateNarseseStatement} = jest.requireMock('@/utils/coreIntegration');
             validateNarseseStatement.mockReturnValue({valid: false, error: 'Invalid Narsese'});
 
-            render(<App/>);
+            renderWithProviders(<App/>);
 
             const input = screen.getByRole('textbox');
-            await user.type(input, 'invalid');
+            // This needs to look like a narsese statement to trigger validation
+            await user.type(input, 'invalid.');
 
             const sendButton = screen.getByRole('button', {name: /Send/});
-            fireEvent.click(sendButton);
+            await user.click(sendButton);
 
             await waitFor(() => {
                 expect(notificationService.addWarning).toHaveBeenCalledWith(
@@ -250,7 +338,7 @@ describe('UI-Agent-Core Integration Tests', () => {
                 {id: 'task1', statement: '<bird --> animal>.', punctuation: '.', priority: 0.8}
             ]);
 
-            render(<App/>);
+            renderWithProviders(<App/>);
 
             // Wait for tasks to be fetched and displayed
             await waitFor(() => {
@@ -264,7 +352,7 @@ describe('UI-Agent-Core Integration Tests', () => {
             const validateNarseseStatement = jest.requireMock('@/utils/coreIntegration').validateNarseseStatement;
             validateNarseseStatement.mockReturnValue({valid: true, parsed: {}});
 
-            render(<App/>);
+            renderWithProviders(<App/>);
 
             const input = screen.getByRole('textbox', {name: /Narsese Statement/});
             fireEvent.change(input, {target: {value: '<bird --> animal>.'}});
@@ -282,7 +370,7 @@ describe('UI-Agent-Core Integration Tests', () => {
         test('handles agent service errors gracefully', async () => {
             agentIntegrationService.processNarsese.mockRejectedValue(new Error('Agent error'));
 
-            render(<App/>);
+            renderWithProviders(<App/>);
 
             const input = screen.getByRole('textbox');
             fireEvent.change(input, {target: {value: '<bird --> animal>.'}});
@@ -301,7 +389,7 @@ describe('UI-Agent-Core Integration Tests', () => {
 
     describe('Connection Handling', () => {
         test('displays connection status properly', () => {
-            render(<App/>);
+            renderWithProviders(<App/>);
 
             expect(screen.getByText(/Connected/)).toBeInTheDocument();
         });
@@ -317,7 +405,7 @@ describe('UI-Agent-Core Integration Tests', () => {
                 }),
             }));
 
-            render(<App/>);
+            renderWithProviders(<App/>);
 
             expect(screen.getByText(/Disconnected/)).toBeInTheDocument();
         });

@@ -1,5 +1,7 @@
+import Ws from 'ws';
+
 // Universal WebSocket implementation that works in both Node.js and the browser.
-const WebSocket = typeof window !== 'undefined' ? window.WebSocket : (await import('ws')).default;
+const WebSocket = typeof window !== 'undefined' ? window.WebSocket : Ws;
 
 /**
  * Shared Agent Communication Service for Web UI and TUI

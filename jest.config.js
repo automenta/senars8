@@ -1,17 +1,56 @@
 export default {
-    testEnvironment: 'node',
-    testMatch: ['**/tests/**/*.test.js'],
+    projects: [
+        {
+            displayName: 'core',
+            testEnvironment: 'node',
+            testMatch: ['<rootDir>/tests/**/*.test.js'],
+            transform: {
+                '^.+\\.(js|mjs)$': 'babel-jest',
+            },
+            moduleNameMapper: {
+                '^@core/(.*)$': '<rootDir>/core/$1',
+            },
+            transformIgnorePatterns: [
+                "/node_modules/(?!(@xenova/transformers|jerrypick|force-graph|d3-.*|react-kapsule|internmap|lodash-es|kapsule|accessor-fn|canvas-color-tracker|tinycolor2|float-tooltip|index-array-by))"
+            ],
+        },
+        {
+            displayName: 'tui',
+            testEnvironment: 'node',
+            testMatch: ['<rootDir>/tui/tests/**/*.test.js'],
+            transform: {
+                '^.+\\.(js|mjs)$': 'babel-jest',
+            },
+            moduleNameMapper: {
+                '^@core/(.*)$': '<rootDir>/../core/$1',
+                '^@common/(.*)$': '<rootDir>/../common/$1',
+                '^@/(.*)$': '<rootDir>/src/$1',
+            },
+            transformIgnorePatterns: [
+                "/node_modules/(?!(@xenova/transformers|jerrypick|force-graph|d3-.*|react-kapsule|internmap|lodash-es|kapsule|accessor-fn|canvas-color-tracker|tinycolor2|float-tooltip|index-array-by))"
+            ],
+            rootDir: 'tui',
+        },
+        {
+            displayName: 'ui',
+            testEnvironment: 'jsdom',
+            testMatch: ['<rootDir>/ui/src/**/__tests__/**/*.test.jsx'],
+            setupFilesAfterEnv: ['@testing-library/jest-dom', '<rootDir>/ui/jest.setup.js'],
+            transform: {
+                '^.+\\.(js|jsx|mjs)$': 'babel-jest',
+            },
+            moduleNameMapper: {
+                '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+                '^@core/(.*)$': '<rootDir>/core/$1',
+                '^@common/(.*)$': '<rootDir>/common/$1',
+                '^@/(.*)$': '<rootDir>/ui/src/$1',
+                '^@ui/(.*)$': '<rootDir>/ui/src/$1',
+            },
+            transformIgnorePatterns: [
+                "/node_modules/(?!(@xenova/transformers|react-force-graph-2d|react-kapsule|force-graph|jerrypick|d3-.*|internmap|lodash-es|kapsule|accessor-fn|canvas-color-tracker|tinycolor2|float-tooltip|preact|index-array-by))"
+            ],
+        },
+    ],
     collectCoverage: false,
     maxWorkers: '50%',
-    transform: {
-        '^.+\\.js$': 'babel-jest',
-    },
-    transformIgnorePatterns: [
-        // This pattern is crucial for Jest to correctly transpile modules within node_modules
-        // that are necessary for testing, specifically '@xenova/transformers'.
-        // Without this, Jest might skip transforming these modules, leading to syntax errors
-        // during test execution if they use modern JavaScript features not natively supported
-        // by the Node.js version Jest is running on, or if they are not in CommonJS format.
-        '/node_modules/(?!@xenova/transformers)'
-    ],
 };
