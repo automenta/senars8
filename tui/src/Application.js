@@ -2,10 +2,11 @@ import { TuiView } from './TuiView.js';
 import { TuiController } from './TuiController.js';
 import { TuiRenderer } from './TuiRenderer.js';
 import { Agent } from '../../agent/index.js';
+import TUIConfig from './config/TUIConfig.js';
 
 class Application {
     constructor(options = {}) {
-        this.config = options.config || {};
+        this.config = new TUIConfig(options);
         this.agent = null;
         this.tuiView = null;
         this.tuiController = null;
@@ -17,13 +18,14 @@ class Application {
 
     async initialize() {
         // Create the agent
-        this.agent = new Agent(this.config.agentConfig);
+        const agentConfig = this.config.get('agent') || {};
+        this.agent = new Agent(agentConfig);
         await this.agent.initialize();
         
-        // Initialize TUI components
+        // Initialize TUI components with configuration
         this.tuiRenderer = new TuiRenderer();
-        this.tuiView = new TuiView(this.agent, this.tuiRenderer);
-        this.tuiController = new TuiController(this.agent, this.tuiView);
+        this.tuiView = new TuiView(this.agent, this.tuiRenderer, this.config);
+        this.tuiController = new TuiController(this.agent, this.tuiView, this.config);
         
         console.log('TUI Application initialized');
     }

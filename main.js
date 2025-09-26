@@ -1,16 +1,16 @@
 import { Agent } from './agent/index.js';
-import TUIApplication from './tui/src/index.js';
-import WebUI from './ui/src/index.js';
+import TUIApplication, { TUIConfig } from './tui/src/index.js';
+import WebUI, { UIConfig } from './ui/src/index.js';
 
 class SENARSMain {
-    constructor() {
+    constructor(options = {}) {
         this.agent = null;
         this.tui = null;
         this.webui = null;
         this.config = {
-            agentConfig: {
-                // Agent configuration
-            }
+            agentConfig: options.agentConfig || {},
+            tuiConfig: options.tuiConfig || {},
+            webuiConfig: options.webuiConfig || { port: 3000 }
         };
     }
 
@@ -30,14 +30,8 @@ class SENARSMain {
         }
         
         console.log('Starting TUI...');
-        this.tui = new TUIApplication({
-            config: {
-                agentConfig: this.config.agentConfig
-            }
-        });
-        
-        // Note: In a real implementation, we'd need to pass the agent instance properly
-        // For now we're just initializing the TUI with the configuration
+        const tuiConfig = new TUIConfig(this.config.tuiConfig);
+        this.tui = new TUIApplication({ config: tuiConfig });
     }
 
     async startWebUI() {
@@ -46,7 +40,8 @@ class SENARSMain {
         }
         
         console.log('Starting WebUI...');
-        this.webui = new WebUI(this.agent, { port: 3000 });
+        const webuiConfig = new UIConfig(this.config.webuiConfig);
+        this.webui = new WebUI(this.agent, webuiConfig.getAll());
         await this.webui.start();
     }
 

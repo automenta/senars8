@@ -3,29 +3,44 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { WebSocketServer } from 'ws';
 import { createServer } from 'http';
+import { debug, error as logError, warn, info } from '../../core/utils/logger.js';
+import WebUIAPI from './WebUIAPI.js';
+import WebSocketHandler from './WebSocketHandler.js';
+import UIConfig from './config/UIConfig.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 class WebUI {
     constructor(agent, options = {}) {
+        this.config = new UIConfig(options);
         this.agent = agent;
-        this.port = options.port || 3000;
+        this.port = this.config.get('webui.port', 3000);
+        this.host = this.config.get('webui.host', 'localhost');
         this.app = express();
         this.server = null;
         this.wss = null;
         this.isRunning = false;
         
+        // Initialize API and WebSocket handler
+        this.api = new WebUIAPI(agent);
+        this.wsHandler = null;
+        
         this.setupExpressApp();
     }
 
     setupExpressApp() {
-        // Serve static files
-        this.app.use(express.static(path.join(__dirname, '../public')));
+        // Serve static files from configured path
+        const staticPath = this.config.get('webui.staticPath', '../public');
+        this.app.use(express.static(path.join(__dirname, staticPath)));
+        
+        // Parse JSON bodies
+        this.app.use(express.json());
         
         // Serve main HTML page
         this.app.get('/', (req, res) => {
-            res.sendFile(path.join(__dirname, '../public/index.html'));
+            const staticPath = this.config.get('webui.staticPath', '../public');
+            res.sendFile(path.join(__dirname, staticPath, 'index.html'));
         });
         
         // API endpoints
@@ -35,73 +50,93 @@ class WebUI {
     setupAPIRoutes() {
         // Get system status
         this.app.get('/api/status', (req, res) => {
-            const system = this.agent?.system;
-            res.json({
-                isRunning: system?.isRunning || false,
-                cycleCount: system?.cycleCount || 0,
-                timestamp: new Date().toISOString()
-            });
+            try {
+                res.json(this.api.getStatus());
+            } catch (error) {
+                logError('Error getting status:', error);
+                res.status(500).json({ error: error.message });
+            }
         });
         
         // Get tasks
         this.app.get('/api/tasks', (req, res) => {
-            const tasks = this.getTasks();
-            res.json(tasks);
+            try {
+                res.json(this.api.getTasks());
+            } catch (error) {
+                logError('Error getting tasks:', error);
+                res.status(500).json({ error: error.message });
+            }
         });
         
         // Get memory state
         this.app.get('/api/memory', (req, res) => {
-            const memory = this.getMemoryState();
-            res.json(memory);
+            try {
+                res.json(this.api.getMemoryState());
+            } catch (error) {
+                logError('Error getting memory state:', error);
+                res.status(500).json({ error: error.message });
+            }
         });
         
         // Add a new task
-        this.app.post('/api/tasks', express.json(), (req, res) => {
-            const { content, type } = req.body;
-            if (content && this.agent) {
-                // For now we'll return a success response
-                // In a real implementation, we would create and add the task to the agent
-                res.json({ success: true, message: 'Task added (placeholder)' });
-            } else {
-                res.status(400).json({ error: 'Content is required' });
+        this.app.post('/api/tasks', express.json(), async (req, res) => {
+            try {
+                const { content, type } = req.body;
+                const result = await this.api.addTask(content, type);
+                res.json(result);
+                
+                // Broadcast state update
+                this.broadcastStateUpdate();
+            } catch (error) {
+                logError('Error adding task via API:', error);
+                res.status(500).json({ error: error.message });
             }
         });
-    }
-
-    getTasks() {
-        if (this.agent?.getAllTasks) {
-            return this.agent.getAllTasks() || [];
-        }
-        return [];
-    }
-
-    getMemoryState() {
-        return {
-            beliefs: this.getBeliefs(),
-            goals: this.getGoals(),
-            questions: this.getQuestions()
-        };
-    }
-
-    getBeliefs() {
-        if (this.agent?.getBeliefs) {
-            return this.agent.getBeliefs() || [];
-        }
-        return [];
-    }
-
-    getGoals() {
-        if (this.agent?.getGoals) {
-            return this.agent.getGoals() || [];
-        }
-        return [];
-    }
-
-    getQuestions() {
-        if (this.agent?.getQuestions) {
-            return this.agent.getQuestions() || [];
-        }
-        return [];
+        
+        // Add a new belief
+        this.app.post('/api/beliefs', express.json(), async (req, res) => {
+            try {
+                const { content } = req.body;
+                const result = await this.api.addBelief(content);
+                res.json(result);
+                
+                // Broadcast state update
+                this.broadcastStateUpdate();
+            } catch (error) {
+                logError('Error adding belief via API:', error);
+                res.status(500).json({ error: error.message });
+            }
+        });
+        
+        // Add a new goal
+        this.app.post('/api/goals', express.json(), async (req, res) => {
+            try {
+                const { content } = req.body;
+                const result = await this.api.addGoal(content);
+                res.json(result);
+                
+                // Broadcast state update
+                this.broadcastStateUpdate();
+            } catch (error) {
+                logError('Error adding goal via API:', error);
+                res.status(500).json({ error: error.message });
+            }
+        });
+        
+        // Add a new question
+        this.app.post('/api/questions', express.json(), async (req, res) => {
+            try {
+                const { content } = req.body;
+                const result = await this.api.addQuestion(content);
+                res.json(result);
+                
+                // Broadcast state update
+                this.broadcastStateUpdate();
+            } catch (error) {
+                logError('Error adding question via API:', error);
+                res.status(500).json({ error: error.message });
+            }
+        });
     }
 
     start() {
@@ -115,38 +150,56 @@ class WebUI {
             // Create HTTP server
             this.server = createServer(this.app);
             
-            // Start server
-            this.server.listen(this.port, () => {
-                console.log(`WebUI server running on http://localhost:${this.port}`);
+            // Start server with host and port from config
+            this.server.listen(this.port, this.host, () => {
+                console.log(`WebUI server running on http://${this.host}:${this.port}`);
                 this.isRunning = true;
                 resolve();
             });
 
-            // Setup WebSocket server
-            this.wss = new WebSocketServer({ server: this.server });
+            // Setup WebSocket server with configuration
+            const maxClients = this.config.get('webui.maxWebSocketClients', 100);
+            this.wss = new WebSocketServer({ 
+                server: this.server,
+                handleProtocols: (protocols, request) => {
+                    // Limit number of clients if needed
+                    if (this.wss.clients.size >= maxClients) {
+                        return false; // Reject connection
+                    }
+                    return true;
+                }
+            });
+            
+            // Initialize WebSocket handler with broadcast callback
+            this.wsHandler = new WebSocketHandler(this.agent, this.api, () => this.broadcastStateUpdate());
             
             this.wss.on('connection', (ws) => {
-                console.log('New client connected');
+                info('New WebSocket client connected');
+                
+                // Check client limit
+                if (this.wss.clients.size > maxClients) {
+                    warn(`Client limit reached (${maxClients}), rejecting connection`);
+                    ws.close(1013, 'Client limit reached'); // Try again later status
+                    return;
+                }
                 
                 // Send initial state
-                ws.send(JSON.stringify({
-                    type: 'initialState',
-                    payload: this.getInitialState()
-                }));
+                this.wsHandler.sendStateUpdate(ws);
                 
                 // Listen for messages
                 ws.on('message', (message) => {
                     try {
                         const data = JSON.parse(message);
-                        this.handleWebSocketMessage(ws, data);
+                        this.wsHandler.handleMessage(ws, data);
                     } catch (error) {
+                        logError('Error parsing WebSocket message:', error);
                         console.error('Error parsing WebSocket message:', error);
                     }
                 });
                 
                 // Handle disconnection
                 ws.on('close', () => {
-                    console.log('Client disconnected');
+                    info('WebSocket client disconnected');
                 });
             });
 
@@ -154,102 +207,27 @@ class WebUI {
             const system = this.agent?.system;
             if (system?.eventBus) {
                 system.eventBus.on('system.state.changed', () => {
+                    info('System state changed, broadcasting update');
                     this.broadcastStateUpdate();
                 });
                 
-                system.eventBus.on('tasks.add', () => {
+                system.eventBus.on('tasks.add', (tasks) => {
+                    info(`Tasks added (${tasks.length}), broadcasting update`);
                     this.broadcastStateUpdate();
                 });
                 
                 system.eventBus.on('memory.update', () => {
+                    info('Memory updated, broadcasting update');
                     this.broadcastStateUpdate();
                 });
             }
         });
     }
 
-    getInitialState() {
-        const system = this.agent?.system;
-        return {
-            status: {
-                isRunning: system?.isRunning || false,
-                cycleCount: system?.cycleCount || 0
-            },
-            tasks: this.getTasks(),
-            memory: this.getMemoryState()
-        };
-    }
-
-    handleWebSocketMessage(ws, data) {
-        switch (data.type) {
-            case 'requestState':
-                ws.send(JSON.stringify({
-                    type: 'stateUpdate',
-                    payload: this.getInitialState()
-                }));
-                break;
-            case 'systemControl':
-                this.handleSystemControl(data.payload, ws);
-                break;
-            case 'addTask':
-                this.handleAddTask(data.payload, ws);
-                break;
-            default:
-                console.log('Unknown message type:', data.type);
-        }
-    }
-
-    handleSystemControl(payload, ws) {
-        const { action } = payload;
-        
-        switch (action) {
-            case 'start':
-                if (this.agent) {
-                    this.agent.start(); // Start the agent
-                    ws.send(JSON.stringify({
-                        type: 'systemControlResponse',
-                        payload: { success: true, action: 'start', message: 'Agent started' }
-                    }));
-                }
-                break;
-            case 'stop':
-                if (this.agent) {
-                    this.agent.stop(); // Stop the agent
-                    ws.send(JSON.stringify({
-                        type: 'systemControlResponse',
-                        payload: { success: true, action: 'stop', message: 'Agent stopped' }
-                    }));
-                }
-                break;
-            default:
-                ws.send(JSON.stringify({
-                    type: 'systemControlResponse',
-                    payload: { success: false, error: 'Unknown action' }
-                }));
-        }
-    }
-
-    handleAddTask(payload, ws) {
-        const { content, type } = payload;
-        if (content && this.agent) {
-            // For now we'll just send a success response
-            // In a real implementation, we would create and add the task to the agent
-            ws.send(JSON.stringify({
-                type: 'addTaskResponse',
-                payload: { success: true, message: 'Task added (placeholder)' }
-            }));
-        } else {
-            ws.send(JSON.stringify({
-                type: 'addTaskResponse',
-                payload: { success: false, error: 'Content is required' }
-            }));
-        }
-    }
-
     broadcastStateUpdate() {
         if (!this.wss) return;
         
-        const state = this.getInitialState();
+        const state = this.wsHandler.getInitialState();
         const message = JSON.stringify({
             type: 'stateUpdate',
             payload: state

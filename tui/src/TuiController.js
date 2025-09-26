@@ -1,9 +1,10 @@
 import { debug } from '../../core/utils/logger.js';
 
 class TuiController {
-    constructor(agent, view) {
+    constructor(agent, view, config = null) {
         this.agent = agent;
         this.view = view;
+        this.config = config;
         this.isRunning = false;
         this.eventListeners = [];
     }

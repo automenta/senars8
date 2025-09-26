@@ -114,12 +114,23 @@
         
         <div class="control-panel">
             <h2>System Control</h2>
-            <button id="start-btn">Start (10 cycles)</button>
+            <button id="start-btn">Start</button>
             <button id="stop-btn">Stop</button>
             
-            <h3>Add Task</h3>
-            <textarea id="task-input" placeholder="Enter a new task..."></textarea>
-            <button id="add-task-btn">Add Task</button>
+            <h3>Add Content</h3>
+            <div>
+                <label for="content-input">Content:</label>
+                <textarea id="content-input" placeholder="Enter content..."></textarea>
+            </div>
+            <div>
+                <label for="content-type">Type:</label>
+                <select id="content-type">
+                    <option value="task">Task/Question (?)</option>
+                    <option value="belief">Belief (.)</option>
+                    <option value="goal">Goal (!)</option>
+                </select>
+            </div>
+            <button id="add-content-btn">Add</button>
         </div>
         
         <div class="tasks-panel">
@@ -166,8 +177,8 @@
                     this.sendSystemControl('stop');
                 });
                 
-                document.getElementById('add-task-btn').addEventListener('click', () => {
-                    this.addTask();
+                document.getElementById('add-content-btn').addEventListener('click', () => {
+                    this.addContent();
                 });
             }
             
@@ -214,6 +225,15 @@
                         break;
                     case 'addTaskResponse':
                         this.handleAddTaskResponse(data.payload);
+                        break;
+                    case 'addBeliefResponse':
+                        this.handleAddBeliefResponse(data.payload);
+                        break;
+                    case 'addGoalResponse':
+                        this.handleAddGoalResponse(data.payload);
+                        break;
+                    case 'addQuestionResponse':
+                        this.handleAddQuestionResponse(data.payload);
                         break;
                 }
             }
@@ -317,12 +337,14 @@
                 }));
             }
             
-            addTask() {
-                const taskInput = document.getElementById('task-input');
-                const content = taskInput.value.trim();
+            addContent() {
+                const contentInput = document.getElementById('content-input');
+                const contentType = document.getElementById('content-type');
+                const content = contentInput.value.trim();
+                const type = contentType.value;
                 
                 if (!content) {
-                    alert('Please enter a task');
+                    alert('Please enter content');
                     return;
                 }
                 
@@ -331,13 +353,22 @@
                     return;
                 }
                 
+                let messageType = 'addTask'; // default
+                if (type === 'belief') {
+                    messageType = 'addBelief';
+                } else if (type === 'goal') {
+                    messageType = 'addGoal';
+                } else if (type === 'task') {
+                    messageType = 'addTask'; // question
+                }
+                
                 this.ws.send(JSON.stringify({
-                    type: 'addTask',
-                    payload: { content, type: 'TASK' }
+                    type: messageType,
+                    payload: { content, type }
                 }));
                 
-                // Clear the input field
-                taskInput.value = '';
+                // Clear the input fields
+                contentInput.value = '';
             }
             
             handleSystemControlResponse(payload) {
@@ -355,6 +386,36 @@
                     alert('Task added successfully');
                 } else {
                     console.error(`Task error: ${payload.error}`);
+                    alert(`Error: ${payload.error}`);
+                }
+            }
+            
+            handleAddBeliefResponse(payload) {
+                if (payload.success) {
+                    console.log(`Belief response: ${payload.message}`);
+                    alert('Belief added successfully');
+                } else {
+                    console.error(`Belief error: ${payload.error}`);
+                    alert(`Error: ${payload.error}`);
+                }
+            }
+            
+            handleAddGoalResponse(payload) {
+                if (payload.success) {
+                    console.log(`Goal response: ${payload.message}`);
+                    alert('Goal added successfully');
+                } else {
+                    console.error(`Goal error: ${payload.error}`);
+                    alert(`Error: ${payload.error}`);
+                }
+            }
+            
+            handleAddQuestionResponse(payload) {
+                if (payload.success) {
+                    console.log(`Question response: ${payload.message}`);
+                    alert('Question added successfully');
+                } else {
+                    console.error(`Question error: ${payload.error}`);
                     alert(`Error: ${payload.error}`);
                 }
             }
