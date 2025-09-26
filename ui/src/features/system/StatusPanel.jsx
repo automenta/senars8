@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Panel, SonificationToggle} from '@ui/components';
+import {Panel, SonificationToggle} from '@/components';
 import {useConnection} from '@/context/useConnection';
 import agentService from '@/services/agentService';
 import agentIntegrationService from '@/services/agentIntegration';

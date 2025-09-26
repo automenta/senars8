@@ -1,5 +1,5 @@
 import React from 'react';
-import {Panel} from '@ui/components';
+import {Panel} from '@/components';
 import agentIntegrationService from '@/services/agentIntegration';
 import notificationService from '@/services/notificationService';
 import {useConnection} from '@/context/useConnection';

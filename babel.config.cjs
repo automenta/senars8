@@ -1,17 +1,17 @@
 module.exports = {
     presets: [
-        ['@babel/preset-env', {
-            targets: {
-                node: 'current'
-            }
-        }],
-        ['@babel/preset-react', {
-            runtime: 'automatic'
-        }]
+        '@babel/preset-env',
+        ['@babel/preset-react', {runtime: 'automatic'}]
     ],
     plugins: [
-        'babel-plugin-transform-import-meta',
-        '@babel/plugin-transform-optional-chaining',
-        '@babel/plugin-transform-nullish-coalescing-operator'
-    ],
+        ['module-resolver', {
+            root: ['./'],
+            alias: {
+                '@': './ui/src',
+                '@ui': './ui/src',
+                '@core': './core',
+                '@common': './common'
+            }
+        }]
+    ]
 };
