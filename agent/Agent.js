@@ -1,7 +1,7 @@
 import {agentErrorHandler as errorHandler, createSystem, debug, parseTerm, Task, warn} from '@project/core';
 import MCP from './MCP.js';
 
-const termToActionParsers = {
+const termToActionParsers = Object.freeze({
     Atomic: (term) => ({tool: term.key, parameters: []}),
     SequentialConjunction: (term) => {
         const [nameTerm, ...paramTerms] = term.terms;
@@ -11,7 +11,7 @@ const termToActionParsers = {
         } : null;
     },
     Conjunction: (term) => termToActionParsers.SequentialConjunction(term),
-};
+});
 
 class Agent {
     constructor(config = {}) {
@@ -80,13 +80,16 @@ class Agent {
         const tool = this.tools[action.tool];
         if (!tool) throw new Error(`Tool not found: ${action.tool}`);
 
-        const {handler, parameters: toolParamsDef} = tool;
+        const params = this._buildToolParameters(tool, action.parameters);
+        return tool.handler(params);
+    }
+    
+    _buildToolParameters(tool, actionParams) {
+        const toolParamsDef = tool.parameters;
         const paramNames = Object.keys(toolParamsDef?.properties || {});
-        const params = Object.fromEntries(
-            paramNames.map((paramName, i) => [paramName, action.parameters[i]])
+        return Object.fromEntries(
+            paramNames.map((paramName, i) => [paramName, actionParams[i]])
         );
-
-        return handler(params);
     }
 
     _parseTermToAction(term) {
@@ -147,38 +150,39 @@ class Agent {
 
     // Methods to access agent's memory and tasks for UI integration
     getBeliefs() {
-        if (!this.isInitialized || !this.system || !this.system.memory) {
-            return [];
-        }
-        return this.system.memory.getBeliefs() || [];
+        return this._getMemoryItems('getBeliefs');
     }
 
     getGoals() {
-        if (!this.isInitialized || !this.system || !this.system.memory) {
-            return [];
-        }
-        return this.system.memory.getGoals() || [];
+        return this._getMemoryItems('getGoals');
     }
 
     getQuestions() {
-        if (!this.isInitialized || !this.system || !this.system.memory) {
-            return [];
-        }
-        return this.system.memory.getQuestions() || [];
+        return this._getMemoryItems('getQuestions');
     }
 
     getAllTasks() {
-        if (!this.isInitialized || !this.system || !this.system.memory) {
-            return [];
-        }
-        return this.system.memory.getAllTasks() || [];
+        return this._getMemoryItems('getAllTasks');
     }
 
     getRecentTasks(count = 10) {
+        return this._getMemoryItemsWithParams('getRecentTasks', count);
+    }
+
+    // Private helper method to reduce duplication in memory access methods
+    _getMemoryItems(methodName) {
         if (!this.isInitialized || !this.system || !this.system.memory) {
             return [];
         }
-        return this.system.memory.getRecentTasks(count) || [];
+        return this.system.memory[methodName]?.() || [];
+    }
+    
+    // Private helper method to reduce duplication in memory access methods with parameters
+    _getMemoryItemsWithParams(methodName, ...params) {
+        if (!this.isInitialized || !this.system || !this.system.memory) {
+            return [];
+        }
+        return this.system.memory[methodName]?.(...params) || [];
     }
 }
 

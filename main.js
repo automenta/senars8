@@ -8,9 +8,9 @@ class SENARSMain {
         this.tui = null;
         this.webui = null;
         this.config = {
-            agentConfig: options.agentConfig || {},
-            tuiConfig: options.tuiConfig || {},
-            webuiConfig: options.webuiConfig || { port: 3000 }
+            agentConfig: options.agentConfig ?? {},
+            tuiConfig: options.tuiConfig ?? {},
+            webuiConfig: options.webuiConfig ?? { port: 3000 }
         };
     }
 
@@ -52,6 +52,10 @@ class SENARSMain {
         await this.startTUI();
         await this.startWebUI();
         
+        this._logStartupMessage();
+    }
+    
+    _logStartupMessage() {
         console.log('SENARS system started successfully!');
         console.log('TUI is available in the terminal');
         console.log('WebUI is available at http://localhost:3000');

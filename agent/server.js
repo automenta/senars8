@@ -13,9 +13,85 @@ import {
 
 const exec = promisify(childExec);
 
+/**
+ * Format a task object for broadcasting to clients
+ * @param {Object} task - The task object to format
+ * @returns {Object} - The formatted task
+ */
+const formatTaskForBroadcast = (task) => ({
+    id: task.id,
+    termKey: task.termKey,
+    punctuation: task.punctuation,
+    priority: task.state?.priority || 0,
+    truthValue: task.state?.truthValue || {frequency: 0.5, confidence: 0.5},
+    occurrenceTime: task.state?.occurrenceTime || null,
+    creationTime: task.state?.stamp?.creationTime || Date.now()
+});
+
+/**
+ * Creates a filter function for tasks based on their punctuation type
+ * @param {string} filter - The filter type ('belief', 'goal', 'question', or 'all')
+ * @returns {Function} - A filter function
+ */
+const createTaskFilter = (filter) => (task) => {
+    switch (filter) {
+        case 'belief': return task.punctuation === '.';
+        case 'goal': return task.punctuation === '!';
+        case 'question': return task.punctuation === '?';
+        default: return true;
+    }
+};
+
+/**
+ * Creates a filter function for tasks based on their priority level
+ * @param {string} priority - The priority level ('high', 'medium', 'low', or 'all')
+ * @returns {Function} - A filter function
+ */
+const createPriorityFilter = (priority) => (task) => {
+    const taskPriority = task.state?.priority || task.priority || 0;
+    switch (priority) {
+        case 'high': return taskPriority >= 0.7;
+        case 'medium': return taskPriority >= 0.3 && taskPriority < 0.7;
+        case 'low': return taskPriority < 0.3;
+        default: return true;
+    }
+};
+
+const getSystemStats = () => {
+    let systemStats = {
+        cycleCount: 0,
+        memoryUsage: 0,
+        cpuUsage: 0,
+        temperature: 0,
+        beliefs: 0,
+        goals: 0,
+        questions: 0,
+        tasks: 0
+    };
+
+    if (agent.system && agent.system.memory) {
+        // Get memory statistics
+        const memoryStats = agent.system.memory.getStatistics();
+        systemStats = {
+            ...systemStats,
+            memoryUsage: memoryStats.terms + memoryStats.shortTermTasks + memoryStats.longTermTasks,
+            beliefs: agent.getBeliefs().length,
+            goals: agent.getGoals().length,
+            questions: agent.getQuestions().length,
+            tasks: agent.getAllTasks().length
+        };
+    }
+
+    // Get system cycle count if available
+    if (agent.system && agent.system.cycleCount !== undefined) {
+        systemStats.cycleCount = agent.system.cycleCount;
+    }
+    
+    return systemStats;
+};
+
 const wss = new WebSocketServer({port: 8080});
 
-// Function to broadcast to all clients
 const broadcast = (data) => {
     wss.clients.forEach(client => {
         if (client.readyState === client.OPEN) {
@@ -24,7 +100,6 @@ const broadcast = (data) => {
     });
 };
 
-// Wrapper logger functions to also broadcast messages to connected clients
 const broadcastLog = (level, message, ...args) => {
     broadcast({type: 'logMessage', payload: {level, message, args, timestamp: new Date().toISOString()}})
 };
@@ -68,101 +143,34 @@ agent.initialize().then(() => {
         });
 
         eventBus.on('add_belief', (belief) => {
-            // Broadcast belief addition with proper formatting
-            const formattedBelief = {
-                id: belief.id,
-                termKey: belief.termKey,
-                punctuation: belief.punctuation,
-                priority: belief.state?.priority || 0,
-                truthValue: belief.state?.truthValue || {frequency: 0.5, confidence: 0.5},
-                occurrenceTime: belief.state?.occurrenceTime || null,
-                creationTime: belief.state?.stamp?.creationTime || Date.now()
-            };
-            broadcast({type: 'add_belief', payload: formattedBelief});
+            broadcast({type: 'add_belief', payload: formatTaskForBroadcast(belief)});
         });
 
         eventBus.on('add_goal', (goal) => {
-            // Broadcast goal addition with proper formatting
-            const formattedGoal = {
-                id: goal.id,
-                termKey: goal.termKey,
-                punctuation: goal.punctuation,
-                priority: goal.state?.priority || 0,
-                truthValue: goal.state?.truthValue || {frequency: 0.5, confidence: 0.5},
-                occurrenceTime: goal.state?.occurrenceTime || null,
-                creationTime: goal.state?.stamp?.creationTime || Date.now()
-            };
-            broadcast({type: 'add_goal', payload: formattedGoal});
+            broadcast({type: 'add_goal', payload: formatTaskForBroadcast(goal)});
         });
 
         eventBus.on('add_question', (question) => {
-            // Broadcast question addition with proper formatting
-            const formattedQuestion = {
-                id: question.id,
-                termKey: question.termKey,
-                punctuation: question.punctuation,
-                priority: question.state?.priority || 0,
-                truthValue: question.state?.truthValue || {frequency: 0.5, confidence: 0.5},
-                occurrenceTime: question.state?.occurrenceTime || null,
-                creationTime: question.state?.stamp?.creationTime || Date.now()
-            };
-            broadcast({type: 'add_question', payload: formattedQuestion});
+            broadcast({type: 'add_question', payload: formatTaskForBroadcast(question)});
         });
 
         eventBus.on('add_task', (task) => {
-            // Broadcast any task addition with proper formatting
-            const formattedTask = {
-                id: task.id,
-                termKey: task.termKey,
-                punctuation: task.punctuation,
-                priority: task.state?.priority || 0,
-                truthValue: task.state?.truthValue || {frequency: 0.5, confidence: 0.5},
-                occurrenceTime: task.state?.occurrenceTime || null,
-                creationTime: task.state?.stamp?.creationTime || Date.now()
-            };
-            broadcast({type: 'task_added', payload: formattedTask});
+            broadcast({type: 'task_added', payload: formatTaskForBroadcast(task)});
         });
 
         eventBus.on('reasoning_step', (step) => {
-            // Assuming the step object is serializable or has a useful string representation
             broadcast({type: 'reasoning_step', payload: step});
         });
 
-        // Listen for memory changes and broadcast updates
         eventBus.on('memory_changed', (changes) => {
             broadcast({type: 'memory_update', payload: changes});
         });
 
-        // Set up periodic system stats broadcasting
         const systemStatsInterval = setInterval(() => {
             try {
-                let systemStats = {
-                    cycleCount: agent.system?.cycleCount || 0,
-                    memoryUsage: 0,
-                    cpuUsage: 0,
-                    temperature: 0,
-                    beliefs: 0,
-                    goals: 0,
-                    questions: 0,
-                    tasks: 0
-                };
-
-                if (agent.system && agent.system.memory) {
-                    // Get memory statistics
-                    const memoryStats = agent.system.memory.getStatistics();
-                    systemStats = {
-                        ...systemStats,
-                        memoryUsage: memoryStats.terms + memoryStats.shortTermTasks + memoryStats.longTermTasks,
-                        beliefs: agent.getBeliefs().length,
-                        goals: agent.getGoals().length,
-                        questions: agent.getQuestions().length,
-                        tasks: agent.getAllTasks().length
-                    };
-                }
-
                 broadcast({
                     type: 'system_stats',
-                    payload: systemStats
+                    payload: getSystemStats()
                 });
             } catch (error) {
                 serverError('Error broadcasting system stats:', error);
@@ -337,12 +345,9 @@ async function handleMessage(message, ws) {
         }
 
         case 'narsese': {
-            // This is a simplified interaction. A real implementation would involve
-            // converting natural language to Narsese or handling commands.
             const narseseInput = payload;
             broadcast({type: 'log', payload: {source: 'user', message: narseseInput}});
 
-            // For the sketch, we'll treat input as a goal for the planner.
             const plan = await agent.createPlan(narseseInput);
 
             if (plan && plan.steps.length > 0) {
@@ -362,23 +367,23 @@ async function handleMessage(message, ws) {
         }
 
         case 'agentControl': {
-            switch (payload.command) {
-                case 'start':
-                    // Placeholder for starting the agent's continuous cycle
-                    agent.start(); // Assuming this method exists on the Agent
+            const commands = {
+                start: () => {
+                    agent.start();
                     broadcast({type: 'log', payload: {source: 'system', message: 'Agent cycling started.'}});
-                    break;
-                case 'stop':
-                    // Placeholder for stopping the agent's continuous cycle
-                    agent.stop(); // Assuming this method exists on the Agent
+                },
+                stop: () => {
+                    agent.stop();
                     broadcast({type: 'log', payload: {source: 'system', message: 'Agent cycling stopped.'}});
-                    break;
-                case 'reset':
-                    // Placeholder for resetting the agent's state
-                    await agent.reset(); // Assuming this method exists on the Agent
+                },
+                reset: async () => {
+                    await agent.reset();
                     broadcast({type: 'log', payload: {source: 'system', message: 'Agent reset.'}});
-                    break;
-            }
+                }
+            };
+            
+            const command = commands[payload.command];
+            if (command) await command();
             break;
         }
 
@@ -398,22 +403,11 @@ async function handleMessage(message, ws) {
                 let filteredTasks = allTasks;
 
                 if (filter && filter !== 'all') {
-                    filteredTasks = filteredTasks.filter(task => {
-                        if (filter === 'belief') return task.punctuation === '.';
-                        if (filter === 'goal') return task.punctuation === '!';
-                        if (filter === 'question') return task.punctuation === '?';
-                        return true;
-                    });
+                    filteredTasks = filteredTasks.filter(createTaskFilter(filter));
                 }
 
                 if (priority && priority !== 'all') {
-                    filteredTasks = filteredTasks.filter(task => {
-                        const taskPriority = task.state?.priority || task.priority || 0;
-                        if (priority === 'high') return taskPriority >= 0.7;
-                        if (priority === 'medium') return taskPriority >= 0.3 && taskPriority < 0.7;
-                        if (priority === 'low') return taskPriority < 0.3;
-                        return true;
-                    });
+                    filteredTasks = filteredTasks.filter(createPriorityFilter(priority));
                 }
 
                 ws.send(JSON.stringify({
@@ -538,16 +532,11 @@ async function handleMessage(message, ws) {
                     const searchInTasks = (tasks, type) => {
                         if (!tasks) return [];
 
+                        const normalizedQuery = query.toLowerCase();
                         return tasks
-                            .filter(task =>
-                                task.termKey &&
-                                task.termKey.toLowerCase().includes(query.toLowerCase())
-                            )
+                            .filter(task => task.termKey && task.termKey.toLowerCase().includes(normalizedQuery))
                             .slice(0, limit || 50)
-                            .map(task => ({
-                                ...task,
-                                type
-                            }));
+                            .map(task => ({...task, type}));
                     };
 
                     if (!scope || scope === 'all' || scope === 'beliefs') {
@@ -577,35 +566,7 @@ async function handleMessage(message, ws) {
 
         case 'get_system_stats': {
             try {
-                let systemStats = {
-                    cycleCount: 0,
-                    memoryUsage: 0,
-                    cpuUsage: 0,
-                    temperature: 0,
-                    beliefs: 0,
-                    goals: 0,
-                    questions: 0,
-                    tasks: 0
-                };
-
-                if (agent.system && agent.system.memory) {
-                    // Get memory statistics
-                    const memoryStats = agent.system.memory.getStatistics();
-                    systemStats = {
-                        ...systemStats,
-                        memoryUsage: memoryStats.terms + memoryStats.shortTermTasks + memoryStats.longTermTasks,
-                        beliefs: agent.getBeliefs().length,
-                        goals: agent.getGoals().length,
-                        questions: agent.getQuestions().length,
-                        tasks: agent.getAllTasks().length
-                    };
-                }
-
-                // Get system cycle count if available
-                if (agent.system && agent.system.cycleCount !== undefined) {
-                    systemStats.cycleCount = agent.system.cycleCount;
-                }
-
+                const systemStats = getSystemStats();
                 ws.send(JSON.stringify({
                     type: 'system_stats',
                     payload: systemStats

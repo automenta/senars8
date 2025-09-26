@@ -8,10 +8,7 @@ const LOG_LEVELS = {
 const currentLogLevel = LOG_LEVELS[process.env.LOG_LEVEL] || LOG_LEVELS.WARN;
 const shouldLog = (level) => (LOG_LEVELS[level] ?? LOG_LEVELS.INFO) <= currentLogLevel;
 
-const getLogFunction = (level) => ({
-    ERROR: console.error,
-    WARN: console.warn,
-}[level] || console.log);
+const getLogFunction = (level) => ({ERROR: console.error, WARN: console.warn}[level] || console.log);
 
 const log = (level, message, ...args) => {
     if (!shouldLog(level)) return;
@@ -29,8 +26,7 @@ const log = (level, message, ...args) => {
         };
         console.log(JSON.stringify(logEntry));
     } else {
-        const logFunction = getLogFunction(level);
-        logFunction(`[${timestamp}] [${level}] ${message}`, ...otherArgs, ...Object.values(context));
+        getLogFunction(level)(`[${timestamp}] [${level}] ${message}`, ...otherArgs, ...Object.values(context));
     }
 };
 

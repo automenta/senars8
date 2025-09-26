@@ -8,5 +8,3 @@ export const perceptionErrorHandler = createUnifiedErrorHandler('Perception');
 export const metaCognitionErrorHandler = createUnifiedErrorHandler('MetaCognition');
 export const eventBusErrorHandler = createUnifiedErrorHandler('EventBus');
 export const diContainerErrorHandler = createUnifiedErrorHandler('DIContainer');
-
-// Add more as needed based on your components
