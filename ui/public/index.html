@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENARS - Web Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background-color: #333;
+            color: white;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .status-panel {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .control-panel {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .tasks-panel, .memory-panel {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .task-item, .memory-item {
+            padding: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .task-item:last-child, .memory-item:last-child {
+            border-bottom: none;
+        }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+        
+        .status-running {
+            color: green;
+        }
+        
+        .status-stopped {
+            color: red;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SENARS - Self-Enhancing Neurosymbolic Autonomous Reasoning System</h1>
+        </header>
+        
+        <div class="status-panel">
+            <h2>System Status</h2>
+            <p>Status: <span id="system-status" class="status-stopped">STOPPED</span></p>
+            <p>Cycle Count: <span id="cycle-count">0</span></p>
+        </div>
+        
+        <div class="control-panel">
+            <h2>System Control</h2>
+            <button id="start-btn">Start (10 cycles)</button>
+            <button id="stop-btn">Stop</button>
+            
+            <h3>Add Task</h3>
+            <textarea id="task-input" placeholder="Enter a new task..."></textarea>
+            <button id="add-task-btn">Add Task</button>
+        </div>
+        
+        <div class="tasks-panel">
+            <h2>Tasks</h2>
+            <div id="tasks-container"></div>
+        </div>
+        
+        <div class="memory-panel">
+            <h2>Memory</h2>
+            <h3>Beliefs</h3>
+            <div id="beliefs-container"></div>
+            
+            <h3>Goals</h3>
+            <div id="goals-container"></div>
+            
+            <h3>Questions</h3>
+            <div id="questions-container"></div>
+        </div>
+    </div>
+
+    <script>
+        class SENARSWebUI {
+            constructor() {
+                this.ws = null;
+                this.isConnected = false;
+                this.systemStatus = { isRunning: false, cycleCount: 0 };
+                this.tasks = [];
+                this.memory = { beliefs: [], goals: [], questions: [] };
+                
+                this.initialize();
+            }
+            
+            initialize() {
+                this.setupEventListeners();
+                this.connectWebSocket();
+            }
+            
+            setupEventListeners() {
+                document.getElementById('start-btn').addEventListener('click', () => {
+                    this.sendSystemControl('start');
+                });
+                
+                document.getElementById('stop-btn').addEventListener('click', () => {
+                    this.sendSystemControl('stop');
+                });
+                
+                document.getElementById('add-task-btn').addEventListener('click', () => {
+                    this.addTask();
+                });
+            }
+            
+            connectWebSocket() {
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const wsUrl = `${protocol}//${window.location.host}`;
+                
+                this.ws = new WebSocket(wsUrl);
+                
+                this.ws.onopen = () => {
+                    console.log('Connected to WebSocket server');
+                    this.isConnected = true;
+                    
+                    // Request initial state
+                    this.ws.send(JSON.stringify({ type: 'requestState' }));
+                };
+                
+                this.ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    this.handleWebSocketMessage(data);
+                };
+                
+                this.ws.onclose = () => {
+                    console.log('Disconnected from WebSocket server');
+                    this.isConnected = false;
+                    setTimeout(() => this.connectWebSocket(), 3000); // Reconnect after 3 seconds
+                };
+                
+                this.ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                };
+            }
+            
+            handleWebSocketMessage(data) {
+                switch (data.type) {
+                    case 'stateUpdate':
+                        this.updateState(data.payload);
+                        break;
+                    case 'initialState':
+                        this.updateState(data.payload);
+                        break;
+                    case 'systemControlResponse':
+                        this.handleSystemControlResponse(data.payload);
+                        break;
+                    case 'addTaskResponse':
+                        this.handleAddTaskResponse(data.payload);
+                        break;
+                }
+            }
+            
+            updateState(state) {
+                this.systemStatus = state.status;
+                this.tasks = state.tasks || [];
+                this.memory = state.memory || { beliefs: [], goals: [], questions: [] };
+                
+                this.renderStatus();
+                this.renderTasks();
+                this.renderMemory();
+            }
+            
+            renderStatus() {
+                const statusElement = document.getElementById('system-status');
+                const cycleCountElement = document.getElementById('cycle-count');
+                
+                if (this.systemStatus.isRunning) {
+                    statusElement.textContent = 'RUNNING';
+                    statusElement.className = 'status-running';
+                } else {
+                    statusElement.textContent = 'STOPPED';
+                    statusElement.className = 'status-stopped';
+                }
+                
+                cycleCountElement.textContent = this.systemStatus.cycleCount || 0;
+            }
+            
+            renderTasks() {
+                const container = document.getElementById('tasks-container');
+                
+                if (this.tasks.length === 0) {
+                    container.innerHTML = '<p>No tasks available</p>';
+                    return;
+                }
+                
+                // Show only first 10 tasks to avoid overwhelming the UI
+                const tasksToShow = this.tasks.slice(0, 10);
+                let html = '';
+                
+                tasksToShow.forEach((task, index) => {
+                    const type = task.type || 'UNKNOWN';
+                    const content = task.content || 'No content';
+                    const status = task.status || 'PENDING';
+                    
+                    let statusClass = 'status-pending';
+                    if (status === 'COMPLETED') statusClass = 'status-completed';
+                    else if (status === 'FAILED') statusClass = 'status-failed';
+                    
+                    html += `
+                        <div class="task-item">
+                            <strong>[${type}]</strong> ${content} - <span class="${statusClass}">${status}</span>
+                        </div>
+                    `;
+                });
+                
+                if (this.tasks.length > 10) {
+                    html += `<p>... and ${this.tasks.length - 10} more tasks</p>`;
+                }
+                
+                container.innerHTML = html;
+            }
+            
+            renderMemory() {
+                this.renderMemorySection('beliefs', this.memory.beliefs, 'beliefs-container');
+                this.renderMemorySection('goals', this.memory.goals, 'goals-container');
+                this.renderMemorySection('questions', this.memory.questions, 'questions-container');
+            }
+            
+            renderMemorySection(type, items, containerId) {
+                const container = document.getElementById(containerId);
+                
+                if (!items || items.length === 0) {
+                    container.innerHTML = '<p>No items available</p>';
+                    return;
+                }
+                
+                // Show only first 10 items to avoid overwhelming the UI
+                const itemsToShow = items.slice(0, 10);
+                let html = '';
+                
+                itemsToShow.forEach((item, index) => {
+                    const content = item.content || item || 'No content';
+                    html += `<div class="memory-item">${content}</div>`;
+                });
+                
+                if (items.length > 10) {
+                    html += `<p>... and ${items.length - 10} more ${type}</p>`;
+                }
+                
+                container.innerHTML = html;
+            }
+            
+            sendSystemControl(action) {
+                if (!this.isConnected) return;
+                
+                this.ws.send(JSON.stringify({
+                    type: 'systemControl',
+                    payload: { action }
+                }));
+            }
+            
+            addTask() {
+                const taskInput = document.getElementById('task-input');
+                const content = taskInput.value.trim();
+                
+                if (!content) {
+                    alert('Please enter a task');
+                    return;
+                }
+                
+                if (!this.isConnected) {
+                    alert('Not connected to the server');
+                    return;
+                }
+                
+                this.ws.send(JSON.stringify({
+                    type: 'addTask',
+                    payload: { content, type: 'TASK' }
+                }));
+                
+                // Clear the input field
+                taskInput.value = '';
+            }
+            
+            handleSystemControlResponse(payload) {
+                if (payload.success) {
+                    console.log(`System control response: ${payload.message}`);
+                } else {
+                    console.error(`System control error: ${payload.error}`);
+                    alert(`Error: ${payload.error}`);
+                }
+            }
+            
+            handleAddTaskResponse(payload) {
+                if (payload.success) {
+                    console.log(`Task response: ${payload.message}`);
+                    alert('Task added successfully');
+                } else {
+                    console.error(`Task error: ${payload.error}`);
+                    alert(`Error: ${payload.error}`);
+                }
+            }
+        }
+        
+        // Initialize the UI when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new SENARSWebUI();
+        });
+    </script>
+</body>
+</html>
