@@ -10,6 +10,8 @@ export default class StateManager {
             agentData: null,
             log: [],
             tasks: [],
+            beliefs: [],
+            selectedBeliefIndex: null,
             focusedComponent: 'commandInput',
         };
     }
@@ -83,5 +85,33 @@ export default class StateManager {
      */
     setTasks(tasks) {
         this.state.tasks = tasks;
+    }
+
+    /**
+     * Set the beliefs.
+     * @param {Array} beliefs - The array of beliefs.
+     */
+    setBeliefs(beliefs) {
+        this.state.beliefs = beliefs;
+        this.state.selectedBeliefIndex = null; // Reset selection when beliefs change
+    }
+
+    /**
+     * Set the selected belief index.
+     * @param {number|null} index - The index of the selected belief.
+     */
+    setSelectedBeliefIndex(index) {
+        this.state.selectedBeliefIndex = index;
+    }
+
+    /**
+     * Get the currently selected belief.
+     * @returns {object|null} The selected belief object or null if none is selected.
+     */
+    getSelectedBelief() {
+        if (this.state.selectedBeliefIndex !== null && this.state.beliefs.length > this.state.selectedBeliefIndex) {
+            return this.state.beliefs[this.state.selectedBeliefIndex];
+        }
+        return null;
     }
 }

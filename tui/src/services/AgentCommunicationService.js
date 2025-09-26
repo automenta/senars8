@@ -12,19 +12,24 @@ class AgentCommunicationService extends EventEmitter {
     this.ws = new WebSocket(this.url);
 
     this.ws.on('open', () => {
-      this.emit('open');
+      this.emit('connect');
     });
 
     this.ws.on('close', () => {
-      this.emit('close');
+      this.emit('disconnect');
     });
 
     this.ws.on('error', (error) => {
       this.emit('error', error);
     });
 
-    this.ws.on('message', (data) => {
-      this.emit('message', data.toString());
+    this.ws.on('message', (message) => {
+        try {
+            const data = JSON.parse(message.toString());
+            this.emit('data', data);
+        } catch (error) {
+            this.emit('error', new Error(`Failed to parse incoming message: ${message.toString()}`));
+        }
     });
   }
 

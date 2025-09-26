@@ -28,6 +28,9 @@ agentService.on('data', (data) => {
     if (data.type === 'tasks') {
         stateManager.setTasks(data.tasks);
         uiManager.updateTasks(data.tasks);
+    } else if (data.type === 'beliefs') {
+        stateManager.setBeliefs(data.beliefs);
+        uiManager.updateBeliefs(data.beliefs);
     } else if (data.type === 'log') {
         uiManager.log(data.message);
     }

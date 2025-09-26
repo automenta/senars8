@@ -1,4 +1,13 @@
 import blessed from 'blessed';
+import { createHeader } from '../components/Header.js';
+import { createStatusBar } from '../components/StatusBar.js';
+import { createTaskBox } from '../components/TaskBox.js';
+import { createLogBox } from '../components/LogBox.js';
+import { createNarseseInput } from '../components/NarseseInput.js';
+import { createCommandInput } from '../components/CommandInput.js';
+import { createHelpBox } from '../components/HelpBox.js';
+import { createDetailBox } from '../components/DetailBox.js';
+import { createBeliefsBox } from '../components/BeliefsBox.js';
 
 /**
  * Manages the UI components for the TUI.
@@ -9,6 +18,7 @@ export default class UIManager {
         this.screen = this.createScreen();
         this.components = {};
         this.rawTasks = []; // To store full task objects
+        this.rawBeliefs = []; // To store full belief objects
         this.initComponents();
         this.setupLayout();
         this.registerKeybindings();
@@ -23,14 +33,28 @@ export default class UIManager {
     }
 
     initComponents() {
-        this.components.header = this.createHeader();
-        this.components.statusBar = this.createStatusBar();
-        this.components.taskBox = this.createTaskBox();
-        this.components.logBox = this.createLogBox();
-        this.components.narseseInput = this.createNarseseInput();
-        this.components.commandInput = this.createCommandInput();
-        this.components.helpBox = this.createHelpBox();
-        this.components.detailBox = this.createDetailBox();
+        this.components.header = createHeader();
+        this.components.statusBar = createStatusBar();
+        this.components.taskBox = createTaskBox((item, index) => {
+            const task = this.rawTasks[index];
+            if (task) {
+                this.components.detailBox.setContent(JSON.stringify(task, null, 2));
+                this.screen.render();
+            }
+        });
+        this.components.logBox = createLogBox();
+        this.components.narseseInput = createNarseseInput();
+        this.components.commandInput = createCommandInput();
+        this.components.helpBox = createHelpBox();
+        this.components.detailBox = createDetailBox();
+        this.components.beliefsBox = createBeliefsBox((item, index) => {
+            this.stateManager.setSelectedBeliefIndex(index);
+            const belief = this.rawBeliefs[index];
+            if (belief) {
+                this.components.detailBox.setContent(JSON.stringify(belief, null, 2));
+                this.screen.render();
+            }
+        });
     }
 
     setupLayout() {
@@ -59,193 +83,11 @@ export default class UIManager {
             this.components.taskBox.focus();
             this.updateStatusBar();
         });
-    }
 
-    createHeader() {
-        return blessed.box({
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: 1,
-            content: ' SeNARS TUI ',
-            style: {
-                fg: 'white',
-                bg: 'blue',
-            },
-        });
-    }
-
-    createStatusBar() {
-        return blessed.box({
-            top: 1,
-            left: 0,
-            width: '100%',
-            height: 1,
-            style: {
-                fg: 'white',
-                bg: 'cyan',
-            },
-        });
-    }
-
-    createTaskBox() {
-        const taskBox = blessed.list({
-            top: 2,
-            left: 0,
-            width: '50%',
-            height: '60%-2',
-            label: 'Tasks',
-            border: {
-                type: 'line',
-            },
-            style: {
-                fg: 'white',
-                border: {
-                    fg: '#f0f0f0',
-                },
-                selected: {
-                    bg: 'blue',
-                },
-            },
-            keys: true,
-            mouse: true,
-            scrollable: true,
-            scrollbar: {
-                ch: ' ',
-                track: {
-                    bg: 'grey',
-                },
-                style: {
-                    inverse: true,
-                },
-            },
-        });
-
-        taskBox.on('select', (item, index) => {
-            const task = this.rawTasks[index];
-            if (task) {
-                this.components.detailBox.setContent(JSON.stringify(task, null, 2));
-                this.screen.render();
-            }
-        });
-
-        return taskBox;
-    }
-
-    createLogBox() {
-        return blessed.log({
-            top: 2,
-            left: '50%',
-            width: '50%',
-            height: '100%-4',
-            label: 'Log',
-            border: {
-                type: 'line',
-            },
-            style: {
-                fg: 'white',
-                border: {
-                    fg: '#f0f0f0',
-                },
-            },
-            scrollable: true,
-            scrollbar: {
-                ch: ' ',
-                track: {
-                    bg: 'grey',
-                },
-                style: {
-                    inverse: true,
-                },
-            },
-        });
-    }
-
-    createDetailBox() {
-        return blessed.box({
-            top: '60%',
-            left: 0,
-            width: '50%',
-            height: '40%-2',
-            label: 'Details',
-            content: '',
-            border: {
-                type: 'line',
-            },
-            style: {
-                fg: 'white',
-                border: {
-                    fg: '#f0f0f0',
-                },
-            },
-        });
-    }
-
-    createNarseseInput() {
-        return blessed.textbox({
-            bottom: 0,
-            left: 0,
-            width: '50%',
-            height: 1,
-            style: {
-                bg: 'black',
-                fg: 'white',
-                focus: {
-                    bg: 'grey',
-                },
-            },
-            inputOnFocus: true,
-        });
-    }
-
-    createCommandInput() {
-        return blessed.textbox({
-            bottom: 0,
-            left: '50%',
-            width: '50%',
-            height: 1,
-            style: {
-                bg: 'black',
-                fg: 'white',
-                focus: {
-                    bg: 'grey',
-                },
-            },
-            inputOnFocus: true,
-        });
-    }
-
-    createHelpBox() {
-        return blessed.box({
-            top: 'center',
-            left: 'center',
-            width: '50%',
-            height: '50%',
-            label: 'Help',
-            content: `
-    Keybindings:
-    q, C-c      Quit
-    i           Focus Narsese input
-    :           Focus command input
-    Up/Down     Navigate history/lists
-    Enter       Submit input
-
-    Commands:
-    !help       Show this help
-    !connect    Connect to agent
-    !disconnect Disconnect from agent
-    !clear      Clear log
-            `,
-            border: {
-                type: 'line',
-            },
-            style: {
-                fg: 'white',
-                border: {
-                    fg: '#f0f0f0',
-                },
-            },
-            hidden: true,
+        this.screen.key(['b'], () => {
+            this.stateManager.set('focusedComponent', 'beliefsBox');
+            this.components.beliefsBox.focus();
+            this.updateStatusBar();
         });
     }
 
@@ -261,6 +103,16 @@ export default class UIManager {
             return `${t.id}: ${t.term} (${t.type}) - P:${t.priority.toFixed(2)} D:${t.durability.toFixed(2)}`;
         });
         this.components.taskBox.setItems(taskItems);
+        this.screen.render();
+    }
+
+    updateBeliefs(beliefs) {
+        this.rawBeliefs = beliefs; // Store full belief objects
+        const beliefItems = beliefs.map(b => {
+            // Create a compact, readable string for the list
+            return `${b.term} C:${b.confidence.toFixed(2)} F:${b.frequency.toFixed(2)}`;
+        });
+        this.components.beliefsBox.setItems(beliefItems);
         this.screen.render();
     }
 
