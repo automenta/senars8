@@ -71,7 +71,7 @@ jest.mock('@/hooks/useLayoutModel', () => ({
 jest.mock('@/features/reasoning/VisualReasoningPanel', () => () => <div data-testid="mock-visual-reasoning-panel"/>);
 jest.mock('@/features/reasoning/ConceptMap', () => () => <div data-testid="mock-concept-map"/>);
 jest.mock('react-force-graph-2d', () => () => <div data-testid="mock-force-graph"/>);
-jest.mock('react-xtermjs', () => ({XTerm: () => null}));
+jest.mock('@pablo-lion/xterm-react', () => ({XTerm: () => null}));
 jest.mock('flexlayout-react', () => {
     const original = jest.requireActual('flexlayout-react');
     const React = require('react');

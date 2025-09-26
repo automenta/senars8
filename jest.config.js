@@ -11,7 +11,7 @@ export default {
                 '^@core/(.*)$': '<rootDir>/core/$1',
             },
             transformIgnorePatterns: [
-                "/node_modules/(?!(@xenova/transformers|jerrypick|force-graph|d3-.*|react-kapsule|internmap|lodash-es|kapsule|accessor-fn|canvas-color-tracker|tinycolor2|float-tooltip|index-array-by))"
+                "/node_modules/(?!(synckit|@xenova/transformers|jerrypick|force-graph|d3-.*|react-kapsule|internmap|lodash-es|kapsule|accessor-fn|canvas-color-tracker|tinycolor2|float-tooltip|index-array-by))"
             ],
         },
         {
@@ -34,6 +34,9 @@ export default {
         {
             displayName: 'ui',
             testEnvironment: 'jsdom',
+            testEnvironmentOptions: {
+                customExportConditions: ['', 'node', 'import']
+            },
             testMatch: ['<rootDir>/ui/src/**/__tests__/**/*.test.jsx'],
             setupFilesAfterEnv: ['@testing-library/jest-dom', '<rootDir>/ui/jest.setup.js'],
             transform: {

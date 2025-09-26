@@ -8,7 +8,7 @@ describe('EnhancedInput', () => {
 
     const defaultProps = {
         value: '',
-        onChange: mockOnChange,
+        onChange: (e) => mockOnChange(e.target.value),
         onSend: mockOnSend,
         history: [],
         inputMode: 'narsese',
@@ -67,6 +67,6 @@ describe('EnhancedInput', () => {
         // Simulate pressing up arrow (this should get the most recent item)
         fireEvent.keyDown(textbox, {key: 'ArrowUp', code: 'ArrowUp'});
         // The first up arrow press gets the most recent item (at index 0)
-        expect(mockOnChange).toHaveBeenCalledWith('recent item');
+        expect(textbox).toHaveValue('recent item');
     });
 });
