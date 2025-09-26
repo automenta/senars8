@@ -1,6 +1,9 @@
+// Universal WebSocket implementation that works in both Node.js and the browser.
+const WebSocket = typeof window !== 'undefined' ? window.WebSocket : (await import('ws')).default;
+
 /**
- * Shared Agent Communication Service for Web UI
- * This service is compatible with browser WebSocket API
+ * Shared Agent Communication Service for Web UI and TUI
+ * This service is compatible with browser and Node.js WebSocket APIs
  */
 class AgentCommunicationService {
   constructor(url = 'ws://localhost:8080') {
@@ -99,11 +102,12 @@ class AgentCommunicationService {
       };
 
       this.ws.onmessage = (event) => {
+        const messageData = typeof event.data === 'string' ? event.data : event.data.toString();
         try {
-          const message = JSON.parse(event.data);
+          const message = JSON.parse(messageData);
           // Validate message structure
           if (!message || typeof message !== 'object' || !message.type) {
-            console.error('Invalid message format received:', event.data);
+            console.error('Invalid message format received:', messageData);
             return;
           }
 
@@ -119,10 +123,10 @@ class AgentCommunicationService {
           this.emit(message.type, message.payload);
           this.emit('message', message); // Also emit a generic message event
         } catch (error) {
-          console.error('Failed to parse incoming message:', event.data, error);
+          console.error('Failed to parse incoming message:', messageData, error);
           this.emit('error', {
             type: 'parse_error',
-            message: event.data,
+            message: messageData,
             error: error.message
           });
         }

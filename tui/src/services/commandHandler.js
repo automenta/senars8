@@ -2,6 +2,7 @@
  * @file commandHandler.js
  * @description Command handling logic for the TUI.
  */
+import { validateNarseseStatement } from '../../common/utils/coreUtils.js';
 
 /**
  * Command definitions containing description, usage, and handler function.
@@ -11,7 +12,7 @@ export const commandDefinitions = {
         description: 'Starts the agent cycling process.',
         usage: '!start',
         handler: (args, { agentService, uiManager }) => {
-            agentService.start();
+            agentService.startAgent();
             uiManager.log('Sent !start command.');
         },
     },
@@ -19,7 +20,7 @@ export const commandDefinitions = {
         description: 'Stops the agent cycling process.',
         usage: '!stop',
         handler: (args, { agentService, uiManager }) => {
-            agentService.stop();
+            agentService.stopAgent();
             uiManager.log('Sent !stop command.');
         },
     },
@@ -27,7 +28,7 @@ export const commandDefinitions = {
         description: 'Resets the agent to its initial state.',
         usage: '!reset',
         handler: (args, { agentService, uiManager }) => {
-            agentService.reset();
+            agentService.resetAgent();
             uiManager.log('Sent !reset command.');
         },
     },
@@ -36,11 +37,12 @@ export const commandDefinitions = {
         usage: '!add <narsese_task>',
         handler: (args, { agentService, uiManager }) => {
             const task = args.join(' ');
-            if (task) {
-                agentService.send(task);
+            const validation = validateNarseseStatement(task);
+            if (validation.valid) {
+                agentService.sendNarsese(task);
                 uiManager.log(`Added task: ${task}`);
             } else {
-                uiManager.log(`Usage: ${commandDefinitions['!add'].usage}`);
+                uiManager.log(`Invalid task format: ${validation.error}`);
             }
         },
     },
@@ -49,18 +51,19 @@ export const commandDefinitions = {
         usage: '!query <narsese_query>',
         handler: (args, { agentService, uiManager }) => {
             const query = args.join(' ');
-            if (query) {
-                agentService.send(query);
+            const validation = validateNarseseStatement(query);
+            if (validation.valid) {
+                agentService.sendNarsese(query);
                 uiManager.log(`Sent query: ${query}`);
             } else {
-                uiManager.log(`Usage: ${commandDefinitions['!query'].usage}`);
+                uiManager.log(`Invalid query format: ${validation.error}`);
             }
         },
     },
     '!stats': {
         description: 'Retrieves system statistics from the agent.',
         usage: '!stats',
-        handler: (args, { agentService }) => agentService.getStats(),
+        handler: (args, { agentService }) => agentService.getSystemStats(),
     },
     '!help': {
         description: 'Shows or hides the help screen.',

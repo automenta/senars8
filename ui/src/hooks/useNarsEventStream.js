@@ -3,7 +3,7 @@ import agentService from '../services/agentService';
 import sonificationService from '../services/sonificationService';
 import {useSettings} from '../context/useSettings';
 import Bag from '@core/utils/bag';
-import log from '@/utils/logger';
+import log from '@common/utils/logger';
 
 export function useNarsEventStream(capacity = 100) {
     const {isSonificationEnabled} = useSettings();

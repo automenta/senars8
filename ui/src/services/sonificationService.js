@@ -1,4 +1,4 @@
-import log from '@/utils/logger';
+import log from '@common/utils/logger';
 
 /**
  * Service for playing audio feedback sounds in the UI

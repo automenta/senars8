@@ -4,7 +4,7 @@
  */
 
 import agentService from './agentService.js';
-import log from '@/utils/logger';
+import log from '@common/utils/logger';
 
 class AgentIntegrationService {
     constructor() {

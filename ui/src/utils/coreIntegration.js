@@ -1,23 +1,27 @@
 // UI Utilities for Core Module Integration
 import {createUnifiedErrorHandler} from '@core/utils/errorHandler.js';
-import {parseTerm} from '@core/parser/parse-utils.js';
-import {Task} from '@core/index.js';
 import agentIntegrationService from '@/services/agentIntegration.js';
+import {
+    validateNarseseStatement as coreValidate,
+    createTaskFromStatement as coreCreateTask
+} from '@common/utils/coreUtils.js';
 
 // Create a unified error handler for UI components
 const uiErrorHandler = createUnifiedErrorHandler('UI');
+
+// Re-export the shared validation and task creation functions
+export const validateNarseseStatement = coreValidate;
+export const createTaskFromStatement = coreCreateTask;
 
 // Utility functions for processing core data for UI display
 export const formatCoreDataForUI = (data) => {
     if (!data) return null;
 
-    // Process different types of core data for UI display
     if (Array.isArray(data)) {
         return data.map(item => formatCoreDataForUI(item));
     }
 
     if (typeof data === 'object') {
-        // Handle Task objects
         if (data.__proto__?.constructor?.name === 'Task' || data.term || data.punctuation) {
             return {
                 id: data.id || data.termKey,
@@ -31,7 +35,6 @@ export const formatCoreDataForUI = (data) => {
             };
         }
 
-        // Handle Term objects
         if (data.__proto__?.constructor?.name === 'Term' || data.key) {
             return {
                 key: data.key,
@@ -44,44 +47,6 @@ export const formatCoreDataForUI = (data) => {
     }
 
     return data;
-};
-
-// Utility for validating Narsese statements
-export const validateNarseseStatement = (statement) => {
-    if (!statement || typeof statement !== 'string') {
-        return {valid: false, error: 'Statement must be a non-empty string'};
-    }
-
-    const trimmed = statement.trim();
-    if (!trimmed) {
-        return {valid: false, error: 'Statement cannot be empty after trimming'};
-    }
-
-    try {
-        const parsed = parseTerm(trimmed);
-        return {
-            valid: !!parsed,
-            parsed: parsed,
-            error: parsed ? null : 'Failed to parse statement'
-        };
-    } catch (error) {
-        return {valid: false, error: error.message};
-    }
-};
-
-// Create task from statement
-export const createTaskFromStatement = (statement, punctuation = '.', priority = 0.5) => {
-    try {
-        const validation = validateNarseseStatement(statement);
-        if (!validation.valid) {
-            throw new Error(`Invalid statement: ${validation.error}`);
-        }
-
-        return new Task(validation.parsed, punctuation, {priority});
-    } catch (error) {
-        uiErrorHandler(error, 'createTaskFromStatement');
-        throw error;
-    }
 };
 
 // Get agent state information for UI

@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import agentService from '../services/agentService';
-import log from '@/utils/logger';
+import log from '@common/utils/logger';
 import {ConnectionContext} from './ConnectionContext';
 import {CONNECTION_STATUS, MESSAGE_TYPES, UI_CONSTANTS} from '@/constants/ui';
 

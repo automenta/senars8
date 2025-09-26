@@ -19,7 +19,7 @@ jest.mock('../agentService', () => ({
     getTasks: jest.fn(),
 }));
 
-jest.mock('@/utils/logger', () => ({
+jest.mock('@common/utils/logger', () => ({
     info: jest.fn(),
     debug: jest.fn(),
     error: jest.fn(),

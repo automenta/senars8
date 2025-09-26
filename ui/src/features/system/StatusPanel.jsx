@@ -4,7 +4,7 @@ import {useConnection} from '@/context/useConnection';
 import agentService from '@/services/agentService';
 import agentIntegrationService from '@/services/agentIntegration';
 import notificationService from '@/services/notificationService';
-import log from '@/utils/logger';
+import log from '@common/utils/logger';
 import {Activity, BarChart2, Database, RotateCcw, Server, Thermometer, Wifi, WifiOff, Zap} from 'lucide-react';
 import {MESSAGE_TYPES} from '@/constants/ui';
 import './StatusPanel.css';

@@ -2,8 +2,9 @@
 
 import StateManager from './managers/StateManager.js';
 import UIManager from './managers/UIManager.js';
-import AgentCommunicationService from './services/AgentCommunicationService.js';
+import AgentCommunicationService from '../../common/services/AgentCommunicationService.js';
 import { createCommandHandler } from './services/commandHandler.js';
+import { CONNECTION_STATUS, MESSAGE_TYPES } from '../../common/constants/communication.js';
 
 // --- Initialization ---
 const stateManager = new StateManager();
@@ -14,29 +15,29 @@ const handleCommand = createCommandHandler(stateManager, uiManager, agentService
 // --- Event Wiring ---
 
 // Agent Service -> UI & State
-agentService.on('connect', () => {
-    stateManager.set('isConnected', true);
-    uiManager.log('Connected to agent service.');
+agentService.on('status', (status) => {
+    const isConnected = status === CONNECTION_STATUS.CONNECTED;
+    stateManager.set('isConnected', isConnected);
+    uiManager.log(isConnected ? 'Connected to agent service.' : 'Disconnected from agent service.');
     uiManager.updateStatusBar();
 });
 
-agentService.on('disconnect', () => {
-    stateManager.set('isConnected', false);
-    uiManager.log('Disconnected from agent service.');
-    uiManager.updateStatusBar();
-});
-
-agentService.on('data', (data) => {
-    if (data.type === 'tasks') {
-        stateManager.setTasks(data.tasks);
-        uiManager.updateTasks(data.tasks);
-    } else if (data.type === 'beliefs') {
-        stateManager.setBeliefs(data.beliefs);
-        uiManager.updateBeliefs(data.beliefs);
-    } else if (data.type === 'log') {
-        uiManager.log(data.message);
-    } else if (data.type === 'stats') {
-        uiManager.log('Agent Stats:\n' + JSON.stringify(data.payload, null, 2));
+agentService.on('message', (data) => {
+    switch (data.type) {
+        case 'tasks':
+            stateManager.setTasks(data.payload);
+            uiManager.updateTasks(data.payload);
+            break;
+        case 'beliefs':
+            stateManager.setBeliefs(data.payload);
+            uiManager.updateBeliefs(data.payload);
+            break;
+        case 'log':
+            uiManager.log(data.payload.message);
+            break;
+        case MESSAGE_TYPES.SYSTEM_STATS:
+            uiManager.log('Agent Stats:\n' + JSON.stringify(data.payload, null, 2));
+            break;
     }
     uiManager.render();
 });
@@ -48,7 +49,7 @@ agentService.on('error', (error) => {
 // UI -> Agent Service & State
 uiManager.components.narseseInput.on('submit', (narsese) => {
     if (narsese && stateManager.get('isConnected')) {
-        agentService.send(narsese);
+        agentService.sendNarsese(narsese);
         uiManager.components.narseseInput.clearValue();
     }
 });

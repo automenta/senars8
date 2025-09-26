@@ -1,5 +1,5 @@
 import {EventEmitter} from 'events';
-import log from '@/utils/logger';
+import log from '@common/utils/logger';
 import {NOTIFICATION_TYPES, UI_CONSTANTS} from '@/constants/ui';
 
 class NotificationService extends EventEmitter {

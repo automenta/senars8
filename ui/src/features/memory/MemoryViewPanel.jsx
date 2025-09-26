@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
-import log from '@/utils/logger';
+import log from '@common/utils/logger';
 import {AlertCircle, BrainCircuit, Filter, RotateCcw, Search} from 'lucide-react';
 import './MemoryViewPanel.css';
 

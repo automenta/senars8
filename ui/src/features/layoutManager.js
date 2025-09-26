@@ -1,4 +1,4 @@
-import log from '@/utils/logger';
+import log from '@common/utils/logger';
 
 const LAYOUT_KEY = 'senars-ide-layout';
 const PRESET_LAYOUTS_KEY = 'senars-ide-preset-layouts';

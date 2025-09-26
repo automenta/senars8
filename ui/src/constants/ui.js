@@ -1,25 +1,27 @@
-// UI Constants
-export const UI_CONSTANTS = {
-    // Connection related constants
-    CONNECTION: {
-        RECONNECT_DELAY: 3000,
-        MAX_RECONNECT_ATTEMPTS: 10,
-        MESSAGE_TIMEOUT: 15000,
-        PENDING_MESSAGE_MAX_SIZE: 64 * 1024, // 64KB
-    },
+import { CONFIG } from '@common/constants/config.js';
+import {
+    CONNECTION_STATUS as CORE_CONNECTION_STATUS,
+    MESSAGE_TYPES as CORE_MESSAGE_TYPES,
+    NOTIFICATION_TYPES as CORE_NOTIFICATION_TYPES
+} from '@common/constants/communication.js';
 
-    // UI related constants
+// Re-export shared constants for use within the UI
+export const CONNECTION_STATUS = CORE_CONNECTION_STATUS;
+export const MESSAGE_TYPES = CORE_MESSAGE_TYPES;
+export const NOTIFICATION_TYPES = CORE_NOTIFICATION_TYPES;
+
+// UI-specific constants
+export const UI_CONSTANTS = {
+    // Merge shared config with UI-specific settings
+    CONNECTION: CONFIG.CONNECTION,
+    VALIDATION: CONFIG.VALIDATION,
+
+    // UI-only constants
     UI: {
         MAX_MESSAGE_HISTORY: 50,
         MAX_NOTIFICATIONS: 100,
         DEFAULT_NOTIFICATION_DURATION: 5000,
-        MAX_NOTIFICATION_HISTORY: 30, // Limit for notification history to prevent memory issues
-    },
-
-    // Validation constants
-    VALIDATION: {
-        MAX_INPUT_LENGTH: 1000,
-        MAX_TERM_LENGTH: 500,
+        MAX_NOTIFICATION_HISTORY: 30,
     },
 
     // Layout constants
@@ -28,44 +30,4 @@ export const UI_CONSTANTS = {
         LAYOUT_STORAGE_KEY: 'senars-ide-layout',
         PRESET_LAYOUTS_STORAGE_KEY: 'senars-ide-preset-layouts',
     }
-};
-
-// Connection status constants
-export const CONNECTION_STATUS = {
-    DISCONNECTED: 'disconnected',
-    CONNECTING: 'connecting',
-    CONNECTED: 'connected',
-    FAILED: 'failed',
-};
-
-// Notification types
-export const NOTIFICATION_TYPES = {
-    INFO: 'info',
-    SUCCESS: 'success',
-    WARNING: 'warning',
-    ERROR: 'error',
-};
-
-// Message types
-export const MESSAGE_TYPES = {
-    NARSESE: 'narsese',
-    NATURAL_LANGUAGE: 'natural_language',
-    AGENT_CONTROL: 'agentControl',
-    KNOWLEDGE_GRAPH_UPDATE: 'knowledge_graph_update',
-    KNOWLEDGE_GRAPH_ERROR: 'knowledge_graph_error',
-    SYSTEM_STATS: 'system_stats',
-    REASONING_TRACE: 'reasoning_trace',
-    CONNECTION_STATS: 'connection_stats',
-    AGENT_STATE_UPDATE: 'agentStateUpdate',
-    MESSAGE_TIMEOUT: 'message_timeout',
-    PARSE_ERROR: 'parse_error',
-    SEND_ERROR: 'send_error',
-    ERROR: 'error',
-    STATUS: 'status',
-    MESSAGE: 'message',
-    SEARCH: 'search',
-    SEARCH_RESULTS: 'search_results',
-    SEARCH_ERROR: 'search_error',
-    TASK_UPDATE: 'task_update',
-    TASK_ERROR: 'task_error',
 };

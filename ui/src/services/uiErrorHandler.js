@@ -1,6 +1,6 @@
 // Enhanced Error Handling for UI Components
 import {EventEmitter} from 'events';
-import log from '@/utils/logger';
+import log from '@common/utils/logger';
 import notificationService from '@/services/notificationService';
 
 class UIErrorHandler extends EventEmitter {
