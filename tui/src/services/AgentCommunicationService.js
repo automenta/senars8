@@ -44,6 +44,23 @@ class AgentCommunicationService extends EventEmitter {
       this.ws.send(data);
     }
   }
+
+  // --- Control Commands ---
+  start() {
+    this.send(JSON.stringify({ type: 'control', payload: 'start' }));
+  }
+
+  stop() {
+    this.send(JSON.stringify({ type: 'control', payload: 'stop' }));
+  }
+
+  reset() {
+    this.send(JSON.stringify({ type: 'control', payload: 'reset' }));
+  }
+
+  getStats() {
+    this.send(JSON.stringify({ type: 'control', payload: 'stats' }));
+  }
 }
 
 export default AgentCommunicationService;

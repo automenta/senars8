@@ -16,10 +16,16 @@ export function createHelpBox() {
     Enter       Submit input
 
     Commands:
-    !help       Show this help
-    !connect    Connect to agent
-    !disconnect Disconnect from agent
-    !clear      Clear log
+    !help             Show this help
+    !start            Start the agent cycling
+    !stop             Stop the agent cycling
+    !reset            Reset the agent
+    !add <task>       Add a new task
+    !query <text>     Query the agent
+    !stats            Get system statistics
+    !connect          Connect to agent
+    !disconnect       Disconnect from agent
+    !clear            Clear log
         `,
         border: {
             type: 'line',

@@ -7,14 +7,16 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "test": "node --test",
-    "test:jest": "NODE_OPTIONS=--experimental-vm-modules jest"
+    "test": "jest"
   },
   "dependencies": {
     "blessed": "^0.1.81",
     "ws": "^8.18.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.4",
+    "@babel/preset-env": "^7.28.3",
+    "babel-jest": "^29.7.0",
     "jest": "^29.7.0",
     "jsdom": "^25.0.0"
   },

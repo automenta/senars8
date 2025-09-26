@@ -3,11 +3,13 @@
 import StateManager from './managers/StateManager.js';
 import UIManager from './managers/UIManager.js';
 import AgentCommunicationService from './services/AgentCommunicationService.js';
+import { createCommandHandler } from './services/commandHandler.js';
 
 // --- Initialization ---
 const stateManager = new StateManager();
 const uiManager = new UIManager(stateManager);
 const agentService = new AgentCommunicationService('ws://localhost:8080');
+const handleCommand = createCommandHandler(stateManager, uiManager, agentService);
 
 // --- Event Wiring ---
 
@@ -33,6 +35,8 @@ agentService.on('data', (data) => {
         uiManager.updateBeliefs(data.beliefs);
     } else if (data.type === 'log') {
         uiManager.log(data.message);
+    } else if (data.type === 'stats') {
+        uiManager.log('Agent Stats:\n' + JSON.stringify(data.payload, null, 2));
     }
     uiManager.render();
 });
@@ -55,28 +59,8 @@ uiManager.components.commandInput.on('submit', (command) => {
 });
 
 // --- Command Handling ---
-function handleCommand(command) {
-    stateManager.addCommandToHistory(command);
-    const [cmd, ...args] = command.trim().split(/\s+/);
-
-    switch (cmd) {
-        case '!help':
-            uiManager.components.helpBox.toggle();
-            break;
-        case '!connect':
-            agentService.connect(args[0]);
-            break;
-        case '!disconnect':
-            agentService.disconnect();
-            break;
-        case '!clear':
-            uiManager.components.logBox.clear();
-            break;
-        default:
-            uiManager.log(`Unknown command: ${command}`);
-    }
-    uiManager.render();
-}
+// The handleCommand function is now created by createCommandHandler
+// and initialized above.
 
 // --- History Navigation for Command Input ---
 uiManager.components.commandInput.key('up', () => {

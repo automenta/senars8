@@ -1,7 +1,9 @@
 /** @type {import('jest').Config} */
 const config = {
-    // Indicates that the project uses ES Modules.
-    "transform": {},
+    // Use babel-jest to transform files
+    "transform": {
+        "^.+\\.(js|mjs)$": "babel-jest"
+    },
     "testEnvironment": "node",
     "moduleFileExtensions": [
         "js",
