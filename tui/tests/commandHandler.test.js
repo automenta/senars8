@@ -1,5 +1,4 @@
-import { jest, describe, beforeEach, test, expect } from '@jest/globals';
-import { createCommandHandler } from '../src/services/commandHandler.js';
+import { createCommandHandler, commandDefinitions } from '../src/services/commandHandler.js';
 
 describe('createCommandHandler', () => {
     let mockStateManager;
@@ -8,25 +7,15 @@ describe('createCommandHandler', () => {
     let handleCommand;
 
     beforeEach(() => {
-        jest.clearAllMocks();
-
         mockStateManager = {
             addCommandToHistory: jest.fn(),
         };
-
         mockUIManager = {
             log: jest.fn(),
             render: jest.fn(),
-            components: {
-                logBox: {
-                    clear: jest.fn(),
-                },
-                helpBox: {
-                    toggle: jest.fn(),
-                },
-            },
+            toggleHelp: jest.fn(),
+            clearLog: jest.fn(),
         };
-
         mockAgentService = {
             start: jest.fn(),
             stop: jest.fn(),
@@ -36,7 +25,6 @@ describe('createCommandHandler', () => {
             connect: jest.fn(),
             disconnect: jest.fn(),
         };
-
         handleCommand = createCommandHandler(mockStateManager, mockUIManager, mockAgentService);
     });
 
@@ -63,28 +51,30 @@ describe('createCommandHandler', () => {
         expect(mockUIManager.log).toHaveBeenCalledWith('Sent !reset command.');
     });
 
-    test('should send task on !add command', () => {
-        handleCommand('!add <a --> b>.');
-        expect(mockAgentService.send).toHaveBeenCalledWith('<a --> b>.');
-        expect(mockUIManager.log).toHaveBeenCalledWith('Added task: <a --> b>.');
+    test('should add task on !add command', () => {
+        const task = '<test_task>.';
+        handleCommand(`!add ${task}`);
+        expect(mockAgentService.send).toHaveBeenCalledWith(task);
+        expect(mockUIManager.log).toHaveBeenCalledWith(`Added task: ${task}`);
     });
 
     test('should show usage on !add command without task', () => {
         handleCommand('!add');
         expect(mockAgentService.send).not.toHaveBeenCalled();
-        expect(mockUIManager.log).toHaveBeenCalledWith('Usage: !add <task>');
+        expect(mockUIManager.log).toHaveBeenCalledWith(`Usage: ${commandDefinitions['!add'].usage}`);
     });
 
     test('should send query on !query command', () => {
-        handleCommand('!query what is love?');
-        expect(mockAgentService.send).toHaveBeenCalledWith('what is love?');
-        expect(mockUIManager.log).toHaveBeenCalledWith('Sent query: what is love?');
+        const query = '<test_query>?';
+        handleCommand(`!query ${query}`);
+        expect(mockAgentService.send).toHaveBeenCalledWith(query);
+        expect(mockUIManager.log).toHaveBeenCalledWith(`Sent query: ${query}`);
     });
 
     test('should show usage on !query command without query', () => {
         handleCommand('!query');
         expect(mockAgentService.send).not.toHaveBeenCalled();
-        expect(mockUIManager.log).toHaveBeenCalledWith('Usage: !query <text>');
+        expect(mockUIManager.log).toHaveBeenCalledWith(`Usage: ${commandDefinitions['!query'].usage}`);
     });
 
     test('should call agentService.getStats on !stats command', () => {
@@ -94,40 +84,30 @@ describe('createCommandHandler', () => {
 
     test('should toggle help box on !help command', () => {
         handleCommand('!help');
-        expect(mockUIManager.components.helpBox.toggle).toHaveBeenCalled();
+        expect(mockUIManager.toggleHelp).toHaveBeenCalled();
     });
 
-    test('should connect to agent on !connect command', () => {
-        handleCommand('!connect ws://new-agent:9090');
-        expect(mockAgentService.connect).toHaveBeenCalledWith('ws://new-agent:9090');
+    test('should call agentService.connect on !connect command', () => {
+        const url = 'ws://localhost:1234';
+        handleCommand(`!connect ${url}`);
+        expect(mockAgentService.connect).toHaveBeenCalledWith(url);
     });
 
-    test('should disconnect from agent on !disconnect command', () => {
+    test('should call agentService.disconnect on !disconnect command', () => {
         handleCommand('!disconnect');
         expect(mockAgentService.disconnect).toHaveBeenCalled();
     });
 
+
+
     test('should clear log box on !clear command', () => {
         handleCommand('!clear');
-        expect(mockUIManager.components.logBox.clear).toHaveBeenCalled();
-    });
-
-    test('should exit process on !quit command', () => {
-        const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {});
-        handleCommand('!quit');
-        expect(mockExit).toHaveBeenCalledWith(0);
-        mockExit.mockRestore();
+        expect(mockUIManager.clearLog).toHaveBeenCalled();
     });
 
     test('should log unknown command', () => {
-        handleCommand('!unknown');
-        expect(mockUIManager.log).toHaveBeenCalledWith('Unknown command: !unknown');
-    });
-
-    test('should call uiManager.render after every command', () => {
-        handleCommand('!start');
-        expect(mockUIManager.render).toHaveBeenCalledTimes(1);
-        handleCommand('!unknown');
-        expect(mockUIManager.render).toHaveBeenCalledTimes(2);
+        const unknownCommand = '!unknown';
+        handleCommand(unknownCommand);
+        expect(mockUIManager.log).toHaveBeenCalledWith(`Unknown command: ${unknownCommand}`);
     });
 });

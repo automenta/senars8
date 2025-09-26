@@ -1,18 +1,21 @@
-import blessed from 'blessed';
+import { STYLES, EMOJIS, COLORS } from '../TuiConstants.js';
 
-export function createNarseseInput() {
-    return blessed.textbox({
-        bottom: 0,
-        left: 0,
-        width: '50%',
-        height: 1,
+/**
+ * Returns the configuration for the Narsese input component.
+ * @returns {object} The configuration object for blessed.textbox.
+ */
+export function getNarseseInputConfig() {
+    return {
+        label: ` ${EMOJIS.INPUT} Narsese `,
+        ...STYLES.base,
         style: {
-            bg: 'black',
-            fg: 'white',
+            ...STYLES.base.style,
             focus: {
-                bg: 'grey',
+                bg: COLORS.focus.bg,
+                fg: COLORS.focus.fg,
             },
         },
         inputOnFocus: true,
-    });
+        tags: true,
+    };
 }

@@ -1,39 +1,32 @@
-import blessed from 'blessed';
+import { STYLES, EMOJIS, COLORS } from '../TuiConstants.js';
 
-export function createTaskBox(onSelect) {
-    const taskBox = blessed.list({
-        top: 2,
-        left: 0,
-        width: '50%',
-        height: '60%-2',
-        label: 'Tasks',
-        border: {
-            type: 'line',
-        },
+/**
+ * Returns the configuration for the task list component.
+ * @returns {object} The configuration object for blessed.list.
+ */
+export function getTaskBoxConfig() {
+    return {
+        label: ` ${EMOJIS.TASKS} Tasks `,
+        ...STYLES.base,
         style: {
-            fg: 'white',
-            border: {
-                fg: '#f0f0f0',
-            },
+            ...STYLES.base.style,
             selected: {
-                bg: 'blue',
+                bg: COLORS.accent.bg,
+                fg: COLORS.accent.fg,
             },
         },
+        tags: true,
         keys: true,
         mouse: true,
         scrollable: true,
         scrollbar: {
             ch: ' ',
             track: {
-                bg: 'grey',
+                bg: COLORS.scrollbar.bg,
             },
             style: {
                 inverse: true,
             },
         },
-    });
-
-    taskBox.on('select', onSelect);
-
-    return taskBox;
+    };
 }

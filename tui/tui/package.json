@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "cli-highlight": "^2.1.11"
+  }
+}

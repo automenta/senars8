@@ -1,18 +1,21 @@
-import blessed from 'blessed';
+import { STYLES, EMOJIS, COLORS } from '../TuiConstants.js';
 
-export function createCommandInput() {
-    return blessed.textbox({
-        bottom: 0,
-        left: '50%',
-        width: '50%',
-        height: 1,
+/**
+ * Returns the configuration for the command input component.
+ * @returns {object} The configuration object for blessed.textbox.
+ */
+export function getCommandInputConfig() {
+    return {
+        label: ` ${EMOJIS.INPUT} Command `,
+        ...STYLES.base,
         style: {
-            bg: 'black',
-            fg: 'white',
+            ...STYLES.base.style,
             focus: {
-                bg: 'grey',
+                bg: COLORS.focus.bg,
+                fg: COLORS.focus.fg,
             },
         },
         inputOnFocus: true,
-    });
+        tags: true,
+    };
 }

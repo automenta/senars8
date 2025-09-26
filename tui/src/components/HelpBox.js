@@ -1,41 +1,21 @@
 import blessed from 'blessed';
+import { STYLES, EMOJIS } from '../TuiConstants.js';
 
+/**
+ * Creates the help box component. This box is shown dynamically.
+ * @returns {blessed.box} The help box component.
+ */
 export function createHelpBox() {
     return blessed.box({
+        label: ` ${EMOJIS.HELP} Help `,
+        content: '', // Content will be set dynamically
+        ...STYLES.base,
+        tags: true,
+        // Position and dimensions are set dynamically when shown
         top: 'center',
         left: 'center',
-        width: '50%',
-        height: '50%',
-        label: 'Help',
-        content: `
-    Keybindings:
-    q, C-c      Quit
-    i           Focus Narsese input
-    :           Focus command input
-    Up/Down     Navigate history/lists
-    Enter       Submit input
-
-    Commands:
-    !help             Show this help
-    !start            Start the agent cycling
-    !stop             Stop the agent cycling
-    !reset            Reset the agent
-    !add <task>       Add a new task
-    !query <text>     Query the agent
-    !stats            Get system statistics
-    !connect          Connect to agent
-    !disconnect       Disconnect from agent
-    !clear            Clear log
-        `,
-        border: {
-            type: 'line',
-        },
-        style: {
-            fg: 'white',
-            border: {
-                fg: '#f0f0f0',
-            },
-        },
+        width: '60%',
+        height: '70%',
         hidden: true,
     });
 }

@@ -1,39 +1,32 @@
-import blessed from 'blessed';
+import { STYLES, EMOJIS, COLORS } from '../TuiConstants.js';
 
-export function createBeliefsBox(onSelect) {
-    const beliefsBox = blessed.list({
-        top: '60%',
-        left: '50%',
-        width: '50%',
-        height: '40%-2',
-        label: 'Beliefs',
-        border: {
-            type: 'line',
-        },
+/**
+ * Returns the configuration for the beliefs list component.
+ * @returns {object} The configuration object for blessed.list.
+ */
+export function getBeliefsBoxConfig() {
+    return {
+        label: ` ${EMOJIS.BELIEFS} Beliefs `,
+        ...STYLES.base,
         style: {
-            fg: 'white',
-            border: {
-                fg: '#f0f0f0',
-            },
+            ...STYLES.base.style,
             selected: {
-                bg: 'blue',
+                bg: COLORS.accent.bg,
+                fg: COLORS.accent.fg,
             },
         },
+        tags: true,
         keys: true,
         mouse: true,
         scrollable: true,
         scrollbar: {
             ch: ' ',
             track: {
-                bg: 'grey',
+                bg: COLORS.scrollbar.bg,
             },
             style: {
                 inverse: true,
             },
         },
-    });
-
-    beliefsBox.on('select', onSelect);
-
-    return beliefsBox;
+    };
 }

@@ -1,14 +1,15 @@
-import blessed from 'blessed';
+import { STYLES, COLORS } from '../TuiConstants.js';
 
-export function createStatusBar() {
-    return blessed.box({
-        top: 1,
-        left: 0,
-        width: '100%',
-        height: 1,
+/**
+ * Returns the configuration for the status bar component.
+ * @returns {object} The configuration object for blessed.box.
+ */
+export function getStatusBarConfig() {
+    return {
+        tags: true,
         style: {
-            fg: 'white',
-            bg: 'cyan',
+            fg: COLORS.primary.fg,
+            bg: COLORS.primary.bg,
         },
-    });
+    };
 }

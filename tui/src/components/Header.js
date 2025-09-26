@@ -1,15 +1,16 @@
-import blessed from 'blessed';
+import { COLORS, EMOJIS } from '../TuiConstants.js';
 
-export function createHeader() {
-    return blessed.box({
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: 1,
-        content: ' SeNARS TUI ',
+/**
+ * Returns the configuration for the header component.
+ * @returns {object} The configuration object for blessed.box.
+ */
+export function getHeaderConfig() {
+    return {
+        content: ` ${EMOJIS.HEADER} SeNARS TUI `,
+        tags: true,
         style: {
-            fg: 'white',
-            bg: 'blue',
+            fg: COLORS.primary.fg,
+            bg: COLORS.accent.bg,
         },
-    });
+    };
 }

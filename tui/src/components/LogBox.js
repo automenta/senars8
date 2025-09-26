@@ -1,30 +1,26 @@
-import blessed from 'blessed';
+import { STYLES, EMOJIS, COLORS } from '../TuiConstants.js';
 
-export function createLogBox() {
-    return blessed.log({
-        top: 2,
-        left: '50%',
-        width: '50%',
-        height: '100%-4',
-        label: 'Log',
-        border: {
-            type: 'line',
-        },
-        style: {
-            fg: 'white',
-            border: {
-                fg: '#f0f0f0',
-            },
-        },
+/**
+ * Returns the configuration for the log box component.
+ * @returns {object} The configuration object for blessed.log.
+ */
+export function getLogBoxConfig() {
+    return {
+        label: ` ${EMOJIS.LOGS} Logs `,
+        ...STYLES.base,
+        tags: true,
         scrollable: true,
+        mouse: true,
+        keys: true,
+        vi: true,
         scrollbar: {
             ch: ' ',
             track: {
-                bg: 'grey',
+                bg: COLORS.scrollbar.bg,
             },
             style: {
                 inverse: true,
             },
         },
-    });
+    };
 }
