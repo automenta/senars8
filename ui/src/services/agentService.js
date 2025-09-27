@@ -16,6 +16,11 @@ class AgentService extends EventEmitter {
         this.url = 'ws://localhost:8080';
         this.crdtUrl = 'ws://localhost:8080/crdt';
         this.isConnected = false;
+        this.isConnecting = false;
+        this.reconnectAttempts = 0;
+        this.maxReconnectAttempts = 5;
+        this.reconnectDelay = 1000; // Initial delay in ms
+        this.maxReconnectDelay = 30000; // Maximum delay in ms
 
         this.yDoc = new Y.Doc();
         this.yProvider = null;
@@ -26,10 +31,13 @@ class AgentService extends EventEmitter {
             totalFailedConnections: 0,
             lastConnectionAttempt: null,
             lastSuccessfulConnection: null,
-            lastDisconnection: null
+            lastDisconnection: null,
+            reconnectAttempts: 0
         };
 
         this.agentState = {};
+        this.messageQueue = [];
+        this.isReady = false;
 
         // Initialize the shared, low-level communication service
         this.communicationService = new AgentCommunicationService(this.url);
@@ -43,15 +51,46 @@ class AgentService extends EventEmitter {
      */
     setupEventForwarding() {
         this.communicationService.on('status', (status) => {
-            this.isConnected = (status === 'connected');
-
-            if (status === 'connected') {
-                this.connectionStats.totalConnections++;
-                this.connectionStats.lastSuccessfulConnection = new Date();
-            } else if (status === 'disconnected') {
-                this.connectionStats.lastDisconnection = new Date();
-            } else if (status === 'failed') {
-                this.connectionStats.totalFailedConnections++;
+            log.debug('Agent service status changed:', status);
+            
+            // Handle connection state changes
+            switch (status) {
+                case 'connected':
+                    this.isConnected = true;
+                    this.isConnecting = false;
+                    this.reconnectAttempts = 0;
+                    this.isReady = true;
+                    this.connectionStats.totalConnections++;
+                    this.connectionStats.lastSuccessfulConnection = new Date();
+                    this.flushMessageQueue();
+                    log.info('Connected to agent service');
+                    break;
+                    
+                case 'disconnected':
+                    this.isConnected = false;
+                    this.isConnecting = false;
+                    this.isReady = false;
+                    this.connectionStats.lastDisconnection = new Date();
+                    this.attemptReconnect();
+                    log.info('Disconnected from agent service');
+                    break;
+                    
+                case 'connecting':
+                    this.isConnecting = true;
+                    this.isConnected = false;
+                    this.isReady = false;
+                    this.connectionStats.lastConnectionAttempt = new Date();
+                    log.info('Connecting to agent service...');
+                    break;
+                    
+                case 'failed':
+                    this.isConnected = false;
+                    this.isConnecting = false;
+                    this.isReady = false;
+                    this.connectionStats.totalFailedConnections++;
+                    this.attemptReconnect();
+                    log.error('Failed to connect to agent service');
+                    break;
             }
 
             this.emit(MESSAGE_TYPES.STATUS, CONNECTION_STATUS[status.toUpperCase()]);
@@ -69,12 +108,39 @@ class AgentService extends EventEmitter {
     }
 
     /**
+     * Attempts to reconnect to the agent service with exponential backoff
+     */
+    attemptReconnect() {
+        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+            log.warn(`Maximum reconnect attempts (${this.maxReconnectAttempts}) reached`);
+            return;
+        }
+
+        // Calculate delay with exponential backoff, capped at maxReconnectDelay
+        const delay = Math.min(
+            this.reconnectDelay * Math.pow(2, this.reconnectAttempts),
+            this.maxReconnectDelay
+        );
+
+        this.reconnectAttempts++;
+        this.connectionStats.reconnectAttempts = this.reconnectAttempts;
+
+        log.info(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+
+        setTimeout(() => {
+            if (!this.isConnected && !this.isConnecting) {
+                this.connect();
+            }
+        }, delay);
+    }
+
+    /**
      * Connects to the agent and sets up collaborative editing.
      */
     connect() {
-        if (this.communicationService.isConnecting || this.isConnected) {
+        if (this.isConnecting || this.isConnected) {
             log.warn('Connection attempt ignored: already connecting or connected.');
-            return;
+            return Promise.resolve();
         }
 
         this.connectionStats.lastConnectionAttempt = new Date();
@@ -84,15 +150,46 @@ class AgentService extends EventEmitter {
         this.communicationService.connect();
 
         // Setup Y.js WebSocket provider for collaborative editing
-        this.yProvider = new WebsocketProvider(this.crdtUrl, 'senars-room', this.yDoc);
-        this.awareness = this.yProvider.awareness;
-        this.awareness.on('change', () => this.emit('awareness_change'));
+        try {
+            if (this.yProvider) {
+                this.yProvider.destroy();
+            }
+            this.yProvider = new WebsocketProvider(this.crdtUrl, 'senars-room', this.yDoc);
+            this.awareness = this.yProvider.awareness;
+            this.awareness.on('change', () => this.emit('awareness_change'));
+        } catch (error) {
+            log.error('Error setting up collaborative editing:', error);
+        }
+
+        // Return a promise that resolves when connected
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new Error('Connection timeout'));
+            }, 10000); // 10 second timeout
+
+            const statusHandler = (status) => {
+                if (status === 'connected') {
+                    clearTimeout(timeout);
+                    this.off('status', statusHandler);
+                    resolve();
+                } else if (status === 'failed') {
+                    clearTimeout(timeout);
+                    this.off('status', statusHandler);
+                    reject(new Error('Connection failed'));
+                }
+            };
+
+            this.on('status', statusHandler);
+        });
     }
 
     /**
      * Disconnects from the agent and cleans up resources.
      */
     disconnect() {
+        // Clear any reconnect timers
+        this.reconnectAttempts = this.maxReconnectAttempts;
+        
         this.communicationService.disconnect();
 
         if (this.yProvider) {
@@ -100,8 +197,24 @@ class AgentService extends EventEmitter {
             this.yProvider = null;
             this.awareness = null;
         }
+        
         this.isConnected = false;
+        this.isConnecting = false;
+        this.isReady = false;
         this.emit(MESSAGE_TYPES.STATUS, CONNECTION_STATUS.DISCONNECTED);
+    }
+
+    /**
+     * Flushes the message queue when connection is established
+     */
+    flushMessageQueue() {
+        if (this.messageQueue.length > 0) {
+            log.info(`Flushing message queue (${this.messageQueue.length} messages)`);
+            while (this.messageQueue.length > 0) {
+                const {type, payload, options} = this.messageQueue.shift();
+                this.sendMessage(type, payload, options);
+            }
+        }
     }
 
     /**
@@ -113,6 +226,8 @@ class AgentService extends EventEmitter {
             log.error('Invalid message format received:', message);
             return;
         }
+
+        log.debug('Received message:', message.type);
 
         if (message.type === 'system_stats' || message.type === MESSAGE_TYPES.AGENT_STATE_UPDATE) {
             this.agentState = {...this.agentState, ...message.payload};
@@ -126,12 +241,26 @@ class AgentService extends EventEmitter {
 
     /**
      * Sends a message to the agent via the communication service.
+     * Queues messages if not connected.
      * @param {string} type - The message type.
      * @param {object} payload - The message payload.
      * @param {object} options - Additional options.
      * @returns {boolean} - True if the message was sent or queued, false otherwise.
      */
     sendMessage(type, payload, options = {}) {
+        // If not ready, queue the message
+        if (!this.isReady) {
+            if (options.queue === false) {
+                log.warn(`Message not sent (not ready): ${type}`, payload);
+                return false;
+            }
+            
+            log.debug(`Queueing message: ${type}`, payload);
+            this.messageQueue.push({type, payload, options});
+            return true;
+        }
+
+        log.debug(`Sending message: ${type}`, payload);
         return this.communicationService.sendMessage(type, payload, options);
     }
 
@@ -140,7 +269,13 @@ class AgentService extends EventEmitter {
      * @returns {Object} Connection statistics object
      */
     getConnectionStats() {
-        return {...this.connectionStats};
+        return {
+            ...this.connectionStats,
+            isConnected: this.isConnected,
+            isConnecting: this.isConnecting,
+            isReady: this.isReady,
+            queueLength: this.messageQueue.length
+        };
     }
 
     // --- High-level API methods ---
@@ -200,6 +335,32 @@ class AgentService extends EventEmitter {
 
     isAgentRunning() {
         return this.agentState.isRunning;
+    }
+    
+    /**
+     * Waits for the agent service to be ready
+     * @param {number} timeout - Timeout in milliseconds
+     * @returns {Promise<boolean>} - Resolves when ready or rejects on timeout
+     */
+    waitForReady(timeout = 10000) {
+        return new Promise((resolve, reject) => {
+            if (this.isReady) {
+                resolve(true);
+                return;
+            }
+
+            const timeoutId = setTimeout(() => {
+                reject(new Error('Agent service timeout'));
+            }, timeout);
+
+            const readyHandler = () => {
+                clearTimeout(timeoutId);
+                this.removeListener('status', readyHandler);
+                resolve(true);
+            };
+
+            this.on('status', readyHandler);
+        });
     }
 }
 

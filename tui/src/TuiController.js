@@ -1,4 +1,4 @@
-import {debug} from '../../core/utils/logger.js';
+import {debug, warn} from '../../core/utils/logger.js';
 
 class TuiController {
     constructor(agent, view, config = null) {
@@ -7,6 +7,8 @@ class TuiController {
         this.config = config;
         this.isRunning = false;
         this.eventListeners = [];
+        this.updateThrottleTimeout = null;
+        this.throttleDelay = 100; // milliseconds
     }
 
     start() {
@@ -27,6 +29,12 @@ class TuiController {
 
         // Remove event listeners
         this.unregisterEventListeners();
+        
+        // Clear any pending throttled updates
+        if (this.updateThrottleTimeout) {
+            clearTimeout(this.updateThrottleTimeout);
+            this.updateThrottleTimeout = null;
+        }
 
         debug('TUI Controller stopped');
     }
@@ -52,11 +60,24 @@ class TuiController {
                 this.onViewUpdate();
             });
 
+            // Listen for task removal events
+            system.eventBus.on('tasks.remove', (tasks) => {
+                debug(`Tasks removed: ${tasks.length}`);
+                this.onViewUpdate();
+            });
+
             // Listen for memory events
             system.eventBus.on('memory.update', () => {
                 debug('Memory updated');
                 this.onViewUpdate();
             });
+            
+            // Listen for cycle events
+            system.eventBus.on('system.cycle.completed', () => {
+                this.onViewUpdate();
+            });
+        } else {
+            warn('TUI Controller: Agent system or eventBus not available');
         }
     }
 
@@ -66,16 +87,26 @@ class TuiController {
             system.eventBus.removeAllListeners('system.state.changed');
             system.eventBus.removeAllListeners('tasks.add');
             system.eventBus.removeAllListeners('tasks.update');
+            system.eventBus.removeAllListeners('tasks.remove');
             system.eventBus.removeAllListeners('memory.update');
+            system.eventBus.removeAllListeners('system.cycle.completed');
         }
     }
 
     onViewUpdate() {
         // Throttle view updates to avoid excessive rendering
-        if (this.view && typeof this.view.render === 'function') {
-            // For now, we'll just log that an update was requested
-            // The view handles its own rendering at a controlled interval
+        if (this.updateThrottleTimeout) {
+            // Already scheduled, skip
+            return;
         }
+
+        // Schedule update
+        this.updateThrottleTimeout = setTimeout(() => {
+            this.updateThrottleTimeout = null;
+            if (this.view && typeof this.view.render === 'function') {
+                this.view.render();
+            }
+        }, this.throttleDelay);
     }
 }
 

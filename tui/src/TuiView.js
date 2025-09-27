@@ -9,9 +9,15 @@ class TuiView {
         this.rl = null;
         this.isRunning = false;
         this.updateInterval = null;
+        this.lastRenderTime = 0;
+        this.minRenderInterval = 100; // Minimum time between renders in ms
 
         // Use default update interval if config not provided
         this.updateIntervalMs = config ? config.getUpdateInterval() : 1000;
+        
+        // Track active input prompts to prevent conflicts
+        this.awaitingInput = false;
+        this.inputCallback = null;
     }
 
     start() {
@@ -29,13 +35,20 @@ class TuiView {
         this.rl.on('line', (input) => {
             this.handleUserInput(input.trim());
         });
+        
+        // Handle Ctrl+C gracefully
+        this.rl.on('SIGINT', () => {
+            console.log('\nReceived SIGINT, stopping...');
+            this.stop();
+            process.exit(0);
+        });
 
         // Initial render
         this.render();
 
         // Set up periodic updates using configured interval
         this.updateInterval = setInterval(() => {
-            if (this.isRunning) {
+            if (this.isRunning && !this.awaitingInput) {
                 this.render();
             }
         }, this.updateIntervalMs);
@@ -62,12 +75,19 @@ class TuiView {
     }
 
     render() {
+        // Prevent too frequent rendering
+        const now = Date.now();
+        if (now - this.lastRenderTime < this.minRenderInterval) {
+            return;
+        }
+        
         if (!this.isRunning) return;
 
         try {
             // Get system state for rendering
             const systemState = this.getSystemState();
             this.renderer.render(systemState);
+            this.lastRenderTime = now;
         } catch (error) {
             this.renderer.renderError(error);
         }
@@ -85,6 +105,11 @@ class TuiView {
                 beliefs: this.getBeliefs(),
                 goals: this.getGoals(),
                 questions: this.getQuestions()
+            },
+            // Add additional system information
+            systemInfo: {
+                uptime: system?.getUptime ? system.getUptime() : null,
+                version: system?.version || 'unknown'
             }
         };
     }
@@ -122,6 +147,15 @@ class TuiView {
     }
 
     async handleUserInput(input) {
+        // If we're waiting for input from a previous command, handle it
+        if (this.awaitingInput && this.inputCallback) {
+            const callback = this.inputCallback;
+            this.inputCallback = null;
+            this.awaitingInput = false;
+            await callback(input);
+            return;
+        }
+        
         const command = input.toLowerCase();
 
         switch (command) {
@@ -152,43 +186,109 @@ class TuiView {
                 break;
             case 't':
             case 'task':
-                console.log('Enter a new task:');
-                this.rl.question('> ', async (taskInput) => {
-                    if (taskInput.trim()) {
-                        await this.addTask(taskInput.trim());
-                    } else {
-                        console.log('Task content cannot be empty');
-                    }
-                });
+                await this.promptForInput('Enter a new task:', this.addTask.bind(this));
                 break;
             case 'a':
             case 'add':
-                console.log('Enter a new belief:');
-                this.rl.question('> ', async (beliefInput) => {
-                    if (beliefInput.trim()) {
-                        await this.addBelief(beliefInput.trim());
-                    } else {
-                        console.log('Belief content cannot be empty');
-                    }
-                });
+                await this.promptForInput('Enter a new belief:', this.addBelief.bind(this));
                 break;
-            case 'help':
+            case 'b':
+            case 'beliefs':
+                this.listBeliefs();
+                break;
+            case 'g':
+            case 'goals':
+                this.listGoals();
+                break;
+            case 'l':
+            case 'tasks':
+                this.listTasks();
+                break;
+            case 'c':
+            case 'clear':
+                console.clear();
+                break;
             case 'h':
+            case 'help':
                 this.showHelp();
                 break;
+            case '':
+                // Empty input, just re-render
+                this.render();
+                break;
             default:
-                console.log(`Unknown command: ${input}. Type 'help' for available commands.`);
+                // Try to interpret as Narsese input
+                await this.interpretNarsese(input);
         }
+    }
+
+    async promptForInput(prompt, callback) {
+        if (this.awaitingInput) {
+            console.log('Already awaiting input, please complete previous command first.');
+            return;
+        }
+        
+        this.awaitingInput = true;
+        this.inputCallback = callback;
+        console.log(prompt);
+        // The actual input will be handled in handleUserInput when the user responds
     }
 
     showHelp() {
         console.log('\nAvailable commands:');
-        console.log('  s/stop   - Stop the agent');
-        console.log('  r/run    - Start the agent');
-        console.log('  t/task   - Add a new task');
-        console.log('  a/add    - Add a new belief');
-        console.log('  h/help   - Show this help message');
-        console.log('  q/quit   - Quit the application');
+        console.log('  s/stop        - Stop the agent');
+        console.log('  r/run         - Start the agent');
+        console.log('  t/task        - Add a new task');
+        console.log('  a/add         - Add a new belief');
+        console.log('  b/beliefs     - List current beliefs');
+        console.log('  g/goals       - List current goals');
+        console.log('  l/tasks       - List current tasks');
+        console.log('  c/clear       - Clear the screen');
+        console.log('  h/help        - Show this help message');
+        console.log('  q/quit/exit   - Quit the application');
+        console.log('  <narsese>     - Enter Narsese directly');
+        console.log('');
+    }
+
+    listBeliefs() {
+        const beliefs = this.getBeliefs();
+        if (beliefs.length === 0) {
+            console.log('No beliefs in memory.');
+            return;
+        }
+        
+        console.log(`\nBeliefs (${beliefs.length}):`);
+        beliefs.forEach((belief, index) => {
+            console.log(`  ${index + 1}. ${belief.toString()}`);
+        });
+        console.log('');
+    }
+
+    listGoals() {
+        const goals = this.getGoals();
+        if (goals.length === 0) {
+            console.log('No goals in memory.');
+            return;
+        }
+        
+        console.log(`\nGoals (${goals.length}):`);
+        goals.forEach((goal, index) => {
+            console.log(`  ${index + 1}. ${goal.toString()}`);
+        });
+        console.log('');
+    }
+
+    listTasks() {
+        const tasks = this.getTasks();
+        if (tasks.length === 0) {
+            console.log('No tasks in memory.');
+            return;
+        }
+        
+        console.log(`\nTasks (${tasks.length}):`);
+        tasks.forEach((task, index) => {
+            console.log(`  ${index + 1}. ${task.toString()}`);
+        });
         console.log('');
     }
 
@@ -218,6 +318,7 @@ class TuiView {
 
             console.log(`Task added successfully: ${content}`);
             info(`TUI Task added: ${content}`);
+            this.render(); // Re-render to show updated state
         } catch (error) {
             logError('Error adding task:', error);
             console.error('Error adding task:', error.message);
@@ -250,9 +351,50 @@ class TuiView {
 
             console.log(`Belief added successfully: ${content}`);
             info(`TUI Belief added: ${content}`);
+            this.render(); // Re-render to show updated state
         } catch (error) {
             logError('Error adding belief:', error);
             console.error('Error adding belief:', error.message);
+        }
+    }
+    
+    async interpretNarsese(input) {
+        try {
+            if (!this.agent?.system) {
+                console.log('Agent system not available');
+                warn('TUI interpretNarsese: Agent system not available');
+                return;
+            }
+
+            // Try to parse as Narsese
+            const {parseTerm, Task} = await import('../../core/index.js');
+            const term = parseTerm(input);
+
+            if (!term) {
+                console.log(`Unrecognized command: ${input}. Type 'help' for available commands.`);
+                return;
+            }
+
+            // Determine punctuation based on input or default to judgment
+            let punctuation = '.';
+            if (input.endsWith('?')) {
+                punctuation = '?';
+            } else if (input.endsWith('!')) {
+                punctuation = '!';
+            }
+
+            // Create a task
+            const task = new Task(term, punctuation);
+
+            // Add the task to the system
+            await this.agent.system.addTasks([task]);
+
+            console.log(`Narsese interpreted and added: ${input}`);
+            info(`TUI Narsese added: ${input}`);
+            this.render(); // Re-render to show updated state
+        } catch (error) {
+            logError('Error interpreting Narsese:', error);
+            console.error('Error interpreting Narsese:', error.message);
         }
     }
 }
