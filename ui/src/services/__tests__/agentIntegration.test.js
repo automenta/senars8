@@ -8,15 +8,19 @@ const fail = (msg) => {
 
 // Mock the agent service
 jest.mock('../agentService', () => ({
-    sendNarsese: jest.fn(),
-    getAgentState: jest.fn(),
-    sendAgentControl: jest.fn(),
-    isAgentRunning: jest.fn(),
-    getBeliefsCount: jest.fn(),
-    getGoalsCount: jest.fn(),
-    getQuestionsCount: jest.fn(),
-    getCycleCount: jest.fn(),
-    getTasks: jest.fn(),
+    __esModule: true,
+    default: {
+        on: jest.fn(),
+        sendNarsese: jest.fn(),
+        getAgentState: jest.fn(),
+        sendAgentControl: jest.fn(),
+        isAgentRunning: jest.fn(),
+        getBeliefsCount: jest.fn(),
+        getGoalsCount: jest.fn(),
+        getQuestionsCount: jest.fn(),
+        getCycleCount: jest.fn(),
+        getTasks: jest.fn(() => ({})),
+    }
 }));
 
 jest.mock('@common/utils/logger', () => ({
@@ -169,11 +173,11 @@ describe('Agent Integration Service', () => {
 
         test('gets all tasks', () => {
             const mockTasks = [{id: 'task1', statement: '<bird --> animal>.'}];
-            agentService.getTasks.mockReturnValue(mockTasks);
+            agentService.default.getTasks.mockReturnValue(mockTasks);
 
             const tasks = agentIntegrationService.getAllTasks();
 
-            expect(agentService.getTasks).toHaveBeenCalled();
+            expect(agentService.default.getTasks).toHaveBeenCalled();
             expect(tasks).toEqual(mockTasks);
         });
     });

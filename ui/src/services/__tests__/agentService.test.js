@@ -1,46 +1,39 @@
-// Mock WebSocket
-const mockWebSocket = {
-    close: jest.fn(),
-    send: jest.fn(),
-};
-
-const mockWebSocketClass = jest.fn().mockImplementation(() => mockWebSocket);
-
-global.WebSocket = mockWebSocketClass;
+jest.mock('y-websocket', () => ({
+    WebsocketProvider: jest.fn().mockImplementation(() => ({
+        awareness: {
+            on: jest.fn(),
+        },
+        destroy: jest.fn(),
+    })),
+}));
 
 import agentService from '../agentService';
+import AgentCommunicationService from '@common/services/AgentCommunicationService.js';
 
 describe('AgentService', () => {
+    let communicationServiceSpy;
+
     beforeEach(() => {
         jest.clearAllMocks();
+        communicationServiceSpy = jest.spyOn(AgentCommunicationService.prototype, 'sendMessage');
+    });
+
+    afterEach(() => {
+        communicationServiceSpy.mockRestore();
     });
 
     it('should connect to WebSocket', () => {
         agentService.connect();
-
-        expect(mockWebSocketClass).toHaveBeenCalledWith('ws://localhost:8080');
-        expect(agentService.ws).toBe(mockWebSocket);
+        expect(agentService.yProvider).not.toBeNull();
     });
 
     it('should send NARSese messages', () => {
-        agentService.isConnected = true;
-        agentService.ws = mockWebSocket;
-
         agentService.sendNarsese('<test --> test>.');
-
-        expect(mockWebSocket.send).toHaveBeenCalledWith(
-            JSON.stringify({type: 'narsese', payload: '<test --> test>.'})
-        );
+        expect(communicationServiceSpy).toHaveBeenCalledWith('narsese', '<test --> test>.', {});
     });
 
     it('should send agent control commands', () => {
-        agentService.isConnected = true;
-        agentService.ws = mockWebSocket;
-
         agentService.sendAgentControl('start');
-
-        expect(mockWebSocket.send).toHaveBeenCalledWith(
-            JSON.stringify({type: 'agentControl', payload: {command: 'start'}})
-        );
+        expect(communicationServiceSpy).toHaveBeenCalledWith('agentControl', {command: 'start'}, {});
     });
 });
