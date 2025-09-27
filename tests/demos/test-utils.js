@@ -1,4 +1,4 @@
-import { expect } from 'vitest';
+import {expect} from 'vitest';
 import MockLM from '../mocks/MockLM.js';
 import {join} from 'path';
 

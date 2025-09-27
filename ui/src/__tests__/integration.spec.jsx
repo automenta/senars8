@@ -1,5 +1,5 @@
+import {vi} from 'vitest';
 import React from 'react';
-import {beforeEach, describe, expect, test, vi} from 'vitest';
 import {fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from '@/App';
@@ -18,52 +18,46 @@ import defaultLayout from '@/features/defaultLayout';
 
 // Mock all services
 vi.mock('@/services/agentService', () => ({
-    default: {
-        on: vi.fn(),
-        off: vi.fn(),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
-        send: vi.fn(function (message) {
-            if (typeof message === 'object' && message.content) {
-                // This logic is a simplified version of what might happen in the real service
-                if (message.content.startsWith('<') && message.content.includes('-->')) {
-                    return this.sendNarsese(message.content);
-                } else {
-                    return this.sendNaturalLanguage(message.content);
-                }
+    on: vi.fn(),
+    off: vi.fn(),
+    connect: vi.fn(),
+    disconnect: vi.fn(),
+    send: vi.fn(function (message) {
+        if (typeof message === 'object' && message.content) {
+            // This logic is a simplified version of what might happen in the real service
+            if (message.content.startsWith('<') && message.content.includes('-->')) {
+                return this.sendNarsese(message.content);
+            } else {
+                return this.sendNaturalLanguage(message.content);
             }
-            return false;
-        }),
-        sendNarsese: vi.fn(),
-        sendNaturalLanguage: vi.fn(),
-        isConnected: true,
-        isAgentRunning: vi.fn().mockReturnValue(true),
-    }
+        }
+        return false;
+    }),
+    sendNarsese: vi.fn(),
+    sendNaturalLanguage: vi.fn(),
+    isConnected: true,
+    isAgentRunning: vi.fn().mockReturnValue(true),
 }));
 
 vi.mock('@/services/agentIntegration', () => ({
-    default: {
-        initialize: vi.fn().mockResolvedValue(),
-        processNarsese: vi.fn(),
-        getAgentInfo: vi.fn(),
-        sendAgentCommand: vi.fn(),
-        getAllTasks: vi.fn().mockResolvedValue([]),
-        getInitializedStatus: vi.fn().mockReturnValue(true),
-        getConfiguration: vi.fn().mockResolvedValue({}),
-    }
+    initialize: vi.fn().mockResolvedValue(),
+    processNarsese: vi.fn(),
+    getAgentInfo: vi.fn(),
+    sendAgentCommand: vi.fn(),
+    getAllTasks: vi.fn().mockResolvedValue([]),
+    getInitializedStatus: vi.fn().mockReturnValue(true),
+    getConfiguration: vi.fn().mockResolvedValue({}),
 }));
 
 vi.mock('@/services/notificationService');
 
-vi.mock('@/hooks/useSystemCycle', () => ({default: vi.fn(() => 100)}));
-vi.mock('@/hooks/useSystemStats', () => ({
-    default: vi.fn(() => ({
-        beliefs: 5,
-        goals: 2,
-        questions: 1,
-        memory: 1024,
-    }))
-}));
+vi.mock('@/hooks/useSystemCycle', () => vi.fn(() => 100));
+vi.mock('@/hooks/useSystemStats', () => vi.fn(() => ({
+    beliefs: 5,
+    goals: 2,
+    questions: 1,
+    memory: 1024,
+})));
 
 const mockModel = Model.fromJson(defaultLayout);
 vi.mock('@/hooks/useLayoutModel', () => ({
@@ -81,8 +75,8 @@ vi.mock('@/features/reasoning/VisualReasoningPanel', () => ({
 vi.mock('@/features/reasoning/ConceptMap', () => ({default: () => <div data-testid="mock-concept-map"/>}));
 vi.mock('react-force-graph-2d', () => ({default: () => <div data-testid="mock-force-graph"/>}));
 vi.mock('@pablo-lion/xterm-react', () => ({XTerm: () => null}));
-vi.mock('flexlayout-react', async () => {
-    const original = await vi.importActual('flexlayout-react');
+vi.mock('flexlayout-react', async (importOriginal) => {
+    const original = await importOriginal();
     const React = await import('react');
     return {
         ...original,
@@ -147,7 +141,7 @@ describe('UI-Agent-Core Integration Tests', () => {
 
     describe('Input Panel Integration', () => {
         test('sends narsese statement to agent', async () => {
-            agentService.default.sendNarsese.mockResolvedValue(true);
+            agentService.sendNarsese.mockResolvedValue(true);
             renderWithProviders(<App/>);
 
             const input = screen.getByLabelText('Narsese input');
@@ -157,17 +151,17 @@ describe('UI-Agent-Core Integration Tests', () => {
             fireEvent.click(sendButton);
 
             await waitFor(() => {
-                expect(agentService.default.sendNarsese).toHaveBeenCalledWith('<bird --> animal>.');
+                expect(agentService.sendNarsese).toHaveBeenCalledWith('<bird --> animal>.');
                 expect(notificationService.addSuccess).toHaveBeenCalledWith(
                     'Narsese Sent',
-                    expect.stringContaining('<bird --> animal>.'),
+                    'Statement: <bird --> animal>.',
                     3000
                 );
             });
         });
 
         test('sends natural language to agent', async () => {
-            agentService.default.sendNaturalLanguage.mockResolvedValue(true);
+            agentService.sendNaturalLanguage.mockResolvedValue(true);
             renderWithProviders(<App/>);
 
             const input = screen.getByLabelText('Narsese input');
@@ -177,10 +171,10 @@ describe('UI-Agent-Core Integration Tests', () => {
             fireEvent.click(sendButton);
 
             await waitFor(() => {
-                expect(agentService.default.sendNaturalLanguage).toHaveBeenCalledWith('Tell me about birds');
+                expect(agentService.sendNaturalLanguage).toHaveBeenCalledWith('Tell me about birds');
                 expect(notificationService.addInfo).toHaveBeenCalledWith(
                     'NL Sent',
-                    expect.stringContaining('Tell me about birds'),
+                    'Input: Tell me about birds',
                     3000
                 );
             });
@@ -189,7 +183,7 @@ describe('UI-Agent-Core Integration Tests', () => {
 
     describe('Error Handling Integration', () => {
         test('handles agent service errors gracefully', async () => {
-            agentService.default.sendNarsese.mockResolvedValue(false); // Simulate a failed send
+            agentService.sendNarsese.mockResolvedValue(false); // Simulate a failed send
             renderWithProviders(<App/>);
 
             const input = screen.getByLabelText('Narsese input');

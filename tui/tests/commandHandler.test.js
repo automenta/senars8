@@ -1,4 +1,4 @@
-import {commandDefinitions, createCommandHandler} from '../src/services/commandHandler.js';
+import {createCommandHandler} from '../src/services/commandHandler.js';
 
 describe('createCommandHandler', () => {
     let mockStateManager;

@@ -1,4 +1,4 @@
-import {beforeEach, describe, expect, vi, test} from 'vitest';
+import {beforeEach, describe, expect, test, vi} from 'vitest';
 import HTNPlanner from '../../core/reasoner/HTNPlanner.js';
 import Memory from '../../core/memory/Memory.js';
 import Term from '../../core/core/Term.js';

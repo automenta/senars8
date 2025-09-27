@@ -1,4 +1,4 @@
-import {afterEach, beforeEach, describe, expect, vi, test} from 'vitest';
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest';
 import Task from '../../core/core/Task.js';
 
 vi.mock('@xenova/transformers', () => ({

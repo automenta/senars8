@@ -1,5 +1,5 @@
-import { TuiController } from '../TuiController.js';
+import {TuiController} from '../TuiController.js';
 
 test('TuiController is defined', () => {
-  expect(TuiController).toBeDefined();
+    expect(TuiController).toBeDefined();
 });

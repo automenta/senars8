@@ -1,4 +1,4 @@
-import {beforeEach, describe, expect, vi, test} from 'vitest';
+import {beforeEach, describe, expect, test, vi} from 'vitest';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
