@@ -5,27 +5,27 @@ import {
     processNarseseThroughAgent,
     safeUICall,
     validateNarseseStatement
-} from '@/utils/coreIntegration';
-import agentIntegrationService from '@/services/agentIntegration';
+} from '../coreIntegration.js';
+import agentIntegrationService from '../../services/agentIntegration.js';
 
 // Mock the agent integration service
-jest.mock('@/services/agentIntegration', () => ({
+jest.mock('../../services/agentIntegration.js', () => ({
     getAgentInfo: jest.fn(),
     processNarsese: jest.fn(),
     initialize: jest.fn(),
 }));
 
 // Mock the core modules
-jest.mock('@core/parser/parse-utils.js', () => ({
+jest.mock('../../../core/parser/parse-utils.js', () => ({
     parseTerm: jest.fn(),
 }));
 
-jest.mock('@core/index.js', () => ({
+jest.mock('../../../core/index.js', () => ({
     Task: jest.fn(),
     Term: jest.fn(),
 }));
 
-jest.mock('@core/utils/errorHandler.js', () => ({
+jest.mock('../../../core/utils/errorHandler.js', () => ({
     createUnifiedErrorHandler: jest.fn(() => jest.fn()),
 }));
 

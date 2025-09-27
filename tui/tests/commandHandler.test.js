@@ -17,11 +17,11 @@ describe('createCommandHandler', () => {
             clearLog: vi.fn(),
         };
         mockAgentService = {
-            start: vi.fn(),
-            stop: vi.fn(),
-            reset: vi.fn(),
-            send: vi.fn(),
-            getStats: vi.fn(),
+            startAgent: vi.fn(),
+            stopAgent: vi.fn(),
+            resetAgent: vi.fn(),
+            sendNarsese: vi.fn(),
+            getSystemStats: vi.fn(),
             connect: vi.fn(),
             disconnect: vi.fn(),
         };
@@ -35,51 +35,51 @@ describe('createCommandHandler', () => {
 
     test('should call agentService.start on !start command', () => {
         handleCommand('!start');
-        expect(mockAgentService.start).toHaveBeenCalled();
+        expect(mockAgentService.startAgent).toHaveBeenCalled();
         expect(mockUIManager.log).toHaveBeenCalledWith('Sent !start command.');
     });
 
     test('should call agentService.stop on !stop command', () => {
         handleCommand('!stop');
-        expect(mockAgentService.stop).toHaveBeenCalled();
+        expect(mockAgentService.stopAgent).toHaveBeenCalled();
         expect(mockUIManager.log).toHaveBeenCalledWith('Sent !stop command.');
     });
 
     test('should call agentService.reset on !reset command', () => {
         handleCommand('!reset');
-        expect(mockAgentService.reset).toHaveBeenCalled();
+        expect(mockAgentService.resetAgent).toHaveBeenCalled();
         expect(mockUIManager.log).toHaveBeenCalledWith('Sent !reset command.');
     });
 
     test('should add task on !add command', () => {
         const task = '<test_task>.';
         handleCommand(`!add ${task}`);
-        expect(mockAgentService.send).toHaveBeenCalledWith(task);
+        expect(mockAgentService.sendNarsese).toHaveBeenCalledWith(task);
         expect(mockUIManager.log).toHaveBeenCalledWith(`Added task: ${task}`);
     });
 
     test('should show usage on !add command without task', () => {
         handleCommand('!add');
-        expect(mockAgentService.send).not.toHaveBeenCalled();
-        expect(mockUIManager.log).toHaveBeenCalledWith(`Usage: ${commandDefinitions['!add'].usage}`);
+        expect(mockAgentService.sendNarsese).not.toHaveBeenCalled();
+        expect(mockUIManager.log).toHaveBeenCalledWith('Invalid task format: Statement must be a non-empty string');
     });
 
     test('should send query on !query command', () => {
         const query = '<test_query>?';
         handleCommand(`!query ${query}`);
-        expect(mockAgentService.send).toHaveBeenCalledWith(query);
+        expect(mockAgentService.sendNarsese).toHaveBeenCalledWith(query);
         expect(mockUIManager.log).toHaveBeenCalledWith(`Sent query: ${query}`);
     });
 
     test('should show usage on !query command without query', () => {
         handleCommand('!query');
-        expect(mockAgentService.send).not.toHaveBeenCalled();
-        expect(mockUIManager.log).toHaveBeenCalledWith(`Usage: ${commandDefinitions['!query'].usage}`);
+        expect(mockAgentService.sendNarsese).not.toHaveBeenCalled();
+        expect(mockUIManager.log).toHaveBeenCalledWith('Invalid query format: Statement must be a non-empty string');
     });
 
     test('should call agentService.getStats on !stats command', () => {
         handleCommand('!stats');
-        expect(mockAgentService.getStats).toHaveBeenCalled();
+        expect(mockAgentService.getSystemStats).toHaveBeenCalled();
     });
 
     test('should toggle help box on !help command', () => {

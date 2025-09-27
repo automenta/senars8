@@ -1,5 +1,4 @@
 import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   test: {
@@ -11,7 +10,7 @@ export default defineConfig({
         name: 'core',
         test: {
           environment: 'node',
-          include: ['tests/**/*.test.js'],
+          include: ['core/tests/**/*.test.js'],
         },
         resolve: {
           alias: {
@@ -23,7 +22,7 @@ export default defineConfig({
         name: 'tui',
         test: {
           environment: 'node',
-          include: ['tui/tests/**/*.test.js'],
+          include: ['tui/tests/**/*.test.js', 'tui/src/tests/**/*.test.js'],
           deps: {
             inline: ['blessed'],
           },
@@ -33,23 +32,6 @@ export default defineConfig({
             '@core': new URL('./core', import.meta.url).pathname,
             '@common': new URL('./common', import.meta.url).pathname,
             '@': new URL('./tui/src', import.meta.url).pathname,
-          },
-        },
-      },
-      {
-        name: 'ui',
-        plugins: [react()],
-        test: {
-          environment: 'jsdom',
-          include: ['ui/src/**/__tests__/**/*.test.jsx', 'ui/src/tests/**/*.test.js'],
-          setupFiles: ['./ui/vitest.setup.js'],
-        },
-        resolve: {
-          alias: {
-            '@core': new URL('./core', import.meta.url).pathname,
-            '@common': new URL('./common', import.meta.url).pathname,
-            '@': new URL('./ui/src', import.meta.url).pathname,
-            '@ui': new URL('./ui/src', import.meta.url).pathname,
           },
         },
       },

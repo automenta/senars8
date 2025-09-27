@@ -1,6 +1,6 @@
-import {createUnifiedErrorHandler} from '@core/utils/errorHandler.js';
-import {parseTerm} from '@core/parser/parse-utils.js';
-import {Task} from '@core/index.js';
+import {createUnifiedErrorHandler} from '../../core/utils/errorHandler.js';
+import {parseTerm} from '../../core/parser/parse-utils.js';
+import {Task} from '../../core/index.js';
 
 // Create a unified error handler for utility functions
 const utilErrorHandler = createUnifiedErrorHandler('CoreUtils');
