@@ -1,4 +1,4 @@
-import { jest, describe, beforeEach, it, expect } from '@jest/globals';
+import {beforeEach, describe, expect, it, jest} from '@jest/globals';
 import CostManager from '../../core/reasoner/CostManager.js';
 
 jest.unstable_mockModule('../../core/core/Term.js', () => ({
@@ -31,8 +31,8 @@ jest.unstable_mockModule('../../core/memory/Memory.js', () => ({
     })),
 }));
 
-const { default: Term } = await import('../../core/core/Term.js');
-const { default: Memory } = await import('../../core/memory/Memory.js');
+const {default: Term} = await import('../../core/core/Term.js');
+const {default: Memory} = await import('../../core/memory/Memory.js');
 
 describe('CostManager', () => {
     let memory;

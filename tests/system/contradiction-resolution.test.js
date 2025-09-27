@@ -1,4 +1,4 @@
-import { jest, describe, beforeEach, afterEach, test, expect } from '@jest/globals';
+import {afterEach, beforeEach, describe, expect, jest, test} from '@jest/globals';
 import Task from '../../core/core/Task.js';
 
 jest.unstable_mockModule('@xenova/transformers', () => ({
@@ -10,7 +10,7 @@ jest.unstable_mockModule('@xenova/transformers', () => ({
     env: {},
 }));
 
-const { default: SystemFactory } = await import('../../core/system/SystemFactory.js');
+const {default: SystemFactory} = await import('../../core/system/SystemFactory.js');
 
 describe('System-level Contradiction Resolution', () => {
     let system;

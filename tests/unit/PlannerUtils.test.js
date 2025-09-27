@@ -1,4 +1,4 @@
-import { jest, describe, beforeEach, it, expect } from '@jest/globals';
+import {beforeEach, describe, expect, it, jest} from '@jest/globals';
 import * as PlannerUtils from '../../core/reasoner/utils/PlannerUtils.js';
 import Term from '../../core/core/Term.js';
 
@@ -11,7 +11,7 @@ jest.unstable_mockModule('../../core/memory/Memory.js', () => ({
     })),
 }));
 
-const { default: Memory } = await import('../../core/memory/Memory.js');
+const {default: Memory} = await import('../../core/memory/Memory.js');
 
 describe('PlannerUtils', () => {
     let memory;

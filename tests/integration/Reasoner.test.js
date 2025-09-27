@@ -1,4 +1,4 @@
-import { jest, describe, beforeEach, test, expect } from '@jest/globals';
+import {beforeEach, describe, expect, jest, test} from '@jest/globals';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
@@ -12,7 +12,7 @@ jest.unstable_mockModule('@xenova/transformers', () => ({
     env: {},
 }));
 
-const { default: SystemFactory } = await import('../../core/system/SystemFactory.js');
+const {default: SystemFactory} = await import('../../core/system/SystemFactory.js');
 
 const createTerm = async (lm, memory, termKey) => {
     const term = await lm.bootstrapTerm(termKey);

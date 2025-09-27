@@ -1,4 +1,4 @@
-import { jest, describe, beforeEach, test, expect } from '@jest/globals';
+import {beforeEach, describe, expect, jest, test} from '@jest/globals';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import CONSTITUTION_TASKS from '../../core/system/Constitution.js';
@@ -15,7 +15,7 @@ jest.unstable_mockModule('@xenova/transformers', () => ({
     },
 }));
 
-const { default: SystemFactory } = await import('../../core/system/SystemFactory.js');
+const {default: SystemFactory} = await import('../../core/system/SystemFactory.js');
 
 describe('Cycle Integration Test', () => {
     let system, memory, cycle;

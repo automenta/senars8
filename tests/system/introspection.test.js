@@ -1,4 +1,4 @@
-import { jest, describe, beforeAll, afterAll, test, expect } from '@jest/globals';
+import {afterAll, beforeAll, describe, expect, jest, test} from '@jest/globals';
 import {parseTerm} from '../../core/parser/narseseParser.js';
 import Task from '../../core/core/Task.js';
 
@@ -14,7 +14,7 @@ jest.unstable_mockModule('@xenova/transformers', () => ({
     },
 }));
 
-const { default: SystemFactory } = await import('../../core/system/SystemFactory.js');
+const {default: SystemFactory} = await import('../../core/system/SystemFactory.js');
 
 describe('System Introspection API', () => {
     let system;

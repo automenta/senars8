@@ -1,4 +1,4 @@
-import { jest, describe, beforeEach, test, expect } from '@jest/globals';
+import {beforeEach, describe, expect, jest, test} from '@jest/globals';
 import Task from '../../core/core/Task.js';
 
 jest.unstable_mockModule('../../core/core/Term.js', () => ({
@@ -7,7 +7,7 @@ jest.unstable_mockModule('../../core/core/Term.js', () => ({
     })),
 }));
 
-const { default: Term } = await import('../../core/core/Term.js');
+const {default: Term} = await import('../../core/core/Term.js');
 
 describe('Task', () => {
     beforeEach(() => {
