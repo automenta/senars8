@@ -1,8 +1,17 @@
+import { jest, describe, beforeEach, it, expect } from '@jest/globals';
 import * as PlannerUtils from '../../core/reasoner/utils/PlannerUtils.js';
-import Memory from '../../core/memory/Memory.js';
 import Term from '../../core/core/Term.js';
 
-jest.mock('../../core/memory/Memory.js');
+jest.unstable_mockModule('../../core/memory/Memory.js', () => ({
+    default: jest.fn().mockImplementation(() => ({
+        indexer: {
+            implicationIndex: new Map(),
+            beliefIndex: new Map(),
+        }
+    })),
+}));
+
+const { default: Memory } = await import('../../core/memory/Memory.js');
 
 describe('PlannerUtils', () => {
     let memory;

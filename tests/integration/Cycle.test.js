@@ -1,17 +1,21 @@
-import SystemFactory from '../../core/system/SystemFactory.js';
+import { jest, describe, beforeEach, test, expect } from '@jest/globals';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import CONSTITUTION_TASKS from '../../core/system/Constitution.js';
 
-jest.mock('@xenova/transformers', () => {
-    const transformers = jest.createMockFromModule('@xenova/transformers');
-    transformers.pipeline = jest.fn(async () =>
+jest.unstable_mockModule('@xenova/transformers', () => ({
+    pipeline: jest.fn(async () =>
         jest.fn(() => ({
             data: new Float32Array([1, 2, 3])
         }))
-    );
-    return transformers;
-});
+    ),
+    env: {
+        allowLocalModels: false,
+        allowRemoteModels: true,
+    },
+}));
+
+const { default: SystemFactory } = await import('../../core/system/SystemFactory.js');
 
 describe('Cycle Integration Test', () => {
     let system, memory, cycle;

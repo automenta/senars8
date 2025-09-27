@@ -1,16 +1,16 @@
+import { jest, describe, beforeEach, afterEach, test, expect } from '@jest/globals';
 import Task from '../../core/core/Task.js';
-import SystemFactory from '../../core/system/SystemFactory.js';
 
-
-jest.mock('@xenova/transformers', () => {
-    const transformers = jest.createMockFromModule('@xenova/transformers');
-    transformers.pipeline = jest.fn(async () => {
+jest.unstable_mockModule('@xenova/transformers', () => ({
+    pipeline: jest.fn(async () => {
         return jest.fn(() => ({
             data: new Float32Array([1, 2, 3])
         }));
-    });
-    return transformers;
-});
+    }),
+    env: {},
+}));
+
+const { default: SystemFactory } = await import('../../core/system/SystemFactory.js');
 
 describe('System-level Contradiction Resolution', () => {
     let system;

@@ -1,11 +1,13 @@
+import { jest, describe, beforeEach, test, expect } from '@jest/globals';
 import Task from '../../core/core/Task.js';
-import Term from '../../core/core/Term.js';
 
-jest.mock('../../core/core/Term.js', () => {
-    return jest.fn().mockImplementation(key => ({
+jest.unstable_mockModule('../../core/core/Term.js', () => ({
+    default: jest.fn().mockImplementation(key => ({
         key
-    }));
-});
+    })),
+}));
+
+const { default: Term } = await import('../../core/core/Term.js');
 
 describe('Task', () => {
     beforeEach(() => {

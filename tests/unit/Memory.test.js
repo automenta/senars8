@@ -1,3 +1,4 @@
+import { describe, beforeEach, it, expect, jest } from '@jest/globals';
 import Memory from '../../core/memory/Memory.js';
 import Task from '../../core/core/Task.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';

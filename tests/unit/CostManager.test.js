@@ -1,9 +1,8 @@
+import { jest, describe, beforeEach, it, expect } from '@jest/globals';
 import CostManager from '../../core/reasoner/CostManager.js';
-import Term from '../../core/core/Term.js';
-import Memory from '../../core/memory/Memory.js';
 
-jest.mock('../../core/core/Term.js', () => {
-    return jest.fn().mockImplementation(key => {
+jest.unstable_mockModule('../../core/core/Term.js', () => ({
+    default: jest.fn().mockImplementation(key => {
         const termInstance = {
             key,
             type: 'Atomic',
@@ -18,9 +17,22 @@ jest.mock('../../core/core/Term.js', () => {
                 return true;
             },
         });
-    });
-});
-jest.mock('../../core/memory/Memory.js');
+    }),
+}));
+
+jest.unstable_mockModule('../../core/memory/Memory.js', () => ({
+    default: jest.fn().mockImplementation(() => ({
+        indexer: {
+            beliefIndex: new Map(),
+            implicationIndex: new Map(),
+            costIndex: new Map(),
+        },
+        getTerm: jest.fn(key => new Term(key)),
+    })),
+}));
+
+const { default: Term } = await import('../../core/core/Term.js');
+const { default: Memory } = await import('../../core/memory/Memory.js');
 
 describe('CostManager', () => {
     let memory;

@@ -1,16 +1,20 @@
-import SystemFactory from '../../core/system/SystemFactory.js';
+import { jest, describe, beforeAll, afterAll, test, expect } from '@jest/globals';
 import {parseTerm} from '../../core/parser/narseseParser.js';
 import Task from '../../core/core/Task.js';
 
-jest.mock('@xenova/transformers', () => {
-    const transformers = jest.createMockFromModule('@xenova/transformers');
-    transformers.pipeline = jest.fn(async () => {
+jest.unstable_mockModule('@xenova/transformers', () => ({
+    pipeline: jest.fn(async () => {
         return jest.fn(() => ({
             data: new Float32Array([1, 2, 3])
         }));
-    });
-    return transformers;
-});
+    }),
+    env: {
+        allowLocalModels: false,
+        allowRemoteModels: true,
+    },
+}));
+
+const { default: SystemFactory } = await import('../../core/system/SystemFactory.js');
 
 describe('System Introspection API', () => {
     let system;

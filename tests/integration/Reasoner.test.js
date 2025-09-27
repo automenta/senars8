@@ -1,17 +1,18 @@
-import SystemFactory from '../../core/system/SystemFactory.js';
+import { jest, describe, beforeEach, test, expect } from '@jest/globals';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
 
-jest.mock('@xenova/transformers', () => {
-    const transformers = jest.createMockFromModule('@xenova/transformers');
-    transformers.pipeline = jest.fn(async () =>
+jest.unstable_mockModule('@xenova/transformers', () => ({
+    pipeline: jest.fn(async () =>
         jest.fn(() => ({
             data: new Float32Array([1, 2, 3])
         }))
-    );
-    return transformers;
-});
+    ),
+    env: {},
+}));
+
+const { default: SystemFactory } = await import('../../core/system/SystemFactory.js');
 
 const createTerm = async (lm, memory, termKey) => {
     const term = await lm.bootstrapTerm(termKey);

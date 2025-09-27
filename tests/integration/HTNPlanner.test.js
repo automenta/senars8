@@ -1,3 +1,4 @@
+import { describe, beforeEach, test, expect, jest } from '@jest/globals';
 import HTNPlanner from '../../core/reasoner/HTNPlanner.js';
 import Memory from '../../core/memory/Memory.js';
 import Term from '../../core/core/Term.js';
