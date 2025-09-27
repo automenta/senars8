@@ -73,12 +73,19 @@ export const commandDefinitions = {
     '!connect': {
         description: 'Connects to the agent WebSocket server.',
         usage: '!connect [url]',
-        handler: (args, {agentService}) => agentService.connect(args[0]),
+        handler: (args, {agentService, uiManager}) => {
+            const url = args[0] || 'ws://localhost:8080';
+            agentService.connect(url);
+            uiManager.log(`Connecting to: ${url}`);
+        },
     },
     '!disconnect': {
         description: 'Disconnects from the agent WebSocket server.',
         usage: '!disconnect',
-        handler: (args, {agentService}) => agentService.disconnect(),
+        handler: (args, {agentService, uiManager}) => {
+            agentService.disconnect();
+            uiManager.log('Disconnected from agent service');
+        },
     },
     '!clear': {
         description: 'Clears the log view.',
@@ -96,7 +103,7 @@ export const commandDefinitions = {
  * Creates a command handler function.
  * @param {import('../managers/StateManager').default} stateManager - The state manager.
  * @param {import('../managers/UIManager').default} uiManager - The UI manager.
- * @param {import('./AgentCommunicationService').default} agentService - The agent communication service.
+ * @param {import('../../common/services/AgentCommunicationService').default} agentService - The agent communication service.
  * @returns {function(string): void} A function that handles commands.
  */
 export function createCommandHandler(stateManager, uiManager, agentService) {

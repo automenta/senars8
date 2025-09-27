@@ -1,14 +1,14 @@
 import {TuiView} from './TuiView.js';
 import {TuiController} from './TuiController.js';
 import {TuiRenderer} from './TuiRenderer.js';
-import {Agent} from '../../agent/index.js';
+import AgentCommunicationService from '../../common/services/AgentCommunicationService.js';
 import TUIConfig from './config/TUIConfig.js';
 import logger from '../../common/services/Logger.js';
 
 class Application {
     constructor(options = {}) {
         this.config = new TUIConfig(options);
-        this.agent = null;
+        this.agentService = null;
         this.tuiView = null;
         this.tuiController = null;
         this.tuiRenderer = null;
@@ -21,15 +21,16 @@ class Application {
         this.logger = logger.createNamespace('TUIApplication');
         this.logger.info('Initializing TUI Application...');
         
-        // Create the agent
-        const agentConfig = this.config.get('agent') || {};
-        this.agent = new Agent(agentConfig);
-        await this.agent.initialize();
+        // Create the agent communication service
+        const agentUrl = this.config.get('agent.websocketUrl') || 'ws://localhost:8080';
+        this.agentService = new AgentCommunicationService(agentUrl);
 
         // Initialize TUI components with configuration
         this.tuiRenderer = new TuiRenderer();
-        this.tuiView = new TuiView(this.agent, this.tuiRenderer, this.config);
-        this.tuiController = new TuiController(this.agent, this.tuiView, this.config);
+        
+        // Pass the agentService to view and controller instead of the agent instance
+        this.tuiView = new TuiView(this.agentService, this.tuiRenderer, this.config);
+        this.tuiController = new TuiController(this.agentService, this.tuiView, this.config);
 
         this.logger.info('TUI Application initialized');
     }
@@ -43,8 +44,8 @@ class Application {
         this.isRunning = true;
         this.logger.info('Starting TUI Application...');
 
-        // Start the agent
-        this.agent.start();
+        // Connect to the agent via WebSocket
+        this.agentService.connect();
 
         // Start the TUI interface
         this.tuiView.start();
@@ -63,16 +64,20 @@ class Application {
         this.tuiController?.stop();
         this.tuiView?.stop();
 
-        // Stop the agent
-        this.agent?.stop();
+        // Disconnect from the agent
+        this.agentService?.disconnect();
 
         this.isRunning = false;
         this.logger.info('TUI Application stopped');
     }
 
     async addTask(task) {
-        // For now, just pass the task to the agent
-        // In a real implementation we would create a proper task and add it
+        // Send the task to the agent via WebSocket
+        if (typeof task === 'string') {
+            this.agentService.sendNarsese(task);
+        } else {
+            this.agentService.addTask(task);
+        }
         this.logger.debug('Adding task:', task);
     }
 }

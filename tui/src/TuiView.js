@@ -1,11 +1,10 @@
 import readline from 'readline';
 import logger from '../../common/services/Logger.js';
-import configProvider from '../../common/services/ConfigProvider.js';
-import eventManager from '../../common/services/EventManager.js';
+import {MESSAGE_TYPES} from '../../common/constants/communication.js';
 
 class TuiView {
-    constructor(agent, renderer, config = null) {
-        this.agent = agent;
+    constructor(agentService, renderer, config = null) {
+        this.agentService = agentService;
         this.renderer = renderer;
         this.config = config;
         this.rl = null;
@@ -13,14 +12,20 @@ class TuiView {
         this.updateInterval = null;
         this.lastRenderTime = 0;
         this.minRenderInterval = 100; // Minimum time between renders in ms
+        this.systemState = {
+            isRunning: false,
+            cycleCount: 0,
+            beliefsCount: 0,
+            goalsCount: 0,
+            questionsCount: 0,
+            memoryUsage: 0
+        };
 
         // Use default update interval if config not provided
         this.updateIntervalMs = config ? config.getUpdateInterval() : 1000;
         
         // Use shared logger instead of individual logger functions
         this.logger = logger.createNamespace('TuiView');
-        this.configProvider = configProvider;
-        this.eventManager = eventManager;
         
         // Track active input prompts to prevent conflicts
         this.awaitingInput = false;
@@ -31,15 +36,45 @@ class TuiView {
     }
     
     _initializeServices() {
-        // Initialize config provider if agent has config
-        if (this.agent?.system?.config) {
-            this.configProvider.initialize(this.agent.system.config);
-        }
+        // Initialize system state with agent service
+        // Listen for state updates from the agent service
+        this.agentService.on(MESSAGE_TYPES.AGENT_STATE_UPDATE, (state) => {
+            this.systemState = {
+                ...this.systemState,
+                ...state
+            };
+        });
 
-        // Initialize event manager with the agent's event bus
-        if (this.agent?.system?.eventBus) {
-            this.eventManager.initialize(this.agent.system.eventBus);
-        }
+        // Listen for system stats
+        this.agentService.on(MESSAGE_TYPES.SYSTEM_STATS, (stats) => {
+            this.systemState = {
+                ...this.systemState,
+                ...stats,
+                isRunning: stats.isRunning || this.systemState.isRunning
+            };
+        });
+
+        // Listen for status changes
+        this.agentService.on(MESSAGE_TYPES.STATUS, (status) => {
+            this.systemState.isRunning = status === 'connected';
+        });
+
+        // Listen for task additions (these come as separate events)
+        this.agentService.on('add_belief', (belief) => {
+            console.log(`Received belief: ${JSON.stringify(belief)}`);
+        });
+
+        this.agentService.on('add_goal', (goal) => {
+            console.log(`Received goal: ${JSON.stringify(goal)}`);
+        });
+
+        this.agentService.on('add_question', (question) => {
+            console.log(`Received question: ${JSON.stringify(question)}`);
+        });
+
+        this.agentService.on('task_added', (task) => {
+            console.log(`Task added: ${JSON.stringify(task)}`);
+        });
     }
 
     start() {
@@ -74,6 +109,9 @@ class TuiView {
                 this.render();
             }
         }, this.updateIntervalMs);
+
+        // Request initial system stats to populate state
+        this.agentService.getSystemStats();
 
         this.logger.debug('TUI View started');
     }
@@ -117,20 +155,24 @@ class TuiView {
 
     getSystemState() {
         // Create a simplified system state representation for the UI
-        // Access the agent's system properties if available
-        const system = this.agent?.system;
-        
-        // Get all memory items in a single call to reduce repeated calls to agent
-        const memoryState = this._getMemoryState();
-        
+        // Access system state from the agent service
         return {
-            isRunning: system?.isRunning || false,
-            cycleCount: system?.cycleCount || 0,
-            memory: memoryState,
+            isRunning: this.agentService.isAgentRunning() || this.systemState.isRunning,
+            cycleCount: this.systemState.cycleCount || 0,
+            memory: {
+                beliefs: [],
+                goals: [],
+                questions: [],
+                tasks: []
+            },
             // Add additional system information
             systemInfo: {
-                uptime: system?.getUptime ? system.getUptime() : null,
-                version: system?.version || 'unknown'
+                beliefsCount: this.agentService.getBeliefsCount() || this.systemState.beliefsCount || 0,
+                goalsCount: this.agentService.getGoalsCount() || this.systemState.goalsCount || 0,
+                questionsCount: this.agentService.getQuestionsCount() || this.systemState.questionsCount || 0,
+                cycleCount: this.agentService.getCycleCount() || this.systemState.cycleCount || 0,
+                memoryUsage: this.systemState.memoryUsage || 0,
+                version: 'unknown' // Version is typically not sent via WebSocket
             }
         };
     }
@@ -140,18 +182,14 @@ class TuiView {
      * @returns {Object} - Memory state with tasks, beliefs, goals, questions
      */
     _getMemoryState() {
-        if (!this.agent) {
-            this.logger.debug('Agent not available for memory access');
-            return { tasks: [], beliefs: [], goals: [], questions: [] };
-        }
-
-        // Use the agent's efficient method to get all task data
-        try {
-            return this.agent.getAllTaskData();
-        } catch (error) {
-            this.logger.warn('Error getting memory state:', error.message);
-            return { tasks: [], beliefs: [], goals: [], questions: [] };
-        }
+        // Return empty arrays as we can't get detailed memory state directly via WebSocket
+        // Instead, we rely on updates from WebSocket messages
+        return {
+            tasks: [],
+            beliefs: [],
+            goals: [],
+            questions: []
+        };
     }
 
     async handleUserInput(input) {
@@ -169,25 +207,15 @@ class TuiView {
         switch (command) {
             case 's':
             case 'stop':
-                if (this.agent) {
-                    this.agent.stop();
-                    console.log('Agent stopped');
-                    this.logger.info('Agent stopped via TUI command');
-                } else {
-                    console.log('Agent not initialized');
-                    this.logger.warn('Attempted to stop agent but agent not initialized');
-                }
+                this.agentService.stopAgent();
+                console.log('Agent stopped');
+                this.logger.info('Agent stopped via TUI command');
                 break;
             case 'r':
             case 'run':
-                if (this.agent) {
-                    this.agent.start();
-                    console.log('Agent started');
-                    this.logger.info('Agent started via TUI command');
-                } else {
-                    console.log('Agent not initialized');
-                    this.logger.warn('Attempted to start agent but agent not initialized');
-                }
+                this.agentService.startAgent();
+                console.log('Agent started');
+                this.logger.info('Agent started via TUI command');
                 break;
             case 'q':
             case 'quit':
@@ -262,155 +290,63 @@ class TuiView {
         console.log('');
     }
 
-    listBeliefs() {
-        const beliefs = this.getBeliefs();
-        if (beliefs.length === 0) {
-            console.log('No beliefs in memory.');
-            return;
-        }
-        
-        console.log(`\nBeliefs (${beliefs.length}):`);
-        beliefs.forEach((belief, index) => {
-            console.log(`  ${index + 1}. ${belief.toString()}`);
-        });
-        console.log('');
-    }
-
-    listGoals() {
-        const goals = this.getGoals();
-        if (goals.length === 0) {
-            console.log('No goals in memory.');
-            return;
-        }
-        
-        console.log(`\nGoals (${goals.length}):`);
-        goals.forEach((goal, index) => {
-            console.log(`  ${index + 1}. ${goal.toString()}`);
-        });
-        console.log('');
-    }
-
-    listTasks() {
-        const tasks = this.getTasks();
-        if (tasks.length === 0) {
-            console.log('No tasks in memory.');
-            return;
-        }
-        
-        console.log(`\nTasks (${tasks.length}):`);
-        tasks.forEach((task, index) => {
-            console.log(`  ${index + 1}. ${task.toString()}`);
-        });
-        console.log('');
-    }
+    listBeliefs() {\n        // Since we can't get detailed beliefs via WebSocket directly,\n        // we'll display the count from system state\n        const beliefsCount = this.agentService.getBeliefsCount() || this.systemState.beliefsCount || 0;\n        console.log(`\\nBeliefs: ${beliefsCount}`);\n        if (beliefsCount > 0) {\n            console.log('(Detailed beliefs list not available via WebSocket. For detailed list, use search feature.)');\n        }\n        console.log('');\n    }\n\n    listGoals() {\n        const goalsCount = this.agentService.getGoalsCount() || this.systemState.goalsCount || 0;\n        console.log(`\\nGoals: ${goalsCount}`);\n        if (goalsCount > 0) {\n            console.log('(Detailed goals list not available via WebSocket. For detailed list, use search feature.)');\n        }\n        console.log('');\n    }\n\n    listTasks() {\n        // Get the combined count or use the cycle count as an indicator\n        const totalTasks = (this.systemState.beliefsCount || 0) + \n                          (this.systemState.goalsCount || 0) + \n                          (this.systemState.questionsCount || 0);\n        \n        console.log(`\\nTasks: ${totalTasks}`);\n        console.log('(Detailed tasks list not available via WebSocket. For detailed list, use search feature.)');\n        console.log('');\n    }
 
     async addTask(content) {
         try {
-            if (!this.agent?.system) {
-                console.log('Agent system not available');
-                this.logger.warn('TUI addTask: Agent system not available');
-                return;
-            }
-
-            // Parse the content into a term and create a task
-            const {parseTerm, Task} = await import('../../core/index.js');
-            const term = parseTerm(content);
-
-            if (!term) {
-                console.log(chalk.red(`Could not parse task content: ${content}`));
-                this.logger.warn(`TUI addTask: Could not parse content: ${content}`);
-                return;
-            }
-
-            // Create a task with '?' punctuation (question type) by default
-            const task = new Task(term, '?');
-
-            // Add the task to the system
-            await this.agent.system.addTasks([task]);
-
-            console.log(chalk.green(`✓ Task added successfully: ${content}`));
+            // Use the agent service to add the task via WebSocket
+            const taskData = {
+                content: content,
+                type: 'task'
+            };
+            
+            this.agentService.addTask(taskData);
+            
+            console.log(`✓ Task added successfully: ${content}`);
             this.logger.info(`TUI Task added: ${content}`);
-            this.render(); // Re-render to show updated state
+            // State will be updated via WebSocket messages automatically
         } catch (error) {
             this.logger.error('Error adding task:', error);
-            console.log(chalk.red(`✗ Error adding task: ${error.message}`));
+            console.log(`✗ Error adding task: ${error.message}`);
         }
     }
 
     async addBelief(content) {
         try {
-            if (!this.agent?.system) {
-                console.log('Agent system not available');
-                this.logger.warn('TUI addBelief: Agent system not available');
-                return;
-            }
-
-            // Parse the content into a term and create a belief
-            const {parseTerm, Task} = await import('../../core/index.js');
-            const term = parseTerm(content);
-
-            if (!term) {
-                console.log(chalk.red(`Could not parse belief content: ${content}`));
-                this.logger.warn(`TUI addBelief: Could not parse content: ${content}`);
-                return;
-            }
-
-            // Create a belief task with '.' punctuation
-            const task = new Task(term, '.');
-
-            // Add the task to the system
-            await this.agent.system.addTasks([task]);
-
-            console.log(chalk.green(`✓ Belief added successfully: ${content}`));
-            this.logger.info(`TUI Belief added: ${content}`);
-            this.render(); // Re-render to show updated state
+            // Use the agent service to send Narsese via WebSocket
+            // Beliefs typically end with '.'
+            const narsese = content.endsWith('.') ? content : content + '.';
+            this.agentService.sendNarsese(narsese);
+            
+            console.log(`✓ Belief added successfully: ${narsese}`);
+            this.logger.info(`TUI Belief added: ${narsese}`);
+            // State will be updated via WebSocket messages automatically
         } catch (error) {
             this.logger.error('Error adding belief:', error);
-            console.log(chalk.red(`✗ Error adding belief: ${error.message}`));
+            console.log(`✗ Error adding belief: ${error.message}`);
         }
     }
     
     async interpretNarsese(input) {
         try {
-            if (!this.agent?.system) {
-                console.log('Agent system not available');
-                this.logger.warn('TUI interpretNarsese: Agent system not available');
-                return;
-            }
-
-            // Try to parse as Narsese
-            const {parseTerm, Task} = await import('../../core/index.js');
-            const term = parseTerm(input);
-
-            if (!term) {
-                console.log(chalk.yellow(`Unrecognized command or Narsese: ${input}. Type 'help' for available commands.`));
-                return;
-            }
-
-            // Determine punctuation based on input or default to judgment
-            let punctuation = '.';
-            if (input.endsWith('?')) {
-                punctuation = '?';
-            } else if (input.endsWith('!')) {
-                punctuation = '!';
-            }
-
-            // Create a task
-            const task = new Task(term, punctuation);
-
-            // Add the task to the system
-            await this.agent.system.addTasks([task]);
-
+            // Use the agent service to send Narsese via WebSocket
+            this.agentService.sendNarsese(input);
+            
             let taskType = 'Judgment';
-            if (punctuation === '?') taskType = 'Question';
-            else if (punctuation === '!') taskType = 'Goal';
+            if (input.endsWith('?')) {
+                taskType = 'Question';
+            } else if (input.endsWith('!')) {
+                taskType = 'Goal';
+            } else if (input.endsWith('.')) {
+                taskType = 'Belief';
+            }
 
-            console.log(chalk.green(`✓ ${taskType} added successfully: ${input}`));
+            console.log(`✓ ${taskType} added successfully: ${input}`);
             this.logger.info(`TUI Narsese added: ${input}`);
-            this.render(); // Re-render to show updated state
+            // State will be updated via WebSocket messages automatically
         } catch (error) {
             this.logger.error('Error interpreting Narsese:', error);
-            console.log(chalk.red(`✗ Error interpreting Narsese: ${error.message}`));
+            console.log(`✗ Error interpreting Narsese: ${error.message}`);
         }
     }
 }

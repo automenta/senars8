@@ -1,9 +1,9 @@
 import logger from '../../common/services/Logger.js';
-import eventManager from '../../common/services/EventManager.js';
+import {MESSAGE_TYPES} from '../../common/constants/communication.js';
 
 class TuiController {
-    constructor(agent, view, config = null) {
-        this.agent = agent;
+    constructor(agentService, view, config = null) {
+        this.agentService = agentService;
         this.view = view;
         this.config = config;
         this.isRunning = false;
@@ -11,12 +11,9 @@ class TuiController {
         this.updateThrottleTimeout = null;
         this.throttleDelay = 100; // milliseconds
         this.logger = logger.createNamespace('TuiController');
-        this.eventManager = eventManager;
         
-        // Initialize event manager with the agent's event bus
-        if (this.agent?.system?.eventBus) {
-            this.eventManager.initialize(this.agent.system.eventBus);
-        }
+        // Register event listeners with the agent service
+        this.registerEventListeners();
     }
 
     start() {
@@ -24,8 +21,10 @@ class TuiController {
 
         this.isRunning = true;
 
-        // Register event listeners with the agent's system
-        this.registerEventListeners();
+        // Connect to agent if not already connected
+        if (!this.agentService.isConnected) {
+            this.agentService.connect();
+        }
 
         this.logger.debug('TUI Controller started');
     }
@@ -48,52 +47,54 @@ class TuiController {
     }
 
     registerEventListeners() {
-        // Listen to system events and update the view accordingly
-        const system = this.agent?.system;
-        if (system?.eventBus) {
-            this.eventManager.initialize(system.eventBus);
-            
-            // Listen for system state changes
-            this.eventManager.subscribe('system.state.changed', () => {
-                // Update view when system state changes
-                this.onViewUpdate();
-            });
+        // Listen to system events from the agent service and update the view accordingly
+        // Register various event listeners for real-time updates
 
-            // Listen for task events
-            this.eventManager.subscribe('tasks.add', (tasks) => {
-                this.logger.debug(`Tasks added: ${tasks.length}`);
-                this.onViewUpdate();
-            });
+        // Listen for agent state updates
+        this.agentService.on(MESSAGE_TYPES.AGENT_STATE_UPDATE, () => {
+            this.onViewUpdate();
+        });
 
-            this.eventManager.subscribe('tasks.update', (tasks) => {
-                this.logger.debug(`Tasks updated: ${tasks.length}`);
-                this.onViewUpdate();
-            });
+        // Listen for connection status changes
+        this.agentService.on(MESSAGE_TYPES.STATUS, () => {
+            this.onViewUpdate();
+        });
 
-            // Listen for task removal events
-            this.eventManager.subscribe('tasks.remove', (tasks) => {
-                this.logger.debug(`Tasks removed: ${tasks.length}`);
-                this.onViewUpdate();
-            });
+        // Listen for new tasks being added
+        this.agentService.on(MESSAGE_TYPES.TASK_UPDATE, () => {
+            this.logger.debug('Task update received');
+            this.onViewUpdate();
+        });
 
-            // Listen for memory events
-            this.eventManager.subscribe('memory.update', () => {
-                this.logger.debug('Memory updated');
+        // Listen for system stats updates
+        this.agentService.on(MESSAGE_TYPES.SYSTEM_STATS, () => {
+            this.logger.debug('System stats update received');
+            this.onViewUpdate();
+        });
+
+        // Listen for new beliefs
+        this.agentService.on(MESSAGE_TYPES.NARSESE, (data) => {
+            // Handle incoming belief/goal/question updates from the agent
+            if (data?.type === 'add_belief' || data?.type === 'add_goal' || data?.type === 'add_question') {
                 this.onViewUpdate();
-            });
-            
-            // Listen for cycle events
-            this.eventManager.subscribe('system.cycle.completed', () => {
+            }
+        });
+
+        // Listen for general messages for updates
+        this.agentService.on(MESSAGE_TYPES.MESSAGE, (message) => {
+            if (message?.type.includes('task') || 
+                message?.type.includes('belief') || 
+                message?.type.includes('goal') || 
+                message?.type.includes('question') ||
+                message?.type.includes('system')) {
                 this.onViewUpdate();
-            });
-        } else {
-            this.logger.warn('TUI Controller: Agent system or eventBus not available');
-        }
+            }
+        });
     }
 
     unregisterEventListeners() {
-        // Use the event manager to unsubscribe from all events
-        this.eventManager.unsubscribeAll();
+        // Remove all event listeners when stopping
+        this.agentService.removeAllListeners();
     }
 
     onViewUpdate() {

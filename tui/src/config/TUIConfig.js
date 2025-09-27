@@ -1,4 +1,4 @@
-/**
+/** 
  * Configuration management for TUI module
  */
 class TUIConfig {
@@ -11,6 +11,9 @@ class TUIConfig {
             maxDisplayItems: options.maxDisplayItems || 10, // max items to display
             enableHistory: options.enableHistory !== false, // default true
             historySize: options.historySize || 100,
+            agent: {
+                websocketUrl: options.agent?.websocketUrl || 'ws://localhost:8080'
+            }
         };
     }
 
