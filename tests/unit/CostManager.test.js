@@ -1,15 +1,14 @@
-import {beforeEach, describe, expect, it, jest} from '@jest/globals';
 import CostManager from '../../core/reasoner/CostManager.js';
 
-jest.unstable_mockModule('../../core/core/Term.js', () => ({
-    default: jest.fn().mockImplementation(key => {
+vi.mock('../../core/core/Term.js', () => ({
+    default: vi.fn().mockImplementation(key => {
         const termInstance = {
             key,
             type: 'Atomic',
             subject: null,
             predicate: null,
             terms: [],
-            equals: jest.fn(otherTerm => otherTerm && termInstance.key === otherTerm.key),
+            equals: vi.fn(otherTerm => otherTerm && termInstance.key === otherTerm.key),
         };
         return new Proxy(termInstance, {
             set: (target, prop, value) => {
@@ -20,14 +19,14 @@ jest.unstable_mockModule('../../core/core/Term.js', () => ({
     }),
 }));
 
-jest.unstable_mockModule('../../core/memory/Memory.js', () => ({
-    default: jest.fn().mockImplementation(() => ({
+vi.mock('../../core/memory/Memory.js', () => ({
+    default: vi.fn().mockImplementation(() => ({
         indexer: {
             beliefIndex: new Map(),
             implicationIndex: new Map(),
             costIndex: new Map(),
         },
-        getTerm: jest.fn(key => new Term(key)),
+        getTerm: vi.fn(key => new Term(key)),
     })),
 }));
 
@@ -39,14 +38,14 @@ describe('CostManager', () => {
     let costManager;
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         memory = new Memory();
         memory.indexer = {
             beliefIndex: new Map(),
             implicationIndex: new Map(),
             costIndex: new Map(),
         };
-        memory.getTerm = jest.fn(key => new Term(key));
+        memory.getTerm = vi.fn(key => new Term(key));
         costManager = new CostManager(memory);
     });
 
@@ -140,7 +139,7 @@ describe('CostManager', () => {
     describe('getPlanCost', () => {
         it('should return the sum of the costs of all actions in a plan', () => {
             const plan = [new Term('action1'), new Term('action2'), new Term('action3')];
-            jest.spyOn(costManager, 'getActionCost')
+            vi.spyOn(costManager, 'getActionCost')
                 .mockReturnValueOnce(1)
                 .mockReturnValueOnce(5)
                 .mockReturnValueOnce(2);

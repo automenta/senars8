@@ -1,4 +1,3 @@
-import {beforeEach, describe, expect, it, jest} from '@jest/globals';
 import Memory from '../../core/memory/Memory.js';
 import Task from '../../core/core/Task.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
@@ -53,8 +52,8 @@ describe('Memory', () => {
         configService.initialize(configManager.getAll());
 
         const mockEventBus = {
-            on: jest.fn(),
-            emit: jest.fn(),
+            on: vi.fn(),
+            emit: vi.fn(),
         };
         memory = new Memory(configManager, mockEventBus);
     });

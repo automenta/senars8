@@ -1,4 +1,3 @@
-import {beforeEach, describe, expect, jest, test} from '@jest/globals';
 import Memory from '../../core/memory/Memory.js';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
@@ -10,8 +9,8 @@ describe('Memory - Edge Cases', () => {
     beforeEach(() => {
         const configManager = new ConfigManager();
         const mockEventBus = {
-            on: jest.fn(),
-            emit: jest.fn(),
+            on: vi.fn(),
+            emit: vi.fn(),
         };
         memory = new Memory(configManager, mockEventBus);
     });

@@ -8,22 +8,22 @@ describe('createCommandHandler', () => {
 
     beforeEach(() => {
         mockStateManager = {
-            addCommandToHistory: jest.fn(),
+            addCommandToHistory: vi.fn(),
         };
         mockUIManager = {
-            log: jest.fn(),
-            render: jest.fn(),
-            toggleHelp: jest.fn(),
-            clearLog: jest.fn(),
+            log: vi.fn(),
+            render: vi.fn(),
+            toggleHelp: vi.fn(),
+            clearLog: vi.fn(),
         };
         mockAgentService = {
-            start: jest.fn(),
-            stop: jest.fn(),
-            reset: jest.fn(),
-            send: jest.fn(),
-            getStats: jest.fn(),
-            connect: jest.fn(),
-            disconnect: jest.fn(),
+            start: vi.fn(),
+            stop: vi.fn(),
+            reset: vi.fn(),
+            send: vi.fn(),
+            getStats: vi.fn(),
+            connect: vi.fn(),
+            disconnect: vi.fn(),
         };
         handleCommand = createCommandHandler(mockStateManager, mockUIManager, mockAgentService);
     });

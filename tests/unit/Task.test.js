@@ -1,8 +1,7 @@
-import {beforeEach, describe, expect, jest, test} from '@jest/globals';
 import Task from '../../core/core/Task.js';
 
-jest.unstable_mockModule('../../core/core/Term.js', () => ({
-    default: jest.fn().mockImplementation(key => ({
+vi.mock('../../core/core/Term.js', () => ({
+    default: vi.fn().mockImplementation(key => ({
         key
     })),
 }));
@@ -11,7 +10,7 @@ const {default: Term} = await import('../../core/core/Term.js');
 
 describe('Task', () => {
     beforeEach(() => {
-        Term.mockClear();
+        vi.mocked(Term).mockClear();
     });
 
     test('should create a new Task object', () => {

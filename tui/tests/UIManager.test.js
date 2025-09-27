@@ -2,101 +2,105 @@ import UIManager from '../src/managers/UIManager.js';
 import StateManager from '../src/managers/StateManager.js';
 
 // Mock dependencies
-jest.mock('blessed', () => ({
-    screen: jest.fn(() => ({
-        key: jest.fn(),
-        append: jest.fn(),
-        render: jest.fn(),
-        on: jest.fn(),
-        removeListener: jest.fn(),
-    })),
-    box: jest.fn(options => ({
-        ...options,
-        on: jest.fn(),
-        focus: jest.fn(),
-        style: {},
-        hide: jest.fn(),
-        show: jest.fn(),
-        setContent: jest.fn(),
-        setLabel: jest.fn()
-    })),
-    list: jest.fn(options => ({
-        ...options,
-        on: jest.fn(),
-        focus: jest.fn(),
-        style: {},
-        hide: jest.fn(),
-        show: jest.fn(),
-        setItems: jest.fn()
-    })),
-    log: jest.fn(options => ({
-        ...options,
-        on: jest.fn(),
-        focus: jest.fn(),
-        style: {},
-        hide: jest.fn(),
-        show: jest.fn(),
-        log: jest.fn(),
-        setContent: jest.fn()
-    })),
-    textbox: jest.fn(options => ({
-        ...options,
-        on: jest.fn(),
-        focus: jest.fn(),
-        style: {},
-        hide: jest.fn(),
-        show: jest.fn()
-    })),
-}));
-
-jest.mock('blessed-contrib', () => ({
-    grid: jest.fn(() => ({
-        set: jest.fn((row, col, rowSpan, colSpan, obj, options) => ({
-            ...options,
-            on: jest.fn(),
-            focus: jest.fn(),
-            style: {border: {}},
-            hide: jest.fn(),
-            show: jest.fn(),
-            log: jest.fn(),
-            setItems: jest.fn(),
-            setContent: jest.fn(),
-            setLabel: jest.fn(),
+vi.mock('blessed', () => ({
+    default: {
+        screen: vi.fn(() => ({
+            key: vi.fn(),
+            append: vi.fn(),
+            render: vi.fn(),
+            on: vi.fn(),
+            removeListener: vi.fn(),
         })),
-    })),
+        box: vi.fn(options => ({
+            ...options,
+            on: vi.fn(),
+            focus: vi.fn(),
+            style: {},
+            hide: vi.fn(),
+            show: vi.fn(),
+            setContent: vi.fn(),
+            setLabel: vi.fn()
+        })),
+        list: vi.fn(options => ({
+            ...options,
+            on: vi.fn(),
+            focus: vi.fn(),
+            style: {},
+            hide: vi.fn(),
+            show: vi.fn(),
+            setItems: vi.fn()
+        })),
+        log: vi.fn(options => ({
+            ...options,
+            on: vi.fn(),
+            focus: vi.fn(),
+            style: {},
+            hide: vi.fn(),
+            show: vi.fn(),
+            log: vi.fn(),
+            setContent: vi.fn()
+        })),
+        textbox: vi.fn(options => ({
+            ...options,
+            on: vi.fn(),
+            focus: vi.fn(),
+            style: {},
+            hide: vi.fn(),
+            show: vi.fn()
+        })),
+    }
 }));
 
-jest.mock('cli-highlight', () => ({
-    highlight: jest.fn(text => text),
+vi.mock('blessed-contrib', () => ({
+    default: {
+        grid: vi.fn(() => ({
+            set: vi.fn((row, col, rowSpan, colSpan, obj, options) => ({
+                ...options,
+                on: vi.fn(),
+                focus: vi.fn(),
+                style: {border: {}},
+                hide: vi.fn(),
+                show: vi.fn(),
+                log: vi.fn(),
+                setItems: vi.fn(),
+                setContent: vi.fn(),
+                setLabel: vi.fn(),
+            })),
+        })),
+    }
 }));
 
-jest.mock('../src/components/Header.js', () => ({getHeaderConfig: jest.fn(() => ({}))}));
-jest.mock('../src/components/StatusBar.js', () => ({getStatusBarConfig: jest.fn(() => ({}))}));
-jest.mock('../src/components/TaskBox.js', () => ({getTaskBoxConfig: jest.fn(() => ({}))}));
-jest.mock('../src/components/LogBox.js', () => ({getLogBoxConfig: jest.fn(() => ({}))}));
-jest.mock('../src/components/NarseseInput.js', () => ({getNarseseInputConfig: jest.fn(() => ({}))}));
-jest.mock('../src/components/CommandInput.js', () => ({getCommandInputConfig: jest.fn(() => ({}))}));
-jest.mock('../src/components/HelpBox.js', () => ({
-    createHelpBox: jest.fn(() => ({
-        hide: jest.fn(),
-        show: jest.fn(),
-        focus: jest.fn(),
-        setContent: jest.fn(),
+vi.mock('cli-highlight', () => ({
+    highlight: vi.fn(text => text),
+}));
+
+vi.mock('../src/components/Header.js', () => ({getHeaderConfig: vi.fn(() => ({}))}));
+vi.mock('../src/components/StatusBar.js', () => ({getStatusBarConfig: vi.fn(() => ({}))}));
+vi.mock('../src/components/TaskBox.js', () => ({getTaskBoxConfig: vi.fn(() => ({}))}));
+vi.mock('../src/components/LogBox.js', () => ({getLogBoxConfig: vi.fn(() => ({}))}));
+vi.mock('../src/components/NarseseInput.js', () => ({getNarseseInputConfig: vi.fn(() => ({}))}));
+vi.mock('../src/components/CommandInput.js', () => ({getCommandInputConfig: vi.fn(() => ({}))}));
+vi.mock('../src/components/HelpBox.js', () => ({
+    createHelpBox: vi.fn(() => ({
+        hide: vi.fn(),
+        show: vi.fn(),
+        focus: vi.fn(),
+        setContent: vi.fn(),
         visible: false
     }))
 }));
-jest.mock('../src/components/DetailBox.js', () => ({
-    createDetailBox: jest.fn(() => ({
-        hide: jest.fn(),
-        show: jest.fn(),
-        focus: jest.fn(),
-        setContent: jest.fn(),
-        setLabel: jest.fn(),
+vi.mock('../src/components/DetailBox.js', () => ({
+    createDetailBox: vi.fn(() => ({
+        hide: vi.fn(),
+        show: vi.fn(),
+        focus: vi.fn(),
+        setContent: vi.fn(),
+        setLabel: vi.fn(),
         visible: false
     }))
 }));
-jest.mock('../src/components/BeliefsBox.js', () => ({getBeliefsBoxConfig: jest.fn(() => ({}))}));
-jest.mock('../src/services/commandHandler.js', () => ({commandDefinitions: {}}));
+vi.mock('../src/components/BeliefsBox.js', () => ({getBeliefsBoxConfig: vi.fn(() => ({}))}));
+vi.mock('../src/services/commandHandler.js', () => ({commandDefinitions: {}}));
 
 
 describe('UIManager', () => {
