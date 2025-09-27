@@ -166,23 +166,57 @@ class Agent {
     }
 
     getRecentTasks(count = 10) {
-        return this._getMemoryItemsWithParams('getRecentTasks', count);
+        return this._getMemoryItems('getRecentTasks', count);
     }
 
-    // Private helper method to reduce duplication in memory access methods
-    _getMemoryItems(methodName) {
+    /**
+     * Private helper method to reduce duplication in memory access methods
+     * @param {string} methodName - The name of the memory method to call
+     * @param {...any} params - Parameters to pass to the memory method
+     * @returns {Array} - The result of the memory method call or empty array
+     */
+    _getMemoryItems(methodName, ...params) {
         if (!this.isInitialized || !this.system || !this.system.memory) {
+            debug(`Cannot access memory: ${!this.isInitialized ? 'Agent not initialized' : !this.system ? 'No system' : 'No memory'}`);
             return [];
         }
-        return this.system.memory[methodName]?.() || [];
+        
+        const method = this.system.memory[methodName];
+        if (typeof method !== 'function') {
+            warn(`Memory method '${methodName}' does not exist`);
+            return [];
+        }
+        
+        try {
+            return method.call(this.system.memory, ...params) || [];
+        } catch (error) {
+            warn(`Error calling memory method '${methodName}':`, error.message);
+            return [];
+        }
     }
 
-    // Private helper method to reduce duplication in memory access methods with parameters
-    _getMemoryItemsWithParams(methodName, ...params) {
+    /**
+     * Get all task data in one call for efficient access
+     * @returns {Object} - Object containing tasks, beliefs, goals, and questions
+     */
+    getAllTaskData() {
         if (!this.isInitialized || !this.system || !this.system.memory) {
-            return [];
+            debug('Cannot access memory: Agent not initialized or no system/memory');
+            return { tasks: [], beliefs: [], goals: [], questions: [] };
         }
-        return this.system.memory[methodName]?.(...params) || [];
+        
+        try {
+            const memory = this.system.memory;
+            return {
+                tasks: memory.getAllTasks?.() || [],
+                beliefs: memory.getBeliefs?.() || [],
+                goals: memory.getGoals?.() || [],
+                questions: memory.getQuestions?.() || []
+            };
+        } catch (error) {
+            warn('Error getting all task data:', error.message);
+            return { tasks: [], beliefs: [], goals: [], questions: [] };
+        }
     }
 }
 

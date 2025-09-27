@@ -43,25 +43,42 @@ class TuiRenderer {
     }
 
     renderTasks(systemState) {
-        console.log(chalk.bold('Tasks:'));
+        if (!systemState?.memory?.tasks) {
+            console.log(chalk.bold('Tasks:'));
+            console.log('  No tasks available');
+            console.log('');
+            return;
+        }
 
-        if (systemState?.memory?.tasks && systemState.memory.tasks.length > 0) {
-            const tasks = systemState.memory.tasks.slice(0, 10); // Show only first 10 tasks
+        const tasks = systemState.memory.tasks;
+        const maxDisplayItems = 10;
 
-            tasks.forEach((task, index) => {
-                const type = task.type || 'UNKNOWN';
-                const content = task.content || 'No content';
-                const status = task.status || 'PENDING';
+        console.log(chalk.bold(`Tasks: (${tasks.length})`));
 
-                let statusColor = chalk.yellow;
-                if (status === 'COMPLETED') statusColor = chalk.green;
-                else if (status === 'FAILED') statusColor = chalk.red;
+        if (tasks.length > 0) {
+            const tasksToShow = tasks.slice(0, maxDisplayItems);
 
-                console.log(`  ${index + 1}. [${type}] ${content} - ${statusColor(status)}`);
+            tasksToShow.forEach((task, index) => {
+                // Get task content using the task's toDisplayString method if available, otherwise toString
+                const taskContent = task.toDisplayString?.() || task.toString?.() || task.content || 'No content';
+                
+                // Determine task type based on punctuation (NARS uses punctuation to distinguish types)
+                let type = 'UNKNOWN';
+                if (task.punctuation === '.') type = 'BELIEF';
+                else if (task.punctuation === '!') type = 'GOAL';
+                else if (task.punctuation === '?') type = 'QUESTION';
+                
+                // Color coding based on task type
+                let typeColor = chalk.gray;
+                if (type === 'BELIEF') typeColor = chalk.blue;
+                else if (type === 'GOAL') typeColor = chalk.green;
+                else if (type === 'QUESTION') typeColor = chalk.yellow;
+
+                console.log(`  ${index + 1}. [${typeColor(type)}] ${taskContent}`);
             });
 
-            if (systemState.memory.tasks.length > 10) {
-                console.log(`  ... and ${systemState.memory.tasks.length - 10} more tasks`);
+            if (tasks.length > maxDisplayItems) {
+                console.log(chalk.gray(`  ... and ${tasks.length - maxDisplayItems} more tasks`));
             }
         } else {
             console.log('  No tasks available');
@@ -71,27 +88,25 @@ class TuiRenderer {
     }
 
     renderMemory(systemState) {
+        const memory = systemState?.memory || {};
+        const beliefs = memory.beliefs || [];
+        const goals = memory.goals || [];
+        const questions = memory.questions || [];
+
         console.log(chalk.bold('Memory:'));
 
-        if (systemState?.memory?.beliefs && systemState.memory.beliefs.length > 0) {
-            console.log(`  Beliefs: ${systemState.memory.beliefs.length}`);
-        }
-
-        if (systemState?.memory?.goals && systemState.memory.goals.length > 0) {
-            console.log(`  Goals: ${systemState.memory.goals.length}`);
-        }
-
-        if (systemState?.memory?.questions && systemState.memory.questions.length > 0) {
-            console.log(`  Questions: ${systemState.memory.questions.length}`);
-        }
+        // Color code for different memory types
+        console.log(`  ${chalk.blue('Beliefs')}: ${beliefs.length}`);
+        console.log(`  ${chalk.green('Goals')}: ${goals.length}`);
+        console.log(`  ${chalk.yellow('Questions')}: ${questions.length}`);
 
         console.log('');
     }
 
     renderFooter() {
         console.log('');
+        console.log(chalk.gray('Commands: [S]top/[R]un/[T]ask/[A]dd belief/[B]eliefs/[G]oals/[L]ist tasks/[C]lear/[H]elp/[Q]uit'));
         console.log(chalk.gray('Press Ctrl+C to exit'));
-        console.log(chalk.gray('Commands: [S]top/[R]un/[T]ask/[A]dd belief/[Q]uit'));
     }
 
     renderError(error) {

@@ -138,6 +138,26 @@ class Task extends BaseEntity {
         return `${this.#termKey}${this.#punctuation} (f: ${frequency.toFixed(3)}, c: ${confidence.toFixed(3)})`;
     }
 
+    /**
+     * Return a string representation of the task for display purposes
+     * The original implementation is required for tests to pass
+     */
+    toString() {
+        // For backward compatibility with tests, return the formatString
+        return this.formatString();
+    }
+
+    /**
+     * Return a user-friendly string representation of the task for UI/TUI
+     */
+    toDisplayString() {
+        // Show a more user-friendly representation of the task for UI/TUI
+        // Format as: Term punctuation [priority: X%, confidence: Y%]
+        const truthValue = this.#state.truthValue;
+        const priorityPercent = Math.round(this.#state.priority * 100);
+        return `${this.#termKey}${this.#punctuation} [priority: ${priorityPercent}%, confidence: ${(truthValue.confidence * 100).toFixed(1)}%]`;
+    }
+
     getId() {
         return this.#id;
     }

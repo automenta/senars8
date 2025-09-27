@@ -97,15 +97,14 @@ class TuiView {
         // Create a simplified system state representation for the UI
         // Access the agent's system properties if available
         const system = this.agent?.system;
+        
+        // Get all memory items in a single call to reduce repeated calls to agent
+        const memoryState = this._getMemoryState();
+        
         return {
             isRunning: system?.isRunning || false,
             cycleCount: system?.cycleCount || 0,
-            memory: {
-                tasks: this.getTasks(),
-                beliefs: this.getBeliefs(),
-                goals: this.getGoals(),
-                questions: this.getQuestions()
-            },
+            memory: memoryState,
             // Add additional system information
             systemInfo: {
                 uptime: system?.getUptime ? system.getUptime() : null,
@@ -114,36 +113,23 @@ class TuiView {
         };
     }
 
-    getTasks() {
-        // Access tasks from the agent's memory
-        if (this.agent?.getAllTasks) {
-            return this.agent.getAllTasks() || [];
+    /**
+     * Efficiently get all memory state at once to reduce repeated agent calls
+     * @returns {Object} - Memory state with tasks, beliefs, goals, questions
+     */
+    _getMemoryState() {
+        if (!this.agent) {
+            debug('TUI View: Agent not available for memory access');
+            return { tasks: [], beliefs: [], goals: [], questions: [] };
         }
-        return [];
-    }
 
-    getBeliefs() {
-        // Access beliefs from the agent's memory
-        if (this.agent?.getBeliefs) {
-            return this.agent.getBeliefs() || [];
+        // Use the agent's efficient method to get all task data
+        try {
+            return this.agent.getAllTaskData();
+        } catch (error) {
+            warn('Error getting memory state:', error.message);
+            return { tasks: [], beliefs: [], goals: [], questions: [] };
         }
-        return [];
-    }
-
-    getGoals() {
-        // Access goals from the agent's memory
-        if (this.agent?.getGoals) {
-            return this.agent.getGoals() || [];
-        }
-        return [];
-    }
-
-    getQuestions() {
-        // Access questions from the agent's memory
-        if (this.agent?.getQuestions) {
-            return this.agent.getQuestions() || [];
-        }
-        return [];
     }
 
     async handleUserInput(input) {
@@ -305,7 +291,7 @@ class TuiView {
             const term = parseTerm(content);
 
             if (!term) {
-                console.log(`Could not parse task content: ${content}`);
+                console.log(chalk.red(`Could not parse task content: ${content}`));
                 warn(`TUI addTask: Could not parse content: ${content}`);
                 return;
             }
@@ -316,12 +302,12 @@ class TuiView {
             // Add the task to the system
             await this.agent.system.addTasks([task]);
 
-            console.log(`Task added successfully: ${content}`);
+            console.log(chalk.green(`✓ Task added successfully: ${content}`));
             info(`TUI Task added: ${content}`);
             this.render(); // Re-render to show updated state
         } catch (error) {
             logError('Error adding task:', error);
-            console.error('Error adding task:', error.message);
+            console.log(chalk.red(`✗ Error adding task: ${error.message}`));
         }
     }
 
@@ -338,7 +324,7 @@ class TuiView {
             const term = parseTerm(content);
 
             if (!term) {
-                console.log(`Could not parse belief content: ${content}`);
+                console.log(chalk.red(`Could not parse belief content: ${content}`));
                 warn(`TUI addBelief: Could not parse content: ${content}`);
                 return;
             }
@@ -349,12 +335,12 @@ class TuiView {
             // Add the task to the system
             await this.agent.system.addTasks([task]);
 
-            console.log(`Belief added successfully: ${content}`);
+            console.log(chalk.green(`✓ Belief added successfully: ${content}`));
             info(`TUI Belief added: ${content}`);
             this.render(); // Re-render to show updated state
         } catch (error) {
             logError('Error adding belief:', error);
-            console.error('Error adding belief:', error.message);
+            console.log(chalk.red(`✗ Error adding belief: ${error.message}`));
         }
     }
     
@@ -371,7 +357,7 @@ class TuiView {
             const term = parseTerm(input);
 
             if (!term) {
-                console.log(`Unrecognized command: ${input}. Type 'help' for available commands.`);
+                console.log(chalk.yellow(`Unrecognized command or Narsese: ${input}. Type 'help' for available commands.`));
                 return;
             }
 
@@ -389,12 +375,16 @@ class TuiView {
             // Add the task to the system
             await this.agent.system.addTasks([task]);
 
-            console.log(`Narsese interpreted and added: ${input}`);
+            let taskType = 'Judgment';
+            if (punctuation === '?') taskType = 'Question';
+            else if (punctuation === '!') taskType = 'Goal';
+
+            console.log(chalk.green(`✓ ${taskType} added successfully: ${input}`));
             info(`TUI Narsese added: ${input}`);
             this.render(); // Re-render to show updated state
         } catch (error) {
             logError('Error interpreting Narsese:', error);
-            console.error('Error interpreting Narsese:', error.message);
+            console.log(chalk.red(`✗ Error interpreting Narsese: ${error.message}`));
         }
     }
 }

@@ -17,6 +17,8 @@ class Application {
     }
 
     async initialize() {
+        console.log('Initializing TUI Application...');
+        
         // Create the agent
         const agentConfig = this.config.get('agent') || {};
         this.agent = new Agent(agentConfig);
