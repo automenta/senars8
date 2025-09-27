@@ -523,7 +523,7 @@ async function handleMessage(message, ws) {
 
         case 'search': {
             try {
-                const {query, scope, limit, filters} = payload || {};
+                const {query, scope, limit, _filters} = payload || {};
 
                 if (!query) {
                     ws.send(JSON.stringify({
@@ -537,14 +537,14 @@ async function handleMessage(message, ws) {
 
                 if (agent.system && agent.system.memory) {
                     // Search in beliefs, goals, and questions based on scope
-                    const searchInTasks = (tasks, type) => {
+                    const searchInTasks = (tasks, taskType) => {
                         if (!tasks) return [];
 
                         const normalizedQuery = query.toLowerCase();
                         return tasks
                             .filter(task => task.termKey && task.termKey.toLowerCase().includes(normalizedQuery))
                             .slice(0, limit || 50)
-                            .map(task => ({...task, type}));
+                            .map(task => ({...task, type: taskType}));
                     };
 
                     if (!scope || scope === 'all' || scope === 'beliefs') {

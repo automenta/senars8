@@ -5,8 +5,14 @@
       "@core/*": [
         "core/*"
       ],
+      "@common/*": [
+        "common/*"
+      ],
       "@agent/*": [
         "agent/*"
+      ],
+      "@tui/*": [
+        "tui/*"
       ],
       "@ui/*": [
         "ui/*"

@@ -8,8 +8,8 @@
   "workspaces": [
     "core",
     "agent",
-    "ui",
-    "tui"
+    "tui",
+    "ui"
   ],
   "files": [
     "core/",
