@@ -62,6 +62,8 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.28.3",
+    "@babel/preset-react": "^7.27.1",
     "@eslint/js": "^9.36.0",
     "@slidev/cli": "^52.1.0",
     "@slidev/theme-default": "^0.25.0",
