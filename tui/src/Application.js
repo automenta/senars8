@@ -3,6 +3,7 @@ import {TuiController} from './TuiController.js';
 import {TuiRenderer} from './TuiRenderer.js';
 import {Agent} from '../../agent/index.js';
 import TUIConfig from './config/TUIConfig.js';
+import logger from '../../common/services/Logger.js';
 
 class Application {
     constructor(options = {}) {
@@ -17,7 +18,8 @@ class Application {
     }
 
     async initialize() {
-        console.log('Initializing TUI Application...');
+        this.logger = logger.createNamespace('TUIApplication');
+        this.logger.info('Initializing TUI Application...');
         
         // Create the agent
         const agentConfig = this.config.get('agent') || {};
@@ -29,17 +31,17 @@ class Application {
         this.tuiView = new TuiView(this.agent, this.tuiRenderer, this.config);
         this.tuiController = new TuiController(this.agent, this.tuiView, this.config);
 
-        console.log('TUI Application initialized');
+        this.logger.info('TUI Application initialized');
     }
 
     async start() {
         if (this.isRunning) {
-            console.log('TUI Application is already running');
+            this.logger.info('TUI Application is already running');
             return;
         }
 
         this.isRunning = true;
-        console.log('Starting TUI Application...');
+        this.logger.info('Starting TUI Application...');
 
         // Start the agent
         this.agent.start();
@@ -48,12 +50,12 @@ class Application {
         this.tuiView.start();
         this.tuiController.start();
 
-        console.log('TUI Application started successfully');
+        this.logger.info('TUI Application started successfully');
     }
 
     stop() {
         if (!this.isRunning) {
-            console.log('TUI Application is not running');
+            this.logger.info('TUI Application is not running');
             return;
         }
 
@@ -65,13 +67,13 @@ class Application {
         this.agent?.stop();
 
         this.isRunning = false;
-        console.log('TUI Application stopped');
+        this.logger.info('TUI Application stopped');
     }
 
     async addTask(task) {
         // For now, just pass the task to the agent
         // In a real implementation we would create a proper task and add it
-        console.log('Adding task:', task);
+        this.logger.debug('Adding task:', task);
     }
 }
 

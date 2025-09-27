@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import UiComponents from '../../common/services/UiComponents.js';
 
 class TuiRenderer {
     constructor() {
@@ -33,74 +34,32 @@ class TuiRenderer {
     }
 
     renderSystemStatus(systemState) {
-        const isRunning = systemState?.isRunning || false;
-        const cycleCount = systemState?.cycleCount || 0;
-        const status = isRunning ? chalk.green('RUNNING') : chalk.red('STOPPED');
-
-        console.log(chalk.bold('System Status: ') + status);
-        console.log(chalk.bold('Cycle Count: ') + cycleCount);
-        console.log('');
+        // Use shared UI component
+        const systemStatusComponent = UiComponents.createSystemStatus(systemState);
+        const formatted = UiComponents.formatForTui(systemStatusComponent);
+        console.log(formatted);
     }
 
     renderTasks(systemState) {
-        if (!systemState?.memory?.tasks) {
-            console.log(chalk.bold('Tasks:'));
-            console.log('  No tasks available');
-            console.log('');
-            return;
-        }
-
-        const tasks = systemState.memory.tasks;
-        const maxDisplayItems = 10;
-
-        console.log(chalk.bold(`Tasks: (${tasks.length})`));
-
-        if (tasks.length > 0) {
-            const tasksToShow = tasks.slice(0, maxDisplayItems);
-
-            tasksToShow.forEach((task, index) => {
-                // Get task content using the task's toDisplayString method if available, otherwise toString
-                const taskContent = task.toDisplayString?.() || task.toString?.() || task.content || 'No content';
-                
-                // Determine task type based on punctuation (NARS uses punctuation to distinguish types)
-                let type = 'UNKNOWN';
-                if (task.punctuation === '.') type = 'BELIEF';
-                else if (task.punctuation === '!') type = 'GOAL';
-                else if (task.punctuation === '?') type = 'QUESTION';
-                
-                // Color coding based on task type
-                let typeColor = chalk.gray;
-                if (type === 'BELIEF') typeColor = chalk.blue;
-                else if (type === 'GOAL') typeColor = chalk.green;
-                else if (type === 'QUESTION') typeColor = chalk.yellow;
-
-                console.log(`  ${index + 1}. [${typeColor(type)}] ${taskContent}`);
-            });
-
-            if (tasks.length > maxDisplayItems) {
-                console.log(chalk.gray(`  ... and ${tasks.length - maxDisplayItems} more tasks`));
-            }
-        } else {
-            console.log('  No tasks available');
-        }
-
-        console.log('');
+        // Use shared UI component
+        const taskListComponent = UiComponents.createTaskList(systemState?.memory?.tasks || [], { maxItems: 10 });
+        const formatted = UiComponents.formatForTui(taskListComponent);
+        console.log(chalk.bold('Tasks:'));
+        console.log(formatted);
     }
 
     renderMemory(systemState) {
-        const memory = systemState?.memory || {};
-        const beliefs = memory.beliefs || [];
-        const goals = memory.goals || [];
-        const questions = memory.questions || [];
-
+        // Use shared UI component
+        const memoryState = {
+            beliefs: systemState?.memory?.beliefs || [],
+            goals: systemState?.memory?.goals || [],
+            questions: systemState?.memory?.questions || [],
+            tasks: systemState?.memory?.tasks || []
+        };
+        const memoryStatusComponent = UiComponents.createMemoryStatus(memoryState);
+        const formatted = UiComponents.formatForTui(memoryStatusComponent);
         console.log(chalk.bold('Memory:'));
-
-        // Color code for different memory types
-        console.log(`  ${chalk.blue('Beliefs')}: ${beliefs.length}`);
-        console.log(`  ${chalk.green('Goals')}: ${goals.length}`);
-        console.log(`  ${chalk.yellow('Questions')}: ${questions.length}`);
-
-        console.log('');
+        console.log(formatted);
     }
 
     renderFooter() {

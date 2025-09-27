@@ -1,5 +1,8 @@
-import {agentErrorHandler as errorHandler, createSystem, debug, parseTerm, Task, warn} from '@project/core';
+import {agentErrorHandler as errorHandler, createSystem, parseTerm, Task} from '@project/core';
+import logger from '../common/services/Logger.js';
 import MCP from './MCP.js';
+
+const agentLogger = logger.createNamespace('Agent');
 
 const termToActionParsers = Object.freeze({
     Atomic: (term) => ({tool: term.key, parameters: []}),
@@ -47,7 +50,7 @@ class Agent {
                 });
             }
 
-            debug('Agent initialized successfully.');
+            agentLogger.debug('Agent initialized successfully.');
         }, 'initialize');
     }
 
@@ -58,21 +61,21 @@ class Agent {
         }
         this.tools[tool.name] = tool;
         this.system.actionExecutor.registerActionHandler(tool.name, tool.handler);
-        debug(`Tool registered: ${tool.name}`);
+        agentLogger.debug(`Tool registered: ${tool.name}`);
     }
 
     async decideNextAction(goalString) {
         if (!this.isInitialized) throw new Error('Agent not initialized.');
-        debug('Deciding next action for goal:', goalString);
+        agentLogger.debug('Deciding next action for goal:', goalString);
 
         const plan = await this.createPlan(goalString);
         if (!plan?.steps.length) {
-            debug('No actionable plan found.');
+            agentLogger.debug('No actionable plan found.');
             return null;
         }
 
         const action = this._parseTermToAction(plan.steps[0]);
-        debug('Next action determined:', action);
+        agentLogger.debug('Next action determined:', action);
         return action;
     }
 
@@ -100,7 +103,7 @@ class Agent {
             return parser(term);
         }
 
-        warn(`Cannot parse term of type '${term.type}' to an action:`, term);
+        agentLogger.warn(`Cannot parse term of type '${term.type}' to an action:`, term);
         return null;
     }
 
@@ -108,7 +111,7 @@ class Agent {
         return errorHandler.execute(async () => {
             const goalTerm = parseTerm(goalString);
             if (!goalTerm) {
-                warn(`Could not parse goal string: ${goalString}`);
+                agentLogger.warn(`Could not parse goal string: ${goalString}`);
                 return null;
             }
 
@@ -116,7 +119,7 @@ class Agent {
             const plan = await this.system.reasoner.planner.createPlan(goalTask);
 
             if (!plan || plan.steps.length === 0) {
-                warn(`No plan could be created for goal: ${goalString}`);
+                agentLogger.warn(`No plan could be created for goal: ${goalString}`);
                 return null;
             }
             return plan;
@@ -129,7 +132,7 @@ class Agent {
         }
         this.system?.start?.();
         if (!this.system?.start) {
-            debug('System does not have a start method.');
+            agentLogger.debug('System does not have a start method.');
         }
     }
 
@@ -139,7 +142,7 @@ class Agent {
         }
         this.system?.stop?.();
         if (!this.system?.stop) {
-            debug('System does not have a stop method.');
+            agentLogger.debug('System does not have a stop method.');
         }
     }
 
@@ -177,20 +180,20 @@ class Agent {
      */
     _getMemoryItems(methodName, ...params) {
         if (!this.isInitialized || !this.system || !this.system.memory) {
-            debug(`Cannot access memory: ${!this.isInitialized ? 'Agent not initialized' : !this.system ? 'No system' : 'No memory'}`);
+            agentLogger.debug(`Cannot access memory: ${!this.isInitialized ? 'Agent not initialized' : !this.system ? 'No system' : 'No memory'}`);
             return [];
         }
         
         const method = this.system.memory[methodName];
         if (typeof method !== 'function') {
-            warn(`Memory method '${methodName}' does not exist`);
+            agentLogger.warn(`Memory method '${methodName}' does not exist`);
             return [];
         }
         
         try {
             return method.call(this.system.memory, ...params) || [];
         } catch (error) {
-            warn(`Error calling memory method '${methodName}':`, error.message);
+            agentLogger.warn(`Error calling memory method '${methodName}':`, error.message);
             return [];
         }
     }
@@ -201,7 +204,7 @@ class Agent {
      */
     getAllTaskData() {
         if (!this.isInitialized || !this.system || !this.system.memory) {
-            debug('Cannot access memory: Agent not initialized or no system/memory');
+            agentLogger.debug('Cannot access memory: Agent not initialized or no system/memory');
             return { tasks: [], beliefs: [], goals: [], questions: [] };
         }
         
@@ -214,7 +217,7 @@ class Agent {
                 questions: memory.getQuestions?.() || []
             };
         } catch (error) {
-            warn('Error getting all task data:', error.message);
+            agentLogger.warn('Error getting all task data:', error.message);
             return { tasks: [], beliefs: [], goals: [], questions: [] };
         }
     }

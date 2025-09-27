@@ -1,7 +1,9 @@
 import {Agent} from './agent/index.js';
 import TUIApplication, {TUIConfig} from './tui/src/index.js';
 import WebUI, {UIConfig} from './ui/src/index.js';
-import {error as logError, info as logInfo} from './core/utils/logger.js';
+import logger from './common/services/Logger.js';
+
+const mainLogger = logger.createNamespace('Main');
 
 class SENARSMain {
     constructor(options = {}) {
@@ -17,16 +19,16 @@ class SENARSMain {
     }
 
     async initialize() {
-        logInfo('Initializing SENARS system...');
+        mainLogger.info('Initializing SENARS system...');
 
         try {
             // Create and initialize the agent
             this.agent = new Agent(this.config.agentConfig);
             await this.agent.initialize();
 
-            logInfo('Agent initialized successfully');
+            mainLogger.info('Agent initialized successfully');
         } catch (error) {
-            logError('Failed to initialize agent:', error);
+            mainLogger.error('Failed to initialize agent:', error);
             throw error;
         }
     }
@@ -36,13 +38,13 @@ class SENARSMain {
             throw new Error('Agent must be initialized before starting TUI');
         }
 
-        logInfo('Starting TUI...');
+        mainLogger.info('Starting TUI...');
         try {
             const tuiConfig = new TUIConfig(this.config.tuiConfig);
             this.tui = new TUIApplication({config: tuiConfig});
-            logInfo('TUI started successfully');
+            mainLogger.info('TUI started successfully');
         } catch (error) {
-            logError('Failed to start TUI:', error);
+            mainLogger.error('Failed to start TUI:', error);
             throw error;
         }
     }
@@ -52,14 +54,14 @@ class SENARSMain {
             throw new Error('Agent must be initialized before starting WebUI');
         }
 
-        logInfo('Starting WebUI...');
+        mainLogger.info('Starting WebUI...');
         try {
             const webuiConfig = new UIConfig(this.config.webuiConfig);
             this.webui = new WebUI(this.agent, webuiConfig.getAll());
             await this.webui.start();
-            logInfo('WebUI started successfully');
+            mainLogger.info('WebUI started successfully');
         } catch (error) {
-            logError('Failed to start WebUI:', error);
+            mainLogger.error('Failed to start WebUI:', error);
             throw error;
         }
     }
@@ -74,7 +76,7 @@ class SENARSMain {
 
             this._logStartupMessage();
         } catch (error) {
-            logError('Failed to start SENARS system:', error);
+            mainLogger.error('Failed to start SENARS system:', error);
             throw error;
         }
     }
@@ -91,7 +93,7 @@ class SENARSMain {
         }
         
         this.isShuttingDown = true;
-        logInfo('Stopping SENARS system...');
+        mainLogger.info('Stopping SENARS system...');
 
         try {
             if (this.tui) {
@@ -106,16 +108,16 @@ class SENARSMain {
                 await this.agent.stop?.();
             }
 
-            logInfo('SENARS system stopped');
+            mainLogger.info('SENARS system stopped');
         } catch (error) {
-            logError('Error during shutdown:', error);
+            mainLogger.error('Error during shutdown:', error);
         }
     }
 }
 
 // Handle process termination gracefully
 process.on('SIGINT', async () => {
-    logInfo('Received SIGINT, shutting down...');
+    mainLogger.info('Received SIGINT, shutting down...');
     // Give some time for graceful shutdown
     setTimeout(() => {
         process.exit(0);
@@ -123,7 +125,7 @@ process.on('SIGINT', async () => {
 });
 
 process.on('SIGTERM', async () => {
-    logInfo('Received SIGTERM, shutting down...');
+    mainLogger.info('Received SIGTERM, shutting down...');
     // Give some time for graceful shutdown
     setTimeout(() => {
         process.exit(0);
@@ -132,13 +134,13 @@ process.on('SIGTERM', async () => {
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
-    logError('Uncaught exception:', error);
+    mainLogger.error('Uncaught exception:', error);
     process.exit(1);
 });
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
-    logError('Unhandled rejection at:', promise, 'reason:', reason);
+    mainLogger.error('Unhandled rejection at:', promise, 'reason:', reason);
     process.exit(1);
 });
 

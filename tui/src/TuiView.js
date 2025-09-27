@@ -1,5 +1,7 @@
 import readline from 'readline';
-import {debug, error as logError, info, warn} from '../../core/utils/logger.js';
+import logger from '../../common/services/Logger.js';
+import configProvider from '../../common/services/ConfigProvider.js';
+import eventManager from '../../common/services/EventManager.js';
 
 class TuiView {
     constructor(agent, renderer, config = null) {
@@ -15,9 +17,29 @@ class TuiView {
         // Use default update interval if config not provided
         this.updateIntervalMs = config ? config.getUpdateInterval() : 1000;
         
+        // Use shared logger instead of individual logger functions
+        this.logger = logger.createNamespace('TuiView');
+        this.configProvider = configProvider;
+        this.eventManager = eventManager;
+        
         // Track active input prompts to prevent conflicts
         this.awaitingInput = false;
         this.inputCallback = null;
+        
+        // Initialize shared services
+        this._initializeServices();
+    }
+    
+    _initializeServices() {
+        // Initialize config provider if agent has config
+        if (this.agent?.system?.config) {
+            this.configProvider.initialize(this.agent.system.config);
+        }
+
+        // Initialize event manager with the agent's event bus
+        if (this.agent?.system?.eventBus) {
+            this.eventManager.initialize(this.agent.system.eventBus);
+        }
     }
 
     start() {
@@ -53,7 +75,7 @@ class TuiView {
             }
         }, this.updateIntervalMs);
 
-        debug('TUI View started');
+        this.logger.debug('TUI View started');
     }
 
     stop() {
@@ -71,7 +93,7 @@ class TuiView {
             this.rl = null;
         }
 
-        debug('TUI View stopped');
+        this.logger.debug('TUI View stopped');
     }
 
     render() {
@@ -119,7 +141,7 @@ class TuiView {
      */
     _getMemoryState() {
         if (!this.agent) {
-            debug('TUI View: Agent not available for memory access');
+            this.logger.debug('Agent not available for memory access');
             return { tasks: [], beliefs: [], goals: [], questions: [] };
         }
 
@@ -127,7 +149,7 @@ class TuiView {
         try {
             return this.agent.getAllTaskData();
         } catch (error) {
-            warn('Error getting memory state:', error.message);
+            this.logger.warn('Error getting memory state:', error.message);
             return { tasks: [], beliefs: [], goals: [], questions: [] };
         }
     }
@@ -150,8 +172,10 @@ class TuiView {
                 if (this.agent) {
                     this.agent.stop();
                     console.log('Agent stopped');
+                    this.logger.info('Agent stopped via TUI command');
                 } else {
                     console.log('Agent not initialized');
+                    this.logger.warn('Attempted to stop agent but agent not initialized');
                 }
                 break;
             case 'r':
@@ -159,8 +183,10 @@ class TuiView {
                 if (this.agent) {
                     this.agent.start();
                     console.log('Agent started');
+                    this.logger.info('Agent started via TUI command');
                 } else {
                     console.log('Agent not initialized');
+                    this.logger.warn('Attempted to start agent but agent not initialized');
                 }
                 break;
             case 'q':
@@ -282,7 +308,7 @@ class TuiView {
         try {
             if (!this.agent?.system) {
                 console.log('Agent system not available');
-                warn('TUI addTask: Agent system not available');
+                this.logger.warn('TUI addTask: Agent system not available');
                 return;
             }
 
@@ -292,7 +318,7 @@ class TuiView {
 
             if (!term) {
                 console.log(chalk.red(`Could not parse task content: ${content}`));
-                warn(`TUI addTask: Could not parse content: ${content}`);
+                this.logger.warn(`TUI addTask: Could not parse content: ${content}`);
                 return;
             }
 
@@ -303,10 +329,10 @@ class TuiView {
             await this.agent.system.addTasks([task]);
 
             console.log(chalk.green(`✓ Task added successfully: ${content}`));
-            info(`TUI Task added: ${content}`);
+            this.logger.info(`TUI Task added: ${content}`);
             this.render(); // Re-render to show updated state
         } catch (error) {
-            logError('Error adding task:', error);
+            this.logger.error('Error adding task:', error);
             console.log(chalk.red(`✗ Error adding task: ${error.message}`));
         }
     }
@@ -315,7 +341,7 @@ class TuiView {
         try {
             if (!this.agent?.system) {
                 console.log('Agent system not available');
-                warn('TUI addBelief: Agent system not available');
+                this.logger.warn('TUI addBelief: Agent system not available');
                 return;
             }
 
@@ -325,7 +351,7 @@ class TuiView {
 
             if (!term) {
                 console.log(chalk.red(`Could not parse belief content: ${content}`));
-                warn(`TUI addBelief: Could not parse content: ${content}`);
+                this.logger.warn(`TUI addBelief: Could not parse content: ${content}`);
                 return;
             }
 
@@ -336,10 +362,10 @@ class TuiView {
             await this.agent.system.addTasks([task]);
 
             console.log(chalk.green(`✓ Belief added successfully: ${content}`));
-            info(`TUI Belief added: ${content}`);
+            this.logger.info(`TUI Belief added: ${content}`);
             this.render(); // Re-render to show updated state
         } catch (error) {
-            logError('Error adding belief:', error);
+            this.logger.error('Error adding belief:', error);
             console.log(chalk.red(`✗ Error adding belief: ${error.message}`));
         }
     }
@@ -348,7 +374,7 @@ class TuiView {
         try {
             if (!this.agent?.system) {
                 console.log('Agent system not available');
-                warn('TUI interpretNarsese: Agent system not available');
+                this.logger.warn('TUI interpretNarsese: Agent system not available');
                 return;
             }
 
@@ -380,10 +406,10 @@ class TuiView {
             else if (punctuation === '!') taskType = 'Goal';
 
             console.log(chalk.green(`✓ ${taskType} added successfully: ${input}`));
-            info(`TUI Narsese added: ${input}`);
+            this.logger.info(`TUI Narsese added: ${input}`);
             this.render(); // Re-render to show updated state
         } catch (error) {
-            logError('Error interpreting Narsese:', error);
+            this.logger.error('Error interpreting Narsese:', error);
             console.log(chalk.red(`✗ Error interpreting Narsese: ${error.message}`));
         }
     }

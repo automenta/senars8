@@ -1,4 +1,5 @@
-import {debug, warn} from '../../core/utils/logger.js';
+import logger from '../../common/services/Logger.js';
+import eventManager from '../../common/services/EventManager.js';
 
 class TuiController {
     constructor(agent, view, config = null) {
@@ -9,6 +10,13 @@ class TuiController {
         this.eventListeners = [];
         this.updateThrottleTimeout = null;
         this.throttleDelay = 100; // milliseconds
+        this.logger = logger.createNamespace('TuiController');
+        this.eventManager = eventManager;
+        
+        // Initialize event manager with the agent's event bus
+        if (this.agent?.system?.eventBus) {
+            this.eventManager.initialize(this.agent.system.eventBus);
+        }
     }
 
     start() {
@@ -19,7 +27,7 @@ class TuiController {
         // Register event listeners with the agent's system
         this.registerEventListeners();
 
-        debug('TUI Controller started');
+        this.logger.debug('TUI Controller started');
     }
 
     stop() {
@@ -36,61 +44,56 @@ class TuiController {
             this.updateThrottleTimeout = null;
         }
 
-        debug('TUI Controller stopped');
+        this.logger.debug('TUI Controller stopped');
     }
 
     registerEventListeners() {
         // Listen to system events and update the view accordingly
         const system = this.agent?.system;
         if (system?.eventBus) {
+            this.eventManager.initialize(system.eventBus);
+            
             // Listen for system state changes
-            system.eventBus.on('system.state.changed', () => {
+            this.eventManager.subscribe('system.state.changed', () => {
                 // Update view when system state changes
                 this.onViewUpdate();
             });
 
             // Listen for task events
-            system.eventBus.on('tasks.add', (tasks) => {
-                debug(`Tasks added: ${tasks.length}`);
+            this.eventManager.subscribe('tasks.add', (tasks) => {
+                this.logger.debug(`Tasks added: ${tasks.length}`);
                 this.onViewUpdate();
             });
 
-            system.eventBus.on('tasks.update', (tasks) => {
-                debug(`Tasks updated: ${tasks.length}`);
+            this.eventManager.subscribe('tasks.update', (tasks) => {
+                this.logger.debug(`Tasks updated: ${tasks.length}`);
                 this.onViewUpdate();
             });
 
             // Listen for task removal events
-            system.eventBus.on('tasks.remove', (tasks) => {
-                debug(`Tasks removed: ${tasks.length}`);
+            this.eventManager.subscribe('tasks.remove', (tasks) => {
+                this.logger.debug(`Tasks removed: ${tasks.length}`);
                 this.onViewUpdate();
             });
 
             // Listen for memory events
-            system.eventBus.on('memory.update', () => {
-                debug('Memory updated');
+            this.eventManager.subscribe('memory.update', () => {
+                this.logger.debug('Memory updated');
                 this.onViewUpdate();
             });
             
             // Listen for cycle events
-            system.eventBus.on('system.cycle.completed', () => {
+            this.eventManager.subscribe('system.cycle.completed', () => {
                 this.onViewUpdate();
             });
         } else {
-            warn('TUI Controller: Agent system or eventBus not available');
+            this.logger.warn('TUI Controller: Agent system or eventBus not available');
         }
     }
 
     unregisterEventListeners() {
-        const system = this.agent?.system;
-        if (system?.eventBus) {
-            system.eventBus.removeAllListeners('system.state.changed');
-            system.eventBus.removeAllListeners('tasks.add');
-            system.eventBus.removeAllListeners('tasks.update');
-            system.eventBus.removeAllListeners('tasks.remove');
-            system.eventBus.removeAllListeners('memory.update');
-            system.eventBus.removeAllListeners('system.cycle.completed');
-        }
+        // Use the event manager to unsubscribe from all events
+        this.eventManager.unsubscribeAll();
     }
 
     onViewUpdate() {
