@@ -1,10 +1,10 @@
-import {afterAll, beforeAll, describe, expect, jest, test} from '@jest/globals';
+import {afterAll, beforeAll, describe, expect, vi, test} from 'vitest';
 import {parseTerm} from '../../core/parser/narseseParser.js';
 import Task from '../../core/core/Task.js';
 
-jest.unstable_mockModule('@xenova/transformers', () => ({
-    pipeline: jest.fn(async () => {
-        return jest.fn(() => ({
+vi.mock('@xenova/transformers', () => ({
+    pipeline: vi.fn(async () => {
+        return vi.fn(() => ({
             data: new Float32Array([1, 2, 3])
         }));
     }),
@@ -81,7 +81,7 @@ describe('System Introspection API', () => {
     });
 
     test('should subscribe to and receive events from the EventBus', async () => {
-        const mockCallback = jest.fn();
+        const mockCallback = vi.fn();
         const eventName = 'SystemCycleEnded';
 
         system.introspection.on(eventName, mockCallback);

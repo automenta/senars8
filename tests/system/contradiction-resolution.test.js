@@ -1,9 +1,9 @@
-import {afterEach, beforeEach, describe, expect, jest, test} from '@jest/globals';
+import {afterEach, beforeEach, describe, expect, vi, test} from 'vitest';
 import Task from '../../core/core/Task.js';
 
-jest.unstable_mockModule('@xenova/transformers', () => ({
-    pipeline: jest.fn(async () => {
-        return jest.fn(() => ({
+vi.mock('@xenova/transformers', () => ({
+    pipeline: vi.fn(async () => {
+        return vi.fn(() => ({
             data: new Float32Array([1, 2, 3])
         }));
     }),

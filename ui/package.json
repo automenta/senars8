@@ -7,7 +7,11 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "vite",
-    "test": "jest"
+    "test": "vitest"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "dependencies": {
     "@pablo-lion/xterm-react": "^1.0.0",

@@ -1,11 +1,11 @@
-import {beforeEach, describe, expect, jest, test} from '@jest/globals';
+import {beforeEach, describe, expect, vi, test} from 'vitest';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import CONSTITUTION_TASKS from '../../core/system/Constitution.js';
 
-jest.unstable_mockModule('@xenova/transformers', () => ({
-    pipeline: jest.fn(async () =>
-        jest.fn(() => ({
+vi.mock('@xenova/transformers', () => ({
+    pipeline: vi.fn(async () =>
+        vi.fn(() => ({
             data: new Float32Array([1, 2, 3])
         }))
     ),
@@ -34,10 +34,10 @@ describe('Cycle Integration Test', () => {
         const lm = system.lm;
 
         // Mock LM methods
-        jest.spyOn(lm, 'generateHypotheses').mockResolvedValue([]);
-        jest.spyOn(lm, 'evaluateAndRankHypotheses').mockImplementation(async (_, hypotheses) => hypotheses);
-        jest.spyOn(lm, 'bootstrapTerm').mockImplementation(async termKey => new Term(termKey, [], 1));
-        jest.spyOn(lm, 'proactiveEnrichment').mockResolvedValue([]);
+        vi.spyOn(lm, 'generateHypotheses').mockResolvedValue([]);
+        vi.spyOn(lm, 'evaluateAndRankHypotheses').mockImplementation(async (_, hypotheses) => hypotheses);
+        vi.spyOn(lm, 'bootstrapTerm').mockImplementation(async termKey => new Term(termKey, [], 1));
+        vi.spyOn(lm, 'proactiveEnrichment').mockResolvedValue([]);
     });
 
     test('should run a cycle without errors', async () => {

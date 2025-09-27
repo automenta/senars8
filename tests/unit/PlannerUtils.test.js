@@ -1,9 +1,9 @@
-import {beforeEach, describe, expect, it, jest} from '@jest/globals';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 import * as PlannerUtils from '../../core/reasoner/utils/PlannerUtils.js';
 import Term from '../../core/core/Term.js';
 
-jest.unstable_mockModule('../../core/memory/Memory.js', () => ({
-    default: jest.fn().mockImplementation(() => ({
+vi.mock('../../core/memory/Memory.js', () => ({
+    default: vi.fn().mockImplementation(() => ({
         indexer: {
             implicationIndex: new Map(),
             beliefIndex: new Map(),

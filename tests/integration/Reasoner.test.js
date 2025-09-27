@@ -1,11 +1,11 @@
-import {beforeEach, describe, expect, jest, test} from '@jest/globals';
+import {beforeEach, describe, expect, vi, test} from 'vitest';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
 
-jest.unstable_mockModule('@xenova/transformers', () => ({
-    pipeline: jest.fn(async () =>
-        jest.fn(() => ({
+vi.mock('@xenova/transformers', () => ({
+    pipeline: vi.fn(async () =>
+        vi.fn(() => ({
             data: new Float32Array([1, 2, 3])
         }))
     ),
@@ -32,7 +32,7 @@ describe('Reasoner Integration Test', () => {
         reasoner = system.reasoner;
         memory = system.memory;
         lm = system.lm;
-        jest.spyOn(lm, 'bootstrapTerm').mockImplementation(async termKey => new Term(termKey, [], 1));
+        vi.spyOn(lm, 'bootstrapTerm').mockImplementation(async termKey => new Term(termKey, [], 1));
     });
 
     test('should perform modus ponens', async () => {

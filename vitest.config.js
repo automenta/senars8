@@ -1,4 +1,6 @@
 import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import path from 'path';
 
 export default defineConfig({
   test: {
@@ -10,11 +12,18 @@ export default defineConfig({
         name: 'core',
         test: {
           environment: 'node',
-          include: ['core/tests/**/*.test.js'],
+          include: [
+            'tests/unit/**/*.test.js',
+            'tests/integration/**/*.test.js',
+            'tests/parser/**/*.test.js',
+            'tests/reasoner/**/*.test.js',
+            'tests/system/**/*.test.js',
+            'tests/demos/**/*.test.js',
+          ],
         },
         resolve: {
           alias: {
-            '@core': new URL('./core', import.meta.url).pathname,
+            '@core': path.resolve(__dirname, './core'),
           },
         },
       },
@@ -29,9 +38,27 @@ export default defineConfig({
         },
         resolve: {
           alias: {
-            '@core': new URL('./core', import.meta.url).pathname,
-            '@common': new URL('./common', import.meta.url).pathname,
-            '@': new URL('./tui/src', import.meta.url).pathname,
+            '@core': path.resolve(__dirname, './core'),
+            '@common': path.resolve(__dirname, './common'),
+            '@': path.resolve(__dirname, './tui/src'),
+          },
+        },
+      },
+      {
+        name: 'ui',
+        plugins: [react()],
+        test: {
+          globals: true,
+          environment: 'jsdom',
+          setupFiles: ['./ui/vitest.setup.js'],
+          include: ['ui/src/**/__tests__/**/*.test.jsx', 'ui/src/tests/**/*.test.jsx'],
+        },
+        resolve: {
+          alias: {
+            '@core': path.resolve(__dirname, './core'),
+            '@common': path.resolve(__dirname, './common'),
+            '@': path.resolve(__dirname, './ui/src'),
+            '@ui': path.resolve(__dirname, './ui/src'),
           },
         },
       },

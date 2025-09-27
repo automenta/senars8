@@ -1,4 +1,4 @@
-import {beforeEach, describe, expect, jest, test} from '@jest/globals';
+import {beforeEach, describe, expect, vi, test} from 'vitest';
 import AStarPlanner from '../../core/reasoner/AStarPlanner.js';
 import Memory from '../../core/memory/Memory.js';
 import Term from '../../core/core/Term.js';
@@ -12,18 +12,18 @@ describe('AStarPlanner Debug Test', () => {
     beforeEach(() => {
         const configManager = new ConfigManager();
         const mockEventBus = {
-            on: jest.fn(),
-            emit: jest.fn(),
+            on: vi.fn(),
+            emit: vi.fn(),
         };
         memory = new Memory(configManager, mockEventBus);
         const lm = {
             bootstrapTerm: async termKey => new Term(termKey, [0.1, 0.2, 0.3])
         };
         const logger = {
-            warn: jest.fn(),
-            info: jest.fn(),
-            debug: jest.fn(),
-            error: jest.fn(),
+            warn: vi.fn(),
+            info: vi.fn(),
+            debug: vi.fn(),
+            error: vi.fn(),
         };
         planner = new AStarPlanner(memory, lm, configManager, logger);
     });

@@ -1,4 +1,4 @@
-import {beforeEach, describe, expect, jest, test} from '@jest/globals';
+import {beforeEach, describe, expect, vi, test} from 'vitest';
 import HTNPlanner from '../../core/reasoner/HTNPlanner.js';
 import Memory from '../../core/memory/Memory.js';
 import Term from '../../core/core/Term.js';
@@ -19,8 +19,8 @@ describe('HTNPlanner Integration Test', () => {
     beforeEach(() => {
         configManager = new ConfigManager();
         const mockEventBus = {
-            on: jest.fn(),
-            emit: jest.fn(),
+            on: vi.fn(),
+            emit: vi.fn(),
         };
         memory = new Memory(configManager, mockEventBus);
         const lm = {
