@@ -9,13 +9,6 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.js'],
     include: ['src/**/__tests__/**/*.test.jsx', 'src/tests/**/*.test.jsx', 'src/tests/react.test.jsx'],
-    deps: {
-      optimizer: {
-        web: {
-          include: ['react', '@testing-library/react'],
-        },
-      },
-    },
   },
   resolve: {
     alias: {
