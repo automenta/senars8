@@ -1,4 +1,5 @@
 import Ws from 'ws';
+import {CONFIG} from '../constants/config.js';
 
 // Universal WebSocket implementation that works in both Node.js and the browser.
 const WebSocket = typeof window !== 'undefined' ? window.WebSocket : Ws;
@@ -8,14 +9,14 @@ const WebSocket = typeof window !== 'undefined' ? window.WebSocket : Ws;
  * This service is compatible with browser and Node.js WebSocket APIs
  */
 class AgentCommunicationService {
-    constructor(url = 'ws://localhost:8080') {
+    constructor(url = CONFIG.AGENT.WEBSOCKET_URL) {
         this.url = url;
         this.ws = null;
         this.isConnected = false;
         this.isConnecting = false;
         this.reconnectAttempts = 0;
-        this.maxReconnectAttempts = 5;
-        this.reconnectDelay = 3000;
+        this.maxReconnectAttempts = CONFIG.CONNECTION.MAX_RECONNECT_ATTEMPTS;
+        this.reconnectDelay = CONFIG.CONNECTION.RECONNECT_DELAY;
         this.reconnectTimer = null;
 
         // Store pending messages when disconnected
@@ -183,7 +184,7 @@ class AgentCommunicationService {
     }
 
     sendMessage(type, payload, options = {}) {
-        const {timeout = 10000, priority = 1} = options;
+        const {timeout = CONFIG.CONNECTION.MESSAGE_TIMEOUT, priority = 1} = options;
 
         // Validate inputs
         if (!type) {

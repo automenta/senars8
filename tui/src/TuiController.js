@@ -2,10 +2,11 @@ import logger from '../../common/services/Logger.js';
 import {MESSAGE_TYPES} from '../../common/constants/communication.js';
 
 class TuiController {
-    constructor(agentService, view, config = null) {
+    constructor(agentService, view, config = null, apiService = null) {
         this.agentService = agentService;
         this.view = view;
         this.config = config;
+        this.apiService = apiService;
         this.isRunning = false;
         this.eventListeners = [];
         this.updateThrottleTimeout = null;

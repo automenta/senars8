@@ -1,18 +1,20 @@
 /** 
  * Configuration management for TUI module
  */
+import {CONFIG} from '@common/constants/config.js';
+
 class TUIConfig {
     constructor(options = {}) {
         // Default configuration
         this.config = {
-            updateInterval: options.updateInterval || 1000, // ms
-            enableColor: options.enableColor !== false, // default true
-            enableLogging: options.enableLogging !== false, // default true
+            updateInterval: options.updateInterval || CONFIG.TUI.UPDATE_INTERVAL, // ms
+            enableColor: options.enableColor !== false ? options.enableColor : CONFIG.TUI.ENABLE_COLOR, // default true
+            enableLogging: options.enableLogging !== false ? options.enableLogging : CONFIG.TUI.ENABLE_LOGGING, // default true
             maxDisplayItems: options.maxDisplayItems || 10, // max items to display
             enableHistory: options.enableHistory !== false, // default true
             historySize: options.historySize || 100,
             agent: {
-                websocketUrl: options.agent?.websocketUrl || 'ws://localhost:8080'
+                websocketUrl: options.agent?.websocketUrl || CONFIG.AGENT.WEBSOCKET_URL
             }
         };
     }

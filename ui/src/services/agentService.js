@@ -4,6 +4,7 @@ import {WebsocketProvider} from 'y-websocket';
 import log from '@common/utils/logger';
 import {CONNECTION_STATUS, MESSAGE_TYPES} from '@/constants/ui';
 import AgentCommunicationService from '@common/services/AgentCommunicationService.js';
+import {CONFIG} from '@common/constants/config.js';
 
 /**
  * A higher-level service that wraps the base AgentCommunicationService to add
@@ -13,13 +14,13 @@ import AgentCommunicationService from '@common/services/AgentCommunicationServic
 class AgentService extends EventEmitter {
     constructor() {
         super();
-        this.url = 'ws://localhost:8080';
-        this.crdtUrl = 'ws://localhost:8080/crdt';
+        this.url = CONFIG.CONNECTION.WEBSOCKET_URL;
+        this.crdtUrl = CONFIG.CONNECTION.CRDT_WEBSOCKET_URL;
         this.isConnected = false;
         this.isConnecting = false;
         this.reconnectAttempts = 0;
-        this.maxReconnectAttempts = 5;
-        this.reconnectDelay = 1000; // Initial delay in ms
+        this.maxReconnectAttempts = CONFIG.CONNECTION.MAX_RECONNECT_ATTEMPTS;
+        this.reconnectDelay = CONFIG.CONNECTION.RECONNECT_DELAY; // Initial delay in ms
         this.maxReconnectDelay = 30000; // Maximum delay in ms
 
         this.yDoc = new Y.Doc();

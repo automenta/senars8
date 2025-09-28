@@ -4,6 +4,7 @@ import {TuiRenderer} from './TuiRenderer.js';
 import AgentCommunicationService from '../../common/services/AgentCommunicationService.js';
 import TUIConfig from './config/TUIConfig.js';
 import logger from '../../common/services/Logger.js';
+import TuiApiService from './services/TuiApiService.js';
 
 class Application {
     constructor(options = {}) {
@@ -28,9 +29,13 @@ class Application {
         // Initialize TUI components with configuration
         this.tuiRenderer = new TuiRenderer();
         
-        // Pass the agentService to view and controller instead of the agent instance
+        // Create the TUI API service for consistent interface
+        this.tuiApiService = new TuiApiService(this.agentService);
+        this.tuiApiService.initialize();
+        
+        // Pass the API service and agentService to view and controller instead of the agent instance
         this.tuiView = new TuiView(this.agentService, this.tuiRenderer, this.config);
-        this.tuiController = new TuiController(this.agentService, this.tuiView, this.config);
+        this.tuiController = new TuiController(this.agentService, this.tuiView, this.config, this.tuiApiService);
 
         this.logger.info('TUI Application initialized');
     }
