@@ -15,5 +15,5 @@ const log = {
     createNamespace: (namespace) => commonLogger.createNamespace(namespace),
 };
 
-export const { error, info, warn, debug } = log;
+export const {error, info, warn, debug} = log;
 export default log;

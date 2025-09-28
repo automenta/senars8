@@ -149,7 +149,8 @@ function StatusPanel() {
 
                 {connectionError && (
                     <div className="status-item connection-error">
-                        <span className="error-text">Error: {connectionError.message || connectionError.toString()}</span>
+                        <span
+                            className="error-text">Error: {connectionError.message || connectionError.toString()}</span>
                     </div>
                 )}
             </div>

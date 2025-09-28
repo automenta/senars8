@@ -32,16 +32,16 @@ export {
     // Utilities
     validateNarseseStatement,
     log,
-    
+
     // Validation utilities
     validationUtils,
-    
+
     // ID generation utilities
     idGeneratorUtils,
-    
+
     // Math utilities
     mathUtils,
-    
+
     // Task utilities
     taskUtils
 };

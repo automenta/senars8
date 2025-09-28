@@ -1,9 +1,9 @@
 // Import from common utilities to avoid duplication
-import { validationUtils } from '@common/index.js';
+import {validationUtils} from '@common/index.js';
 import {isEmptyArray} from './collections/index.js';
 
 // For backward compatibility, re-export functions but keep core-specific implementation for nonEmptyArray
-const { 
+const {
     string,
     array,
     object,

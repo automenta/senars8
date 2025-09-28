@@ -39,7 +39,7 @@ class TuiRenderer {
         const formatted = UiComponents.formatForTui(systemStatusComponent);
         console.log(chalk.bold('System Status:'));
         console.log(formatted);
-        
+
         // Additional detailed information
         const systemInfo = systemState.systemInfo;
         if (systemInfo) {

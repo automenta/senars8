@@ -1,8 +1,8 @@
 // Import from common utilities to avoid duplication
-import { idGeneratorUtils } from '@common/index.js';
+import {idGeneratorUtils} from '@common/index.js';
 
 // For backward compatibility, export same functions
-const { 
+const {
     generateSequentialId,
     generateHashId,
     generateOptimizedId,

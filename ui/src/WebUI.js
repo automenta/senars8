@@ -1,9 +1,9 @@
 import express from 'express';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { createServer } from 'http';
-import { info } from '@common/services/Logger.js';
-import { CONFIG } from '@common/constants/config.js';
+import {fileURLToPath} from 'url';
+import {createServer} from 'http';
+import {info} from '@common/services/Logger.js';
+import {CONFIG} from '@common/constants/config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

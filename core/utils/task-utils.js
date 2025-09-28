@@ -1,10 +1,9 @@
 // Import from common utilities to avoid duplication
-import { taskUtils } from '@common/index.js';
-import {filterByProperty} from './collections/index.js';
+import {taskUtils} from '@common/index.js';
 import Task from '../core/Task.js';
 
 // For backward compatibility, re-export functions but with core-specific Task check
-const { 
+const {
     getTasksByType,
     getBeliefTasks,
     getGoalTasks,

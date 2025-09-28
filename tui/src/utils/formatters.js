@@ -1,4 +1,4 @@
-import { getTaskDisplayData } from '@common/utils/formatUtils.js';
+import {getTaskDisplayData} from '@common/utils/formatUtils.js';
 import {appState} from '../modules/state.js';
 
 /**
@@ -16,7 +16,7 @@ export function formatTasks(tasks, title = 'Tasks') {
 
     return `${title} (${tasks.length}):\n` +
         tasks.slice(0, 50).map((task, index) => {
-            const { termKey, priority, punctuation, truthValue } = getTaskDisplayData(task);
+            const {termKey, priority, punctuation, truthValue} = getTaskDisplayData(task);
             return `  [${index}] ${termKey}${punctuation} | P: ${priority} ${truthValue}`;
         }).join('\n');
 }

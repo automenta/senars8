@@ -1,5 +1,4 @@
 import logger from '../../common/services/Logger.js';
-import {MESSAGE_TYPES} from '../../common/constants/communication.js';
 
 class TuiController {
     constructor(apiService, view, config = null) {

@@ -6,7 +6,7 @@ async function getWebSocketType() {
     if (typeof window !== 'undefined' && window.WebSocket) {
         return window.WebSocket;
     }
-    
+
     // For Node.js, dynamically import ws
     const wsModule = await import('ws');
     return wsModule.default || wsModule;
@@ -35,4 +35,4 @@ function createWebSocket(url) {
     return ws;
 }
 
-export { createWebSocket };
+export {createWebSocket};

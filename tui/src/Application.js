@@ -1,8 +1,8 @@
-import { TuiView } from './TuiView.js';
-import { TuiController } from './TuiController.js';
-import { TuiRenderer } from './TuiRenderer.js';
+import {TuiView} from './TuiView.js';
+import {TuiController} from './TuiController.js';
+import {TuiRenderer} from './TuiRenderer.js';
 import ApiService from '@common/services/ApiService.js';
-import { CONFIG } from '@common/constants/config.js';
+import {CONFIG} from '@common/constants/config.js';
 import logger from '@common/services/Logger.js';
 
 class Application {
