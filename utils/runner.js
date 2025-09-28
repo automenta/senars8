@@ -1,6 +1,6 @@
 import SystemFactory from '../core/system/SystemFactory.js';
 import Task from '../core/core/Task.js';
-import {debug, anside} from '../common/services/Logger.js';
+import {anside, debug} from '../common/services/Logger.js';
 
 /**
  * Prints a visually appealing header for a system run.

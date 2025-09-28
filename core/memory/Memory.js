@@ -6,7 +6,7 @@ import {isTask} from '../utils/task-utils.js';
 import TimeBasedForgettingStrategy from './strategies/TimeBasedForgettingStrategy.js';
 import {debug, warn} from '../utils/logger.js';
 import MemoryIndexer from './MemoryIndexer.js';
-import {createUnifiedErrorHandler, createError} from '../utils/errorHandler.js';
+import {createError, createUnifiedErrorHandler} from '../utils/errorHandler.js';
 
 const errorHandler = createUnifiedErrorHandler('Memory');
 
