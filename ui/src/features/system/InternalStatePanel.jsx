@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
 import {Activity, Brain, Clock, Thermometer, Zap} from 'lucide-react';
+import {uiFormatting} from '@common/index.js';
 import './InternalStatePanel.css';
 
 function InternalStatePanel() {
@@ -44,29 +45,7 @@ function InternalStatePanel() {
         };
     }, []);
 
-    const formatUptime = (seconds) => {
-        if (!seconds) return '0s';
-
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        const secs = seconds % 60;
-
-        if (hours > 0) {
-            return `${hours}h ${minutes}m ${secs}s`;
-        } else if (minutes > 0) {
-            return `${minutes}m ${secs}s`;
-        } else {
-            return `${secs}s`;
-        }
-    };
-
-    const formatBytes = (bytes) => {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    };
+    
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -103,7 +82,7 @@ function InternalStatePanel() {
                             <Clock size={16}/>
                             <span>Uptime</span>
                         </div>
-                        <div className="metric-value">{formatUptime(agentState.uptime)}</div>
+                        <div className="metric-value">{uiFormatting.formatUptime(agentState.uptime)}</div>
                     </div>
 
                     <div className="metric-card">
@@ -149,7 +128,7 @@ function InternalStatePanel() {
                             <Activity size={16}/>
                             <span>Memory</span>
                         </div>
-                        <div className="metric-value">{formatBytes(agentState.memoryUsage)}</div>
+                        <div className="metric-value">{uiFormatting.formatBytes(agentState.memoryUsage)}</div>
                         <div className="metric-bar">
                             <div
                                 className="metric-bar-fill"

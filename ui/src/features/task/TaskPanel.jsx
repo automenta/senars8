@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {Panel} from '@ui/components';
 import {useTasks} from '@/context/TaskContext';
 import {CheckCircle, Circle, Clock, ListTodo, Play, Plus, RotateCcw, Square, Trash2} from 'lucide-react';
+import {uiFormatting} from '@common/index.js';
 import './TaskPanel.css';
 
 const TaskPanel = () => {
@@ -37,10 +38,7 @@ const TaskPanel = () => {
         updateTask(taskId, {status: newStatus});
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return 'Not set';
-        return new Date(dateString).toLocaleString();
-    };
+    
 
     return (
         <Panel title={<><ListTodo size={18}/> Tasks</>}>
@@ -193,11 +191,11 @@ const TaskPanel = () => {
                                             {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
                                         </span>
                                         <span className="task-date">
-                                            Created: {formatDate(task.createdAt)}
+                                            Created: {uiFormatting.formatDate(task.createdAt)}
                                         </span>
                                         {task.completedAt && (
                                             <span className="task-date">
-                                                Completed: {formatDate(task.completedAt)}
+                                                Completed: {uiFormatting.formatDate(task.completedAt)}
                                             </span>
                                         )}
                                     </div>

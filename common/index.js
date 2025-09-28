@@ -13,6 +13,7 @@ import * as validationUtils from './utils/validation.js';
 import * as idGeneratorUtils from './utils/idGenerator.js';
 import * as mathUtils from './utils/math.js';
 import * as taskUtils from './utils/taskUtils.js';
+import * as uiFormatting from './utils/uiFormatting.js';
 
 export {
     // Services
@@ -43,5 +44,8 @@ export {
     mathUtils,
 
     // Task utilities
-    taskUtils
+    taskUtils,
+    
+    // UI Formatting utilities
+    uiFormatting
 };

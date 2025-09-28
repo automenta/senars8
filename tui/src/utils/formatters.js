@@ -1,4 +1,5 @@
 import {getTaskDisplayData} from '@common/utils/formatUtils.js';
+import {uiFormatting} from '@common/index.js';
 import {appState} from '../modules/state.js';
 
 /**
@@ -10,6 +11,7 @@ import {appState} from '../modules/state.js';
  * @returns {string} The formatted task list.
  */
 export function formatTasks(tasks, title = 'Tasks') {
+    // Use the shared function as base and adapt for TUI formatting
     if (!tasks || tasks.length === 0) {
         return `${title}: No items found`;
     }
@@ -29,6 +31,9 @@ export function formatTasks(tasks, title = 'Tasks') {
 export function formatSystemStats(stats) {
     if (!stats) return 'System stats not available';
 
+    // Use shared function as base and add TUI-specific formatting
+    const baseStats = uiFormatting.formatSystemStats(stats);
+    // Replace plain text formatting with TUI-specific formatting
     return `System Statistics:
 
 {bold}Agent Status:{/bold}
@@ -59,7 +64,22 @@ export function createDashboardContent() {
     const questionsCount = appState.questions.length;
     const tasksCount = appState.tasks.length;
     const notificationCount = appState.notifications.length;
-
+    
+    // Use shared function as base and add TUI-specific formatting
+    const baseContent = uiFormatting.createDashboardContent({
+        stats,
+        beliefs: appState.beliefs,
+        goals: appState.goals,
+        questions: appState.questions,
+        tasks: appState.tasks,
+        notifications: appState.notifications,
+        statusUpdates: appState.statusUpdates,
+        newBeliefs: appState.newBeliefs,
+        newGoals: appState.newGoals,
+        reasoningSteps: appState.reasoningSteps
+    });
+    
+    // Convert plain text to TUI-specific formatting
     return `{bold}SeNARS Real-Time Dashboard{/bold}
 
 {bold}System Status{/bold}
@@ -105,7 +125,7 @@ export function formatNotifications(notifications, title = 'Notifications') {
 
     return `${title} (${notifications.length}):\n` +
         notifications.slice(-20).reverse().map((notif) => {
-            const time = notif.timestamp.toLocaleTimeString();
+            const time = new Date(notif.timestamp).toLocaleTimeString();
             const typeSymbol = notif.type === 'error' ? '✗' :
                 notif.type === 'warning' ? '⚠' :
                     notif.type === 'success' ? '✓' : 'ℹ';
@@ -124,21 +144,30 @@ export function formatNotifications(notifications, title = 'Notifications') {
 export function formatReasoningStep(step) {
     if (!step) return 'No reasoning step data';
 
-    let output = '{bold}Reasoning Step{/bold}\n';
-    if (step.description) output += `Description: ${step.description}\n`;
-    if (step.type) output += `Type: ${step.type}\n`;
-    if (step.input) output += `Input: ${typeof step.input === 'string' ? step.input : JSON.stringify(step.input)}\n`;
-    if (step.output) output += `Output: ${typeof step.output === 'string' ? step.output : JSON.stringify(step.output)}\n`;
+    let output = '{bold}Reasoning Step{/bold}
+';
+    if (step.description) output += `Description: ${step.description}
+`;
+    if (step.type) output += `Type: ${step.type}
+`;
+    if (step.input) output += `Input: ${typeof step.input === 'string' ? step.input : JSON.stringify(step.input)}
+`;
+    if (step.output) output += `Output: ${typeof step.output === 'string' ? step.output : JSON.stringify(step.output)}
+`;
     if (step.derivedTasks && step.derivedTasks.length > 0) {
-        output += `Derived Tasks (${step.derivedTasks.length}):\n`;
+        output += `Derived Tasks (${step.derivedTasks.length}):
+`;
         step.derivedTasks.slice(0, 5).forEach((task, idx) => {
-            output += `  ${idx + 1}. ${typeof task === 'string' ? task : JSON.stringify(task)}\n`;
+            output += `  ${idx + 1}. ${typeof task === 'string' ? task : JSON.stringify(task)}
+`;
         });
         if (step.derivedTasks.length > 5) {
-            output += `  ... and ${step.derivedTasks.length - 5} more\n`;
+            output += `  ... and ${step.derivedTasks.length - 5} more
+`;
         }
     }
-    if (step.timestamp) output += `Timestamp: ${step.timestamp}\n`;
+    if (step.timestamp) output += `Timestamp: ${step.timestamp}
+`;
     return output;
 }
 

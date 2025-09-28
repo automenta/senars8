@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {Panel} from '@ui/components';
 import {useSession} from '@/context/SessionContext';
 import {Clock, FilePlus, FolderOpen, Save, Trash2} from 'lucide-react';
+import {uiFormatting} from '@common/index.js';
 import './SessionPanel.css';
 
 const SessionPanel = () => {
@@ -27,11 +28,7 @@ const SessionPanel = () => {
 
     const sessionsList = listSessions();
 
-    const formatDate = (dateString) => {
-        if (!dateString) return 'Unknown';
-        const date = new Date(dateString);
-        return date.toLocaleString();
-    };
+    
 
     return (
         <Panel title={<><FolderOpen size={18}/> Sessions</>}>
@@ -83,10 +80,10 @@ const SessionPanel = () => {
                             <div className="session-name">{activeSession.name}</div>
                             <div className="session-meta">
                                 <span className="created-date">
-                                    <Clock size={12}/> Created: {formatDate(activeSession.createdAt)}
+                                    <Clock size={12}/> Created: {uiFormatting.formatDate(activeSession.createdAt)}
                                 </span>
                                 <span className="modified-date">
-                                    Modified: {formatDate(activeSession.lastModified)}
+                                    Modified: {uiFormatting.formatDate(activeSession.lastModified)}
                                 </span>
                             </div>
                         </div>
@@ -107,7 +104,7 @@ const SessionPanel = () => {
                                         </div>
                                         <div className="session-meta">
                                             <span className="created-date">
-                                                <Clock size={10}/> {formatDate(session.createdAt)}
+                                                <Clock size={10}/> {uiFormatting.formatDate(session.createdAt)}
                                             </span>
                                         </div>
                                     </div>

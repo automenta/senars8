@@ -4,42 +4,12 @@ import {
     createTaskFromStatement as coreCreateTask,
     validateNarseseStatement as coreValidate
 } from '@common/utils/coreUtils.js';
+import {formatCoreDataForUI} from '@common/utils/uiFormatting.js';
 
 const uiErrorHandler = createUnifiedErrorHandler('UI');
 
 export const validateNarseseStatement = coreValidate;
 export const createTaskFromStatement = coreCreateTask;
-
-export const formatCoreDataForUI = (data) => {
-    if (!data) return null;
-    if (Array.isArray(data)) {
-        return data.map(item => formatCoreDataForUI(item));
-    }
-    if (typeof data === 'object') {
-        if (data.term || data.punctuation) { // Simplified check for Task-like objects
-            return {
-                id: data.id || data.termKey,
-                term: data.term?.toString() || data.termKey,
-                punctuation: data.punctuation,
-                priority: data.priority,
-                creationTime: data.creationTime,
-                truthValue: data.state?.truthValue || data.truthValue,
-                occurrenceTime: data.occurrenceTime,
-                type: 'task'
-            };
-        }
-        if (data.key) { // Simplified check for Term-like objects
-            return {
-                key: data.key,
-                type: data.type,
-                terms: Array.isArray(data.terms) ? data.terms.map(formatCoreDataForUI) : data.terms,
-                toString: data.toString?.() || data.key,
-                type: 'term'
-            };
-        }
-    }
-    return data;
-};
 
 export const getAgentStateForUI = () => {
     try {
