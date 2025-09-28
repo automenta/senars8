@@ -1,7 +1,7 @@
 // Category: Template
 // Description: A template for creating unified demos that function as both runnable examples and unit tests.
 
-import {runDemo} from '../../utils/shared/demo-utils.js';
+import {runSystem} from '../../utils/runner.js';
 import {info} from '../../common/services/Logger.js';
 
 /**
@@ -39,7 +39,7 @@ async function unifiedDemoTemplate(options = {}) {
     const mergedOptions = {...defaultOptions, ...options};
 
     // Run the demo using the shared utility
-    return await runDemo('Unified Demo Template', taskDefs, mergedOptions);
+    return await runSystem('Unified Demo Template', taskDefs, mergedOptions);
 }
 
 export default unifiedDemoTemplate;

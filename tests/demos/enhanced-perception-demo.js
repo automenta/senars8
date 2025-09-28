@@ -1,7 +1,7 @@
 // Category: Perception
 // Description: Showcases enhanced perception, processing various event types and sensory inputs into tasks.
 
-import {runDemo} from '../../utils/shared/demo-utils.js';
+import {runSystem} from '../../utils/runner.js';
 import {parseTerm} from '../../core/index.js';
 import Task from '../../core/core/Task.js';
 import {info} from '../../common/services/Logger.js';
@@ -43,7 +43,7 @@ async function enhancedPerceptionDemo(options = {}) {
     };
 
     const mergedOptions = {...defaultOptions, ...options};
-    return await runDemo('Enhanced Perception Demo', taskDefs, mergedOptions);
+    return await runSystem('Enhanced Perception Demo', taskDefs, mergedOptions);
 }
 
 export default enhancedPerceptionDemo;

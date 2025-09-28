@@ -1,7 +1,7 @@
 // Category: Language Model
 // Description: Demonstrates the system's advanced hypothesis generation capabilities using large language models.
 
-import {runDemo} from '../../utils/shared/demo-utils.js';
+import {runSystem} from '../../utils/runner.js';
 import {info} from '../../common/services/Logger.js';
 
 /**
@@ -46,7 +46,7 @@ async function advancedHypothesisGenerationDemo(options = {}) {
     const mergedOptions = {...defaultOptions, ...options};
 
     // Run the demo using the shared utility
-    return await runDemo('Advanced Hypothesis Generation Demo', taskDefs, mergedOptions);
+    return await runSystem('Advanced Hypothesis Generation Demo', taskDefs, mergedOptions);
 }
 
 export default advancedHypothesisGenerationDemo;

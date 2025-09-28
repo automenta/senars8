@@ -3,6 +3,7 @@ import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
 import TruthValueManager from '../reasoner/TruthValueManager.js';
 import * as validation from '../utils/validation.js';
+import {warn} from '../../common/services/Logger.js';
 import BaseEntity from './BaseEntity.js';
 
 
@@ -183,6 +184,44 @@ class Task extends BaseEntity {
                 ...this.#state
             }
         };
+    }
+
+    static fromMacro(macro) {
+        let termKey;
+        let punctuation;
+        let truthValue;
+        let stamp;
+
+        if (macro.term && macro.punctuation) { // It's a Task object
+            termKey = macro.term.key;
+            punctuation = macro.punctuation;
+            truthValue = macro.truth;
+            stamp = macro.stamp;
+        } else if (macro.sentence) { // It's a plain object with a sentence
+            const {sentence, truth, stamp: macroStamp} = macro;
+            punctuation = sentence.slice(-1);
+            termKey = sentence.slice(0, -1);
+            truthValue = (truth && truth.length === 2)
+                ? {frequency: truth[0], confidence: truth[1]}
+                : undefined;
+            stamp = macroStamp;
+        } else {
+            warn(`Invalid macro definition: ${JSON.stringify(macro)}`);
+            return null;
+        }
+
+        if (!['.', '?', '!'].includes(punctuation)) {
+            warn(`Invalid or missing punctuation in macro sentence: "${termKey}${punctuation}"`);
+            return null;
+        }
+
+        const parsedTerm = parseTerm(termKey);
+        if (!parsedTerm) {
+            warn(`Failed to parse term from macro: "${termKey}"`);
+            return null;
+        }
+
+        return new Task(parsedTerm, punctuation, truthValue, stamp);
     }
 }
 

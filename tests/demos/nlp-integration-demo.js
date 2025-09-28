@@ -1,7 +1,7 @@
 // Category: Language Model
 // Description: Shows the integration of Natural Language Processing (NLP) for parsing natural language input into Narsese.
 
-import {runDemo} from '../../utils/shared/demo-utils.js';
+import {runSystem} from '../../utils/runner.js';
 
 /**
  * A unified demo that demonstrates NLP integration capabilities.
@@ -48,7 +48,7 @@ async function nlpIntegrationDemo(options = {}) {
     const mergedOptions = {...defaultOptions, ...options};
 
     // Run the demo using the shared utility
-    return await runDemo('NLP Integration Demo', taskDefs, mergedOptions);
+    return await runSystem('NLP Integration Demo', taskDefs, mergedOptions);
 }
 
 export default nlpIntegrationDemo;

@@ -1,7 +1,7 @@
 // Category: API Usage
 // Description: A blueprint demonstration of how to create, run, and inspect a SeNARS system using its core API.
 
-import {runDemo} from '../../utils/shared/demo-utils.js';
+import {runSystem} from '../../utils/runner.js';
 import {info} from '../../common/services/Logger.js';
 
 /**
@@ -43,7 +43,7 @@ async function comprehensiveSystemDemo(options = {}) {
     };
 
     const mergedOptions = {...defaultOptions, ...options};
-    return await runDemo('Comprehensive System Demo', taskDefs, mergedOptions);
+    return await runSystem('Comprehensive System Demo', taskDefs, mergedOptions);
 }
 
 export default comprehensiveSystemDemo;

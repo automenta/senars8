@@ -1,7 +1,7 @@
 // Category: Showcase
 // Description: A comprehensive showcase of the SeNARS system's core capabilities, from basic reasoning to advanced planning and learning.
 
-import {runDemo} from '../../utils/shared/demo-utils.js';
+import {runSystem} from '../../utils/runner.js';
 import {info} from '../../common/services/Logger.js';
 
 /**
@@ -115,7 +115,7 @@ async function showcaseDemo(options = {}) {
             ...options
         };
 
-        system = await runDemo(step.name, step.tasks, stepOptions);
+        system = await runSystem(step.name, step.tasks, stepOptions);
     }
 
     info("\n--- 🚀 Showcase Complete! ---");

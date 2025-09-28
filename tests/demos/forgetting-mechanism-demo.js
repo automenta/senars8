@@ -1,7 +1,7 @@
 // Category: Memory
 // Description: Illustrates the time-based forgetting strategy, where the confidence of beliefs decays over time.
 
-import {runDemo} from '../../utils/shared/demo-utils.js';
+import {runSystem} from '../../utils/runner.js';
 import {info} from '../../common/services/Logger.js';
 
 async function forgettingMechanismDemo(options = {}) {
@@ -52,7 +52,7 @@ async function forgettingMechanismDemo(options = {}) {
     };
 
     const mergedOptions = {...defaultOptions, ...options};
-    return await runDemo('Forgetting Mechanism Demo', taskDefs, mergedOptions);
+    return await runSystem('Forgetting Mechanism Demo', taskDefs, mergedOptions);
 }
 
 export default forgettingMechanismDemo;

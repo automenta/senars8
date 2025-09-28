@@ -1,7 +1,7 @@
 // Category: Reasoning
 // Description: Demonstrates advanced temporal reasoning, such as inferring event sequences and predicting future events.
 
-import {runDemo} from '../../utils/shared/demo-utils.js';
+import {runSystem} from '../../utils/runner.js';
 import {info} from '../../common/services/Logger.js';
 
 async function enhancedTemporalReasoningDemo(options = {}) {
@@ -36,7 +36,7 @@ async function enhancedTemporalReasoningDemo(options = {}) {
     };
 
     const mergedOptions = {...defaultOptions, ...options};
-    return await runDemo('Enhanced Temporal Reasoning Demo', taskDefs, mergedOptions);
+    return await runSystem('Enhanced Temporal Reasoning Demo', taskDefs, mergedOptions);
 }
 
 export default enhancedTemporalReasoningDemo;
