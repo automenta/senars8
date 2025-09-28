@@ -39,7 +39,7 @@ class TuiView {
     _initializeServices() {
         // Listen for state updates from the common ApiService
         this.apiService.on('state_update', (newState) => {
-            this.systemState = { ...this.systemState, ...newState };
+            this.systemState = {...this.systemState, ...newState};
             // Trigger a re-render when state updates
             if (this.isRunning && !this.awaitingInput) {
                 this.render();
@@ -262,7 +262,7 @@ class TuiView {
     }
 
     listBeliefs() {
-        const { beliefs = [] } = this.apiService.getAgentState();
+        const {beliefs = []} = this.apiService.getAgentState();
         console.log(`\nBeliefs (${beliefs.length}):`);
         if (beliefs.length > 0) {
             beliefs.slice(0, 10).forEach((belief, i) => console.log(`  ${i}. ${belief.termKey || belief.id}`));
@@ -274,7 +274,7 @@ class TuiView {
     }
 
     listGoals() {
-        const { goals = [] } = this.apiService.getAgentState();
+        const {goals = []} = this.apiService.getAgentState();
         console.log(`\nGoals (${goals.length}):`);
         if (goals.length > 0) {
             goals.slice(0, 10).forEach((goal, i) => console.log(`  ${i}. ${goal.termKey || goal.id}`));
@@ -286,7 +286,7 @@ class TuiView {
     }
 
     listTasks() {
-        const { tasks = [] } = this.apiService.getAgentState();
+        const {tasks = []} = this.apiService.getAgentState();
         console.log(`\nTasks (${tasks.length}):`);
         if (tasks.length > 0) {
             tasks.slice(0, 10).forEach((task, i) => console.log(`  ${i}. ${task.termKey || task.id}`));
@@ -337,4 +337,4 @@ class TuiView {
     }
 }
 
-export { TuiView };
+export {TuiView};

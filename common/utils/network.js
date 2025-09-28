@@ -16,4 +16,4 @@ function createWebSocket(url) {
     return ws;
 }
 
-export { createWebSocket };
+export {createWebSocket};

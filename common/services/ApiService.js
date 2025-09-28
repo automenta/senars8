@@ -1,7 +1,7 @@
-import { EventEmitter } from 'events';
+import {EventEmitter} from 'events';
 import AgentCommunicationService from './AgentCommunicationService.js';
 import log from '../utils/logger.js';
-import { CONFIG } from '../constants/config.js';
+import {CONFIG} from '../constants/config.js';
 
 /**
  * A base service for UIs (TUI, WebUI) that manages agent communication
@@ -64,19 +64,19 @@ class ApiService extends EventEmitter {
      * @private
      */
     _handleIncomingMessage(message) {
-        const { type, payload } = message;
+        const {type, payload} = message;
         this.logger.debug(`Handling incoming message: ${type}`);
 
         const messageHandlers = {
-            system_stats: (p) => ({ ...this.agentState, ...p }),
-            agent_state_update: (p) => ({ ...this.agentState, ...p }),
-            tasks_response: (p) => ({ ...this.agentState, tasks: p.tasks || [] }),
-            task_added: (p) => ({ ...this.agentState, tasks: [...this.agentState.tasks, p] }),
-            beliefs_response: (p) => ({ ...this.agentState, beliefs: p.beliefs || [] }),
-            belief_added: (p) => ({ ...this.agentState, beliefs: [...this.agentState.beliefs, p] }),
-            goals_response: (p) => ({ ...this.agentState, goals: p.goals || [] }),
-            goal_added: (p) => ({ ...this.agentState, goals: [...this.agentState.goals, p] }),
-            notification: (p) => ({ ...this.agentState, notifications: [...this.agentState.notifications, p] }),
+            system_stats: (p) => ({...this.agentState, ...p}),
+            agent_state_update: (p) => ({...this.agentState, ...p}),
+            tasks_response: (p) => ({...this.agentState, tasks: p.tasks || []}),
+            task_added: (p) => ({...this.agentState, tasks: [...this.agentState.tasks, p]}),
+            beliefs_response: (p) => ({...this.agentState, beliefs: p.beliefs || []}),
+            belief_added: (p) => ({...this.agentState, beliefs: [...this.agentState.beliefs, p]}),
+            goals_response: (p) => ({...this.agentState, goals: p.goals || []}),
+            goal_added: (p) => ({...this.agentState, goals: [...this.agentState.goals, p]}),
+            notification: (p) => ({...this.agentState, notifications: [...this.agentState.notifications, p]}),
         };
 
         if (messageHandlers[type]) {
@@ -130,7 +130,7 @@ class ApiService extends EventEmitter {
      * @returns {Promise<any>}
      */
     sendNaturalLanguage(text, intent) {
-        return this.sendMessage('natural_language', { text, intent });
+        return this.sendMessage('natural_language', {text, intent});
     }
 
     /**
@@ -139,7 +139,7 @@ class ApiService extends EventEmitter {
      * @returns {Promise<any>}
      */
     sendAgentControl(action) {
-        return this.sendMessage('agentControl', { command: action });
+        return this.sendMessage('agentControl', {command: action});
     }
 
     /**
@@ -149,7 +149,7 @@ class ApiService extends EventEmitter {
      * @returns {Promise<any>}
      */
     search(query, options) {
-        return this.sendMessage('search', { query, ...options });
+        return this.sendMessage('search', {query, ...options});
     }
 
     /**
@@ -165,7 +165,7 @@ class ApiService extends EventEmitter {
      * @returns {object} The local agent state.
      */
     getAgentState() {
-        return { ...this.agentState };
+        return {...this.agentState};
     }
 
     /**

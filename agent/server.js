@@ -4,12 +4,7 @@ import path from 'path';
 import {exec as childExec} from 'child_process';
 import {promisify} from 'util';
 import {Agent} from './index.js';
-import {
-    debug as coreDebug,
-    error as coreError,
-    info as coreInfo,
-    warn as coreWarn
-} from '../core/utils/logger.js';
+import {debug as coreDebug, error as coreError, info as coreInfo, warn as coreWarn} from '../core/utils/logger.js';
 
 const exec = promisify(childExec);
 

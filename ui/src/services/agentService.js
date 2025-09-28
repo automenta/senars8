@@ -1,7 +1,7 @@
 import * as Y from 'yjs';
-import { WebsocketProvider } from 'y-websocket';
+import {WebsocketProvider} from 'y-websocket';
 import ApiService from '@common/services/ApiService.js';
-import { CONFIG } from '@common/constants/config.js';
+import {CONFIG} from '@common/constants/config.js';
 import log from '@common/utils/logger.js';
 
 /**

@@ -1,4 +1,4 @@
-import { createUnifiedErrorHandler } from '@core/utils/errorHandler.js';
+import {createUnifiedErrorHandler} from '@core/utils/errorHandler.js';
 import agentService from '@/services/agentService';
 import {
     createTaskFromStatement as coreCreateTask,
@@ -85,7 +85,9 @@ export const processNarseseThroughAgent = (narsese) => {
 export const safeUICall = async (operation, operationName = 'UI Operation') => {
     try {
         return await operation();
-    } catch (error)_ {
+    } catch (error)
+    _
+    {
         uiErrorHandler(error, {
             operation: operationName,
             error: error.message,

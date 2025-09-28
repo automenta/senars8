@@ -1,4 +1,4 @@
-import { Agent } from './agent/index.js';
+import {Agent} from './agent/index.js';
 import TUIApplication from './tui/src/Application.js';
 import WebUI from './ui/src/WebUI.js';
 import logger from './common/services/Logger.js';

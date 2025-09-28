@@ -40,9 +40,9 @@ export const CONFIG = {
         EMBEDDING_BATCH_DELAY_MS: 100,
         EMBEDDING_MAX_CONCURRENCY: 4,
         HYPOTHESIS_CONFIGS: [
-            { type: 'general', num: 2 },
-            { type: 'creative', num: 1 },
-            { type: 'sophisticated', num: 1 }
+            {type: 'general', num: 2},
+            {type: 'creative', num: 1},
+            {type: 'sophisticated', num: 1}
         ],
     },
 
@@ -52,11 +52,11 @@ export const CONFIG = {
         FORGETTING_STRATEGY_OPTIONS: {
             shortTerm: {
                 expirationThreshold: BigInt(24) * BigInt(3600 * 1000), // 1 day
-                importanceThresholds: { priority: 0.7, confidence: 0.7 }
+                importanceThresholds: {priority: 0.7, confidence: 0.7}
             },
             longTerm: {
                 expirationThreshold: BigInt(30) * BigInt(24) * BigInt(3600 * 1000), // 30 days
-                importanceThresholds: { priority: 0.8, confidence: 0.8 }
+                importanceThresholds: {priority: 0.8, confidence: 0.8}
             }
         },
         MAINTENANCE_CYCLE_FREQUENCY: 10,

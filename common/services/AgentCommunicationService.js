@@ -1,7 +1,7 @@
-import { EventEmitter } from 'events';
-import { CONFIG } from '@common/constants/config.js';
+import {EventEmitter} from 'events';
+import {CONFIG} from '@common/constants/config.js';
 import log from '@common/utils/logger';
-import { createWebSocket } from '@common/utils/network.js';
+import {createWebSocket} from '@common/utils/network.js';
 
 /**
  * A universal agent communication service that provides a robust, resilient
@@ -188,7 +188,7 @@ class AgentCommunicationService extends EventEmitter {
         if (this.messageQueue.length > 0) {
             log.info(`Flushing message queue (${this.messageQueue.length} messages)`);
             while (this.messageQueue.length > 0) {
-                const { type, payload, options } = this.messageQueue.shift();
+                const {type, payload, options} = this.messageQueue.shift();
                 this.sendMessage(type, payload, options);
             }
         }
@@ -201,7 +201,7 @@ class AgentCommunicationService extends EventEmitter {
         if (!this.isConnected) {
             if (options.queue !== false) {
                 log.debug(`Queueing message: ${type}`, payload);
-                this.messageQueue.push({ type, payload, options });
+                this.messageQueue.push({type, payload, options});
             } else {
                 log.warn(`Message not sent (not connected): ${type}`, payload);
             }
@@ -210,7 +210,7 @@ class AgentCommunicationService extends EventEmitter {
 
         try {
             log.debug(`Sending message: ${type}`, payload);
-            this.ws.send(JSON.stringify({ type, payload }));
+            this.ws.send(JSON.stringify({type, payload}));
             return true;
         } catch (error) {
             log.error('Failed to send message:', error);
