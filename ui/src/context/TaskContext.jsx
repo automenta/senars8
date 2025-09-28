@@ -1,7 +1,5 @@
 import {createContext, useCallback, useContext, useEffect, useState} from 'react';
 import agentService from '@/services/agentService';
-import agentIntegrationService from '@/services/agentIntegration';
-import {MESSAGE_TYPES} from '@/constants/ui';
 
 const TaskContext = createContext();
 
@@ -17,42 +15,32 @@ export const TaskProvider = ({children}) => {
     const [tasks, setTasks] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Load initial tasks and listen for updates
     useEffect(() => {
         const handleTaskUpdate = (taskData) => {
             if (taskData && Array.isArray(taskData)) {
                 setTasks(prev => {
-                    // Create a map of existing task IDs for deduplication
                     const existingTaskIds = new Map(prev.map(task => [task.id, task]));
-
-                    // Merge new tasks with existing ones
                     const updatedTasks = [...prev];
                     taskData.forEach(newTask => {
                         if (existingTaskIds.has(newTask.id)) {
-                            // Update existing task
                             const index = updatedTasks.findIndex(t => t.id === newTask.id);
                             if (index !== -1) {
                                 updatedTasks[index] = {...updatedTasks[index], ...newTask};
                             }
                         } else {
-                            // Add new task
                             updatedTasks.push(newTask);
                         }
                     });
-
                     return updatedTasks;
                 });
             } else if (taskData && taskData.id) {
-                // Single task update
                 setTasks(prev => {
                     const existingIndex = prev.findIndex(t => t.id === taskData.id);
                     if (existingIndex !== -1) {
-                        // Update existing task
                         const updated = [...prev];
                         updated[existingIndex] = {...updated[existingIndex], ...taskData};
                         return updated;
                     } else {
-                        // Add new task
                         return [...prev, taskData];
                     }
                 });
@@ -63,16 +51,15 @@ export const TaskProvider = ({children}) => {
             console.error('Task error:', error);
         };
 
-        agentService.on(MESSAGE_TYPES.TASK_UPDATE || 'task_update', handleTaskUpdate);
-        agentService.on(MESSAGE_TYPES.TASK_ERROR || 'task_error', handleTaskError);
+        agentService.on('task_update', handleTaskUpdate);
+        agentService.on('task_error', handleTaskError);
 
-        // Request initial tasks data
         setIsLoading(true);
         agentService.sendMessage('get_tasks', {});
 
         return () => {
-            agentService.off(MESSAGE_TYPES.TASK_UPDATE || 'task_update', handleTaskUpdate);
-            agentService.off(MESSAGE_TYPES.TASK_ERROR || 'task_error', handleTaskError);
+            agentService.off('task_update', handleTaskUpdate);
+            agentService.off('task_error', handleTaskError);
         };
     }, []);
 
@@ -84,13 +71,10 @@ export const TaskProvider = ({children}) => {
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
         };
-
         setTasks(prev => [...prev, newTask]);
-        // Also send to backend if connected
         if (agentService.isConnected) {
             agentService.sendMessage('add_task', newTask);
         }
-
         return newTask.id;
     }, []);
 
@@ -102,8 +86,6 @@ export const TaskProvider = ({children}) => {
                     : task
             )
         );
-
-        // Also send to backend if connected
         if (agentService.isConnected) {
             agentService.sendMessage('update_task', {taskId, updates});
         }
@@ -111,8 +93,6 @@ export const TaskProvider = ({children}) => {
 
     const deleteTask = useCallback((taskId) => {
         setTasks(prev => prev.filter(task => task.id !== taskId));
-
-        // Also send to backend if connected
         if (agentService.isConnected) {
             agentService.sendMessage('delete_task', {taskId});
         }
@@ -122,15 +102,12 @@ export const TaskProvider = ({children}) => {
         updateTask(taskId, {status: 'completed', completedAt: new Date().toISOString()});
     }, [updateTask]);
 
-    // Get tasks directly from agent (bypassing UI state for fresh data)
-    const getTasksFromAgent = useCallback(async () => {
+    const getTasksFromAgent = useCallback(() => {
         try {
-            await agentIntegrationService.initialize();
-            return agentIntegrationService.getAllTasks();
+            return agentService.getTasks();
         } catch (error) {
             console.error('Error getting tasks from agent:', error);
-            // Fallback to service-based tasks
-            return agentService.getTasks();
+            return false;
         }
     }, []);
 

@@ -1,253 +1,113 @@
-import SharedAPI from '../../../common/services/SharedAPI.js';
-import {MESSAGE_TYPES} from '../../../common/constants/communication.js';
-import logger from '../../../common/services/Logger.js';
+import AgentCommunicationService from '@common/services/AgentCommunicationService';
+import log from '@common/utils/logger';
 
 /**
- * API module for the TUI that handles communication with the agent via WebSocket
- * Extends the SharedAPI to provide TUI-specific functionality while maintaining consistency
+ * API service for the TUI that handles all communication with the agent.
+ * This service is a lightweight wrapper around the shared AgentCommunicationService,
+ * providing a simplified and consistent interface for TUI components.
  */
-class TuiApiService extends SharedAPI {
-    constructor(agentService) {
-        super(null); // Don't pass agent instance since we'll use WebSocket
-        this.agentService = agentService;
-        this.logger = logger.createNamespace('TuiApiService');
-
-        // Store local state that we get from WebSocket updates
+class TuiApiService {
+    constructor() {
+        this.communicationService = new AgentCommunicationService();
+        this.logger = log.createNamespace('TuiApiService');
         this.localState = {
             isRunning: false,
+            cycleCount: 0,
+            tasks: [],
             beliefs: [],
             goals: [],
             questions: [],
-            tasks: []
         };
+
+        this.initialize();
     }
 
     /**
-     * Initialize the TUI API service with WebSocket event listeners
+     * Initializes the service by establishing a connection and setting up
+     * event listeners to keep the local state synchronized with the agent.
      */
     initialize() {
-        // Listen for system state updates from agent service
-        this.agentService.on(MESSAGE_TYPES.AGENT_STATE_UPDATE, (state) => {
-            this.localState = {
-                ...this.localState,
-                ...state
-            };
-            this.logger.debug('Agent state updated via WebSocket:', state);
+        this.communicationService.on('status', (status) => {
+            this.logger.info(`Connection status: ${status}`);
+            if (status === 'connected') {
+                // Request initial state once connected
+                this.communicationService.sendMessage('get_system_stats', {});
+                this.communicationService.sendMessage('get_tasks', {});
+            }
         });
 
-        // Listen for system stats updates
-        this.agentService.on(MESSAGE_TYPES.SYSTEM_STATS, (stats) => {
-            this.localState = {
-                ...this.localState,
-                ...stats
-            };
-            this.logger.debug('System stats updated via WebSocket:', stats);
+        this.communicationService.on('system_stats', (stats) => {
+            this.localState = { ...this.localState, ...stats };
+            this.logger.debug('System stats updated:', stats);
         });
 
-        // Listen for task updates
-        this.agentService.on('add_belief', (belief) => {
-            this.localState.beliefs = [...this.localState.beliefs, belief];
-            this.logger.debug('Belief added:', belief);
+        this.communicationService.on('tasks_response', (response) => {
+            this.localState.tasks = response.tasks || [];
+            this.logger.debug('Tasks updated:', this.localState.tasks.length);
         });
 
-        this.agentService.on('add_goal', (goal) => {
-            this.localState.goals = [...this.localState.goals, goal];
-            this.logger.debug('Goal added:', goal);
-        });
-
-        this.agentService.on('add_question', (question) => {
-            this.localState.questions = [...this.localState.questions, question];
-            this.logger.debug('Question added:', question);
-        });
-
-        this.agentService.on('task_added', (task) => {
-            this.localState.tasks = [...this.localState.tasks, task];
+        this.communicationService.on('task_added', (task) => {
+            this.localState.tasks.push(task);
             this.logger.debug('Task added:', task);
         });
+
+        // Connect to the agent service
+        this.communicationService.connect();
     }
 
     /**
-     * Get system status via WebSocket
+     * Sends a Narsese string to the agent for processing.
+     * @param {string} content - The Narsese content.
      */
-    async getStatus() {
-        const response = await this._sendAndWaitForResponse('get_system_stats', {});
-        return {
-            isRunning: response?.isRunning || this.localState.isRunning || false,
-            cycleCount: response?.cycleCount || this.localState.cycleCount || 0,
-            timestamp: new Date().toISOString()
-        };
-    }
-
-    /**
-     * Get all tasks via WebSocket
-     */
-    async getTasks() {
-        const response = await this._sendAndWaitForResponse('get_tasks', {});
-        return response?.tasks || this.localState.tasks || [];
-    }
-
-    /**
-     * Get memory state via WebSocket
-     */
-    async getMemoryState() {
-        const [tasks, beliefs, goals, questions] = await Promise.all([
-            this.getTasks(),
-            this.getBeliefs(),
-            this.getGoals(),
-            this.getQuestions()
-        ]);
-
-        return {
-            beliefs,
-            goals,
-            questions,
-            tasks
-        };
-    }
-
-    /**
-     * Get beliefs via WebSocket
-     */
-    async getBeliefs() {
-        // In WebSocket-based approach, get from system stats or search
-        const tasks = await this.getTasks();
-        return tasks.filter(task => task.punctuation === '.');
-    }
-
-    /**
-     * Get goals via WebSocket
-     */
-    async getGoals() {
-        // In WebSocket-based approach, get from system stats or search
-        const tasks = await this.getTasks();
-        return tasks.filter(task => task.punctuation === '!');
-    }
-
-    /**
-     * Get questions via WebSocket
-     */
-    async getQuestions() {
-        // In WebSocket-based approach, get from system stats or search
-        const tasks = await this.getTasks();
-        return tasks.filter(task => task.punctuation === '?');
-    }
-
-    /**
-     * Add a new task via WebSocket
-     */
-    async addTask(content, type = 'question') {
+    interpretNarsese(content) {
         if (!content) {
-            throw new Error('Content is required');
+            this.logger.warn('interpretNarsese called with empty content.');
+            return;
         }
-
-        // Determine punctuation based on task type
-        let punctuation = '?'; // Default to question
-        if (type) {
-            if (type.toLowerCase().includes('belief') || type.toLowerCase() === 'b') {
-                punctuation = '.';
-            } else if (type.toLowerCase().includes('goal') || type.toLowerCase() === 'g') {
-                punctuation = '!';
-            } else if (type.toLowerCase().includes('question') || type.toLowerCase() === 'q') {
-                punctuation = '?';
-            }
-        }
-
-        // Send as narsese content with appropriate punctuation
-        const narsese = content + punctuation;
-
-        const response = await this._sendAndWaitForResponse('narsese', narsese);
-        return response || {success: true, message: 'Task added successfully', task: {content, type: punctuation}};
+        this.logger.info(`Sending Narsese: ${content}`);
+        this.communicationService.sendMessage('narsese', content);
     }
 
     /**
-     * Add a new belief via WebSocket
+     * Sends a command to control the agent's lifecycle (e.g., 'start', 'stop').
+     * @param {string} command - The control command.
      */
-    async addBelief(content) {
-        if (!content) {
-            throw new Error('Content is required');
-        }
-
-        // Ensure it ends with a period for belief
-        const narsese = content.endsWith('.') ? content : content + '.';
-        const response = await this._sendAndWaitForResponse('narsese', narsese);
-        return response || {success: true, message: 'Belief added successfully', belief: {content}};
+    sendAgentControl(command) {
+        this.logger.info(`Sending agent control command: ${command}`);
+        this.communicationService.sendMessage('agentControl', { command });
     }
 
     /**
-     * Add a new goal via WebSocket
+     * Returns the current cached state of the agent.
+     * @returns {object} The local state.
      */
-    async addGoal(content) {
-        if (!content) {
-            throw new Error('Content is required');
-        }
-
-        // Ensure it ends with an exclamation for goal
-        const narsese = content.endsWith('!') ? content : content + '!';
-        const response = await this._sendAndWaitForResponse('narsese', narsese);
-        return response || {success: true, message: 'Goal added successfully', goal: {content}};
+    getState() {
+        return { ...this.localState };
     }
 
     /**
-     * Add a new question via WebSocket
+     * Disconnects the service from the agent.
      */
-    async addQuestion(content) {
-        if (!content) {
-            throw new Error('Content is required');
-        }
-
-        // Ensure it ends with a question mark
-        const narsese = content.endsWith('?') ? content : content + '?';
-        const response = await this._sendAndWaitForResponse('narsese', narsese);
-        return response || {success: true, message: 'Question added successfully', question: {content}};
+    disconnect() {
+        this.communicationService.disconnect();
     }
 
     /**
-     * Interpret Narsese content and add via WebSocket
+     * Allows other TUI components to listen for events from the agent.
+     * @param {string} event - The name of the event to listen for.
+     * @param {Function} callback - The function to call when the event occurs.
      */
-    async interpretNarsese(content) {
-        if (!content) {
-            throw new Error('Content is required');
-        }
-
-        const response = await this._sendAndWaitForResponse('narsese', content);
-        return response || {success: true, message: 'Narsese interpreted successfully', content};
+    on(event, callback) {
+        this.communicationService.on(event, callback);
     }
 
     /**
-     * Send a message via WebSocket and wait for response
-     * Note: This is a simplified implementation - in a real system, you'd want to handle
-     * request-response mapping with unique IDs and timeouts
+     * Removes an event listener.
+     * @param {string} event - The name of the event.
+     * @param {Function} callback - The callback function to remove.
      */
-    _sendAndWaitForResponse(type, payload, timeout = 5000) {
-        return new Promise((resolve, reject) => {
-            const messageId = `${type}-${Date.now()}`;
-            let resolved = false;
-
-            // Set up response listener
-            const responseHandler = (response) => {
-                if (!resolved) {
-                    resolved = true;
-                    this.agentService.off(`${type}_response`, responseHandler);
-                    clearTimeout(timer);
-                    resolve(response);
-                }
-            };
-
-            // Set up timeout
-            const timer = setTimeout(() => {
-                if (!resolved) {
-                    resolved = true;
-                    this.agentService.off(`${type}_response`, responseHandler);
-                    reject(new Error(`Request ${type} timed out after ${timeout}ms`));
-                }
-            }, timeout);
-
-            // Listen for response
-            this.agentService.on(`${type}_response`, responseHandler);
-
-            // Send the request
-            this.agentService.sendMessage(type, payload);
-        });
+    off(event, callback) {
+        this.communicationService.off(event, callback);
     }
 }
 
