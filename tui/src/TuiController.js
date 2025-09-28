@@ -2,11 +2,10 @@ import logger from '../../common/services/Logger.js';
 import {MESSAGE_TYPES} from '../../common/constants/communication.js';
 
 class TuiController {
-    constructor(agentService, view, config = null, apiService = null) {
-        this.agentService = agentService;
+    constructor(apiService, view, config = null) {
+        this.apiService = apiService;
         this.view = view;
         this.config = config;
-        this.apiService = apiService;
         this.isRunning = false;
         this.eventListeners = [];
         this.updateThrottleTimeout = null;
@@ -22,10 +21,7 @@ class TuiController {
 
         this.isRunning = true;
 
-        // Connect to agent if not already connected
-        if (!this.agentService.isConnected) {
-            this.agentService.connect();
-        }
+        // The connection is now managed by the Application, so we just listen.
 
         this.logger.debug('TUI Controller started');
     }
@@ -48,54 +44,28 @@ class TuiController {
     }
 
     registerEventListeners() {
-        // Listen to system events from the agent service and update the view accordingly
+        // Listen to system events from the api service and update the view accordingly
         // Register various event listeners for real-time updates
 
-        // Listen for agent state updates
-        this.agentService.on(MESSAGE_TYPES.AGENT_STATE_UPDATE, () => {
-            this.onViewUpdate();
-        });
+        const eventsToUpdate = [
+            'state_update',
+            'status',
+            'task_update',
+            'system_stats',
+            'narsese',
+            'message',
+        ];
 
-        // Listen for connection status changes
-        this.agentService.on(MESSAGE_TYPES.STATUS, () => {
-            this.onViewUpdate();
-        });
+        for (const event of eventsToUpdate) {
+            this.apiService.on(event, () => this.onViewUpdate());
+        }
 
-        // Listen for new tasks being added
-        this.agentService.on(MESSAGE_TYPES.TASK_UPDATE, () => {
-            this.logger.debug('Task update received');
-            this.onViewUpdate();
-        });
-
-        // Listen for system stats updates
-        this.agentService.on(MESSAGE_TYPES.SYSTEM_STATS, () => {
-            this.logger.debug('System stats update received');
-            this.onViewUpdate();
-        });
-
-        // Listen for new beliefs
-        this.agentService.on(MESSAGE_TYPES.NARSESE, (data) => {
-            // Handle incoming belief/goal/question updates from the agent
-            if (data?.type === 'add_belief' || data?.type === 'add_goal' || data?.type === 'add_question') {
-                this.onViewUpdate();
-            }
-        });
-
-        // Listen for general messages for updates
-        this.agentService.on(MESSAGE_TYPES.MESSAGE, (message) => {
-            if (message?.type.includes('task') ||
-                message?.type.includes('belief') ||
-                message?.type.includes('goal') ||
-                message?.type.includes('question') ||
-                message?.type.includes('system')) {
-                this.onViewUpdate();
-            }
-        });
+        this.logger.debug('Event listeners registered for TUI updates');
     }
 
     unregisterEventListeners() {
         // Remove all event listeners when stopping
-        this.agentService.removeAllListeners();
+        this.apiService.removeAllListeners();
     }
 
     onViewUpdate() {

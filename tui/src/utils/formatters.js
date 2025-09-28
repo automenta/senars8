@@ -1,7 +1,10 @@
+import { getTaskDisplayData } from '@common/utils/formatUtils.js';
 import {appState} from '../modules/state.js';
 
 /**
- * Formats tasks for display.
+ * Formats tasks for display in the TUI.
+ * It uses the shared `getTaskDisplayData` utility to get normalized data,
+ * and then applies TUI-specific formatting.
  * @param {Array} tasks - The tasks to format.
  * @param {string} title - The title for the task list.
  * @returns {string} The formatted task list.
@@ -13,12 +16,8 @@ export function formatTasks(tasks, title = 'Tasks') {
 
     return `${title} (${tasks.length}):\n` +
         tasks.slice(0, 50).map((task, index) => {
-            const termKey = task.termKey || task.statement || task.id || 'Unknown';
-            const priority = (task.priority || task.state?.priority || 0).toFixed(2);
-            const punctuation = task.punctuation || (task.statement?.endsWith('!') ? '!' : task.statement?.endsWith('?') ? '?' : '.');
-            const tv = task.state?.truthValue;
-            const truthValue = tv ? `TV(${tv.frequency.toFixed(2)}, ${tv.confidence.toFixed(2)})` : '';
-            return `  [${index}] ${termKey} ${punctuation} | P: ${priority} ${truthValue}`;
+            const { termKey, priority, punctuation, truthValue } = getTaskDisplayData(task);
+            return `  [${index}] ${termKey}${punctuation} | P: ${priority} ${truthValue}`;
         }).join('\n');
 }
 

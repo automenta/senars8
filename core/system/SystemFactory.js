@@ -38,6 +38,7 @@ const createSystem = (userConfig = {}, components = {}) => {
     ]);
 
     const system = container.get('system');
+
     initializeSystem(system);
 
     info('SystemFactory: System creation complete.');

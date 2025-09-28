@@ -1,13 +1,13 @@
 import { TuiView } from './TuiView.js';
 import { TuiController } from './TuiController.js';
 import { TuiRenderer } from './TuiRenderer.js';
-import TuiApiService from './services/TuiApiService.js';
+import ApiService from '@common/services/ApiService.js';
 import { CONFIG } from '@common/constants/config.js';
 import logger from '@common/services/Logger.js';
 
 class Application {
     constructor() {
-        this.tuiApiService = null;
+        this.apiService = null;
         this.tuiView = null;
         this.tuiController = null;
         this.tuiRenderer = null;
@@ -20,13 +20,13 @@ class Application {
         this.logger = logger.createNamespace('TUIApplication');
         this.logger.info('Initializing TUI Application...');
 
-        // Create the TUI API service which handles all agent communication
-        this.tuiApiService = new TuiApiService();
+        // Use the common ApiService for all agent communication
+        this.apiService = new ApiService();
 
         // Initialize TUI components, passing the API service and centralized config
         this.tuiRenderer = new TuiRenderer();
-        this.tuiView = new TuiView(this.tuiApiService, this.tuiRenderer, CONFIG.TUI);
-        this.tuiController = new TuiController(this.tuiApiService, this.tuiView, CONFIG.TUI);
+        this.tuiView = new TuiView(this.apiService, this.tuiRenderer, CONFIG.TUI);
+        this.tuiController = new TuiController(this.apiService, this.tuiView, CONFIG.TUI);
 
         this.logger.info('TUI Application initialized');
     }
@@ -40,7 +40,9 @@ class Application {
         this.isRunning = true;
         this.logger.info('Starting TUI Application...');
 
-        // The TuiApiService handles its own connection lifecycle.
+        // The ApiService handles its own connection lifecycle.
+        this.apiService.connect();
+
         // Start the TUI view and controller.
         this.tuiView.start();
         this.tuiController.start();
@@ -59,7 +61,7 @@ class Application {
         this.tuiView?.stop();
 
         // Disconnect from the agent via the API service
-        this.tuiApiService?.disconnect();
+        this.apiService?.disconnect();
 
         this.isRunning = false;
         this.logger.info('TUI Application stopped');
@@ -67,7 +69,7 @@ class Application {
 
     async addTask(task) {
         // Send tasks to the agent via the API service
-        this.tuiApiService.interpretNarsese(task);
+        this.apiService.sendNarsese(task);
         this.logger.debug('Adding task:', task);
     }
 }

@@ -28,9 +28,13 @@ const registerComponents = (container, configManager) => {
 
     const singleton = {lifetime: LIFETIME.SINGLETON};
 
+    // Foundational components first
+    container.register('memory', Memory, ['configManager', 'eventBus'], singleton);
     container.register('truthValueManager', TruthValueManager, [], singleton);
     container.register('strategyRegistry', StrategyRegistry, [], singleton);
     container.register('lm', LM, ['configManager'], singleton);
+
+    // Components that depend on the foundational ones
     container.register('taskFactory', TaskFactory, ['memory', 'lm', 'eventBus'], singleton);
     container.register('temporalReasoner', TemporalReasoner, ['configManager'], singleton);
     container.register('actionExecutor', ActionExecutor, ['memory', 'configManager', 'eventBus'], singleton);
@@ -39,13 +43,16 @@ const registerComponents = (container, configManager) => {
     container.register('priorityManager', PriorityManager, ['memory', 'configManager'], singleton);
     container.register('contradictionAnalyzer', ContradictionAnalyzer, [], singleton);
     container.register('resolutionStrategy', ResolutionStrategy, ['truthValueManager'], singleton);
+
+    // Higher-level components
     container.register('reasoner', Reasoner, ['configManager', 'temporalReasoner', 'strategyRegistry'], singleton);
     container.register('metaCognition', MetaCognition, ['configManager', 'contradictionAnalyzer', 'resolutionStrategy', 'eventBus'], singleton);
+
+    // The main cycle and system, which depend on almost everything else
     container.register('cycle', Cycle, [
         'configManager', 'memory', 'reasoner', 'lm', 'actionExecutor', 'perception',
         'planner', 'metaCognition', 'temporalReasoner', 'priorityManager', 'eventBus'
     ], singleton);
-    container.register('memory', Memory, ['configManager', 'eventBus'], singleton);
     container.register('system', System, [
         'configManager', 'memory', 'reasoner', 'lm', 'actionExecutor', 'cycle',
         'planner', 'metaCognition', 'perception', 'eventBus'
