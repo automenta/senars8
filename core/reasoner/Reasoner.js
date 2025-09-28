@@ -5,8 +5,15 @@ import createConfigAccessor from '../config/ConfigAccessor.js';
 
 const errorHandler = createUnifiedErrorHandler('Reasoner');
 
-const getCombinationKey = (ruleName, tasks) =>
-    `${ruleName}:${tasks.map(task => task.id).sort().join(',')}`;
+const getCombinationKey = (ruleName, tasks) => {
+    // Use a more efficient approach: pre-allocate the IDs array and sort once
+    const taskIds = new Array(tasks.length);
+    for (let i = 0; i < tasks.length; i++) {
+        taskIds[i] = tasks[i].id;
+    }
+    taskIds.sort();
+    return `${ruleName}:${taskIds.join(',')}`;
+};
 
 class Reasoner {
     constructor(configManager, temporalReasoner, strategyRegistry) {
@@ -43,25 +50,44 @@ class Reasoner {
         const processedCombinations = new Set();
         debug(`Starting symbolic inference with ${this.rules.length} rules`);
 
-        for (const rule of this.rules) {
-            if (derivedTasks.length >= maxDerivedTasks) break;
-            if (!rule.arity || rule.arity < 1) {
+        // Group rules by arity to reduce redundant combination generation
+        const rulesByArity = this.rules.reduce((acc, rule) => {
+            if (rule.arity && rule.arity >= 1) {
+                if (!acc[rule.arity]) {
+                    acc[rule.arity] = [];
+                }
+                acc[rule.arity].push(rule);
+            } else {
                 debug(`Skipping rule ${rule.name} due to invalid arity: ${rule.arity}`);
-                continue;
             }
+            return acc;
+        }, {});
 
-            const combinations = this.strategy.selectCombinations(focusSet, rule.arity);
-            debug(`Rule ${rule.name} selected ${combinations.length} combinations`);
+        // Process each arity group once
+        for (const [arity, rules] of Object.entries(rulesByArity)) {
+            if (derivedTasks.length >= maxDerivedTasks) break;
+            
+            const combinationArity = parseInt(arity);
+            const combinations = Array.from(this.strategy.selectCombinations(focusSet, combinationArity));
+            debug(`Processing ${rules.length} rules with arity ${arity} on ${combinations.length} combinations`);
 
             for (const tasks of combinations) {
                 if (derivedTasks.length >= maxDerivedTasks) break;
-                if (!Array.isArray(tasks) || tasks.length !== rule.arity) {
-                    debug(`Skipping invalid combination for rule ${rule.name}`);
+                
+                if (!Array.isArray(tasks) || tasks.length !== combinationArity) {
+                    debug(`Skipping invalid combination with ${tasks?.length || 'null'} tasks`);
                     continue;
                 }
 
-                const derived = this._applyRule(rule, tasks, processedCombinations);
-                if (derived) derivedTasks.push(derived);
+                // Process all rules with this arity for the same combination
+                for (const rule of rules) {
+                    if (derivedTasks.length >= maxDerivedTasks) break;
+                    
+                    const derived = this._applyRule(rule, tasks, processedCombinations);
+                    if (derived) {
+                        derivedTasks.push(derived);
+                    }
+                }
             }
         }
 
@@ -83,7 +109,15 @@ class Reasoner {
     }
 
     _applyRule(rule, tasks, processedCombinations) {
-        const combinationKey = getCombinationKey(rule.name, tasks);
+        // Create a key that's unique per rule-task combination, not just task combination
+        // Use optimized combination key generation
+        const taskIds = new Array(tasks.length);
+        for (let i = 0; i < tasks.length; i++) {
+            taskIds[i] = tasks[i].id;
+        }
+        taskIds.sort();
+        const combinationKey = `${rule.name}:${taskIds.join(',')}`;
+        
         if (processedCombinations.has(combinationKey)) {
             debug(`Skipping already processed combination for rule ${rule.name}`);
             return null;
