@@ -1,9 +1,7 @@
 import { EventEmitter } from 'events';
 import { CONFIG } from '@common/constants/config.js';
 import log from '@common/utils/logger';
-
-// Universal WebSocket that works in both Node.js and browser environments.
-const WebSocket = typeof window !== 'undefined' ? window.WebSocket : (await import('ws')).default;
+import { createWebSocket } from '@common/utils/network.js';
 
 /**
  * A universal agent communication service that provides a robust, resilient
@@ -54,7 +52,7 @@ class AgentCommunicationService extends EventEmitter {
         log.info('Connecting to agent service...');
 
         try {
-            this.ws = new WebSocket(this.url);
+            this.ws = createWebSocket(this.url);
             this.ws.onopen = this.onOpen.bind(this);
             this.ws.onclose = this.onClose.bind(this);
             this.ws.onmessage = this.onMessage.bind(this);

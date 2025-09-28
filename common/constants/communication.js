@@ -32,6 +32,8 @@ export const MESSAGE_TYPES = {
     SEARCH_ERROR: 'search_error',
     TASK_UPDATE: 'task_update',
     TASK_ERROR: 'task_error',
+    TASKS_RESPONSE: 'tasks_response',
+    TASK_ADDED: 'task_added',
 };
 
 // Notification types

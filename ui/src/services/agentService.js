@@ -65,16 +65,16 @@ class AgentService extends EventEmitter {
     handleIncomingMessage(message) {
         log.debug('Handling incoming message:', message.type);
         switch (message.type) {
-            case 'system_stats':
+            case MESSAGE_TYPES.SYSTEM_STATS:
             case MESSAGE_TYPES.AGENT_STATE_UPDATE:
                 this.agentState = { ...this.agentState, ...message.payload };
                 this.emit('system_stats', this.agentState);
                 break;
-            case 'tasks_response':
+            case MESSAGE_TYPES.TASKS_RESPONSE:
                 this.agentState.tasks = message.payload.tasks || [];
                 this.emit('task_update', this.agentState.tasks);
                 break;
-            case 'task_added':
+            case MESSAGE_TYPES.TASK_ADDED:
                 this.agentState.tasks.push(message.payload);
                 this.emit('task_update', this.agentState.tasks);
                 break;
