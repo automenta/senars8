@@ -88,7 +88,7 @@ class System {
                 warn('System is already running.');
                 return;
             }
-            info(`Starting system with maxCycles=${maxCycles || 'infinite'}`);
+            info(`Starting system with maxCycles=${maxCycles === 0 ? 'infinite' : maxCycles}`);
             this.isRunning = true;
             this.cycleCount = 0;
             this.lm.startEmbeddingProcessor();

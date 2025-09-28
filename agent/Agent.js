@@ -10,7 +10,7 @@ const termToActionParsers = Object.freeze({
         const [nameTerm, ...paramTerms] = term.terms;
         return nameTerm ? {
             tool: nameTerm.key,
-            parameters: paramTerms.map(t => t.key.replace(/"/g, ''))
+            parameters: paramTerms.map(t => t.key.replaceAll('"', ''))
         } : null;
     },
     Conjunction: (term) => termToActionParsers.SequentialConjunction(term),
@@ -33,21 +33,16 @@ class Agent {
 
             // Set up event listeners for real-time UI updates
             if (this.system.eventBus) {
-                this.system.eventBus.on('add_task', (task) => {
-                    this.mcp.log({type: 'task_added', content: task, timestamp: new Date().toISOString()});
-                });
-
-                this.system.eventBus.on('add_belief', (task) => {
-                    this.mcp.log({type: 'belief_added', content: task, timestamp: new Date().toISOString()});
-                });
-
-                this.system.eventBus.on('add_goal', (task) => {
-                    this.mcp.log({type: 'goal_added', content: task, timestamp: new Date().toISOString()});
-                });
-
-                this.system.eventBus.on('add_question', (task) => {
-                    this.mcp.log({type: 'question_added', content: task, timestamp: new Date().toISOString()});
-                });
+                const eventTypes = ['task', 'belief', 'goal', 'question'];
+                for (const eventType of eventTypes) {
+                    this.system.eventBus.on(`add_${eventType}`, (task) => {
+                        this.mcp.log({
+                            type: `${eventType}_added`,
+                            content: task,
+                            timestamp: new Date().toISOString()
+                        });
+                    });
+                }
             }
 
             agentLogger.debug('Agent initialized successfully.');

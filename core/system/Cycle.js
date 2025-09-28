@@ -83,8 +83,9 @@ class Cycle {
 
         const derivedTasks = await this.reasoner.performInference(focusSet);
         const allTasks = [...focusSet, ...derivedTasks];
+        const priorityThreshold = this.config.getNumber('ACTIONABLE_GOAL_PRIORITY_THRESHOLD', 0.1);
         const actionableGoals = getGoalTasks(allTasks).filter(goal =>
-            goal.state?.priority >= this.config.getNumber('ACTIONABLE_GOAL_PRIORITY_THRESHOLD', 0.1)
+            goal.state?.priority >= priorityThreshold
         );
         return {
             derivedTasks,
