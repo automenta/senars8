@@ -37,7 +37,17 @@ class TuiRenderer {
         // Use shared UI component
         const systemStatusComponent = UiComponents.createSystemStatus(systemState);
         const formatted = UiComponents.formatForTui(systemStatusComponent);
+        console.log(chalk.bold('System Status:'));
         console.log(formatted);
+        
+        // Additional detailed information
+        const systemInfo = systemState.systemInfo;
+        if (systemInfo) {
+            console.log(chalk.bold('System Info:'));
+            console.log(`  Beliefs: ${systemInfo.beliefsCount}, Goals: ${systemInfo.goalsCount}, Questions: ${systemInfo.questionsCount}`);
+            console.log(`  Cycle Count: ${systemInfo.cycleCount}, Memory Usage: ${systemInfo.memoryUsage}`);
+        }
+        console.log('');
     }
 
     renderTasks(systemState) {
@@ -64,7 +74,8 @@ class TuiRenderer {
 
     renderFooter() {
         console.log('');
-        console.log(chalk.gray('Commands: [S]top/[R]un/[T]ask/[A]dd belief/[B]eliefs/[G]oals/[L]ist tasks/[C]lear/[H]elp/[Q]uit'));
+        console.log(chalk.gray('Commands: [S]top/[R]un/[T]ask/[A]dd/[B]eliefs/[G]oals/[L]ist/[C]lear/[H]elp/[Q]uit'));
+        console.log(chalk.gray('For Narsese input, type directly (ends with . for belief, ? for question, ! for goal)'));
         console.log(chalk.gray('Press Ctrl+C to exit'));
     }
 

@@ -1,4 +1,4 @@
-import {error as logError, info, warn} from '../../core/utils/logger.js';
+import {error as logError, info, warn} from '../../common/services/Logger.js';
 
 /**
  * WebSocket message handler for the WebUI

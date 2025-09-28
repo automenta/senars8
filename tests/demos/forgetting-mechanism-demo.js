@@ -2,7 +2,7 @@
 // Description: Illustrates the time-based forgetting strategy, where the confidence of beliefs decays over time.
 
 import {runDemo} from '../../utils/shared/demo-utils.js';
-import {info} from '../../core/utils/logger.js';
+import {info} from '../../common/services/Logger.js';
 
 async function forgettingMechanismDemo(options = {}) {
     const now = Date.now();

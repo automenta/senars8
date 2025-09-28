@@ -2,7 +2,7 @@
 // Description: A utility demo for debugging the system's contradiction detection and resolution mechanisms.
 
 import {runDemo} from '../../utils/shared/demo-utils.js';
-import {info} from '../../core/utils/logger.js';
+import {info} from '../../common/services/Logger.js';
 
 async function debugContradictionsDemo(options = {}) {
     const taskDefs = [

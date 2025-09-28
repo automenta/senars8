@@ -3,6 +3,9 @@ import TUIApplication, {TUIConfig} from './tui/src/index.js';
 import WebUI, {UIConfig} from './ui/src/index.js';
 import logger from './common/services/Logger.js';
 
+// For backward compatibility
+const logError = logger.error.bind(logger);
+
 const mainLogger = logger.createNamespace('Main');
 
 class SENARSMain {

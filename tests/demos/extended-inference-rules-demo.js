@@ -2,7 +2,7 @@
 // Description: Demonstrates the use of a wide range of inference rules, including deduction, induction, and abduction.
 
 import {runDemo} from '../../utils/shared/demo-utils.js';
-import {info} from '../../core/utils/logger.js';
+import {info} from '../../common/services/Logger.js';
 
 async function extendedInferenceRulesDemo(options = {}) {
     const taskDefs = [

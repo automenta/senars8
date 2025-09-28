@@ -2,7 +2,7 @@
 // Description: Compares different reasoning strategies, such as Brute-Force vs. Priority-based Bag Sampling.
 
 import {runDemo} from '../../utils/shared/demo-utils.js';
-import {info} from '../../core/utils/logger.js';
+import {info} from '../../common/services/Logger.js';
 
 async function strategyComparisonDemo(options = {}) {
     const taskDefs = [

@@ -2,7 +2,7 @@
 // Description: Demonstrates the system's advanced hypothesis generation capabilities using large language models.
 
 import {runDemo} from '../../utils/shared/demo-utils.js';
-import {info} from '../../core/utils/logger.js';
+import {info} from '../../common/services/Logger.js';
 
 /**
  * A unified demo that demonstrates advanced hypothesis generation capabilities.

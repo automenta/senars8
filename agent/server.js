@@ -9,7 +9,7 @@ import {
     error as coreError,
     info as coreInfo,
     warn as coreWarn
-} from '@project/core/utils/logger.js';
+} from '../core/utils/logger.js';
 
 const exec = promisify(childExec);
 

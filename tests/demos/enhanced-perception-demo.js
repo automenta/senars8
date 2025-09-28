@@ -4,7 +4,7 @@
 import {runDemo} from '../../utils/shared/demo-utils.js';
 import {parseTerm} from '../../core/index.js';
 import Task from '../../core/core/Task.js';
-import {info} from '../../core/utils/logger.js';
+import {info} from '../../common/services/Logger.js';
 
 async function enhancedPerceptionDemo(options = {}) {
     const taskDefs = [

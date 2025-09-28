@@ -2,7 +2,7 @@
 // Description: Demonstrates parsing and reasoning with a richer, more expressive form of Narsese, including temporal operators.
 
 import {runDemo} from '../../utils/shared/demo-utils.js';
-import {info} from '../../core/utils/logger.js';
+import {info} from '../../common/services/Logger.js';
 
 async function enhancedNarseseDemo(options = {}) {
     const taskDefs = [

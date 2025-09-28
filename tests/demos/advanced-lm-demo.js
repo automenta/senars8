@@ -2,7 +2,7 @@
 // Description: Demonstrates advanced language model integration capabilities.
 
 import {runDemo} from '../../utils/shared/demo-utils.js';
-import {info} from '../../core/utils/logger.js';
+import {info} from '../../common/services/Logger.js';
 
 async function advancedLMDemo(options = {}) {
     const taskDefs = [

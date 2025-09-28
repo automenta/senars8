@@ -2,7 +2,7 @@
 // Description: A comprehensive showcase of the SeNARS system's core capabilities, from basic reasoning to advanced planning and learning.
 
 import {runDemo} from '../../utils/shared/demo-utils.js';
-import {info} from '../../core/utils/logger.js';
+import {info} from '../../common/services/Logger.js';
 
 /**
  * A unified showcase demo that demonstrates core system capabilities.

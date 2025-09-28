@@ -2,7 +2,7 @@
 // Description: A comprehensive demonstration of how the system handles contradictions, from simple resolution to generating clarifying questions.
 
 import {runDemo} from '../../utils/shared/demo-utils.js';
-import {info} from '../../core/utils/logger.js';
+import {info} from '../../common/services/Logger.js';
 
 async function comprehensiveContradictionDemo(options = {}) {
     // 1. Simple Contradiction Resolution

@@ -118,4 +118,13 @@ class Logger {
 
 // Export singleton instance
 const logger = new Logger();
+
+// Also export individual functions for compatibility with core module
+export const error = logger.error.bind(logger);
+export const info = logger.info.bind(logger);
+export const warn = logger.warn.bind(logger);
+export const debug = logger.debug.bind(logger);
+export const trace = logger.trace.bind(logger);
+
+// Export as default
 export default logger;

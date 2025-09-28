@@ -3,7 +3,7 @@ import path from 'path';
 import {fileURLToPath} from 'url';
 import {WebSocketServer} from 'ws';
 import {createServer} from 'http';
-import {error as logError, info, warn} from '../../core/utils/logger.js';
+import {error as logError, info, warn} from '../../common/services/Logger.js';
 import WebUIAPI from './WebUIAPI.js';
 import WebSocketHandler from './WebSocketHandler.js';
 import UIConfig from './config/UIConfig.js';
@@ -220,6 +220,11 @@ class WebUI {
                     info('Memory updated, broadcasting update');
                     this.broadcastStateUpdate();
                 });
+
+                system.eventBus.on('error', (error) => {
+                    info('System error occurred, broadcasting to clients', error);
+                    this.broadcastError(error);
+                });
             }
         });
     }
@@ -231,6 +236,25 @@ class WebUI {
         const message = JSON.stringify({
             type: 'stateUpdate',
             payload: state
+        });
+
+        this.wss.clients.forEach((client) => {
+            if (client.readyState === client.OPEN) {
+                client.send(message);
+            }
+        });
+    }
+
+    broadcastError(error) {
+        if (!this.wss) return;
+
+        const message = JSON.stringify({
+            type: 'error',
+            payload: {
+                message: error.message || 'Unknown error',
+                error: error.toString(),
+                timestamp: new Date().toISOString()
+            }
         });
 
         this.wss.clients.forEach((client) => {

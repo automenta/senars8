@@ -2,7 +2,7 @@
 // Description: Demonstrates the unit test analyzer capabilities.
 
 import {runDemo} from '../../utils/shared/demo-utils.js';
-import {info} from '../../core/utils/logger.js';
+import {info} from '../../common/services/Logger.js';
 import {UnitTestAnalyzer} from '../../core/analyzer/index.js';
 import {writeFileSync} from 'fs';
 

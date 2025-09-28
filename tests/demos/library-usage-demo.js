@@ -2,7 +2,7 @@
 // Description: A simple example of how to import and use the SeNARS system as a library in a Node.js application.
 
 import {runDemo} from '../../utils/shared/demo-utils.js';
-import {info} from '../../core/utils/logger.js';
+import {info} from '../../common/services/Logger.js';
 
 async function libraryUsageDemo(options = {}) {
     const taskDefs = [

@@ -2,7 +2,7 @@
 // Description: A comprehensive demonstration of the system's planning and action execution capabilities.
 
 import {runDemo} from '../../utils/shared/demo-utils.js';
-import {info} from '../../core/utils/logger.js';
+import {info} from '../../common/services/Logger.js';
 
 async function comprehensiveActionDemo(options = {}) {
     // 1. Simple Action Execution
