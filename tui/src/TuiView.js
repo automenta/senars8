@@ -3,6 +3,9 @@ import logger from '../../common/services/Logger.js';
 import {MESSAGE_TYPES} from '../../common/constants/communication.js';
 
 class TuiView {
+export
+    TuiView
+
     constructor(agentService, renderer, config = null) {
         this.agentService = agentService;
         this.renderer = renderer;
@@ -23,18 +26,18 @@ class TuiView {
 
         // Use default update interval if config not provided
         this.updateIntervalMs = config ? config.getUpdateInterval() : 1000;
-        
+
         // Use shared logger instead of individual logger functions
         this.logger = logger.createNamespace('TuiView');
-        
+
         // Track active input prompts to prevent conflicts
         this.awaitingInput = false;
         this.inputCallback = null;
-        
+
         // Initialize shared services
         this._initializeServices();
     }
-    
+
     _initializeServices() {
         // Initialize system state with agent service
         // Listen for state updates from the agent service
@@ -92,7 +95,7 @@ class TuiView {
         this.rl.on('line', (input) => {
             this.handleUserInput(input.trim());
         });
-        
+
         // Handle Ctrl+C gracefully
         this.rl.on('SIGINT', () => {
             console.log('\nReceived SIGINT, stopping...');
@@ -140,7 +143,7 @@ class TuiView {
         if (now - this.lastRenderTime < this.minRenderInterval) {
             return;
         }
-        
+
         if (!this.isRunning) return;
 
         try {
@@ -201,7 +204,7 @@ class TuiView {
             await callback(input);
             return;
         }
-        
+
         const command = input.toLowerCase();
 
         switch (command) {
@@ -267,14 +270,14 @@ class TuiView {
             console.log('Already awaiting input, please complete previous command first.');
             return;
         }
-        
+
         this.awaitingInput = true;
         this.inputCallback = callback;
         console.log(prompt);
         // The actual input will be handled in handleUserInput when the user responds
     }
 
-    showHelp() {
+        showHelp() {
         console.log('\nAvailable commands:');
         console.log('  s/stop        - Stop the agent');
         console.log('  r/run         - Start the agent');
@@ -288,67 +291,72 @@ class TuiView {
         console.log('  q/quit/exit   - Quit the application');
         console.log('  <narsese>     - Enter Narsese directly');
         console.log('');
-    }
+    } {
 
     listBeliefs() {\n        // Since we can't get detailed beliefs via WebSocket directly,\n        // we'll display the count from system state\n        const beliefsCount = this.agentService.getBeliefsCount() || this.systemState.beliefsCount || 0;\n        console.log(`\\nBeliefs: ${beliefsCount}`);\n        if (beliefsCount > 0) {\n            console.log('(Detailed beliefs list not available via WebSocket. For detailed list, use search feature.)');\n        }\n        console.log('');\n    }\n\n    listGoals() {\n        const goalsCount = this.agentService.getGoalsCount() || this.systemState.goalsCount || 0;\n        console.log(`\\nGoals: ${goalsCount}`);\n        if (goalsCount > 0) {\n            console.log('(Detailed goals list not available via WebSocket. For detailed list, use search feature.)');\n        }\n        console.log('');\n    }\n\n    listTasks() {\n        // Get the combined count or use the cycle count as an indicator\n        const totalTasks = (this.systemState.beliefsCount || 0) + \n                          (this.systemState.goalsCount || 0) + \n                          (this.systemState.questionsCount || 0);\n        \n        console.log(`\\nTasks: ${totalTasks}`);\n        console.log('(Detailed tasks list not available via WebSocket. For detailed list, use search feature.)');\n        console.log('');\n    }
 
-    async addTask(content) {
-        try {
-            // Use the agent service to add the task via WebSocket
-            const taskData = {
-                content: content,
-                type: 'task'
-            };
-            
-            this.agentService.addTask(taskData);
-            
-            console.log(`✓ Task added successfully: ${content}`);
-            this.logger.info(`TUI Task added: ${content}`);
-            // State will be updated via WebSocket messages automatically
-        } catch (error) {
-            this.logger.error('Error adding task:', error);
-            console.log(`✗ Error adding task: ${error.message}`);
-        }
-    }
+        async
+        addTask(content)
+        {
+            try {
+                // Use the agent service to add the task via WebSocket
+                const taskData = {
+                    content: content,
+                    type: 'task'
+                };
 
-    async addBelief(content) {
-        try {
-            // Use the agent service to send Narsese via WebSocket
-            // Beliefs typically end with '.'
-            const narsese = content.endsWith('.') ? content : content + '.';
-            this.agentService.sendNarsese(narsese);
-            
-            console.log(`✓ Belief added successfully: ${narsese}`);
-            this.logger.info(`TUI Belief added: ${narsese}`);
-            // State will be updated via WebSocket messages automatically
-        } catch (error) {
-            this.logger.error('Error adding belief:', error);
-            console.log(`✗ Error adding belief: ${error.message}`);
-        }
-    }
-    
-    async interpretNarsese(input) {
-        try {
-            // Use the agent service to send Narsese via WebSocket
-            this.agentService.sendNarsese(input);
-            
-            let taskType = 'Judgment';
-            if (input.endsWith('?')) {
-                taskType = 'Question';
-            } else if (input.endsWith('!')) {
-                taskType = 'Goal';
-            } else if (input.endsWith('.')) {
-                taskType = 'Belief';
+                this.agentService.addTask(taskData);
+
+                console.log(`✓ Task added successfully: ${content}`);
+                this.logger.info(`TUI Task added: ${content}`);
+                // State will be updated via WebSocket messages automatically
+            } catch (error) {
+                this.logger.error('Error adding task:', error);
+                console.log(`✗ Error adding task: ${error.message}`);
             }
+        }
 
-            console.log(`✓ ${taskType} added successfully: ${input}`);
-            this.logger.info(`TUI Narsese added: ${input}`);
-            // State will be updated via WebSocket messages automatically
-        } catch (error) {
-            this.logger.error('Error interpreting Narsese:', error);
-            console.log(`✗ Error interpreting Narsese: ${error.message}`);
+        async
+        addBelief(content)
+        {
+            try {
+                // Use the agent service to send Narsese via WebSocket
+                // Beliefs typically end with '.'
+                const narsese = content.endsWith('.') ? content : content + '.';
+                this.agentService.sendNarsese(narsese);
+
+                console.log(`✓ Belief added successfully: ${narsese}`);
+                this.logger.info(`TUI Belief added: ${narsese}`);
+                // State will be updated via WebSocket messages automatically
+            } catch (error) {
+                this.logger.error('Error adding belief:', error);
+                console.log(`✗ Error adding belief: ${error.message}`);
+            }
+        }
+
+        async
+        interpretNarsese(input)
+        {
+            try {
+                // Use the agent service to send Narsese via WebSocket
+                this.agentService.sendNarsese(input);
+
+                let taskType = 'Judgment';
+                if (input.endsWith('?')) {
+                    taskType = 'Question';
+                } else if (input.endsWith('!')) {
+                    taskType = 'Goal';
+                } else if (input.endsWith('.')) {
+                    taskType = 'Belief';
+                }
+
+                console.log(`✓ ${taskType} added successfully: ${input}`);
+                this.logger.info(`TUI Narsese added: ${input}`);
+                // State will be updated via WebSocket messages automatically
+            } catch (error) {
+                this.logger.error('Error interpreting Narsese:', error);
+                console.log(`✗ Error interpreting Narsese: ${error.message}`);
+            }
         }
     }
-}
-
-export {TuiView};
+};

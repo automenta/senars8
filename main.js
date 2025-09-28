@@ -91,7 +91,7 @@ class SENARSMain {
         if (this.isShuttingDown) {
             return;
         }
-        
+
         this.isShuttingDown = true;
         mainLogger.info('Stopping SENARS system...');
 

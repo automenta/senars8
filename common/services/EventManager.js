@@ -30,12 +30,12 @@ class EventManager {
         // Store the subscription for potential cleanup
         const listenerId = `${event}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         this.eventBus.on(event, callback);
-        
+
         // Track this listener
         if (!this.eventListeners.has(event)) {
             this.eventListeners.set(event, new Set());
         }
-        this.eventListeners.get(event).add({ id: listenerId, callback });
+        this.eventListeners.get(event).add({id: listenerId, callback});
 
         return listenerId;
     }
@@ -54,7 +54,7 @@ class EventManager {
         if (typeof listenerIdOrCallback === 'function') {
             // If a callback function is provided, find and remove it
             this.eventBus.off(event, listenerIdOrCallback);
-            
+
             // Remove from our tracking
             if (this.eventListeners.has(event)) {
                 const listeners = this.eventListeners.get(event);
@@ -120,7 +120,7 @@ class EventManager {
                 this.eventBus.off(event, listener.callback);
             }
         }
-        
+
         this.eventListeners.clear();
     }
 

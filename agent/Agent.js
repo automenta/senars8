@@ -183,13 +183,13 @@ class Agent {
             agentLogger.debug(`Cannot access memory: ${!this.isInitialized ? 'Agent not initialized' : !this.system ? 'No system' : 'No memory'}`);
             return [];
         }
-        
+
         const method = this.system.memory[methodName];
         if (typeof method !== 'function') {
             agentLogger.warn(`Memory method '${methodName}' does not exist`);
             return [];
         }
-        
+
         try {
             return method.call(this.system.memory, ...params) || [];
         } catch (error) {
@@ -205,9 +205,9 @@ class Agent {
     getAllTaskData() {
         if (!this.isInitialized || !this.system || !this.system.memory) {
             agentLogger.debug('Cannot access memory: Agent not initialized or no system/memory');
-            return { tasks: [], beliefs: [], goals: [], questions: [] };
+            return {tasks: [], beliefs: [], goals: [], questions: []};
         }
-        
+
         try {
             const memory = this.system.memory;
             return {
@@ -218,7 +218,7 @@ class Agent {
             };
         } catch (error) {
             agentLogger.warn('Error getting all task data:', error.message);
-            return { tasks: [], beliefs: [], goals: [], questions: [] };
+            return {tasks: [], beliefs: [], goals: [], questions: []};
         }
     }
 }

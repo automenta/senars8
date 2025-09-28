@@ -12,7 +12,7 @@ framework. It provides both a Web UI and a Terminal UI for interacting with NARS
 - **Core Engine** (`core/`): The main reasoning engine and memory management
 - **Agent Service** (`agent/`): WebSocket server for UI communication
 - **Web UI** (`ui/`): Full-featured React-based interface
-- **TUI** (`tui/`): Lightweight terminal-based interface  
+- **TUI** (`tui/`): Lightweight terminal-based interface
 - **Common** (`common/`): Shared utilities and types across modules
 - **Utils** (`utils/`): Utility functions and helpers
 - **Tests** (`tests/`): Comprehensive test suite with unit, integration, and system tests
@@ -78,6 +78,7 @@ npm run test:ui
 ### Testing
 
 The project uses Vitest for testing with the following configuration:
+
 - Unit tests: `tests/unit/`
 - Integration tests: `tests/integration/`
 - System tests: `tests/system/`

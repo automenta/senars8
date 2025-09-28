@@ -12,7 +12,7 @@ class TuiController {
         this.updateThrottleTimeout = null;
         this.throttleDelay = 100; // milliseconds
         this.logger = logger.createNamespace('TuiController');
-        
+
         // Register event listeners with the agent service
         this.registerEventListeners();
     }
@@ -37,7 +37,7 @@ class TuiController {
 
         // Remove event listeners
         this.unregisterEventListeners();
-        
+
         // Clear any pending throttled updates
         if (this.updateThrottleTimeout) {
             clearTimeout(this.updateThrottleTimeout);
@@ -83,9 +83,9 @@ class TuiController {
 
         // Listen for general messages for updates
         this.agentService.on(MESSAGE_TYPES.MESSAGE, (message) => {
-            if (message?.type.includes('task') || 
-                message?.type.includes('belief') || 
-                message?.type.includes('goal') || 
+            if (message?.type.includes('task') ||
+                message?.type.includes('belief') ||
+                message?.type.includes('goal') ||
                 message?.type.includes('question') ||
                 message?.type.includes('system')) {
                 this.onViewUpdate();

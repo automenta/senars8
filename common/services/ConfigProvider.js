@@ -21,7 +21,7 @@ class ConfigProvider {
             const {default: ConfigManager} = await import('../../core/config/ConfigManager.js');
             this.configManager = new ConfigManager(config);
         }
-        
+
         // Initialize the global config service with the merged configuration
         const {configService} = await import('../../core/config/index.js');
         configService.initialize(this.configManager.getAll());

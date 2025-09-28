@@ -18,13 +18,13 @@ export {
     eventManager,
     sharedAPI,
     uiComponents,
-    
+
     // Constants
     CONNECTION_STATUS,
     MESSAGE_TYPES,
     NOTIFICATION_TYPES,
     CONFIG,
-    
+
     // Utilities
     validateNarseseStatement,
     log

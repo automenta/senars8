@@ -42,7 +42,7 @@ class TuiRenderer {
 
     renderTasks(systemState) {
         // Use shared UI component
-        const taskListComponent = UiComponents.createTaskList(systemState?.memory?.tasks || [], { maxItems: 10 });
+        const taskListComponent = UiComponents.createTaskList(systemState?.memory?.tasks || [], {maxItems: 10});
         const formatted = UiComponents.formatForTui(taskListComponent);
         console.log(chalk.bold('Tasks:'));
         console.log(formatted);

@@ -21,18 +21,18 @@ class Application {
     async initialize() {
         this.logger = logger.createNamespace('TUIApplication');
         this.logger.info('Initializing TUI Application...');
-        
+
         // Create the agent communication service
         const agentUrl = this.config.get('agent.websocketUrl') || 'ws://localhost:8080';
         this.agentService = new AgentCommunicationService(agentUrl);
 
         // Initialize TUI components with configuration
         this.tuiRenderer = new TuiRenderer();
-        
+
         // Create the TUI API service for consistent interface
         this.tuiApiService = new TuiApiService(this.agentService);
         this.tuiApiService.initialize();
-        
+
         // Pass the API service and agentService to view and controller instead of the agent instance
         this.tuiView = new TuiView(this.agentService, this.tuiRenderer, this.config);
         this.tuiController = new TuiController(this.agentService, this.tuiView, this.config, this.tuiApiService);

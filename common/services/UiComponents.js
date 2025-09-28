@@ -10,16 +10,16 @@ class UiComponents {
      * @returns {string|ReactComponent} - Rendered component
      */
     static createTaskList(tasks = [], options = {}) {
-        const { maxItems = 10, showDetails = true } = options;
+        const {maxItems = 10, showDetails = true} = options;
         const tasksToDisplay = tasks.slice(0, maxItems);
-        
+
         // Return different representations based on context
         const taskItems = tasksToDisplay.map((task, index) => {
             const content = task.toDisplayString?.() || task.toString?.() || task.content || 'No content';
-            const type = task.punctuation === '.' ? 'BELIEF' : 
-                        task.punctuation === '!' ? 'GOAL' : 
-                        task.punctuation === '?' ? 'QUESTION' : 'UNKNOWN';
-            
+            const type = task.punctuation === '.' ? 'BELIEF' :
+                task.punctuation === '!' ? 'GOAL' :
+                    task.punctuation === '?' ? 'QUESTION' : 'UNKNOWN';
+
             return {
                 index: index + 1,
                 content,
@@ -28,7 +28,7 @@ class UiComponents {
                 confidence: task.state?.truthValue?.confidence ? (task.state.truthValue.confidence * 100).toFixed(1) : 0
             };
         });
-        
+
         return {
             type: 'taskList',
             items: taskItems,
@@ -44,8 +44,8 @@ class UiComponents {
      * @returns {Object} - Memory status component data
      */
     static createMemoryStatus(memoryState = {}) {
-        const { beliefs = [], goals = [], questions = [], tasks = [] } = memoryState;
-        
+        const {beliefs = [], goals = [], questions = [], tasks = []} = memoryState;
+
         return {
             type: 'memoryStatus',
             beliefsCount: beliefs.length,
@@ -144,9 +144,9 @@ class UiComponents {
                 return `System Status: ${component.isRunning ? 'RUNNING' : 'STOPPED'}, Cycles: ${component.cycleCount}\n`;
 
             case 'message':
-                const prefix = component.messageType === 'error' ? '✗' : 
-                              component.messageType === 'success' ? '✓' : 
-                              component.messageType === 'warning' ? '⚠' : 'ℹ';
+                const prefix = component.messageType === 'error' ? '✗' :
+                    component.messageType === 'success' ? '✓' :
+                        component.messageType === 'warning' ? '⚠' : 'ℹ';
                 return `${prefix} ${component.message}\n`;
 
             default:

@@ -1,4 +1,4 @@
-/** 
+/**
  * Configuration management for TUI module
  */
 import {CONFIG} from '@common/constants/config.js';

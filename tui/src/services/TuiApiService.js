@@ -1,5 +1,5 @@
 import SharedAPI from '../../../common/services/SharedAPI.js';
-import {CONNECTION_STATUS, MESSAGE_TYPES} from '../../../common/constants/communication.js';
+import {MESSAGE_TYPES} from '../../../common/constants/communication.js';
 import logger from '../../../common/services/Logger.js';
 
 /**
@@ -11,7 +11,7 @@ class TuiApiService extends SharedAPI {
         super(null); // Don't pass agent instance since we'll use WebSocket
         this.agentService = agentService;
         this.logger = logger.createNamespace('TuiApiService');
-        
+
         // Store local state that we get from WebSocket updates
         this.localState = {
             isRunning: false,
@@ -96,7 +96,7 @@ class TuiApiService extends SharedAPI {
             this.getGoals(),
             this.getQuestions()
         ]);
-        
+
         return {
             beliefs,
             goals,
@@ -154,9 +154,9 @@ class TuiApiService extends SharedAPI {
 
         // Send as narsese content with appropriate punctuation
         const narsese = content + punctuation;
-        
+
         const response = await this._sendAndWaitForResponse('narsese', narsese);
-        return response || { success: true, message: 'Task added successfully', task: { content, type: punctuation } };
+        return response || {success: true, message: 'Task added successfully', task: {content, type: punctuation}};
     }
 
     /**
@@ -170,7 +170,7 @@ class TuiApiService extends SharedAPI {
         // Ensure it ends with a period for belief
         const narsese = content.endsWith('.') ? content : content + '.';
         const response = await this._sendAndWaitForResponse('narsese', narsese);
-        return response || { success: true, message: 'Belief added successfully', belief: { content } };
+        return response || {success: true, message: 'Belief added successfully', belief: {content}};
     }
 
     /**
@@ -184,7 +184,7 @@ class TuiApiService extends SharedAPI {
         // Ensure it ends with an exclamation for goal
         const narsese = content.endsWith('!') ? content : content + '!';
         const response = await this._sendAndWaitForResponse('narsese', narsese);
-        return response || { success: true, message: 'Goal added successfully', goal: { content } };
+        return response || {success: true, message: 'Goal added successfully', goal: {content}};
     }
 
     /**
@@ -198,7 +198,7 @@ class TuiApiService extends SharedAPI {
         // Ensure it ends with a question mark
         const narsese = content.endsWith('?') ? content : content + '?';
         const response = await this._sendAndWaitForResponse('narsese', narsese);
-        return response || { success: true, message: 'Question added successfully', question: { content } };
+        return response || {success: true, message: 'Question added successfully', question: {content}};
     }
 
     /**
@@ -210,7 +210,7 @@ class TuiApiService extends SharedAPI {
         }
 
         const response = await this._sendAndWaitForResponse('narsese', content);
-        return response || { success: true, message: 'Narsese interpreted successfully', content };
+        return response || {success: true, message: 'Narsese interpreted successfully', content};
     }
 
     /**
@@ -222,7 +222,7 @@ class TuiApiService extends SharedAPI {
         return new Promise((resolve, reject) => {
             const messageId = `${type}-${Date.now()}`;
             let resolved = false;
-            
+
             // Set up response listener
             const responseHandler = (response) => {
                 if (!resolved) {
@@ -232,7 +232,7 @@ class TuiApiService extends SharedAPI {
                     resolve(response);
                 }
             };
-            
+
             // Set up timeout
             const timer = setTimeout(() => {
                 if (!resolved) {
@@ -241,10 +241,10 @@ class TuiApiService extends SharedAPI {
                     reject(new Error(`Request ${type} timed out after ${timeout}ms`));
                 }
             }, timeout);
-            
+
             // Listen for response
             this.agentService.on(`${type}_response`, responseHandler);
-            
+
             // Send the request
             this.agentService.sendMessage(type, payload);
         });

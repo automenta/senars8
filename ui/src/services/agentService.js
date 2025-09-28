@@ -53,7 +53,7 @@ class AgentService extends EventEmitter {
     setupEventForwarding() {
         this.communicationService.on('status', (status) => {
             log.debug('Agent service status changed:', status);
-            
+
             // Handle connection state changes
             switch (status) {
                 case 'connected':
@@ -66,7 +66,7 @@ class AgentService extends EventEmitter {
                     this.flushMessageQueue();
                     log.info('Connected to agent service');
                     break;
-                    
+
                 case 'disconnected':
                     this.isConnected = false;
                     this.isConnecting = false;
@@ -75,7 +75,7 @@ class AgentService extends EventEmitter {
                     this.attemptReconnect();
                     log.info('Disconnected from agent service');
                     break;
-                    
+
                 case 'connecting':
                     this.isConnecting = true;
                     this.isConnected = false;
@@ -83,7 +83,7 @@ class AgentService extends EventEmitter {
                     this.connectionStats.lastConnectionAttempt = new Date();
                     log.info('Connecting to agent service...');
                     break;
-                    
+
                 case 'failed':
                     this.isConnected = false;
                     this.isConnecting = false;
@@ -190,7 +190,7 @@ class AgentService extends EventEmitter {
     disconnect() {
         // Clear any reconnect timers
         this.reconnectAttempts = this.maxReconnectAttempts;
-        
+
         this.communicationService.disconnect();
 
         if (this.yProvider) {
@@ -198,7 +198,7 @@ class AgentService extends EventEmitter {
             this.yProvider = null;
             this.awareness = null;
         }
-        
+
         this.isConnected = false;
         this.isConnecting = false;
         this.isReady = false;
@@ -255,7 +255,7 @@ class AgentService extends EventEmitter {
                 log.warn(`Message not sent (not ready): ${type}`, payload);
                 return false;
             }
-            
+
             log.debug(`Queueing message: ${type}`, payload);
             this.messageQueue.push({type, payload, options});
             return true;
@@ -337,7 +337,7 @@ class AgentService extends EventEmitter {
     isAgentRunning() {
         return this.agentState.isRunning;
     }
-    
+
     /**
      * Waits for the agent service to be ready
      * @param {number} timeout - Timeout in milliseconds
