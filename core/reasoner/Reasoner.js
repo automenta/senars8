@@ -50,44 +50,26 @@ class Reasoner {
         const processedCombinations = new Set();
         debug(`Starting symbolic inference with ${this.rules.length} rules`);
 
-        // Group rules by arity to reduce redundant combination generation
-        const rulesByArity = this.rules.reduce((acc, rule) => {
-            if (rule.arity && rule.arity >= 1) {
-                if (!acc[rule.arity]) {
-                    acc[rule.arity] = [];
-                }
-                acc[rule.arity].push(rule);
-            } else {
-                debug(`Skipping rule ${rule.name} due to invalid arity: ${rule.arity}`);
-            }
-            return acc;
-        }, {});
-
-        // Process each arity group once
-        for (const [arity, rules] of Object.entries(rulesByArity)) {
+        for (const rule of this.rules) {
             if (derivedTasks.length >= maxDerivedTasks) break;
-            
-            const combinationArity = parseInt(arity);
-            const combinations = Array.from(this.strategy.selectCombinations(focusSet, combinationArity));
-            debug(`Processing ${rules.length} rules with arity ${arity} on ${combinations.length} combinations`);
+            if (!rule.arity || rule.arity < 1) {
+                debug(`Skipping rule ${rule.name} due to invalid arity: ${rule.arity}`);
+                continue;
+            }
+
+            // Convert generator to array to be able to iterate multiple times if needed
+            const combinations = this.strategy.selectCombinations(focusSet, rule.arity);
+            debug(`Rule ${rule.name} selected combinations`);
 
             for (const tasks of combinations) {
                 if (derivedTasks.length >= maxDerivedTasks) break;
-                
-                if (!Array.isArray(tasks) || tasks.length !== combinationArity) {
-                    debug(`Skipping invalid combination with ${tasks?.length || 'null'} tasks`);
+                if (!Array.isArray(tasks) || tasks.length !== rule.arity) {
+                    debug(`Skipping invalid combination for rule ${rule.name}`);
                     continue;
                 }
 
-                // Process all rules with this arity for the same combination
-                for (const rule of rules) {
-                    if (derivedTasks.length >= maxDerivedTasks) break;
-                    
-                    const derived = this._applyRule(rule, tasks, processedCombinations);
-                    if (derived) {
-                        derivedTasks.push(derived);
-                    }
-                }
+                const derived = this._applyRule(rule, tasks, processedCombinations);
+                if (derived) derivedTasks.push(derived);
             }
         }
 

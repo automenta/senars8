@@ -24,6 +24,7 @@ class Memory {
         this.indexer = new MemoryIndexer();
         this.cycleCounter = 0;
         this._cachedAllTasks = null;
+        this._cachedTaskCount = 0;
         this._loadForgettingStrategy();
         this._registerEventListeners();
     }
@@ -80,6 +81,7 @@ class Memory {
 
     _invalidateTaskCache() {
         this._cachedAllTasks = null;
+        this._cachedTaskCount = this.shortTermTasks.size + this.longTermTasks.size;
     }
 
     addTerm(term) {
@@ -158,8 +160,10 @@ class Memory {
 
     getAllTasks() {
         return errorHandler.executeSync(() => {
-            if (!this._cachedAllTasks) {
+            const currentCount = this.shortTermTasks.size + this.longTermTasks.size;
+            if (!this._cachedAllTasks || this._cachedTaskCount !== currentCount) {
                 this._cachedAllTasks = [...this.shortTermTasks.values(), ...this.longTermTasks.values()];
+                this._cachedTaskCount = currentCount;
             }
             return this._cachedAllTasks;
         }, 'getAllTasks', []);
@@ -244,15 +248,33 @@ class Memory {
     }
 
     getBeliefs() {
-        return errorHandler.executeSync(() => this.queryTasks({punctuation: '.'}), 'getBeliefs', []);
+        return errorHandler.executeSync(() => {
+            const taskIds = this.indexer.punctuationIndex.get('.');
+            if (!taskIds) return [];
+            const allTasks = this.getAllTasks();
+            const taskMap = new Map(allTasks.map(t => [t.id, t]));
+            return [...taskIds].map(id => taskMap.get(id)).filter(Boolean);
+        }, 'getBeliefs', []);
     }
 
     getGoals() {
-        return errorHandler.executeSync(() => this.queryTasks({punctuation: '!'}), 'getGoals', []);
+        return errorHandler.executeSync(() => {
+            const taskIds = this.indexer.punctuationIndex.get('!');
+            if (!taskIds) return [];
+            const allTasks = this.getAllTasks();
+            const taskMap = new Map(allTasks.map(t => [t.id, t]));
+            return [...taskIds].map(id => taskMap.get(id)).filter(Boolean);
+        }, 'getGoals', []);
     }
 
     getQuestions() {
-        return errorHandler.executeSync(() => this.queryTasks({punctuation: '?'}), 'getQuestions', []);
+        return errorHandler.executeSync(() => {
+            const taskIds = this.indexer.punctuationIndex.get('?');
+            if (!taskIds) return [];
+            const allTasks = this.getAllTasks();
+            const taskMap = new Map(allTasks.map(t => [t.id, t]));
+            return [...taskIds].map(id => taskMap.get(id)).filter(Boolean);
+        }, 'getQuestions', []);
     }
 
     getRecentTasks(count = 10) {
