@@ -1,37 +1,19 @@
 /**
- * A simple, self-contained logger for the core system.
- * It avoids any dependencies on higher-level packages to prevent circular imports.
+ * Logger for the core system that uses the common logger service.
+ * This maintains compatibility with the original logger interface while using common services.
  */
 
-export const LOG_LEVELS = {
-    ERROR: 0,
-    WARN: 1,
-    INFO: 2,
-    DEBUG: 3,
+import commonLogger from '@common/services/Logger.js';
+
+// Maintain the same interface as before but delegate to the common logger
+const log = {
+    error: (message, ...args) => commonLogger.error(message, ...args),
+    info: (message, ...args) => commonLogger.info(message, ...args),
+    warn: (message, ...args) => commonLogger.warn(message, ...args),
+    debug: (message, ...args) => commonLogger.debug(message, ...args),
+    trace: (message, ...args) => commonLogger.trace(message, ...args),
+    createNamespace: (namespace) => commonLogger.createNamespace(namespace),
 };
 
-// Default to INFO level if not specified
-const CURRENT_LOG_LEVEL = LOG_LEVELS[process.env.LOG_LEVEL?.toUpperCase()] ?? LOG_LEVELS.INFO;
-
-const log = (level, message, ...args) => {
-    if (level <= CURRENT_LOG_LEVEL) {
-        const timestamp = new Date().toISOString();
-        const levelName = Object.keys(LOG_LEVELS).find(key => LOG_LEVELS[key] === level);
-        console.log(`[${timestamp}] [${levelName}]`, message, ...args);
-    }
-};
-
-export const error = (message, ...args) => log(LOG_LEVELS.ERROR, message, ...args);
-export const info = (message, ...args) => log(LOG_LEVELS.INFO, message, ...args);
-export const warn = (message, ...args) => log(LOG_LEVELS.WARN, message, ...args);
-export const debug = (message, ...args) => log(LOG_LEVELS.DEBUG, message, ...args);
-
-const logger = {
-    error,
-    info,
-    warn,
-    debug,
-    createNamespace: () => logger, // Basic compatibility with the old API
-};
-
-export default logger;
+export const { error, info, warn, debug } = log;
+export default log;

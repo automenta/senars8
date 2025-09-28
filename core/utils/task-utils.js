@@ -1,15 +1,20 @@
-import Task from '../core/Task.js';
+// Import from common utilities to avoid duplication
+import { taskUtils } from '@common/index.js';
 import {filterByProperty} from './collections/index.js';
+import Task from '../core/Task.js';
 
-const isBelief = task => task?.punctuation === '.';
-const isGoal = task => task?.punctuation === '!';
-const isQuestion = task => task?.punctuation === '?';
+// For backward compatibility, re-export functions but with core-specific Task check
+const { 
+    getTasksByType,
+    getBeliefTasks,
+    getGoalTasks,
+    getQuestionTasks,
+    isBelief,
+    isGoal,
+    isQuestion
+} = taskUtils;
 
-const getTasksByType = (tasks, type) => filterByProperty(tasks, 'punctuation', type);
-const getBeliefTasks = tasks => getTasksByType(tasks, '.');
-const getGoalTasks = tasks => getTasksByType(tasks, '!');
-const getQuestionTasks = tasks => getTasksByType(tasks, '?');
-
+// Keep the core-specific isTask function since it checks for Task instance
 const isTask = obj => obj instanceof Task;
 
 export {

@@ -1,5 +1,24 @@
 // Universal WebSocket that works in both Node.js and browser environments.
-const WebSocket = typeof window !== 'undefined' ? window.WebSocket : (await import('ws')).default;
+let WebSocket;
+
+// Async function to get WebSocket implementation
+async function getWebSocketType() {
+    if (typeof window !== 'undefined' && window.WebSocket) {
+        return window.WebSocket;
+    }
+    
+    // For Node.js, dynamically import ws
+    const wsModule = await import('ws');
+    return wsModule.default || wsModule;
+}
+
+/**
+ * Creates a universal WebSocket instance.
+ * @param {string} url - The WebSocket URL to connect to.
+ * @returns {Promise<WebSocket>} A WebSocket instance.
+ */
+// Universal WebSocket that works in both Node.js and browser environments.
+const WebSocket = typeof window !== 'undefined' ? window.WebSocket : require('ws');
 
 /**
  * Creates a universal WebSocket instance.

@@ -9,6 +9,10 @@ import {CONNECTION_STATUS, MESSAGE_TYPES, NOTIFICATION_TYPES} from './constants/
 import {CONFIG} from './constants/config.js';
 import {validateNarseseStatement} from './utils/coreUtils.js';
 import log from './utils/logger.js';
+import * as validationUtils from './utils/validation.js';
+import * as idGeneratorUtils from './utils/idGenerator.js';
+import * as mathUtils from './utils/math.js';
+import * as taskUtils from './utils/taskUtils.js';
 
 export {
     // Services
@@ -27,5 +31,17 @@ export {
 
     // Utilities
     validateNarseseStatement,
-    log
+    log,
+    
+    // Validation utilities
+    validationUtils,
+    
+    // ID generation utilities
+    idGeneratorUtils,
+    
+    // Math utilities
+    mathUtils,
+    
+    // Task utilities
+    taskUtils
 };
