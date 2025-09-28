@@ -1,13 +1,12 @@
+import {MinPriorityQueue} from '@datastructures-js/priority-queue';
 import Term from '../core/Term.js';
 import Task from '../core/Task.js';
 import {normalizeToArray} from '../utils/collections/index.js';
 import {isTask} from '../utils/task-utils.js';
-import {consolidateMemory, getHighestPriorityTasksWithPQ} from './memoryUtils.js';
 import TimeBasedForgettingStrategy from './strategies/TimeBasedForgettingStrategy.js';
 import {debug, warn} from '../utils/logger.js';
 import MemoryIndexer from './MemoryIndexer.js';
-import {configService} from '../config/index.js';
-import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
+import {createUnifiedErrorHandler, createError} from '../utils/errorHandler.js';
 
 const errorHandler = createUnifiedErrorHandler('Memory');
 
@@ -17,7 +16,7 @@ const FORGETTING_STRATEGIES = {
 
 class Memory {
     constructor(configManager, eventBus) {
-        this.config = configService;
+        this.config = configManager;
         this.eventBus = eventBus;
         this.terms = new Map();
         this.shortTermTasks = new Map();
@@ -52,15 +51,22 @@ class Memory {
     }
 
     _consolidateMemory() {
-        const consolidationConfig = {
-            memory: {
-                CONSOLIDATION_PRIORITY_THRESHOLD: this.config.getNumber('memory.CONSOLIDATION_PRIORITY_THRESHOLD', 0.8),
-                CONSOLIDATION_CONFIDENCE_THRESHOLD: this.config.getNumber('memory.CONSOLIDATION_CONFIDENCE_THRESHOLD', 0.9),
-            },
-        };
-        const result = consolidateMemory(this.shortTermTasks, this.longTermTasks, consolidationConfig);
-        this.shortTermTasks = result.shortTermTasks;
-        this.longTermTasks = result.longTermTasks;
+        const priorityThreshold = this.config.getNumber('memory.CONSOLIDATION_PRIORITY_THRESHOLD', 0.8);
+        const confidenceThreshold = this.config.getNumber('memory.CONSOLIDATION_CONFIDENCE_THRESHOLD', 0.9);
+
+        const newShortTermTasks = new Map();
+        const newLongTermTasks = new Map(this.longTermTasks);
+
+        for (const [taskId, task] of this.shortTermTasks.entries()) {
+            if (task.state.priority >= priorityThreshold || task.state.truthValue.confidence >= confidenceThreshold) {
+                newLongTermTasks.set(taskId, task);
+            } else {
+                newShortTermTasks.set(taskId, task);
+            }
+        }
+
+        this.shortTermTasks = newShortTermTasks;
+        this.longTermTasks = newLongTermTasks;
         this._invalidateTaskCache();
     }
 
@@ -79,10 +85,10 @@ class Memory {
     addTerm(term) {
         // For validation errors, we throw directly to match test expectations
         if (term === null || term === undefined) {
-            throw new Error('Can only add valid Term instances to memory');
+            throw createError.ValidationError('Can only add valid Term instances to memory');
         }
         if (!(term instanceof Term)) {
-            throw new Error('Can only add valid Term instances to memory');
+            throw createError.ValidationError('Can only add valid Term instances to memory');
         }
 
         return errorHandler.executeSync(() => {
@@ -165,19 +171,35 @@ class Memory {
         return k < K_THRESHOLD && k < totalTasks / RATIO_THRESHOLD;
     }
 
+    _getHighestPriorityTasksWithPQ(tasks, k) {
+        if (k <= 0) return [];
+        const pq = new MinPriorityQueue({
+            priority: task => task.state.priority
+        });
+        for (const task of tasks) {
+            if (pq.size() < k) {
+                pq.enqueue(task);
+            } else if (task.state.priority > pq.front().priority) {
+                pq.dequeue();
+                pq.enqueue(task);
+            }
+        }
+        return pq.toArray().map(item => item.element).sort((a, b) => b.state.priority - a.state.priority);
+    }
+
     getHighestPriorityTasks(k = 20) {
         return errorHandler.executeSync(() => {
             if (k <= 0) return [];
             const allTasks = this.getAllTasks();
             return this._shouldUsePriorityQueue(k, allTasks.length) ?
-                getHighestPriorityTasksWithPQ(allTasks, k) :
+                this._getHighestPriorityTasksWithPQ(allTasks, k) :
                 [...allTasks].sort((a, b) => b.state.priority - a.state.priority).slice(0, k);
         }, 'getHighestPriorityTasks', []);
     }
 
     clone() {
         return errorHandler.executeSync(() => {
-            const newMemory = new Memory(this.config.configManager, this.eventBus);
+            const newMemory = new Memory(this.config, this.eventBus);
             Object.assign(newMemory, {
                 terms: new Map(this.terms),
                 shortTermTasks: new Map(this.shortTermTasks),
@@ -282,7 +304,11 @@ class Memory {
 
         // For invalid JSON, we throw directly to match test expectations
         let state;
-        state = JSON.parse(jsonState);
+        try {
+            state = JSON.parse(jsonState);
+        } catch (e) {
+            throw createError.ParseError(`Invalid JSON provided to importState: ${e.message}`);
+        }
 
         return errorHandler.executeSync(() => {
             this.clear();
