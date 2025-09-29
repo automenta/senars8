@@ -1,8 +1,8 @@
 // Category: Reasoning
 // Description: Compares different reasoning strategies, such as Brute-Force vs. Priority-based Bag Sampling.
 
-import {runDemo} from '../../shared/demo-utils.js';
-import {info} from '../../src/utils/logger.js';
+import {runSystem} from '../../utils/runner.js';
+import {info} from '../../common/services/Logger.js';
 
 async function strategyComparisonDemo(options = {}) {
     const taskDefs = [
@@ -26,7 +26,7 @@ async function strategyComparisonDemo(options = {}) {
         cycleCount: 15,
         postCycleCallback: async (_system) => {
             info("\n--- Running with BruteForceStrategy ---");
-            return await runDemo('Strategy Comparison (Brute Force)', taskDefs, {
+            return await runSystem('Strategy Comparison (Brute Force)', taskDefs, {
                 cycleCount: 5,
                 config: {
                     reasoner: {
@@ -41,7 +41,7 @@ async function strategyComparisonDemo(options = {}) {
         }
     };
 
-    return await runDemo('Strategy Comparison', taskDefs, defaultOptions);
+    return await runSystem('Strategy Comparison', taskDefs, defaultOptions);
 }
 
 export default strategyComparisonDemo;

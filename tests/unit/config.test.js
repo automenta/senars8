@@ -1,10 +1,13 @@
-import ConfigManager from '../../src/config/ConfigManager.js';
-import defaultConfig from '../../src/config/default-config.js';
+import ConfigManager from '../../core/config/ConfigManager.js';
+import defaultConfig from '../../core/config/default-config.js';
 
 describe('ConfigManager', () => {
     it('should initialize with default configuration', () => {
         const configManager = new ConfigManager();
-        expect(configManager.getAll()).toEqual(expect.objectContaining(defaultConfig));
+        // Check that all default config properties are present
+        Object.keys(defaultConfig).forEach(key => {
+            expect(configManager.get(key)).toEqual(defaultConfig[key]);
+        });
     });
 
     it('should merge user configuration with defaults', () => {

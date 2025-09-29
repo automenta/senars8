@@ -1,0 +1,203 @@
+import {vi} from 'vitest';
+import React from 'react';
+import {fireEvent, render, screen, waitFor, within} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import App from '@/App';
+import agentService from '@/services/agentService';
+import notificationService from '@/services/notificationService';
+import {ThemeProvider} from '@/context/ThemeProvider';
+import {SettingsProvider} from '@/context/SettingsProvider';
+import {ConnectionProvider} from '@/context/ConnectionProvider';
+import {SharedStateProvider} from '@/context/SharedStateProvider';
+import {NotificationProvider} from '@/context/NotificationContext';
+import {SearchProvider} from '@/context/SearchContext';
+import {TaskProvider} from '@/context/TaskContext';
+import {SessionProvider} from '@/context/SessionContext';
+import {Model} from 'flexlayout-react';
+import defaultLayout from '@/features/defaultLayout';
+
+// Mock all services
+vi.mock('@/services/agentService', () => ({
+    on: vi.fn(),
+    off: vi.fn(),
+    connect: vi.fn(),
+    disconnect: vi.fn(),
+    send: vi.fn(function (message) {
+        if (typeof message === 'object' && message.content) {
+            // This logic is a simplified version of what might happen in the real service
+            if (message.content.startsWith('<') && message.content.includes('-->')) {
+                return this.sendNarsese(message.content);
+            } else {
+                return this.sendNaturalLanguage(message.content);
+            }
+        }
+        return false;
+    }),
+    sendNarsese: vi.fn(),
+    sendNaturalLanguage: vi.fn(),
+    isConnected: true,
+    isAgentRunning: vi.fn().mockReturnValue(true),
+}));
+
+vi.mock('@/services/agentIntegration', () => ({
+    initialize: vi.fn().mockResolvedValue(),
+    processNarsese: vi.fn(),
+    getAgentInfo: vi.fn(),
+    sendAgentCommand: vi.fn(),
+    getAllTasks: vi.fn().mockResolvedValue([]),
+    getInitializedStatus: vi.fn().mockReturnValue(true),
+    getConfiguration: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock('@/services/notificationService');
+
+vi.mock('@/hooks/useSystemCycle', () => vi.fn(() => 100));
+vi.mock('@/hooks/useSystemStats', () => vi.fn(() => ({
+    beliefs: 5,
+    goals: 2,
+    questions: 1,
+    memory: 1024,
+})));
+
+const mockModel = Model.fromJson(defaultLayout);
+vi.mock('@/hooks/useLayoutModel', () => ({
+    __esModule: true,
+    default: () => ({
+        model: mockModel,
+        onModelChange: vi.fn(),
+    }),
+}));
+
+// Mock child components that are not essential for this integration test
+vi.mock('@/features/reasoning/VisualReasoningPanel', () => ({
+    default: () => <div data-testid="mock-visual-reasoning-panel"/>
+}));
+vi.mock('@/features/reasoning/ConceptMap', () => ({default: () => <div data-testid="mock-concept-map"/>}));
+vi.mock('react-force-graph-2d', () => ({default: () => <div data-testid="mock-force-graph"/>}));
+vi.mock('@pablo-lion/xterm-react', () => ({XTerm: () => null}));
+vi.mock('flexlayout-react', async (importOriginal) => {
+    const original = await importOriginal();
+    const React = await import('react');
+    return {
+        ...original,
+        Layout: ({factory, model}) => {
+            const components = [];
+            model.visitNodes((node) => {
+                if (node.getType() === 'tab') {
+                    const element = factory(node);
+                    components.push(React.cloneElement(element, {key: node.getId()}));
+                }
+            });
+            return <div data-testid="mock-layout">{components}</div>;
+        },
+    };
+});
+
+// Helper function to render with all providers
+const renderWithProviders = (ui, options) => {
+    const AllTheProviders = ({children}) => (
+        <ThemeProvider>
+            <SettingsProvider>
+                <ConnectionProvider>
+                    <SharedStateProvider>
+                        <NotificationProvider>
+                            <SearchProvider>
+                                <TaskProvider>
+                                    <SessionProvider>{children}</SessionProvider>
+                                </TaskProvider>
+                            </SearchProvider>
+                        </NotificationProvider>
+                    </SharedStateProvider>
+                </ConnectionProvider>
+            </SettingsProvider>
+        </ThemeProvider>
+    );
+    return render(ui, {wrapper: AllTheProviders, ...options});
+};
+
+describe('UI-Agent-Core Integration Tests', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    describe('Status Panel Integration', () => {
+        test('displays agent information correctly', async () => {
+            renderWithProviders(<App/>);
+            await waitFor(() => {
+                const cycleCard = screen.getByText(/Cycles/).closest('.status-card');
+                expect(within(cycleCard).getByText('100')).toBeInTheDocument();
+
+                const beliefsCard = screen.getByText(/Beliefs/).closest('.status-card');
+                expect(within(beliefsCard).getByText('5')).toBeInTheDocument();
+
+                const goalsCard = screen.getByText(/Goals/).closest('.status-card');
+                expect(within(goalsCard).getByText('2')).toBeInTheDocument();
+
+                const questionsCard = screen.getByText(/Questions/).closest('.status-card');
+                expect(within(questionsCard).getByText('1')).toBeInTheDocument();
+            });
+        });
+    });
+
+    describe('Input Panel Integration', () => {
+        test('sends narsese statement to agent', async () => {
+            agentService.sendNarsese.mockResolvedValue(true);
+            renderWithProviders(<App/>);
+
+            const input = screen.getByLabelText('Narsese input');
+            await userEvent.type(input, '<bird --> animal>.');
+
+            const sendButton = screen.getByRole('button', {name: /Send/i});
+            fireEvent.click(sendButton);
+
+            await waitFor(() => {
+                expect(agentService.sendNarsese).toHaveBeenCalledWith('<bird --> animal>.');
+                expect(notificationService.addSuccess).toHaveBeenCalledWith(
+                    'Narsese Sent',
+                    'Statement: <bird --> animal>.',
+                    3000
+                );
+            });
+        });
+
+        test('sends natural language to agent', async () => {
+            agentService.sendNaturalLanguage.mockResolvedValue(true);
+            renderWithProviders(<App/>);
+
+            const input = screen.getByLabelText('Narsese input');
+            await userEvent.type(input, 'Tell me about birds');
+
+            const sendButton = screen.getByRole('button', {name: /Send/i});
+            fireEvent.click(sendButton);
+
+            await waitFor(() => {
+                expect(agentService.sendNaturalLanguage).toHaveBeenCalledWith('Tell me about birds');
+                expect(notificationService.addInfo).toHaveBeenCalledWith(
+                    'NL Sent',
+                    'Input: Tell me about birds',
+                    3000
+                );
+            });
+        });
+    });
+
+    describe('Error Handling Integration', () => {
+        test('handles agent service errors gracefully', async () => {
+            agentService.sendNarsese.mockResolvedValue(false); // Simulate a failed send
+            renderWithProviders(<App/>);
+
+            const input = screen.getByLabelText('Narsese input');
+            await userEvent.type(input, '<bird --> animal>.');
+
+            const sendButton = screen.getByRole('button', {name: /Send/i});
+            fireEvent.click(sendButton);
+
+            await waitFor(() => {
+                expect(notificationService.addError).toHaveBeenCalledWith(
+                    'Send Error',
+                    'Failed to send message to agent'
+                );
+            });
+        });
+    });
+});

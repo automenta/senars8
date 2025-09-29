@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@core/*": [
+        "core/*"
+      ],
+      "@common/*": [
+        "common/*"
+      ],
+      "@agent/*": [
+        "agent/*"
+      ],
+      "@tui/*": [
+        "tui/*"
+      ],
+      "@ui/*": [
+        "ui/*"
+      ]
+    }
+  }
+}

@@ -1,9 +1,9 @@
 // Category: Analysis
 // Description: Demonstrates the unit test analyzer capabilities.
 
-import {runDemo} from '../../shared/demo-utils.js';
-import {info} from '../../src/utils/logger.js';
-import UnitTestAnalyzer from '../../src/analyzer/index.js';
+import {runSystem} from '../../utils/runner.js';
+import {info} from '../../common/services/Logger.js';
+import {UnitTestAnalyzer} from '../../core/analyzer/index.js';
 import {writeFileSync} from 'fs';
 
 // Mock test data based on the actual test failures we observed
@@ -192,7 +192,7 @@ async function analyzerDemo(options = {}) {
     };
 
     const mergedOptions = {...defaultOptions, ...options};
-    return await runDemo('Analyzer Demo', taskDefs, mergedOptions);
+    return await runSystem('Analyzer Demo', taskDefs, mergedOptions);
 }
 
 export default analyzerDemo;

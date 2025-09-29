@@ -1,8 +1,8 @@
 // Category: Debugging
 // Description: A utility demo for debugging the system's contradiction detection and resolution mechanisms.
 
-import {runDemo} from '../../shared/demo-utils.js';
-import {info} from '../../src/utils/logger.js';
+import {runSystem} from '../../utils/runner.js';
+import {info} from '../../common/services/Logger.js';
 
 async function debugContradictionsDemo(options = {}) {
     const taskDefs = [
@@ -21,7 +21,7 @@ async function debugContradictionsDemo(options = {}) {
     };
 
     const mergedOptions = {...defaultOptions, ...options};
-    return await runDemo('Debug Contradictions Demo', taskDefs, mergedOptions);
+    return await runSystem('Debug Contradictions Demo', taskDefs, mergedOptions);
 }
 
 export default debugContradictionsDemo;

@@ -1,36 +1,36 @@
-import Task from '../../src/core/Task.js';
-import ConfigManager from '../../src/config/ConfigManager.js';
-import SystemFactory from '../../src/system/SystemFactory.js';
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest';
+import Task from '../../core/core/Task.js';
 
-
-jest.mock('@xenova/transformers', () => {
-    const transformers = jest.createMockFromModule('@xenova/transformers');
-    transformers.pipeline = jest.fn(async () => {
-        return jest.fn(() => ({
+vi.mock('@xenova/transformers', () => ({
+    pipeline: vi.fn(async () => {
+        return vi.fn(() => ({
             data: new Float32Array([1, 2, 3])
         }));
-    });
-    return transformers;
-});
+    }),
+    env: {},
+}));
+
+const {default: SystemFactory} = await import('../../core/system/SystemFactory.js');
 
 describe('System-level Contradiction Resolution', () => {
     let system;
 
-    beforeEach(async () => {
+    beforeEach(() => {
         const customConfig = {
             reasoner: {
-                strategy: 'BruteForce'
+                strategy: 'BruteForceStrategy'
             },
             temporal: {
                 enabled: false
             }
         };
-        const configManager = new ConfigManager(customConfig);
-        system = await SystemFactory.createSystem(configManager);
+        system = SystemFactory.createSystem(customConfig);
     });
 
     afterEach(() => {
-        system.stop();
+        if (system) {
+            system.stop();
+        }
     });
 
     test('should detect and propose a resolution for a direct contradiction', async () => {

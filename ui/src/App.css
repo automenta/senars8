@@ -1,0 +1,227 @@
+/* General App Layout */
+:root {
+    --header-height: 50px;
+    --gap: 1rem;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.app-header {
+    height: var(--header-height);
+    background-color: var(--bg-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: var(--text-primary);
+}
+
+.app-header h1 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 500;
+}
+
+.header-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Responsive design improvements */
+@media (max-width: 768px) {
+    .app-container {
+        height: 100vh;
+    }
+
+    .app-header {
+        padding: 0 10px;
+    }
+
+    .app-header h1 {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .app-header h1 {
+        font-size: 1rem;
+    }
+}
+
+.app-header h1 {
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.app-main {
+    flex-grow: 1;
+    padding: var(--gap);
+    overflow: hidden;
+}
+
+/* Grid Layout */
+.main-grid {
+    display: grid;
+    height: 100%;
+    grid-template-columns: 1fr 2fr;
+    grid-template-rows: auto 1fr 1fr;
+    gap: var(--gap);
+    grid-template-areas:
+        "top-left top-right"
+        "middle-left middle-right"
+        "bottom-left bottom-right";
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 1024px) {
+    .main-grid {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "top-left"
+            "top-right"
+            "middle-left"
+            "middle-right"
+            "bottom-left"
+            "bottom-right";
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --header-height: 40px;
+        --gap: 0.5rem;
+    }
+
+    .app-header h1 {
+        font-size: 1.2rem;
+    }
+
+    .main-grid {
+        gap: calc(var(--gap) / 2);
+    }
+}
+
+.grid-top-left {
+    grid-area: top-left;
+}
+
+.grid-top-right {
+    grid-area: top-right;
+}
+
+.grid-middle-left {
+    grid-area: middle-left;
+}
+
+.grid-middle-right {
+    grid-area: middle-right;
+}
+
+.grid-bottom-left {
+    grid-area: bottom-left;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+}
+
+.grid-bottom-right {
+    grid-area: bottom-right;
+}
+
+
+/* Component-specific styles */
+
+/* Input Panel */
+.input-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.input-wrapper textarea {
+    flex-grow: 1;
+    width: 100%;
+    background-color: #252526;
+    border: 1px solid #3a3a3a;
+    color: #d4d4d4;
+    border-radius: 4px;
+    padding: 0.5rem;
+    resize: none;
+    margin-bottom: 0.5rem;
+}
+
+.input-wrapper button {
+    align-self: flex-end;
+}
+
+/* Log Panel */
+.log-container {
+    background-color: #252526;
+    padding: 0.5rem;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0;
+    height: 100%;
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+.log-message {
+    margin-bottom: 4px;
+}
+
+.log-time {
+    color: #888;
+    margin-right: 8px;
+}
+
+.log-source {
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+.log-user .log-source {
+    color: #9cdcfe;
+}
+
+.log-agent .log-source {
+    color: #ce9178;
+}
+
+.log-system .log-source {
+    color: #dcdcaa;
+}
+
+
+/* General element styling */
+button {
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    border: 1px solid #555;
+    background-color: #444;
+    color: #eee;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+button:hover {
+    background-color: #5a5a5a;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

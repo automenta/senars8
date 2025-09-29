@@ -3,24 +3,11 @@
 import fs from 'fs';
 import path from 'path';
 import readline from 'readline';
-import { URL } from 'url';
+import {URL} from 'url';
+import anside from '../../common/anside.js';
+import {printBanner} from '../../common/ui.js';
 
 const DEMO_DIR = path.dirname(new URL(import.meta.url).pathname);
-
-const anside = {
-    reset: "\x1b[0m",
-    bright: "\x1b[1m",
-    dim: "\x1b[2m",
-    underscore: "\x1b[4m",
-    fg: {
-        red: "\x1b[31m",
-        green: "\x1b[32m",
-        yellow: "\x1b[33m",
-        blue: "\x1b[34m",
-        magenta: "\x1b[35m",
-        cyan: "\x1b[36m",
-    },
-};
 
 function getDemoFiles() {
     const files = fs.readdirSync(DEMO_DIR)
@@ -53,12 +40,17 @@ function getDemoFiles() {
 
 async function runDemo(demoFile) {
     try {
-        console.log(`\n${anside.bright}${anside.fg.cyan}=== Running ${demoFile} ===${anside.reset}`);
+        printBanner(`Running: ${demoFile}`, {
+            width: 80
+        });
         const demoPath = path.join(DEMO_DIR, demoFile);
         const demoModule = await import(demoPath);
         const demoFunction = demoModule.default || (Object.values(demoModule)[0]);
         await demoFunction();
-        console.log(`\n${anside.bright}${anside.fg.cyan}=== Finished ${demoFile} ===${anside.reset}`);
+        printBanner(`Finished: ${demoFile}`, {
+            width: 80,
+            isFooter: true
+        });
     } catch (error) {
         console.error(`${anside.fg.red}Error running ${demoFile}:${anside.reset}`, error.message);
     }
@@ -66,9 +58,9 @@ async function runDemo(demoFile) {
 
 function displayMenu(categorizedDemos) {
     console.clear();
-    console.log(`${anside.bright}${anside.fg.cyan}================================================================================${anside.reset}`);
-    console.log(`${anside.bright}${anside.fg.yellow}                      SeNARS Cognitive System Demo Runner                       ${anside.reset}`);
-    console.log(`${anside.bright}${anside.fg.cyan}================================================================================${anside.reset}`);
+    printBanner('SeNARS Cognitive System Demo Runner', {
+        width: 80
+    });
 
     let demoIndex = 1;
     const demoMap = new Map();

@@ -1,8 +1,8 @@
 // Category: Reasoning
 // Description: Demonstrates advanced truth value revision mechanisms.
 
-import {runDemo} from '../../shared/demo-utils.js';
-import {info} from '../../src/utils/logger.js';
+import {runSystem} from '../../utils/runner.js';
+import {info} from '../../common/services/Logger.js';
 
 async function advancedTruthValueRevisionDemo(options = {}) {
     const taskDefs = [
@@ -28,7 +28,7 @@ async function advancedTruthValueRevisionDemo(options = {}) {
     };
 
     const mergedOptions = {...defaultOptions, ...options};
-    return await runDemo('Advanced Truth Value Revision Demo', taskDefs, mergedOptions);
+    return await runSystem('Advanced Truth Value Revision Demo', taskDefs, mergedOptions);
 }
 
 export default advancedTruthValueRevisionDemo;

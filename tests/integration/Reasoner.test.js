@@ -1,27 +1,18 @@
-import Reasoner from '../../src/reasoner/Reasoner.js';
-import Memory from '../../src/memory/Memory.js';
-import Task from '../../src/core/Task.js';
-import Term from '../../src/core/Term.js';
-import {parseTerm} from '../../src/parser/narseseParser.js';
-import LM from '../../src/lm/LM.js';
-import ConfigManager from '../../src/config/ConfigManager.js';
+import {beforeEach, describe, expect, test, vi} from 'vitest';
+import Task from '../../core/core/Task.js';
+import Term from '../../core/core/Term.js';
+import {parseTerm} from '../../core/parser/narseseParser.js';
 
-jest.mock('../../src/lm/LM.js');
-jest.mock('@xenova/transformers', () => {
-    const transformers = jest.createMockFromModule('@xenova/transformers');
-    transformers.pipeline = jest.fn(async () =>
-        jest.fn(() => ({
+vi.mock('@xenova/transformers', () => ({
+    pipeline: vi.fn(async () =>
+        vi.fn(() => ({
             data: new Float32Array([1, 2, 3])
         }))
-    );
-    return transformers;
-});
+    ),
+    env: {},
+}));
 
-const createTestConfig = () => new ConfigManager({
-    reasoner: {
-        strategy: 'BruteForce'
-    }
-});
+const {default: SystemFactory} = await import('../../core/system/SystemFactory.js');
 
 const createTerm = async (lm, memory, termKey) => {
     const term = await lm.bootstrapTerm(termKey);
@@ -30,14 +21,18 @@ const createTerm = async (lm, memory, termKey) => {
 };
 
 describe('Reasoner Integration Test', () => {
-    let reasoner, memory, lm;
+    let system, reasoner, memory, lm;
 
     beforeEach(() => {
-        const configManager = createTestConfig();
-        memory = new Memory(configManager);
-        lm = new LM(configManager);
-        reasoner = new Reasoner({}, configManager);
-        lm.bootstrapTerm.mockImplementation(async termKey => new Term(termKey, [], 1));
+        system = SystemFactory.createSystem({
+            reasoner: {
+                strategy: 'BruteForce'
+            }
+        });
+        reasoner = system.reasoner;
+        memory = system.memory;
+        lm = system.lm;
+        vi.spyOn(lm, 'bootstrapTerm').mockImplementation(async termKey => new Term(termKey, [], 1));
     });
 
     test('should perform modus ponens', async () => {

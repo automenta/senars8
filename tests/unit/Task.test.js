@@ -1,15 +1,16 @@
-import Task from '../../src/core/Task.js';
-import Term from '../../src/core/Term.js';
+import Task from '../../core/core/Task.js';
 
-jest.mock('../../src/core/Term.js', () => {
-    return jest.fn().mockImplementation(key => ({
+vi.mock('../../core/core/Term.js', () => ({
+    default: vi.fn().mockImplementation(key => ({
         key
-    }));
-});
+    })),
+}));
+
+const {default: Term} = await import('../../core/core/Term.js');
 
 describe('Task', () => {
     beforeEach(() => {
-        Term.mockClear();
+        vi.mocked(Term).mockClear();
     });
 
     test('should create a new Task object', () => {

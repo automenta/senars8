@@ -1,7 +1,7 @@
 // Category: Reasoning
 // Description: Demonstrates the system's ability to perform mathematical inference.
 
-import {runDemo} from '../../shared/demo-utils.js';
+import {runSystem} from '../../utils/runner.js';
 
 /**
  * A unified demo that demonstrates mathematical inference capabilities.
@@ -40,7 +40,7 @@ async function mathInferenceDemo(options = {}) {
     const mergedOptions = {...defaultOptions, ...options};
 
     // Run the demo using the shared utility
-    return await runDemo('Math Inference Demo', taskDefs, mergedOptions);
+    return await runSystem('Math Inference Demo', taskDefs, mergedOptions);
 }
 
 export default mathInferenceDemo;

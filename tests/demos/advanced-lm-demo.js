@@ -1,8 +1,8 @@
 // Category: Language Model
 // Description: Demonstrates advanced language model integration capabilities.
 
-import {runDemo} from '../../shared/demo-utils.js';
-import {info} from '../../src/utils/logger.js';
+import {runSystem} from '../../utils/runner.js';
+import {info} from '../../common/services/Logger.js';
 
 async function advancedLMDemo(options = {}) {
     const taskDefs = [
@@ -29,7 +29,7 @@ async function advancedLMDemo(options = {}) {
     };
 
     const mergedOptions = {...defaultOptions, ...options};
-    return await runDemo('Advanced LM Demo', taskDefs, mergedOptions);
+    return await runSystem('Advanced LM Demo', taskDefs, mergedOptions);
 }
 
 export default advancedLMDemo;

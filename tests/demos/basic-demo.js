@@ -1,7 +1,7 @@
 // Category: Core Reasoning
 // Description: A basic demonstration of the system's core reasoning capabilities, including deduction and inheritance.
 
-import {runDemo} from '../../shared/demo-utils.js';
+import {runSystem} from '../../utils/runner.js';
 
 /**
  * A unified demo that demonstrates basic reasoning capabilities.
@@ -38,7 +38,7 @@ async function basicDemo(options = {}) {
     const mergedOptions = {...defaultOptions, ...options};
 
     // Run the demo using the shared utility
-    return await runDemo('Basic Demo', taskDefs, mergedOptions);
+    return await runSystem('Basic Demo', taskDefs, mergedOptions);
 }
 
 export default basicDemo;

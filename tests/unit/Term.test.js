@@ -1,6 +1,6 @@
-import Term from '../../src/core/Term.js';
-import { structuralSimilarity, findSimilarTerms } from '../../src/core/TermUtils.js';
-import EmbeddingStore from '../../src/utils/embeddingStore.js';
+import Term from '../../core/core/Term.js';
+import {findSimilarTerms, structuralSimilarity} from '../../core/core/TermUtils.js';
+import EmbeddingStore from '../../core/utils/embeddingStore.js';
 
 describe('Term', () => {
     afterEach(() => {

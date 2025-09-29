@@ -1,7 +1,7 @@
-import {analyzeNegationConflict, analyzeSetLikeConflict} from '../../../../src/reasoner/strategies/detection/utils.js';
-import Term from '../../../../src/core/Term.js';
-import Task from '../../../../src/core/Task.js';
-import {CONTRADICTION_TYPES} from '../../../../src/reasoner/contradiction-types.js';
+import {analyzeNegationConflict, analyzeSetLikeConflict} from '../../../../core/reasoner/strategies/detection/utils.js';
+import Term from '../../../../core/core/Term.js';
+import Task from '../../../../core/core/Task.js';
+import {CONTRADICTION_TYPES} from '../../../../core/reasoner/contradiction-types.js';
 
 describe('Detection Strategy Utils', () => {
     describe('analyzeNegationConflict', () => {

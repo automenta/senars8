@@ -2,7 +2,7 @@ const {
     SystemFactory,
     Task,
     parseTerm
-} = require('../../src/index');
+} = require('../../core/index');
 
 async function testNewFunctionality() {
     console.log('Testing new System functionality...');
@@ -50,7 +50,7 @@ async function testNewFunctionality() {
             frequency: 0.95,
             confidence: 0.85
         };
-        const revisedTruthValue = await system.components.memory.reviseTruthValue(birdAnimalTask.id, newEvidence, 0.7);
+        const revisedTruthValue = system.components.memory.reviseTruthValue(birdAnimalTask.id, newEvidence, 0.7);
         console.log('Revised truth value:', revisedTruthValue);
         const updatedTask = system.components.memory.query({
             term: parseTerm('(bird --> animal)')

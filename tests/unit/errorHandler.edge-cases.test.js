@@ -1,60 +1,48 @@
 import {
-    createInferenceError,
-    createMemoryError,
+    createError,
     createModuleErrorHandler,
-    createParseError,
-    createPlanningError,
-    createValidationError,
-    handleError,
-    handleErrorWithDefault,
-    InferenceError,
-    isInferenceError,
-    isMemoryError,
-    isParseError,
-    isPlanningError,
-    isValidationError,
-    MemoryError,
-    ParseError,
-    PlanningError,
+    Errors,
+    isError,
     safeAsync,
-    safeSync,
-    ValidationError
-} from '../../src/utils/errorHandler.js';
+    safeSync
+} from '../../core/utils/errorHandler.js';
 
 describe('Error Handler - Edge Cases', () => {
-    test('should handle null and undefined errors', async () => {
-        // Test handleError with null error
-        expect(() => handleError(null, 'test context')).toThrow();
+    const testHandler = createModuleErrorHandler('TestModule');
 
-        // Test handleErrorWithDefault with null error
-        const result1 = handleErrorWithDefault(null, 'test context', 'default');
+    test('should handle null and undefined errors', async () => {
+        // Test handle with null error
+        expect(() => testHandler.handle(null, 'test context')).toThrow();
+
+        // Test handleWithDefault with null error
+        const result1 = testHandler.handleWithDefault(null, 'test context', 'default');
         expect(result1).toBe('default');
 
-        // Test safeAsync with null operation
-        const result2 = await safeAsync(null, 'test context', 'default');
+        // Test safeAsync with an operation that throws null
+        const result2 = await safeAsync(async () => { throw null; }, 'test context', 'default');
         expect(result2).toBe('default');
 
-        // Test safeSync with null operation
-        const result3 = safeSync(null, 'test context', 'default');
+        // Test safeSync with an operation that throws null
+        const result3 = safeSync(() => { throw null; }, 'test context', 'default');
         expect(result3).toBe('default');
     });
 
     test('should handle error context correctly', () => {
         const error = new Error('test error');
-        const context = 'TestModule.testFunction';
+        const context = 'testFunction';
 
         // Test that context is added to error message
-        expect(() => handleError(error, context)).toThrow('[TestModule.testFunction] test error');
+        expect(() => testHandler.handle(error, context)).toThrow('[TestModule.testFunction] test error');
     });
 
     test('should handle empty context', () => {
         const error = new Error('test error');
 
-        // Test handleError with empty context
-        expect(() => handleError(error, '')).toThrow('test error');
+        // Test handle with empty context
+        expect(() => testHandler.handle(error, '')).toThrow('[TestModule.] test error');
 
-        // Test handleErrorWithDefault with empty context
-        const result = handleErrorWithDefault(error, '', 'default');
+        // Test handleWithDefault with empty context
+        const result = testHandler.handleWithDefault(error, '', 'default');
         expect(result).toBe('default');
     });
 
@@ -62,63 +50,63 @@ describe('Error Handler - Edge Cases', () => {
         const context = 'TestContext';
 
         // Test ValidationError
-        const validationError = createValidationError('validation failed', context);
-        expect(validationError).toBeInstanceOf(ValidationError);
+        const validationError = createError.ValidationError('validation failed', context);
+        expect(validationError).toBeInstanceOf(Errors.ValidationError);
         expect(validationError.context).toBe(context);
 
         // Test ParseError
-        const parseError = createParseError('parse failed', context);
-        expect(parseError).toBeInstanceOf(ParseError);
+        const parseError = createError.ParseError('parse failed', context);
+        expect(parseError).toBeInstanceOf(Errors.ParseError);
         expect(parseError.context).toBe(context);
 
         // Test InferenceError
-        const inferenceError = createInferenceError('inference failed', context);
-        expect(inferenceError).toBeInstanceOf(InferenceError);
+        const inferenceError = createError.InferenceError('inference failed', context);
+        expect(inferenceError).toBeInstanceOf(Errors.InferenceError);
         expect(inferenceError.context).toBe(context);
 
         // Test PlanningError
-        const planningError = createPlanningError('planning failed', context);
-        expect(planningError).toBeInstanceOf(PlanningError);
+        const planningError = createError.PlanningError('planning failed', context);
+        expect(planningError).toBeInstanceOf(Errors.PlanningError);
         expect(planningError.context).toBe(context);
 
         // Test MemoryError
-        const memoryError = createMemoryError('memory failed', context);
-        expect(memoryError).toBeInstanceOf(MemoryError);
+        const memoryError = createError.MemoryError('memory failed', context);
+        expect(memoryError).toBeInstanceOf(Errors.MemoryError);
         expect(memoryError.context).toBe(context);
     });
 
     test('should handle error type checking', () => {
-        const validationError = new ValidationError('validation error');
-        const parseError = new ParseError('parse error');
-        const inferenceError = new InferenceError('inference error');
-        const planningError = new PlanningError('planning error');
-        const memoryError = new MemoryError('memory error');
+        const validationError = new Errors.ValidationError('validation error');
+        const parseError = new Errors.ParseError('parse error');
+        const inferenceError = new Errors.InferenceError('inference error');
+        const planningError = new Errors.PlanningError('planning error');
+        const memoryError = new Errors.MemoryError('memory error');
         const genericError = new Error('generic error');
 
         // Test validation error checking
-        expect(isValidationError(validationError)).toBe(true);
-        expect(isValidationError(parseError)).toBe(false);
-        expect(isValidationError(genericError)).toBe(false);
+        expect(isError.isValidationError(validationError)).toBe(true);
+        expect(isError.isValidationError(parseError)).toBe(false);
+        expect(isError.isValidationError(genericError)).toBe(false);
 
         // Test parse error checking
-        expect(isParseError(parseError)).toBe(true);
-        expect(isParseError(validationError)).toBe(false);
-        expect(isParseError(genericError)).toBe(false);
+        expect(isError.isParseError(parseError)).toBe(true);
+        expect(isError.isParseError(validationError)).toBe(false);
+        expect(isError.isParseError(genericError)).toBe(false);
 
         // Test inference error checking
-        expect(isInferenceError(inferenceError)).toBe(true);
-        expect(isInferenceError(parseError)).toBe(false);
-        expect(isInferenceError(genericError)).toBe(false);
+        expect(isError.isInferenceError(inferenceError)).toBe(true);
+        expect(isError.isInferenceError(parseError)).toBe(false);
+        expect(isError.isInferenceError(genericError)).toBe(false);
 
         // Test planning error checking
-        expect(isPlanningError(planningError)).toBe(true);
-        expect(isPlanningError(inferenceError)).toBe(false);
-        expect(isPlanningError(genericError)).toBe(false);
+        expect(isError.isPlanningError(planningError)).toBe(true);
+        expect(isError.isPlanningError(inferenceError)).toBe(false);
+        expect(isError.isPlanningError(genericError)).toBe(false);
 
         // Test memory error checking
-        expect(isMemoryError(memoryError)).toBe(true);
-        expect(isMemoryError(planningError)).toBe(false);
-        expect(isMemoryError(genericError)).toBe(false);
+        expect(isError.isMemoryError(memoryError)).toBe(true);
+        expect(isError.isMemoryError(planningError)).toBe(false);
+        expect(isError.isMemoryError(genericError)).toBe(false);
     });
 
     test('should handle module error handler edge cases for safeAsync', async () => {
@@ -150,20 +138,19 @@ describe('Error Handler - Edge Cases', () => {
     });
 
     test('should handle nested error handling', () => {
-        // Test error handling within error handling
         const innerError = new Error('inner error');
         const outerContext = 'OuterContext';
         const innerContext = 'InnerContext';
 
-        // This should not cause infinite recursion and should preserve the original context
         expect(() => {
             try {
-                handleError(innerError, innerContext);
+                const innerHandler = createModuleErrorHandler('InnerModule');
+                innerHandler.handle(innerError, innerContext);
             } catch (caughtError) {
-                // The second call to handleError should not add a new context
-                handleError(caughtError, outerContext);
+                const outerHandler = createModuleErrorHandler('OuterModule');
+                outerHandler.handle(caughtError, outerContext);
             }
-        }).toThrow('[InnerContext] inner error');
+        }).toThrow('[InnerModule.InnerContext] inner error');
     });
 
     test('should handle very long error messages', () => {
@@ -171,16 +158,15 @@ describe('Error Handler - Edge Cases', () => {
         const error = new Error(longMessage);
 
         // Should handle without issues
-        expect(() => handleError(error, 'test')).toThrow(longMessage);
+        expect(() => testHandler.handle(error, 'test')).toThrow(longMessage);
     });
 
     test('should handle error objects with circular references', () => {
         const error = new Error('circular error');
-        // Create circular reference
         error.self = error;
 
         // Should handle without infinite recursion
-        expect(() => handleError(error, 'test')).toThrow('circular error');
+        expect(() => testHandler.handle(error, 'test')).toThrow('circular error');
     });
 
     test('should preserve original stack traces', () => {
@@ -188,9 +174,8 @@ describe('Error Handler - Edge Cases', () => {
         const _originalStack = error.stack;
 
         try {
-            handleError(error, 'test context');
+            testHandler.handle(error, 'test context');
         } catch (handledError) {
-            // Should preserve original stack or create originalStack property
             expect(handledError.stack || handledError.originalStack).toBeDefined();
         }
     });
