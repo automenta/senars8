@@ -1,6 +1,7 @@
-import Task from '../core/Task.js';
-import {parseTerm} from '../parser/narseseParser.js';
-import config from '../config/index.js';
+import Task from '../../core/Task.js';
+import {parseTerm} from '../../parser/narseseParser.js';
+import config from '../../config/index.js';
+import {validateTruthValueInner} from '../validation.js';
 
 function groupTasksByTermKey(tasks) {
     return tasks.reduce((groups, task) => {
@@ -134,6 +135,19 @@ function createTemporalClusterAbstractions(clusters) {
 function _createImplicationTask(termKey, truthValue) {
     const parsedTerm = parseTerm(termKey);
     return parsedTerm ? new Task(parsedTerm, '.', truthValue) : null;
+}
+
+function _createImplicationTaskInner(termKey, truthValue) {
+    // For inner operations, return null instead of throwing for invalid inputs
+    try {
+        if (!termKey || typeof termKey !== 'string') return null;
+        if (!validateTruthValueInner(truthValue)) return null;
+
+        const parsedTerm = parseTerm(termKey);
+        return parsedTerm ? new Task(parsedTerm, '.', truthValue) : null;
+    } catch {
+        return null;
+    }
 }
 
 function inferTemporalImplications(task1, task2) {
