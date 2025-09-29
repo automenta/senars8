@@ -6,7 +6,7 @@ import * as validation from '../utils/validation.js';
 import BaseEntity from './BaseEntity.js';
 import {isNonEmptyArray} from '../utils/collections/index.js';
 import createKeyBuilder from '../parser/key-builders/index.js';
-import {warn} from '../../common/services/Logger.js';
+import {warn} from '../utils/logger.js';
 import config from '../config/index.js';
 import InstanceManager from '../utils/InstanceManager.js';
 

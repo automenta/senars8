@@ -3,7 +3,7 @@ import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
 import TruthValueManager from '../reasoner/TruthValueManager.js';
 import * as validation from '../utils/validation.js';
-import {warn} from '../../common/services/Logger.js';
+import {warn} from '../utils/logger.js';
 import BaseEntity from './BaseEntity.js';
 import InstanceManager from '../utils/InstanceManager.js';
 
