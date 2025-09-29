@@ -4,6 +4,7 @@ import systemSchema from './schemas/systemSchema.js';
 import memorySchema from './schemas/memorySchema.js';
 import plannerSchema from './schemas/plannerSchema.js';
 import actionSchema from './schemas/actionSchema.js';
+import performanceSchema from './schemas/performanceSchema.js';
 
 // Combine all schemas into one
 const configSchema = {
@@ -11,7 +12,8 @@ const configSchema = {
     ...systemSchema,
     ...memorySchema,
     ...plannerSchema,
-    ...actionSchema
+    ...actionSchema,
+    ...performanceSchema
 };
 
 function validateConfigValue(value, schema, path) {

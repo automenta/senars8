@@ -1,26 +1,7 @@
 import SystemFactory from '../core/system/SystemFactory.js';
 import Task from '../core/core/Task.js';
-import {anside, debug} from '../common/services/Logger.js';
-
-/**
- * Prints a visually appealing header for a system run.
- * @param {string} title - The title of the run.
- */
-function printHeader(title) {
-    console.log(`\n${anside.bright}${anside.fg.cyan}================================================================================${anside.reset}`);
-    console.log(`${anside.bright}${anside.fg.yellow}                      🚀 Starting: ${title}                       ${anside.reset}`);
-    console.log(`${anside.bright}${anside.fg.cyan}================================================================================${anside.reset}`);
-}
-
-/**
- * Prints a visually appealing footer for a system run.
- * @param {string} title - The title of the run.
- */
-function printFooter(title) {
-    console.log(`\n${anside.bright}${anside.fg.cyan}================================================================================${anside.reset}`);
-    console.log(`${anside.bright}${anside.fg.yellow}                      ✅ Completed: ${title}                      ${anside.reset}`);
-    console.log(`${anside.bright}${anside.fg.cyan}================================================================================${anside.reset}\n`);
-}
+import {debug} from '../common/services/Logger.js';
+import {printBanner} from '../common/ui.js';
 
 /**
  * A robust, standardized runner for executing system demonstrations, benchmarks, and tests.
@@ -50,7 +31,7 @@ async function runSystem(title, taskDefs, {
     verify = null,
     strategiesPath = undefined
 } = {}) {
-    printHeader(title);
+    printBanner(`🚀 Starting: ${title}`, {width: 80});
 
     const system = existingSystem || SystemFactory.createSystem(config, components, strategiesPath);
     if (!existingSystem) {
@@ -85,7 +66,10 @@ async function runSystem(title, taskDefs, {
         debug('Verification completed.');
     }
 
-    printFooter(title);
+    printBanner(`✅ Completed: ${title}`, {
+        width: 80,
+        isFooter: true
+    });
     return result;
 }
 

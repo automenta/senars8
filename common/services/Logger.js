@@ -126,21 +126,10 @@ export const warn = logger.warn.bind(logger);
 export const debug = logger.debug.bind(logger);
 export const trace = logger.trace.bind(logger);
 
-// ANSI escape codes for styling console output
-export const anside = {
-    reset: "\x1b[0m",
-    bright: "\x1b[1m",
-    dim: "\x1b[2m",
-    underscore: "\x1b[4m",
-    fg: {
-        red: "\x1b[31m",
-        green: "\x1b[32m",
-        yellow: "\x1b[33m",
-        blue: "\x1b[34m",
-        magenta: "\x1b[35m",
-        cyan: "\x1b[36m",
-    },
-};
+import anside from '../anside.js';
+
+// Export anside so it can be used by other modules
+export {anside};
 
 // Export as default
 export default logger;

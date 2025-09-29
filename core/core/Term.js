@@ -1,51 +1,14 @@
 import {parseTerm} from '../parser/parse-utils.js';
 import {embeddingsEqual} from '../utils/math.js';
 import EmbeddingStore from '../utils/embeddingStore.js';
-import {OP, REL} from '../config/constants.js';
+import {OP} from '../config/constants.js';
 import * as validation from '../utils/validation.js';
 import BaseEntity from './BaseEntity.js';
 import {isNonEmptyArray} from '../utils/collections/index.js';
-import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
-
-const errorHandler = createUnifiedErrorHandler('Term');
-
-// Key builder helpers
-const termKeyInfix = (pTerm, op, silent) => `(${Term.termKey(pTerm.subject, silent)} ${op} ${Term.termKey(pTerm.predicate, silent)})`;
-const termList = (terms, silent) => (terms?.length ? terms.map(t => Term.termKey(t, silent)).join(',') : '');
-const unaryOp = (op, pTerm, silent) => `(${op}${Term.termKey(pTerm.term, silent)})`;
-const listOp = (op, pTerm, silent) => `(${op}${termList(pTerm.terms || [], silent)})`;
-
-const keyBuilder = {
-    [OP.ATOMIC]: pTerm => pTerm.key,
-    [OP.INDEPENDENT_VARIABLE]: pTerm => pTerm.name,
-    [OP.DEPENDENT_VARIABLE]: pTerm => `#${pTerm.name}`,
-    [OP.QUERY_VARIABLE]: pTerm => `?${pTerm.name}`,
-    [OP.INHERITANCE]: (pTerm, silent) => termKeyInfix(pTerm, REL.INHERITANCE, silent),
-    [OP.IMPLICATION]: (pTerm, silent) => termKeyInfix(pTerm, REL.IMPLICATION, silent),
-    [OP.EQUIVALENCE]: (pTerm, silent) => termKeyInfix(pTerm, REL.EQUIVALENCE, silent),
-    [OP.SIMILARITY]: (pTerm, silent) => termKeyInfix(pTerm, REL.SIMILARITY, silent),
-    [OP.INSTANCE]: (pTerm, silent) => termKeyInfix(pTerm, REL.INSTANCE, silent),
-    [OP.PROPERTY]: (pTerm, silent) => termKeyInfix(pTerm, REL.PROPERTY, silent),
-    [OP.PREDICTIVE_IMPLICATION]: (pTerm, silent) => termKeyInfix(pTerm, REL.PREDICTIVE_IMPLICATION, silent),
-    [OP.RETROSPECTIVE_IMPLICATION]: (pTerm, silent) => termKeyInfix(pTerm, REL.RETROSPECTIVE_IMPLICATION, silent),
-    [OP.CONCURRENT_IMPLICATION]: (pTerm, silent) => termKeyInfix(pTerm, REL.CONCURRENT_IMPLICATION, silent),
-    [OP.UNTIL]: (pTerm, silent) => termKeyInfix(pTerm, 'until', silent),
-    [OP.SINCE]: (pTerm, silent) => termKeyInfix(pTerm, 'since', silent),
-    [OP.NEGATION]: (pTerm, silent) => unaryOp(REL.NEGATION, pTerm, silent),
-    [OP.ALWAYS]: (pTerm, silent) => unaryOp(REL.ALWAYS, pTerm, silent),
-    [OP.EVENTUALLY]: (pTerm, silent) => unaryOp(REL.EVENTUALLY, pTerm, silent),
-    [OP.NEXT]: (pTerm, silent) => unaryOp(REL.NEXT, pTerm, silent),
-    [OP.PREVIOUS]: (pTerm, silent) => unaryOp(REL.PREVIOUS, pTerm, silent),
-    [OP.CONJUNCTION]: (pTerm, silent) => listOp(REL.CONJUNCTION, pTerm, silent),
-    [OP.DISJUNCTION]: (pTerm, silent) => listOp(REL.DISJUNCTION, pTerm, silent),
-    [OP.SEQUENTIAL_CONJUNCTION]: (pTerm, silent) => listOp(REL.SEQUENTIAL_CONJUNCTION, pTerm, silent),
-    [OP.PARALLEL_CONJUNCTION]: (pTerm, silent) => listOp(REL.PARALLEL_CONJUNCTION, pTerm, silent),
-    [OP.EXTENSIONAL_DIFFERENCE]: (pTerm, silent) => listOp(REL.EXTENSIONAL_DIFFERENCE, pTerm, silent),
-    [OP.INTENSIONAL_DIFFERENCE]: (pTerm, silent) => listOp(REL.INTENSIONAL_DIFFERENCE, pTerm, silent),
-    [OP.PRODUCT]: (pTerm, silent) => listOp(REL.PRODUCT, pTerm, silent),
-    [OP.EXTENSIONAL_SET]: (pTerm, silent) => `{${termList(pTerm.terms || [], silent)}}`,
-    [OP.INTENSIONAL_SET]: (pTerm, silent) => `[${termList(pTerm.terms || [], silent)}]`,
-};
+import createKeyBuilder from '../parser/key-builders/index.js';
+import {warn} from '../../common/services/Logger.js';
+import config from '../config/index.js';
+import InstanceManager from '../utils/InstanceManager.js';
 
 class Term extends BaseEntity {
     #key;
@@ -53,6 +16,14 @@ class Term extends BaseEntity {
     #complexity;
     #structure;
     #componentCache;
+    static #keyBuilder = null;
+
+    static #getKeyBuilder() {
+        if (!Term.#keyBuilder) {
+            Term.#keyBuilder = createKeyBuilder((pTerm, silent) => Term.termKey(pTerm, silent));
+        }
+        return Term.#keyBuilder;
+    }
 
     constructor(key, embedding = [], complexity = 1) {
         super();
@@ -63,17 +34,27 @@ class Term extends BaseEntity {
             ? EmbeddingStore.store(key, embedding)
             : null;
         this.#complexity = complexity;
-        this.#structure = null;
+        this.#structure = undefined; // Use undefined to indicate not yet parsed
         this.#componentCache = {};
+
+        Object.defineProperties(this, {
+            subject: {
+                get: () => this.#getComponent('subject'),
+                enumerable: true,
+            },
+            predicate: {
+                get: () => this.#getComponent('predicate'),
+                enumerable: true,
+            },
+        });
     }
 
-    // Getters for private properties
+    // Getters
     get key() {
         return this.#key;
     }
 
     get embedding() {
-        // Retrieve embedding from shared store
         return this.#embeddingRef ? EmbeddingStore.get(this.#embeddingRef) || [] : [];
     }
 
@@ -86,82 +67,92 @@ class Term extends BaseEntity {
         return structure ? structure.type : OP.ATOMIC;
     }
 
-    get subject() {
-        return this.#getComponent('subject');
-    }
-
-    get predicate() {
-        return this.#getComponent('predicate');
-    }
-
     get terms() {
-        if (Object.hasOwn(this.#componentCache, 'terms')) return this.#componentCache.terms;
+        if (this.#componentCache.terms) return this.#componentCache.terms;
 
         const structure = this.#getStructure();
-        if (!structure?.terms) return (this.#componentCache.terms = null);
+        if (!structure?.terms) {
+            return (this.#componentCache.terms = null);
+        }
 
-        return errorHandler.executeSync(() => {
+        try {
             return (this.#componentCache.terms = structure.terms.map((term, i) => this.#getComponent(`term_${i}`, term)));
-        }, 'get-terms', null);
+        } catch (error) {
+            warn(`Error getting terms for ${this.#key}: ${error.message}`);
+            return (this.#componentCache.terms = null);
+        }
     }
 
+    // Static methods
     static termsEqual(term1, term2) {
-        return errorHandler.executeSync(() => {
-            if (term1 === term2) return true;
-            if (!term1 || !term2 || term1.key !== term2.key || term1.complexity !== term2.complexity) return false;
-
-            return embeddingsEqual(term1.embedding, term2.embedding);
-        }, 'termsEqual', false);
+        if (term1 === term2) return true;
+        if (!term1 || !term2 || term1.key !== term2.key || term1.complexity !== term2.complexity) return false;
+        return embeddingsEqual(term1.embedding, term2.embedding);
     }
 
     static fromJSON(json) {
-        return errorHandler.executeSync(() => {
-            return json?.key ? new Term(json.key, json.embedding, json.complexity) : null;
-        }, 'fromJSON', null);
+        if (!json?.key) return null;
+
+        if (config.performance.ENABLE_INSTANCE_SHARING && InstanceManager.has(json.key)) {
+            return InstanceManager.get(json.key);
+        }
+
+        try {
+            const newTerm = new Term(json.key, json.embedding, json.complexity);
+            if (config.performance.ENABLE_INSTANCE_SHARING) {
+                InstanceManager.add(json.key, newTerm);
+            }
+            return newTerm;
+        } catch (error) {
+            warn(`Error creating Term from JSON: ${error.message}`);
+            return null;
+        }
     }
 
     static termKey(pTerm, silent = false) {
         if (!pTerm?.type) {
-            if (silent) return '';
-            return errorHandler.executeSync(() => '', 'termKey', '');
+            if (!silent) warn('termKey called with invalid pTerm');
+            return '';
         }
 
-        const builder = keyBuilder[pTerm.type];
-        if (builder) {
-            if (silent) {
-                try {
-                    return builder(pTerm, true);
-                } catch {
-                    return '';
-                }
-            }
-            return errorHandler.executeSync(() => builder(pTerm, false), 'termKey', '');
-        }
-
-        if (silent) return '';
-        throw new Error(`buildTermKey does not support type: ${pTerm.type}`);
-    }
-
-    static createInner(key, embedding = [], complexity = 1) {
-        // For inner operations, we just return null instead of throwing for invalid keys
-        if (typeof key !== 'string' || key.length === 0) {
-            return null;
+        const builder = Term.#getKeyBuilder()[pTerm.type];
+        if (!builder) {
+            if (!silent) throw new Error(`buildTermKey does not support type: ${pTerm.type}`);
+            return '';
         }
 
         try {
-            return new Term(key, embedding, complexity);
+            return builder(pTerm, silent);
+        } catch (error) {
+            if (!silent) warn(`Error building term key for type ${pTerm.type}: ${error.message}`);
+            return '';
+        }
+    }
+
+    static createInner(key, embedding = [], complexity = 1) {
+        if (typeof key !== 'string' || key.length === 0) return null;
+
+        if (config.performance.ENABLE_INSTANCE_SHARING && InstanceManager.has(key)) {
+            return InstanceManager.get(key);
+        }
+
+        try {
+            const newTerm = new Term(key, embedding, complexity);
+            if (config.performance.ENABLE_INSTANCE_SHARING) {
+                InstanceManager.add(key, newTerm);
+            }
+            return newTerm;
         } catch {
             return null;
         }
     }
 
+    // Public methods
     setEmbedding(embedding) {
-        errorHandler.executeSync(() => {
-            if (this.#embeddingRef) {
-                EmbeddingStore.release(this.#embeddingRef);
-            }
-            this.#embeddingRef = isNonEmptyArray(embedding) ? EmbeddingStore.store(this.#key, embedding) : null;
-        }, 'setEmbedding');
+        if (this.#embeddingRef) {
+            EmbeddingStore.release(this.#embeddingRef);
+        }
+        this.#embeddingRef = isNonEmptyArray(embedding) ? EmbeddingStore.store(this.#key, embedding) : null;
     }
 
     formatString() {
@@ -173,19 +164,19 @@ class Term extends BaseEntity {
     }
 
     clone() {
-        return errorHandler.executeSync(() => {
-            const cloned = super.clone();
-            cloned.#componentCache = {};
-            return cloned;
-        }, 'clone');
+        // When cloning, we don't create a new instance from scratch, but rather a shallow copy.
+        const cloned = new Term(this.#key, this.embedding, this.#complexity);
+        cloned.#componentCache = {}; // Reset cache for the clone
+        return cloned;
     }
 
+
     toJSON() {
-        return errorHandler.executeSync(() => ({
+        return {
             key: this.#key,
             embedding: this.embedding,
-            complexity: this.#complexity
-        }), 'toJSON');
+            complexity: this.#complexity,
+        };
     }
 
     toString() {
@@ -193,31 +184,27 @@ class Term extends BaseEntity {
     }
 
     hashCode() {
-        return errorHandler.executeSync(() => {
-            if (this._hashCode !== undefined) return this._hashCode;
-            let hash = 0;
-            for (let i = 0; i < this.#key.length; i++) {
-                hash = ((hash << 5) - hash) + this.#key.charCodeAt(i);
-                hash |= 0; // Convert to 32bit integer
-            }
-            return (this._hashCode = hash);
-        }, 'hashCode', 0);
+        if (this._hashCode !== undefined) return this._hashCode;
+        let hash = 0;
+        for (let i = 0; i < this.#key.length; i++) {
+            hash = ((hash << 5) - hash) + this.#key.charCodeAt(i);
+            hash |= 0; // Convert to 32bit integer
+        }
+        return (this._hashCode = hash);
     }
 
     destroy() {
-        errorHandler.executeSync(() => {
-            if (this.#embeddingRef) {
-                EmbeddingStore.release(this.#embeddingRef);
-                this.#embeddingRef = null;
-            }
-            this.#componentCache = {};
-            this.#structure = null;
-        }, 'destroy');
+        if (this.#embeddingRef) {
+            EmbeddingStore.release(this.#embeddingRef);
+            this.#embeddingRef = null;
+        }
+        this.#componentCache = {};
+        this.#structure = null;
     }
 
+    // Private methods
     #getStructure() {
-        if (this.#structure === null) {
-            // For inner operations, return null on failure instead of throwing
+        if (this.#structure === undefined) {
             try {
                 this.#structure = parseTerm(this.#key) || null;
             } catch {
@@ -237,9 +224,8 @@ class Term extends BaseEntity {
             return (this.#componentCache[componentName] = null);
         }
 
-        // For inner operations, return null on failure instead of going through error handler
         try {
-            const componentKey = Term.termKey(termStructure, true); // Use silent option
+            const componentKey = Term.termKey(termStructure, true);
             return (this.#componentCache[componentName] = componentKey ? Term.createInner(componentKey) : null);
         } catch {
             return (this.#componentCache[componentName] = null);
