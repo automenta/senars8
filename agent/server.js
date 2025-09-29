@@ -60,6 +60,20 @@ const createPriorityFilter = (priority) => (task) => {
     }
 };
 
+/**
+ * Utility function to create a composite filter that combines multiple filter functions
+ * @param {...Function} filters - Filter functions to combine
+ * @returns {Function} - A function that returns true if all filters pass
+ */
+const createCompositeFilter = (...filters) => (task) => {
+    for (const filter of filters) {
+        if (!filter(task)) {
+            return false;
+        }
+    }
+    return true;
+};
+
 const getSystemStats = () => {
     let systemStats = {
         cycleCount: 0,
@@ -404,13 +418,19 @@ async function handleMessage(message, ws) {
                 // Apply filters if provided
                 const {filter, priority} = payload;
                 let filteredTasks = allTasks;
-
+                
+                const activeFilters = [];
                 if (filter && filter !== 'all') {
-                    filteredTasks = filteredTasks.filter(createTaskFilter(filter));
+                    activeFilters.push(createTaskFilter(filter));
                 }
-
+                
                 if (priority && priority !== 'all') {
-                    filteredTasks = filteredTasks.filter(createPriorityFilter(priority));
+                    activeFilters.push(createPriorityFilter(priority));
+                }
+                
+                if (activeFilters.length > 0) {
+                    const combinedFilter = createCompositeFilter(...activeFilters);
+                    filteredTasks = filteredTasks.filter(combinedFilter);
                 }
 
                 ws.send(JSON.stringify({

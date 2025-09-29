@@ -3,6 +3,7 @@ import {filterByProperty} from './collections/index.js';
 import {createUnifiedErrorHandler} from './errorHandler.js';
 import {parseTerm} from '../parser/parse-utils.js';
 
+// Optimized task type checking functions
 const isBelief = task => task?.punctuation === '.';
 const isGoal = task => task?.punctuation === '!';
 const isQuestion = task => task?.punctuation === '?';
