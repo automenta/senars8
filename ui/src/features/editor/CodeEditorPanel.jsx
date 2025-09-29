@@ -3,7 +3,7 @@ import AceEditor from 'react-ace';
 import {useSharedState} from '@/context/useSharedState';
 import {useConnection} from '@/context/useConnection';
 import notificationService from '@/services/notificationService';
-import log from '@common/utils/logger';
+import log from '@core/utils/logger.js';
 import './NarseseMode'; // Import our custom Narsese mode
 import 'ace-builds/src-noconflict/mode-javascript';
 import 'ace-builds/src-noconflict/theme-monokai';

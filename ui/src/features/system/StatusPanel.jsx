@@ -3,7 +3,7 @@ import {Panel, SonificationToggle} from '@/components';
 import {useConnection} from '@/context/useConnection';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
-import log from '@common/utils/logger';
+import log from '@core/utils/logger.js';
 import {Activity, BarChart2, Database, RotateCcw, Server, Thermometer, Wifi, WifiOff, Zap} from 'lucide-react';
 import './StatusPanel.css';
 

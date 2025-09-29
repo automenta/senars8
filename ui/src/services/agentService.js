@@ -2,7 +2,7 @@ import * as Y from 'yjs';
 import {WebsocketProvider} from 'y-websocket';
 import ApiService from '@common/services/ApiService.js';
 import {CONFIG} from '@common/constants/config.js';
-import log from '@common/utils/logger.js';
+import log from '@core/utils/logger.js';
 
 /**
  * A high-level service for the UI that extends the base ApiService

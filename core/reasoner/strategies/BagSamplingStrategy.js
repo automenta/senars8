@@ -3,11 +3,50 @@ import BaseStrategy from './BaseStrategy.js';
 
 class BagSamplingStrategy extends BaseStrategy {
     static name = 'BagSampling';
+    #bagCache = new Map();
+    #cacheSizeLimit = 100;
 
-    constructor(samplingFactor = 2) {
+    constructor(samplingFactor = 2, cacheSizeLimit = 100) {
         super();
         this.samplingFactor = samplingFactor;
-        this._bagCache = new Map();
+        this.#cacheSizeLimit = cacheSizeLimit;
+    }
+
+    #getOrCreateBag(focusSet) {
+        const focusSetIds = focusSet.map(task => task.id).sort().join(',');
+        if (this.#bagCache.has(focusSetIds)) {
+            return this.#bagCache.get(focusSetIds);
+        }
+
+        const bag = new Bag(focusSet.length);
+        for (const task of focusSet) {
+            bag.put(task, task.state.priority);
+        }
+        bag.commit();
+
+        if (this.#bagCache.size < this.#cacheSizeLimit) {
+            this.#bagCache.set(focusSetIds, bag);
+        }
+
+        return bag;
+    }
+
+    * #sampleUniqueCombination(bag, arity) {
+        const combination = [];
+        const selectedIds = new Set();
+        const maxAttempts = arity * 2;
+
+        for (let attempts = 0; combination.length < arity && attempts < maxAttempts; attempts++) {
+            const task = bag.sample();
+            if (task && !selectedIds.has(task.id)) {
+                combination.push(task);
+                selectedIds.add(task.id);
+            }
+        }
+
+        if (combination.length === arity) {
+            yield combination;
+        }
     }
 
     * selectCombinations(focusSet, arity) {
@@ -15,52 +54,19 @@ class BagSamplingStrategy extends BaseStrategy {
             return;
         }
 
-        const focusSetIds = focusSet.map(task => task.id).sort().join(',');
-        const cacheKey = `${focusSetIds}:${arity}`;
-
-        let bag;
-        if (this._bagCache.has(cacheKey)) {
-            bag = this._bagCache.get(cacheKey);
-        } else {
-            bag = new Bag(focusSet.length);
-            for (const task of focusSet) {
-                bag.put(task, task.state.priority);
-            }
-            bag.commit();
-
-            if (this._bagCache.size < 100) {
-                this._bagCache.set(cacheKey, bag);
-            }
-        }
-
+        const bag = this.#getOrCreateBag(focusSet);
         if (bag.size() < arity) {
             return;
         }
 
         const numSamples = Math.ceil(focusSet.length * this.samplingFactor);
-
         for (let i = 0; i < numSamples; i++) {
-            const combination = [];
-            const ids = new Set();
-
-            let attempts = 0;
-            while (combination.length < arity && attempts < arity * 2) {
-                const task = bag.sample();
-                if (task && !ids.has(task.id)) {
-                    combination.push(task);
-                    ids.add(task.id);
-                }
-                attempts++;
-            }
-
-            if (combination.length === arity) {
-                yield combination;
-            }
+            yield* this.#sampleUniqueCombination(bag, arity);
         }
     }
 
     clearCache() {
-        this._bagCache.clear();
+        this.#bagCache.clear();
     }
 }
 

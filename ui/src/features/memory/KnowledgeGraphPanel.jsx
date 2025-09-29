@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
-import log from '@common/utils/logger';
+import log from '@core/utils/logger.js';
 import {Database, LayoutList, Network, RotateCcw, Search} from 'lucide-react';
 import {MESSAGE_TYPES, UI_CONSTANTS} from '@/constants/ui';
 import ReactFlow, {addEdge, Background, Controls, MarkerType, MiniMap, useEdgesState, useNodesState} from 'reactflow';

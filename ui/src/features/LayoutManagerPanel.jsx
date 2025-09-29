@@ -11,7 +11,7 @@ import {
 import {Download, RotateCcw, Save, Trash2, Upload} from 'lucide-react';
 import {Panel} from '@ui/components';
 import notificationService from '@/services/notificationService';
-import log from '@common/utils/logger';
+import log from '@core/utils/logger.js';
 import './LayoutManagerPanel.css';
 
 const LayoutManagerPanel = () => {

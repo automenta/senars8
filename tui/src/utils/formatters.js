@@ -1,4 +1,4 @@
-import {getTaskDisplayData} from '@common/utils/formatUtils.js';
+import { getTaskDisplayData } from '@common/formatUtils.js';
 import {appState} from '../modules/state.js';
 
 /**

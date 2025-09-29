@@ -3,7 +3,7 @@ import agentService from '@/services/agentService';
 import {
     createTaskFromStatement as coreCreateTask,
     validateNarseseStatement as coreValidate
-} from '@common/utils/coreUtils.js';
+} from '@core/utils/task-utils.js';
 
 const uiErrorHandler = createUnifiedErrorHandler('UI');
 

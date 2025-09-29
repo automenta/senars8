@@ -1,7 +1,7 @@
 import {EventEmitter} from 'events';
 import {CONFIG} from '@common/constants/config.js';
-import log from '@common/utils/logger';
-import {createWebSocket} from '@common/utils/network.js';
+import log from '@core/utils/logger.js';
+import {createWebSocket} from '@common/network.js';
 
 /**
  * A universal agent communication service that provides a robust, resilient

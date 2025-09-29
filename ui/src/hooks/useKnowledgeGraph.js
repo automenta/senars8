@@ -1,6 +1,6 @@
 import {useCallback, useState} from 'react';
 import {parseTerm} from '@core/parser/parse-utils.js';
-import log from '@common/utils/logger';
+import log from '@core/utils/logger.js';
 
 const useKnowledgeGraph = () => {
     const [nodes, setNodes] = useState([]);
