@@ -247,34 +247,32 @@ class Memory {
         }), 'getStatistics', {});
     }
 
-    getBeliefs() {
+    /**
+     * Private helper method to reduce duplication in task retrieval by punctuation.
+     * @param {string} punctuation - The punctuation character to filter tasks by ('.', '!', '?')
+     * @param {string} methodName - The name of the calling method for error reporting
+     * @returns {Array} - Array of tasks with the specified punctuation
+     */
+    _getTasksByPunctuation(punctuation, methodName) {
         return errorHandler.executeSync(() => {
-            const taskIds = this.indexer.punctuationIndex.get('.');
+            const taskIds = this.indexer.punctuationIndex.get(punctuation);
             if (!taskIds) return [];
             const allTasks = this.getAllTasks();
             const taskMap = new Map(allTasks.map(t => [t.id, t]));
             return [...taskIds].map(id => taskMap.get(id)).filter(Boolean);
-        }, 'getBeliefs', []);
+        }, methodName, []);
+    }
+
+    getBeliefs() {
+        return this._getTasksByPunctuation('.', 'getBeliefs');
     }
 
     getGoals() {
-        return errorHandler.executeSync(() => {
-            const taskIds = this.indexer.punctuationIndex.get('!');
-            if (!taskIds) return [];
-            const allTasks = this.getAllTasks();
-            const taskMap = new Map(allTasks.map(t => [t.id, t]));
-            return [...taskIds].map(id => taskMap.get(id)).filter(Boolean);
-        }, 'getGoals', []);
+        return this._getTasksByPunctuation('!', 'getGoals');
     }
 
     getQuestions() {
-        return errorHandler.executeSync(() => {
-            const taskIds = this.indexer.punctuationIndex.get('?');
-            if (!taskIds) return [];
-            const allTasks = this.getAllTasks();
-            const taskMap = new Map(allTasks.map(t => [t.id, t]));
-            return [...taskIds].map(id => taskMap.get(id)).filter(Boolean);
-        }, 'getQuestions', []);
+        return this._getTasksByPunctuation('?', 'getQuestions');
     }
 
     getRecentTasks(count = 10) {
