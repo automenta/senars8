@@ -149,17 +149,17 @@ const createModuleErrorHandler = (moduleName) => ({
         const fullContext = `${moduleName}.${context}`;
         return shouldThrow ? logAndThrow(error, fullContext) : logAndReturn(error, fullContext, null);
     },
-    
+
     handleWithDefault: (error, context, defaultValue = null) => {
         const fullContext = `${moduleName}.${context}`;
         logErrorWithContext(error, fullContext);
         return defaultValue;
     },
-    
+
     safeAsync: async (operation, context, defaultValue = null) => {
         return await safeAsync(operation, `${moduleName}.${context}`, defaultValue);
     },
-    
+
     safeSync: (operation, context, defaultValue = null) => {
         return safeSync(operation, `${moduleName}.${context}`, defaultValue);
     },
@@ -183,10 +183,10 @@ class UnifiedErrorHandler {
     handleWithDefault(error, context, defaultValue = null) {
         return this.handler.handleWithDefault(error, context, defaultValue);
     }
-    
+
     // Convenience methods
     async runAsync(operation, context, options = {}) {
-        const { defaultValue = null, rethrow = false } = options;
+        const {defaultValue = null, rethrow = false} = options;
         try {
             return await operation();
         } catch (error) {
@@ -197,9 +197,9 @@ class UnifiedErrorHandler {
             return this.handleWithDefault(error, context, defaultValue);
         }
     }
-    
+
     runSync(operation, context, options = {}) {
-        const { defaultValue = null, rethrow = false } = options;
+        const {defaultValue = null, rethrow = false} = options;
         try {
             return operation();
         } catch (error) {

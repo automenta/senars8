@@ -19,8 +19,9 @@ class DIPlugin {
      * Called when plugin is registered with container
      * @param {ExtendedDIContainer} container - The container instance
      */
-    onRegister(container) {}
-    
+    onRegister(container) {
+    }
+
     /**
      * Called before a service is registered
      * @param {string} name - Service name
@@ -29,26 +30,31 @@ class DIPlugin {
      * @param {object} options - Registration options
      * @returns {object} Modified registration parameters or null to continue normally
      */
-    preRegister(name, definition, dependencies, options) { return null; }
-    
+    preRegister(name, definition, dependencies, options) {
+        return null;
+    }
+
     /**
      * Called after a service is registered
      * @param {string} name - Service name
      */
-    postRegister(name) {}
-    
+    postRegister(name) {
+    }
+
     /**
      * Called before a service is resolved
      * @param {string} name - Service name to resolve
      */
-    preResolve(name) {}
-    
+    preResolve(name) {
+    }
+
     /**
      * Called after a service is resolved
      * @param {string} name - Service name that was resolved
      * @param {*} instance - The resolved instance
      */
-    postResolve(name, instance) {}
+    postResolve(name, instance) {
+    }
 }
 
 class ExtendedDIContainer {
@@ -184,10 +190,10 @@ class ExtendedDIContainer {
         }
 
         const resolvedDependencies = service.dependencies.map(dep => this.get(dep, resolving));
-        
+
         // Cache the resolved dependencies
         this.dependencyGraph.set(name, resolvedDependencies);
-        
+
         return resolvedDependencies;
     }
 
@@ -225,7 +231,7 @@ class ExtendedDIContainer {
             errorHandler.handleWithDefault(err, 'loadModulesFromDirectory');
         }
     }
-    
+
     /**
      * Check if a service exists in the container
      * @param {string} name - The name of the service to check
@@ -234,7 +240,7 @@ class ExtendedDIContainer {
     has(name) {
         return this.services.has(name);
     }
-    
+
     /**
      * Remove a service from the container
      * @param {string} name - The name of the service to remove
@@ -246,7 +252,7 @@ class ExtendedDIContainer {
         this.services.delete(name);
         this.dependencyGraph.delete(name);
     }
-    
+
     /**
      * Get all registered service names
      * @returns {string[]} Array of service names

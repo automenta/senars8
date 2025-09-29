@@ -9,37 +9,44 @@ class EventBusPlugin {
      * Called when plugin is registered with bus
      * @param {ExtendedEventBus} bus - The event bus instance
      */
-    onRegister(bus) {}
-    
+    onRegister(bus) {
+    }
+
     /**
      * Called before an event is emitted
      * @param {string} eventName - Name of event being emitted
      * @param {*} data - Event data
      * @returns {object} Modified event data or null to continue normally
      */
-    preEmit(eventName, data) { return null; }
-    
+    preEmit(eventName, data) {
+        return null;
+    }
+
     /**
      * Called after an event is emitted
      * @param {string} eventName - Name of emitted event
      * @param {*} data - Event data
      */
-    postEmit(eventName, data) {}
-    
+    postEmit(eventName, data) {
+    }
+
     /**
      * Called before a listener is registered
      * @param {string} eventName - Event name
      * @param {Function} callback - Listener callback
      * @returns {Function} Modified callback or null to continue normally
      */
-    preOn(eventName, callback) { return null; }
-    
+    preOn(eventName, callback) {
+        return null;
+    }
+
     /**
      * Called after a listener is registered
      * @param {string} eventName - Event name
      * @param {Function} callback - Listener callback
      */
-    postOn(eventName, callback) {}
+    postOn(eventName, callback) {
+    }
 }
 
 class ExtendedEventBus {

@@ -38,7 +38,24 @@ class InstanceManager {
      * @returns {object} Stats object with hits, misses, evictions, currentSize
      */
     get stats() {
-        return { ...this.#stats };
+        return {...this.#stats};
+    }
+
+    /**
+     * Returns cache hit ratio
+     * @returns {number} Ratio of hits to total requests
+     */
+    get hitRatio() {
+        const total = this.#stats.hits + this.#stats.misses;
+        return total > 0 ? this.#stats.hits / total : 0;
+    }
+
+    /**
+     * Get cache capacity utilization
+     * @returns {number} Ratio of current size to max size
+     */
+    get utilization() {
+        return this.#cache.size / this.#maxSize;
     }
 
     /**
@@ -67,7 +84,7 @@ class InstanceManager {
             this.#cache.set(key, value);
             return value;
         }
-        
+
         this.#stats.misses++;
         return undefined;
     }
@@ -111,7 +128,7 @@ class InstanceManager {
      */
     _evictOldest() {
         const evictionCount = Math.ceil(this.#maxSize * this.#evictionThreshold);
-        
+
         let count = 0;
         // For Map, the first entries are the oldest (since we move accessed items to the end)
         for (const [key] of this.#cache) {
@@ -120,25 +137,8 @@ class InstanceManager {
             count++;
             this.#stats.evictions++;
         }
-        
+
         this.#stats.currentSize = this.#cache.size;
-    }
-
-    /**
-     * Returns cache hit ratio
-     * @returns {number} Ratio of hits to total requests
-     */
-    get hitRatio() {
-        const total = this.#stats.hits + this.#stats.misses;
-        return total > 0 ? this.#stats.hits / total : 0;
-    }
-
-    /**
-     * Get cache capacity utilization
-     * @returns {number} Ratio of current size to max size
-     */
-    get utilization() {
-        return this.#cache.size / this.#maxSize;
     }
 }
 

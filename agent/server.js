@@ -418,16 +418,16 @@ async function handleMessage(message, ws) {
                 // Apply filters if provided
                 const {filter, priority} = payload;
                 let filteredTasks = allTasks;
-                
+
                 const activeFilters = [];
                 if (filter && filter !== 'all') {
                     activeFilters.push(createTaskFilter(filter));
                 }
-                
+
                 if (priority && priority !== 'all') {
                     activeFilters.push(createPriorityFilter(priority));
                 }
-                
+
                 if (activeFilters.length > 0) {
                     const combinedFilter = createCompositeFilter(...activeFilters);
                     filteredTasks = filteredTasks.filter(combinedFilter);
