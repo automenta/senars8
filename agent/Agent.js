@@ -143,10 +143,10 @@ class Agent {
         if (!this.isInitialized) {
             throw new Error('Agent must be initialized before stopping.');
         }
-        
+
         // Stop file monitoring first
         this.fileMonitoringIntegration?.stop?.();
-        
+
         // Then stop the main system
         this.system?.stop?.();
         if (!this.system?.stop) {

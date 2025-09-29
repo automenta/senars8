@@ -4,7 +4,8 @@
 
 ### **1.1 Memory Management**
 
-- **Hierarchical memory architecture**: Implement L1 (in-memory), L2 (disk), and L3 (archive) tiers with cache-aware access patterns.
+- **Hierarchical memory architecture**: Implement L1 (in-memory), L2 (disk), and L3 (archive) tiers with cache-aware
+  access patterns.
 - **Fragmentation reduction**: Introduce periodic memory compaction for sustained low-latency operations.
 - **Streaming data pipelines**: Replace bulk operations with paginated/streaming workflows for large datasets.
 - **Concurrency control**: Deploy read-write locks and thread-safe data structures for parallel access.
@@ -22,7 +23,8 @@
 - **Predictive prefetching**: Integrate ML models to anticipate high-utility data access.
 - **Distributed cache coordination**: Enable cross-node cache synchronization for clustered deployments.
 
-**Succinct trie for term indexing**: Replace vanilla hash maps with a LOUDS-encoded trie to shrink memory 5–10× and keep O(1) variant lookup.
+**Succinct trie for term indexing**: Replace vanilla hash maps with a LOUDS-encoded trie to shrink memory 5–10× and keep
+O(1) variant lookup.
 
 ---
 
@@ -62,13 +64,17 @@
 - **Cross-domain transfer**: Reuse learned representations across related tasks.
 - **Reinforcement learning**: Optimize decisions via reward-based feedback loops.
 
-**Counterfactual reasoning engine**: Generate “what-if” branches by forking the belief state, running hypotheticals, then merging only validated conclusions.  
+**Counterfactual reasoning engine**: Generate “what-if” branches by forking the belief state, running hypotheticals,
+then merging only validated conclusions.
 
-**Curiosity-driven exploration**: Intrinsic reward \= predictive error; the scheduler allocates compute cycles to deliberately seek stimuli that reduce uncertainty.  
+**Curiosity-driven exploration**: Intrinsic reward \= predictive error; the scheduler allocates compute cycles to
+deliberately seek stimuli that reduce uncertainty.
 
-**Neuro-symbolic curriculum**: Automatically order training experiences by complexity (easy → hard) using symbolic complexity metrics (clause depth, graph diameter).  
+**Neuro-symbolic curriculum**: Automatically order training experiences by complexity (easy → hard) using symbolic
+complexity metrics (clause depth, graph diameter).
 
-**Argumentation framework**: Represent conflicting rules as arguments; use dialectical proof procedures to decide which conclusions prevail, producing explainable debates.
+**Argumentation framework**: Represent conflicting rules as arguments; use dialectical proof procedures to decide which
+conclusions prevail, producing explainable debates.
 
 ---
 
@@ -130,9 +136,11 @@
 - **Standardized benchmark suite**: Quantify improvements via repeatable metrics.
 - **Cognitive debugger**: Step through symbolic/neural interactions at runtime.
 
-**Continuous metamorphic testing:** Generate semantically preserving transformations (graph rotations, clause reordering) and assert identical outcomes.
+**Continuous metamorphic testing:** Generate semantically preserving transformations (graph rotations, clause
+reordering) and assert identical outcomes.
 
-**Cognitive load generator:** Synthesize adversarial workloads that maximize cache misses, rule back-tracking, or neural-symbolic thrashing to uncover worst-case behaviour.
+**Cognitive load generator:** Synthesize adversarial workloads that maximize cache misses, rule back-tracking, or
+neural-symbolic thrashing to uncover worst-case behaviour.
 
 ---
 
@@ -174,7 +182,9 @@
 - **Immutable audit trails**: Log all decisions and configuration changes.
 - **TLS 1.3 enforcement**: Secure all external communications.
 
-Here are 8 rigorously scoped, production-focused development plans designed to **complement and extend** your existing roadmap—addressing emerging gaps in neuro-symbolic systems while prioritizing *actionable technical innovation*, *real-world deployability*, and *strategic differentiation*:
+Here are 8 rigorously scoped, production-focused development plans designed to **complement and extend** your existing
+roadmap—addressing emerging gaps in neuro-symbolic systems while prioritizing *actionable technical innovation*,
+*real-world deployability*, and *strategic differentiation*:
 
 ---
 
@@ -184,13 +194,18 @@ Here are 8 rigorously scoped, production-focused development plans designed to *
 *(Critical for domains requiring expert judgment: healthcare, legal, engineering)*
 
 - **9.1 Contextual Knowledge Injection**
-    - **Dynamic fact validation**: Allow domain experts to *temporarily override* symbolic conclusions via UI with versioned annotations (e.g., "This medical guideline supersedes rule \#42 until 2025-Q3").
-    - **Ambiguity resolution workflows**: Route low-confidence inferences to human reviewers with *pre-packaged context bundles* (relevant subgraphs, neural confidence scores, historical precedents).
+    - **Dynamic fact validation**: Allow domain experts to *temporarily override* symbolic conclusions via UI with
+      versioned annotations (e.g., "This medical guideline supersedes rule \#42 until 2025-Q3").
+    - **Ambiguity resolution workflows**: Route low-confidence inferences to human reviewers with *pre-packaged context
+      bundles* (relevant subgraphs, neural confidence scores, historical precedents).
 - **9.2 Collaborative Reasoning**
-    - **Shared mental model visualization**: Render neuro-symbolic decision pathways as editable flowcharts where humans can *re-route logic* (e.g., drag-and-drop to prioritize Rule A over B).
-    - **Feedback-driven symbolic refinement**: Convert human corrections into *automated rule patches* via NLP (e.g., "Always exclude patients under 18" → `ADD CONSTRAINT: Patient.age > 18`).
+    - **Shared mental model visualization**: Render neuro-symbolic decision pathways as editable flowcharts where humans
+      can *re-route logic* (e.g., drag-and-drop to prioritize Rule A over B).
+    - **Feedback-driven symbolic refinement**: Convert human corrections into *automated rule patches* via NLP (e.g., "
+      Always exclude patients under 18" → `ADD CONSTRAINT: Patient.age > 18`).
 
-*Why this matters*: Solves the "last-mile problem" where pure automation fails in ambiguous scenarios—directly increasing enterprise trust.
+*Why this matters*: Solves the "last-mile problem" where pure automation fails in ambiguous scenarios—directly
+increasing enterprise trust.
 
 ---
 
@@ -200,13 +215,18 @@ Here are 8 rigorously scoped, production-focused development plans designed to *
 *(Addresses fragmented data in IoT, robotics, and multi-sensor environments)*
 
 - **10.1 Sensor-to-Symbol Translation**
-    - **Neural grounding modules**: Train lightweight CNNs/Transformers to convert raw sensor data (LiDAR, video, audio) into *structured symbolic assertions* (e.g., "Object: {type: vehicle, position: (x,y,z), velocity: v}").
-    - **Temporal event synthesis**: Fuse time-series sensor streams into *causal event chains* (e.g., "Vehicle entered zone → Speed increased → Collision imminent").
+    - **Neural grounding modules**: Train lightweight CNNs/Transformers to convert raw sensor data (LiDAR, video, audio)
+      into *structured symbolic assertions* (e.g., "Object: {type: vehicle, position: (x,y,z), velocity: v}").
+    - **Temporal event synthesis**: Fuse time-series sensor streams into *causal event chains* (e.g., "Vehicle entered
+      zone → Speed increased → Collision imminent").
 - **10.2 Multimodal Consistency Enforcement**
-    - **Cross-modal contradiction detection**: Flag conflicts between symbolic knowledge and neural interpretations (e.g., "Video shows empty room" vs. "LIDAR detects object").
-    - **Uncertainty-aware fusion**: Weight sensor inputs by reliability scores (e.g., prioritize thermal cam in fog over visual cam).
+    - **Cross-modal contradiction detection**: Flag conflicts between symbolic knowledge and neural interpretations (
+      e.g., "Video shows empty room" vs. "LIDAR detects object").
+    - **Uncertainty-aware fusion**: Weight sensor inputs by reliability scores (e.g., prioritize thermal cam in fog over
+      visual cam).
 
-*Why this matters*: Enables SeNARS to operate in physical-world environments where data isn't pre-structured—key for robotics/autonomous systems.
+*Why this matters*: Enables SeNARS to operate in physical-world environments where data isn't pre-structured—key for
+robotics/autonomous systems.
 
 ---
 
@@ -216,13 +236,18 @@ Here are 8 rigorously scoped, production-focused development plans designed to *
 *(Non-negotiable for healthcare, finance, and EU markets under AI Act)*
 
 - **11.1 Real-Time Policy Mapping**
-    - **Regulation-to-rule compiler**: Convert legal texts (e.g., GDPR, HIPAA) into *executable symbolic constraints* via legal NLP (e.g., "Article 17 → DELETE all Patient X data if request\_received=True").
-    - **Jurisdiction-aware reasoning**: Dynamically apply location-specific rules (e.g., block data exports from EU nodes).
+    - **Regulation-to-rule compiler**: Convert legal texts (e.g., GDPR, HIPAA) into *executable symbolic constraints*
+      via legal NLP (e.g., "Article 17 → DELETE all Patient X data if request\_received=True").
+    - **Jurisdiction-aware reasoning**: Dynamically apply location-specific rules (e.g., block data exports from EU
+      nodes).
 - **11.2 Audit-Ready Decision Trails**
-    - **Immutable compliance ledger**: Cryptographically sign every decision with *provenance metadata* (input data, rules applied, human overrides).
-    - **Auto-generated regulatory reports**: Output pre-formatted evidence for auditors (e.g., "All loan denials justified per Regulation B §202.6").
+    - **Immutable compliance ledger**: Cryptographically sign every decision with *provenance metadata* (input data,
+      rules applied, human overrides).
+    - **Auto-generated regulatory reports**: Output pre-formatted evidence for auditors (e.g., "All loan denials
+      justified per Regulation B §202.6").
 
-*Why this matters*: Turns compliance from a cost center into a competitive advantage—critical for enterprise sales cycles.
+*Why this matters*: Turns compliance from a cost center into a competitive advantage—critical for enterprise sales
+cycles.
 
 ---
 
@@ -233,10 +258,13 @@ Here are 8 rigorously scoped, production-focused development plans designed to *
 
 - **12.1 Green Inference Protocols**
     - **Carbon-aware scheduling**: Defer non-urgent tasks to low-carbon grid periods (integrate with electricityAPI).
-    - **Neural component sparsification**: Dynamically prune low-impact neurons during inference (e.g., \<5% activation → skip computation).
+    - **Neural component sparsification**: Dynamically prune low-impact neurons during inference (e.g., \<5%
+      activation → skip computation).
 - **12.2 Edge-Optimized Symbolic Kernels**
-    - **Rule subset compilation**: Generate *device-specific rule bundles* (e.g., "Only deploy traffic rules for in-car SeNARS").
-    - **Sub-100ms latency SLA**: Guarantee hard real-time responses for safety-critical edge tasks via *deterministic rule prioritization*.
+    - **Rule subset compilation**: Generate *device-specific rule bundles* (e.g., "Only deploy traffic rules for in-car
+      SeNARS").
+    - **Sub-100ms latency SLA**: Guarantee hard real-time responses for safety-critical edge tasks via *deterministic
+      rule prioritization*.
 
 *Why this matters*: Reduces TCO by 30–50% in cloud deployments and unlocks embedded use cases (drones, medical devices).
 
@@ -249,10 +277,12 @@ Here are 8 rigorously scoped, production-focused development plans designed to *
 
 - **13.1 Symbolic Attack Surface Hardening**
     - **Rule integrity attestation**: Cryptographically verify rule provenance before execution (block unsigned rules).
-    - **Adversarial rule detection**: Flag rules with statistically anomalous patterns (e.g., "Rule \#88 triggers 99% of the time").
+    - **Adversarial rule detection**: Flag rules with statistically anomalous patterns (e.g., "Rule \#88 triggers 99% of
+      the time").
 - **13.2 Neural Input Sanitization**
     - **Poisoning-resistant embeddings**: Use certified defenses (e.g., randomized smoothing) for neural input layers.
-    - **Cross-modal anomaly injection**: Test resilience by synthetically corrupting *one modality* (e.g., "Add adversarial noise to video while keeping LIDAR clean").
+    - **Cross-modal anomaly injection**: Test resilience by synthetically corrupting *one modality* (e.g., "Add
+      adversarial noise to video while keeping LIDAR clean").
 
 *Why this matters*: Prevents catastrophic failures from manipulated inputs—required for DoD/NSA contracts.
 
@@ -263,14 +293,16 @@ Here are 8 rigorously scoped, production-focused development plans designed to *
 *Pre-optimized modules for high-value verticals*  
 *(Accelerates time-to-value for enterprise clients)*
 
-| Domain | Key Components | Revenue Impact |
-| :---- | :---- | :---- |
-| **Healthcare** | HL7/FHIR adapters, ICD-11 rule library, HIPAA compliance engine | 40% faster hospital deployment |
-| **Finance** | SEC/FCA regulation compiler, fraud pattern database, real-time AML workflows | 70% reduction in false positives |
+| Domain            | Key Components                                                               | Revenue Impact                      |
+|:------------------|:-----------------------------------------------------------------------------|:------------------------------------|
+| **Healthcare**    | HL7/FHIR adapters, ICD-11 rule library, HIPAA compliance engine              | 40% faster hospital deployment      |
+| **Finance**       | SEC/FCA regulation compiler, fraud pattern database, real-time AML workflows | 70% reduction in false positives    |
 | **Manufacturing** | OPC-UA sensor integrators, ISO 9001 quality rules, predictive maintenance KB | 25% fewer production line stoppages |
 
-- **14.1 Modular Knowledge Base Templates**: Pre-built symbolic ontologies with industry-specific constraints (e.g., "FDA drug approval pathways").
-- **14.2 Vertical-Specific Performance Tuning**: Optimize memory/cache settings for domain workloads (e.g., high-frequency trading vs. clinical trial analysis).
+- **14.1 Modular Knowledge Base Templates**: Pre-built symbolic ontologies with industry-specific constraints (e.g., "
+  FDA drug approval pathways").
+- **14.2 Vertical-Specific Performance Tuning**: Optimize memory/cache settings for domain workloads (e.g.,
+  high-frequency trading vs. clinical trial analysis).
 
 *Why this matters*: Transforms SeNARS from a generic platform into a *vertical-ready solution*—key for enterprise sales.
 
@@ -282,11 +314,14 @@ Here are 8 rigorously scoped, production-focused development plans designed to *
 *(Solves silent degradation in long-running systems)*
 
 - **15.1 Knowledge Drift Monitoring**
-    - **Temporal inconsistency alerts**: Detect contradictions in time-evolving facts (e.g., "Patient diagnosed with X on 2023-01 but X was obsolete after 2022-12").
+    - **Temporal inconsistency alerts**: Detect contradictions in time-evolving facts (e.g., "Patient diagnosed with X
+      on 2023-01 but X was obsolete after 2022-12").
     - **Source reliability scoring**: Downweight knowledge from outdated/low-accuracy data sources.
 - **15.2 Autonomous Knowledge Repair**
-    - **Conflict resolution workflows**: Auto-merge contradictory facts using source credibility weights (e.g., "Prioritize EHR over patient self-report").
-    - **Gap-filling via active querying**: Identify missing knowledge links and request targeted data (e.g., "Need lab result for Drug Y interaction").
+    - **Conflict resolution workflows**: Auto-merge contradictory facts using source credibility weights (e.g., "
+      Prioritize EHR over patient self-report").
+    - **Gap-filling via active querying**: Identify missing knowledge links and request targeted data (e.g., "Need lab
+      result for Drug Y interaction").
 
 *Why this matters*: Prevents "knowledge rot" that plagues production AI systems—reducing maintenance costs by 60%.
 
@@ -298,11 +333,15 @@ Here are 8 rigorously scoped, production-focused development plans designed to *
 *(Aligns AI actions with business objectives)*
 
 - **16.1 Resource-Aware Reasoning**
-    - **Cost-per-inference metering**: Track compute/memory costs for each reasoning path (e.g., "Rule set A costs $0.002 vs. B at $0.015").
-    - **ROI-driven strategy selection**: Choose inference methods based on *business impact* (e.g., "Use high-accuracy mode only for VIP customers").
+    - **Cost-per-inference metering**: Track compute/memory costs for each reasoning path (e.g., "Rule set A
+      costs $0.002 vs. B at $0.015").
+    - **ROI-driven strategy selection**: Choose inference methods based on *business impact* (e.g., "Use high-accuracy
+      mode only for VIP customers").
 - **16.2 Opportunity Cost Modeling**
-    - **Counterfactual analysis engine**: Quantify lost value from suboptimal decisions (e.g., "Delaying loan approval cost $1,200 in interest").
-    - **Budget-constrained optimization**: Enforce spending limits on cognitive resources (e.g., "Spend max $50/day on external API calls").
+    - **Counterfactual analysis engine**: Quantify lost value from suboptimal decisions (e.g., "Delaying loan approval
+      cost $1,200 in interest").
+    - **Budget-constrained optimization**: Enforce spending limits on cognitive resources (e.g., "Spend max $50/day on
+      external API calls").
 
 *Why this matters*: Makes SeNARS a *profit center*—not just a cost center—by directly linking AI decisions to revenue.
 
@@ -314,7 +353,8 @@ Here are 8 rigorously scoped, production-focused development plans designed to *
 
 **Memory Management**
 
-- Implement a hierarchical memory architecture with L1 (in-memory), L2 (disk), and L3 (archive) tiers using cache-aware access patterns.
+- Implement a hierarchical memory architecture with L1 (in-memory), L2 (disk), and L3 (archive) tiers using cache-aware
+  access patterns.
 - Reduce fragmentation through periodic memory compaction to sustain low-latency operations.
 - Replace bulk data processing with streaming or paginated pipelines for large-scale inputs.
 - Introduce read-write locks and thread-safe structures to support safe concurrent access.
@@ -564,11 +604,16 @@ Here are 8 rigorously scoped, production-focused development plans designed to *
 
 ## **Explainable Reasoning as a First-Class Feature**
 
-Every conclusion must be inspectable, contestable, and interpretable. Move beyond static logs to **interactive reasoning narratives**:
+Every conclusion must be inspectable, contestable, and interpretable. Move beyond static logs to **interactive reasoning
+narratives**:
 
-- **Dynamic inference visualization**: Render symbolic derivations as navigable causal graphs or proof trees. Nodes show rule origins, confidence scores, neural evidence (e.g., attention weights), and temporal context. Users can re-root, prune, or simulate counterfactuals (“What if this fact were false?”).
+- **Dynamic inference visualization**: Render symbolic derivations as navigable causal graphs or proof trees. Nodes show
+  rule origins, confidence scores, neural evidence (e.g., attention weights), and temporal context. Users can re-root,
+  prune, or simulate counterfactuals (“What if this fact were false?”).
 
-- **Confidence-aware presentation**: Encode uncertainty through intuitive visual language—fading opacity for low-confidence conclusions, pulsing indicators for active revision, and explicit thresholds for automated actions. Let users adjust risk tolerance in real time.
+- **Confidence-aware presentation**: Encode uncertainty through intuitive visual language—fading opacity for
+  low-confidence conclusions, pulsing indicators for active revision, and explicit thresholds for automated actions. Let
+  users adjust risk tolerance in real time.
 
 - **Explainability on demand**: From any output, users can trigger layered explanations:
 
@@ -576,21 +621,29 @@ Every conclusion must be inspectable, contestable, and interpretable. Move beyon
     - *Level 2*: Structured trace with rule IDs and evidence sources
     - *Level 3*: Raw neuro-symbolic state (for developers and auditors)
 
-These capabilities directly extend **temporal reasoning**, **probabilistic inference**, and **XAI** efforts from the core architecture.
+These capabilities directly extend **temporal reasoning**, **probabilistic inference**, and **XAI** efforts from the
+core architecture.
 
 ---
 
 ## **Adaptive Interfaces for Diverse Users and Contexts**
 
-One-size-fits-all dashboards obscure insight. Instead, tailor interaction depth and data density to the user’s role, task, and environment:
+One-size-fits-all dashboards obscure insight. Instead, tailor interaction depth and data density to the user’s role,
+task, and environment:
 
-- **Role-aware workspaces**: Analysts see diagnostic deep dives; operators monitor system health and alerts; developers access debugging hooks and performance metrics. UI components are gated by **RBAC policies**, ensuring both security and relevance.
+- **Role-aware workspaces**: Analysts see diagnostic deep dives; operators monitor system health and alerts; developers
+  access debugging hooks and performance metrics. UI components are gated by **RBAC policies**, ensuring both security
+  and relevance.
 
-- **Cognitive load signaling**: Reflect the system’s internal state through ambient cues—e.g., a subtle status bar showing “Resolving rule conflicts” or “Fetching archived knowledge”—so users understand *why* a response is delayed.
+- **Cognitive load signaling**: Reflect the system’s internal state through ambient cues—e.g., a subtle status bar
+  showing “Resolving rule conflicts” or “Fetching archived knowledge”—so users understand *why* a response is delayed.
 
-- **Personalized insight streams**: Surface high-value conclusions based on user history, declared interests, or team priorities. These feeds evolve via implicit feedback (clicks, dwell time) and explicit ratings, feeding back into **active learning** loops.
+- **Personalized insight streams**: Surface high-value conclusions based on user history, declared interests, or team
+  priorities. These feeds evolve via implicit feedback (clicks, dwell time) and explicit ratings, feeding back into *
+  *active learning** loops.
 
-- **Mobile and low-bandwidth resilience**: Offer lightweight, offline-capable views that cache recent reasoning traces and allow query queuing—ensuring continuity in field or resource-constrained settings.
+- **Mobile and low-bandwidth resilience**: Offer lightweight, offline-capable views that cache recent reasoning traces
+  and allow query queuing—ensuring continuity in field or resource-constrained settings.
 
 ---
 
@@ -598,13 +651,18 @@ One-size-fits-all dashboards obscure insight. Instead, tailor interaction depth 
 
 SeNARS should support teams, not just individuals. Enable shared sense-making through:
 
-- **Multi-user reasoning sessions**: Allow groups to jointly explore knowledge graphs, annotate inference paths, propose alternative rules, and vote on conclusions. All actions are versioned and attributable.
+- **Multi-user reasoning sessions**: Allow groups to jointly explore knowledge graphs, annotate inference paths, propose
+  alternative rules, and vote on conclusions. All actions are versioned and attributable.
 
-- **Audit-ready decision records**: Automatically generate timestamped, immutable reports of reasoning sessions—including user inputs, system conclusions, safety interventions, and feedback—compatible with compliance frameworks (e.g., ISO 27001, GDPR).
+- **Audit-ready decision records**: Automatically generate timestamped, immutable reports of reasoning
+  sessions—including user inputs, system conclusions, safety interventions, and feedback—compatible with compliance
+  frameworks (e.g., ISO 27001, GDPR).
 
-- **Cross-session continuity**: Preserve user context (open tabs, pinned insights, query history) across logins, with optional end-to-end encryption for sensitive domains.
+- **Cross-session continuity**: Preserve user context (open tabs, pinned insights, query history) across logins, with
+  optional end-to-end encryption for sensitive domains.
 
-These features turn SeNARS into a **collaborative cognitive platform**, extending **knowledge import/export**, **event-driven communication**, and **immutable audit trails** into the user experience.
+These features turn SeNARS into a **collaborative cognitive platform**, extending **knowledge import/export**, *
+*event-driven communication**, and **immutable audit trails** into the user experience.
 
 ---
 
@@ -612,13 +670,18 @@ These features turn SeNARS into a **collaborative cognitive platform**, extendin
 
 Trust requires accessibility, fairness, and transparency—not just in outcomes, but in how they’re presented:
 
-- **Multi-modal output**: Support text, speech (TTS), and simplified visual summaries. Ensure full WCAG 2.2 AA compliance across web, terminal, and mobile interfaces.
+- **Multi-modal output**: Support text, speech (TTS), and simplified visual summaries. Ensure full WCAG 2.2 AA
+  compliance across web, terminal, and mobile interfaces.
 
-- **Cultural and linguistic adaptability**: Decouple UI text, date/time formats, and logic flow direction from code, enabling rapid localization. Avoid culturally specific metaphors in reasoning visualizations.
+- **Cultural and linguistic adaptability**: Decouple UI text, date/time formats, and logic flow direction from code,
+  enabling rapid localization. Avoid culturally specific metaphors in reasoning visualizations.
 
-- **Safety and ethics made visible**: When **constitutional guardrails** block or modify a conclusion, display a clear, non-technical rationale (“This inference was restricted due to privacy policy P7”) with optional deep-dive into the enforcement logic. Never hide safety interventions.
+- **Safety and ethics made visible**: When **constitutional guardrails** block or modify a conclusion, display a clear,
+  non-technical rationale (“This inference was restricted due to privacy policy P7”) with optional deep-dive into the
+  enforcement logic. Never hide safety interventions.
 
-- **Provenance and bias awareness**: Where conclusions rely on external knowledge, show data lineage, recency, and potential bias indicators—empowering users to assess reliability.
+- **Provenance and bias awareness**: Where conclusions rely on external knowledge, show data lineage, recency, and
+  potential bias indicators—empowering users to assess reliability.
 
 ---
 
@@ -626,11 +689,16 @@ Trust requires accessibility, fairness, and transparency—not just in outcomes,
 
 Lower the barrier to mastery while fostering long-term engagement:
 
-- **Embedded cognitive sandbox**: Provide an interactive tutorial environment with synthetic scenarios (e.g., “Diagnose this supply-chain anomaly using temporal rules”). Users learn by doing, with progressive unlocking of advanced capabilities.
+- **Embedded cognitive sandbox**: Provide an interactive tutorial environment with synthetic scenarios (e.g., “Diagnose
+  this supply-chain anomaly using temporal rules”). Users learn by doing, with progressive unlocking of advanced
+  capabilities.
 
-- **In-context feedback loops**: Let users flag errors, rate explanation quality, or suggest missing knowledge directly from the UI. Structured feedback flows into **online learning**, **fuzzing pipelines**, and **validation suites**—closing the loop between user experience and system intelligence.
+- **In-context feedback loops**: Let users flag errors, rate explanation quality, or suggest missing knowledge directly
+  from the UI. Structured feedback flows into **online learning**, **fuzzing pipelines**, and **validation suites**
+  —closing the loop between user experience and system intelligence.
 
-- **Just-in-time assistance**: Surface contextual help—example queries, documentation snippets, or related past cases—based on current workflow and user behavior, without disrupting focus.
+- **Just-in-time assistance**: Surface contextual help—example queries, documentation snippets, or related past
+  cases—based on current workflow and user behavior, without disrupting focus.
 
 ---
 
@@ -638,8 +706,12 @@ Lower the barrier to mastery while fostering long-term engagement:
 
 Speed isn’t just about latency—it’s about **managing expectations** and **maintaining flow**:
 
-- **Progressive disclosure**: Start with concise summaries; reveal technical depth only on demand. Use skeleton screens and optimistic updates to maintain perceived responsiveness during complex inference.
+- **Progressive disclosure**: Start with concise summaries; reveal technical depth only on demand. Use skeleton screens
+  and optimistic updates to maintain perceived responsiveness during complex inference.
 
-- **Streaming result presentation**: For **incremental inference** and **streaming pipelines**, show provisional conclusions clearly marked as “draft” or “updating,” with live refinements as new evidence arrives—mirroring the system’s internal architecture.
+- **Streaming result presentation**: For **incremental inference** and **streaming pipelines**, show provisional
+  conclusions clearly marked as “draft” or “updating,” with live refinements as new evidence arrives—mirroring the
+  system’s internal architecture.
 
-- **Transparent pacing**: Display active processing stages (“Evaluating 3 interdependent rules…”) and estimated completion times during long-running tasks, reducing uncertainty and building trust in system behavior.
+- **Transparent pacing**: Display active processing stages (“Evaluating 3 interdependent rules…”) and estimated
+  completion times during long-running tasks, reducing uncertainty and building trust in system behavior.
