@@ -1,9 +1,12 @@
 import {LIFETIME} from './DIContainer.js';
+import createConfigAccessor from '../config/ConfigAccessor.js';
 import System from './System.js';
 import Cycle from './Cycle.js';
 import Memory from '../memory/Memory.js';
 import Reasoner from '../reasoner/Reasoner.js';
 import LM from '../lm/LM.js';
+import Tools from '../lm/Tools.js';
+import NarseseTranslator from '../utils/NarseseTranslator.js';
 import ActionExecutor from './ActionExecutor.js';
 import Perception from './Perception.js';
 import Planner from './Planner.js';
@@ -23,39 +26,43 @@ import StrategyRegistry from '../reasoner/StrategyRegistry.js';
  * @param {ConfigManager} configManager - The configuration manager.
  */
 const registerComponents = (container, configManager) => {
-    container.registerValue('configManager', configManager);
+    // Create and register the accessor, not the raw manager
+    const configAccessor = createConfigAccessor(configManager);
+    container.registerValue('configAccessor', configAccessor);
     container.registerValue('eventBus', EventBus);
 
     const singleton = {lifetime: LIFETIME.SINGLETON};
 
     // Foundational components first
-    container.register('memory', Memory, ['configManager', 'eventBus'], singleton);
+    container.register('narseseTranslator', NarseseTranslator, ['configAccessor'], singleton);
+    container.register('tools', Tools, ['configAccessor', 'narseseTranslator', 'eventBus'], singleton);
+    container.register('memory', Memory, ['configAccessor', 'eventBus'], singleton);
     container.register('truthValueManager', TruthValueManager, [], singleton);
     container.register('strategyRegistry', StrategyRegistry, [], singleton);
-    container.register('lm', LM, ['configManager'], singleton);
+    container.register('lm', LM, ['configAccessor', 'tools'], singleton);
 
     // Components that depend on the foundational ones
     container.register('taskFactory', TaskFactory, ['memory', 'lm', 'eventBus'], singleton);
-    container.register('temporalReasoner', TemporalReasoner, ['configManager'], singleton);
-    container.register('actionExecutor', ActionExecutor, ['memory', 'configManager', 'eventBus'], singleton);
+    container.register('temporalReasoner', TemporalReasoner, ['configAccessor'], singleton);
+    container.register('actionExecutor', ActionExecutor, ['memory', 'configAccessor', 'eventBus', 'tools'], singleton);
     container.register('perception', Perception, ['memory', 'taskFactory', 'eventBus'], singleton);
-    container.register('planner', Planner, ['memory', 'lm', 'actionExecutor', 'configManager'], singleton);
-    container.register('priorityManager', PriorityManager, ['memory', 'configManager'], singleton);
+    container.register('planner', Planner, ['memory', 'lm', 'actionExecutor', 'configAccessor'], singleton);
+    container.register('priorityManager', PriorityManager, ['memory', 'configAccessor'], singleton);
     container.register('contradictionAnalyzer', ContradictionAnalyzer, [], singleton);
     container.register('resolutionStrategy', ResolutionStrategy, ['truthValueManager'], singleton);
 
     // Higher-level components
-    container.register('reasoner', Reasoner, ['configManager', 'temporalReasoner', 'strategyRegistry'], singleton);
-    container.register('metaCognition', MetaCognition, ['configManager', 'contradictionAnalyzer', 'resolutionStrategy', 'eventBus'], singleton);
+    container.register('reasoner', Reasoner, ['configAccessor', 'temporalReasoner', 'strategyRegistry'], singleton);
+    container.register('metaCognition', MetaCognition, ['configAccessor', 'contradictionAnalyzer', 'resolutionStrategy', 'eventBus'], singleton);
 
     // The main cycle and system, which depend on almost everything else
     container.register('cycle', Cycle, [
-        'configManager', 'memory', 'reasoner', 'lm', 'actionExecutor', 'perception',
+        'configAccessor', 'memory', 'reasoner', 'lm', 'actionExecutor', 'perception',
         'planner', 'metaCognition', 'temporalReasoner', 'priorityManager', 'eventBus'
     ], singleton);
     container.register('system', System, [
-        'configManager', 'memory', 'reasoner', 'lm', 'actionExecutor', 'cycle',
-        'planner', 'metaCognition', 'perception', 'eventBus'
+        'configAccessor', 'memory', 'reasoner', 'lm', 'actionExecutor', 'cycle',
+        'planner', 'metaCognition', 'perception', 'eventBus', 'tools'
     ], singleton);
 };
 

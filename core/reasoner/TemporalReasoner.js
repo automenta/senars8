@@ -1,13 +1,12 @@
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
-import {debug} from '../utils/logger.js';
+import {debug, error} from '../utils/logger.js';
 import * as Module from './temporal/index.js';
-import createConfigAccessor from '../config/ConfigAccessor.js';
 
 const errorHandler = createUnifiedErrorHandler('TemporalReasoner');
 
 class TemporalReasoner {
-    constructor(configManager) {
-        this.config = createConfigAccessor(configManager, 'temporal');
+    constructor(configAccessor) {
+        this.config = configAccessor;
         this.inferenceModules = [
             Module.TemporalRelationshipInference,
             Module.TemporalImplicationInference,
@@ -22,14 +21,23 @@ class TemporalReasoner {
     }
 
     infer(tasks) {
-        const config = this.config.get('temporal');
+        const config = this.config.getObject('temporal');
         if (!config) {
             debug('Temporal reasoning disabled - no temporal config found');
             return [];
         }
 
         return this.inferenceModules.flatMap(InferenceModule => {
-            const results = errorHandler.executeSync(() => InferenceModule.infer(tasks, config), `infer:${InferenceModule.name}`, []);
+            const moduleName = InferenceModule?.name || 'UnknownModule';
+            // Accommodate modules that use `infer`, `detect`, `create`, or `predict` static methods
+            const executionFn = InferenceModule?.infer || InferenceModule?.detect || InferenceModule?.create || InferenceModule?.predict || InferenceModule?.default?.infer || InferenceModule?.default?.detect || InferenceModule?.default?.create || InferenceModule?.default?.predict;
+
+            if (typeof executionFn !== 'function') {
+                error(`[TemporalReasoner] ${moduleName} does not have a static 'infer', 'detect', 'create', or 'predict' method.`);
+                return [];
+            }
+
+            const results = errorHandler.executeSync(() => executionFn(tasks, config), `infer:${moduleName}`, []);
             return Array.isArray(results) ? results : [];
         });
     }

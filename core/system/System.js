@@ -2,12 +2,11 @@ import {systemErrorHandler as errorHandler} from '../utils/errorHandler.js';
 import {debug, error as logError, info, warn} from '../utils/logger.js';
 import {normalizeToArray} from '../utils/collections/index.js';
 import Introspection from './Introspection.js';
-import {configService} from '../config/index.js';
 import registerDefaultActions from './default-actions.js';
 
 class System {
     constructor(
-        configManager,
+        configAccessor,
         memory,
         reasoner,
         lm,
@@ -16,9 +15,10 @@ class System {
         planner,
         metaCognition,
         perception,
-        eventBus
+        eventBus,
+        tools
     ) {
-        this.config = configService;
+        this.config = configAccessor;
         debug('System: Constructor called with components:', {
             memory,
             reasoner,
@@ -28,6 +28,7 @@ class System {
             planner,
             metaCognition,
             perception,
+            tools
         });
         this.eventBus = eventBus;
         this.memory = memory;
@@ -38,6 +39,7 @@ class System {
         this.planner = planner;
         this.metaCognition = metaCognition;
         this.perception = perception;
+        this.tools = tools;
         this.isRunning = false;
         this.cycleCount = 0;
         this.introspection = new Introspection(this);

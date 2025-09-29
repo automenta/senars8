@@ -16,6 +16,7 @@ const PUNCTUATION = {
     rbracket: ']',
     comma: ',',
     arrow: '-->',
+    operator: '^',
     implies: '==>',
     instance: '{--',
     property: '--}',

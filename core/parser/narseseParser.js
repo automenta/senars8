@@ -5,6 +5,10 @@ const UNARY_OPERATOR_MAP = {
     [TOKEN.NEGATION]: OP.NEGATION,
 };
 
+const PREFIX_OPERATOR_MAP = {
+    [TOKEN.OPERATOR]: OP.OPERATION,
+};
+
 const TEMPORAL_OPERATOR_MAP = {
     [TOKEN.ALWAYS]: OP.ALWAYS,
     [TOKEN.EVENTUALLY]: OP.EVENTUALLY,
@@ -133,7 +137,9 @@ class NarseseParser {
     parseCompoundTerm() {
         this.consume(TOKEN.LPAREN);
         let term;
-        if (this.current?.type in OPERATOR_MAP) {
+        if (this.current?.type in PREFIX_OPERATOR_MAP) {
+            term = this.parsePrefixTerm();
+        } else if (this.current?.type in OPERATOR_MAP) {
             term = this.parseOperator();
         } else {
             let subject = null;
@@ -150,6 +156,18 @@ class NarseseParser {
         }
         this.consume(TOKEN.RPAREN);
         return term;
+    }
+
+    parsePrefixTerm() {
+        const operatorTokenType = this.current.type;
+        const operatorTokenValue = this.current.value;
+        this.consume(operatorTokenType);
+        const term = this.parseTerm();
+        return {
+            type: PREFIX_OPERATOR_MAP[operatorTokenType],
+            operator: operatorTokenValue,
+            term,
+        };
     }
 
     parseOperator() {

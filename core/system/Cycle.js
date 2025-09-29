@@ -94,15 +94,15 @@ class Cycle {
     }
 
     async _executeActions(actionableGoals) {
-        // Placeholder implementation - in a real system this would execute actions
         if (!this.actionExecutor || !actionableGoals.length) {
             return;
         }
 
-        // For now, just log the actions that would be executed
-        actionableGoals.forEach(goal => {
-            debug(`Execute action for goal: ${goal.termKey}`);
-        });
+        debug(`Executing ${actionableGoals.length} actionable goals.`);
+        for (const goal of actionableGoals) {
+            // The executeAction method is designed to handle errors internally
+            await this.actionExecutor.executeAction(goal);
+        }
     }
 
     async _learnFromExperience(derivedTasks) {
