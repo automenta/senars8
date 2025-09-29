@@ -8,7 +8,7 @@ import {
     safeGet,
     sumBy
 } from './collections/index.js';
-import { generateId } from './idGenerator.js';
+import {generateId} from './idGenerator.js';
 import {
     getBeliefTasks,
     getGoalTasks,

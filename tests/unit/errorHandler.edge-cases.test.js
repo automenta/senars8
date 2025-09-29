@@ -19,11 +19,15 @@ describe('Error Handler - Edge Cases', () => {
         expect(result1).toBe('default');
 
         // Test safeAsync with an operation that throws null
-        const result2 = await safeAsync(async () => { throw null; }, 'test context', 'default');
+        const result2 = await safeAsync(async () => {
+            throw null;
+        }, 'test context', 'default');
         expect(result2).toBe('default');
 
         // Test safeSync with an operation that throws null
-        const result3 = safeSync(() => { throw null; }, 'test context', 'default');
+        const result3 = safeSync(() => {
+            throw null;
+        }, 'test context', 'default');
         expect(result3).toBe('default');
     });
 

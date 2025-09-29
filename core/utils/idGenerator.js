@@ -28,4 +28,4 @@ function generateId(content) {
     return `id-${generateSequentialId()}`;
 }
 
-export { generateId };
+export {generateId};
