@@ -20,30 +20,30 @@ class TuiView {
 
     _initializeCommandMap() {
         return {
-            's': { handler: this._promptForSearch, description: 'Search beliefs/goals/questions' },
-            'search': { handler: this._promptForSearch, description: 'Search beliefs/goals/questions' },
-            'x': { handler: this._handleStop, description: 'Stop the agent' },
-            'stop': { handler: this._handleStop, description: 'Stop the agent' },
-            'r': { handler: this._handleRun, description: 'Start the agent' },
-            'run': { handler: this._handleRun, description: 'Start the agent' },
-            'q': { handler: this._handleQuit, description: 'Quit the application' },
-            'quit': { handler: this._handleQuit, description: 'Quit the application' },
-            'exit': { handler: this._handleQuit, description: 'Quit the application' },
-            't': { handler: this._promptForTask, description: 'Add a new task' },
-            'task': { handler: this._promptForTask, description: 'Add a new task' },
-            'a': { handler: this._promptForBelief, description: 'Add a new belief' },
-            'add': { handler: this._promptForBelief, description: 'Add a new belief' },
-            'b': { handler: this._listBeliefs, description: 'List current beliefs' },
-            'beliefs': { handler: this._listBeliefs, description: 'List current beliefs' },
-            'g': { handler: this._listGoals, description: 'List current goals' },
-            'goals': { handler: this._listGoals, description: 'List current goals' },
-            'l': { handler: this._listTasks, description: 'List current tasks' },
-            'tasks': { handler: this._listTasks, description: 'List current tasks' },
-            'c': { handler: this._clearScreen, description: 'Clear the screen' },
-            'clear': { handler: this._clearScreen, description: 'Clear the screen' },
-            'h': { handler: this.showHelp, description: 'Show this help message' },
-            'help': { handler: this.showHelp, description: 'Show this help message' },
-            '': { handler: this.render, description: 'Re-render the view' },
+            's': {handler: this._promptForSearch, description: 'Search beliefs/goals/questions'},
+            'search': {handler: this._promptForSearch, description: 'Search beliefs/goals/questions'},
+            'x': {handler: this._handleStop, description: 'Stop the agent'},
+            'stop': {handler: this._handleStop, description: 'Stop the agent'},
+            'r': {handler: this._handleRun, description: 'Start the agent'},
+            'run': {handler: this._handleRun, description: 'Start the agent'},
+            'q': {handler: this._handleQuit, description: 'Quit the application'},
+            'quit': {handler: this._handleQuit, description: 'Quit the application'},
+            'exit': {handler: this._handleQuit, description: 'Quit the application'},
+            't': {handler: this._promptForTask, description: 'Add a new task'},
+            'task': {handler: this._promptForTask, description: 'Add a new task'},
+            'a': {handler: this._promptForBelief, description: 'Add a new belief'},
+            'add': {handler: this._promptForBelief, description: 'Add a new belief'},
+            'b': {handler: this._listBeliefs, description: 'List current beliefs'},
+            'beliefs': {handler: this._listBeliefs, description: 'List current beliefs'},
+            'g': {handler: this._listGoals, description: 'List current goals'},
+            'goals': {handler: this._listGoals, description: 'List current goals'},
+            'l': {handler: this._listTasks, description: 'List current tasks'},
+            'tasks': {handler: this._listTasks, description: 'List current tasks'},
+            'c': {handler: this._clearScreen, description: 'Clear the screen'},
+            'clear': {handler: this._clearScreen, description: 'Clear the screen'},
+            'h': {handler: this.showHelp, description: 'Show this help message'},
+            'help': {handler: this.showHelp, description: 'Show this help message'},
+            '': {handler: this.render, description: 'Re-render the view'},
         };
     }
 
@@ -64,7 +64,7 @@ class TuiView {
     start() {
         if (this.isRunning) return;
         this.isRunning = true;
-        this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+        this.rl = readline.createInterface({input: process.stdin, output: process.stdout});
         this.rl.on('line', (input) => this.handleUserInput(input.trim()));
         this.rl.on('SIGINT', () => this._handleQuit());
         this.render();
@@ -146,13 +146,29 @@ class TuiView {
         console.clear();
     }
 
-    async _promptForSearch() { await this._promptForInput('Enter search query:', this._performSearch.bind(this)); }
-    async _promptForTask() { await this._promptForInput('Enter a new task:', this._interpretNarsese.bind(this)); }
-    async _promptForBelief() { await this._promptForInput('Enter a new belief:', this._addBelief.bind(this)); }
+    async _promptForSearch() {
+        await this._promptForInput('Enter search query:', this._performSearch.bind(this));
+    }
 
-    _listBeliefs() { this._listItems('Beliefs', this.apiService.getAgentState().beliefs || []); }
-    _listGoals() { this._listItems('Goals', this.apiService.getAgentState().goals || []); }
-    _listTasks() { this._listItems('Tasks', this.apiService.getAgentState().tasks || []); }
+    async _promptForTask() {
+        await this._promptForInput('Enter a new task:', this._interpretNarsese.bind(this));
+    }
+
+    async _promptForBelief() {
+        await this._promptForInput('Enter a new belief:', this._addBelief.bind(this));
+    }
+
+    _listBeliefs() {
+        this._listItems('Beliefs', this.apiService.getAgentState().beliefs || []);
+    }
+
+    _listGoals() {
+        this._listItems('Goals', this.apiService.getAgentState().goals || []);
+    }
+
+    _listTasks() {
+        this._listItems('Tasks', this.apiService.getAgentState().tasks || []);
+    }
 
     _listItems(title, items, formatter = (item) => item.termKey || item.id) {
         console.log(`\n${title} (${items.length}):`);
@@ -196,7 +212,7 @@ class TuiView {
     showHelp() {
         console.log('\nAvailable commands:');
         const displayedCommands = new Set();
-        Object.entries(this.commandMap).forEach(([command, { description }]) => {
+        Object.entries(this.commandMap).forEach(([command, {description}]) => {
             if (description && !displayedCommands.has(description)) {
                 console.log(`  ${command.padEnd(12)} - ${description}`);
                 displayedCommands.add(description);
@@ -207,4 +223,4 @@ class TuiView {
     }
 }
 
-export { TuiView };
+export {TuiView};

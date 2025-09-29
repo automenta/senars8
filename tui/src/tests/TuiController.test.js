@@ -1,8 +1,9 @@
-import { TuiController } from '../TuiController.js';
+import {TuiController} from '../TuiController.js';
 import ApiService from '@common/services/ApiService.js';
 
 vi.mock('@common/services/ApiService.js', () => {
     const EventEmitter = require('events');
+
     class MockApiService extends EventEmitter {
         constructor() {
             super();
@@ -12,7 +13,8 @@ vi.mock('@common/services/ApiService.js', () => {
             this.removeAllListeners = vi.fn();
         }
     }
-    return { default: MockApiService };
+
+    return {default: MockApiService};
 });
 
 const mockView = {

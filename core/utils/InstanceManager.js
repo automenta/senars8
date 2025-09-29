@@ -6,6 +6,14 @@ class InstanceManager {
     #cache = new Map();
 
     /**
+     * Returns the number of items in the cache.
+     * @returns {number}
+     */
+    get size() {
+        return this.#cache.size;
+    }
+
+    /**
      * Retrieves an instance from the cache.
      * @param {string} key - The unique key for the instance.
      * @returns {any|undefined} The cached instance or undefined if not found.
@@ -39,14 +47,6 @@ class InstanceManager {
      */
     clear() {
         this.#cache.clear();
-    }
-
-    /**
-     * Returns the number of items in the cache.
-     * @returns {number}
-     */
-    get size() {
-        return this.#cache.size;
     }
 }
 

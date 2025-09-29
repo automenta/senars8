@@ -15,7 +15,7 @@ export const throttle = (func, wait) => {
         timeoutId = null;
     };
 
-    return function(...args) {
+    return function (...args) {
         lastArgs = args;
         lastThis = this;
         if (!timeoutId) {

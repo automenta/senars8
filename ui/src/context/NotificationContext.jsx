@@ -1,4 +1,4 @@
-import {createContext, useContext, useEffect, useState, useMemo, useCallback} from 'react';
+import {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import {MESSAGE_TYPES} from '@/constants/ui';
@@ -117,11 +117,16 @@ export const NotificationProvider = ({children}) => {
 
     const getNotificationCount = useCallback((type) => {
         switch (type) {
-            case 'error': return errorCount;
-            case 'warning': return warningCount;
-            case 'info': return infoCount;
-            case 'success': return successCount;
-            default: return notifications.length;
+            case 'error':
+                return errorCount;
+            case 'warning':
+                return warningCount;
+            case 'info':
+                return infoCount;
+            case 'success':
+                return successCount;
+            default:
+                return notifications.length;
         }
     }, [errorCount, warningCount, infoCount, successCount, notifications.length]);
 

@@ -1,5 +1,5 @@
 import logger from '../../common/services/Logger.js';
-import { throttle } from './utils/async.js';
+import {throttle} from './utils/async.js';
 
 const VIEW_UPDATE_EVENTS = [
     'state_update',
@@ -63,4 +63,4 @@ class TuiController {
     }
 }
 
-export { TuiController };
+export {TuiController};

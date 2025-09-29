@@ -11,19 +11,12 @@ import config from '../config/index.js';
 import InstanceManager from '../utils/InstanceManager.js';
 
 class Term extends BaseEntity {
+    static #keyBuilder = null;
     #key;
     #embeddingRef;
     #complexity;
     #structure;
     #componentCache;
-    static #keyBuilder = null;
-
-    static #getKeyBuilder() {
-        if (!Term.#keyBuilder) {
-            Term.#keyBuilder = createKeyBuilder((pTerm, silent) => Term.termKey(pTerm, silent));
-        }
-        return Term.#keyBuilder;
-    }
 
     constructor(key, embedding = [], complexity = 1) {
         super();
@@ -81,6 +74,13 @@ class Term extends BaseEntity {
             warn(`Error getting terms for ${this.#key}: ${error.message}`);
             return (this.#componentCache.terms = null);
         }
+    }
+
+    static #getKeyBuilder() {
+        if (!Term.#keyBuilder) {
+            Term.#keyBuilder = createKeyBuilder((pTerm, silent) => Term.termKey(pTerm, silent));
+        }
+        return Term.#keyBuilder;
     }
 
     // Static methods

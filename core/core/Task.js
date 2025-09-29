@@ -48,15 +48,19 @@ class Task extends BaseEntity {
     get id() {
         return this.#id;
     }
+
     get term() {
         return this.#term;
     }
+
     get termKey() {
         return this.#termKey;
     }
+
     get punctuation() {
         return this.#punctuation;
     }
+
     get state() {
         return this.#state;
     }
@@ -161,7 +165,8 @@ class Task extends BaseEntity {
                 };
             }
         }
-        return { ...DEFAULT_TRUTH_VALUE
+        return {
+            ...DEFAULT_TRUTH_VALUE
         };
     }
 
@@ -213,8 +218,10 @@ class Task extends BaseEntity {
     clone() {
         const clonedTask = new Task(
             this.#term,
-            this.#punctuation, { ...this.#state.truthValue
-            }, { ...this.#state.stamp
+            this.#punctuation, {
+                ...this.#state.truthValue
+            }, {
+                ...this.#state.stamp
             }
         );
         clonedTask.#id = this.#id;

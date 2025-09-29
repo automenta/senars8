@@ -1,6 +1,6 @@
 import rules from './rules/index.js';
-import { debug, error as logError, info } from '../utils/logger.js';
-import { createUnifiedErrorHandler } from '../utils/errorHandler.js';
+import {debug, error as logError, info} from '../utils/logger.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
 
 const errorHandler = createUnifiedErrorHandler('Reasoner');

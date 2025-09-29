@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import fs from 'fs';
-import { UnitTestAnalyzer } from '../../core/analyzer/index.js';
-import { logAndExit, safeAsync } from '../../core/utils/errorHandler.js';
+import {UnitTestAnalyzer} from '../../core/analyzer/index.js';
+import {logAndExit, safeAsync} from '../../core/utils/errorHandler.js';
 
 const TEST_RESULTS_PATH = './test-results.json';
 const HTML_REPORT_PATH = './actual-test-failures-analysis.html';
@@ -23,7 +23,7 @@ const loadAndFilterFailures = () => {
     }
 
     console.log(`Found ${failingSuites.length} test suites with failures.`);
-    return { testResults: failingSuites };
+    return {testResults: failingSuites};
 };
 
 const analyzeAndGenerateReports = async (failureData) => {

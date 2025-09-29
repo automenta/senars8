@@ -1,31 +1,31 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useSearch } from '@/context/SearchContext';
-import { Brain, FileText, Globe, Search as SearchIcon, X, Zap } from 'lucide-react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {useSearch} from '@/context/SearchContext';
+import {Brain, FileText, Globe, Search as SearchIcon, X, Zap} from 'lucide-react';
 import './GlobalSearch.css';
 
 const SCOPE_OPTIONS = [
-    { id: 'all', label: 'All', Icon: Globe },
-    { id: 'memory', label: 'Memory', Icon: Brain },
-    { id: 'files', label: 'Files', Icon: FileText },
-    { id: 'reasoning', label: 'Reasoning', Icon: Zap },
+    {id: 'all', label: 'All', Icon: Globe},
+    {id: 'memory', label: 'Memory', Icon: Brain},
+    {id: 'files', label: 'Files', Icon: FileText},
+    {id: 'reasoning', label: 'Reasoning', Icon: Zap},
 ];
 
 const getIconForType = (type) => {
     const option = SCOPE_OPTIONS.find(opt => opt.id === type);
-    return option ? <option.Icon size={16} /> : <Globe size={16} />;
+    return option ? <option.Icon size={16}/> : <Globe size={16}/>;
 };
 
-const ScopeButton = React.memo(({ scope, activeScope, onClick, Icon, children }) => (
+const ScopeButton = React.memo(({scope, activeScope, onClick, Icon, children}) => (
     <button
         type="button"
         className={`scope-option ${activeScope === scope ? 'active' : ''}`}
         onClick={() => onClick(scope)}
     >
-        <Icon size={16} /> {children}
+        <Icon size={16}/> {children}
     </button>
 ));
 
-const ResultsDisplay = React.memo(({ isSearching, results, term }) => {
+const ResultsDisplay = React.memo(({isSearching, results, term}) => {
     if (isSearching) {
         return (
             <div className="searching-indicator">
@@ -60,7 +60,16 @@ const ResultsDisplay = React.memo(({ isSearching, results, term }) => {
 });
 
 const GlobalSearch = () => {
-    const { searchTerm, setSearchTerm, searchResults, isSearching, searchScope, setSearchScope, performSearch, clearSearch } = useSearch();
+    const {
+        searchTerm,
+        setSearchTerm,
+        searchResults,
+        isSearching,
+        searchScope,
+        setSearchScope,
+        performSearch,
+        clearSearch
+    } = useSearch();
     const [isOpen, setIsOpen] = useState(false);
     const inputRef = useRef(null);
 
@@ -94,7 +103,7 @@ const GlobalSearch = () => {
     return (
         <div className="global-search-container">
             <button className="global-search-trigger" onClick={() => setIsOpen(true)} title="Global Search (Ctrl+K)">
-                <SearchIcon size={16} />
+                <SearchIcon size={16}/>
                 <span>Search (Ctrl+K)</span>
             </button>
 
@@ -103,7 +112,7 @@ const GlobalSearch = () => {
                     <div className="global-search-modal">
                         <form onSubmit={handleSearch} className="search-form">
                             <div className="search-input-container">
-                                <SearchIcon size={20} className="search-icon" />
+                                <SearchIcon size={20} className="search-icon"/>
                                 <input
                                     ref={inputRef}
                                     type="text"
@@ -113,15 +122,17 @@ const GlobalSearch = () => {
                                     className="global-search-input"
                                 />
                                 {searchTerm && (
-                                    <button type="button" className="clear-search-button" onClick={handleClear} title="Clear search">
-                                        <X size={16} />
+                                    <button type="button" className="clear-search-button" onClick={handleClear}
+                                            title="Clear search">
+                                        <X size={16}/>
                                     </button>
                                 )}
                             </div>
 
                             <div className="search-scope-selector">
-                                {SCOPE_OPTIONS.map(({ id, label, Icon }) => (
-                                    <ScopeButton key={id} scope={id} activeScope={searchScope} onClick={setSearchScope} Icon={Icon}>
+                                {SCOPE_OPTIONS.map(({id, label, Icon}) => (
+                                    <ScopeButton key={id} scope={id} activeScope={searchScope} onClick={setSearchScope}
+                                                 Icon={Icon}>
                                         {label}
                                     </ScopeButton>
                                 ))}
@@ -130,7 +141,7 @@ const GlobalSearch = () => {
 
                         {(searchTerm || searchResults.length > 0) && (
                             <div className="search-results">
-                                <ResultsDisplay isSearching={isSearching} results={searchResults} term={searchTerm} />
+                                <ResultsDisplay isSearching={isSearching} results={searchResults} term={searchTerm}/>
                             </div>
                         )}
                     </div>

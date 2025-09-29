@@ -89,7 +89,7 @@ class HTNPlanner extends BasePlanner {
         });
 
         for (const expansion of expansions) {
-            const { subTasks } = expansion;
+            const {subTasks} = expansion;
             if (!subTasks) continue;
 
             const plan = await this._constructPlanForSubtasks(subTasks, [
