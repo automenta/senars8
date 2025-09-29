@@ -1,77 +1,102 @@
-import {TuiController} from '../TuiController.js';
+import { TuiController } from '../TuiController.js';
 import ApiService from '@common/services/ApiService.js';
 
-// Mock the ApiService and TuiView
 vi.mock('@common/services/ApiService.js', () => {
     const EventEmitter = require('events');
-
     class MockApiService extends EventEmitter {
         constructor() {
             super();
             this.connect = vi.fn();
             this.on = vi.fn();
+            this.off = vi.fn();
             this.removeAllListeners = vi.fn();
         }
     }
-
-    return {default: MockApiService};
+    return { default: MockApiService };
 });
 
 const mockView = {
     render: vi.fn(),
 };
 
+const VIEW_UPDATE_EVENTS = [
+    'state_update',
+    'status',
+    'task_update',
+    'system_stats',
+    'narsese',
+    'message',
+];
+
 describe('TuiController', () => {
     let apiService;
     let tuiController;
 
     beforeEach(() => {
-        vi.clearAllMocks(); // Clear mocks before each test
-        // Create new instances for each test to ensure isolation
+        vi.clearAllMocks();
         apiService = new ApiService();
-        tuiController = new TuiController(apiService, mockView, {});
+        tuiController = new TuiController(apiService, mockView);
     });
 
-    test('should be defined', () => {
+    it('should be defined', () => {
         expect(TuiController).toBeDefined();
     });
 
-    test('should instantiate without crashing', () => {
+    it('should instantiate without crashing', () => {
         expect(tuiController).toBeInstanceOf(TuiController);
     });
 
-    test('start() should set isRunning to true', () => {
-        tuiController.isRunning = false; // ensure it's false before starting
-        tuiController.start();
-        expect(tuiController.isRunning).toBe(true);
+    describe('start()', () => {
+        it('should set isRunning to true and register event listeners', () => {
+            tuiController.isRunning = false;
+            tuiController.start();
+
+            expect(tuiController.isRunning).toBe(true);
+
+            expect(apiService.on).toHaveBeenCalledTimes(VIEW_UPDATE_EVENTS.length);
+            const registeredEvents = apiService.on.mock.calls.map(call => call[0]);
+            for (const event of VIEW_UPDATE_EVENTS) {
+                expect(registeredEvents).toContain(event);
+            }
+        });
+
+        it('should not do anything if already running', () => {
+            tuiController.start();
+            apiService.on.mockClear();
+            tuiController.start();
+            expect(apiService.on).not.toHaveBeenCalled();
+        });
     });
 
-    test('stop() should set isRunning to false and unregister listeners', () => {
-        tuiController.start(); // Start it first
-        expect(tuiController.isRunning).toBe(true);
+    describe('stop()', () => {
+        it('should set isRunning to false and unregister listeners', () => {
+            tuiController.start();
+            expect(tuiController.isRunning).toBe(true);
 
-        tuiController.stop();
-        expect(tuiController.isRunning).toBe(false);
-        expect(apiService.removeAllListeners).toHaveBeenCalled();
+            tuiController.stop();
+
+            expect(tuiController.isRunning).toBe(false);
+            expect(apiService.off).toHaveBeenCalledTimes(VIEW_UPDATE_EVENTS.length);
+            const unregisteredEvents = apiService.off.mock.calls.map(call => call[0]);
+            for (const event of VIEW_UPDATE_EVENTS) {
+                expect(unregisteredEvents).toContain(event);
+            }
+        });
+
+        it('should not do anything if not running', () => {
+            tuiController.isRunning = false;
+            tuiController.stop();
+            expect(apiService.off).not.toHaveBeenCalled();
+        });
     });
 
-    test('constructor should register event listeners', () => {
-        // The constructor is called in beforeEach, so we just check the mock
-        expect(apiService.on).toHaveBeenCalled();
-
-        // Check that 'on' was called for the events we expect
-        const expectedEvents = [
-            'state_update',
-            'status',
-            'task_update',
-            'system_stats',
-            'narsese',
-            'message',
-        ];
-        const registeredEvents = apiService.on.mock.calls.map(call => call[0]);
-
-        for (const event of expectedEvents) {
-            expect(registeredEvents).toContain(event);
-        }
+    describe('onViewUpdate()', () => {
+        it('should call the throttled render function', () => {
+            vi.useFakeTimers();
+            tuiController.throttledRender = vi.fn();
+            tuiController.onViewUpdate();
+            expect(tuiController.throttledRender).toHaveBeenCalled();
+            vi.useRealTimers();
+        });
     });
 });

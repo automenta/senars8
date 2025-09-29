@@ -125,6 +125,15 @@ class UnifiedErrorHandler {
 
 const createUnifiedErrorHandler = (moduleName) => new UnifiedErrorHandler(moduleName);
 
+// Pre-configured error handlers for common components
+const agentErrorHandler = createUnifiedErrorHandler('Agent');
+const systemErrorHandler = createUnifiedErrorHandler('System');
+const plannerErrorHandler = createUnifiedErrorHandler('Planner');
+const perceptionErrorHandler = createUnifiedErrorHandler('Perception');
+const metaCognitionErrorHandler = createUnifiedErrorHandler('MetaCognition');
+const eventBusErrorHandler = createUnifiedErrorHandler('EventBus');
+const diContainerErrorHandler = createUnifiedErrorHandler('DIContainer');
+
 export {
     UnifiedErrorHandler,
     createUnifiedErrorHandler,
@@ -138,4 +147,11 @@ export {
     ERROR_CLASSES as Errors,
     IS_ERROR as isError,
     CREATE_ERROR as createError,
+    agentErrorHandler,
+    systemErrorHandler,
+    plannerErrorHandler,
+    perceptionErrorHandler,
+    metaCognitionErrorHandler,
+    eventBusErrorHandler,
+    diContainerErrorHandler,
 };

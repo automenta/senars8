@@ -1,20 +1,20 @@
 import CostManager from './CostManager.js';
 import * as PlannerUtils from './utils/PlannerUtils.js';
-import globalConfig from '../config/index.js';
+import createConfigAccessor from '../config/ConfigAccessor.js';
 
 class BasePlanner {
-    constructor(memory, lm, config = {}) {
+    constructor(memory, lm, configManager) {
         this.memory = memory;
         this.lm = lm;
-        this.costManager = new CostManager(memory, config);
-        this.config = {
-            confidenceThreshold: config.confidenceThreshold || globalConfig.DEFAULT_TRUTH_VALUE.confidence,
-            preconditionConfidenceThreshold: config.preconditionConfidenceThreshold || 0.8
-        };
+        this.configManager = configManager;
+        this.config = createConfigAccessor(configManager, 'BASE_PLANNER');
+        this.costManager = new CostManager(memory, configManager);
+        this.confidenceThreshold = this.config.get('confidenceThreshold', 0.9);
+        this.preconditionConfidenceThreshold = this.config.get('preconditionConfidenceThreshold', 0.8);
     }
 
     _isAchieved(task) {
-        return PlannerUtils.isAchieved(task, this.memory, this.config);
+        return PlannerUtils.isAchieved(task, this.memory, this.confidenceThreshold);
     }
 
     _getDecompositionMethods(task) {
@@ -38,9 +38,54 @@ class BasePlanner {
     }
 
     _arePreconditionsMet(preconditions) {
-        return PlannerUtils.arePreconditionsMet(preconditions, this.memory, this.config);
+        return PlannerUtils.arePreconditionsMet(preconditions, this.memory, this.preconditionConfidenceThreshold);
     }
 
+    _getExpansions(task) {
+        if (task.type === 'SequentialConjunction') {
+            const subTasks = this._getSubTasks(task);
+            return subTasks ? [{
+                subTasks,
+                method: null,
+                preconditions: []
+            }] : [];
+        }
+
+        const decompositionMethods = this._getDecompositionMethods(task);
+
+        if (decompositionMethods.length === 0 && this._isPrimitive(task)) {
+            return [{
+                subTasks: [task],
+                method: null,
+                preconditions: []
+            }];
+        }
+
+        const expansions = [];
+        for (const method of decompositionMethods) {
+            const {
+                subject
+            } = method;
+            let preconditions = [];
+
+            if (subject.type === 'SequentialConjunction') {
+                preconditions = subject.terms.slice(1);
+            }
+
+            if (this._arePreconditionsMet(preconditions)) {
+                const subTasks = this._getSubTasks(method.predicate);
+                if (subTasks) {
+                    expansions.push({
+                        subTasks,
+                        method,
+                        preconditions
+                    });
+                }
+            }
+        }
+
+        return expansions;
+    }
 }
 
 export default BasePlanner;

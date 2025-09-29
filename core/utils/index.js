@@ -31,7 +31,6 @@ import {debug, error, info, warn} from './logger.js';
 import Validator from './Validator.js';
 import EventBus from '../system/EventBus.js';
 import * as validation from './validation.js';
-import * as errorHandling from './errorHandling.js';
 
 // Re-export commonly used utilities
 export {
@@ -86,5 +85,4 @@ export {
     EventBus,
 
     // Error handling utilities
-    errorHandling
 };

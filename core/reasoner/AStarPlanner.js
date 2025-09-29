@@ -1,13 +1,16 @@
 import {MinPriorityQueue} from '@datastructures-js/priority-queue';
 import BasePlanner from './BasePlanner.js';
+import createConfigAccessor from '../config/ConfigAccessor.js';
 
 class AStarPlanner extends BasePlanner {
-    constructor(memory, lm, config = {}) {
-        super(memory, lm, config);
+    constructor(memory, lm, configManager) {
+        super(memory, lm, configManager);
+        this.config = createConfigAccessor(configManager, 'ASTAR_PLANNER');
+        this.maxIterations = this.config.get('maxIterations', 1000);
         this.heuristicCache = new Map();
     }
 
-    async findPlan(goalTask, maxIterations = 1000) {
+    async findPlan(goalTask) {
         const startNode = this.memory.getTerm(goalTask.termKey);
         if (!startNode) return null;
 
@@ -26,7 +29,7 @@ class AStarPlanner extends BasePlanner {
             f: initialHeuristic,
         });
 
-        for (let i = 0; i < maxIterations && !openSet.isEmpty(); i++) {
+        for (let i = 0; i < this.maxIterations && !openSet.isEmpty(); i++) {
             const currentNode = openSet.dequeue();
 
             // If we have no more tasks, we've found a complete plan
@@ -107,39 +110,6 @@ class AStarPlanner extends BasePlanner {
         const taskKey = node.tasks.map(t => t.key).sort().join(',');
         const planKey = node.plan.sort().join(',');
         return `${taskKey}|${planKey}`;
-    }
-
-    _getExpansions(task) {
-        if (task.type === 'SequentialConjunction') {
-            const subTasks = this._getSubTasks(task);
-            return subTasks ? [{subTasks, method: null, preconditions: []}] : [];
-        }
-
-        const decompositionMethods = this._getDecompositionMethods(task);
-
-        if (decompositionMethods.length === 0) {
-            // This is a primitive action, it "expands" to itself.
-            return [{subTasks: [task], method: null, preconditions: []}];
-        }
-
-        const expansions = [];
-        for (const method of decompositionMethods) {
-            const {subject} = method;
-            let preconditions = [];
-
-            if (subject.type === 'SequentialConjunction') {
-                preconditions = subject.terms.slice(1);
-            }
-
-            if (this._arePreconditionsMet(preconditions)) {
-                const subTasks = this._getSubTasks(method.predicate);
-                if (subTasks) {
-                    expansions.push({subTasks, method, preconditions});
-                }
-            }
-        }
-
-        return expansions;
     }
 
     async _calculateHeuristic(tasks, visited = new Set()) {

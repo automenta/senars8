@@ -4,7 +4,7 @@
 
 import {lstatSync, readdirSync} from 'fs';
 import {join, parse} from 'path';
-import {diContainerErrorHandler as errorHandler} from '../utils/errorHandling.js';
+import {diContainerErrorHandler as errorHandler} from '../utils/errorHandler.js';
 
 const LIFETIME = {
     TRANSIENT: 'transient',

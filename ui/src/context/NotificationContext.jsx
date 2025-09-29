@@ -1,4 +1,4 @@
-import {createContext, useContext, useEffect, useState} from 'react';
+import {createContext, useContext, useEffect, useState, useMemo, useCallback} from 'react';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import {MESSAGE_TYPES} from '@/constants/ui';
@@ -111,29 +111,30 @@ export const NotificationProvider = ({children}) => {
         };
     }, []);
 
-    const value = {
+    const clearNotifications = useCallback(() => setNotifications([]), []);
+
+    const getRecentNotifications = useCallback((count = 5) => notifications.slice(0, count), [notifications]);
+
+    const getNotificationCount = useCallback((type) => {
+        switch (type) {
+            case 'error': return errorCount;
+            case 'warning': return warningCount;
+            case 'info': return infoCount;
+            case 'success': return successCount;
+            default: return notifications.length;
+        }
+    }, [errorCount, warningCount, infoCount, successCount, notifications.length]);
+
+    const value = useMemo(() => ({
         notifications,
         errorCount,
         warningCount,
         infoCount,
         successCount,
-        clearNotifications: () => setNotifications([]),
-        getRecentNotifications: (count = 5) => notifications.slice(0, count),
-        getNotificationCount: (type) => {
-            switch (type) {
-                case 'error':
-                    return errorCount;
-                case 'warning':
-                    return warningCount;
-                case 'info':
-                    return infoCount;
-                case 'success':
-                    return successCount;
-                default:
-                    return notifications.length;
-            }
-        }
-    };
+        clearNotifications,
+        getRecentNotifications,
+        getNotificationCount,
+    }), [notifications, errorCount, warningCount, infoCount, successCount, clearNotifications, getRecentNotifications, getNotificationCount]);
 
     return (
         <NotificationContext.Provider value={value}>

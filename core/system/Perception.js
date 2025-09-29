@@ -1,5 +1,5 @@
 import PatternDetector from '../reasoner/PatternDetector.js';
-import {perceptionErrorHandler as errorHandler} from '../utils/errorHandling.js';
+import {perceptionErrorHandler as errorHandler} from '../utils/errorHandler.js';
 
 class Perception {
     constructor(memory, taskFactory, eventBus) {

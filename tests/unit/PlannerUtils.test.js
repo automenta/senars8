@@ -60,17 +60,15 @@ describe('PlannerUtils', () => {
     });
 
     describe('isAchieved', () => {
-        const config = {
-            confidenceThreshold: 0.8
-        };
+        const confidenceThreshold = 0.8;
 
         it('should return false if term is null', () => {
-            expect(PlannerUtils.isAchieved(null, memory, config)).toBe(false);
+            expect(PlannerUtils.isAchieved(null, memory, confidenceThreshold)).toBe(false);
         });
 
         it('should return false if no beliefs are found', () => {
             const term = new Term('goal');
-            expect(PlannerUtils.isAchieved(term, memory, config)).toBe(false);
+            expect(PlannerUtils.isAchieved(term, memory, confidenceThreshold)).toBe(false);
         });
 
         it('should return false if belief confidence is below threshold', () => {
@@ -82,7 +80,7 @@ describe('PlannerUtils', () => {
                     }
                 }
             }]);
-            expect(PlannerUtils.isAchieved(term, memory, config)).toBe(false);
+            expect(PlannerUtils.isAchieved(term, memory, confidenceThreshold)).toBe(false);
         });
 
         it('should return true if belief confidence is at or above threshold', () => {
@@ -94,17 +92,15 @@ describe('PlannerUtils', () => {
                     }
                 }
             }]);
-            expect(PlannerUtils.isAchieved(term, memory, config)).toBe(true);
+            expect(PlannerUtils.isAchieved(term, memory, confidenceThreshold)).toBe(true);
         });
     });
 
     describe('arePreconditionsMet', () => {
-        const config = {
-            preconditionConfidenceThreshold: 0.7
-        };
+        const preconditionConfidenceThreshold = 0.7;
 
         it('should return true for empty preconditions', () => {
-            expect(PlannerUtils.arePreconditionsMet([], memory, config)).toBe(true);
+            expect(PlannerUtils.arePreconditionsMet([], memory, preconditionConfidenceThreshold)).toBe(true);
         });
 
         it('should return true if all preconditions are met', () => {
@@ -124,7 +120,7 @@ describe('PlannerUtils', () => {
                     }
                 }
             }]);
-            expect(PlannerUtils.arePreconditionsMet([precond1, precond2], memory, config)).toBe(true);
+            expect(PlannerUtils.arePreconditionsMet([precond1, precond2], memory, preconditionConfidenceThreshold)).toBe(true);
         });
 
         it('should return false if any precondition is not met', () => {
@@ -137,7 +133,7 @@ describe('PlannerUtils', () => {
                     }
                 }
             }]);
-            expect(PlannerUtils.arePreconditionsMet([precond1, precond2], memory, config)).toBe(false);
+            expect(PlannerUtils.arePreconditionsMet([precond1, precond2], memory, preconditionConfidenceThreshold)).toBe(false);
         });
     });
 });

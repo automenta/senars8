@@ -5,7 +5,7 @@ import createConfigAccessor from '../config/ConfigAccessor.js';
 
 const errorHandler = createUnifiedErrorHandler('Reasoner');
 
-const getCombinationKey = (ruleName, tasks) => {
+const _getCombinationKey = (ruleName, tasks) => {
     // Use a more efficient approach: pre-allocate the IDs array and sort once
     const taskIds = new Array(tasks.length);
     for (let i = 0; i < tasks.length; i++) {
@@ -91,15 +91,7 @@ class Reasoner {
     }
 
     _applyRule(rule, tasks, processedCombinations) {
-        // Create a key that's unique per rule-task combination, not just task combination
-        // Use optimized combination key generation
-        const taskIds = new Array(tasks.length);
-        for (let i = 0; i < tasks.length; i++) {
-            taskIds[i] = tasks[i].id;
-        }
-        taskIds.sort();
-        const combinationKey = `${rule.name}:${taskIds.join(',')}`;
-        
+        const combinationKey = _getCombinationKey(rule.name, tasks);
         if (processedCombinations.has(combinationKey)) {
             debug(`Skipping already processed combination for rule ${rule.name}`);
             return null;

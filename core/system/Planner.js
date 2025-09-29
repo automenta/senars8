@@ -1,9 +1,9 @@
 import HTNPlanner from '../reasoner/HTNPlanner.js';
 import AStarPlanner from '../reasoner/AStarPlanner.js';
 import Plan from './Plan.js';
-import {plannerErrorHandler as errorHandler} from '../utils/errorHandling.js';
+import {plannerErrorHandler as errorHandler} from '../utils/errorHandler.js';
 import {debug, warn} from '../utils/logger.js';
-import {configService} from '../config/index.js';
+import createConfigAccessor from '../config/ConfigAccessor.js';
 
 class Planner {
     constructor(memory, lm, actionExecutor, configManager) {
@@ -11,11 +11,11 @@ class Planner {
             throw new Error('Planner requires memory, lm, and actionExecutor instances.');
         }
 
-        this.config = configService;
-        const strategyName = this.config.getString('planner.strategy', 'HTN');
+        this.config = createConfigAccessor(configManager, 'PLANNER');
+        const strategyName = this.config.get('strategy', 'HTN');
         const strategyMap = {
             'HTN': HTNPlanner,
-            'AStar': AStarPlanner
+            'AStar': AStarPlanner,
         };
 
         const PlannerClass = strategyMap[strategyName];

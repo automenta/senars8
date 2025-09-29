@@ -1,11 +1,12 @@
 import BasePlanner from './BasePlanner.js';
-import globalConfig from '../config/index.js';
 import {debug} from '../utils/logger.js';
+import createConfigAccessor from '../config/ConfigAccessor.js';
 
 class HTNPlanner extends BasePlanner {
-    constructor(memory, lm, config = {}) {
-        super(memory, lm, config);
-        this.config.maxDepth = this.config.maxDepth || globalConfig.HTN_MAX_DEPTH || 10;
+    constructor(memory, lm, configManager) {
+        super(memory, lm, configManager);
+        this.config = createConfigAccessor(configManager, 'HTN_PLANNER');
+        this.maxDepth = this.config.get('maxDepth', 10);
         this.planCache = new Map();
     }
 
@@ -51,7 +52,7 @@ class HTNPlanner extends BasePlanner {
             return null; // Cyclic dependency
         }
 
-        if (depth > this.config.maxDepth) {
+        if (depth > this.maxDepth) {
             debug('HTNPlanner: Max depth exceeded for task:', {
                 task: taskKey,
                 depth
@@ -73,8 +74,8 @@ class HTNPlanner extends BasePlanner {
             return [task];
         }
 
-        const methods = this._getDecompositionMethods(task);
-        if (!methods.length) {
+        const expansions = this._getExpansions(task);
+        if (!expansions.length) {
             debug('HTNPlanner: No decomposition methods found for task:', {
                 task: taskKey
             });
@@ -83,12 +84,12 @@ class HTNPlanner extends BasePlanner {
 
         debug('HTNPlanner: Decomposing task:', {
             task: taskKey,
-            methods: methods.map(m => m.key),
+            methods: expansions.map(e => e.method?.key).filter(Boolean),
             depth
         });
 
-        for (const method of methods) {
-            const subTasks = this._getSubTasks(method.predicate);
+        for (const expansion of expansions) {
+            const { subTasks } = expansion;
             if (!subTasks) continue;
 
             const plan = await this._constructPlanForSubtasks(subTasks, [

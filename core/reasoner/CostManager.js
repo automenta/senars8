@@ -1,7 +1,10 @@
+import createConfigAccessor from '../config/ConfigAccessor.js';
+
 class CostManager {
-    constructor(memory, config = {}) {
+    constructor(memory, configManager) {
         this.memory = memory;
-        this.defaultCost = config.defaultCost || 1;
+        this.config = createConfigAccessor(configManager, 'COST_MANAGER');
+        this.defaultCost = this.config.get('defaultCost', 1);
     }
 
     getTaskDifficulty(taskTerm) {

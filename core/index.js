@@ -1,7 +1,7 @@
 import Task from './core/Task.js';
 import Term from './core/Term.js';
 import {parseTerm} from './parser/parse-utils.js';
-import {agentErrorHandler} from './utils/errorHandling.js';
+import {agentErrorHandler} from './utils/errorHandler.js';
 import {debug, warn} from './utils/logger.js';
 import System from './system/System.js';
 import {createSystem} from './system/SystemFactory.js';
