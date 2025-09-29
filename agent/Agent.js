@@ -1,6 +1,9 @@
-import {agentErrorHandler as errorHandler, createSystem, parseTerm, Task} from '@project/core';
+import {agentErrorHandler as errorHandler, createSystem} from '../core/index.js';
+import {parseTerm} from '../core/parser/parse-utils.js';
+import Task from '../core/core/Task.js';
 import logger from '../common/services/Logger.js';
 import MCP from './MCP.js';
+import FileMonitoringIntegration from './FileMonitoringIntegration.js';
 
 const agentLogger = logger.createNamespace('Agent');
 
@@ -23,6 +26,7 @@ class Agent {
         this.isInitialized = false;
         this.mcp = new MCP(this);
         this.tools = {};
+        this.fileMonitoringIntegration = new FileMonitoringIntegration(this, config.fileMonitoring || {});
     }
 
     async initialize() {
@@ -44,6 +48,10 @@ class Agent {
                     });
                 }
             }
+
+            // Initialize file monitoring integration
+            await this.fileMonitoringIntegration.initialize();
+            await this.fileMonitoringIntegration.start();
 
             agentLogger.debug('Agent initialized successfully.');
         }, 'initialize');
@@ -135,6 +143,11 @@ class Agent {
         if (!this.isInitialized) {
             throw new Error('Agent must be initialized before stopping.');
         }
+        
+        // Stop file monitoring first
+        this.fileMonitoringIntegration?.stop?.();
+        
+        // Then stop the main system
         this.system?.stop?.();
         if (!this.system?.stop) {
             agentLogger.debug('System does not have a stop method.');
@@ -144,6 +157,42 @@ class Agent {
     async reset() {
         this.system?.stop?.();
         await this.initialize();
+    }
+
+    // File monitoring agent methods
+    async addMonitoringPatterns(patterns) {
+        if (!this.isInitialized) {
+            throw new Error('Agent must be initialized before adding monitoring patterns.');
+        }
+        return this.fileMonitoringIntegration.addPatterns(patterns);
+    }
+
+    async removeMonitoringPatterns(patterns) {
+        if (!this.isInitialized) {
+            throw new Error('Agent must be initialized before removing monitoring patterns.');
+        }
+        return this.fileMonitoringIntegration.removePatterns(patterns);
+    }
+
+    async processFilesNow(filePaths) {
+        if (!this.isInitialized) {
+            throw new Error('Agent must be initialized before processing files.');
+        }
+        return this.fileMonitoringIntegration.processFilesNow(filePaths);
+    }
+
+    getFileMonitoringStatistics() {
+        if (!this.isInitialized) {
+            throw new Error('Agent must be initialized before getting statistics.');
+        }
+        return this.fileMonitoringIntegration.getStatistics();
+    }
+
+    updateFileMonitoringConfig(newConfig) {
+        if (!this.isInitialized) {
+            throw new Error('Agent must be initialized before updating configuration.');
+        }
+        this.fileMonitoringIntegration.updateConfig(newConfig);
     }
 
     // Methods to access agent's memory and tasks for UI integration
