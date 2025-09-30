@@ -16,7 +16,7 @@ vi.mock('@xenova/transformers', () => ({
 
 const createTerm = async (commandBus, memory, termKey) => {
     const term = await commandBus.request(SystemCommands.LM_BOOTSTRAP_TERM, {termKey});
-    await memory._addTerm(term);
+    await memory.addTerm(term);
     return term;
 };
 

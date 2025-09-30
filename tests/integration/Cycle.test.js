@@ -49,10 +49,10 @@ describe('Cycle Integration Test', () => {
                 return [];
             }
             if (command === SystemCommands.MEMORY_GET_ALL_TASKS) {
-                return await memory._getAllTasks(); // Call the real memory method
+                return await memory.getAllTasks(); // Use public API
             }
             if (command === SystemCommands.MEMORY_GET_TERM) {
-                return memory._getTerm(payload); // Call the real memory method
+                return memory.getTerm(payload); // Use public API
             }
             // Let other commands pass through or return null
             return null;
@@ -68,17 +68,17 @@ describe('Cycle Integration Test', () => {
         const term1 = new Term('AcquireKnowledge', [1, 0, 0], 1);
         // cat should have low similarity to constitutional goals
         const term2 = new Term('cat', [0, 0, 1], 1);
-        await memory._addTerm(term1);
-        await memory._addTerm(term2);
+        await memory.addTerm(term1);
+        await memory.addTerm(term2);
 
         const task1 = new Task(term1, '!');
         const task2 = new Task(term2, '.');
-        await memory._addTasks([task1, task2]);
+        await memory.addTasks([task1, task2]);
 
         await cycle.bootstrap(CONSTITUTION_TASKS);
         await cycle.runOnce();
 
-        const tasks = await memory._getAllTasks();
+        const tasks = await memory.getAllTasks(); // Use public API
         const acquireKnowledgeTask = tasks.find(t => t.termKey === 'AcquireKnowledge');
         const catTask = tasks.find(t => t.termKey === 'cat');
 
