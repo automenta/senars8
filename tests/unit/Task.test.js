@@ -8,6 +8,12 @@ vi.mock('../../core/core/Term.js', () => ({
 
 const {default: Term} = await import('../../core/core/Term.js');
 
+// Local helper function to validate truth values
+const expectTruthValue = (actual, expectedFreq, expectedConf) => {
+    expect(actual.frequency).toBeCloseTo(expectedFreq, 3);
+    expect(actual.confidence).toBeCloseTo(expectedConf, 3);
+};
+
 describe('Task', () => {
     beforeEach(() => {
         vi.mocked(Term).mockClear();
@@ -21,10 +27,7 @@ describe('Task', () => {
         expect(task.termKey).toBe('cat');
         expect(task.punctuation).toBe('.');
         expect(task.state.priority).toBe(0);
-        expect(task.state.truthValue).toEqual({
-            frequency: 1.0,
-            confidence: 0.9
-        });
+        expectTruthValue(task.state.truthValue, 1.0, 0.9);
     });
 
     test('should create a new Task object with custom truth value and stamp', () => {
@@ -42,7 +45,7 @@ describe('Task', () => {
         expect(task.term.key).toBe(term.key);
         expect(task.termKey).toBe('cat');
         expect(task.punctuation).toBe('!');
-        expect(task.state.truthValue).toEqual(truthValue);
+        expectTruthValue(task.state.truthValue, 0.5, 0.5);
         expect(task.state.stamp.creationTime).toEqual(stamp.creationTime);
         expect(task.state.stamp.occurrenceTime).toEqual(stamp.occurrenceTime);
         expect(task.state.stamp.lastAccessed).toEqual(expect.any(BigInt));

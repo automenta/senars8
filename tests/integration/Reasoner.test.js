@@ -20,6 +20,16 @@ const createTerm = async (commandBus, memory, termKey) => {
     return term;
 };
 
+// Local helper to set up command bus mock for system
+const setupCommandBusMock = (commandBus) => {
+    commandBus.request.mockImplementation(async (command, payload) => {
+        if (command === SystemCommands.LM_BOOTSTRAP_TERM) {
+            return new Term(payload.termKey, [], 1);
+        }
+        return null;
+    });
+};
+
 describe('Reasoner Integration Test', () => {
     let system, reasoner, memory, commandBus;
 
@@ -34,12 +44,7 @@ describe('Reasoner Integration Test', () => {
         memory = testSystem.container.get('memory'); // Get memory from container
         commandBus = testSystem.commandBus;
 
-        commandBus.request.mockImplementation(async (command, payload) => {
-            if (command === SystemCommands.LM_BOOTSTRAP_TERM) {
-                return new Term(payload.termKey, [], 1);
-            }
-            return null;
-        });
+        setupCommandBusMock(commandBus);
     });
 
     test('should perform modus ponens', async () => {

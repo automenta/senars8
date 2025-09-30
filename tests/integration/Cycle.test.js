@@ -17,6 +17,32 @@ vi.mock('@xenova/transformers', () => ({
     },
 }));
 
+// Local helper to set up command bus mock for system
+const setupCommandBusMock = (commandBus, memory) => {
+    commandBus.request.mockImplementation(async (command, payload) => {
+        if (command === SystemCommands.LM_GENERATE_HYPOTHESES) {
+            return [];
+        }
+        if (command === SystemCommands.LM_EVALUATE_AND_RANK_HYPOTHESES) {
+            return payload.hypotheses;
+        }
+        if (command === SystemCommands.LM_BOOTSTRAP_TERM) {
+            return new Term(payload.termKey, [], 1);
+        }
+        if (command === SystemCommands.LM_ENRICH_TERM) {
+            return [];
+        }
+        if (command === SystemCommands.MEMORY_GET_ALL_TASKS) {
+            return await memory.getAllTasks(); // Use public API
+        }
+        if (command === SystemCommands.MEMORY_GET_TERM) {
+            return memory.getTerm(payload); // Use public API
+        }
+        // Let other commands pass through or return null
+        return null;
+    });
+};
+
 describe('Cycle Integration Test', () => {
     let system, memory, cycle, commandBus;
 
@@ -35,28 +61,7 @@ describe('Cycle Integration Test', () => {
         commandBus = testSystem.commandBus;
 
         // Mock commandBus requests for LM commands
-        commandBus.request.mockImplementation(async (command, payload) => {
-            if (command === SystemCommands.LM_GENERATE_HYPOTHESES) {
-                return [];
-            }
-            if (command === SystemCommands.LM_EVALUATE_AND_RANK_HYPOTHESES) {
-                return payload.hypotheses;
-            }
-            if (command === SystemCommands.LM_BOOTSTRAP_TERM) {
-                return new Term(payload.termKey, [], 1);
-            }
-            if (command === SystemCommands.LM_ENRICH_TERM) {
-                return [];
-            }
-            if (command === SystemCommands.MEMORY_GET_ALL_TASKS) {
-                return await memory.getAllTasks(); // Use public API
-            }
-            if (command === SystemCommands.MEMORY_GET_TERM) {
-                return memory.getTerm(payload); // Use public API
-            }
-            // Let other commands pass through or return null
-            return null;
-        });
+        setupCommandBusMock(commandBus, memory);
     });
 
     test('should run a cycle without errors', async () => {
