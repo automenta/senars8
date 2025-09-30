@@ -4,7 +4,7 @@
 
 import {lstatSync, readdirSync} from 'fs';
 import {join, parse} from 'path';
-import {diContainerErrorHandler as errorHandler} from '../utils/errorHandler.js';
+import {warn} from '../utils/logger.js';
 
 const LIFETIME = {
     TRANSIENT: 'transient',
@@ -70,7 +70,10 @@ class DIContainer {
         }
 
         const {definition, dependencies} = service;
-        const resolvedDependencies = dependencies.map(dep => this.get(dep, [...resolving, name]));
+        const resolvedDependencies = new Array(dependencies.length);
+        for (let i = 0; i < dependencies.length; i++) {
+            resolvedDependencies[i] = this.get(dependencies[i], [...resolving, name]);
+        }
         const instance = new definition(...resolvedDependencies);
 
         if (service.lifetime === LIFETIME.SINGLETON) {
@@ -111,7 +114,7 @@ class DIContainer {
                 }
             }
         } catch (err) {
-            errorHandler.handleWithDefault(err, 'loadModulesFromDirectory');
+            warn(`Failed to load modules from directory: ${err.message}`);
         }
     }
 }

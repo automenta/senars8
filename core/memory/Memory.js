@@ -105,17 +105,15 @@ class Memory {
     }
 
     getTerm(key) {
-        return errorHandler.executeSync(() => {
-            if (typeof key !== 'string') {
-                warn(`Invalid term key type: ${typeof key}.`);
-                return null;
-            }
-            return this.terms.get(key);
-        }, 'getTerm', null);
+        if (typeof key !== 'string') {
+            warn(`Invalid term key type: ${typeof key}.`);
+            return null;
+        }
+        return this.terms.get(key);
     }
 
     getAllTerms() {
-        return errorHandler.executeSync(() => [...this.terms.values()], 'getAllTerms', []);
+        return [...this.terms.values()];
     }
 
     addTasks(tasks) {
@@ -142,7 +140,7 @@ class Memory {
     }
 
     getTask(id) {
-        return errorHandler.executeSync(() => this.shortTermTasks.get(id) || this.longTermTasks.get(id), 'getTask', null);
+        return this.shortTermTasks.get(id) || this.longTermTasks.get(id);
     }
 
     removeTask(taskId) {
@@ -162,7 +160,11 @@ class Memory {
         return errorHandler.executeSync(() => {
             const currentCount = this.shortTermTasks.size + this.longTermTasks.size;
             if (!this._cachedAllTasks || this._cachedTaskCount !== currentCount) {
-                this._cachedAllTasks = [...this.shortTermTasks.values(), ...this.longTermTasks.values()];
+                // More efficient way to concatenate iterators without creating intermediate arrays
+                this._cachedAllTasks = Array.from(this.shortTermTasks.values());
+                for (const task of this.longTermTasks.values()) {
+                    this._cachedAllTasks.push(task);
+                }
                 this._cachedTaskCount = currentCount;
             }
             return this._cachedAllTasks;
@@ -194,7 +196,14 @@ class Memory {
     getHighestPriorityTasks(k = 20) {
         return errorHandler.executeSync(() => {
             if (k <= 0) return [];
+            
+            // Use cached tasks to avoid potential recalculation
             const allTasks = this.getAllTasks();
+            if (k >= allTasks.length) {
+                // If k is larger than all tasks, just sort and return everything
+                return [...allTasks].sort((a, b) => b.state.priority - a.state.priority);
+            }
+            
             return this._shouldUsePriorityQueue(k, allTasks.length) ?
                 this._getHighestPriorityTasksWithPQ(allTasks, k) :
                 [...allTasks].sort((a, b) => b.state.priority - a.state.priority).slice(0, k);
@@ -257,9 +266,16 @@ class Memory {
         return errorHandler.executeSync(() => {
             const taskIds = this.indexer.punctuationIndex.get(punctuation);
             if (!taskIds) return [];
-            const allTasks = this.getAllTasks();
-            const taskMap = new Map(allTasks.map(t => [t.id, t]));
-            return [...taskIds].map(id => taskMap.get(id)).filter(Boolean);
+            
+            // More efficient approach: directly retrieve tasks from both maps instead of getting all tasks
+            const result = [];
+            for (const taskId of taskIds) {
+                const task = this.shortTermTasks.get(taskId) || this.longTermTasks.get(taskId);
+                if (task) {
+                    result.push(task);
+                }
+            }
+            return result;
         }, methodName, []);
     }
 

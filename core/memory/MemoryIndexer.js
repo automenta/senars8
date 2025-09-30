@@ -133,15 +133,22 @@ class MemoryIndexer {
     }
 
     queryTasks(tasks, filters) {
-        let filteredTasks = [...tasks];
+        // If no filters, return sorted tasks
+        if (!filters || Object.keys(filters).length === 0) {
+            return [...tasks].sort((a, b) => b.state.priority - a.state.priority);
+        }
+        
+        let filteredTasks = tasks;
 
+        // Apply punctuation filter first if available (most efficient)
         if (filters.punctuation) {
             const taskIds = this.punctuationIndex.get(filters.punctuation);
-            if (!taskIds) return [];
+            if (!taskIds || taskIds.size === 0) return [];
             const taskMap = new Map(tasks.map(t => [t.id, t]));
             filteredTasks = [...taskIds].map(id => taskMap.get(id)).filter(Boolean);
         }
 
+        // Apply other filters sequentially
         if (filters.termKey) {
             filteredTasks = filteredTasks.filter(task => task.termKey === filters.termKey);
         }
@@ -152,6 +159,7 @@ class MemoryIndexer {
             filteredTasks = filteredTasks.filter(task => task.state.truthValue.confidence >= filters.minConfidence);
         }
 
+        // Sort and limit
         filteredTasks.sort((a, b) => b.state.priority - a.state.priority);
 
         return filters.limit ? filteredTasks.slice(0, filters.limit) : filteredTasks;

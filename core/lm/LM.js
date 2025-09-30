@@ -68,23 +68,27 @@ class LM {
 
         while (this._isProcessingEmbeddings) {
             // Process multiple batches concurrently
-            const promises = [];
-            for (let i = 0; i < this._maxConcurrency && this._embeddingQueue.length > 0; i++) {
-                const batch = this._embeddingQueue.splice(0, batchSize);
-                if (batch.length > 0) {
-                    promises.push(this._processEmbeddingBatch(batch));
-                }
-            }
-
-            if (promises.length > 0) {
-                await Promise.all(promises);
-            }
+            await this._processConcurrentBatches(batchSize);
 
             // Adjust delay based on queue size
             const delay = this._calculateDynamicDelay();
             await new Promise(resolve => setTimeout(resolve, delay));
         }
         debug('Embedding processing loop finished.');
+    }
+    
+    async _processConcurrentBatches(batchSize) {
+        const promises = [];
+        for (let i = 0; i < this._maxConcurrency && this._embeddingQueue.length > 0; i++) {
+            const batch = this._embeddingQueue.splice(0, batchSize);
+            if (batch.length > 0) {
+                promises.push(this._processEmbeddingBatch(batch));
+            }
+        }
+
+        if (promises.length > 0) {
+            await Promise.all(promises);
+        }
     }
 
     setReasoner(reasoner) {

@@ -80,8 +80,11 @@ class InstanceManager {
             this.#stats.hits++;
             // Move to end to mark as most recently used (LRU)
             const value = this.#cache.get(key);
-            this.#cache.delete(key);
-            this.#cache.set(key, value);
+            // Only move if there are multiple items to avoid unnecessary operations
+            if (this.#cache.size > 1) {
+                this.#cache.delete(key);
+                this.#cache.set(key, value);
+            }
             return value;
         }
 
