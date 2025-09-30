@@ -76,10 +76,10 @@ class InstanceManager {
      * @returns {any|undefined} The cached instance or undefined if not found.
      */
     get(key) {
-        if (this.#cache.has(key)) {
+        const value = this.#cache.get(key);
+        if (value !== undefined) {
             this.#stats.hits++;
             // Move to end to mark as most recently used (LRU)
-            const value = this.#cache.get(key);
             // Only move if there are multiple items to avoid unnecessary operations
             if (this.#cache.size > 1) {
                 this.#cache.delete(key);

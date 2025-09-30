@@ -3,9 +3,18 @@ const cosineSimilarity = (vec1, vec2) => {
         return 0;
     }
 
-    const dotProduct = vec1.reduce((acc, val, i) => acc + val * vec2[i], 0);
-    const magnitude1 = Math.sqrt(vec1.reduce((acc, val) => acc + val * val, 0));
-    const magnitude2 = Math.sqrt(vec2.reduce((acc, val) => acc + val * val, 0));
+    let dotProduct = 0;
+    let magnitude1 = 0;
+    let magnitude2 = 0;
+
+    for (let i = 0; i < vec1.length; i++) {
+        dotProduct += vec1[i] * vec2[i];
+        magnitude1 += vec1[i] * vec1[i];
+        magnitude2 += vec2[i] * vec2[i];
+    }
+
+    magnitude1 = Math.sqrt(magnitude1);
+    magnitude2 = Math.sqrt(magnitude2);
 
     if (magnitude1 === 0 || magnitude2 === 0) {
         return 0;

@@ -2,8 +2,9 @@ const filterByProperty = (array, property, value) => {
     if (!Array.isArray(array) || !property) return [];
     const result = [];
     for (let i = 0; i < array.length; i++) {
-        if (array[i]?.[property] === value) {
-            result.push(array[i]);
+        const item = array[i];
+        if (item && item[property] === value) {
+            result.push(item);
         }
     }
     return result;
@@ -22,9 +23,12 @@ const sumBy = (array, property) => {
     if (!Array.isArray(array) || !property) return 0;
     let sum = 0;
     for (let i = 0; i < array.length; i++) {
-        const value = array[i]?.[property];
-        if (typeof value === 'number') {
-            sum += value;
+        const item = array[i];
+        if (item) {
+            const value = item[property];
+            if (typeof value === 'number') {
+                sum += value;
+            }
         }
     }
     return sum;

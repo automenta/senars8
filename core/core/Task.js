@@ -117,8 +117,15 @@ class Task extends BaseEntity {
 
 
     #processTerm(term) {
-        const termKey = typeof term === 'string' ? term : term.key;
-        const processedTerm = typeof term === 'string' ? parseTerm(term) : (term.type ? term : parseTerm(term.key));
+        let termKey, processedTerm;
+        
+        if (typeof term === 'string') {
+            termKey = term;
+            processedTerm = parseTerm(term);
+        } else {
+            termKey = term.key;
+            processedTerm = term.type ? term : parseTerm(term.key);
+        }
 
         if (!processedTerm) {
             throw new Error(`Failed to parse term: '${termKey}'.`);

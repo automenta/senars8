@@ -96,9 +96,15 @@ class Reasoner {
             debug(`Skipping already processed combination for rule ${rule.name}`);
             return false;
         }
-        this.#processedCombinations.add(combinationKey);
-
-        return this.#areOperandsValid(rule, tasks) && rule.condition(...tasks);
+        
+        const isValid = this.#areOperandsValid(rule, tasks) && rule.condition(...tasks);
+        
+        // Only add to processed combinations if valid to avoid adding invalid combinations to the set
+        if (isValid) {
+            this.#processedCombinations.add(combinationKey);
+        }
+        
+        return isValid;
     }
 
     #applyRule(rule, tasks) {
