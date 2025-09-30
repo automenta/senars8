@@ -8,7 +8,7 @@ import {isNonEmptyArray} from '../utils/collections/index.js';
 import createKeyBuilder from '../parser/key-builders/index.js';
 import {warn} from '../utils/logger.js';
 import config from '../config/index.js';
-import InstanceManager from '../utils/InstanceManager.js';
+import {createSharedInstance} from '../utils/instance-sharing.js';
 
 class Term extends BaseEntity {
     static #keyBuilder = null;
@@ -93,20 +93,7 @@ class Term extends BaseEntity {
     static fromJSON(json) {
         if (!json?.key) return null;
 
-        if (config.performance.ENABLE_INSTANCE_SHARING && InstanceManager.has(json.key)) {
-            return InstanceManager.get(json.key);
-        }
-
-        try {
-            const newTerm = new Term(json.key, json.embedding, json.complexity);
-            if (config.performance.ENABLE_INSTANCE_SHARING) {
-                InstanceManager.add(json.key, newTerm);
-            }
-            return newTerm;
-        } catch (error) {
-            warn(`Error creating Term from JSON: ${error.message}`);
-            return null;
-        }
+        return createSharedInstance(json.key, Term, json.key, json.embedding, json.complexity);
     }
 
     static termKey(pTerm, silent = false) {
@@ -132,19 +119,7 @@ class Term extends BaseEntity {
     static createInner(key, embedding = [], complexity = 1) {
         if (typeof key !== 'string' || key.length === 0) return null;
 
-        if (config.performance.ENABLE_INSTANCE_SHARING && InstanceManager.has(key)) {
-            return InstanceManager.get(key);
-        }
-
-        try {
-            const newTerm = new Term(key, embedding, complexity);
-            if (config.performance.ENABLE_INSTANCE_SHARING) {
-                InstanceManager.add(key, newTerm);
-            }
-            return newTerm;
-        } catch {
-            return null;
-        }
+        return createSharedInstance(key, Term, key, embedding, complexity);
     }
 
     // Public methods

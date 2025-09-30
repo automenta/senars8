@@ -42,34 +42,26 @@ class ActionExecutor {
 
     registerActionHandler(actionPattern, handler) {
         this.actionHandlers.set(actionPattern, handler);
-        errorHandler.executeSync(() => {
-            // Simple logging instead of using debug method
-            console.debug && console.debug(`ActionExecutor: Registered action handler: ${actionPattern}`);
-        }, `registerActionHandler: ${actionPattern}`);
+        // Simple logging instead of using debug method
+        console.debug && console.debug(`ActionExecutor: Registered action handler: ${actionPattern}`);
     }
 
     registerTool(name, handler, metadata = {}) {
         this.tools.registerTool(name, handler, metadata);
-        errorHandler.executeSync(() => {
-            // Simple logging instead of using debug method
-            console.debug && console.debug(`ActionExecutor: Registered tool: ${name}`);
-        }, `registerTool: ${name}`);
+        // Simple logging instead of using debug method
+        console.debug && console.debug(`ActionExecutor: Registered tool: ${name}`);
     }
 
     registerMcpTool(name, mcpConfig) {
         this.tools.registerMcpTool(name, mcpConfig);
-        errorHandler.executeSync(() => {
-            // Simple logging instead of using debug method
-            console.debug && console.debug(`ActionExecutor: Registered MCP tool: ${name}`);
-        }, `registerMcpTool: ${name}`);
+        // Simple logging instead of using debug method
+        console.debug && console.debug(`ActionExecutor: Registered MCP tool: ${name}`);
     }
 
     registerExternalTool(name, toolInstance) {
         this.tools.registerExternalTool(name, toolInstance);
-        errorHandler.executeSync(() => {
-            // Simple logging instead of using debug method
-            console.debug && console.debug(`ActionExecutor: Registered external tool: ${name}`);
-        }, `registerExternalTool: ${name}`);
+        // Simple logging instead of using debug method
+        console.debug && console.debug(`ActionExecutor: Registered external tool: ${name}`);
     }
 
     registerResource(name, resource) {
@@ -78,10 +70,8 @@ class ActionExecutor {
         }
 
         this.resources.set(name, resource);
-        errorHandler.executeSync(() => {
-            // Simple logging instead of using debug method
-            console.debug && console.debug(`ActionExecutor: Registered resource: ${name}`);
-        }, `registerResource: ${name}`);
+        // Simple logging instead of using debug method
+        console.debug && console.debug(`ActionExecutor: Registered resource: ${name}`);
     }
 
     setConstraint(constraintName, constraintFunction) {

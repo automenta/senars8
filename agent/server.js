@@ -680,14 +680,30 @@ async function handleMessage(message, ws) {
                 // For now, we'll just acknowledge the update
                 serverInfo('Configuration update requested:', config);
 
-                // TODO: Implement actual configuration updates for the system
-                // This would involve updating the ConfigManager with new values
-                // and potentially restarting certain components with new settings
-
-                ws.send(JSON.stringify({
-                    type: 'config_updated',
-                    payload: {success: true, message: 'Configuration updated (not yet applied to live system)'}
-                }));
+                // Update the agent's config if available
+                if (agent.config) {
+                    const updateConfig = (target, updates) => {
+                        for (const [key, value] of Object.entries(updates)) {
+                            if (typeof value === 'object' && value !== null && target[key] && typeof target[key] === 'object') {
+                                updateConfig(target[key], value);
+                            } else {
+                                target[key] = value;
+                            }
+                        }
+                    };
+                    
+                    updateConfig(agent.config, config);
+                    
+                    ws.send(JSON.stringify({
+                        type: 'config_updated',
+                        payload: {success: true, message: 'Configuration updated successfully', updatedConfig: config}
+                    }));
+                } else {
+                    ws.send(JSON.stringify({
+                        type: 'config_updated',
+                        payload: {success: false, message: 'Config system not available for updates', updatedConfig: config}
+                    }));
+                }
             } catch (error) {
                 serverError('Failed to update config:', error);
                 ws.send(JSON.stringify({

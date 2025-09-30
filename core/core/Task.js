@@ -5,7 +5,7 @@ import TruthValueManager from '../reasoner/TruthValueManager.js';
 import * as validation from '../utils/validation.js';
 import {warn} from '../utils/logger.js';
 import BaseEntity from './BaseEntity.js';
-import InstanceManager from '../utils/InstanceManager.js';
+import {createSharedInstance} from '../utils/instance-sharing.js';
 
 const {
     DEFAULT_TRUTH_VALUE
@@ -73,19 +73,7 @@ class Task extends BaseEntity {
         const termKey = typeof term === 'string' ? term : term.key;
         const taskId = generateId(`${termKey}${punctuation}`);
 
-        if (config.performance.ENABLE_INSTANCE_SHARING && InstanceManager.has(taskId)) {
-            return InstanceManager.get(taskId);
-        }
-
-        try {
-            const newTask = new Task(term, punctuation, truthValue, stamp);
-            if (config.performance.ENABLE_INSTANCE_SHARING) {
-                InstanceManager.add(taskId, newTask);
-            }
-            return newTask;
-        } catch {
-            return null;
-        }
+        return createSharedInstance(taskId, Task, term, punctuation, truthValue, stamp);
     }
 
     static fromMacro(macro) {

@@ -25,6 +25,7 @@ import {debug, error, info, warn} from './logger.js';
 import Validator from './Validator.js';
 import EventBus from '../system/EventBus.js';
 import * as validation from './validation.js';
+import {createSharedInstance} from './instance-sharing.js';
 
 // Re-export commonly used utilities
 export {
@@ -73,6 +74,9 @@ export {
 
     // Event system
     EventBus,
+
+    // Instance sharing utilities
+    createSharedInstance,
 
     // Error handling utilities
 };
