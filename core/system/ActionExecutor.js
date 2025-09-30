@@ -56,6 +56,13 @@ class ActionExecutor {
         this.tools.registerExternalTool(name, toolInstance);
     }
 
+    registerResource(name, resource) {
+        if (typeof name !== 'string' || !name.trim()) {
+            throw new Error('Resource name must be a non-empty string');
+        }
+        this.resources.set(name, resource);
+    }
+
     setConstraint(constraintName, constraintFunction) {
         this.constraints.set(constraintName, constraintFunction);
     }
@@ -64,7 +71,7 @@ class ActionExecutor {
      * Execute an action, with special handling for operation terms
      */
     async executeAction(action) {
-        await errorHandler.execute(async () => {
+        return await errorHandler.execute(async () => {
             this._validateAction(action);
 
             // Check if this is an operation term that should be handled by tools
