@@ -1,40 +1,40 @@
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as PlannerUtils from '../../core/reasoner/utils/PlannerUtils.js';
 import Term from '../../core/core/Term.js';
+import { SystemCommands } from '../../core/system/SystemCommands.js';
 
-vi.mock('../../core/memory/Memory.js', () => ({
-    default: vi.fn().mockImplementation(() => ({
-        indexer: {
-            implicationIndex: new Map(),
-            beliefIndex: new Map(),
-        }
+// Mock Term to have a simple structure for testing
+vi.mock('../../core/core/Term.js', () => ({
+    default: vi.fn().mockImplementation(key => ({
+        key,
+        type: 'Atomic',
     })),
 }));
 
-const {default: Memory} = await import('../../core/memory/Memory.js');
-
 describe('PlannerUtils', () => {
-    let memory;
+    let commandBus;
 
     beforeEach(() => {
-        memory = new Memory();
-        memory.indexer = {
-            implicationIndex: new Map(),
-            beliefIndex: new Map(),
+        vi.clearAllMocks();
+        commandBus = {
+            request: vi.fn(),
         };
     });
 
     describe('findDecompositionMethods', () => {
-        it('should return an empty array if no methods are found', () => {
+        it('should return an empty array if no methods are found', async () => {
             const goalTerm = new Term('goal');
-            expect(PlannerUtils.findDecompositionMethods(goalTerm, memory)).toEqual([]);
+            commandBus.request.mockResolvedValue([]);
+            await expect(PlannerUtils.findDecompositionMethods(goalTerm, commandBus)).resolves.toEqual([]);
+            expect(commandBus.request).toHaveBeenCalledWith(SystemCommands.MEMORY_GET_IMPLICATIONS, 'goal');
         });
 
-        it('should return the correct decomposition methods', () => {
+        it('should return the correct decomposition methods', async () => {
             const goalTerm = new Term('goal');
             const method1 = new Term('(goal ==> action1)');
-            memory.indexer.implicationIndex.set('goal', [method1]);
-            expect(PlannerUtils.findDecompositionMethods(goalTerm, memory)).toEqual([method1]);
+            commandBus.request.mockResolvedValue([method1]);
+            await expect(PlannerUtils.findDecompositionMethods(goalTerm, commandBus)).resolves.toEqual([method1]);
+            expect(commandBus.request).toHaveBeenCalledWith(SystemCommands.MEMORY_GET_IMPLICATIONS, 'goal');
         });
     });
 
@@ -62,78 +62,52 @@ describe('PlannerUtils', () => {
     describe('isAchieved', () => {
         const confidenceThreshold = 0.8;
 
-        it('should return false if term is null', () => {
-            expect(PlannerUtils.isAchieved(null, memory, confidenceThreshold)).toBe(false);
+        it('should return false if term is null', async () => {
+            await expect(PlannerUtils.isAchieved(null, commandBus, confidenceThreshold)).resolves.toBe(false);
         });
 
-        it('should return false if no beliefs are found', () => {
+        it('should return false if no beliefs are found', async () => {
             const term = new Term('goal');
-            expect(PlannerUtils.isAchieved(term, memory, confidenceThreshold)).toBe(false);
+            commandBus.request.mockResolvedValue([]);
+            await expect(PlannerUtils.isAchieved(term, commandBus, confidenceThreshold)).resolves.toBe(false);
+            expect(commandBus.request).toHaveBeenCalledWith(SystemCommands.MEMORY_QUERY_TASKS, {
+                termKey: 'goal',
+                punctuation: '.',
+                minConfidence: confidenceThreshold
+            });
         });
 
-        it('should return false if belief confidence is below threshold', () => {
+        it('should return true if beliefs are found', async () => {
             const term = new Term('goal');
-            memory.indexer.beliefIndex.set('goal', [{
-                state: {
-                    truthValue: {
-                        confidence: 0.7
-                    }
-                }
-            }]);
-            expect(PlannerUtils.isAchieved(term, memory, confidenceThreshold)).toBe(false);
-        });
-
-        it('should return true if belief confidence is at or above threshold', () => {
-            const term = new Term('goal');
-            memory.indexer.beliefIndex.set('goal', [{
-                state: {
-                    truthValue: {
-                        confidence: 0.8
-                    }
-                }
-            }]);
-            expect(PlannerUtils.isAchieved(term, memory, confidenceThreshold)).toBe(true);
+            const belief = { state: { truthValue: { confidence: 0.9 } } };
+            commandBus.request.mockResolvedValue([belief]);
+            await expect(PlannerUtils.isAchieved(term, commandBus, confidenceThreshold)).resolves.toBe(true);
         });
     });
 
     describe('arePreconditionsMet', () => {
         const preconditionConfidenceThreshold = 0.7;
 
-        it('should return true for empty preconditions', () => {
-            expect(PlannerUtils.arePreconditionsMet([], memory, preconditionConfidenceThreshold)).toBe(true);
+        it('should return true for empty preconditions', async () => {
+            await expect(PlannerUtils.arePreconditionsMet([], commandBus, preconditionConfidenceThreshold)).resolves.toBe(true);
         });
 
-        it('should return true if all preconditions are met', () => {
+        it('should return true if all preconditions are met', async () => {
             const precond1 = new Term('precond1');
             const precond2 = new Term('precond2');
-            memory.indexer.beliefIndex.set('precond1', [{
-                state: {
-                    truthValue: {
-                        confidence: 0.8
-                    }
-                }
-            }]);
-            memory.indexer.beliefIndex.set('precond2', [{
-                state: {
-                    truthValue: {
-                        confidence: 0.9
-                    }
-                }
-            }]);
-            expect(PlannerUtils.arePreconditionsMet([precond1, precond2], memory, preconditionConfidenceThreshold)).toBe(true);
+            commandBus.request.mockResolvedValue([{ state: { truthValue: { confidence: 0.8 } } }]);
+            await expect(PlannerUtils.arePreconditionsMet([precond1, precond2], commandBus, preconditionConfidenceThreshold)).resolves.toBe(true);
+            expect(commandBus.request).toHaveBeenCalledTimes(2);
         });
 
-        it('should return false if any precondition is not met', () => {
+        it('should return false if any precondition is not met', async () => {
             const precond1 = new Term('precond1');
             const precond2 = new Term('precond2');
-            memory.indexer.beliefIndex.set('precond1', [{
-                state: {
-                    truthValue: {
-                        confidence: 0.8
-                    }
-                }
-            }]);
-            expect(PlannerUtils.arePreconditionsMet([precond1, precond2], memory, preconditionConfidenceThreshold)).toBe(false);
+            commandBus.request
+                .mockResolvedValueOnce([{ state: { truthValue: { confidence: 0.8 } } }]) // For precond1
+                .mockResolvedValueOnce([]); // For precond2
+            await expect(PlannerUtils.arePreconditionsMet([precond1, precond2], commandBus, preconditionConfidenceThreshold)).resolves.toBe(false);
+            expect(commandBus.request).toHaveBeenCalledTimes(2);
         });
     });
 });

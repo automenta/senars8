@@ -75,7 +75,7 @@ describe('Memory', () => {
         const task2 = createTask('(new_and_unimportant --> property)', {
             confidence: 0.8
         });
-        await memory.addTasks([task1, task2]);
+        await memory._addTasks([task1, task2]);
         expect(memory.shortTermTasks.size).toBe(2);
 
         // Manually trigger the event handler
@@ -94,7 +94,7 @@ describe('Memory', () => {
             lastAccessed: longAgo,
             priority: 0.9
         });
-        await memory.addTasks([task1]);
+        await memory._addTasks([task1]);
         expect(memory.shortTermTasks.size).toBe(1);
 
         // Manually trigger the event handler

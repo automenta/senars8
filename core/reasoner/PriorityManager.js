@@ -3,13 +3,13 @@ import {cosineSimilarity} from '../utils/math.js';
 import {calculateTemporalPriority} from '../utils/temporal.js';
 
 class PriorityManager {
-    constructor(memory, configManager) {
-        this.memory = memory;
+    constructor(configManager, commandBus) {
+        this.commandBus = commandBus;
         this.config = createConfigAccessor(configManager);
     }
 
-    calculatePriority(task, currentTime, driveEmbeddings) {
-        const term = this.memory.getTerm(task.termKey);
+    async calculatePriority(task, currentTime, driveEmbeddings) {
+        const term = await this.commandBus.request('memory.getTerm', task.termKey);
         if (!term?.embedding?.length) return 0;
 
         const maxSimilarity = driveEmbeddings.reduce((max, driveEmbedding) =>
