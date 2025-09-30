@@ -37,12 +37,12 @@ const registerComponents = (container, configManager) => {
     container.register('lm', LM, ['configManager', 'commandBus', 'eventBus'], singleton);
 
     // Components that depend on the foundational ones
-    container.register('taskFactory', TaskFactory, ['memory', 'lm', 'eventBus', 'commandBus'], singleton);
+    container.register('taskFactory', TaskFactory, ['lm', 'eventBus', 'commandBus'], singleton);
     container.register('temporalReasoner', TemporalReasoner, ['configManager'], singleton);
-    container.register('actionExecutor', ActionExecutor, ['memory', 'configManager', 'eventBus', 'commandBus'], singleton);
-    container.register('perception', Perception, ['memory', 'taskFactory', 'eventBus', 'commandBus'], singleton);
-    container.register('planner', Planner, ['memory', 'lm', 'actionExecutor', 'configManager'], singleton);
-    container.register('priorityManager', PriorityManager, ['memory', 'configManager'], singleton);
+    container.register('actionExecutor', ActionExecutor, ['configManager', 'eventBus', 'commandBus'], singleton);
+    container.register('perception', Perception, ['taskFactory', 'eventBus', 'commandBus'], singleton);
+    container.register('planner', Planner, ['lm', 'actionExecutor', 'commandBus', 'configManager'], singleton);
+    container.register('priorityManager', PriorityManager, ['configManager', 'commandBus'], singleton);
     container.register('contradictionAnalyzer', ContradictionAnalyzer, [], singleton);
     container.register('resolutionStrategy', ResolutionStrategy, ['truthValueManager'], singleton);
 
@@ -52,11 +52,11 @@ const registerComponents = (container, configManager) => {
 
     // The main cycle and system, which depend on almost everything else
     container.register('cycle', Cycle, [
-        'configManager', 'memory', 'reasoner', 'lm', 'perception',
+        'configManager', 'reasoner', 'lm', 'perception',
         'planner', 'metaCognition', 'temporalReasoner', 'priorityManager', 'eventBus', 'commandBus'
     ], singleton);
     container.register('system', System, [
-        'configManager', 'memory', 'reasoner', 'actionExecutor', 'cycle',
+        'configManager', 'reasoner', 'actionExecutor', 'cycle',
         'planner', 'metaCognition', 'perception', 'eventBus', 'commandBus'
     ], singleton);
 };

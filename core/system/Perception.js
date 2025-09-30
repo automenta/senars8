@@ -4,8 +4,7 @@ import { SystemCommands } from './SystemCommands.js';
 import { SystemEvents } from './SystemEvents.js';
 
 class Perception {
-    constructor(memory, taskFactory, eventBus, commandBus) {
-        this.memory = memory;
+    constructor(taskFactory, eventBus, commandBus) {
         this.taskFactory = taskFactory;
         this.eventBus = eventBus;
         this.commandBus = commandBus;

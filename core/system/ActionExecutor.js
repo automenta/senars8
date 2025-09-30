@@ -11,8 +11,7 @@ import { SystemCommands } from './SystemCommands.js';
 const errorHandler = createUnifiedErrorHandler('ActionExecutor');
 
 class ActionExecutor {
-    constructor(memory, configManager, eventBus, commandBus) {
-        this.memory = memory;
+    constructor(configManager, eventBus, commandBus) {
         this.config = createConfigAccessor(configManager, 'ACTION_EXECUTOR');
         this.eventBus = eventBus;
         this.commandBus = commandBus;

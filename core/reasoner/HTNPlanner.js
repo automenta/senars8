@@ -1,17 +1,22 @@
 import BasePlanner from './BasePlanner.js';
-import {debug} from '../utils/logger.js';
+import {
+    debug
+} from '../utils/logger.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
+import {
+    SystemCommands
+} from '../system/SystemCommands.js';
 
 class HTNPlanner extends BasePlanner {
-    constructor(memory, lm, configManager) {
-        super(memory, lm, configManager);
+    constructor(lm, commandBus, configManager) {
+        super(lm, commandBus, configManager);
         this.config = createConfigAccessor(configManager, 'HTN_PLANNER');
         this.maxDepth = this.config.get('maxDepth', 10);
         this.planCache = new Map();
     }
 
     async findPlan(goalTask) {
-        const goalTerm = this.memory.getTerm(goalTask.termKey);
+        const goalTerm = await this.commandBus.request(SystemCommands.MEMORY_GET_TERM, goalTask.termKey);
         if (!goalTerm) {
             debug('HTNPlanner: Goal term not found in memory.', {
                 goalTask
@@ -60,21 +65,21 @@ class HTNPlanner extends BasePlanner {
             return null;
         }
 
-        if (this._isAchieved(task)) {
+        if (await this._isAchieved(task)) {
             debug('HTNPlanner: Task already achieved:', {
                 task: taskKey
             });
             return [];
         }
 
-        if (this._isPrimitive(task)) {
+        if (await this._isPrimitive(task)) {
             debug('HTNPlanner: Primitive task:', {
                 task: taskKey
             });
             return [task];
         }
 
-        const expansions = this._getExpansions(task);
+        const expansions = await this._getExpansions(task);
         if (!expansions.length) {
             debug('HTNPlanner: No decomposition methods found for task:', {
                 task: taskKey
@@ -89,7 +94,9 @@ class HTNPlanner extends BasePlanner {
         });
 
         for (const expansion of expansions) {
-            const {subTasks} = expansion;
+            const {
+                subTasks
+            } = expansion;
             if (!subTasks) continue;
 
             const plan = await this._constructPlanForSubtasks(subTasks, [
@@ -109,7 +116,7 @@ class HTNPlanner extends BasePlanner {
     async _constructPlanForSubtasks(subTasks, visited, depth) {
         const plan = [];
         for (const subTask of subTasks) {
-            const subTaskTerm = this.memory.getTerm(subTask.key);
+            const subTaskTerm = await this.commandBus.request(SystemCommands.MEMORY_GET_TERM, subTask.key);
             if (!subTaskTerm) {
                 debug('HTNPlanner: Subtask term not found in memory.', {
                     subTask: subTask.key

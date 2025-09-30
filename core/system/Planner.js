@@ -1,17 +1,27 @@
 import HTNPlanner from '../reasoner/HTNPlanner.js';
 import AStarPlanner from '../reasoner/AStarPlanner.js';
 import Plan from './Plan.js';
-import {plannerErrorHandler as errorHandler} from '../utils/errorHandler.js';
-import {debug, warn} from '../utils/logger.js';
+import {
+    plannerErrorHandler as errorHandler
+} from '../utils/errorHandler.js';
+import {
+    debug,
+    warn
+} from '../utils/logger.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
+import {
+    SystemCommands
+} from './SystemCommands.js';
+
 
 class Planner {
-    constructor(memory, lm, actionExecutor, configManager) {
-        if (!memory || !lm || !actionExecutor) {
-            throw new Error('Planner requires memory, lm, and actionExecutor instances.');
+    constructor(lm, actionExecutor, commandBus, configManager) {
+        if (!lm || !actionExecutor || !commandBus) {
+            throw new Error('Planner requires lm, actionExecutor, and commandBus instances.');
         }
 
         this.config = createConfigAccessor(configManager, 'PLANNER');
+        this.commandBus = commandBus;
         const strategyName = this.config.get('strategy', 'HTN');
         const strategyMap = {
             'HTN': HTNPlanner,
@@ -23,7 +33,7 @@ class Planner {
             throw new Error(`Unknown planner strategy: ${strategyName}`);
         }
 
-        this.strategy = new PlannerClass(memory, lm, configManager);
+        this.strategy = new PlannerClass(lm, commandBus, configManager);
         this.actionExecutor = actionExecutor;
         this.planCache = new Map();
         console.log(`Planner initialized with strategy: ${strategyName}`);
@@ -65,7 +75,8 @@ class Planner {
     }
 
     async _handleEmptyPlan(goalTask, failedPlan) {
-        if (this.strategy._isAchieved(this.strategy.memory.getTerm(goalTask.termKey))) {
+        const term = await this.commandBus.request(SystemCommands.MEMORY_GET_TERM, goalTask.termKey);
+        if (await this.strategy._isAchieved(term)) {
             debug(`Goal already achieved: ${goalTask.termKey}`);
             return [];
         }

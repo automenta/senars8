@@ -16,12 +16,26 @@ export const SystemCommands = Object.freeze({
     // --- Reasoner ---
     REASONER_PROCESS_TASK: 'reasoner:processTask',
 
-    // --- Memory (for direct data retrieval) ---
+    // --- Memory ---
+    MEMORY_ADD_TERM: 'memory:addTerm',
+    MEMORY_REMOVE_TERM: 'memory:removeTerm',
+    MEMORY_ADD_TASKS: 'memory:addTasks',
+    MEMORY_REMOVE_TASK: 'memory:removeTask',
     MEMORY_GET_TASK: 'memory:getTask',
     MEMORY_GET_TERM: 'memory:getTerm',
     MEMORY_GET_ALL_TASKS: 'memory:getAllTasks',
     MEMORY_GET_ALL_TERMS: 'memory:getAllTerms',
     MEMORY_GET_STATS: 'memory:getStats',
+    MEMORY_GET_HIGHEST_PRIORITY_TASKS: 'memory:getHighestPriorityTasks',
+    MEMORY_GET_BELIEFS: 'memory:getBeliefs',
+    MEMORY_GET_GOALS: 'memory:getGoals',
+    MEMORY_GET_QUESTIONS: 'memory:getQuestions',
+    MEMORY_GET_RECENT_TASKS: 'memory:getRecentTasks',
+    MEMORY_QUERY_TASKS: 'memory:queryTasks',
+    MEMORY_EXPORT_STATE: 'memory:exportState',
+    MEMORY_IMPORT_STATE: 'memory:importState',
+    MEMORY_GET_IMPLICATIONS: 'memory:getImplications',
+    MEMORY_GET_COST: 'memory:getCost',
 
     // --- MetaCognition ---
     METACOGNITION_FIND_CONTRADICTIONS: 'metacognition:findContradictions',

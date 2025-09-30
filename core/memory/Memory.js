@@ -40,23 +40,43 @@ class Memory {
     }
 
     _registerEventListeners() {
-        this.eventBus.on(SystemEvents.TASKS_ADD, async (tasks) => await this.addTasks(tasks));
+        this.eventBus.on(SystemEvents.TASKS_ADD, async (tasks) => await this._addTasks(tasks));
         this.eventBus.on(SystemEvents.CYCLE_COMPLETE, () => this._performMaintenanceIfNeeded());
         this.eventBus.on(SystemEvents.TERM_ADD, async (terms) => {
             const termsToAdd = normalizeToArray(terms);
             for (const term of termsToAdd) {
-                await this.addTerm(term);
+                await this._addTerm(term);
             }
         });
-        this.eventBus.on(SystemEvents.SYSTEM_RESET, async () => await this.clear());
+        this.eventBus.on(SystemEvents.SYSTEM_RESET, async () => await this._clear());
     }
 
     _registerCommandHandlers() {
-        this.commandBus.handle(SystemCommands.MEMORY_GET_TASK, async (id) => this.getTask(id));
-        this.commandBus.handle(SystemCommands.MEMORY_GET_TERM, async (key) => this.getTerm(key));
-        this.commandBus.handle(SystemCommands.MEMORY_GET_ALL_TASKS, async () => this.getAllTasks());
-        this.commandBus.handle(SystemCommands.MEMORY_GET_ALL_TERMS, async () => this.getAllTerms());
-        this.commandBus.handle(SystemCommands.MEMORY_GET_STATS, async () => this.getStatistics());
+        const commandMap = {
+            [SystemCommands.MEMORY_ADD_TERM]: this._addTerm,
+            [SystemCommands.MEMORY_REMOVE_TERM]: this._removeTerm,
+            [SystemCommands.MEMORY_ADD_TASKS]: this._addTasks,
+            [SystemCommands.MEMORY_REMOVE_TASK]: this._removeTask,
+            [SystemCommands.MEMORY_GET_TASK]: this._getTask,
+            [SystemCommands.MEMORY_GET_TERM]: this._getTerm,
+            [SystemCommands.MEMORY_GET_ALL_TASKS]: this._getAllTasks,
+            [SystemCommands.MEMORY_GET_ALL_TERMS]: this._getAllTerms,
+            [SystemCommands.MEMORY_GET_STATS]: this._getStatistics,
+            [SystemCommands.MEMORY_GET_HIGHEST_PRIORITY_TASKS]: this._getHighestPriorityTasks,
+            [SystemCommands.MEMORY_GET_BELIEFS]: this._getBeliefs,
+            [SystemCommands.MEMORY_GET_GOALS]: this._getGoals,
+            [SystemCommands.MEMORY_GET_QUESTIONS]: this._getQuestions,
+            [SystemCommands.MEMORY_GET_RECENT_TASKS]: this._getRecentTasks,
+            [SystemCommands.MEMORY_QUERY_TASKS]: this._queryTasks,
+            [SystemCommands.MEMORY_EXPORT_STATE]: this._exportState,
+            [SystemCommands.MEMORY_IMPORT_STATE]: this._importState,
+            [SystemCommands.MEMORY_GET_IMPLICATIONS]: this._getImplications,
+            [SystemCommands.MEMORY_GET_COST]: this._getCost,
+        };
+
+        for (const [command, handler] of Object.entries(commandMap)) {
+            this.commandBus.handle(command, handler.bind(this));
+        }
     }
 
     _performMaintenanceIfNeeded() {
@@ -101,7 +121,7 @@ class Memory {
         this._cachedTaskCount = this.shortTermTasks.size + this.longTermTasks.size;
     }
 
-    async addTerm(term) {
+    async _addTerm(term) {
         if (term === null || term === undefined || !(term instanceof Term)) {
             throw createError.ValidationError('Can only add valid Term instances to memory');
         }
@@ -113,12 +133,13 @@ class Memory {
             }
             this.terms.set(term.key, term);
             this.indexer.indexTerm(term);
-            await this.eventBus.emitAsync(SystemEvents.TERM_ADD, term);
+            // The event should be emitted by the caller that initiated the term addition
+            // await this.eventBus.emitAsync(SystemEvents.TERM_ADD, term);
             debug(`Added term '${term.key}'.`);
-        }, 'addTerm');
+        }, '_addTerm');
     }
 
-    getTerm(key) {
+    _getTerm(key) {
         if (typeof key !== 'string') {
             warn(`Invalid term key type: ${typeof key}.`);
             return null;
@@ -126,11 +147,11 @@ class Memory {
         return this.terms.get(key);
     }
 
-    getAllTerms() {
+    _getAllTerms() {
         return [...this.terms.values()];
     }
 
-    async addTasks(tasks) {
+    async _addTasks(tasks) {
         await errorHandler.execute(async () => {
             const tasksToAdd = normalizeToArray(tasks);
             if (!tasksToAdd.length) return;
@@ -151,14 +172,14 @@ class Memory {
                 this._invalidateTaskCache();
                 debug(`Added ${addedCount} tasks.`);
             }
-        }, 'addTasks');
+        }, '_addTasks');
     }
 
-    getTask(id) {
+    _getTask(id) {
         return this.shortTermTasks.get(id) || this.longTermTasks.get(id);
     }
 
-    async removeTask(taskId) {
+    async _removeTask(taskId) {
         await errorHandler.execute(async () => {
             if (!taskId) return;
             const task = this.getTask(taskId);
@@ -169,10 +190,10 @@ class Memory {
                 this._invalidateTaskCache();
                 await this.eventBus.emitAsync(SystemEvents.TASK_REMOVE, task);
             }
-        }, 'removeTask');
+        }, '_removeTask');
     }
 
-    async getAllTasks() {
+    async _getAllTasks() {
         return errorHandler.execute(async () => {
             const currentCount = this.shortTermTasks.size + this.longTermTasks.size;
             if (!this._cachedAllTasks || this._cachedTaskCount !== currentCount) {
@@ -183,7 +204,7 @@ class Memory {
                 this._cachedTaskCount = currentCount;
             }
             return this._cachedAllTasks;
-        }, 'getAllTasks', []);
+        }, '_getAllTasks', []);
     }
 
     _shouldUsePriorityQueue(k, totalTasks) {
@@ -217,11 +238,11 @@ class Memory {
         return result;
     }
 
-    async getHighestPriorityTasks(k = 20) {
+    async _getHighestPriorityTasks(k = 20) {
         return errorHandler.execute(async () => {
             if (k <= 0) return [];
 
-            const allTasks = await this.getAllTasks();
+            const allTasks = await this._getAllTasks();
             if (k >= allTasks.length) {
                 const result = new Array(allTasks.length);
                 for (let i = 0; i < allTasks.length; i++) {
@@ -257,7 +278,7 @@ class Memory {
         }, 'clone', null);
     }
 
-    async removeTerm(key) {
+    async _removeTerm(key) {
         await errorHandler.execute(async () => {
             const term = this.terms.get(key);
             if (!term) return;
@@ -267,10 +288,10 @@ class Memory {
             await this.eventBus.emitAsync(SystemEvents.TERM_REMOVE, {
                 key
             });
-        }, 'removeTerm');
+        }, '_removeTerm');
     }
 
-    async clear() {
+    async _clear() {
         await errorHandler.execute(async () => {
             this.terms.forEach(term => term.destroy?.());
             this.terms.clear();
@@ -280,16 +301,24 @@ class Memory {
             this.cycleCounter = 0;
             this._invalidateTaskCache();
             await this.eventBus.emitAsync(SystemEvents.SYSTEM_RESET);
-        }, 'clear');
+        }, '_clear');
     }
 
-    async getStatistics() {
+    async _getStatistics() {
         return errorHandler.execute(async () => ({
             terms: this.terms.size,
             shortTermTasks: this.shortTermTasks.size,
             longTermTasks: this.longTermTasks.size,
             ...this.indexer.getStatistics(),
-        }), 'getStatistics', {});
+        }), '_getStatistics', {});
+    }
+
+    async _getImplications(goalKey) {
+        return this.indexer.implicationIndex.get(goalKey) || [];
+    }
+
+    async _getCost(actionKey) {
+        return this.indexer.costIndex.get(actionKey);
     }
 
     async _getTasksByPunctuation(punctuation, methodName) {
@@ -308,42 +337,42 @@ class Memory {
         }, methodName, []);
     }
 
-    async getBeliefs() {
-        return await this._getTasksByPunctuation('.', 'getBeliefs');
+    async _getBeliefs() {
+        return await this._getTasksByPunctuation('.', '_getBeliefs');
     }
 
-    async getGoals() {
-        return await this._getTasksByPunctuation('!', 'getGoals');
+    async _getGoals() {
+        return await this._getTasksByPunctuation('!', '_getGoals');
     }
 
-    async getQuestions() {
-        return await this._getTasksByPunctuation('?', 'getQuestions');
+    async _getQuestions() {
+        return await this._getTasksByPunctuation('?', '_getQuestions');
     }
 
-    async getRecentTasks(count = 10) {
+    async _getRecentTasks(count = 10) {
         return errorHandler.execute(async () => {
-            const allTasks = await this.getAllTasks();
+            const allTasks = await this._getAllTasks();
             return [...allTasks]
                 .sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime))
                 .slice(0, count);
-        }, 'getRecentTasks', []);
+        }, '_getRecentTasks', []);
     }
 
-    async queryTasks(filters = {}) {
-        return errorHandler.execute(async () => this.indexer.queryTasks(await this.getAllTasks(), filters), 'queryTasks', []);
+    async _queryTasks(filters = {}) {
+        return errorHandler.execute(async () => this.indexer.queryTasks(await this._getAllTasks(), filters), '_queryTasks', []);
     }
 
-    async exportState() {
+    async _exportState() {
         return errorHandler.execute(async () => JSON.stringify({
             terms: [...this.terms.values()],
             shortTermTasks: [...this.shortTermTasks.values()],
             longTermTasks: [...this.longTermTasks.values()],
-        }, (key, value) => typeof value === 'bigint' ? value.toString() : value, 2), 'exportState', '{}');
+        }, (key, value) => typeof value === 'bigint' ? value.toString() : value, 2), '_exportState', '{}');
     }
 
     _createTaskFromJSON(json) {
         if (!json?.termKey) return null;
-        const term = this.getTerm(json.termKey);
+        const term = this._getTerm(json.termKey);
         if (!term) return null;
         const deserializedStamp = {...json.state.stamp};
         Object.keys(deserializedStamp).forEach(key => {
@@ -357,9 +386,9 @@ class Memory {
         return task;
     }
 
-    async importState(jsonState) {
+    async _importState(jsonState) {
         if (typeof jsonState !== 'string') {
-            await this.clear();
+            await this._clear();
             return;
         }
 
@@ -370,11 +399,11 @@ class Memory {
             throw createError.ParseError(`Invalid JSON provided to importState: ${e.message}`);
         }
 
-        await this.clear();
+        await this._clear();
         if (state.terms) {
             for (const termData of state.terms) {
                 const term = Term.fromJSON(termData);
-                if (term) await this.addTerm(term);
+                if (term) await this._addTerm(term);
             }
         }
 

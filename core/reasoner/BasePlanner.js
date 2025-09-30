@@ -3,22 +3,22 @@ import * as PlannerUtils from './utils/PlannerUtils.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
 
 class BasePlanner {
-    constructor(memory, lm, configManager) {
-        this.memory = memory;
+    constructor(lm, commandBus, configManager) {
         this.lm = lm;
+        this.commandBus = commandBus;
         this.configManager = configManager;
         this.config = createConfigAccessor(configManager, 'BASE_PLANNER');
-        this.costManager = new CostManager(memory, configManager);
+        this.costManager = new CostManager(commandBus, configManager);
         this.confidenceThreshold = this.config.get('confidenceThreshold', 0.9);
         this.preconditionConfidenceThreshold = this.config.get('preconditionConfidenceThreshold', 0.8);
     }
 
-    _isAchieved(task) {
-        return PlannerUtils.isAchieved(task, this.memory, this.confidenceThreshold);
+    async _isAchieved(task) {
+        return await PlannerUtils.isAchieved(task, this.commandBus, this.confidenceThreshold);
     }
 
-    _getDecompositionMethods(task) {
-        return PlannerUtils.findDecompositionMethods(task, this.memory);
+    async _getDecompositionMethods(task) {
+        return await PlannerUtils.findDecompositionMethods(task, this.commandBus);
     }
 
     /**
@@ -27,21 +27,21 @@ class BasePlanner {
      * @returns {boolean} True if the task is primitive, false otherwise.
      * @protected
      */
-    _isPrimitive(task) {
+    async _isPrimitive(task) {
         if (!task) return false;
-        // A task is primitive if it has no decomposition methods in the knowledge base.
-        return this._getDecompositionMethods(task).length === 0;
+        const methods = await this._getDecompositionMethods(task);
+        return methods.length === 0;
     }
 
     _getSubTasks(method) {
         return PlannerUtils.extractSubTasksFromMethod(method);
     }
 
-    _arePreconditionsMet(preconditions) {
-        return PlannerUtils.arePreconditionsMet(preconditions, this.memory, this.preconditionConfidenceThreshold);
+    async _arePreconditionsMet(preconditions) {
+        return await PlannerUtils.arePreconditionsMet(preconditions, this.commandBus, this.preconditionConfidenceThreshold);
     }
 
-    _getExpansions(task) {
+    async _getExpansions(task) {
         if (task.type === 'SequentialConjunction') {
             const subTasks = this._getSubTasks(task);
             return subTasks ? [{
@@ -51,9 +51,9 @@ class BasePlanner {
             }] : [];
         }
 
-        const decompositionMethods = this._getDecompositionMethods(task);
+        const decompositionMethods = await this._getDecompositionMethods(task);
 
-        if (decompositionMethods.length === 0 && this._isPrimitive(task)) {
+        if (decompositionMethods.length === 0 && (await this._isPrimitive(task))) {
             return [{
                 subTasks: [task],
                 method: null,
@@ -72,7 +72,7 @@ class BasePlanner {
                 preconditions = subject.terms.slice(1);
             }
 
-            if (this._arePreconditionsMet(preconditions)) {
+            if (await this._arePreconditionsMet(preconditions)) {
                 const subTasks = this._getSubTasks(method.predicate);
                 if (subTasks) {
                     expansions.push({

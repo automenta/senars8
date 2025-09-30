@@ -10,7 +10,6 @@ import {SystemCommands} from './SystemCommands.js';
 class System {
     constructor(
         configManager,
-        memory,
         reasoner,
         actionExecutor,
         cycle,
@@ -23,7 +22,6 @@ class System {
         this.config = configService;
         this.eventBus = eventBus;
         this.commandBus = commandBus;
-        this.memory = memory; // Direct access for now, to be phased out
         this.reasoner = reasoner;
         this.actionExecutor = actionExecutor;
         this.cycle = cycle;

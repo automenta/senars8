@@ -4,10 +4,10 @@ import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
 import {safeAsync} from '../utils/errorHandler.js';
 import { SystemCommands } from '../system/SystemCommands.js';
+import { SystemEvents } from '../system/SystemEvents.js';
 
 class TaskFactory {
-    constructor(memory, lm, eventBus, commandBus) {
-        this.memory = memory;
+    constructor(lm, eventBus, commandBus) {
         this.lm = lm;
         this.eventBus = eventBus;
         this.commandBus = commandBus;
@@ -15,9 +15,12 @@ class TaskFactory {
     }
 
     async _ensureTermExists(termKey) {
-        if (!this.memory.getTerm(termKey)) {
+        const termExists = await this.commandBus.request(SystemCommands.MEMORY_GET_TERM, termKey);
+        if (!termExists) {
             const term = await this.commandBus.request(SystemCommands.LM_BOOTSTRAP_TERM, { termKey });
-            this.eventBus.emit('term.add', term);
+            if (term) {
+                this.eventBus.emit(SystemEvents.TERM_ADD, term);
+            }
         }
     }
 

@@ -10,7 +10,6 @@ const errorHandler = createUnifiedErrorHandler('Cycle');
 class Cycle {
     constructor(
         configManager,
-        memory,
         reasoner,
         lm,
         perception,
@@ -22,8 +21,7 @@ class Cycle {
         commandBus
     ) {
         this.config = configService;
-        this.memory = memory; // Kept for now for direct access if needed, but prefer commands/events
-        this.reasoner = reasoner; // Kept for now
+        this.reasoner = reasoner;
         this.lm = lm;
         this.perception = perception;
         this.planner = planner;
