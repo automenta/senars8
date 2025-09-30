@@ -3,18 +3,20 @@
 import fs from 'fs';
 import {UnitTestAnalyzer} from '../../core/analyzer/index.js';
 import {logAndExit, safeAsync} from '../../core/utils/errorHandler.js';
+import {loadJsonFile} from './file-utils.js';
 
 const TEST_RESULTS_PATH = './test-results.json';
 const HTML_REPORT_PATH = './actual-test-failures-analysis.html';
 
 const loadAndFilterFailures = () => {
     console.log(`Reading test results from ${TEST_RESULTS_PATH}...`);
-    if (!fs.existsSync(TEST_RESULTS_PATH)) {
-        console.log('Test results file not found. Nothing to analyze.');
+    const testResultsData = loadJsonFile(TEST_RESULTS_PATH);
+
+    if (!testResultsData) {
+        console.log('Test results file not found or is empty. Nothing to analyze.');
         return null;
     }
 
-    const testResultsData = JSON.parse(fs.readFileSync(TEST_RESULTS_PATH, 'utf8'));
     const failingSuites = testResultsData.testResults.filter(suite => suite.numFailingTests > 0);
 
     if (failingSuites.length === 0) {

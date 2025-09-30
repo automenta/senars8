@@ -1,0 +1,55 @@
+import { serverDebug, serverError } from './utils/logger.js';
+import {
+    handleReadDirectory,
+    handleReadFile,
+    handleWriteFile,
+    handleCreateFile,
+    handleCreateDirectory,
+    handleDeletePath,
+    handleRenamePath
+} from './api/fileSystem.js';
+import { handleRunCommand } from './api/command.js';
+import {
+    handleNarsese,
+    handleAgentControl,
+    handleGetTasks,
+    handleTaskAction,
+    handleAddTask,
+    handleSearch
+} from './api/agent.js';
+
+export const createMessageHandler = (agent, broadcast) => {
+    const messageHandlers = {
+        // File System
+        readDirectory: (payload, ws) => handleReadDirectory(payload, ws),
+        readFile: (payload, ws) => handleReadFile(payload, ws),
+        writeFile: (payload, ws) => handleWriteFile(payload, ws),
+        createFile: (payload, ws) => handleCreateFile(payload, ws),
+        createDirectory: (payload, ws) => handleCreateDirectory(payload, ws),
+        deletePath: (payload, ws) => handleDeletePath(payload, ws),
+        renamePath: (payload, ws) => handleRenamePath(payload, ws),
+
+        // Command
+        runCommand: (payload, ws) => handleRunCommand(payload, ws),
+
+        // Agent
+        narsese: (payload, ws) => handleNarsese(payload, ws, agent, broadcast),
+        agentControl: (payload, ws) => handleAgentControl(payload, ws, agent, broadcast),
+        get_tasks: (payload, ws) => handleGetTasks(payload, ws, agent),
+        task_action: (payload, ws) => handleTaskAction(payload, ws, agent, broadcast),
+        add_task: (payload, ws) => handleAddTask(payload, ws, agent, broadcast),
+        search: (payload, ws) => handleSearch(payload, ws, agent),
+    };
+
+    return async (message, ws) => {
+        const { type, payload } = message;
+        serverDebug(`received: ${type}`, payload);
+
+        const handler = messageHandlers[type];
+        if (handler) {
+            await handler(payload, ws);
+        } else {
+            ws.send(JSON.stringify({ type: 'error', payload: { message: `Unknown message type: ${type}` } }));
+        }
+    };
+};
