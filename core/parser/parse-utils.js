@@ -28,12 +28,12 @@ const MALFORMED_REGEX = new RegExp(MALFORMED_PATTERNS);
 
 function validateTermKey(termKey) {
     if (!termKey || typeof termKey !== 'string' || !termKey.length) return false;
-    
+
     // Check for malformed patterns
     if (termKey.includes("(") && MALFORMED_REGEX.test(termKey)) {
         return false;
     }
-    
+
     // Check for potential DoS with too many nested parentheses
     let parenDepth = 0;
     let maxDepth = 0;
@@ -47,11 +47,11 @@ function validateTermKey(termKey) {
         }
     }
     if (maxDepth > 50) return false; // Prevent extremely deep nesting
-    
+
     // Check for potential DoS with repeated operators 
     const operationMatches = termKey.match(/\^/g);
     if (operationMatches && operationMatches.length > 100) return false; // Too many operations
-    
+
     return true;
 }
 

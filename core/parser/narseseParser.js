@@ -113,7 +113,7 @@ class NarseseParser {
         if (this.recursionDepth > this.maxRecursionDepth) {
             throw new Error(`Recursion depth exceeded maximum of ${this.maxRecursionDepth}`);
         }
-        
+
         const parsers = {
             [TOKEN.LPAREN]: () => this.parseCompoundTerm(),
             [TOKEN.LBRACE]: () => this.parseSet(OP.EXTENSIONAL_SET, TOKEN.LBRACE, TOKEN.RBRACE),
@@ -159,7 +159,7 @@ class NarseseParser {
                 };
             } else if (!(this.current?.type in BINARY_RELATION_MAP)) {
                 subject = this.parseTerm();
-                
+
                 if (this.current?.type in BINARY_RELATION_MAP) {
                     const relationType = BINARY_RELATION_MAP[this.current.type];
                     term = this.parseBinaryRelation(subject, this.current.type, relationType);
@@ -173,7 +173,7 @@ class NarseseParser {
                             productTerms.push(this.parseTerm());
                         }
                     }
-                    
+
                     term = {
                         type: OP.PRODUCT,
                         terms: productTerms
@@ -193,7 +193,7 @@ class NarseseParser {
         const operatorTokenType = this.current.type;
         const operatorType = OPERATOR_MAP[operatorTokenType];
         this.consume(operatorTokenType);
-        
+
         this.consume(TOKEN.COMMA);
         const isBinary = operatorTokenType in BINARY_OPERATOR_MAP;
         const result = isBinary ? {
@@ -238,18 +238,18 @@ class NarseseParser {
     parseAtomicTerm() {
         const token = this.current;
         this.next();
-        
+
         // Check if this atomic term is followed by parentheses (function call syntax)
         if (this.match(TOKEN.LPAREN)) {
             // This is an operation call: atomicTerm(args...)
             this.consume(TOKEN.LPAREN);
             let args = [];
-            
+
             if (!this.match(TOKEN.RPAREN)) {
                 args = this.parseTermList(TOKEN.RPAREN);
             }
             this.consume(TOKEN.RPAREN);
-            
+
             // Return as operation: (atomicTerm ^ (args...))
             return {
                 type: OP.OPERATION,

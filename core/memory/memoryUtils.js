@@ -15,16 +15,16 @@ function consolidateMemory(memory, config = {}) {
         maxMemorySize: config.maxMemorySize || 1000,
         ...config
     };
-    
+
     // Placeholder implementation
     console.debug && console.debug(`Memory consolidation called with config:`, consolidationOptions);
-    
+
     // In a real implementation, this would:
     // - Remove low-priority tasks based on forgetting strategies
     // - Consolidate similar concepts
     // - Optimize memory structures
-    
-    return { success: true, operationsPerformed: 0 };
+
+    return {success: true, operationsPerformed: 0};
 }
 
 /**
@@ -38,13 +38,13 @@ function getHighestPriorityTasksWithPQ(tasks = [], limit = 10) {
     if (!Array.isArray(tasks)) {
         return [];
     }
-    
+
     return tasks
         .sort((a, b) => (b.state?.priority || 0) - (a.state?.priority || 0))
         .slice(0, limit);
 }
 
-export { 
-    consolidateMemory, 
-    getHighestPriorityTasksWithPQ 
+export {
+    consolidateMemory,
+    getHighestPriorityTasksWithPQ
 };

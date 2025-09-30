@@ -1,6 +1,4 @@
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
-import {OP} from '../config/constants.js';
-import Term from '../core/Term.js';
 
 const errorHandler = createUnifiedErrorHandler('Tools');
 
@@ -24,9 +22,18 @@ class Tools {
      * @param {Object} metadata - Additional metadata about the tool
      */
     registerTool(name, handler, metadata = {}) {
+        if (typeof name !== 'string' || !name.trim()) {
+            throw new Error('Tool name must be a non-empty string');
+        }
         if (typeof handler !== 'function') {
             throw new Error(`Tool handler for ${name} must be a function`);
         }
+
+        // Check for duplicate tool names
+        if (this.tools.has(name) || this.mcpTools.has(name) || this.externalTools.has(name)) {
+            throw new Error(`Tool with name '${name}' already exists`);
+        }
+
         this.tools.set(name, {
             name,
             handler,
@@ -79,6 +86,14 @@ class Tools {
      * @returns {Promise<any>} - The result of tool execution
      */
     async executeTool(toolName, args = [], context = {}) {
+        if (typeof toolName !== 'string' || !toolName.trim()) {
+            throw new Error('Tool name must be a non-empty string');
+        }
+
+        if (!Array.isArray(args)) {
+            throw new Error('Arguments must be an array');
+        }
+
         const tool = this._findTool(toolName);
         if (!tool) {
             throw new Error(`Tool not found: ${toolName}`);
@@ -89,7 +104,7 @@ class Tools {
 
         try {
             let result;
-            
+
             if (tool.type === 'native') {
                 result = await tool.handler(...args, context);
             } else if (tool.type === 'mcp') {
@@ -103,7 +118,7 @@ class Tools {
             }
 
             const endTime = Date.now();
-            
+
             this.toolHistory.push({
                 id: executionId,
                 toolName,
@@ -118,7 +133,7 @@ class Tools {
             errorHandler.executeSync(() => {
                 console.debug && console.debug(`Tools: Tool ${toolName} executed successfully in ${endTime - startTime}ms`);
             }, `executeToolSuccess: ${toolName}`);
-            
+
             return result;
         } catch (error) {
             const endTime = Date.now();
@@ -147,7 +162,7 @@ class Tools {
     async _executeMcpTool(tool, args, context) {
         // In a real implementation, this would interface with the Model Context Protocol
         // For now, we'll simulate a basic implementation
-        const { config } = tool;
+        const {config} = tool;
         if (config.simulator) {
             return await config.simulator(...args, context);
         }
@@ -159,7 +174,7 @@ class Tools {
      * @private
      */
     async _executeExternalTool(tool, args, context) {
-        const { instance } = tool;
+        const {instance} = tool;
         if (instance.execute) {
             return await instance.execute(...args, context);
         } else if (typeof instance === 'function') {

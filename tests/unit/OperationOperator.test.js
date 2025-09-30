@@ -1,5 +1,5 @@
-import { parseTerm, validateTermKey } from '../../core/parser/index.js';
-import { OP } from '../../core/config/constants.js';
+import {parseTerm, validateTermKey} from '../../core/parser/index.js';
+import {OP} from '../../core/config/constants.js';
 
 describe('Operation Operator Parser', () => {
     test('should parse basic operation operator', () => {
@@ -63,7 +63,7 @@ describe('Operation Operator Parser', () => {
         expect(result1.type).toBe(OP.PRODUCT);
         expect(Array.isArray(result1.terms)).toBe(true);
         expect(result1.terms.length).toBe(0);
-        
+
         // Test product with arguments
         const result2 = parseTerm('(left, right)');
         expect(result2).toBeDefined();

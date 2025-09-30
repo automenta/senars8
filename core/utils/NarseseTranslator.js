@@ -1,5 +1,5 @@
 import {createUnifiedErrorHandler} from './errorHandler.js';
-import Term from '../core/Term.js';
+import {error as logError} from './logger.js';
 import {OP, PUNCTUATION} from '../config/constants.js';
 
 const errorHandler = createUnifiedErrorHandler('NarseseTranslator');
@@ -22,15 +22,27 @@ class NarseseTranslator {
      */
     resultToNarseseBelief(result, sourceTerm, config = {}) {
         try {
-            const { 
-                frequency = 0.9, 
-                confidence = 0.9, 
+            if (typeof sourceTerm !== 'string' || !sourceTerm.trim()) {
+                throw new Error('Source term must be a non-empty string');
+            }
+
+            const {
+                frequency = 0.9,
+                confidence = 0.9,
                 timestamp = Date.now()
             } = config;
 
+            // Validate truth values
+            if (typeof frequency !== 'number' || frequency < 0 || frequency > 1) {
+                throw new Error('Frequency must be a number between 0 and 1');
+            }
+            if (typeof confidence !== 'number' || confidence < 0 || confidence > 1) {
+                throw new Error('Confidence must be a number between 0 and 1');
+            }
+
             // Convert result to appropriate Narsese representation based on result type
             let narseseRepresentation;
-            
+
             if (result === true || result === false) {
                 // Boolean result: create a simple belief
                 narseseRepresentation = `(${sourceTerm} --> ${result ? 'success' : 'failure'})`;
@@ -38,7 +50,7 @@ class NarseseTranslator {
                 // Object result: convert to key-value pairs or structured representation
                 if (result.error) {
                     // Error result
-                    narseseRepresentation = `(${sourceTerm} --> error: "${result.error}")`;
+                    narseseRepresentation = `(${sourceTerm} --> error: "${String(result.error).replace(/"/g, "'")}")`;
                 } else {
                     // Success with data
                     narseseRepresentation = this._objectToNarsese(sourceTerm, result);
@@ -48,7 +60,7 @@ class NarseseTranslator {
                 narseseRepresentation = `(${sourceTerm} --> ${result})`;
             } else {
                 // Other types - convert to string
-                narseseRepresentation = `(${sourceTerm} --> "${String(result)}")`;
+                narseseRepresentation = `(${sourceTerm} --> "${String(result).replace(/"/g, "'")}")`;
             }
 
             return {
@@ -61,7 +73,7 @@ class NarseseTranslator {
                 occurrenceTime: timestamp
             };
         } catch (error) {
-            this.errorHandler.error(`Error converting result to Narsese: ${error.message}`);
+            logError(`NarseseTranslator: Error converting result to Narsese: ${error.message}`);
             throw error;
         }
     }
@@ -80,10 +92,10 @@ class NarseseTranslator {
             // If the term is an operation, extract arguments from predicate
             if (narseseGoal.term.type === OP.OPERATION) {
                 const operation = narseseGoal.term;
-                
+
                 // Extract the operation name (subject)
                 const operationName = operation.subject?.key || operation.subject?.name || 'unknown';
-                
+
                 // Extract arguments from predicate (which should be a Product)
                 let args = [];
                 if (operation.predicate && operation.predicate.type === OP.PRODUCT && operation.predicate.terms) {
@@ -107,7 +119,7 @@ class NarseseTranslator {
                 subject: narseseGoal.term
             };
         } catch (error) {
-            this.errorHandler.error(`Error extracting arguments from goal: ${error.message}`);
+            logError(`NarseseTranslator: Error extracting arguments from goal: ${error.message}`);
             throw error;
         }
     }
@@ -121,9 +133,9 @@ class NarseseTranslator {
      */
     createNarseseGoal(actionName, args = [], config = {}) {
         try {
-            const { 
-                frequency = 0.9, 
-                confidence = 0.9, 
+            const {
+                frequency = 0.9,
+                confidence = 0.9,
                 timestamp = Date.now()
             } = config;
 
@@ -132,9 +144,9 @@ class NarseseTranslator {
             if (args && args.length > 0) {
                 argsStr = args.map(arg => this._valueToNarsese(arg)).join(', ');
             }
-            
+
             const operationStr = `${actionName}(${argsStr})`;
-            
+
             return {
                 term: operationStr,
                 truth: {
@@ -145,7 +157,7 @@ class NarseseTranslator {
                 occurrenceTime: timestamp
             };
         } catch (error) {
-            this.errorHandler.error(`Error creating Narsese goal: ${error.message}`);
+            logError(`NarseseTranslator: Error creating Narsese goal: ${error.message}`);
             throw error;
         }
     }
@@ -183,7 +195,7 @@ class NarseseTranslator {
 
             return narseseBelief.term;
         } catch (error) {
-            this.errorHandler.error(`Error converting Narsese to value: ${error.message}`);
+            logError(`NarseseTranslator: Error converting Narsese to value: ${error.message}`);
             return null;
         }
     }
@@ -205,7 +217,7 @@ class NarseseTranslator {
             return `((${sourceTerm} ${key}) --> ${this._valueToNarsese(value)})`;
         } else {
             // Multiple properties - create a more complex representation
-            const predicates = entries.map(([key, value]) => 
+            const predicates = entries.map(([key, value]) =>
                 `(${key} ${this._valueToNarsese(value)})`
             ).join(' & ');
             return `(${sourceTerm} --> (${predicates}))`;
@@ -265,12 +277,12 @@ class NarseseTranslator {
 
         switch (term.type) {
             case OP.ATOMIC:
-                return { type: 'atomic', value: term.key };
+                return {type: 'atomic', value: term.key};
             case OP.PRODUCT:
                 if (Array.isArray(term.terms)) {
-                    return { type: 'product', values: term.terms.map(t => this._termToObject(t)) };
+                    return {type: 'product', values: term.terms.map(t => this._termToObject(t))};
                 }
-                return { type: 'product', values: [] };
+                return {type: 'product', values: []};
             case OP.IMPLICATION:
                 return {
                     type: 'implication',
@@ -284,7 +296,7 @@ class NarseseTranslator {
                     right: this._termToObject(term.predicate)
                 };
             default:
-                return { type: term.type, raw: term };
+                return {type: term.type, raw: term};
         }
     }
 }

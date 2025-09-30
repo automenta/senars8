@@ -19,11 +19,11 @@ class ActionExecutor {
         this.constraints = new Map();
         this.actionHistory = [];
         this.resourceAllocator = new ResourceAllocator();
-        
+
         // Add tools and translator for operation execution
         this.tools = new Tools();
         this.narseseTranslator = new NarseseTranslator();
-        
+
         this._initializeResources();
         this._initializeConstraints();
     }
@@ -66,12 +66,12 @@ class ActionExecutor {
     async executeAction(action) {
         await errorHandler.execute(async () => {
             this._validateAction(action);
-            
+
             // Check if this is an operation term that should be handled by tools
             if (action.operationTerm) {
                 return await this._executeOperation(action.operationTerm);
             }
-            
+
             const handler = this._findHandler(action.name);
             if (!handler) {
                 throw new Error(`No handler found for action: ${action.name}`);
@@ -132,27 +132,34 @@ class ActionExecutor {
      * Execute an operation term using the tools system
      */
     async _executeOperation(operationTerm) {
+        if (!operationTerm) {
+            throw new Error('Operation term cannot be null or undefined');
+        }
+
         try {
             // Extract operation name and arguments from the Narsese operation term
             const extracted = this.narseseTranslator.extractArgumentsFromGoal({
                 term: operationTerm
             });
-            
+
             if (!extracted.operationName) {
                 throw new Error(`Could not extract operation name from term: ${JSON.stringify(operationTerm)}`);
             }
 
+            // Validate extracted arguments
+            const validatedArgs = Array.isArray(extracted.args) ? extracted.args : [];
+
             const startTime = Date.now();
-            const result = await this.tools.executeTool(extracted.operationName, extracted.args);
+            const result = await this.tools.executeTool(extracted.operationName, validatedArgs);
             const endTime = Date.now();
 
             // Convert the result back to a Narsese belief for learning
             const belief = this.narseseTranslator.resultToNarseseBelief(
-                result, 
-                extracted.operationName, 
-                { 
-                    frequency: 0.9, 
-                    confidence: 0.9 
+                result,
+                extracted.operationName,
+                {
+                    frequency: 0.9,
+                    confidence: 0.9
                 }
             );
 
@@ -161,7 +168,7 @@ class ActionExecutor {
             this.actionHistory.push({
                 id: executionId,
                 action: extracted.operationName,
-                parameters: extracted.args,
+                parameters: validatedArgs,
                 result,
                 startTime,
                 endTime,
@@ -178,28 +185,28 @@ class ActionExecutor {
                 narseseBelief: belief
             });
 
-            return { result, narseseBelief: belief };
+            return {result, narseseBelief: belief};
         } catch (error) {
             const endTime = Date.now();
             const executionId = generateId(`operation-error-${Date.now()}`);
-            
+
             this.actionHistory.push({
                 id: executionId,
-                action: operationTerm?.name || 'unknown',
-                parameters: operationTerm?.args || [],
+                action: operationTerm?.subject?.key || operationTerm?.name || 'unknown',
+                parameters: operationTerm?.predicate?.terms || [],
                 error: error.message,
-                startTime: startTime || Date.now(),
+                startTime: Date.now(), // Use current time as fallback
                 endTime: endTime,
-                duration: endTime - (startTime || Date.now()),
+                duration: endTime - Date.now(),
                 status: 'error',
                 type: 'operation'
             });
 
             this.eventBus.emit('OperationFailed', {
                 id: executionId,
-                operation: operationTerm?.name || 'unknown',
+                operation: operationTerm?.subject?.key || operationTerm?.name || 'unknown',
                 error: error.message,
-                duration: endTime - (startTime || Date.now())
+                duration: endTime - Date.now()
             });
 
             throw error;
