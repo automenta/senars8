@@ -18,18 +18,58 @@ describe('AStarPlanner Integration Test', () => {
         };
         const mockCommandBus = {
             handle: vi.fn(),
-            request: vi.fn(),
+            request: vi.fn(async (command, payload) => {
+                // Mock the memory commands that the planner will request
+                switch(command) {
+                    case 'memory:getTerm':
+                        return memory._getTerm(payload?.key || payload);
+                    case 'memory:getStats':
+                        return memory._getStatistics();
+                    case 'memory:queryTasks':
+                        return await memory._queryTasks(payload?.filters || payload || {});
+                    case 'memory:getTask':
+                        return memory._getTask(payload?.id || payload);
+                    case 'memory:getAllTerms':
+                        return await memory._getAllTerms();
+                    case 'memory:getAllTasks':
+                        return await memory._getAllTasks();
+                    case 'memory:getBeliefs':
+                        return await memory._getBeliefs();
+                    case 'memory:getGoals':
+                        return await memory._getGoals();
+                    case 'memory:getQuestions':
+                        return await memory._getQuestions();
+                    case 'memory:exportState':
+                        return memory.exportState();
+                    case 'memory:importState':
+                        return memory.importState(payload);
+                    case 'memory:getImplications':
+                        return await memory._getImplications(payload);
+                    case 'memory:getCost':
+                        return await memory._getCost(payload);
+                    case 'memory:getRecentTasks':
+                        return await memory._getRecentTasks(payload);
+                    case 'memory:getHighestPriorityTasks':
+                        return await memory._getHighestPriorityTasks(payload);
+                    default:
+                        // For other commands, we might need to implement them
+                        // For now, let's just return null or handle as needed
+                        return null;
+                }
+            }),
         };
+        // Create a memory instance with the mock command bus
         memory = new Memory(configManager, mockEventBus, mockCommandBus);
+        
         const lm = {
             bootstrapTerm: async termKey => new Term(termKey, [0.1, 0.2, 0.3])
         };
-        planner = new AStarPlanner(memory, lm, configManager);
+        planner = new AStarPlanner(lm, mockCommandBus, configManager);
     });
 
     const addTerm = (key, cost = null) => {
         const term = new Term(key, [Math.random(), Math.random(), Math.random()]);
-        memory.addTerm(term);
+        memory._addTerm(term);
         if (cost !== null) {
             memory.indexer.costIndex.set(key, cost);
         }
@@ -106,7 +146,7 @@ describe('AStarPlanner Integration Test', () => {
         const belief = new Task(goalTerm, '.', {
             confidence: 0.99
         });
-        memory.addTasks([belief]);
+        memory._addTasks([belief]);
 
         const goalTask = new Task(goalTerm, '!', {
             confidence: 0.9

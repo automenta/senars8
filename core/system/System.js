@@ -30,7 +30,7 @@ class System {
         this.perception = perception;
         this.isRunning = false;
         this.cycleCount = 0;
-        this.introspection = new Introspection(this);
+        this.introspection = new Introspection(this, this.commandBus);
         this.constitutionTasks = [];
 
         registerDefaultActions(this.actionExecutor);

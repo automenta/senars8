@@ -3,19 +3,19 @@ import BasePlanner from './BasePlanner.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
 
 class AStarPlanner extends BasePlanner {
-    constructor(memory, lm, configManager) {
-        super(memory, lm, configManager);
+    constructor(lm, commandBus, configManager) {
+        super(lm, commandBus, configManager);
         this.config = createConfigAccessor(configManager, 'ASTAR_PLANNER');
         this.maxIterations = this.config.get('maxIterations', 1000);
         this.heuristicCache = new Map();
     }
 
     async findPlan(goalTask) {
-        const startNode = this.memory.getTerm(goalTask.termKey);
+        const startNode = await this.commandBus.request('memory:getTerm', {key: goalTask.termKey});
         if (!startNode) return null;
 
         // If the goal is already achieved, return an empty plan
-        if (this._isAchieved(startNode)) return [];
+        if (await this._isAchieved(startNode)) return [];
 
         const openSet = new MinPriorityQueue(node => node.f);
         const visited = new Set();
@@ -34,10 +34,12 @@ class AStarPlanner extends BasePlanner {
 
             // If we have no more tasks, we've found a complete plan
             if (currentNode.tasks.length === 0) {
-                return currentNode.plan.map(key => {
-                    const term = this.memory.getTerm(key);
-                    return term || {key}; // Return a minimal object if term not found
-                });
+                const plan = [];
+                for (const key of currentNode.plan) {
+                    const term = await this.commandBus.request('memory:getTerm', {key});
+                    plan.push(term || {key}); // Return a minimal object if term not found
+                }
+                return plan;
             }
 
             const stateKey = this._getStateKey(currentNode);

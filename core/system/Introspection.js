@@ -4,9 +4,9 @@ import {
 } from '../utils/errorHandler.js';
 
 class Introspection {
-    constructor(system) {
+    constructor(system, commandBus) {
         this.system = system;
-        this.memory = system.memory;
+        this.commandBus = commandBus;
         this.reasoner = system.reasoner;
         this.planner = system.planner;
         this.metaCognition = system.metaCognition;
@@ -19,7 +19,7 @@ class Introspection {
         return safeAsync(async () => ({
             isRunning: this.system.isRunning,
             cycleCount: this.system.cycleCount,
-            memory: await this.memory.getStatistics(),
+            memory: await this.commandBus.request('memory:getStats'),
             rules: this.reasoner.getRuleNames().length,
             actionHistory: this.system.actionExecutor.getActionHistory().length,
         }), 'getStatus', {});
@@ -29,24 +29,24 @@ class Introspection {
         return safeSync(() => this.configAccessor.getAll(), 'getConfig', {});
     }
 
-    getTask(id) {
-        return this.memory.getTask(id);
+    async getTask(id) {
+        return await this.commandBus.request('memory:getTask', {id});
     }
 
-    getTerm(key) {
-        return this.memory.getTerm(key);
+    async getTerm(key) {
+        return await this.commandBus.request('memory:getTerm', {key});
     }
 
-    queryTasks(filters = {}) {
-        return this.memory.queryTasks(filters);
+    async queryTasks(filters = {}) {
+        return await this.commandBus.request('memory:queryTasks', {filters});
     }
 
-    getMemoryStatistics() {
-        return this.memory.getStatistics();
+    async getMemoryStatistics() {
+        return await this.commandBus.request('memory:getStats');
     }
 
-    getAllTerms() {
-        return this.memory.getAllTerms();
+    async getAllTerms() {
+        return await this.commandBus.request('memory:getAllTerms');
     }
 
     getAvailableRules() {

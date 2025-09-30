@@ -3,6 +3,7 @@ import path from 'path';
 import {glob} from 'glob';
 import {debug, info, warn} from './logger.js';
 import {createUnifiedErrorHandler} from './errorHandler.js';
+import Task from '../core/Task.js';
 
 /**
  * Generic PlanProcessor that can process any set of input files to extract goals
@@ -352,8 +353,8 @@ class PlanProcessor {
      * Convert extracted goals to cognitive tasks
      */
     convertGoalsToTasks(goals) {
-        if (!this.system?.memory?.Task) {
-            // If system isn't available, return as-is or create basic task objects
+        if (!Task) {
+            // If Task class isn't available, return as-is or create basic task objects
             return goals.map(goal => ({
                 content: goal.content,
                 priority: goal.priority,
@@ -362,7 +363,6 @@ class PlanProcessor {
         }
 
         return goals.map(goal => {
-            const Task = this.system.memory.Task;
             const punctuation = goal.content.toLowerCase().includes('implement') ||
             goal.content.toLowerCase().includes('create') ||
             goal.content.toLowerCase().includes('add') ? '!' : '.';

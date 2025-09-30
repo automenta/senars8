@@ -200,19 +200,25 @@ class Agent {
      * This provides a single, efficient entry point for accessing agent state.
      * @returns {Object} An object containing tasks, beliefs, goals, and questions.
      */
-    getAgentState() {
-        if (!this.isInitialized || !this.system?.memory) {
-            agentLogger.debug('Cannot access agent state: Agent not initialized or no system memory.');
+    async getAgentState() {
+        if (!this.isInitialized || !this.system?.commandBus) {
+            agentLogger.debug('Cannot access agent state: Agent not initialized or no system commandBus.');
             return {tasks: [], beliefs: [], goals: [], questions: []};
         }
 
         try {
-            const memory = this.system.memory;
+            const [tasks, beliefs, goals, questions] = await Promise.all([
+                this.system.commandBus.request('memory:getAllTasks'),
+                this.system.commandBus.request('memory:getBeliefs'),
+                this.system.commandBus.request('memory:getGoals'),
+                this.system.commandBus.request('memory:getQuestions'),
+            ]);
+
             return {
-                tasks: memory.getAllTasks?.() || [],
-                beliefs: memory.getBeliefs?.() || [],
-                goals: memory.getGoals?.() || [],
-                questions: memory.getQuestions?.() || [],
+                tasks: tasks || [],
+                beliefs: beliefs || [],
+                goals: goals || [],
+                questions: questions || [],
             };
         } catch (error) {
             agentLogger.warn('Error getting agent state:', error.message);
