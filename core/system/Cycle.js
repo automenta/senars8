@@ -64,14 +64,13 @@ class Cycle {
     }
 
     async _selectFocusSet() {
-        const allTasks = await this.commandBus.request(SystemCommands.MEMORY_GET_ALL_TASKS);
-        if (!allTasks) return [];
-
-        allTasks.forEach(task => this.priorityManager?.updatePriority?.(task));
-
         const focusSetSize = this.config.getNumber('FOCUS_SET_SIZE', 20);
-        return allTasks.sort((a, b) => (b.state?.priority || 0) - (a.state?.priority || 0))
-            .slice(0, focusSetSize);
+        const focusSet = await this.commandBus.request(SystemCommands.MEMORY_GET_HIGHEST_PRIORITY_TASKS, focusSetSize);
+        if (!focusSet) return [];
+
+        focusSet.forEach(task => this.priorityManager?.updatePriority?.(task));
+        
+        return focusSet;
     }
 
     async _performInference(focusSet) {

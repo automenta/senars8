@@ -21,6 +21,7 @@ export const SystemCommands = Object.freeze({
     MEMORY_GET_TERM: 'memory:getTerm',
     MEMORY_GET_ALL_TASKS: 'memory:getAllTasks',
     MEMORY_GET_ALL_TERMS: 'memory:getAllTerms',
+    MEMORY_GET_HIGHEST_PRIORITY_TASKS: 'memory:getHighestPriorityTasks',
     MEMORY_GET_STATS: 'memory:getStats',
 
     // --- MetaCognition ---
