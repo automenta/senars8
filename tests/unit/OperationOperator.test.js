@@ -196,4 +196,19 @@ describe('Operation Operator (^) Integration', () => {
         expect(result.result.args).toEqual(['value1', 'value2', 'value3']);
         expect(result.result.combined).toBe('value1-value2-value3');
     });
+
+    it('should register and retrieve resources properly', () => {
+        const resourceData = { type: 'test', value: 42, active: true };
+        
+        actionExecutor.registerResource('testResource', resourceData);
+        const retrievedResource = actionExecutor.getResource('testResource');
+        
+        expect(retrievedResource).toEqual(resourceData);
+    });
+
+    it('should return undefined for non-existent resources', () => {
+        const nonExistentResource = actionExecutor.getResource('nonExistent');
+        
+        expect(nonExistentResource).toBeUndefined();
+    });
 });

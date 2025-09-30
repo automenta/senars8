@@ -42,29 +42,54 @@ class ActionExecutor {
 
     registerActionHandler(actionPattern, handler) {
         this.actionHandlers.set(actionPattern, handler);
+        errorHandler.executeSync(() => {
+            // Simple logging instead of using debug method
+            console.debug && console.debug(`ActionExecutor: Registered action handler: ${actionPattern}`);
+        }, `registerActionHandler: ${actionPattern}`);
     }
 
     registerTool(name, handler, metadata = {}) {
         this.tools.registerTool(name, handler, metadata);
+        errorHandler.executeSync(() => {
+            // Simple logging instead of using debug method
+            console.debug && console.debug(`ActionExecutor: Registered tool: ${name}`);
+        }, `registerTool: ${name}`);
     }
 
     registerMcpTool(name, mcpConfig) {
         this.tools.registerMcpTool(name, mcpConfig);
+        errorHandler.executeSync(() => {
+            // Simple logging instead of using debug method
+            console.debug && console.debug(`ActionExecutor: Registered MCP tool: ${name}`);
+        }, `registerMcpTool: ${name}`);
     }
 
     registerExternalTool(name, toolInstance) {
         this.tools.registerExternalTool(name, toolInstance);
+        errorHandler.executeSync(() => {
+            // Simple logging instead of using debug method
+            console.debug && console.debug(`ActionExecutor: Registered external tool: ${name}`);
+        }, `registerExternalTool: ${name}`);
     }
 
     registerResource(name, resource) {
         if (typeof name !== 'string' || !name.trim()) {
             throw new Error('Resource name must be a non-empty string');
         }
+        
         this.resources.set(name, resource);
+        errorHandler.executeSync(() => {
+            // Simple logging instead of using debug method
+            console.debug && console.debug(`ActionExecutor: Registered resource: ${name}`);
+        }, `registerResource: ${name}`);
     }
 
     setConstraint(constraintName, constraintFunction) {
         this.constraints.set(constraintName, constraintFunction);
+    }
+
+    getResource(resourceName) {
+        return this.resources.get(resourceName);
     }
 
     /**
