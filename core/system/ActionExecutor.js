@@ -2,6 +2,10 @@ import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import ResourceAllocator from './ResourceAllocator.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
 import {generateId} from '../utils/idGenerator.js';
+import Tools from '../lm/Tools.js';
+import NarseseTranslator from '../utils/NarseseTranslator.js';
+import {OP} from '../config/constants.js';
+import {parseTerm} from '../parser/narseseParser.js';
 
 const errorHandler = createUnifiedErrorHandler('ActionExecutor');
 
@@ -15,6 +19,11 @@ class ActionExecutor {
         this.constraints = new Map();
         this.actionHistory = [];
         this.resourceAllocator = new ResourceAllocator();
+        
+        // Add tools and translator for operation execution
+        this.tools = new Tools();
+        this.narseseTranslator = new NarseseTranslator();
+        
         this._initializeResources();
         this._initializeConstraints();
     }
@@ -35,22 +44,34 @@ class ActionExecutor {
         this.actionHandlers.set(actionPattern, handler);
     }
 
-    registerResource(resourceName, availability) {
-        this.resources.set(resourceName, {
-            name: resourceName,
-            ...availability,
-            reservations: [],
-            locked: false
-        });
+    registerTool(name, handler, metadata = {}) {
+        this.tools.registerTool(name, handler, metadata);
+    }
+
+    registerMcpTool(name, mcpConfig) {
+        this.tools.registerMcpTool(name, mcpConfig);
+    }
+
+    registerExternalTool(name, toolInstance) {
+        this.tools.registerExternalTool(name, toolInstance);
     }
 
     setConstraint(constraintName, constraintFunction) {
         this.constraints.set(constraintName, constraintFunction);
     }
 
+    /**
+     * Execute an action, with special handling for operation terms
+     */
     async executeAction(action) {
         await errorHandler.execute(async () => {
             this._validateAction(action);
+            
+            // Check if this is an operation term that should be handled by tools
+            if (action.operationTerm) {
+                return await this._executeOperation(action.operationTerm);
+            }
+            
             const handler = this._findHandler(action.name);
             if (!handler) {
                 throw new Error(`No handler found for action: ${action.name}`);
@@ -107,6 +128,84 @@ class ActionExecutor {
         }, `executeAction: ${action.name}`);
     }
 
+    /**
+     * Execute an operation term using the tools system
+     */
+    async _executeOperation(operationTerm) {
+        try {
+            // Extract operation name and arguments from the Narsese operation term
+            const extracted = this.narseseTranslator.extractArgumentsFromGoal({
+                term: operationTerm
+            });
+            
+            if (!extracted.operationName) {
+                throw new Error(`Could not extract operation name from term: ${JSON.stringify(operationTerm)}`);
+            }
+
+            const startTime = Date.now();
+            const result = await this.tools.executeTool(extracted.operationName, extracted.args);
+            const endTime = Date.now();
+
+            // Convert the result back to a Narsese belief for learning
+            const belief = this.narseseTranslator.resultToNarseseBelief(
+                result, 
+                extracted.operationName, 
+                { 
+                    frequency: 0.9, 
+                    confidence: 0.9 
+                }
+            );
+
+            // Add to history
+            const executionId = generateId(`operation-${extracted.operationName}`);
+            this.actionHistory.push({
+                id: executionId,
+                action: extracted.operationName,
+                parameters: extracted.args,
+                result,
+                startTime,
+                endTime,
+                duration: endTime - startTime,
+                status: 'success',
+                type: 'operation'
+            });
+
+            this.eventBus.emit('OperationExecuted', {
+                id: executionId,
+                operation: extracted.operationName,
+                result,
+                duration: endTime - startTime,
+                narseseBelief: belief
+            });
+
+            return { result, narseseBelief: belief };
+        } catch (error) {
+            const endTime = Date.now();
+            const executionId = generateId(`operation-error-${Date.now()}`);
+            
+            this.actionHistory.push({
+                id: executionId,
+                action: operationTerm?.name || 'unknown',
+                parameters: operationTerm?.args || [],
+                error: error.message,
+                startTime: startTime || Date.now(),
+                endTime: endTime,
+                duration: endTime - (startTime || Date.now()),
+                status: 'error',
+                type: 'operation'
+            });
+
+            this.eventBus.emit('OperationFailed', {
+                id: executionId,
+                operation: operationTerm?.name || 'unknown',
+                error: error.message,
+                duration: endTime - (startTime || Date.now())
+            });
+
+            throw error;
+        }
+    }
+
     async _processQueue() {
         if (this.processing) return;
         this.processing = true;
@@ -149,10 +248,16 @@ class ActionExecutor {
 
         this._acquireResources(action);
         await errorHandler.execute(async () => {
-            const handler = this._findHandler(action.name);
-            if (!handler) throw new Error(`No handler for action: ${action.name}`);
-            const result = await handler(action);
-            resolve(this._recordSuccess(actionRecord, result));
+            // Check if this is an operation term
+            if (action.operationTerm) {
+                const result = await this._executeOperation(action.operationTerm);
+                resolve(this._recordSuccess(actionRecord, result));
+            } else {
+                const handler = this._findHandler(action.name);
+                if (!handler) throw new Error(`No handler for action: ${action.name}`);
+                const result = await handler(action);
+                resolve(this._recordSuccess(actionRecord, result));
+            }
         }, 'processActionItem', (executionError) => {
             reject(this._recordFailure(actionRecord, executionError));
         });
@@ -177,8 +282,8 @@ class ActionExecutor {
 
     _validateAction(action) {
         return errorHandler.executeSync(() => {
-            if (!action?.name) {
-                throw new Error('Action name is required');
+            if (!action?.name && !action?.operationTerm) {
+                throw new Error('Action name or operationTerm is required');
             }
             if (this.constraints.size === 0) return true;
 
@@ -246,6 +351,36 @@ class ActionExecutor {
 
     getActionHandlers() {
         return [...this.actionHandlers.keys()];
+    }
+
+    /**
+     * Get tools instance for external access
+     */
+    getTools() {
+        return this.tools;
+    }
+
+    /**
+     * Check if a parsed term is an operation
+     */
+    isOperationTerm(term) {
+        return term && term.type === OP.OPERATION;
+    }
+
+    /**
+     * Execute a Narsese operation string directly
+     */
+    async executeNarseseOperation(narseseString) {
+        if (typeof narseseString !== 'string') {
+            throw new Error('Narsese string must be provided');
+        }
+
+        const parsedTerm = parseTerm(narseseString);
+        if (!parsedTerm || parsedTerm.type !== OP.OPERATION) {
+            throw new Error(`Invalid operation term: ${narseseString}`);
+        }
+
+        return await this._executeOperation(parsedTerm);
     }
 }
 
