@@ -118,7 +118,7 @@ class Task extends BaseEntity {
 
     #processTerm(term) {
         let termKey, processedTerm;
-        
+
         if (typeof term === 'string') {
             termKey = term;
             processedTerm = parseTerm(term);

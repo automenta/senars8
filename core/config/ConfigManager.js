@@ -30,12 +30,12 @@ class ConfigManager {
 
         return merged;
     }
-    
+
     _deepClone(obj) {
         if (obj === null || typeof obj !== 'object') {
             return obj;
         }
-        
+
         if (Array.isArray(obj)) {
             const newArr = new Array(obj.length);
             for (let i = 0; i < obj.length; i++) {
@@ -43,7 +43,7 @@ class ConfigManager {
             }
             return newArr;
         }
-        
+
         const newObj = {};
         for (const key in obj) {
             if (Object.prototype.hasOwnProperty.call(obj, key)) {

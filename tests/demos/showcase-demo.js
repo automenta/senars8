@@ -3,7 +3,7 @@
 
 import {runSystem} from '../../utils/runner.js';
 import {info} from '../../common/services/Logger.js';
-import { SystemCommands } from '../../core/system/SystemCommands.js';
+import {SystemCommands} from '../../core/system/SystemCommands.js';
 
 /**
  * A unified showcase demo that demonstrates core system capabilities.

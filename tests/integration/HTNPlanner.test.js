@@ -12,7 +12,7 @@ describe('HTNPlanner Integration Test', () => {
 
     const addTermToMemory = (key, complexity = 1) => {
         const term = new Term(key, [], complexity);
-        memory.addTerm(term);
+        memory._addTerm(term);
         return term;
     };
 
@@ -31,7 +31,7 @@ describe('HTNPlanner Integration Test', () => {
         const lm = {
             bootstrapTerm: async termKey => new Term(termKey, [0.1, 0.2, 0.3])
         };
-        planner = new HTNPlanner(memory, lm, configManager);
+        planner = new HTNPlanner(lm, mockCommandBus, configManager);
     });
 
     test('should find a simple plan with one level of decomposition', async () => {

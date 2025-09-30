@@ -24,19 +24,19 @@ function calculateIntervalStats(tasks) {
             stdDev: 0
         };
     }
-    
+
     // Sort tasks in place to avoid creating unnecessary copied array
     const sortedTasks = [...tasks].sort((a, b) => a.state.stamp.occurrenceTime - b.state.stamp.occurrenceTime);
-    
+
     // Calculate intervals and sum in a single pass instead of creating separate arrays
     let sum = 0;
     const intervals = new Array(sortedTasks.length - 1);
     for (let i = 1; i < sortedTasks.length; i++) {
-        const interval = sortedTasks[i].state.stamp.occurrenceTime - sortedTasks[i-1].state.stamp.occurrenceTime;
+        const interval = sortedTasks[i].state.stamp.occurrenceTime - sortedTasks[i - 1].state.stamp.occurrenceTime;
         intervals[i - 1] = interval;
         sum += interval;
     }
-    
+
     if (intervals.length === 0) {
         return {
             intervals: [],
@@ -45,9 +45,9 @@ function calculateIntervalStats(tasks) {
             stdDev: 0
         };
     }
-    
+
     const avgInterval = sum / intervals.length;
-    
+
     // Calculate variance in a single pass without creating additional arrays
     let varianceSum = 0;
     for (let i = 0; i < intervals.length; i++) {
@@ -55,7 +55,7 @@ function calculateIntervalStats(tasks) {
     }
     const variance = varianceSum / intervals.length;
     const stdDev = Math.sqrt(variance);
-    
+
     return {
         intervals,
         avgInterval,
@@ -238,12 +238,12 @@ function detectTemporalCycles(tasks) {
             temporalTasks.push(task);
         }
     }
-    
+
     if (temporalTasks.length < 4) return [];
 
     const taskGroups = groupTasksByTermKey(temporalTasks);
     const result = [];
-    
+
     for (const [termKey, groupTasks] of Object.entries(taskGroups)) {
         if (groupTasks.length >= 3) {
             const {
@@ -261,7 +261,7 @@ function detectTemporalCycles(tasks) {
             }
         }
     }
-    
+
     return result;
 }
 
@@ -274,12 +274,12 @@ function detectTemporalAnomalies(tasks) {
             temporalTasks.push(task);
         }
     }
-    
+
     if (temporalTasks.length < 5) return [];
 
     const taskGroups = groupTasksByTermKey(temporalTasks);
     const result = [];
-    
+
     for (const [termKey, groupTasks] of Object.entries(taskGroups)) {
         if (groupTasks.length >= 3) {
             const {
@@ -287,7 +287,7 @@ function detectTemporalAnomalies(tasks) {
                 avgInterval,
                 stdDev
             } = calculateIntervalStats(groupTasks);
-            
+
             for (let i = 0; i < intervals.length; i++) {
                 const interval = intervals[i];
                 if (Math.abs(interval - avgInterval) > 2 * stdDev) {
@@ -303,7 +303,7 @@ function detectTemporalAnomalies(tasks) {
             }
         }
     }
-    
+
     return result;
 }
 

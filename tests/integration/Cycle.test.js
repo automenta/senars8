@@ -2,8 +2,8 @@ import {beforeEach, describe, expect, test, vi} from 'vitest';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import CONSTITUTION_TASKS from '../../core/system/Constitution.js';
-import { createTestSystem } from '../test-helpers.js';
-import { SystemCommands } from '../../core/system/SystemCommands.js';
+import {createTestSystem} from '../test-helpers.js';
+import {SystemCommands} from '../../core/system/SystemCommands.js';
 
 vi.mock('@xenova/transformers', () => ({
     pipeline: vi.fn(async () =>
@@ -30,7 +30,7 @@ describe('Cycle Integration Test', () => {
             }
         });
         system = testSystem.system;
-        memory = system.memory;
+        memory = testSystem.container.get('memory'); // Get memory from container
         cycle = system.cycle;
         commandBus = testSystem.commandBus;
 
@@ -49,10 +49,10 @@ describe('Cycle Integration Test', () => {
                 return [];
             }
             if (command === SystemCommands.MEMORY_GET_ALL_TASKS) {
-                return memory.getAllTasks(); // Call the real memory method
+                return await memory._getAllTasks(); // Call the real memory method
             }
             if (command === SystemCommands.MEMORY_GET_TERM) {
-                return memory.getTerm(payload); // Call the real memory method
+                return memory._getTerm(payload); // Call the real memory method
             }
             // Let other commands pass through or return null
             return null;
@@ -68,17 +68,17 @@ describe('Cycle Integration Test', () => {
         const term1 = new Term('AcquireKnowledge', [1, 0, 0], 1);
         // cat should have low similarity to constitutional goals
         const term2 = new Term('cat', [0, 0, 1], 1);
-        await memory.addTerm(term1);
-        await memory.addTerm(term2);
+        await memory._addTerm(term1);
+        await memory._addTerm(term2);
 
         const task1 = new Task(term1, '!');
         const task2 = new Task(term2, '.');
-        await memory.addTasks([task1, task2]);
+        await memory._addTasks([task1, task2]);
 
         await cycle.bootstrap(CONSTITUTION_TASKS);
         await cycle.runOnce();
 
-        const tasks = await memory.getAllTasks();
+        const tasks = await memory._getAllTasks();
         const acquireKnowledgeTask = tasks.find(t => t.termKey === 'AcquireKnowledge');
         const catTask = tasks.find(t => t.termKey === 'cat');
 

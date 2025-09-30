@@ -1,5 +1,4 @@
 import Task from '../core/Task.js';
-import {filterByProperty} from './collections/index.js';
 import {createUnifiedErrorHandler} from './errorHandler.js';
 import {parseTerm} from '../parser/parse-utils.js';
 

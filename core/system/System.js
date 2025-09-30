@@ -91,7 +91,10 @@ class System {
 
             debug(`Bootstrapping ${newTermKeys.length} new terms...`);
             const newTerms = (await Promise.all(
-                newTermKeys.map(key => this.commandBus.request(SystemCommands.LM_BOOTSTRAP_TERM, { termKey: key, options }))
+                newTermKeys.map(key => this.commandBus.request(SystemCommands.LM_BOOTSTRAP_TERM, {
+                    termKey: key,
+                    options
+                }))
             )).filter(Boolean);
 
             await this.eventBus.emitAsync(SystemEvents.TERM_ADD, newTerms);

@@ -6,7 +6,7 @@ import Tools from '../lm/Tools.js';
 import NarseseTranslator from '../utils/NarseseTranslator.js';
 import {OP} from '../config/constants.js';
 import {parseTerm} from '../parser/narseseParser.js';
-import { SystemCommands } from './SystemCommands.js';
+import {SystemCommands} from './SystemCommands.js';
 
 const errorHandler = createUnifiedErrorHandler('ActionExecutor');
 

@@ -5,7 +5,7 @@ import {exec as childExec} from 'child_process';
 import {promisify} from 'util';
 import {Agent} from './index.js';
 import {debug as coreDebug, error as coreError, info as coreInfo, warn as coreWarn} from '../core/utils/logger.js';
-import { SystemCommands } from '../core/system/SystemCommands.js';
+import {SystemCommands} from '../core/system/SystemCommands.js';
 import Task from '../core/core/Task.js';
 
 const exec = promisify(childExec);
@@ -368,7 +368,7 @@ async function handleMessage(message, ws) {
 
         case 'narsese': {
             const narseseInput = payload;
-            broadcast({ type: 'log', payload: { source: 'user', message: narseseInput } });
+            broadcast({type: 'log', payload: {source: 'user', message: narseseInput}});
 
             if (agent.system && agent.system.commandBus) {
                 try {
@@ -380,7 +380,10 @@ async function handleMessage(message, ws) {
                     // broadcast({ type: 'log', payload: { source: 'system', message: 'Input processed.' } });
                 } catch (error) {
                     serverError('Failed to process Narsese input:', error);
-                    ws.send(JSON.stringify({ type: 'error', payload: { message: `Failed to process input: ${error.message}` } }));
+                    ws.send(JSON.stringify({
+                        type: 'error',
+                        payload: {message: `Failed to process input: ${error.message}`}
+                    }));
                 }
             } else {
                 serverWarn('CommandBus not available. Cannot process Narsese input.');
@@ -394,7 +397,7 @@ async function handleMessage(message, ws) {
                 break;
             }
 
-            const { command, maxCycles } = payload;
+            const {command, maxCycles} = payload;
             const commandMap = {
                 start: SystemCommands.SYSTEM_START_CYCLING,
                 stop: SystemCommands.SYSTEM_STOP_CYCLING,
@@ -404,11 +407,17 @@ async function handleMessage(message, ws) {
             const systemCommand = commandMap[command];
             if (systemCommand) {
                 try {
-                    broadcast({ type: 'log', payload: { source: 'system', message: `Agent command received: ${command}` } });
-                    await agent.system.commandBus.request(systemCommand, { maxCycles });
+                    broadcast({
+                        type: 'log',
+                        payload: {source: 'system', message: `Agent command received: ${command}`}
+                    });
+                    await agent.system.commandBus.request(systemCommand, {maxCycles});
                 } catch (error) {
                     serverError(`Failed to execute agent control command '${command}':`, error);
-                    ws.send(JSON.stringify({ type: 'error', payload: { message: `Failed to execute command: ${error.message}` } }));
+                    ws.send(JSON.stringify({
+                        type: 'error',
+                        payload: {message: `Failed to execute command: ${error.message}`}
+                    }));
                 }
             } else {
                 serverWarn(`Unknown agent control command: ${command}`);
@@ -420,7 +429,7 @@ async function handleMessage(message, ws) {
             // Return the current tasks from the agent's memory
             try {
                 if (!agent.system || !agent.system.commandBus) {
-                    return ws.send(JSON.stringify({ type: 'error', payload: { message: 'CommandBus not available.' } }));
+                    return ws.send(JSON.stringify({type: 'error', payload: {message: 'CommandBus not available.'}}));
                 }
 
                 const allTasks = await agent.system.commandBus.request(SystemCommands.MEMORY_GET_ALL_TASKS);
@@ -467,7 +476,10 @@ async function handleMessage(message, ws) {
                 switch (action) {
                     case 'execute':
                         if (!agent.system || !agent.system.commandBus) {
-                            return ws.send(JSON.stringify({ type: 'error', payload: { message: 'CommandBus not available.' } }));
+                            return ws.send(JSON.stringify({
+                                type: 'error',
+                                payload: {message: 'CommandBus not available.'}
+                            }));
                         }
                         // The core system should be responsible for creating the task.
                         // We just pass the raw data.
@@ -505,9 +517,9 @@ async function handleMessage(message, ws) {
 
         case 'add_task': {
             try {
-                const { taskData } = payload;
+                const {taskData} = payload;
                 if (!agent.system || !agent.system.commandBus) {
-                    return ws.send(JSON.stringify({ type: 'error', payload: { message: 'CommandBus not available.' } }));
+                    return ws.send(JSON.stringify({type: 'error', payload: {message: 'CommandBus not available.'}}));
                 }
 
                 const task = new Task(
@@ -515,21 +527,21 @@ async function handleMessage(message, ws) {
                     taskData.punctuation || '!',
                     {
                         priority: taskData.priority || 0.5,
-                        truthValue: taskData.truthValue || { frequency: 0.5, confidence: 0.5 }
+                        truthValue: taskData.truthValue || {frequency: 0.5, confidence: 0.5}
                     }
                 );
 
                 await agent.system.commandBus.request(SystemCommands.SYSTEM_ADD_TASKS, [task]);
                 broadcast({
                     type: 'task_added',
-                    payload: { task: task.toString(), id: task.id }
+                    payload: {task: task.toString(), id: task.id}
                 });
 
             } catch (error) {
                 serverError('Failed to add task:', error);
                 ws.send(JSON.stringify({
                     type: 'error',
-                    payload: { message: `Failed to add task: ${error.message}` }
+                    payload: {message: `Failed to add task: ${error.message}`}
                 }));
             }
             break;
@@ -548,7 +560,7 @@ async function handleMessage(message, ws) {
                 }
 
                 if (!agent.system || !agent.system.commandBus) {
-                    return ws.send(JSON.stringify({ type: 'error', payload: { message: 'CommandBus not available.' } }));
+                    return ws.send(JSON.stringify({type: 'error', payload: {message: 'CommandBus not available.'}}));
                 }
 
                 const allTasks = await agent.system.commandBus.request(SystemCommands.MEMORY_GET_ALL_TASKS);
@@ -686,9 +698,9 @@ async function handleMessage(message, ws) {
                             }
                         }
                     };
-                    
+
                     updateConfig(agent.config, config);
-                    
+
                     ws.send(JSON.stringify({
                         type: 'config_updated',
                         payload: {success: true, message: 'Configuration updated successfully', updatedConfig: config}
@@ -696,7 +708,11 @@ async function handleMessage(message, ws) {
                 } else {
                     ws.send(JSON.stringify({
                         type: 'config_updated',
-                        payload: {success: false, message: 'Config system not available for updates', updatedConfig: config}
+                        payload: {
+                            success: false,
+                            message: 'Config system not available for updates',
+                            updatedConfig: config
+                        }
                     }));
                 }
             } catch (error) {

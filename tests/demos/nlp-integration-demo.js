@@ -2,8 +2,8 @@
 // Description: Shows the integration of Natural Language Processing (NLP) for parsing natural language input into Narsese.
 
 import {runSystem} from '../../utils/runner.js';
-import { SystemCommands } from '../../core/system/SystemCommands.js';
-import { createTestSystem } from '../test-helpers.js';
+import {SystemCommands} from '../../core/system/SystemCommands.js';
+import {createTestSystem} from '../test-helpers.js';
 import Task from '../../core/core/Task.js';
 
 /**
@@ -23,7 +23,7 @@ async function nlpIntegrationDemo(options = {}) {
         "Find out why the sky is blue."
     ];
 
-    const { system, commandBus } = createTestSystem();
+    const {system, commandBus} = createTestSystem();
 
     commandBus.request.mockImplementation(async (command, payload) => {
         if (command === SystemCommands.LM_NLP_PARSE) {
@@ -31,7 +31,7 @@ async function nlpIntegrationDemo(options = {}) {
             return [new Task(`<${payload.replace(/\s/g, '_')}>.`)];
         }
         if (command === SystemCommands.MEMORY_GET_ALL_TASKS) {
-            return system.memory.getAllTasks();
+            return await system.introspection.queryTasks({});
         }
         return null;
     });

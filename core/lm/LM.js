@@ -15,8 +15,8 @@ import {debug, info, warn} from '../utils/logger.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import {suppressOnnxWarnings} from '../utils/onnxSuppression.js';
 import {configService} from '../config/index.js';
-import { SystemCommands } from '../system/SystemCommands.js';
-import { SystemEvents } from '../system/SystemEvents.js';
+import {SystemCommands} from '../system/SystemCommands.js';
+import {SystemEvents} from '../system/SystemEvents.js';
 
 suppressOnnxWarnings();
 
@@ -52,7 +52,10 @@ class LM {
         info('LM initialized');
 
         // Register command handlers
-        this.commandBus.handle(SystemCommands.LM_BOOTSTRAP_TERM, ({ termKey, options }) => this.bootstrapTerm(termKey, options));
+        this.commandBus.handle(SystemCommands.LM_BOOTSTRAP_TERM, ({
+                                                                      termKey,
+                                                                      options
+                                                                  }) => this.bootstrapTerm(termKey, options));
         this.commandBus.handle(SystemCommands.LM_ENRICH_TERM, (task) => this.proactiveEnrichment([task]));
         this.commandBus.handle(SystemCommands.LM_NLP_PARSE, (payload) => this.nlp.parse(payload));
         this.commandBus.handle(SystemCommands.LM_GENERATE_HYPOTHESES, (payload) => this.generateHypotheses(payload.tasks, payload.options));
@@ -92,7 +95,7 @@ class LM {
         }
         debug('Embedding processing loop finished.');
     }
-    
+
     async _processConcurrentBatches(batchSize) {
         const promises = [];
         for (let i = 0; i < this._maxConcurrency && this._embeddingQueue.length > 0; i++) {

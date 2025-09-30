@@ -1,8 +1,8 @@
-import { vi } from 'vitest';
-import { DIContainer } from '../core/system/DIContainer.js';
+import {vi} from 'vitest';
+import {DIContainer} from '../core/system/DIContainer.js';
 import registerComponents from '../core/system/register-components.js';
 import ConfigManager from '../core/config/ConfigManager.js';
-import { configService } from '../core/config/index.js';
+import {configService} from '../core/config/index.js';
 import BagSamplingStrategy from '../core/reasoner/strategies/BagSamplingStrategy.js';
 import BruteForceStrategy from '../core/reasoner/strategies/BruteForceStrategy.js';
 
@@ -12,17 +12,17 @@ import BruteForceStrategy from '../core/reasoner/strategies/BruteForceStrategy.j
  */
 export const createMockCommandBus = () => ({
     handlers: new Map(),
-    handle: vi.fn(function(requestType, handler) {
+    handle: vi.fn(function (requestType, handler) {
         this.handlers.set(requestType, handler);
     }),
-    request: vi.fn(async function(requestType, data) {
+    request: vi.fn(async function (requestType, data) {
         const handler = this.handlers.get(requestType);
         if (handler) {
             return handler(data);
         }
         return null;
     }),
-    clear: vi.fn(function() {
+    clear: vi.fn(function () {
         this.handlers.clear();
     }),
 });
@@ -33,23 +33,23 @@ export const createMockCommandBus = () => ({
  */
 export const createMockEventBus = () => ({
     listeners: new Map(),
-    on: vi.fn(function(eventType, listener) {
+    on: vi.fn(function (eventType, listener) {
         if (!this.listeners.has(eventType)) {
             this.listeners.set(eventType, []);
         }
         this.listeners.get(eventType).push(listener);
     }),
-    emit: vi.fn(function(eventType, data) {
+    emit: vi.fn(function (eventType, data) {
         if (this.listeners.has(eventType)) {
             this.listeners.get(eventType).forEach(listener => listener(data));
         }
     }),
-    emitAsync: vi.fn(async function(eventType, data) {
+    emitAsync: vi.fn(async function (eventType, data) {
         if (this.listeners.has(eventType)) {
             await Promise.all(this.listeners.get(eventType).map(listener => listener(data)));
         }
     }),
-    clear: vi.fn(function() {
+    clear: vi.fn(function () {
         this.listeners.clear();
     }),
 });

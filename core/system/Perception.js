@@ -1,7 +1,7 @@
 import PatternDetector from '../reasoner/PatternDetector.js';
-import { perceptionErrorHandler as errorHandler } from '../utils/errorHandler.js';
-import { SystemCommands } from './SystemCommands.js';
-import { SystemEvents } from './SystemEvents.js';
+import {perceptionErrorHandler as errorHandler} from '../utils/errorHandler.js';
+import {SystemCommands} from './SystemCommands.js';
+import {SystemEvents} from './SystemEvents.js';
 
 class Perception {
     constructor(memory, taskFactory, eventBus, commandBus) {
@@ -20,7 +20,7 @@ class Perception {
         this.sensoryModalities.set(modalityName, processor);
     }
 
-    async _handleProcessRawInput({ modality, input }) {
+    async _handleProcessRawInput({modality, input}) {
         const processor = this.sensoryModalities.get(modality);
         if (!processor) {
             throw new Error(`Unknown sensory modality: ${modality}`);

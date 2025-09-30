@@ -141,20 +141,20 @@ class MemoryIndexer {
             }
             return result.sort((a, b) => b.state.priority - a.state.priority);
         }
-        
+
         let filteredTasks = tasks;
 
         // Apply punctuation filter first if available (most efficient)
         if (filters.punctuation) {
             const taskIds = this.punctuationIndex.get(filters.punctuation);
             if (!taskIds || taskIds.size === 0) return [];
-            
+
             // More efficient approach: create task map and directly map IDs to tasks
             const taskMap = new Map();
             for (let i = 0; i < tasks.length; i++) {
                 taskMap.set(tasks[i].id, tasks[i]);
             }
-            
+
             const result = new Array(taskIds.size);
             let j = 0;
             for (const id of taskIds) {
@@ -163,7 +163,7 @@ class MemoryIndexer {
                     result[j++] = task;
                 }
             }
-            
+
             // Trim array to actual size
             filteredTasks = result.slice(0, j);
         }
@@ -178,7 +178,7 @@ class MemoryIndexer {
             }
             filteredTasks = result;
         }
-        
+
         if (filters.minPriority !== undefined) {
             const result = [];
             for (let i = 0; i < filteredTasks.length; i++) {
@@ -188,7 +188,7 @@ class MemoryIndexer {
             }
             filteredTasks = result;
         }
-        
+
         if (filters.minConfidence !== undefined) {
             const result = [];
             for (let i = 0; i < filteredTasks.length; i++) {

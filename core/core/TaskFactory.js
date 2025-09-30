@@ -3,7 +3,7 @@ import {createTemporalTask} from '../utils/temporal/index.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
 import {safeAsync} from '../utils/errorHandler.js';
-import { SystemCommands } from '../system/SystemCommands.js';
+import {SystemCommands} from '../system/SystemCommands.js';
 
 class TaskFactory {
     constructor(memory, lm, eventBus, commandBus) {
@@ -16,7 +16,7 @@ class TaskFactory {
 
     async _ensureTermExists(termKey) {
         if (!this.memory.getTerm(termKey)) {
-            const term = await this.commandBus.request(SystemCommands.LM_BOOTSTRAP_TERM, { termKey });
+            const term = await this.commandBus.request(SystemCommands.LM_BOOTSTRAP_TERM, {termKey});
             this.eventBus.emit('term.add', term);
         }
     }

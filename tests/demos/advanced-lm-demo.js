@@ -3,7 +3,7 @@
 
 import {runSystem} from '../../utils/runner.js';
 import {info} from '../../common/services/Logger.js';
-import { SystemCommands } from '../../core/system/SystemCommands.js';
+import {SystemCommands} from '../../core/system/SystemCommands.js';
 
 async function advancedLMDemo(options = {}) {
     const taskDefs = [
@@ -20,7 +20,7 @@ async function advancedLMDemo(options = {}) {
         cycleCount: 3,
         postCycleCallback: async (system) => {
             info("Asking the LM to explain its understanding of SeNARS...");
-            const explanationResult = await system.commandBus.request(SystemCommands.LM_EXPLAIN, { termKey: 'SeNARS' });
+            const explanationResult = await system.commandBus.request(SystemCommands.LM_EXPLAIN, {termKey: 'SeNARS'});
             if (explanationResult && explanationResult.explanation) {
                 info(`LM Explanation: ${explanationResult.explanation.substring(0, 100)}...`);
             } else {

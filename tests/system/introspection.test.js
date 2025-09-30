@@ -91,7 +91,7 @@ describe('System Introspection API', () => {
 
     test('should subscribe to and receive events from the EventBus', async () => {
         const mockCallback = vi.fn();
-        const { SystemEvents } = await import('../../core/system/SystemEvents.js');
+        const {SystemEvents} = await import('../../core/system/SystemEvents.js');
         const eventName = SystemEvents.CYCLE_COMPLETE;
 
         system.introspection.on(eventName, mockCallback);

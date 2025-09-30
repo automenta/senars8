@@ -1,8 +1,7 @@
 import {beforeEach, describe, expect, it} from 'vitest';
-import Tools from '../../core/lm/Tools.js';
 import NarseseTranslator from '../../core/utils/NarseseTranslator.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
-import { createTestSystem } from '../test-helpers.js';
+import {createTestSystem} from '../test-helpers.js';
 
 describe('Operation Operator (^) Integration', () => {
     let tools;
@@ -10,7 +9,7 @@ describe('Operation Operator (^) Integration', () => {
     let actionExecutor;
 
     beforeEach(() => {
-        const { system } = createTestSystem();
+        const {system} = createTestSystem();
         actionExecutor = system.actionExecutor;
         tools = actionExecutor.getTools();
         translator = new NarseseTranslator();

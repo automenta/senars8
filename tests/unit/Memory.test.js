@@ -64,7 +64,7 @@ describe('Memory', () => {
     });
 
     it('should prune expired, unimportant tasks during maintenance', async () => {
-        const { SystemEvents } = await import('../../core/system/SystemEvents.js');
+        const {SystemEvents} = await import('../../core/system/SystemEvents.js');
         const now = Date.now();
         const longAgo = now - (24 * 3600 * 1000 * 2);
         const task1 = createTask('(unimportant_and_old --> property)', {
@@ -87,7 +87,7 @@ describe('Memory', () => {
     });
 
     it('should NOT prune expired but important tasks', async () => {
-        const { SystemEvents } = await import('../../core/system/SystemEvents.js');
+        const {SystemEvents} = await import('../../core/system/SystemEvents.js');
         const now = Date.now();
         const longAgo = now - (24 * 3600 * 1000 * 2);
         const task1 = createTask('(important_and_old --> property)', {

@@ -1,7 +1,4 @@
-import {
-    safeSync,
-    safeAsync
-} from '../utils/errorHandler.js';
+import {safeAsync, safeSync} from '../utils/errorHandler.js';
 
 class Introspection {
     constructor(system) {

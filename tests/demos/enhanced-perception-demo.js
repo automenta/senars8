@@ -5,7 +5,7 @@ import {runSystem} from '../../utils/runner.js';
 import {parseTerm} from '../../core/index.js';
 import Task from '../../core/core/Task.js';
 import {info} from '../../common/services/Logger.js';
-import { SystemCommands } from '../../core/system/SystemCommands.js';
+import {SystemCommands} from '../../core/system/SystemCommands.js';
 
 async function enhancedPerceptionDemo(options = {}) {
     const taskDefs = [
