@@ -1,3 +1,5 @@
+import Term from '../../core/core/Term.js';
+
 class MockLM {
     constructor() {
         this.nlp = {
@@ -22,9 +24,8 @@ class MockLM {
     }
 
     async bootstrapTerm(termKey) {
-        return {
-            key: termKey
-        };
+        // Return a proper Term instance
+        return new Term(termKey);
     }
 
     setReasoner() {

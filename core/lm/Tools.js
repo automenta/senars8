@@ -89,7 +89,7 @@ class Tools {
             if (result) {
                 const resultBeliefs = this.translator.toNarsese(result, tool.outputSchema);
                 if (resultBeliefs?.length > 0) {
-                    this.eventBus.emit('input.add', resultBeliefs);
+                    await this.eventBus.emit('input.add', resultBeliefs);
                     debug(`Injected ${resultBeliefs.length} beliefs from tool "${tool.id}" result.`);
                 }
             }

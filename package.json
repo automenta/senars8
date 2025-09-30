@@ -20,7 +20,7 @@
   "scripts": {
     "start": "node agent/server.js",
     "dev": "concurrently \"node agent/server.js\" \"npm run dev --prefix ui\"",
-    "test": "vitest --run --silent",
+    "test": "vitest --run",
     "test:ui": "vitest --ui --silent",
     "lint": "eslint core agent tests",
     "lint:fix": "eslint core agent tests --fix",

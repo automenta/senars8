@@ -14,12 +14,12 @@ vi.mock('@xenova/transformers', () => ({
     },
 }));
 
-const {default: SystemFactory} = await import('../../core/system/SystemFactory.js');
+import {createSystem} from '../../core/system/SystemFactory.js';
 
 describe('System Introspection API', () => {
     let system;
 
-    beforeAll(() => {
+    beforeAll(async () => {
         const customConfig = {
             LM: {
                 LLM_PROVIDER: 'xenova',
@@ -28,7 +28,7 @@ describe('System Introspection API', () => {
                 strategy: 'HTN'
             }
         };
-        system = SystemFactory.createSystem(customConfig);
+        system = await createSystem(customConfig);
     });
 
     afterAll(() => {

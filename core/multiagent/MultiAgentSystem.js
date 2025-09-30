@@ -14,8 +14,9 @@ class MultiAgentSystem {
     this.config = config;
     this.agents = new Map();
     this.agentRoles = new Map();
+    this.eventBus = new EventBus();
     this.roleConfigManager = new RoleConfigManager(config);
-    this.messageBus = new AgentMessageBus(this);
+    this.messageBus = new AgentMessageBus(this, this.eventBus);
     this.coordinator = new AgentCoordinator(this);
     this.isRunning = false;
     this.cycleCount = 0;

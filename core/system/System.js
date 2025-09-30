@@ -3,6 +3,7 @@ import {debug, error as logError, info, warn} from '../utils/logger.js';
 import {normalizeToArray} from '../utils/collections/index.js';
 import Introspection from './Introspection.js';
 import registerDefaultActions from './default-actions.js';
+import CONSTITUTION_TASKS from './Constitution.js';
 
 class System {
     constructor(
@@ -15,8 +16,8 @@ class System {
         planner,
         metaCognition,
         perception,
-        eventBus,
-        tools
+        tools,
+        eventBus
     ) {
         this.config = configAccessor;
         debug('System: Constructor called with components:', {
@@ -53,7 +54,7 @@ class System {
         await errorHandler.execute(async () => {
             info('System: Initializing with constitution...');
             if (constitutionTasks?.length > 0) {
-                this.eventBus.emit('tasks.add', constitutionTasks);
+                await this.eventBus.emit('tasks.add', constitutionTasks);
             }
             await this.cycle.bootstrap(constitutionTasks);
             info('System: Initialized successfully.');
@@ -69,7 +70,9 @@ class System {
 
             debug(`Bootstrapping ${newTermKeys.length} new terms...`);
             const newTerms = (await Promise.all(newTermKeys.map(key => this.lm.bootstrapTerm(key, options)))).filter(Boolean);
-            newTerms.forEach(term => this.eventBus.emit('term.add', term));
+            for (const term of newTerms) {
+                await this.eventBus.emit('term.add', term);
+            }
             info(`Successfully bootstra-pped ${newTerms.length} terms.`);
         }, '_bootstrapTerms');
     }
@@ -130,16 +133,25 @@ class System {
             if (!tasksToAdd.length) return;
 
             debug(`Adding ${tasksToAdd.length} new tasks to the system...`);
-            this.eventBus.emit('tasks.add', tasksToAdd);
+            await this.eventBus.emit('tasks.add', tasksToAdd);
             info(`Successfully added ${tasksToAdd.length} tasks.`);
         }, 'addTasks');
     }
 
-    reset() {
-        errorHandler.executeSync(() => {
-            this.eventBus.emit('system.reset');
+    async reset() {
+        await errorHandler.execute(async () => {
+            // This will trigger memory.clear() and other registered reset handlers
+            await this.eventBus.emit('system.reset');
+
+            if (this.lm && typeof this.lm.reset === 'function') {
+                this.lm.reset();
+            }
             this.cycleCount = 0;
-            info('System has been reset.');
+
+            // Re-initialize the system to its baseline state
+            await this.initialize(CONSTITUTION_TASKS);
+
+            info('System has been reset and re-initialized.');
         }, 'reset');
     }
 }

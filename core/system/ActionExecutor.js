@@ -11,6 +11,7 @@ class ActionExecutor {
         this.eventBus = eventBus;
         this.tools = tools;
         this.actionHandlers = new Map();
+        this.actionHistory = [];
     }
 
     registerActionHandler(actionPattern, handler) {
@@ -60,15 +61,19 @@ class ActionExecutor {
                 const result = await handler(legacyAction);
                 const endTime = Date.now();
                 const duration = endTime - startTime;
+                const record = { id: actionId, action: actionName, result, duration, status: 'success' };
 
-                this.eventBus.emit('ActionExecuted', { id: actionId, action: actionName, result, duration });
+                this.actionHistory.push(record);
+                await this.eventBus.emit('ActionExecuted', record);
                 return result;
 
             } catch (error) {
                 const endTime = Date.now();
                 const duration = endTime - startTime;
+                const record = { id: actionId, action: actionName, error: error.message, duration, status: 'failed' };
 
-                this.eventBus.emit('ActionFailed', { id: actionId, action: actionName, error: error.message, duration });
+                this.actionHistory.push(record);
+                await this.eventBus.emit('ActionFailed', record);
                 throw error;
             }
         }, `executeAction: ${goalTask.termKey}`);
@@ -87,6 +92,10 @@ class ActionExecutor {
             }
         }
         return null;
+    }
+
+    getActionHistory() {
+        return this.actionHistory;
     }
 }
 

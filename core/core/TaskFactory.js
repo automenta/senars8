@@ -15,7 +15,7 @@ class TaskFactory {
     async _ensureTermExists(termKey) {
         if (!this.memory.getTerm(termKey)) {
             const term = await this.lm.bootstrapTerm(termKey);
-            this.eventBus.emit('term.add', term);
+            await this.eventBus.emit('term.add', term);
         }
     }
 

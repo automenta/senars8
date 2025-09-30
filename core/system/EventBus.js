@@ -26,8 +26,19 @@ class EventBus {
         }
     }
 
-    emit(event, data) {
-        this.listeners.get(event)?.forEach(l => l(data));
+    async emit(event, data) {
+        const listeners = this.listeners.get(event);
+        if (!listeners) {
+            return;
+        }
+
+        const listenerPromises = [];
+        for (const listener of listeners) {
+            // Wrap in Promise.resolve to handle both sync and async listeners
+            listenerPromises.push(Promise.resolve(listener(data)));
+        }
+
+        await Promise.all(listenerPromises);
     }
 
     handle(requestType, handler) {
@@ -52,4 +63,4 @@ class EventBus {
     }
 }
 
-export default new EventBus();
+export default EventBus;

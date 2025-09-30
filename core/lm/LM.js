@@ -64,25 +64,38 @@ class LM {
     }
 
     async processEmbeddingQueue() {
-        const batchSize = this.config.getNumber('LM.EMBEDDING_BATCH_SIZE', 10);
+        const batchSize = this.config.getNumber('LM.EMBEDDING_BATCH_SIZE', 5);
+        const maxConcurrency = this.config.getNumber('LM.EMBEDDING_MAX_CONCURRENCY', 2);
 
-        while (this._isProcessingEmbeddings) {
-            // Process multiple batches concurrently
-            const promises = [];
-            for (let i = 0; i < this._maxConcurrency && this._embeddingQueue.length > 0; i++) {
+        const processBatch = async () => {
+            if (this._activeEmbeddingJobs >= maxConcurrency || this._embeddingQueue.length === 0) {
+                return;
+            }
+
+            this._activeEmbeddingJobs++;
+            try {
                 const batch = this._embeddingQueue.splice(0, batchSize);
                 if (batch.length > 0) {
-                    promises.push(this._processEmbeddingBatch(batch));
+                    await this._processEmbeddingBatch(batch);
                 }
+            } catch (err) {
+                warn('Error processing embedding batch:', err);
+            } finally {
+                this._activeEmbeddingJobs--;
+            }
+        };
+
+        while (this._isProcessingEmbeddings) {
+            const processingPromises = [];
+            while (this._activeEmbeddingJobs < maxConcurrency && this._embeddingQueue.length > 0) {
+                processingPromises.push(processBatch());
             }
 
-            if (promises.length > 0) {
-                await Promise.all(promises);
+            if (processingPromises.length > 0) {
+                await Promise.all(processingPromises);
             }
 
-            // Adjust delay based on queue size
-            const delay = this._calculateDynamicDelay();
-            await new Promise(resolve => setTimeout(resolve, delay));
+            await new Promise(resolve => setTimeout(resolve, this._calculateDynamicDelay()));
         }
         debug('Embedding processing loop finished.');
     }
@@ -273,9 +286,17 @@ class LM {
         return baseDelay * (1 - queueFactor * 0.9);
     }
 
+    reset() {
+        debug('Resetting LM component');
+        this._embeddingQueue.length = 0; // More efficient way to clear array
+        this._activeEmbeddingJobs = 0;
+        info('LM queue cleared.');
+    }
+
     async dispose() {
         info('Disposing LM resources');
         this.stopEmbeddingProcessor();
+        this.reset();
         if (this._pipelineFactory) {
             this._pipelineFactory.dispose();
         }

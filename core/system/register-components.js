@@ -28,10 +28,10 @@ import StrategyRegistry from '../reasoner/StrategyRegistry.js';
 const registerComponents = (container, configManager) => {
     // Create and register the accessor, not the raw manager
     const configAccessor = createConfigAccessor(configManager);
-    container.registerValue('configAccessor', configAccessor);
-    container.registerValue('eventBus', EventBus);
-
     const singleton = {lifetime: LIFETIME.SINGLETON};
+
+    container.registerValue('configAccessor', configAccessor);
+    container.register('eventBus', EventBus, [], singleton);
 
     // Foundational components first
     container.register('narseseTranslator', NarseseTranslator, ['configAccessor'], singleton);
@@ -62,7 +62,7 @@ const registerComponents = (container, configManager) => {
     ], singleton);
     container.register('system', System, [
         'configAccessor', 'memory', 'reasoner', 'lm', 'actionExecutor', 'cycle',
-        'planner', 'metaCognition', 'perception', 'eventBus', 'tools'
+        'planner', 'metaCognition', 'perception', 'tools', 'eventBus'
     ], singleton);
 };
 

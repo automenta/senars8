@@ -1,13 +1,12 @@
-import EventBus from '../system/EventBus.js';
 import {debug, info, warn} from '../utils/logger.js';
 
 /**
  * AgentMessageBus handles communication between agents in the multi-agent system
  */
 class AgentMessageBus {
-  constructor(multiAgentSystem) {
+  constructor(multiAgentSystem, eventBus) {
     this.multiAgentSystem = multiAgentSystem;
-    this.eventBus = EventBus;
+    this.eventBus = eventBus;
     this.isRunning = false;
     this.messageHistory = [];
     this.subscribers = new Map(); // Maps agent IDs to their message handlers

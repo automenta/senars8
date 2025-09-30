@@ -15,13 +15,13 @@ vi.mock('@xenova/transformers', () => ({
     },
 }));
 
-const {default: SystemFactory} = await import('../../core/system/SystemFactory.js');
+import {createSystem} from '../../core/system/SystemFactory.js';
 
 describe('Cycle Integration Test', () => {
     let system, memory, cycle;
 
-    beforeEach(() => {
-        system = SystemFactory.createSystem({
+    beforeEach(async () => {
+        system = await createSystem({
             reasoner: {
                 strategy: 'BruteForce'
             },

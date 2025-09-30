@@ -70,8 +70,17 @@ class DIContainer {
         }
 
         const {definition, dependencies} = service;
-        const resolvedDependencies = dependencies.map(dep => this.get(dep, [...resolving, name]));
+        console.log(`Resolving ${name} with dependencies: ${dependencies.join(', ')}`);
+        const resolvedDependencies = dependencies.map(dep => {
+            console.log(`Resolving dependency: ${dep} for ${name}`);
+            const resolved = this.get(dep, [...resolving, name]);
+            if (!resolved) {
+                console.error(`Failed to resolve dependency: ${dep} for ${name}`);
+            }
+            return resolved;
+        });
         const instance = new definition(...resolvedDependencies);
+        console.log(`Successfully resolved ${name}`);
 
         if (service.lifetime === LIFETIME.SINGLETON) {
             this.singletons.set(name, instance);
@@ -116,6 +125,4 @@ class DIContainer {
     }
 }
 
-const containerSingleton = new DIContainer();
-export default containerSingleton;
 export {DIContainer, LIFETIME};

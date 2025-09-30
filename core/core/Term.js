@@ -110,8 +110,13 @@ class Term extends BaseEntity {
     }
 
     static termKey(pTerm, silent = false) {
-        if (!pTerm?.type) {
-            if (!silent) warn('termKey called with invalid pTerm');
+        // Guard against null or undefined inputs to prevent unnecessary warnings.
+        if (!pTerm) {
+            return '';
+        }
+
+        if (!pTerm.type) {
+            if (!silent) warn('termKey called with invalid pTerm object:', pTerm);
             return '';
         }
 

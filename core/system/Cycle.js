@@ -41,7 +41,7 @@ class Cycle {
     async runOnce() {
         this.cycleCount++;
         debug(`Starting cycle ${this.cycleCount}`);
-        this.eventBus.emit('SystemCycleStarted', this.cycleCount);
+        await this.eventBus.emit('SystemCycleStarted', this.cycleCount);
 
         await errorHandler.execute(async () => {
             const focusSet = this._selectFocusSet();
@@ -53,8 +53,8 @@ class Cycle {
             await this._executeActions(actionableGoals);
             await this._learnFromExperience(derivedTasks);
 
-            this._updateMemory(derivedTasks);
-            this.eventBus.emit('SystemCycleEnded', this.cycleCount);
+            await this._updateMemory(derivedTasks);
+            await this.eventBus.emit('SystemCycleEnded', this.cycleCount);
         }, 'runOnce');
     }
 
@@ -117,11 +117,11 @@ class Cycle {
         });
     }
 
-    _updateMemory(derivedTasks) {
+    async _updateMemory(derivedTasks) {
         if (!this.memory || !derivedTasks.length) {
             return;
         }
-        this.eventBus.emit('tasks.add', derivedTasks);
+        await this.eventBus.emit('tasks.add', derivedTasks);
     }
 }
 

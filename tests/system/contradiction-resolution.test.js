@@ -10,12 +10,12 @@ vi.mock('@xenova/transformers', () => ({
     env: {},
 }));
 
-const {default: SystemFactory} = await import('../../core/system/SystemFactory.js');
+import {createSystem} from '../../core/system/SystemFactory.js';
 
 describe('System-level Contradiction Resolution', () => {
     let system;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         const customConfig = {
             reasoner: {
                 strategy: 'BruteForceStrategy'
@@ -24,7 +24,7 @@ describe('System-level Contradiction Resolution', () => {
                 enabled: false
             }
         };
-        system = SystemFactory.createSystem(customConfig);
+        system = await createSystem(customConfig);
     });
 
     afterEach(() => {

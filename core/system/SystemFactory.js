@@ -7,14 +7,14 @@ import BagSamplingStrategy from '../reasoner/strategies/BagSamplingStrategy.js';
 import BruteForceStrategy from '../reasoner/strategies/BruteForceStrategy.js';
 import {configService} from '../config/index.js';
 
-const initializeSystem = (system) => {
+const initializeSystem = async (system) => {
     info('SystemFactory: Initializing system with constitution...');
-    system.initialize(CONSTITUTION_TASKS);
+    await system.initialize(CONSTITUTION_TASKS);
     info('SystemFactory: System initialized.');
     return system;
 };
 
-const createSystem = (userConfig = {}, components = {}) => {
+const createSystem = async (userConfig = {}, components = {}) => {
     info('SystemFactory: Creating new system...');
 
     const container = new DIContainer();
@@ -39,7 +39,7 @@ const createSystem = (userConfig = {}, components = {}) => {
 
     const system = container.get('system');
 
-    initializeSystem(system);
+    await initializeSystem(system);
 
     info('SystemFactory: System creation complete.');
     return system;

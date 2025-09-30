@@ -12,7 +12,7 @@ vi.mock('@xenova/transformers', () => ({
     env: {},
 }));
 
-const {default: SystemFactory} = await import('../../core/system/SystemFactory.js');
+import {createSystem} from '../../core/system/SystemFactory.js';
 
 const createTerm = async (lm, memory, termKey) => {
     const term = await lm.bootstrapTerm(termKey);
@@ -23,8 +23,8 @@ const createTerm = async (lm, memory, termKey) => {
 describe('Reasoner Integration Test', () => {
     let system, reasoner, memory, lm;
 
-    beforeEach(() => {
-        system = SystemFactory.createSystem({
+    beforeEach(async () => {
+        system = await createSystem({
             reasoner: {
                 strategy: 'BruteForce'
             }
