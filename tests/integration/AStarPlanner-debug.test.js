@@ -14,8 +14,13 @@ describe('AStarPlanner Debug Test', () => {
         const mockEventBus = {
             on: vi.fn(),
             emit: vi.fn(),
+            emitAsync: vi.fn(),
         };
-        memory = new Memory(configManager, mockEventBus);
+        const mockCommandBus = {
+            handle: vi.fn(),
+            request: vi.fn(),
+        };
+        memory = new Memory(configManager, mockEventBus, mockCommandBus);
         const lm = {
             bootstrapTerm: async termKey => new Term(termKey, [0.1, 0.2, 0.3])
         };

@@ -31,14 +31,17 @@ describe('System Introspection API', () => {
         system = SystemFactory.createSystem(customConfig);
     });
 
-    afterAll(() => {
-        if (system && system.introspection?.getStatus().isRunning) {
-            system.stop();
+    afterAll(async () => {
+        if (system) {
+            const status = await system.introspection?.getStatus();
+            if (status?.isRunning) {
+                system.stop();
+            }
         }
     });
 
-    test('should get system status', () => {
-        const status = system.introspection.getStatus();
+    test('should get system status', async () => {
+        const status = await system.introspection.getStatus();
         expect(status).toBeDefined();
         expect(status).toHaveProperty('isRunning', false);
         expect(status).toHaveProperty('cycleCount', 0);
@@ -59,10 +62,13 @@ describe('System Introspection API', () => {
 
         await system.addTasks([beliefTask, goalTask]);
 
-        const beliefs = system.introspection.queryTasks({
+        // Give the system a moment to process the async task additions
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        const beliefs = await system.introspection.queryTasks({
             punctuation: '.'
         });
-        const goals = system.introspection.queryTasks({
+        const goals = await system.introspection.queryTasks({
             punctuation: '!'
         });
 
@@ -75,14 +81,18 @@ describe('System Introspection API', () => {
         const termKey = '(dog --> mammal)';
         await system.addTasks([new Task(parseTerm(termKey), '.')]);
 
-        const term = system.introspection.getTerm(termKey);
+        // Give the system a moment to process the async task additions
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        const term = await system.introspection.getTerm(termKey);
         expect(term).toBeDefined();
         expect(term.key).toBe(termKey);
     });
 
     test('should subscribe to and receive events from the EventBus', async () => {
         const mockCallback = vi.fn();
-        const eventName = 'SystemCycleEnded';
+        const { SystemEvents } = await import('../../core/system/SystemEvents.js');
+        const eventName = SystemEvents.CYCLE_COMPLETE;
 
         system.introspection.on(eventName, mockCallback);
 

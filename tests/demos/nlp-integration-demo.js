@@ -32,9 +32,9 @@ async function nlpIntegrationDemo(options = {}) {
             }
             console.log("Converted natural language to tasks:", taskDefs.map(t => t.termKey));
         },
-        postCycleCallback: (system) => {
+        postCycleCallback: async (system) => {
             console.log("\nVerifying that NLP-derived tasks are in memory...");
-            const tasks = system.introspection.queryTasks({});
+            const tasks = await system.introspection.queryTasks({});
             const nlpTask = tasks.find(t => t.termKey.includes('bird') && t.termKey.includes('animal'));
             if (nlpTask) {
                 console.log("Found task derived from 'A bird is an animal.'");

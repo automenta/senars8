@@ -13,7 +13,7 @@ async function advancedTruthValueRevisionDemo(options = {}) {
         cycleCount: 1,
         postCycleCallback: async (system) => {
             info("Revising truth value of '(bird --> flies)' with new evidence...");
-            const tasks = system.memory.getAllTasks();
+            const tasks = await system.memory.getAllTasks();
             const taskToRevise = tasks.find(t => t.termKey === '(bird --> flies)');
             if (taskToRevise) {
                 const newEvidence = {

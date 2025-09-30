@@ -222,6 +222,7 @@ const plannerErrorHandler = createUnifiedErrorHandler('Planner');
 const perceptionErrorHandler = createUnifiedErrorHandler('Perception');
 const metaCognitionErrorHandler = createUnifiedErrorHandler('MetaCognition');
 const eventBusErrorHandler = createUnifiedErrorHandler('EventBus');
+const commandBusErrorHandler = createUnifiedErrorHandler('CommandBus');
 const diContainerErrorHandler = createUnifiedErrorHandler('DIContainer');
 
 // Export everything
@@ -238,5 +239,6 @@ export {
     perceptionErrorHandler,
     metaCognitionErrorHandler,
     eventBusErrorHandler,
+    commandBusErrorHandler,
     diContainerErrorHandler,
 };

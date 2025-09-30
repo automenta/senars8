@@ -4,6 +4,8 @@ import {normalizeToArray} from '../utils/collections/index.js';
 import Introspection from './Introspection.js';
 import {configService} from '../config/index.js';
 import registerDefaultActions from './default-actions.js';
+import {SystemEvents} from './SystemEvents.js';
+import {SystemCommands} from './SystemCommands.js';
 
 class System {
     constructor(
@@ -16,21 +18,13 @@ class System {
         planner,
         metaCognition,
         perception,
-        eventBus
+        eventBus,
+        commandBus
     ) {
         this.config = configService;
-        debug('System: Constructor called with components:', {
-            memory,
-            reasoner,
-            lm,
-            actionExecutor,
-            cycle,
-            planner,
-            metaCognition,
-            perception,
-        });
         this.eventBus = eventBus;
-        this.memory = memory;
+        this.commandBus = commandBus;
+        this.memory = memory; // Direct access for now, to be phased out
         this.reasoner = reasoner;
         this.lm = lm;
         this.actionExecutor = actionExecutor;
@@ -44,8 +38,6 @@ class System {
         this.constitutionTasks = [];
 
         registerDefaultActions(this.actionExecutor);
-        // Term bootstrapping is now handled directly in the addTasks method
-        // to prevent race conditions during testing and ensure async completion.
         info('System components created and initialized.');
     }
 
@@ -54,7 +46,7 @@ class System {
             info('System: Initializing with constitution...');
             this.constitutionTasks = constitutionTasks || [];
             if (this.constitutionTasks.length > 0) {
-                this.eventBus.emit('tasks.add', this.constitutionTasks);
+                await this.addTasks(this.constitutionTasks);
             }
             await this.cycle.bootstrap(this.constitutionTasks);
             info('System: Initialized successfully.');
@@ -65,15 +57,22 @@ class System {
         sync: false
     }) {
         await errorHandler.execute(async () => {
-            const newTermKeys = [...new Set(tasks.map(task => task.termKey).filter(key => !this.memory.getTerm(key)))];
+            const termKeys = [...new Set(tasks.map(task => task.termKey))];
+            const termExistence = await Promise.all(
+                termKeys.map(key => this.commandBus.request(SystemCommands.MEMORY_GET_TERM, key))
+            );
+            const newTermKeys = termKeys.filter((_, i) => !termExistence[i]);
+
             if (!newTermKeys.length) return;
 
             debug(`Bootstrapping ${newTermKeys.length} new terms...`);
             const newTerms = (await Promise.all(newTermKeys.map(key => this.lm.bootstrapTerm(key, options)))).filter(Boolean);
-            newTerms.forEach(term => this.eventBus.emit('term.add', term));
-            info(`Successfully bootstra-pped ${newTerms.length} terms.`);
+
+            await this.eventBus.emitAsync(SystemEvents.TERM_ADD, newTerms);
+            info(`Successfully bootstrapped ${newTerms.length} terms.`);
         }, '_bootstrapTerms');
     }
+
 
     async runCycle() {
         return await errorHandler.execute(async () => {
@@ -95,6 +94,7 @@ class System {
             this.isRunning = true;
             this.cycleCount = 0;
             this.lm.startEmbeddingProcessor();
+            this.eventBus.emit(SystemEvents.SYSTEM_START);
 
             while (this.isRunning && (maxCycles === 0 || this.cycleCount < maxCycles)) {
                 const result = await errorHandler.execute(async () => {
@@ -121,6 +121,7 @@ class System {
             if (!this.isRunning) return;
             this.isRunning = false;
             this.lm.stopEmbeddingProcessor();
+            this.eventBus.emit(SystemEvents.SYSTEM_STOP);
             info(`System stopped after ${this.cycleCount} cycles.`);
         }, 'stop');
     }
@@ -132,14 +133,14 @@ class System {
 
             debug(`Adding ${tasksToAdd.length} new tasks to the system...`);
             await this._bootstrapTerms(tasksToAdd);
-            this.eventBus.emit('tasks.add', tasksToAdd);
+            await this.eventBus.emitAsync(SystemEvents.TASKS_ADD, tasksToAdd);
             info(`Successfully added ${tasksToAdd.length} tasks.`);
         }, 'addTasks');
     }
 
     async reset() {
         await errorHandler.execute(async () => {
-            this.eventBus.emit('system.reset');
+            await this.eventBus.emitAsync(SystemEvents.SYSTEM_RESET);
             this.cycleCount = 0;
             await this.initialize(this.constitutionTasks);
             info('System has been reset and re-initialized with constitution.');

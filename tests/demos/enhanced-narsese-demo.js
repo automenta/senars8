@@ -17,9 +17,9 @@ async function enhancedNarseseDemo(options = {}) {
 
     const defaultOptions = {
         cycleCount: 3,
-        postCycleCallback: (system) => {
+        postCycleCallback: async (system) => {
             info("Inspecting tasks with enhanced Narsese...");
-            const tasks = system.introspection.queryTasks({});
+            const tasks = await system.introspection.queryTasks({});
             const enhancedTasks = tasks.filter(t => t.term.isTemporal || t.term.isSequential);
 
             info(`Found ${enhancedTasks.length} tasks with enhanced Narsese constructs:`);

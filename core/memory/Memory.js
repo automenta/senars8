@@ -7,6 +7,8 @@ import TimeBasedForgettingStrategy from './strategies/TimeBasedForgettingStrateg
 import {debug, warn} from '../utils/logger.js';
 import MemoryIndexer from './MemoryIndexer.js';
 import {createError, createUnifiedErrorHandler} from '../utils/errorHandler.js';
+import {SystemEvents} from '../system/SystemEvents.js';
+import {SystemCommands} from '../system/SystemCommands.js';
 
 const errorHandler = createUnifiedErrorHandler('Memory');
 
@@ -15,9 +17,10 @@ const FORGETTING_STRATEGIES = {
 };
 
 class Memory {
-    constructor(configManager, eventBus) {
+    constructor(configManager, eventBus, commandBus) {
         this.config = configManager;
         this.eventBus = eventBus;
+        this.commandBus = commandBus;
         this.terms = new Map();
         this.shortTermTasks = new Map();
         this.longTermTasks = new Map();
@@ -27,6 +30,7 @@ class Memory {
         this._cachedTaskCount = 0;
         this._loadForgettingStrategy();
         this._registerEventListeners();
+        this._registerCommandHandlers();
     }
 
     _loadForgettingStrategy() {
@@ -36,10 +40,22 @@ class Memory {
     }
 
     _registerEventListeners() {
-        this.eventBus.on('tasks.add', tasks => this.addTasks(tasks));
-        this.eventBus.on('SystemCycleEnded', () => this._performMaintenanceIfNeeded());
-        this.eventBus.on('term.add', term => this.addTerm(term));
-        this.eventBus.on('system.reset', () => this.clear());
+        this.eventBus.on(SystemEvents.TASKS_ADD, async (tasks) => await this.addTasks(tasks));
+        this.eventBus.on(SystemEvents.CYCLE_COMPLETE, () => this._performMaintenanceIfNeeded());
+        this.eventBus.on(SystemEvents.TERM_ADD, async (terms) => {
+            const termsToAdd = normalizeToArray(terms);
+            for (const term of termsToAdd) {
+                await this.addTerm(term);
+            }
+        });
+        this.eventBus.on(SystemEvents.SYSTEM_RESET, async () => await this.clear());
+    }
+
+    _registerCommandHandlers() {
+        this.commandBus.handle(SystemCommands.MEMORY_GET_TASK, async (id) => this.getTask(id));
+        this.commandBus.handle(SystemCommands.MEMORY_GET_TERM, async (key) => this.getTerm(key));
+        this.commandBus.handle(SystemCommands.MEMORY_GET_ALL_TASKS, async () => this.getAllTasks());
+        this.commandBus.handle(SystemCommands.MEMORY_GET_ALL_TERMS, async () => this.getAllTerms());
     }
 
     _performMaintenanceIfNeeded() {
@@ -84,22 +100,19 @@ class Memory {
         this._cachedTaskCount = this.shortTermTasks.size + this.longTermTasks.size;
     }
 
-    addTerm(term) {
-        // For validation errors, we throw directly to match test expectations
-        if (term === null || term === undefined) {
-            throw createError.ValidationError('Can only add valid Term instances to memory');
-        }
-        if (!(term instanceof Term)) {
+    async addTerm(term) {
+        if (term === null || term === undefined || !(term instanceof Term)) {
             throw createError.ValidationError('Can only add valid Term instances to memory');
         }
 
-        return errorHandler.executeSync(() => {
+        await errorHandler.execute(async () => {
             if (this.terms.has(term.key)) {
                 debug(`Term '${term.key}' already exists, skipping.`);
                 return;
             }
             this.terms.set(term.key, term);
             this.indexer.indexTerm(term);
+            await this.eventBus.emitAsync(SystemEvents.TERM_ADD, term);
             debug(`Added term '${term.key}'.`);
         }, 'addTerm');
     }
@@ -116,8 +129,8 @@ class Memory {
         return [...this.terms.values()];
     }
 
-    addTasks(tasks) {
-        return errorHandler.executeSync(() => {
+    async addTasks(tasks) {
+        await errorHandler.execute(async () => {
             const tasksToAdd = normalizeToArray(tasks);
             if (!tasksToAdd.length) return;
 
@@ -129,6 +142,7 @@ class Memory {
                 }
                 this.shortTermTasks.set(task.id, task);
                 this.indexer.indexTask(task);
+                await this.eventBus.emitAsync(SystemEvents.TASK_ADD, task);
                 addedCount++;
             }
 
@@ -143,8 +157,8 @@ class Memory {
         return this.shortTermTasks.get(id) || this.longTermTasks.get(id);
     }
 
-    removeTask(taskId) {
-        return errorHandler.executeSync(() => {
+    async removeTask(taskId) {
+        await errorHandler.execute(async () => {
             if (!taskId) return;
             const task = this.getTask(taskId);
             if (task) {
@@ -152,15 +166,15 @@ class Memory {
                 this.longTermTasks.delete(taskId);
                 this.indexer.unindexTask(task);
                 this._invalidateTaskCache();
+                await this.eventBus.emitAsync(SystemEvents.TASK_REMOVE, task);
             }
         }, 'removeTask');
     }
 
-    getAllTasks() {
-        return errorHandler.executeSync(() => {
+    async getAllTasks() {
+        return errorHandler.execute(async () => {
             const currentCount = this.shortTermTasks.size + this.longTermTasks.size;
             if (!this._cachedAllTasks || this._cachedTaskCount !== currentCount) {
-                // More efficient way to concatenate iterators without creating intermediate arrays
                 this._cachedAllTasks = Array.from(this.shortTermTasks.values());
                 for (const task of this.longTermTasks.values()) {
                     this._cachedAllTasks.push(task);
@@ -191,38 +205,33 @@ class Memory {
                 pq.enqueue(task);
             }
         }
-        
-        // Get elements from priority queue and sort in descending order of priority
+
         const pqElements = pq.toArray();
         const result = new Array(pqElements.length);
         for (let i = 0; i < pqElements.length; i++) {
             result[i] = pqElements[i].element;
         }
-        
-        // Sort in descending order of priority
+
         result.sort((a, b) => b.state.priority - a.state.priority);
         return result;
     }
 
-    getHighestPriorityTasks(k = 20) {
-        return errorHandler.executeSync(() => {
+    async getHighestPriorityTasks(k = 20) {
+        return errorHandler.execute(async () => {
             if (k <= 0) return [];
-            
-            // Use cached tasks to avoid potential recalculation
-            const allTasks = this.getAllTasks();
+
+            const allTasks = await this.getAllTasks();
             if (k >= allTasks.length) {
-                // If k is larger than all tasks, just sort and return everything
                 const result = new Array(allTasks.length);
                 for (let i = 0; i < allTasks.length; i++) {
                     result[i] = allTasks[i];
                 }
                 return result.sort((a, b) => b.state.priority - a.state.priority);
             }
-            
+
             if (this._shouldUsePriorityQueue(k, allTasks.length)) {
                 return this._getHighestPriorityTasksWithPQ(allTasks, k);
             } else {
-                // Create a copy of allTasks to avoid modifying the cached array
                 const result = new Array(allTasks.length);
                 for (let i = 0; i < allTasks.length; i++) {
                     result[i] = allTasks[i];
@@ -232,9 +241,9 @@ class Memory {
         }, 'getHighestPriorityTasks', []);
     }
 
-    clone() {
-        return errorHandler.executeSync(() => {
-            const newMemory = new Memory(this.config, this.eventBus);
+    async clone() {
+        return errorHandler.execute(async () => {
+            const newMemory = new Memory(this.config, this.eventBus, this.commandBus);
             Object.assign(newMemory, {
                 terms: new Map(this.terms),
                 shortTermTasks: new Map(this.shortTermTasks),
@@ -247,18 +256,21 @@ class Memory {
         }, 'clone', null);
     }
 
-    removeTerm(key) {
-        return errorHandler.executeSync(() => {
+    async removeTerm(key) {
+        await errorHandler.execute(async () => {
             const term = this.terms.get(key);
             if (!term) return;
             term.destroy?.();
             this.terms.delete(key);
             this.indexer.removeTerm(key);
+            await this.eventBus.emitAsync(SystemEvents.TERM_REMOVE, {
+                key
+            });
         }, 'removeTerm');
     }
 
-    clear() {
-        return errorHandler.executeSync(() => {
+    async clear() {
+        await errorHandler.execute(async () => {
             this.terms.forEach(term => term.destroy?.());
             this.terms.clear();
             this.shortTermTasks.clear();
@@ -266,11 +278,12 @@ class Memory {
             this.indexer.clear();
             this.cycleCounter = 0;
             this._invalidateTaskCache();
+            await this.eventBus.emitAsync(SystemEvents.SYSTEM_RESET);
         }, 'clear');
     }
 
-    getStatistics() {
-        return errorHandler.executeSync(() => ({
+    async getStatistics() {
+        return errorHandler.execute(async () => ({
             terms: this.terms.size,
             shortTermTasks: this.shortTermTasks.size,
             longTermTasks: this.longTermTasks.size,
@@ -278,21 +291,14 @@ class Memory {
         }), 'getStatistics', {});
     }
 
-    /**
-     * Private helper method to reduce duplication in task retrieval by punctuation.
-     * @param {string} punctuation - The punctuation character to filter tasks by ('.', '!', '?')
-     * @param {string} methodName - The name of the calling method for error reporting
-     * @returns {Array} - Array of tasks with the specified punctuation
-     */
-    _getTasksByPunctuation(punctuation, methodName) {
-        return errorHandler.executeSync(() => {
+    async _getTasksByPunctuation(punctuation, methodName) {
+        return errorHandler.execute(async () => {
             const taskIds = this.indexer.punctuationIndex.get(punctuation);
             if (!taskIds) return [];
-            
-            // More efficient approach: directly retrieve tasks from both maps instead of getting all tasks
+
             const result = [];
             for (const taskId of taskIds) {
-                const task = this.shortTermTasks.get(taskId) || this.longTermTasks.get(taskId);
+                const task = this.getTask(taskId);
                 if (task) {
                     result.push(task);
                 }
@@ -301,33 +307,33 @@ class Memory {
         }, methodName, []);
     }
 
-    getBeliefs() {
-        return this._getTasksByPunctuation('.', 'getBeliefs');
+    async getBeliefs() {
+        return await this._getTasksByPunctuation('.', 'getBeliefs');
     }
 
-    getGoals() {
-        return this._getTasksByPunctuation('!', 'getGoals');
+    async getGoals() {
+        return await this._getTasksByPunctuation('!', 'getGoals');
     }
 
-    getQuestions() {
-        return this._getTasksByPunctuation('?', 'getQuestions');
+    async getQuestions() {
+        return await this._getTasksByPunctuation('?', 'getQuestions');
     }
 
-    getRecentTasks(count = 10) {
-        return errorHandler.executeSync(() => {
-            const allTasks = this.getAllTasks();
+    async getRecentTasks(count = 10) {
+        return errorHandler.execute(async () => {
+            const allTasks = await this.getAllTasks();
             return [...allTasks]
                 .sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime))
                 .slice(0, count);
         }, 'getRecentTasks', []);
     }
 
-    queryTasks(filters = {}) {
-        return errorHandler.executeSync(() => this.indexer.queryTasks(this.getAllTasks(), filters), 'queryTasks', []);
+    async queryTasks(filters = {}) {
+        return errorHandler.execute(async () => this.indexer.queryTasks(await this.getAllTasks(), filters), 'queryTasks', []);
     }
 
-    exportState() {
-        return errorHandler.executeSync(() => JSON.stringify({
+    async exportState() {
+        return errorHandler.execute(async () => JSON.stringify({
             terms: [...this.terms.values()],
             shortTermTasks: [...this.shortTermTasks.values()],
             longTermTasks: [...this.longTermTasks.values()],
@@ -335,32 +341,27 @@ class Memory {
     }
 
     _createTaskFromJSON(json) {
-        return errorHandler.executeSync(() => {
-            if (!json?.termKey) return null;
-            const term = this.getTerm(json.termKey);
-            if (!term) return null;
-            const deserializedStamp = {...json.state.stamp};
-            Object.keys(deserializedStamp).forEach(key => {
-                if (typeof deserializedStamp[key] === 'string' && /^\d+n?$/.test(deserializedStamp[key])) {
-                    deserializedStamp[key] = BigInt(deserializedStamp[key].replace('n', ''));
-                }
-            });
-            const task = new Task(term, json.punctuation, json.state.truthValue, deserializedStamp);
-            task.id = json.id;
-            task.state.priority = json.state.priority;
-            return task;
-        }, '_createTaskFromJSON', null);
+        if (!json?.termKey) return null;
+        const term = this.getTerm(json.termKey);
+        if (!term) return null;
+        const deserializedStamp = {...json.state.stamp};
+        Object.keys(deserializedStamp).forEach(key => {
+            if (typeof deserializedStamp[key] === 'string' && /^\d+n?$/.test(deserializedStamp[key])) {
+                deserializedStamp[key] = BigInt(deserializedStamp[key].replace('n', ''));
+            }
+        });
+        const task = new Task(term, json.punctuation, json.state.truthValue, deserializedStamp);
+        task.id = json.id;
+        task.state.priority = json.state.priority;
+        return task;
     }
 
-    importState(jsonState) {
-        // For invalid JSON, we throw directly to match test expectations
+    async importState(jsonState) {
         if (typeof jsonState !== 'string') {
-            return errorHandler.executeSync(() => {
-                this.clear();
-            }, 'importState');
+            await this.clear();
+            return;
         }
 
-        // For invalid JSON, we throw directly to match test expectations
         let state;
         try {
             state = JSON.parse(jsonState);
@@ -368,25 +369,28 @@ class Memory {
             throw createError.ParseError(`Invalid JSON provided to importState: ${e.message}`);
         }
 
-        return errorHandler.executeSync(() => {
-            this.clear();
-            state.terms?.forEach(termData => {
+        await this.clear();
+        if (state.terms) {
+            for (const termData of state.terms) {
                 const term = Term.fromJSON(termData);
-                if (term) this.addTerm(term);
-            });
-            const processTasks = (tasks, taskMap) => {
-                tasks?.forEach(taskData => {
-                    const task = this._createTaskFromJSON(taskData);
-                    if (task) {
-                        taskMap.set(task.id, task);
-                        this.indexer.indexTask(task);
-                    }
-                });
-            };
-            processTasks(state.shortTermTasks, this.shortTermTasks);
-            processTasks(state.longTermTasks, this.longTermTasks);
-            this._invalidateTaskCache();
-        }, 'importState');
+                if (term) await this.addTerm(term);
+            }
+        }
+
+        const processTasks = async (tasks, taskMap) => {
+            if (!tasks) return;
+            for (const taskData of tasks) {
+                const task = this._createTaskFromJSON(taskData);
+                if (task) {
+                    taskMap.set(task.id, task);
+                    this.indexer.indexTask(task);
+                }
+            }
+        };
+
+        await processTasks(state.shortTermTasks, this.shortTermTasks);
+        await processTasks(state.longTermTasks, this.longTermTasks);
+        this._invalidateTaskCache();
     }
 }
 

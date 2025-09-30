@@ -1,19 +1,15 @@
-import {error, warn} from '../utils/logger.js';
 import {eventBusErrorHandler as errorHandler} from '../utils/errorHandler.js';
 
 class EventBus {
     constructor() {
         this.listeners = new Map();
-        this.handlers = new Map();
     }
 
     on(event, callback) {
-        let listeners = this.listeners.get(event);
-        if (!listeners) {
-            listeners = new Set();
-            this.listeners.set(event, listeners);
+        if (!this.listeners.has(event)) {
+            this.listeners.set(event, new Set());
         }
-        listeners.add(callback);
+        this.listeners.get(event).add(callback);
     }
 
     off(event, callback) {
@@ -27,28 +23,28 @@ class EventBus {
     }
 
     emit(event, data) {
-        this.listeners.get(event)?.forEach(l => l(data));
+        this.listeners.get(event)?.forEach(listener => {
+            try {
+                listener(data);
+            } catch (err) {
+                errorHandler.handleWithDefault(err, `emit:${event}`);
+            }
+        });
     }
 
-    handle(requestType, handler) {
-        if (this.handlers.has(requestType)) {
-            warn(`[EventBus] Overwriting existing handler for request type: ${requestType}`);
-        }
-        this.handlers.set(requestType, handler);
-    }
+    async emitAsync(event, data) {
+        const listeners = this.listeners.get(event);
+        if (!listeners) return;
 
-    async request(requestType, data) {
-        const handler = this.handlers.get(requestType);
-        if (!handler) {
-            error(`[EventBus] No handler registered for request type: ${requestType}`);
-            return null;
-        }
-        return errorHandler.execute(() => handler(data), `request: ${requestType}`, null);
+        const promises = [...listeners].map(listener =>
+            errorHandler.execute(() => listener(data), `emitAsync:${event}`)
+        );
+
+        await Promise.all(promises);
     }
 
     clear() {
         this.listeners.clear();
-        this.handlers.clear();
     }
 }
 

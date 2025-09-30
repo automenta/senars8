@@ -11,19 +11,24 @@ describe('Memory - Edge Cases', () => {
         const mockEventBus = {
             on: vi.fn(),
             emit: vi.fn(),
+            emitAsync: vi.fn(),
         };
-        memory = new Memory(configManager, mockEventBus);
+        const mockCommandBus = {
+            handle: vi.fn(),
+            request: vi.fn(),
+        };
+        memory = new Memory(configManager, mockEventBus, mockCommandBus);
     });
 
-    test('should handle adding null and undefined terms', () => {
-        expect(() => memory.addTerm(null)).toThrow('Can only add valid Term instances to memory');
-        expect(() => memory.addTerm(undefined)).toThrow('Can only add valid Term instances to memory');
+    test('should handle adding null and undefined terms', async () => {
+        await expect(memory.addTerm(null)).rejects.toThrow('Can only add valid Term instances to memory');
+        await expect(memory.addTerm(undefined)).rejects.toThrow('Can only add valid Term instances to memory');
     });
 
-    test('should handle adding invalid term objects', () => {
-        expect(() => memory.addTerm({})).toThrow('Can only add valid Term instances to memory');
-        expect(() => memory.addTerm('string')).toThrow('Can only add valid Term instances to memory');
-        expect(() => memory.addTerm(123)).toThrow('Can only add valid Term instances to memory');
+    test('should handle adding invalid term objects', async () => {
+        await expect(memory.addTerm({})).rejects.toThrow('Can only add valid Term instances to memory');
+        await expect(memory.addTerm('string')).rejects.toThrow('Can only add valid Term instances to memory');
+        await expect(memory.addTerm(123)).rejects.toThrow('Can only add valid Term instances to memory');
     });
 
     test('should handle getting terms with invalid keys', () => {
@@ -33,142 +38,145 @@ describe('Memory - Edge Cases', () => {
         expect(memory.getTerm({})).toBeNull();
     });
 
-    test('should handle adding null and undefined tasks', () => {
-        expect(() => memory.addTasks(null)).not.toThrow();
-        expect(() => memory.addTasks(undefined)).not.toThrow();
-        expect(() => memory.addTasks([null, undefined, new Task(new Term('cat'), '.')])).not.toThrow();
-        expect(memory.getAllTasks()).toHaveLength(1);
+    test('should handle adding null and undefined tasks', async () => {
+        await expect(memory.addTasks(null)).resolves.not.toThrow();
+        await expect(memory.addTasks(undefined)).resolves.not.toThrow();
+        await expect(memory.addTasks([null, undefined, new Task(new Term('cat'), '.')])).resolves.not.toThrow();
+        await expect(memory.getAllTasks()).resolves.toHaveLength(1);
     });
 
-    test('should handle adding invalid task objects', () => {
-        expect(() => memory.addTasks([{}, 'string', 123, new Task(new Term('cat'), '.')])).not.toThrow();
-        expect(memory.getAllTasks()).toHaveLength(1);
+    test('should handle adding invalid task objects', async () => {
+        await expect(memory.addTasks([{}, 'string', 123, new Task(new Term('cat'), '.')])).resolves.not.toThrow();
+        await expect(memory.getAllTasks()).resolves.toHaveLength(1);
     });
 
-    test('should handle empty task arrays', () => {
-        expect(() => memory.addTasks([])).not.toThrow();
-        expect(memory.getAllTasks()).toHaveLength(0);
+    test('should handle empty task arrays', async () => {
+        await expect(memory.addTasks([])).resolves.not.toThrow();
+        await expect(memory.getAllTasks()).resolves.toHaveLength(0);
     });
 
-    test('should handle getting non-existent tasks', () => {
-        expect(memory.getTask('non-existent-id')).toBeUndefined();
+    test('should handle getting non-existent tasks', async () => {
+        await expect(memory.getTask('non-existent-id')).toBeUndefined();
     });
 
-    test('should handle removing non-existent tasks', () => {
-        expect(() => memory.removeTask('non-existent-id')).not.toThrow();
+    test('should handle removing non-existent tasks', async () => {
+        await expect(memory.removeTask('non-existent-id')).resolves.not.toThrow();
     });
 
-    test('should handle cloning memory with large datasets', () => {
+    test('should handle cloning memory with large datasets', async () => {
         for (let i = 0; i < 100; i++) {
             const term = new Term(`term${i}`);
-            memory.addTerm(term);
+            await memory.addTerm(term);
             const task = new Task(term, '.', {
                 frequency: 0.5,
                 confidence: 0.8
             });
-            memory.addTasks(task);
+            await memory.addTasks(task);
         }
 
-        const clonedMemory = memory.clone();
-        expect(clonedMemory.getStatistics().terms).toBe(100);
-        expect(clonedMemory.getStatistics().shortTermTasks).toBe(100);
+        const clonedMemory = await memory.clone();
+        await expect(clonedMemory.getStatistics()).resolves.toHaveProperty('terms', 100);
+        await expect(clonedMemory.getStatistics()).resolves.toHaveProperty('shortTermTasks', 100);
     });
 
-    test('should handle clearing empty memory', () => {
-        expect(() => memory.clear()).not.toThrow();
-        expect(memory.getStatistics().terms).toBe(0);
-        expect(memory.getStatistics().shortTermTasks).toBe(0);
+    test('should handle clearing empty memory', async () => {
+        await expect(memory.clear()).resolves.not.toThrow();
+        const stats = await memory.getStatistics();
+        expect(stats.terms).toBe(0);
+        expect(stats.shortTermTasks).toBe(0);
     });
 
-    test('should handle clearing memory with terms and tasks', () => {
+    test('should handle clearing memory with terms and tasks', async () => {
         const term = new Term('cat');
-        memory.addTerm(term);
+        await memory.addTerm(term);
         const task = new Task(term, '.');
-        memory.addTasks(task);
+        await memory.addTasks(task);
 
-        expect(memory.getStatistics().terms).toBe(1);
-        expect(memory.getStatistics().shortTermTasks).toBe(1);
+        let stats = await memory.getStatistics();
+        expect(stats.terms).toBe(1);
+        expect(stats.shortTermTasks).toBe(1);
 
-        memory.clear();
-        expect(memory.getStatistics().terms).toBe(0);
-        expect(memory.getStatistics().shortTermTasks).toBe(0);
+        await memory.clear();
+        stats = await memory.getStatistics();
+        expect(stats.terms).toBe(0);
+        expect(stats.shortTermTasks).toBe(0);
     });
 
-    test('should handle queryTasks with invalid filters', () => {
+    test('should handle queryTasks with invalid filters', async () => {
         const term = new Term('cat');
-        memory.addTerm(term);
+        await memory.addTerm(term);
         const task = new Task(term, '.');
-        memory.addTasks(task);
+        await memory.addTasks(task);
 
-        const results1 = memory.queryTasks({
+        const results1 = await memory.queryTasks({
             punctuation: 'invalid'
         });
         expect(results1).toHaveLength(0);
 
-        const results2 = memory.queryTasks({
+        const results2 = await memory.queryTasks({
             minPriority: -1
         });
         expect(results2.length).toBeGreaterThan(0);
 
-        const results3 = memory.queryTasks({
+        const results3 = await memory.queryTasks({
             minConfidence: 2
         });
         expect(results3).toHaveLength(0);
     });
 
-    test('should handle getHighestPriorityTasks with edge cases', () => {
-        const results1 = memory.getHighestPriorityTasks(0);
+    test('should handle getHighestPriorityTasks with edge cases', async () => {
+        const results1 = await memory.getHighestPriorityTasks(0);
         expect(results1).toHaveLength(0);
 
-        const results2 = memory.getHighestPriorityTasks(-5);
+        const results2 = await memory.getHighestPriorityTasks(-5);
         expect(results2).toHaveLength(0);
 
-        const results3 = memory.getHighestPriorityTasks(1000);
+        const results3 = await memory.getHighestPriorityTasks(1000);
         expect(results3).toHaveLength(0);
 
         const term = new Term('cat');
-        memory.addTerm(term);
+        await memory.addTerm(term);
         for (let i = 0; i < 5; i++) {
             const task = new Task(term, '.');
             task.state.priority = i * 0.1;
-            memory.addTasks(task);
+            await memory.addTasks(task);
         }
 
-        const results4 = memory.getHighestPriorityTasks(3);
+        const results4 = await memory.getHighestPriorityTasks(3);
         expect(results4).toHaveLength(3);
         expect(results4[0].state.priority).toBeGreaterThanOrEqual(results4[1].state.priority);
         expect(results4[1].state.priority).toBeGreaterThanOrEqual(results4[2].state.priority);
     });
 
-    test('should handle getRecentTasks with edge cases', () => {
-        const results1 = memory.getRecentTasks();
+    test('should handle getRecentTasks with edge cases', async () => {
+        const results1 = await memory.getRecentTasks();
         expect(results1).toHaveLength(0);
 
-        const results2 = memory.getRecentTasks(0);
+        const results2 = await memory.getRecentTasks(0);
         expect(results2).toHaveLength(0);
 
-        const results3 = memory.getRecentTasks(-5);
+        const results3 = await memory.getRecentTasks(-5);
         expect(results3).toHaveLength(0);
     });
 
-    test('should handle exportState and importState with edge cases', () => {
-        const emptyState = memory.exportState();
+    test('should handle exportState and importState with edge cases', async () => {
+        const emptyState = await memory.exportState();
         expect(emptyState).toContain('"terms": []');
         expect(emptyState).toContain('"shortTermTasks": []');
 
-        expect(() => memory.importState('invalid json')).toThrow();
-        expect(() => memory.importState('{}')).not.toThrow();
-        expect(() => memory.importState('{"terms":[],"shortTermTasks":[],"longTermTasks":[]}')).not.toThrow();
+        await expect(memory.importState('invalid json')).rejects.toThrow();
+        await expect(memory.importState('{}')).resolves.not.toThrow();
+        await expect(memory.importState('{"terms":[],"shortTermTasks":[],"longTermTasks":[]}')).resolves.not.toThrow();
     });
 
-    test('should handle getBeliefs, getGoals, and getQuestions with empty results', () => {
-        expect(memory.getBeliefs()).toHaveLength(0);
-        expect(memory.getGoals()).toHaveLength(0);
-        expect(memory.getQuestions()).toHaveLength(0);
+    test('should handle getBeliefs, getGoals, and getQuestions with empty results', async () => {
+        await expect(memory.getBeliefs()).resolves.toHaveLength(0);
+        await expect(memory.getGoals()).resolves.toHaveLength(0);
+        await expect(memory.getQuestions()).resolves.toHaveLength(0);
     });
 
-    test('should handle getStatistics correctly', () => {
-        const stats = memory.getStatistics();
+    test('should handle getStatistics correctly', async () => {
+        const stats = await memory.getStatistics();
         expect(stats).toHaveProperty('terms');
         expect(stats).toHaveProperty('shortTermTasks');
         expect(stats).toHaveProperty('longTermTasks');

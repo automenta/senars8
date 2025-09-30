@@ -32,7 +32,7 @@ async function enhancedPerceptionDemo(options = {}) {
             info("Processed a 'text' event.");
 
             info("Inspecting resulting tasks in memory...");
-            const tasks = system.introspection.queryTasks({});
+            const tasks = await system.introspection.queryTasks({});
             const perceptionTasks = tasks.filter(t => t.termKey.includes('visual_input') || t.termKey.includes('cat'));
 
             info(`Found ${perceptionTasks.length} perception-related tasks:`);

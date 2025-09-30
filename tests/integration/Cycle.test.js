@@ -59,7 +59,7 @@ describe('Cycle Integration Test', () => {
         await cycle.bootstrap(CONSTITUTION_TASKS);
         await cycle.runOnce();
 
-        const tasks = memory.getAllTasks();
+        const tasks = await memory.getAllTasks();
         const acquireKnowledgeTask = tasks.find(t => t.termKey === 'AcquireKnowledge');
         const catTask = tasks.find(t => t.termKey === 'cat');
 

@@ -2,6 +2,8 @@ import {debug, info} from '../utils/logger.js';
 import {getGoalTasks} from '../utils/task-utils.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import {configService} from '../config/index.js';
+import {SystemCommands} from './SystemCommands.js';
+import {SystemEvents} from './SystemEvents.js';
 
 const errorHandler = createUnifiedErrorHandler('Cycle');
 
@@ -17,11 +19,12 @@ class Cycle {
         metaCognition,
         temporalReasoner,
         priorityManager,
-        eventBus
+        eventBus,
+        commandBus
     ) {
         this.config = configService;
-        this.memory = memory;
-        this.reasoner = reasoner;
+        this.memory = memory; // Kept for now for direct access if needed, but prefer commands/events
+        this.reasoner = reasoner; // Kept for now
         this.lm = lm;
         this.actionExecutor = actionExecutor;
         this.perception = perception;
@@ -30,21 +33,21 @@ class Cycle {
         this.temporalReasoner = temporalReasoner;
         this.priorityManager = priorityManager;
         this.eventBus = eventBus;
+        this.commandBus = commandBus;
         this.cycleCount = 0;
     }
 
     async bootstrap(_constitutionTasks) {
-        // Bootstrap method - can be empty for now or add initialization logic if needed
         info('Cycle: Bootstrap completed');
     }
 
     async runOnce() {
         this.cycleCount++;
         debug(`Starting cycle ${this.cycleCount}`);
-        this.eventBus.emit('SystemCycleStarted', this.cycleCount);
+        this.eventBus.emit(SystemEvents.CYCLE_START, this.cycleCount);
 
         await errorHandler.execute(async () => {
-            const focusSet = this._selectFocusSet();
+            const focusSet = await this._selectFocusSet();
             const {
                 derivedTasks,
                 actionableGoals
@@ -53,8 +56,8 @@ class Cycle {
             await this._executeActions(actionableGoals);
             await this._learnFromExperience(derivedTasks);
 
-            this._updateMemory(derivedTasks);
-            this.eventBus.emit('SystemCycleEnded', this.cycleCount);
+            await this._updateMemory(derivedTasks);
+            this.eventBus.emit(SystemEvents.CYCLE_COMPLETE, this.cycleCount);
         }, 'runOnce');
     }
 
@@ -62,9 +65,10 @@ class Cycle {
         await this.runOnce();
     }
 
-    _selectFocusSet() {
-        const allTasks = this.memory.getAllTasks();
-        // Use the priorityManager if available and has updatePriority method, otherwise skip priority updates
+    async _selectFocusSet() {
+        const allTasks = await this.commandBus.request(SystemCommands.MEMORY_GET_ALL_TASKS);
+        if (!allTasks) return [];
+
         allTasks.forEach(task => this.priorityManager?.updatePriority?.(task));
 
         const focusSetSize = this.config.getNumber('FOCUS_SET_SIZE', 20);
@@ -73,15 +77,16 @@ class Cycle {
     }
 
     async _performInference(focusSet) {
-        // Return empty arrays if reasoner is not available
-        if (!this.reasoner) {
+        if (!this.reasoner || !focusSet || focusSet.length === 0) {
             return {
                 derivedTasks: [],
                 actionableGoals: []
             };
         }
 
-        const derivedTasks = await this.reasoner.performInference(focusSet);
+        const derivedTasks = await this.commandBus.request(SystemCommands.REASONER_PROCESS_TASK, {
+            focusSet
+        });
         const allTasks = [...focusSet, ...derivedTasks];
         const priorityThreshold = this.config.getNumber('ACTIONABLE_GOAL_PRIORITY_THRESHOLD', 0.1);
         const actionableGoals = getGoalTasks(allTasks).filter(goal =>
@@ -94,34 +99,28 @@ class Cycle {
     }
 
     async _executeActions(actionableGoals) {
-        // Placeholder implementation - in a real system this would execute actions
-        if (!this.actionExecutor || !actionableGoals.length) {
+        if (!this.actionExecutor || !actionableGoals || !actionableGoals.length) {
             return;
         }
-
-        // For now, just log the actions that would be executed
         actionableGoals.forEach(goal => {
             debug(`Execute action for goal: ${goal.termKey}`);
         });
     }
 
     async _learnFromExperience(derivedTasks) {
-        // Placeholder implementation - in a real system this would learn from experience
-        if (!this.lm || !derivedTasks.length) {
+        if (!this.lm || !derivedTasks || !derivedTasks.length) {
             return;
         }
-
-        // For now, just log the tasks that would be learned from
         derivedTasks.forEach(task => {
             debug(`Would learn from task: ${task.termKey}`);
         });
     }
 
-    _updateMemory(derivedTasks) {
-        if (!this.memory || !derivedTasks.length) {
+    async _updateMemory(derivedTasks) {
+        if (!derivedTasks || !derivedTasks.length) {
             return;
         }
-        this.eventBus.emit('tasks.add', derivedTasks);
+        await this.eventBus.emitAsync(SystemEvents.TASKS_ADD, derivedTasks);
     }
 }
 

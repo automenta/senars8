@@ -41,7 +41,7 @@ describe('Reasoner Integration Test', () => {
         const task1 = new Task(parseTerm('(cat ==> mammal)'), '.');
         const task2 = new Task(termA, '.');
 
-        const derivedTasks = reasoner.performInference([task1, task2]);
+        const derivedTasks = await reasoner.performInference([task1, task2]);
         expect(derivedTasks.some(t => t.termKey === 'mammal')).toBe(true);
     });
 
@@ -52,7 +52,7 @@ describe('Reasoner Integration Test', () => {
         const task1 = new Task(parseTerm('(cat --> mammal)'), '.');
         const task2 = new Task(parseTerm('(mammal --> animal)'), '.');
 
-        const derivedTasks = reasoner.performInference([task1, task2]);
+        const derivedTasks = await reasoner.performInference([task1, task2]);
         expect(derivedTasks.some(t => t.termKey === '(cat --> animal)')).toBe(true);
     });
 });

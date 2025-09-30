@@ -2,18 +2,21 @@ import rules from './rules/index.js';
 import {debug, error as logError, info} from '../utils/logger.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
+import {SystemCommands} from '../system/SystemCommands.js';
 
 const errorHandler = createUnifiedErrorHandler('Reasoner');
 
 class Reasoner {
     #processedCombinations = new Set();
 
-    constructor(configManager, temporalReasoner, strategyRegistry) {
+    constructor(configManager, temporalReasoner, strategyRegistry, commandBus) {
         this.config = createConfigAccessor(configManager, 'reasoner');
         this.temporalReasoner = temporalReasoner;
         this.strategyRegistry = strategyRegistry;
+        this.commandBus = commandBus;
         this.rules = rules;
         this.strategy = this.#initializeStrategy();
+        this.#registerCommandHandlers();
         info('Reasoner initialized with strategy:', this.strategy.constructor.name);
     }
 
@@ -22,12 +25,18 @@ class Reasoner {
         return this.strategyRegistry.getStrategy(strategyName);
     }
 
+    #registerCommandHandlers() {
+        this.commandBus.handle(SystemCommands.REASONER_PROCESS_TASK,
+            async (payload) => this.performInference(payload.focusSet, payload.options)
+        );
+    }
+
     #getCombinationKey(ruleName, tasks) {
         const taskIds = tasks.map(t => t.id).sort();
         return `${ruleName}:${taskIds.join(',')}`;
     }
 
-    performInference(focusSet, options = {}) {
+    async performInference(focusSet, options = {}) {
         if (!Array.isArray(focusSet)) {
             return errorHandler.handle(new Error(`Focus set must be an array, received: ${typeof focusSet}`), 'performInference', []);
         }
@@ -35,7 +44,7 @@ class Reasoner {
         const maxDerived = options.maxDerivedTasks ?? Infinity;
         debug(`Performing inference on ${focusSet.length} tasks with max ${maxDerived} derived tasks`);
 
-        const symbolicTasks = this.#performSymbolicInference(focusSet, maxDerived);
+        const symbolicTasks = await this.#performSymbolicInference(focusSet, maxDerived);
 
         const remainingCapacity = maxDerived - symbolicTasks.length;
         const temporalTasks = remainingCapacity > 0 ? this.#performTemporalInference(focusSet) : [];
@@ -45,7 +54,7 @@ class Reasoner {
         return finalTasks;
     }
 
-    #performSymbolicInference(focusSet, maxDerived) {
+    async #performSymbolicInference(focusSet, maxDerived) {
         const derivedTasks = [];
         this.#processedCombinations.clear();
         debug(`Starting symbolic inference with ${this.rules.length} rules`);
@@ -61,7 +70,7 @@ class Reasoner {
             for (const tasks of combinations) {
                 if (derivedTasks.length >= maxDerived) break;
 
-                const derived = this.#applyRule(rule, tasks);
+                const derived = await this.#applyRule(rule, tasks);
                 if (derived) {
                     derivedTasks.push(derived);
                 }
@@ -96,22 +105,21 @@ class Reasoner {
             debug(`Skipping already processed combination for rule ${rule.name}`);
             return false;
         }
-        
+
         const isValid = this.#areOperandsValid(rule, tasks) && rule.condition(...tasks);
-        
-        // Only add to processed combinations if valid to avoid adding invalid combinations to the set
+
         if (isValid) {
             this.#processedCombinations.add(combinationKey);
         }
-        
+
         return isValid;
     }
 
-    #applyRule(rule, tasks) {
+    async #applyRule(rule, tasks) {
         if (!this.#isRuleApplicable(rule, tasks)) {
             return null;
         }
-        const result = rule.action(...tasks);
+        const result = await Promise.resolve(rule.action(...tasks));
         debug(`Rule ${rule.name} ${result ? 'applied' : 'condition not met'}`);
         return result;
     }

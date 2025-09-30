@@ -1,4 +1,7 @@
-import {safeSync} from '../utils/errorHandler.js';
+import {
+    safeSync,
+    safeAsync
+} from '../utils/errorHandler.js';
 
 class Introspection {
     constructor(system) {
@@ -12,11 +15,11 @@ class Introspection {
         this.configAccessor = system.config || {getAll: () => system.configManager?.getAll() || {}};
     }
 
-    getStatus() {
-        return safeSync(() => ({
+    async getStatus() {
+        return safeAsync(async () => ({
             isRunning: this.system.isRunning,
             cycleCount: this.system.cycleCount,
-            memory: this.memory.getStatistics(),
+            memory: await this.memory.getStatistics(),
             rules: this.reasoner.getRuleNames().length,
             actionHistory: this.system.actionExecutor.getActionHistory().length,
         }), 'getStatus', {});

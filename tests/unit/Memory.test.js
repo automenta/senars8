@@ -54,11 +54,17 @@ describe('Memory', () => {
         const mockEventBus = {
             on: vi.fn(),
             emit: vi.fn(),
+            emitAsync: vi.fn(),
         };
-        memory = new Memory(configManager, mockEventBus);
+        const mockCommandBus = {
+            handle: vi.fn(),
+            request: vi.fn(),
+        };
+        memory = new Memory(configManager, mockEventBus, mockCommandBus);
     });
 
     it('should prune expired, unimportant tasks during maintenance', async () => {
+        const { SystemEvents } = await import('../../core/system/SystemEvents.js');
         const now = Date.now();
         const longAgo = now - (24 * 3600 * 1000 * 2);
         const task1 = createTask('(unimportant_and_old --> property)', {
@@ -73,7 +79,7 @@ describe('Memory', () => {
         expect(memory.shortTermTasks.size).toBe(2);
 
         // Manually trigger the event handler
-        const systemCycleEndedHandler = memory.eventBus.on.mock.calls.find(call => call[0] === 'SystemCycleEnded')[1];
+        const systemCycleEndedHandler = memory.eventBus.on.mock.calls.find(call => call[0] === SystemEvents.CYCLE_COMPLETE)[1];
         systemCycleEndedHandler();
 
         expect(memory.shortTermTasks.size).toBe(1);
@@ -81,6 +87,7 @@ describe('Memory', () => {
     });
 
     it('should NOT prune expired but important tasks', async () => {
+        const { SystemEvents } = await import('../../core/system/SystemEvents.js');
         const now = Date.now();
         const longAgo = now - (24 * 3600 * 1000 * 2);
         const task1 = createTask('(important_and_old --> property)', {
@@ -91,7 +98,7 @@ describe('Memory', () => {
         expect(memory.shortTermTasks.size).toBe(1);
 
         // Manually trigger the event handler
-        const systemCycleEndedHandler = memory.eventBus.on.mock.calls.find(call => call[0] === 'SystemCycleEnded')[1];
+        const systemCycleEndedHandler = memory.eventBus.on.mock.calls.find(call => call[0] === SystemEvents.CYCLE_COMPLETE)[1];
         systemCycleEndedHandler();
 
         expect(memory.shortTermTasks.size).toBe(1);
