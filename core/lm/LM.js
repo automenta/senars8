@@ -282,6 +282,7 @@ class LM {
         this._llm = null;
         this._reasoner = null;
         this._memory = null;
+        this._embeddingQueue = []; // Clear the queue to release references
         info('LM resources disposed');
     }
 }

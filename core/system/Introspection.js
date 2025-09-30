@@ -1,4 +1,3 @@
-import EventBus from './EventBus.js';
 import {safeSync} from '../utils/errorHandler.js';
 
 class Introspection {
@@ -8,6 +7,7 @@ class Introspection {
         this.reasoner = system.reasoner;
         this.planner = system.planner;
         this.metaCognition = system.metaCognition;
+        this.eventBus = system.eventBus;
         // Use the config accessor if available, otherwise fall back to configManager
         this.configAccessor = system.config || {getAll: () => system.configManager?.getAll() || {}};
     }
@@ -72,11 +72,11 @@ class Introspection {
     }
 
     on(eventName, callback) {
-        EventBus.on(eventName, callback);
+        this.eventBus.on(eventName, callback);
     }
 
     off(eventName, callback) {
-        EventBus.off(eventName, callback);
+        this.eventBus.off(eventName, callback);
     }
 }
 

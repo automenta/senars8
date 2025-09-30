@@ -41,19 +41,22 @@ class System {
         this.isRunning = false;
         this.cycleCount = 0;
         this.introspection = new Introspection(this);
+        this.constitutionTasks = [];
 
         registerDefaultActions(this.actionExecutor);
-        this.eventBus.on('tasks.add', (tasks) => this._bootstrapTerms(tasks));
+        // Term bootstrapping is now handled directly in the addTasks method
+        // to prevent race conditions during testing and ensure async completion.
         info('System components created and initialized.');
     }
 
     async initialize(constitutionTasks) {
         await errorHandler.execute(async () => {
             info('System: Initializing with constitution...');
-            if (constitutionTasks?.length > 0) {
-                this.eventBus.emit('tasks.add', constitutionTasks);
+            this.constitutionTasks = constitutionTasks || [];
+            if (this.constitutionTasks.length > 0) {
+                this.eventBus.emit('tasks.add', this.constitutionTasks);
             }
-            await this.cycle.bootstrap(constitutionTasks);
+            await this.cycle.bootstrap(this.constitutionTasks);
             info('System: Initialized successfully.');
         }, 'initialize');
     }
@@ -128,16 +131,18 @@ class System {
             if (!tasksToAdd.length) return;
 
             debug(`Adding ${tasksToAdd.length} new tasks to the system...`);
+            await this._bootstrapTerms(tasksToAdd);
             this.eventBus.emit('tasks.add', tasksToAdd);
             info(`Successfully added ${tasksToAdd.length} tasks.`);
         }, 'addTasks');
     }
 
-    reset() {
-        errorHandler.executeSync(() => {
+    async reset() {
+        await errorHandler.execute(async () => {
             this.eventBus.emit('system.reset');
             this.cycleCount = 0;
-            info('System has been reset.');
+            await this.initialize(this.constitutionTasks);
+            info('System has been reset and re-initialized with constitution.');
         }, 'reset');
     }
 }

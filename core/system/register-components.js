@@ -23,10 +23,10 @@ import StrategyRegistry from '../reasoner/StrategyRegistry.js';
  * @param {ConfigManager} configManager - The configuration manager.
  */
 const registerComponents = (container, configManager) => {
-    container.registerValue('configManager', configManager);
-    container.registerValue('eventBus', EventBus);
-
     const singleton = {lifetime: LIFETIME.SINGLETON};
+
+    container.registerValue('configManager', configManager);
+    container.register('eventBus', EventBus, [], singleton);
 
     // Foundational components first
     container.register('memory', Memory, ['configManager', 'eventBus'], singleton);
