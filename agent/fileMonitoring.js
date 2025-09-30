@@ -1,7 +1,7 @@
 import chokidar from 'chokidar';
 import PlanProcessor from '../core/utils/PlanProcessor.js';
-import { debug, info, warn } from '../core/utils/logger.js';
-import { createUnifiedErrorHandler } from '../core/utils/errorHandler.js';
+import {debug, info, warn} from '../core/utils/logger.js';
+import {createUnifiedErrorHandler} from '../core/utils/errorHandler.js';
 import FileMonitoringConfig from './fileMonitoringConfig.js';
 
 /**
@@ -100,9 +100,9 @@ class FileMonitoring {
     async processExistingFiles() {
         for (const pattern of this.options.patterns) {
             const glob = await import('glob');
-            const files = glob.glob.sync(pattern, { cwd: this.options.watchDir, absolute: true });
+            const files = glob.glob.sync(pattern, {cwd: this.options.watchDir, absolute: true});
             for (const file of files) {
-                await this.processFile(file, { initial: true });
+                await this.processFile(file, {initial: true});
             }
         }
     }
@@ -199,7 +199,7 @@ class FileMonitoring {
         const allTasks = [];
         if (typeof filePaths === 'string') filePaths = [filePaths];
         for (const filePath of filePaths) {
-            const tasks = await this.processFile(filePath, { initial: true });
+            const tasks = await this.processFile(filePath, {initial: true});
             allTasks.push(...tasks);
         }
         return allTasks;

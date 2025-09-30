@@ -203,7 +203,7 @@ class Agent {
     getAgentState() {
         if (!this.isInitialized || !this.system?.memory) {
             agentLogger.debug('Cannot access agent state: Agent not initialized or no system memory.');
-            return { tasks: [], beliefs: [], goals: [], questions: [] };
+            return {tasks: [], beliefs: [], goals: [], questions: []};
         }
 
         try {
@@ -216,7 +216,7 @@ class Agent {
             };
         } catch (error) {
             agentLogger.warn('Error getting agent state:', error.message);
-            return { tasks: [], beliefs: [], goals: [], questions: [] };
+            return {tasks: [], beliefs: [], goals: [], questions: []};
         }
     }
 }

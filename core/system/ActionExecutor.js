@@ -76,7 +76,7 @@ class ActionExecutor {
         if (typeof name !== 'string' || !name.trim()) {
             throw new Error('Resource name must be a non-empty string');
         }
-        
+
         this.resources.set(name, resource);
         errorHandler.executeSync(() => {
             // Simple logging instead of using debug method

@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { merge } from 'lodash';
+import {merge} from 'lodash';
 
 const defaultConfig = {
     patterns: ['docs/**/*.md', 'PLAN.*.md', 'TODO.md', 'ROADMAP.md'],
@@ -49,7 +49,7 @@ class FileMonitoringConfig {
     saveToFile(filePath) {
         const dir = path.dirname(filePath);
         if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
+            fs.mkdirSync(dir, {recursive: true});
         }
         fs.writeFileSync(filePath, JSON.stringify(this.config, null, 2));
     }
@@ -59,7 +59,7 @@ class FileMonitoringConfig {
      * @returns {object} The configuration object.
      */
     getConfig() {
-        return { ...this.config };
+        return {...this.config};
     }
 
     /**
