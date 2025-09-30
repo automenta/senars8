@@ -46,6 +46,8 @@ class NarseseParser {
     constructor(input) {
         this.lexer = lexer.clone().reset(input);
         this.current = null;
+        this.recursionDepth = 0;
+        this.maxRecursionDepth = 100; // Prevent infinite recursion/stack overflow
         this.next();
     }
 
@@ -106,6 +108,12 @@ class NarseseParser {
     }
 
     parseTerm() {
+        // Check recursion depth to prevent stack overflow
+        this.recursionDepth++;
+        if (this.recursionDepth > this.maxRecursionDepth) {
+            throw new Error(`Recursion depth exceeded maximum of ${this.maxRecursionDepth}`);
+        }
+        
         const parsers = {
             [TOKEN.LPAREN]: () => this.parseCompoundTerm(),
             [TOKEN.LBRACE]: () => this.parseSet(OP.EXTENSIONAL_SET, TOKEN.LBRACE, TOKEN.RBRACE),
@@ -119,7 +127,12 @@ class NarseseParser {
             [TOKEN.NUMBER]: () => this.parseNumber(),
         };
         const parser = this.current ? parsers[this.current.type] : null;
-        if (parser) return parser();
+        if (parser) {
+            const result = parser();
+            this.recursionDepth--; // Decrement after successful parsing
+            return result;
+        }
+        this.recursionDepth--; // Decrement when returning an error
         throw new Error(`Unexpected token '${this.current?.type || 'EOF'}'`);
     }
 
@@ -137,13 +150,37 @@ class NarseseParser {
             term = this.parseOperator();
         } else {
             let subject = null;
-            if (!(this.current?.type in BINARY_RELATION_MAP)) {
+            // Check if this is an empty product ()
+            if (this.match(TOKEN.RPAREN)) {
+                // Empty product case: ()
+                term = {
+                    type: OP.PRODUCT,
+                    terms: []
+                };
+            } else if (!(this.current?.type in BINARY_RELATION_MAP)) {
                 subject = this.parseTerm();
-            }
-
-            if (this.current?.type in BINARY_RELATION_MAP) {
-                const relationType = BINARY_RELATION_MAP[this.current.type];
-                term = this.parseBinaryRelation(subject, this.current.type, relationType);
+                
+                if (this.current?.type in BINARY_RELATION_MAP) {
+                    const relationType = BINARY_RELATION_MAP[this.current.type];
+                    term = this.parseBinaryRelation(subject, this.current.type, relationType);
+                } else if (this.match(TOKEN.COMMA)) {
+                    // Handle product shorthand: (x, y, z) should become (*, x, y, z)
+                    // We already parsed the first term as 'subject', now collect all terms after commas
+                    const productTerms = [subject];
+                    while (this.match(TOKEN.COMMA)) {
+                        this.consume(TOKEN.COMMA);
+                        if (!this.match(TOKEN.RPAREN)) {
+                            productTerms.push(this.parseTerm());
+                        }
+                    }
+                    
+                    term = {
+                        type: OP.PRODUCT,
+                        terms: productTerms
+                    };
+                } else {
+                    term = subject;
+                }
             } else {
                 term = subject;
             }
@@ -154,7 +191,9 @@ class NarseseParser {
 
     parseOperator() {
         const operatorTokenType = this.current.type;
+        const operatorType = OPERATOR_MAP[operatorTokenType];
         this.consume(operatorTokenType);
+        
         this.consume(TOKEN.COMMA);
         const isBinary = operatorTokenType in BINARY_OPERATOR_MAP;
         const result = isBinary ? {
@@ -164,14 +203,20 @@ class NarseseParser {
         };
         // this.consume(TOKEN.RPAREN); // This was the bug
         return {
-            type: OPERATOR_MAP[operatorTokenType],
+            type: operatorType,
             ...result
         };
     }
 
     parseBinaryRelation(subject, tokenType, relationType) {
         this.consume(tokenType);
+        // Check recursion depth before recursive call
+        this.recursionDepth++;
+        if (this.recursionDepth > this.maxRecursionDepth) {
+            throw new Error(`Recursion depth exceeded maximum of ${this.maxRecursionDepth}`);
+        }
         const predicate = this.match(TOKEN.RPAREN) ? null : this.parseTerm();
+        this.recursionDepth--; // Decrement after the call
         // this.consume(TOKEN.RPAREN); // This was the bug
         return {
             type: relationType,
@@ -193,10 +238,37 @@ class NarseseParser {
     parseAtomicTerm() {
         const token = this.current;
         this.next();
-        return {
-            type: OP.ATOMIC,
-            key: token.value
-        };
+        
+        // Check if this atomic term is followed by parentheses (function call syntax)
+        if (this.match(TOKEN.LPAREN)) {
+            // This is an operation call: atomicTerm(args...)
+            this.consume(TOKEN.LPAREN);
+            let args = [];
+            
+            if (!this.match(TOKEN.RPAREN)) {
+                args = this.parseTermList(TOKEN.RPAREN);
+            }
+            this.consume(TOKEN.RPAREN);
+            
+            // Return as operation: (atomicTerm ^ (args...))
+            return {
+                type: OP.OPERATION,
+                subject: {
+                    type: OP.ATOMIC,
+                    key: token.value
+                },
+                predicate: {
+                    type: OP.PRODUCT,
+                    terms: args
+                }
+            };
+        } else {
+            // Regular atomic term
+            return {
+                type: OP.ATOMIC,
+                key: token.value
+            };
+        }
     }
 
     parseVariable(tokenType, variableType) {
@@ -210,7 +282,13 @@ class NarseseParser {
         const terms = [];
         if (!this.match(closingToken)) {
             do {
+                // Check recursion depth before recursive call
+                this.recursionDepth++;
+                if (this.recursionDepth > this.maxRecursionDepth) {
+                    throw new Error(`Recursion depth exceeded maximum of ${this.maxRecursionDepth}`);
+                }
                 terms.push(this.parseTerm());
+                this.recursionDepth--; // Decrement after the call
             } while (this.match(TOKEN.COMMA) && this.consume(TOKEN.COMMA));
         }
         return terms;

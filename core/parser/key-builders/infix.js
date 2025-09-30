@@ -13,4 +13,20 @@ export default (termKey) => ({
     [OP.CONCURRENT_IMPLICATION]: (pTerm, silent) => termKeyInfix(termKey, pTerm, REL.CONCURRENT_IMPLICATION, silent),
     [OP.UNTIL]: (pTerm, silent) => termKeyInfix(termKey, pTerm, 'until', silent),
     [OP.SINCE]: (pTerm, silent) => termKeyInfix(termKey, pTerm, 'since', silent),
+    [OP.OPERATION]: (pTerm, silent) => {
+        const opName = termKey(pTerm.subject, silent);
+        if (pTerm.predicate && pTerm.predicate.type === OP.PRODUCT && Array.isArray(pTerm.predicate.terms)) {
+            if (pTerm.predicate.terms.length === 0) {
+                // No arguments: opName()
+                return `${opName}()`;
+            } else {
+                // With arguments: opName(arg1, arg2, ...)
+                const args = pTerm.predicate.terms.map(arg => termKey(arg, silent)).join(',');
+                return `${opName}(${args})`;
+            }
+        } else {
+            // Fallback - should not happen with correct structure
+            return `${opName}()`;
+        }
+    },
 });
