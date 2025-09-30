@@ -182,7 +182,8 @@ class Memory {
         const pq = new MinPriorityQueue({
             priority: task => task.state.priority
         });
-        for (const task of tasks) {
+        for (let i = 0; i < tasks.length; i++) {
+            const task = tasks[i];
             if (pq.size() < k) {
                 pq.enqueue(task);
             } else if (task.state.priority > pq.front().priority) {
@@ -190,7 +191,17 @@ class Memory {
                 pq.enqueue(task);
             }
         }
-        return pq.toArray().map(item => item.element).sort((a, b) => b.state.priority - a.state.priority);
+        
+        // Get elements from priority queue and sort in descending order of priority
+        const pqElements = pq.toArray();
+        const result = new Array(pqElements.length);
+        for (let i = 0; i < pqElements.length; i++) {
+            result[i] = pqElements[i].element;
+        }
+        
+        // Sort in descending order of priority
+        result.sort((a, b) => b.state.priority - a.state.priority);
+        return result;
     }
 
     getHighestPriorityTasks(k = 20) {
@@ -201,12 +212,23 @@ class Memory {
             const allTasks = this.getAllTasks();
             if (k >= allTasks.length) {
                 // If k is larger than all tasks, just sort and return everything
-                return [...allTasks].sort((a, b) => b.state.priority - a.state.priority);
+                const result = new Array(allTasks.length);
+                for (let i = 0; i < allTasks.length; i++) {
+                    result[i] = allTasks[i];
+                }
+                return result.sort((a, b) => b.state.priority - a.state.priority);
             }
             
-            return this._shouldUsePriorityQueue(k, allTasks.length) ?
-                this._getHighestPriorityTasksWithPQ(allTasks, k) :
-                [...allTasks].sort((a, b) => b.state.priority - a.state.priority).slice(0, k);
+            if (this._shouldUsePriorityQueue(k, allTasks.length)) {
+                return this._getHighestPriorityTasksWithPQ(allTasks, k);
+            } else {
+                // Create a copy of allTasks to avoid modifying the cached array
+                const result = new Array(allTasks.length);
+                for (let i = 0; i < allTasks.length; i++) {
+                    result[i] = allTasks[i];
+                }
+                return result.sort((a, b) => b.state.priority - a.state.priority).slice(0, k);
+            }
         }, 'getHighestPriorityTasks', []);
     }
 

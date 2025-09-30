@@ -105,22 +105,14 @@ class Task extends BaseEntity {
             return null;
         }
 
-        const taskId = generateId(`${termKey}${punctuation}`);
-        if (config.performance.ENABLE_INSTANCE_SHARING && InstanceManager.has(taskId)) {
-            return InstanceManager.get(taskId);
-        }
-
         const parsedTerm = parseTerm(termKey);
         if (!parsedTerm) {
             warn(`Failed to parse term from macro: "${termKey}"`);
             return null;
         }
 
-        const newTask = new Task(parsedTerm, punctuation, truthValue, stamp);
-        if (config.performance.ENABLE_INSTANCE_SHARING) {
-            InstanceManager.add(taskId, newTask);
-        }
-        return newTask;
+        const taskId = generateId(`${termKey}${punctuation}`);
+        return createSharedInstance(taskId, Task, parsedTerm, punctuation, truthValue, stamp);
     }
 
 

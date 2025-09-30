@@ -9,17 +9,17 @@ class ConfigManager {
     }
 
     _mergeConfigs(defaults, userConfig) {
-        if (userConfig == null) return {...defaults};
+        if (userConfig == null) return this._deepClone(defaults);
 
-        const merged = {...defaults};
+        const merged = this._deepClone(defaults);
 
         for (const [key, value] of Object.entries(userConfig)) {
-            const isObject = value !== null && typeof value === 'object' && !Array.isArray(value);
-            const defaultIsObject = merged[key] !== null && typeof merged[key] === 'object' && !Array.isArray(merged[key]);
-
             if (value === null || value === undefined) {
                 continue;
             }
+
+            const isObject = value !== null && typeof value === 'object' && !Array.isArray(value);
+            const defaultIsObject = merged[key] !== null && typeof merged[key] === 'object' && !Array.isArray(merged[key]);
 
             if (isObject && defaultIsObject) {
                 merged[key] = this._mergeConfigs(merged[key], value);
@@ -29,6 +29,28 @@ class ConfigManager {
         }
 
         return merged;
+    }
+    
+    _deepClone(obj) {
+        if (obj === null || typeof obj !== 'object') {
+            return obj;
+        }
+        
+        if (Array.isArray(obj)) {
+            const newArr = new Array(obj.length);
+            for (let i = 0; i < obj.length; i++) {
+                newArr[i] = this._deepClone(obj[i]);
+            }
+            return newArr;
+        }
+        
+        const newObj = {};
+        for (const key in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                newObj[key] = this._deepClone(obj[key]);
+            }
+        }
+        return newObj;
     }
 
     get(path, defaultValue = undefined) {
@@ -64,7 +86,7 @@ class ConfigManager {
     }
 
     getAll() {
-        return {...this.validatedConfig};
+        return this._deepClone(this.validatedConfig);
     }
 
     update(newConfig) {

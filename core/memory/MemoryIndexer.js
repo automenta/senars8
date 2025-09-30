@@ -135,7 +135,11 @@ class MemoryIndexer {
     queryTasks(tasks, filters) {
         // If no filters, return sorted tasks
         if (!filters || Object.keys(filters).length === 0) {
-            return [...tasks].sort((a, b) => b.state.priority - a.state.priority);
+            const result = new Array(tasks.length);
+            for (let i = 0; i < tasks.length; i++) {
+                result[i] = tasks[i];
+            }
+            return result.sort((a, b) => b.state.priority - a.state.priority);
         }
         
         let filteredTasks = tasks;
@@ -144,19 +148,55 @@ class MemoryIndexer {
         if (filters.punctuation) {
             const taskIds = this.punctuationIndex.get(filters.punctuation);
             if (!taskIds || taskIds.size === 0) return [];
-            const taskMap = new Map(tasks.map(t => [t.id, t]));
-            filteredTasks = [...taskIds].map(id => taskMap.get(id)).filter(Boolean);
+            
+            // More efficient approach: create task map and directly map IDs to tasks
+            const taskMap = new Map();
+            for (let i = 0; i < tasks.length; i++) {
+                taskMap.set(tasks[i].id, tasks[i]);
+            }
+            
+            const result = new Array(taskIds.size);
+            let j = 0;
+            for (const id of taskIds) {
+                const task = taskMap.get(id);
+                if (task) {
+                    result[j++] = task;
+                }
+            }
+            
+            // Trim array to actual size
+            filteredTasks = result.slice(0, j);
         }
 
-        // Apply other filters sequentially
+        // Apply other filters sequentially using for loops for better performance
         if (filters.termKey) {
-            filteredTasks = filteredTasks.filter(task => task.termKey === filters.termKey);
+            const result = [];
+            for (let i = 0; i < filteredTasks.length; i++) {
+                if (filteredTasks[i].termKey === filters.termKey) {
+                    result.push(filteredTasks[i]);
+                }
+            }
+            filteredTasks = result;
         }
+        
         if (filters.minPriority !== undefined) {
-            filteredTasks = filteredTasks.filter(task => task.state.priority >= filters.minPriority);
+            const result = [];
+            for (let i = 0; i < filteredTasks.length; i++) {
+                if (filteredTasks[i].state.priority >= filters.minPriority) {
+                    result.push(filteredTasks[i]);
+                }
+            }
+            filteredTasks = result;
         }
+        
         if (filters.minConfidence !== undefined) {
-            filteredTasks = filteredTasks.filter(task => task.state.truthValue.confidence >= filters.minConfidence);
+            const result = [];
+            for (let i = 0; i < filteredTasks.length; i++) {
+                if (filteredTasks[i].state.truthValue.confidence >= filters.minConfidence) {
+                    result.push(filteredTasks[i]);
+                }
+            }
+            filteredTasks = result;
         }
 
         // Sort and limit

@@ -8,7 +8,16 @@ const isBelief = task => task?.punctuation === '.';
 const isGoal = task => task?.punctuation === '!';
 const isQuestion = task => task?.punctuation === '?';
 
-const getTasksByType = (tasks, type) => filterByProperty(tasks, 'punctuation', type);
+const getTasksByType = (tasks, type) => {
+    const result = [];
+    for (let i = 0; i < tasks.length; i++) {
+        if (tasks[i].punctuation === type) {
+            result.push(tasks[i]);
+        }
+    }
+    return result;
+};
+
 const getBeliefTasks = tasks => getTasksByType(tasks, '.');
 const getGoalTasks = tasks => getTasksByType(tasks, '!');
 const getQuestionTasks = tasks => getTasksByType(tasks, '?');
