@@ -20,8 +20,8 @@
   "scripts": {
     "start": "node agent/server.js",
     "dev": "concurrently \"node agent/server.js\" \"npm run dev --prefix ui\"",
-    "test": "cross-env ORT_LOGGING_LEVEL=FATAL vitest --run --silent",
-    "test:ui": "cross-env ORT_LOGGING_LEVEL=FATAL vitest --ui --silent",
+    "test": "ORT_LOGGING_LEVEL=FATAL vitest --run --silent",
+    "test:ui": "ORT_LOGGING_LEVEL=FATAL vitest --ui --silent",
     "lint": "eslint core agent tests",
     "lint:fix": "eslint core agent tests --fix",
     "slides": "slidev docs/slides.md"

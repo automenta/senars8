@@ -23,3 +23,7 @@ export {default as BaseEntity} from './core/BaseEntity.js';
 export {error, info} from './utils/logger.js';
 export {isBelief, isGoal, isQuestion, getTasksByType} from './utils/task-utils.js';
 export {cosineSimilarity, embeddingsEqual} from './utils/math.js';
+
+// Export reasoning strategy components
+export {ReasoningStrategy} from './reasoner/StrategyInterface.js';
+export {SystemContext} from './reasoner/SystemContext.js';
