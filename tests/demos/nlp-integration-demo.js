@@ -2,6 +2,9 @@
 // Description: Shows the integration of Natural Language Processing (NLP) for parsing natural language input into Narsese.
 
 import {runSystem} from '../../utils/runner.js';
+import { SystemCommands } from '../../core/system/SystemCommands.js';
+import { createTestSystem } from '../test-helpers.js';
+import Task from '../../core/core/Task.js';
 
 /**
  * A unified demo that demonstrates NLP integration capabilities.
@@ -20,21 +23,34 @@ async function nlpIntegrationDemo(options = {}) {
         "Find out why the sky is blue."
     ];
 
-    const taskDefs = []; // Will be populated by the preCycleCallback
+    const { system, commandBus } = createTestSystem();
+
+    commandBus.request.mockImplementation(async (command, payload) => {
+        if (command === SystemCommands.LM_NLP_PARSE) {
+            // Return a mock task for the demo to process
+            return [new Task(`<${payload.replace(/\s/g, '_')}>.`)];
+        }
+        if (command === SystemCommands.MEMORY_GET_ALL_TASKS) {
+            return system.memory.getAllTasks();
+        }
+        return null;
+    });
+
 
     const defaultOptions = {
         cycleCount: 2,
-        preCycleCallback: async (system) => {
+        preCycleCallback: async (sys) => {
             console.log("Processing natural language inputs...");
             for (const nl of naturalLanguageInputs) {
-                const tasks = await system.lm.nlp.parse(nl);
-                taskDefs.push(...tasks);
+                const tasks = await sys.commandBus.request(SystemCommands.LM_NLP_PARSE, nl);
+                if (tasks) {
+                    await sys.addTasks(tasks);
+                }
             }
-            console.log("Converted natural language to tasks:", taskDefs.map(t => t.termKey));
         },
-        postCycleCallback: async (system) => {
+        postCycleCallback: async (sys) => {
             console.log("\nVerifying that NLP-derived tasks are in memory...");
-            const tasks = await system.introspection.queryTasks({});
+            const tasks = await sys.introspection.queryTasks({});
             const nlpTask = tasks.find(t => t.termKey.includes('bird') && t.termKey.includes('animal'));
             if (nlpTask) {
                 console.log("Found task derived from 'A bird is an animal.'");
@@ -45,10 +61,10 @@ async function nlpIntegrationDemo(options = {}) {
     };
 
     // Merge options with defaults
-    const mergedOptions = {...defaultOptions, ...options};
+    const mergedOptions = {...defaultOptions, ...options, system};
 
     // Run the demo using the shared utility
-    return await runSystem('NLP Integration Demo', taskDefs, mergedOptions);
+    return await runSystem('NLP Integration Demo', [], mergedOptions);
 }
 
 export default nlpIntegrationDemo;

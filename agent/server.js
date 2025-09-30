@@ -5,6 +5,8 @@ import {exec as childExec} from 'child_process';
 import {promisify} from 'util';
 import {Agent} from './index.js';
 import {debug as coreDebug, error as coreError, info as coreInfo, warn as coreWarn} from '../core/utils/logger.js';
+import { SystemCommands } from '../core/system/SystemCommands.js';
+import Task from '../core/core/Task.js';
 
 const exec = promisify(childExec);
 
@@ -74,37 +76,40 @@ const createCompositeFilter = (...filters) => (task) => {
     return true;
 };
 
-const getSystemStats = () => {
-    let systemStats = {
-        cycleCount: 0,
-        memoryUsage: 0,
-        cpuUsage: 0,
-        temperature: 0,
-        beliefs: 0,
-        goals: 0,
-        questions: 0,
-        tasks: 0
-    };
-
-    if (agent.system && agent.system.memory) {
-        // Get memory statistics
-        const memoryStats = agent.system.memory.getStatistics();
-        systemStats = {
-            ...systemStats,
-            memoryUsage: memoryStats.terms + memoryStats.shortTermTasks + memoryStats.longTermTasks,
-            beliefs: agent.getBeliefs().length,
-            goals: agent.getGoals().length,
-            questions: agent.getQuestions().length,
-            tasks: agent.getAllTasks().length
+const getSystemStats = async () => {
+    if (!agent.system || !agent.system.commandBus) {
+        serverWarn('Cannot get system stats, command bus not available.');
+        return {
+            cycleCount: 0,
+            memoryUsage: 0,
+            cpuUsage: 0,
+            temperature: 0,
+            beliefs: 0,
+            goals: 0,
+            questions: 0,
+            tasks: 0
         };
     }
-
-    // Get system cycle count if available
-    if (agent.system && agent.system.cycleCount !== undefined) {
-        systemStats.cycleCount = agent.system.cycleCount;
+    try {
+        const stats = await agent.system.commandBus.request(SystemCommands.SYSTEM_GET_STATS);
+        return {
+            ...stats,
+            cpuUsage: 0, // Not implemented yet
+            temperature: 0, // Not implemented yet
+        };
+    } catch (error) {
+        serverError('Failed to get system stats via command:', error);
+        return {
+            cycleCount: 0,
+            memoryUsage: 0,
+            cpuUsage: 0,
+            temperature: 0,
+            beliefs: 0,
+            goals: 0,
+            questions: 0,
+            tasks: 0
+        };
     }
-
-    return systemStats;
 };
 
 const wss = new WebSocketServer({port: 8080});
@@ -183,11 +188,11 @@ agent.initialize().then(() => {
             broadcast({type: 'memory_update', payload: changes});
         });
 
-        const systemStatsInterval = setInterval(() => {
+        const systemStatsInterval = setInterval(async () => {
             try {
                 broadcast({
                     type: 'system_stats',
-                    payload: getSystemStats()
+                    payload: await getSystemStats()
                 });
             } catch (error) {
                 serverError('Error broadcasting system stats:', error);
@@ -363,57 +368,62 @@ async function handleMessage(message, ws) {
 
         case 'narsese': {
             const narseseInput = payload;
-            broadcast({type: 'log', payload: {source: 'user', message: narseseInput}});
+            broadcast({ type: 'log', payload: { source: 'user', message: narseseInput } });
 
-            const plan = await agent.createPlan(narseseInput);
-
-            if (plan && plan.steps.length > 0) {
-                const planSteps = plan.steps.map(s => s.toString());
-                broadcast({type: 'planCreated', payload: {goal: narseseInput, plan: planSteps}});
-                broadcast({
-                    type: 'log',
-                    payload: {source: 'agent', message: `Plan created for "${narseseInput}": ${planSteps.join(' -> ')}`}
-                });
+            if (agent.system && agent.system.commandBus) {
+                try {
+                    await agent.system.commandBus.request(SystemCommands.PROCESS_RAW_INPUT, {
+                        modality: 'narsese',
+                        input: narseseInput,
+                    });
+                    // Optional: Add a confirmation message if needed
+                    // broadcast({ type: 'log', payload: { source: 'system', message: 'Input processed.' } });
+                } catch (error) {
+                    serverError('Failed to process Narsese input:', error);
+                    ws.send(JSON.stringify({ type: 'error', payload: { message: `Failed to process input: ${error.message}` } }));
+                }
             } else {
-                broadcast({
-                    type: 'log',
-                    payload: {source: 'agent', message: `Could not create a plan for "${narseseInput}".`}
-                });
+                serverWarn('CommandBus not available. Cannot process Narsese input.');
             }
             break;
         }
 
         case 'agentControl': {
-            const commands = {
-                start: () => {
-                    agent.start();
-                    broadcast({type: 'log', payload: {source: 'system', message: 'Agent cycling started.'}});
-                },
-                stop: () => {
-                    agent.stop();
-                    broadcast({type: 'log', payload: {source: 'system', message: 'Agent cycling stopped.'}});
-                },
-                reset: async () => {
-                    await agent.reset();
-                    broadcast({type: 'log', payload: {source: 'system', message: 'Agent reset.'}});
-                }
+            if (!agent.system || !agent.system.commandBus) {
+                serverWarn('CommandBus not available. Cannot process agent control command.');
+                break;
+            }
+
+            const { command, maxCycles } = payload;
+            const commandMap = {
+                start: SystemCommands.SYSTEM_START_CYCLING,
+                stop: SystemCommands.SYSTEM_STOP_CYCLING,
+                reset: SystemCommands.SYSTEM_RESET,
             };
 
-            const command = commands[payload.command];
-            if (command) await command();
+            const systemCommand = commandMap[command];
+            if (systemCommand) {
+                try {
+                    broadcast({ type: 'log', payload: { source: 'system', message: `Agent command received: ${command}` } });
+                    await agent.system.commandBus.request(systemCommand, { maxCycles });
+                } catch (error) {
+                    serverError(`Failed to execute agent control command '${command}':`, error);
+                    ws.send(JSON.stringify({ type: 'error', payload: { message: `Failed to execute command: ${error.message}` } }));
+                }
+            } else {
+                serverWarn(`Unknown agent control command: ${command}`);
+            }
             break;
         }
 
         case 'get_tasks': {
             // Return the current tasks from the agent's memory
             try {
-                // Use agent's methods to get tasks
-                const beliefs = agent.getBeliefs();
-                const goals = agent.getGoals();
-                const questions = agent.getQuestions();
+                if (!agent.system || !agent.system.commandBus) {
+                    return ws.send(JSON.stringify({ type: 'error', payload: { message: 'CommandBus not available.' } }));
+                }
 
-                // Combine all tasks
-                const allTasks = [...beliefs, ...goals, ...questions];
+                const allTasks = await agent.system.commandBus.request(SystemCommands.MEMORY_GET_ALL_TASKS);
 
                 // Apply filters if provided
                 const {filter, priority} = payload;
@@ -456,23 +466,16 @@ async function handleMessage(message, ws) {
 
                 switch (action) {
                     case 'execute':
-                        // Execute a specific task
-                        if (agent.system && agent.system.actionExecutor) {
-                            // If task is a string (term key), create it
-                            let taskToExecute = task;
-                            if (typeof task === 'string') {
-                                const parsedTerm = await agent.system.parseTerm(task);
-                                taskToExecute = new agent.system.Task(parsedTerm, '!');
-                            }
-
-                            if (taskToExecute) {
-                                await agent.system.actionExecutor.execute(taskToExecute);
-                                broadcast({
-                                    type: 'task_execution_result',
-                                    payload: {taskId, status: 'executed', task: taskToExecute}
-                                });
-                            }
+                        if (!agent.system || !agent.system.commandBus) {
+                            return ws.send(JSON.stringify({ type: 'error', payload: { message: 'CommandBus not available.' } }));
                         }
+                        // The core system should be responsible for creating the task.
+                        // We just pass the raw data.
+                        await agent.system.commandBus.request(SystemCommands.EXECUTE_ACTION, task);
+                        broadcast({
+                            type: 'task_execution_result',
+                            payload: {taskId, status: 'executed', task: task}
+                        });
                         break;
 
                     case 'pause':
@@ -502,35 +505,31 @@ async function handleMessage(message, ws) {
 
         case 'add_task': {
             try {
-                const {taskData} = payload;
-
-                if (agent.system && taskData) {
-                    // Create a new task and add it to the system
-                    const parsedTerm = await agent.system.parseTerm(taskData.statement || taskData.termKey);
-                    if (parsedTerm) {
-                        const task = new agent.system.Task(parsedTerm, taskData.punctuation || '!', {
-                            priority: taskData.priority || 0.5,
-                            truthValue: taskData.truthValue || {frequency: 0.5, confidence: 0.5}
-                        });
-
-                        // Add the task to the appropriate memory based on punctuation
-                        if (agent.system.memory) {
-                            // Add task to memory - we'll add to the tasks list using the memory interface
-                            agent.system.memory.addTasks([task]);
-
-                            // Emit event so UI can be updated
-                            broadcast({
-                                type: 'task_added',
-                                payload: {task: task.toString(), id: task.id}
-                            });
-                        }
-                    }
+                const { taskData } = payload;
+                if (!agent.system || !agent.system.commandBus) {
+                    return ws.send(JSON.stringify({ type: 'error', payload: { message: 'CommandBus not available.' } }));
                 }
+
+                const task = new Task(
+                    taskData.statement || taskData.termKey,
+                    taskData.punctuation || '!',
+                    {
+                        priority: taskData.priority || 0.5,
+                        truthValue: taskData.truthValue || { frequency: 0.5, confidence: 0.5 }
+                    }
+                );
+
+                await agent.system.commandBus.request(SystemCommands.SYSTEM_ADD_TASKS, [task]);
+                broadcast({
+                    type: 'task_added',
+                    payload: { task: task.toString(), id: task.id }
+                });
+
             } catch (error) {
                 serverError('Failed to add task:', error);
                 ws.send(JSON.stringify({
                     type: 'error',
-                    payload: {message: `Failed to add task: ${error.message}`}
+                    payload: { message: `Failed to add task: ${error.message}` }
                 }));
             }
             break;
@@ -548,30 +547,26 @@ async function handleMessage(message, ws) {
                     return;
                 }
 
-                let results = [];
-
-                if (agent.system && agent.system.memory) {
-                    // Search in beliefs, goals, and questions based on scope
-                    const searchInTasks = (tasks, taskType) => {
-                        if (!tasks) return [];
-
-                        const normalizedQuery = query.toLowerCase();
-                        return tasks
-                            .filter(task => task.termKey && task.termKey.toLowerCase().includes(normalizedQuery))
-                            .slice(0, limit || 50)
-                            .map(task => ({...task, type: taskType}));
-                    };
-
-                    if (!scope || scope === 'all' || scope === 'beliefs') {
-                        results = results.concat(searchInTasks(agent.getBeliefs(), 'belief'));
-                    }
-                    if (!scope || scope === 'all' || scope === 'goals') {
-                        results = results.concat(searchInTasks(agent.getGoals(), 'goal'));
-                    }
-                    if (!scope || scope === 'all' || scope === 'questions') {
-                        results = results.concat(searchInTasks(agent.getQuestions(), 'question'));
-                    }
+                if (!agent.system || !agent.system.commandBus) {
+                    return ws.send(JSON.stringify({ type: 'error', payload: { message: 'CommandBus not available.' } }));
                 }
+
+                const allTasks = await agent.system.commandBus.request(SystemCommands.MEMORY_GET_ALL_TASKS);
+                const normalizedQuery = query.toLowerCase();
+
+                const scopeFilter = (task) => {
+                    if (!scope || scope === 'all') return true;
+                    if (scope === 'beliefs') return task.punctuation === '.';
+                    if (scope === 'goals') return task.punctuation === '!';
+                    if (scope === 'questions') return task.punctuation === '?';
+                    return false;
+                };
+
+                const results = allTasks
+                    .filter(task => task.termKey && task.termKey.toLowerCase().includes(normalizedQuery))
+                    .filter(scopeFilter)
+                    .slice(0, limit || 50);
+
 
                 ws.send(JSON.stringify({
                     type: 'search_results',
@@ -589,7 +584,7 @@ async function handleMessage(message, ws) {
 
         case 'get_system_stats': {
             try {
-                const systemStats = getSystemStats();
+                const systemStats = await getSystemStats();
                 ws.send(JSON.stringify({
                     type: 'system_stats',
                     payload: systemStats

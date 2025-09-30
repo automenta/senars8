@@ -15,6 +15,8 @@ import {debug, info, warn} from '../utils/logger.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import {suppressOnnxWarnings} from '../utils/onnxSuppression.js';
 import {configService} from '../config/index.js';
+import { SystemCommands } from '../system/SystemCommands.js';
+import { SystemEvents } from '../system/SystemEvents.js';
 
 suppressOnnxWarnings();
 
@@ -27,8 +29,10 @@ const PIPELINE_TYPES = {
 };
 
 class LM {
-    constructor(_configManager) {
+    constructor(_configManager, commandBus, eventBus) {
         this.config = configService;
+        this.commandBus = commandBus;
+        this.eventBus = eventBus;
         this._pipelineFactory = PipelineFactory;
         this._llm = null;
         this._reasoner = null;
@@ -46,6 +50,18 @@ class LM {
         this._activeEmbeddingJobs = 0;
 
         info('LM initialized');
+
+        // Register command handlers
+        this.commandBus.handle(SystemCommands.LM_BOOTSTRAP_TERM, ({ termKey, options }) => this.bootstrapTerm(termKey, options));
+        this.commandBus.handle(SystemCommands.LM_ENRICH_TERM, (task) => this.proactiveEnrichment([task]));
+        this.commandBus.handle(SystemCommands.LM_NLP_PARSE, (payload) => this.nlp.parse(payload));
+        this.commandBus.handle(SystemCommands.LM_GENERATE_HYPOTHESES, (payload) => this.generateHypotheses(payload.tasks, payload.options));
+        this.commandBus.handle(SystemCommands.LM_EXPLAIN, (payload) => this.explain(payload.termKey, payload.options));
+        this.commandBus.handle(SystemCommands.LM_EVALUATE_AND_RANK_HYPOTHESES, (payload) => this.evaluateAndRankHypotheses(payload.tasks, payload.hypotheses));
+
+        // Register event listeners
+        this.eventBus.on(SystemEvents.SYSTEM_START, () => this.startEmbeddingProcessor());
+        this.eventBus.on(SystemEvents.SYSTEM_STOP, () => this.stopEmbeddingProcessor());
     }
 
     startEmbeddingProcessor() {

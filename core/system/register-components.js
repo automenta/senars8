@@ -34,10 +34,10 @@ const registerComponents = (container, configManager) => {
     container.register('memory', Memory, ['configManager', 'eventBus', 'commandBus'], singleton);
     container.register('truthValueManager', TruthValueManager, [], singleton);
     container.register('strategyRegistry', StrategyRegistry, [], singleton);
-    container.register('lm', LM, ['configManager'], singleton);
+    container.register('lm', LM, ['configManager', 'commandBus', 'eventBus'], singleton);
 
     // Components that depend on the foundational ones
-    container.register('taskFactory', TaskFactory, ['memory', 'lm', 'eventBus'], singleton);
+    container.register('taskFactory', TaskFactory, ['memory', 'lm', 'eventBus', 'commandBus'], singleton);
     container.register('temporalReasoner', TemporalReasoner, ['configManager'], singleton);
     container.register('actionExecutor', ActionExecutor, ['memory', 'configManager', 'eventBus', 'commandBus'], singleton);
     container.register('perception', Perception, ['memory', 'taskFactory', 'eventBus', 'commandBus'], singleton);
@@ -52,11 +52,11 @@ const registerComponents = (container, configManager) => {
 
     // The main cycle and system, which depend on almost everything else
     container.register('cycle', Cycle, [
-        'configManager', 'memory', 'reasoner', 'lm', 'actionExecutor', 'perception',
+        'configManager', 'memory', 'reasoner', 'lm', 'perception',
         'planner', 'metaCognition', 'temporalReasoner', 'priorityManager', 'eventBus', 'commandBus'
     ], singleton);
     container.register('system', System, [
-        'configManager', 'memory', 'reasoner', 'lm', 'actionExecutor', 'cycle',
+        'configManager', 'memory', 'reasoner', 'actionExecutor', 'cycle',
         'planner', 'metaCognition', 'perception', 'eventBus', 'commandBus'
     ], singleton);
 };

@@ -2,6 +2,8 @@ import {beforeEach, describe, expect, test, vi} from 'vitest';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import CONSTITUTION_TASKS from '../../core/system/Constitution.js';
+import { createTestSystem } from '../test-helpers.js';
+import { SystemCommands } from '../../core/system/SystemCommands.js';
 
 vi.mock('@xenova/transformers', () => ({
     pipeline: vi.fn(async () =>
@@ -15,13 +17,11 @@ vi.mock('@xenova/transformers', () => ({
     },
 }));
 
-const {default: SystemFactory} = await import('../../core/system/SystemFactory.js');
-
 describe('Cycle Integration Test', () => {
-    let system, memory, cycle;
+    let system, memory, cycle, commandBus;
 
     beforeEach(() => {
-        system = SystemFactory.createSystem({
+        const testSystem = createTestSystem({
             reasoner: {
                 strategy: 'BruteForce'
             },
@@ -29,15 +29,34 @@ describe('Cycle Integration Test', () => {
                 strategy: 'HTN'
             }
         });
+        system = testSystem.system;
         memory = system.memory;
         cycle = system.cycle;
-        const lm = system.lm;
+        commandBus = testSystem.commandBus;
 
-        // Mock LM methods
-        vi.spyOn(lm, 'generateHypotheses').mockResolvedValue([]);
-        vi.spyOn(lm, 'evaluateAndRankHypotheses').mockImplementation(async (_, hypotheses) => hypotheses);
-        vi.spyOn(lm, 'bootstrapTerm').mockImplementation(async termKey => new Term(termKey, [], 1));
-        vi.spyOn(lm, 'proactiveEnrichment').mockResolvedValue([]);
+        // Mock commandBus requests for LM commands
+        commandBus.request.mockImplementation(async (command, payload) => {
+            if (command === SystemCommands.LM_GENERATE_HYPOTHESES) {
+                return [];
+            }
+            if (command === SystemCommands.LM_EVALUATE_AND_RANK_HYPOTHESES) {
+                return payload.hypotheses;
+            }
+            if (command === SystemCommands.LM_BOOTSTRAP_TERM) {
+                return new Term(payload.termKey, [], 1);
+            }
+            if (command === SystemCommands.LM_ENRICH_TERM) {
+                return [];
+            }
+            if (command === SystemCommands.MEMORY_GET_ALL_TASKS) {
+                return memory.getAllTasks(); // Call the real memory method
+            }
+            if (command === SystemCommands.MEMORY_GET_TERM) {
+                return memory.getTerm(payload); // Call the real memory method
+            }
+            // Let other commands pass through or return null
+            return null;
+        });
     });
 
     test('should run a cycle without errors', async () => {

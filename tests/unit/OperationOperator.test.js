@@ -1,34 +1,8 @@
 import {beforeEach, describe, expect, it} from 'vitest';
 import Tools from '../../core/lm/Tools.js';
 import NarseseTranslator from '../../core/utils/NarseseTranslator.js';
-import ActionExecutor from '../../core/system/ActionExecutor.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
-
-// Mock objects for testing
-const mockMemory = {
-    getAllTasks: () => [],
-    addTask: () => {
-    }
-};
-
-const mockConfigManager = {
-    get: (path, defaultValue) => defaultValue,
-    getNumber: (path, defaultValue) => defaultValue,
-    getString: (path, defaultValue) => defaultValue,
-    getBoolean: (path, defaultValue) => defaultValue,
-    getObject: (path, defaultValue) => defaultValue,
-    getArray: (path, defaultValue) => defaultValue,
-    getAll: () => ({})
-};
-
-const mockEventBus = {
-    emit: () => {
-    },
-    on: () => {
-    },
-    off: () => {
-    }
-};
+import { createTestSystem } from '../test-helpers.js';
 
 describe('Operation Operator (^) Integration', () => {
     let tools;
@@ -36,9 +10,10 @@ describe('Operation Operator (^) Integration', () => {
     let actionExecutor;
 
     beforeEach(() => {
-        tools = new Tools();
+        const { system } = createTestSystem();
+        actionExecutor = system.actionExecutor;
+        tools = actionExecutor.getTools();
         translator = new NarseseTranslator();
-        actionExecutor = new ActionExecutor(mockMemory, mockConfigManager, mockEventBus);
     });
 
     it('should properly register and execute a native tool', async () => {
@@ -115,14 +90,7 @@ describe('Operation Operator (^) Integration', () => {
 
         // Execute with operationTerm
         const action = {
-            operationTerm: {
-                type: 'Operation',
-                subject: {type: 'Atomic', key: 'move'},
-                predicate: {
-                    type: 'Product',
-                    terms: [{type: 'Atomic', key: 'north'}]
-                }
-            }
+            operationTerm: parseTerm('move(north)')
         };
 
         const result = await actionExecutor.executeAction(action);
@@ -193,7 +161,6 @@ describe('Operation Operator (^) Integration', () => {
         });
 
         // Parse and execute a complex operation
-        const parsedTerm = parseTerm('complex_operation(value1, value2, value3)');
         const result = await actionExecutor.executeNarseseOperation('complex_operation(value1, value2, value3)');
 
         expect(result.result.operation).toBe('complex_operation');

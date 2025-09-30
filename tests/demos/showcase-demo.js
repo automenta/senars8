@@ -3,6 +3,7 @@
 
 import {runSystem} from '../../utils/runner.js';
 import {info} from '../../common/services/Logger.js';
+import { SystemCommands } from '../../core/system/SystemCommands.js';
 
 /**
  * A unified showcase demo that demonstrates core system capabilities.
@@ -84,7 +85,7 @@ async function showcaseDemo(options = {}) {
             preCycleCallback: async (system) => {
                 const nl = "A car is a vehicle.";
                 info(`Parsing natural language: "${nl}"`);
-                const parsed = await system.lm.nlp.parse(nl);
+                const parsed = await system.commandBus.request(SystemCommands.LM_NLP_PARSE, nl);
                 system.addTasks(parsed);
             },
             postCycleCallback: (system) => {

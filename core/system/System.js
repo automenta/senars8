@@ -12,7 +12,6 @@ class System {
         configManager,
         memory,
         reasoner,
-        lm,
         actionExecutor,
         cycle,
         planner,
@@ -26,7 +25,6 @@ class System {
         this.commandBus = commandBus;
         this.memory = memory; // Direct access for now, to be phased out
         this.reasoner = reasoner;
-        this.lm = lm;
         this.actionExecutor = actionExecutor;
         this.cycle = cycle;
         this.planner = planner;
@@ -38,7 +36,33 @@ class System {
         this.constitutionTasks = [];
 
         registerDefaultActions(this.actionExecutor);
+
+        // Register command handlers to control the system
+        this.commandBus.handle(SystemCommands.SYSTEM_START_CYCLING, (payload) => this.start(payload?.maxCycles));
+        this.commandBus.handle(SystemCommands.SYSTEM_STOP_CYCLING, () => this.stop());
+        this.commandBus.handle(SystemCommands.SYSTEM_RESET, () => this.reset());
+        this.commandBus.handle(SystemCommands.SYSTEM_ADD_TASKS, (tasks) => this.addTasks(tasks));
+        this.commandBus.handle(SystemCommands.SYSTEM_GET_STATS, () => this.getStats());
+
         info('System components created and initialized.');
+    }
+
+    async getStats() {
+        const memoryStats = await this.commandBus.request(SystemCommands.MEMORY_GET_STATS);
+        const allTasks = await this.commandBus.request(SystemCommands.MEMORY_GET_ALL_TASKS);
+
+        const beliefs = allTasks.filter(t => t.punctuation === '.').length;
+        const goals = allTasks.filter(t => t.punctuation === '!').length;
+        const questions = allTasks.filter(t => t.punctuation === '?').length;
+
+        return {
+            cycleCount: this.cycleCount,
+            memoryUsage: memoryStats.terms + memoryStats.shortTermTasks + memoryStats.longTermTasks,
+            beliefs,
+            goals,
+            questions,
+            tasks: allTasks.length,
+        };
     }
 
     async initialize(constitutionTasks) {
@@ -66,7 +90,9 @@ class System {
             if (!newTermKeys.length) return;
 
             debug(`Bootstrapping ${newTermKeys.length} new terms...`);
-            const newTerms = (await Promise.all(newTermKeys.map(key => this.lm.bootstrapTerm(key, options)))).filter(Boolean);
+            const newTerms = (await Promise.all(
+                newTermKeys.map(key => this.commandBus.request(SystemCommands.LM_BOOTSTRAP_TERM, { termKey: key, options }))
+            )).filter(Boolean);
 
             await this.eventBus.emitAsync(SystemEvents.TERM_ADD, newTerms);
             info(`Successfully bootstrapped ${newTerms.length} terms.`);
@@ -93,7 +119,6 @@ class System {
             info(`Starting system with maxCycles=${maxCycles === 0 ? 'infinite' : maxCycles}`);
             this.isRunning = true;
             this.cycleCount = 0;
-            this.lm.startEmbeddingProcessor();
             this.eventBus.emit(SystemEvents.SYSTEM_START);
 
             while (this.isRunning && (maxCycles === 0 || this.cycleCount < maxCycles)) {
@@ -120,7 +145,6 @@ class System {
         errorHandler.executeSync(() => {
             if (!this.isRunning) return;
             this.isRunning = false;
-            this.lm.stopEmbeddingProcessor();
             this.eventBus.emit(SystemEvents.SYSTEM_STOP);
             info(`System stopped after ${this.cycleCount} cycles.`);
         }, 'stop');

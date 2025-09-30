@@ -6,14 +6,16 @@ import Tools from '../lm/Tools.js';
 import NarseseTranslator from '../utils/NarseseTranslator.js';
 import {OP} from '../config/constants.js';
 import {parseTerm} from '../parser/narseseParser.js';
+import { SystemCommands } from './SystemCommands.js';
 
 const errorHandler = createUnifiedErrorHandler('ActionExecutor');
 
 class ActionExecutor {
-    constructor(memory, configManager, eventBus) {
+    constructor(memory, configManager, eventBus, commandBus) {
         this.memory = memory;
         this.config = createConfigAccessor(configManager, 'ACTION_EXECUTOR');
         this.eventBus = eventBus;
+        this.commandBus = commandBus;
         this.actionHandlers = new Map();
         this.resources = new Map();
         this.constraints = new Map();
@@ -26,6 +28,8 @@ class ActionExecutor {
 
         this._initializeResources();
         this._initializeConstraints();
+
+        this.commandBus.handle(SystemCommands.EXECUTE_ACTION, (action) => this.executeAction(action));
     }
 
     _initializeResources() {

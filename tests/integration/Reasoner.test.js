@@ -2,6 +2,8 @@ import {beforeEach, describe, expect, test, vi} from 'vitest';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
+import { createTestSystem } from '../test-helpers.js';
+import { SystemCommands } from '../../core/system/SystemCommands.js';
 
 vi.mock('@xenova/transformers', () => ({
     pipeline: vi.fn(async () =>
@@ -12,32 +14,37 @@ vi.mock('@xenova/transformers', () => ({
     env: {},
 }));
 
-const {default: SystemFactory} = await import('../../core/system/SystemFactory.js');
-
-const createTerm = async (lm, memory, termKey) => {
-    const term = await lm.bootstrapTerm(termKey);
+const createTerm = async (commandBus, memory, termKey) => {
+    const term = await commandBus.request(SystemCommands.LM_BOOTSTRAP_TERM, { termKey });
     memory.addTerm(term);
     return term;
 };
 
 describe('Reasoner Integration Test', () => {
-    let system, reasoner, memory, lm;
+    let system, reasoner, memory, commandBus;
 
     beforeEach(() => {
-        system = SystemFactory.createSystem({
+        const testSystem = createTestSystem({
             reasoner: {
                 strategy: 'BruteForce'
             }
         });
+        system = testSystem.system;
         reasoner = system.reasoner;
         memory = system.memory;
-        lm = system.lm;
-        vi.spyOn(lm, 'bootstrapTerm').mockImplementation(async termKey => new Term(termKey, [], 1));
+        commandBus = testSystem.commandBus;
+
+        commandBus.request.mockImplementation(async (command, payload) => {
+            if (command === SystemCommands.LM_BOOTSTRAP_TERM) {
+                return new Term(payload.termKey, [], 1);
+            }
+            return null;
+        });
     });
 
     test('should perform modus ponens', async () => {
-        const termA = await createTerm(lm, memory, 'cat');
-        await createTerm(lm, memory, 'mammal');
+        const termA = await createTerm(commandBus, memory, 'cat');
+        await createTerm(commandBus, memory, 'mammal');
         const task1 = new Task(parseTerm('(cat ==> mammal)'), '.');
         const task2 = new Task(termA, '.');
 
@@ -46,9 +53,9 @@ describe('Reasoner Integration Test', () => {
     });
 
     test('should perform inheritance chaining', async () => {
-        await createTerm(lm, memory, 'cat');
-        await createTerm(lm, memory, 'mammal');
-        await createTerm(lm, memory, 'animal');
+        await createTerm(commandBus, memory, 'cat');
+        await createTerm(commandBus, memory, 'mammal');
+        await createTerm(commandBus, memory, 'animal');
         const task1 = new Task(parseTerm('(cat --> mammal)'), '.');
         const task2 = new Task(parseTerm('(mammal --> animal)'), '.');
 

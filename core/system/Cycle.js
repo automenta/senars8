@@ -13,7 +13,6 @@ class Cycle {
         memory,
         reasoner,
         lm,
-        actionExecutor,
         perception,
         planner,
         metaCognition,
@@ -26,7 +25,6 @@ class Cycle {
         this.memory = memory; // Kept for now for direct access if needed, but prefer commands/events
         this.reasoner = reasoner; // Kept for now
         this.lm = lm;
-        this.actionExecutor = actionExecutor;
         this.perception = perception;
         this.planner = planner;
         this.metaCognition = metaCognition;
@@ -99,12 +97,17 @@ class Cycle {
     }
 
     async _executeActions(actionableGoals) {
-        if (!this.actionExecutor || !actionableGoals || !actionableGoals.length) {
+        if (!actionableGoals || !actionableGoals.length) {
             return;
         }
-        actionableGoals.forEach(goal => {
-            debug(`Execute action for goal: ${goal.termKey}`);
-        });
+        for (const goal of actionableGoals) {
+            try {
+                debug(`Requesting execution for goal: ${goal.termKey}`);
+                await this.commandBus.request(SystemCommands.EXECUTE_ACTION, goal);
+            } catch (error) {
+                errorHandler.handle(error, `_executeActions for goal ${goal.termKey}`);
+            }
+        }
     }
 
     async _learnFromExperience(derivedTasks) {
