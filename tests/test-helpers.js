@@ -88,3 +88,86 @@ export const createTestSystem = (userConfig = {}) => {
         container,
     };
 };
+
+/**
+ * Common assertion for testing if an object is a valid task
+ * @param {Object} task - The task to validate
+ * @param {string} expectedTermKey - Expected term key
+ * @param {string} expectedPunctuation - Expected punctuation
+ * @param {Object} expectedTruth - Expected truth values
+ */
+export const assertTask = (task, expectedTermKey, expectedPunctuation, expectedTruth = null) => {
+  expect(task).toBeDefined();
+  expect(task.termKey).toBe(expectedTermKey);
+  expect(task.punctuation).toBe(expectedPunctuation);
+  if (expectedTruth) {
+    expect(task.state.truthValue.frequency).toBeCloseTo(expectedTruth.frequency, 3);
+    expect(task.state.truthValue.confidence).toBeCloseTo(expectedTruth.confidence, 3);
+  }
+};
+
+/**
+ * Common truth value validation helper
+ * @param {Object} actual - Actual truth value object
+ * @param {number} expectedFreq - Expected frequency
+ * @param {number} expectedConf - Expected confidence
+ */
+export const expectTruthValue = (actual, expectedFreq, expectedConf) => {
+  expect(actual.frequency).toBeCloseTo(expectedFreq, 3);
+  expect(actual.confidence).toBeCloseTo(expectedConf, 3);
+};
+
+/**
+ * Common setup for tests that need basic mocking and utilities
+ * @param {object} config - Configuration for the test system
+ * @returns {object} Object with system and common test utilities
+ */
+export const setupTestEnvironment = (config = {}) => {
+  const testSystem = createTestSystem(config);
+  return {
+    ...testSystem,
+    expectTruthValue,
+    assertTask
+  };
+};
+
+/**
+ * Helper to create a basic task definition for testing
+ * @param {string} sentence - The Narsese sentence
+ * @param {string} punctuation - The punctuation mark
+ * @param {Array} truth - Truth values as [frequency, confidence]
+ * @returns {object} Task definition object
+ */
+export const createTaskDef = (sentence, punctuation = '.', truth = [1.0, 0.9]) => {
+  return {
+    sentence,
+    punctuation,
+    truth
+  };
+};
+
+/**
+ * Creates a set of common test assertions and helpers
+ * @returns {object} Object with common test helpers
+ */
+export const getCommonTestHelpers = () => {
+  return {
+    expectTruthValue,
+    assertTask,
+    createTaskDef
+  };
+};
+
+/**
+ * Helper for creating test configuration with common settings
+ * @param {object} overrides - Configuration overrides
+ * @returns {object} Test configuration
+ */
+export const createTestConfig = (overrides = {}) => {
+  return {
+    reasoner: {
+      strategy: 'BruteForce'
+    },
+    ...overrides
+  };
+};
