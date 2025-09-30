@@ -1,6 +1,6 @@
 # SeNARS TUI (Text User Interface)
 
-The SeNARS TUI is a terminal-based interface for the Self-Evolving Neuromorphic-Adaptive Reasoning System. It provides a
+The SeNARS TUI is a terminal-based interface for SeNARS. It provides a
 lightweight, efficient way to interact with NARS agents directly from the command line.
 
 ## Features

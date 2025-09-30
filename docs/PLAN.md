@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides the comprehensive plan for SeNARS (Self-Evolving Neuromorphic-Adaptive Reasoning System) as a
+This document provides the comprehensive plan for SeNARS as a
 turnkey autonomous entity that self-improves with optional user cooperation. The system is designed for general-purpose
 cognitive tasks across any domain.
 

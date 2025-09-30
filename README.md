@@ -1,18 +1,11 @@
-# senars8
-
-SeNARS (Self-Evolving Neuromorphic-Adaptive Reasoning System)
-
-## Overview
-
-SeNARS is a Self-Evolving Neuromorphic-Adaptive Reasoning System implementing the Non-Axiomatic Reasoning System (NARS)
-framework. It provides both a Web UI and a Terminal UI for interacting with NARS agents.
+# SeNARS - Semantic Non-Axiomatic Reasoning System
 
 ## Project Structure
 
-- **Core Engine** (`core/`): The main reasoning engine and memory management
-- **Agent Service** (`agent/`): WebSocket server for UI communication
+- **Core** (`core/`): The main reasoning engine and memory management
+- **Cognitive Agent** (`agent/`): WebSocket server for UI communication
 - **Web UI** (`ui/`): Full-featured React-based interface
-- **TUI** (`tui/`): Lightweight terminal-based interface
+- **Text UI** (`tui/`): Lightweight terminal-based interface
 - **Common** (`common/`): Shared utilities and types across modules
 - **Utils** (`utils/`): Utility functions and helpers
 - **Tests** (`tests/`): Comprehensive test suite with unit, integration, and system tests
