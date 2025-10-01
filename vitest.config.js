@@ -18,7 +18,7 @@ export default defineConfig({
         globals: true,
         testTimeout: 300000,
         teardownTimeout: 300000,
-        setupFiles: ['./tests/setup.js'], // Global setup file
+        setupFiles: ['./tests/setup.js', './tests/setup-warnings.js'], // Global setup file
         projects: [
             {
                 name: 'core',

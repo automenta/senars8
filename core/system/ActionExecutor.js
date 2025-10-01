@@ -396,20 +396,15 @@ class ActionExecutor {
     _validateAction(action) {
         return errorHandler.executeSync(() => {
             if (!action) {
-                // Instead of throwing an error, log a warning and return false
-                logger.warn('Action cannot be null or undefined');
                 return false;
             }
             if (!action?.name && !action?.operationTerm) {
-                // Instead of throwing an error, log a warning and return false
-                logger.warn('Action name or operationTerm is required');
                 return false;
             }
             if (this.constraints.size === 0) return true;
 
             for (const [name, constraint] of this.constraints) {
                 if (typeof constraint === 'function' && !constraint(action)) {
-                    // Instead of throwing an error, log a warning and return false
                     logger.warn(`Action failed constraint: ${name}`);
                     return false;
                 }

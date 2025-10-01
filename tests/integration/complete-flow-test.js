@@ -6,7 +6,6 @@
 
 import {parseTerm} from '../../core/parser/narseseParser.js';
 import ActionExecutor from '../../core/system/ActionExecutor.js';
-import eventBus from '../../core/system/EventBus.js';
 
 // Mock memory and config for testing
 const mockMemory = {
@@ -28,8 +27,17 @@ async function runCompleteFlowTest() {
     console.log('🧪 Starting Complete Narsese Operation Flow Test...\n');
 
     try {
+        const mockCommandBus = {
+            handle: () => {
+            }
+        };
+        const mockEventBus = {
+            emit: () => {
+            }
+        };
+
         // Create action executor
-        const actionExecutor = new ActionExecutor(mockMemory, mockConfigManager, eventBus);
+        const actionExecutor = new ActionExecutor(mockMemory, mockConfigManager, mockEventBus, mockCommandBus);
 
         // Register a sample tool
         actionExecutor.registerTool('navigate', async (location, destination) => {
