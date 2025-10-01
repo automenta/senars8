@@ -1,10 +1,9 @@
-import { vi } from 'vitest';
+import {vi} from 'vitest';
 import Memory from '../../core/memory/Memory.js';
 import Task from '../../core/core/Task.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
 import ConfigManager from '../../core/config/ConfigManager.js';
 import configService from '../../core/config/ConfigService.js';
-import { createConsistentMock } from '../mock-builders.js';
 
 const createTestConfig = () => new ConfigManager({
     memory: {

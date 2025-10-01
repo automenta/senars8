@@ -95,10 +95,10 @@ export const createTestSystem = (userConfig = {}) => {
  * @returns {object} Object with system and common test utilities
  */
 export const setupTestEnvironment = (config = {}) => {
-  const testSystem = createTestSystem(config);
-  return {
-    ...testSystem
-  };
+    const testSystem = createTestSystem(config);
+    return {
+        ...testSystem
+    };
 };
 
 /**
@@ -109,11 +109,11 @@ export const setupTestEnvironment = (config = {}) => {
  * @returns {object} Task definition object
  */
 export const createTaskDef = (sentence, punctuation = '.', truth = [1.0, 0.9]) => {
-  return {
-    sentence,
-    punctuation,
-    truth
-  };
+    return {
+        sentence,
+        punctuation,
+        truth
+    };
 };
 
 /**
@@ -121,9 +121,9 @@ export const createTaskDef = (sentence, punctuation = '.', truth = [1.0, 0.9]) =
  * @returns {object} Object with common test helpers
  */
 export const getCommonTestHelpers = () => {
-  return {
-    createTaskDef
-  };
+    return {
+        createTaskDef
+    };
 };
 
 /**
@@ -132,10 +132,10 @@ export const getCommonTestHelpers = () => {
  * @returns {object} Test configuration
  */
 export const createTestConfig = (overrides = {}) => {
-  return {
-    reasoner: {
-      strategy: 'BruteForce'
-    },
-    ...overrides
-  };
+    return {
+        reasoner: {
+            strategy: 'BruteForce'
+        },
+        ...overrides
+    };
 };

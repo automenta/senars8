@@ -69,7 +69,7 @@ class Cycle {
         if (!focusSet) return [];
 
         focusSet.forEach(task => this.priorityManager?.updatePriority?.(task));
-        
+
         return focusSet;
     }
 

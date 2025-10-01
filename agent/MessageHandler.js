@@ -1,21 +1,21 @@
-import { serverDebug, serverError } from './utils/logger.js';
+import {serverDebug} from './utils/logger.js';
 import {
+    handleCreateDirectory,
+    handleCreateFile,
+    handleDeletePath,
     handleReadDirectory,
     handleReadFile,
-    handleWriteFile,
-    handleCreateFile,
-    handleCreateDirectory,
-    handleDeletePath,
-    handleRenamePath
+    handleRenamePath,
+    handleWriteFile
 } from './api/fileSystem.js';
-import { handleRunCommand } from './api/command.js';
+import {handleRunCommand} from './api/command.js';
 import {
-    handleNarsese,
+    handleAddTask,
     handleAgentControl,
     handleGetTasks,
-    handleTaskAction,
-    handleAddTask,
-    handleSearch
+    handleNarsese,
+    handleSearch,
+    handleTaskAction
 } from './api/agent.js';
 
 export const createMessageHandler = (agent, broadcast) => {
@@ -42,14 +42,14 @@ export const createMessageHandler = (agent, broadcast) => {
     };
 
     return async (message, ws) => {
-        const { type, payload } = message;
+        const {type, payload} = message;
         serverDebug(`received: ${type}`, payload);
 
         const handler = messageHandlers[type];
         if (handler) {
             await handler(payload, ws);
         } else {
-            ws.send(JSON.stringify({ type: 'error', payload: { message: `Unknown message type: ${type}` } }));
+            ws.send(JSON.stringify({type: 'error', payload: {message: `Unknown message type: ${type}`}}));
         }
     };
 };

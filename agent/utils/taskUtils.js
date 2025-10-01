@@ -8,7 +8,7 @@ export const formatTaskForBroadcast = (task) => ({
     termKey: task.termKey,
     punctuation: task.punctuation,
     priority: task.state?.priority || 0,
-    truthValue: task.state?.truthValue || { frequency: 0.5, confidence: 0.5 },
+    truthValue: task.state?.truthValue || {frequency: 0.5, confidence: 0.5},
     occurrenceTime: task.state?.occurrenceTime || null,
     creationTime: task.state?.stamp?.creationTime || Date.now()
 });

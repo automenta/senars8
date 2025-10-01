@@ -2,7 +2,7 @@ import {beforeEach, describe, expect, test, vi} from 'vitest';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import CONSTITUTION_TASKS from '../../core/system/Constitution.js';
-import {setupTestEnvironment, createTestConfig} from '../test-helpers.js';
+import {createTestConfig, setupTestEnvironment} from '../test-helpers.js';
 import {SystemCommands} from '../../core/system/SystemCommands.js';
 
 vi.mock('@xenova/transformers', () => ({

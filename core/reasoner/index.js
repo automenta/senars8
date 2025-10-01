@@ -7,8 +7,8 @@ import BruteForceStrategy from './strategies/BruteForceStrategy.js';
 import BasePlanner from './BasePlanner.js';
 import HTNPlanner from './HTNPlanner.js';
 import AStarPlanner from './AStarPlanner.js';
-import { ReasoningStrategy } from './StrategyInterface.js';
-import { SystemContext } from './SystemContext.js';
+import {ReasoningStrategy} from './StrategyInterface.js';
+import {SystemContext} from './SystemContext.js';
 
 // Export reasoner components
 export {

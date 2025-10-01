@@ -1,7 +1,7 @@
 import {beforeEach, describe, expect, it} from 'vitest';
 import NarseseTranslator from '../../core/utils/NarseseTranslator.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
-import {setupTestEnvironment, createTestConfig} from '../test-helpers.js';
+import {createTestConfig, setupTestEnvironment} from '../test-helpers.js';
 
 describe('Operation Operator (^) Integration', () => {
     let tools;

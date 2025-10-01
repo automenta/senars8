@@ -3,43 +3,43 @@
  * All custom reasoning strategies must implement this interface.
  */
 export class ReasoningStrategy {
-  /**
-   * Determines if this strategy can handle the given task in the current context.
-   * @param {Task} task - The task to evaluate
-   * @param {SystemContext} context - The current system context
-   * @returns {boolean} - True if the strategy can handle the task
-   */
-  canHandle(task, context) {
-    throw new Error('Method "canHandle" must be implemented');
-  }
+    /**
+     * Determines if this strategy can handle the given task in the current context.
+     * @param {Task} task - The task to evaluate
+     * @param {SystemContext} context - The current system context
+     * @returns {boolean} - True if the strategy can handle the task
+     */
+    canHandle(task, context) {
+        throw new Error('Method "canHandle" must be implemented');
+    }
 
-  /**
-   * Executes the reasoning strategy on the given task.
-   * @param {Task} task - The task to process
-   * @param {SystemContext} context - The current system context
-   * @returns {Promise<TaskResult>} - The result of the reasoning operation
-   */
-  async execute(task, context) {
-    throw new Error('Method "execute" must be implemented');
-  }
+    /**
+     * Executes the reasoning strategy on the given task.
+     * @param {Task} task - The task to process
+     * @param {SystemContext} context - The current system context
+     * @returns {Promise<TaskResult>} - The result of the reasoning operation
+     */
+    async execute(task, context) {
+        throw new Error('Method "execute" must be implemented');
+    }
 
-  /**
-   * Gets metadata about this strategy.
-   * @returns {StrategyMetadata} - Information about the strategy
-   */
-  getMetadata() {
-    throw new Error('Method "getMetadata" must be implemented');
-  }
+    /**
+     * Gets metadata about this strategy.
+     * @returns {StrategyMetadata} - Information about the strategy
+     */
+    getMetadata() {
+        throw new Error('Method "getMetadata" must be implemented');
+    }
 
-  /**
-   * Validates the input task before execution.
-   * @param {Task} task - The task to validate
-   * @returns {ValidationResult} - The validation result
-   */
-  validate(task) {
-    // Default implementation - return valid
-    return { isValid: true, errors: [] };
-  }
+    /**
+     * Validates the input task before execution.
+     * @param {Task} task - The task to validate
+     * @returns {ValidationResult} - The validation result
+     */
+    validate(task) {
+        // Default implementation - return valid
+        return {isValid: true, errors: []};
+    }
 }
 
 /**

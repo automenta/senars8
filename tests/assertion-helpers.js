@@ -3,8 +3,8 @@
  * Provides consistent error handling and assertion patterns across tests
  */
 
-import { expect } from 'vitest';
-import { commonValidators } from './common-validation-utils.js';
+import {expect} from 'vitest';
+import {commonValidators} from './common-validation-utils.js';
 
 /**
  * Common truth value validation helper
@@ -13,8 +13,8 @@ import { commonValidators } from './common-validation-utils.js';
  * @param {number} expectedConf - Expected confidence
  */
 export const expectTruthValue = (actual, expectedFreq, expectedConf) => {
-  expect(actual.frequency).toBeCloseTo(expectedFreq, 3);
-  expect(actual.confidence).toBeCloseTo(expectedConf, 3);
+    expect(actual.frequency).toBeCloseTo(expectedFreq, 3);
+    expect(actual.confidence).toBeCloseTo(expectedConf, 3);
 };
 
 /**
@@ -25,12 +25,12 @@ export const expectTruthValue = (actual, expectedFreq, expectedConf) => {
  * @param {Object} expectedTruth - Expected truth values
  */
 export const assertTask = (task, expectedTermKey, expectedPunctuation, expectedTruth = null) => {
-  expect(task).toBeDefined();
-  expect(task.termKey).toBe(expectedTermKey);
-  expect(task.punctuation).toBe(expectedPunctuation);
-  if (expectedTruth) {
-    expectTruthValue(task.state.truthValue, expectedTruth.frequency, expectedTruth.confidence);
-  }
+    expect(task).toBeDefined();
+    expect(task.termKey).toBe(expectedTermKey);
+    expect(task.punctuation).toBe(expectedPunctuation);
+    if (expectedTruth) {
+        expectTruthValue(task.state.truthValue, expectedTruth.frequency, expectedTruth.confidence);
+    }
 };
 
 /**
@@ -39,13 +39,13 @@ export const assertTask = (task, expectedTermKey, expectedPunctuation, expectedT
  * @param {Object} validationSpec - Specification with expected values
  */
 export const assertTaskWithSpec = (task, validationSpec) => {
-  const { termKey, punctuation, truth } = validationSpec;
-  
-  if (termKey !== undefined) commonValidators.termKey(termKey)(task.termKey, 'task.termKey');
-  if (punctuation !== undefined) commonValidators.punctuation(punctuation)(task.punctuation, 'task.punctuation');
-  if (truth && truth.frequency !== undefined && truth.confidence !== undefined) {
-    commonValidators.truthValue(truth.frequency, truth.confidence)(task.state.truthValue, 'task.state.truthValue');
-  }
+    const {termKey, punctuation, truth} = validationSpec;
+
+    if (termKey !== undefined) commonValidators.termKey(termKey)(task.termKey, 'task.termKey');
+    if (punctuation !== undefined) commonValidators.punctuation(punctuation)(task.punctuation, 'task.punctuation');
+    if (truth && truth.frequency !== undefined && truth.confidence !== undefined) {
+        commonValidators.truthValue(truth.frequency, truth.confidence)(task.state.truthValue, 'task.state.truthValue');
+    }
 };
 
 /**
@@ -55,14 +55,14 @@ export const assertTaskWithSpec = (task, validationSpec) => {
  * @param {string} context - Context for the assertion (for better error messages)
  */
 export const expectToThrowError = (fn, expectedMessage, context = '') => {
-  if (typeof expectedMessage === 'string') {
-    expect(fn).toThrow(expectedMessage);
-  } else if (expectedMessage instanceof RegExp) {
-    const error = expect(() => fn()).toThrow();
-    expect(error.message).toMatch(expectedMessage);
-  } else {
-    expect(fn).toThrow(expectedMessage);
-  }
+    if (typeof expectedMessage === 'string') {
+        expect(fn).toThrow(expectedMessage);
+    } else if (expectedMessage instanceof RegExp) {
+        const error = expect(() => fn()).toThrow();
+        expect(error.message).toMatch(expectedMessage);
+    } else {
+        expect(fn).toThrow(expectedMessage);
+    }
 };
 
 /**
@@ -72,19 +72,19 @@ export const expectToThrowError = (fn, expectedMessage, context = '') => {
  * @param {string} context - Context for the assertion (for better error messages)
  */
 export const expectToRejectWithError = async (promise, expectedMessage, context = '') => {
-  try {
-    await promise;
-    // If we reach this point, the promise didn't reject
-    throw new Error(`Expected promise to reject but it resolved instead. Context: ${context}`);
-  } catch (error) {
-    if (typeof expectedMessage === 'string') {
-      expect(error).toThrow(expectedMessage);
-    } else if (expectedMessage instanceof RegExp) {
-      expect(error.message).toMatch(expectedMessage);
-    } else {
-      expect(error).toBeInstanceOf(expectedMessage);
+    try {
+        await promise;
+        // If we reach this point, the promise didn't reject
+        throw new Error(`Expected promise to reject but it resolved instead. Context: ${context}`);
+    } catch (error) {
+        if (typeof expectedMessage === 'string') {
+            expect(error).toThrow(expectedMessage);
+        } else if (expectedMessage instanceof RegExp) {
+            expect(error.message).toMatch(expectedMessage);
+        } else {
+            expect(error).toBeInstanceOf(expectedMessage);
+        }
     }
-  }
 };
 
 /**
@@ -94,14 +94,14 @@ export const expectToRejectWithError = async (promise, expectedMessage, context 
  * @returns {Function} Validation function
  */
 export const createErrorValidator = (expectedMessage, errorConstructor = null) => {
-  return (fn) => {
-    if (errorConstructor) {
-      const error = expect(fn).toThrow();
-      expect(error).toBeInstanceOf(errorConstructor);
-    } else {
-      expectToThrowError(fn, expectedMessage);
-    }
-  };
+    return (fn) => {
+        if (errorConstructor) {
+            const error = expect(fn).toThrow();
+            expect(error).toBeInstanceOf(errorConstructor);
+        } else {
+            expectToThrowError(fn, expectedMessage);
+        }
+    };
 };
 
 /**
@@ -110,8 +110,8 @@ export const createErrorValidator = (expectedMessage, errorConstructor = null) =
  * @param {string} expectedText - Text that should be contained in the error message
  */
 export const expectErrorToContain = (fn, expectedText) => {
-  const error = expect(() => fn()).toThrow();
-  expect(error.message).toContain(expectedText);
+    const error = expect(() => fn()).toThrow();
+    expect(error.message).toContain(expectedText);
 };
 
 /**
@@ -120,12 +120,12 @@ export const expectErrorToContain = (fn, expectedText) => {
  * @param {string} expectedText - Text that should be contained in the error message
  */
 export const expectRejectionToContain = async (promise, expectedText) => {
-  try {
-    await promise;
-    throw new Error('Expected promise to reject but it resolved instead.');
-  } catch (error) {
-    expect(error.message).toContain(expectedText);
-  }
+    try {
+        await promise;
+        throw new Error('Expected promise to reject but it resolved instead.');
+    } catch (error) {
+        expect(error.message).toContain(expectedText);
+    }
 };
 
 /**
@@ -134,10 +134,10 @@ export const expectRejectionToContain = async (promise, expectedText) => {
  * @param {Object} expectedProps - Object with expected property values
  */
 export const expectObjectProperties = (obj, expectedProps) => {
-  expect(obj).toBeDefined();
-  Object.keys(expectedProps).forEach(key => {
-    expect(obj[key]).toEqual(expectedProps[key]);
-  });
+    expect(obj).toBeDefined();
+    Object.keys(expectedProps).forEach(key => {
+        expect(obj[key]).toEqual(expectedProps[key]);
+    });
 };
 
 /**
@@ -146,10 +146,10 @@ export const expectObjectProperties = (obj, expectedProps) => {
  * @param {string[]} expectedKeys - Array of expected keys
  */
 export const expectObjectStructure = (obj, expectedKeys) => {
-  expect(obj).toBeDefined();
-  expectedKeys.forEach(key => {
-    expect(obj).toHaveProperty(key);
-  });
+    expect(obj).toBeDefined();
+    expectedKeys.forEach(key => {
+        expect(obj).toHaveProperty(key);
+    });
 };
 
 /**
@@ -158,7 +158,7 @@ export const expectObjectStructure = (obj, expectedKeys) => {
  * @param {number} expectedLength - Expected length
  */
 export const expectArrayLength = (arr, expectedLength) => {
-  expect(arr).toHaveLength(expectedLength);
+    expect(arr).toHaveLength(expectedLength);
 };
 
 /**
@@ -167,9 +167,9 @@ export const expectArrayLength = (arr, expectedLength) => {
  * @param {any[]} expectedItems - Array of expected items
  */
 export const expectArrayContains = (arr, expectedItems) => {
-  expectedItems.forEach(item => {
-    expect(arr).toContainEqual(item);
-  });
+    expectedItems.forEach(item => {
+        expect(arr).toContainEqual(item);
+    });
 };
 
 /**
@@ -179,7 +179,7 @@ export const expectArrayContains = (arr, expectedItems) => {
  * @param {number} tolerance - Tolerance level (default: 0.001)
  */
 export const expectCloseTo = (actual, expected, tolerance = 0.001) => {
-  expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance);
+    expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance);
 };
 
 /**
@@ -189,13 +189,13 @@ export const expectCloseTo = (actual, expected, tolerance = 0.001) => {
  * @param {string} description - Description of the test for error reporting
  */
 export const expectToCompleteWithinTime = (fn, maxTimeMs, description = 'function execution') => {
-  const startTime = Date.now();
-  const result = fn();
-  const endTime = Date.now();
-  const executionTime = endTime - startTime;
-  
-  expect(executionTime).toBeLessThanOrEqual(maxTimeMs);
-  return result; // Return the result in case it's needed
+    const startTime = Date.now();
+    const result = fn();
+    const endTime = Date.now();
+    const executionTime = endTime - startTime;
+
+    expect(executionTime).toBeLessThanOrEqual(maxTimeMs);
+    return result; // Return the result in case it's needed
 };
 
 /**
@@ -205,13 +205,13 @@ export const expectToCompleteWithinTime = (fn, maxTimeMs, description = 'functio
  * @param {string} description - Description of the test for error reporting
  */
 export const expectAsyncToCompleteWithinTime = async (asyncFn, maxTimeMs, description = 'async function execution') => {
-  const startTime = Date.now();
-  const result = await asyncFn();
-  const endTime = Date.now();
-  const executionTime = endTime - startTime;
-  
-  expect(executionTime).toBeLessThanOrEqual(maxTimeMs);
-  return result; // Return the result in case it's needed
+    const startTime = Date.now();
+    const result = await asyncFn();
+    const endTime = Date.now();
+    const executionTime = endTime - startTime;
+
+    expect(executionTime).toBeLessThanOrEqual(maxTimeMs);
+    return result; // Return the result in case it's needed
 };
 
 /**
@@ -221,11 +221,11 @@ export const expectAsyncToCompleteWithinTime = async (asyncFn, maxTimeMs, descri
  * @param {number} expectedComplexity - Expected complexity (optional)
  */
 export const assertTerm = (term, expectedKey, expectedComplexity = null) => {
-  expect(term).toBeDefined();
-  expect(term.key).toBe(expectedKey);
-  if (expectedComplexity !== null) {
-    expect(term.complexity).toBe(expectedComplexity);
-  }
+    expect(term).toBeDefined();
+    expect(term.key).toBe(expectedKey);
+    if (expectedComplexity !== null) {
+        expect(term.complexity).toBe(expectedComplexity);
+    }
 };
 
 /**
@@ -236,8 +236,8 @@ export const assertTerm = (term, expectedKey, expectedComplexity = null) => {
  * @param {number} precision - Number of decimal places precision (default: 3)
  */
 export const expectTruthValueWithPrecision = (truthValue, expectedFreq, expectedConf, precision = 3) => {
-  expect(truthValue.frequency).toBeCloseTo(expectedFreq, precision);
-  expect(truthValue.confidence).toBeCloseTo(expectedConf, precision);
+    expect(truthValue.frequency).toBeCloseTo(expectedFreq, precision);
+    expect(truthValue.confidence).toBeCloseTo(expectedConf, precision);
 };
 
 /**
@@ -246,23 +246,23 @@ export const expectTruthValueWithPrecision = (truthValue, expectedFreq, expected
  * @param {Object} validationRules - Object with validation rules
  */
 export const validateTask = (task, validationRules) => {
-  if (validationRules.hasOwnProperty('termKey')) {
-    expect(task.termKey).toBe(validationRules.termKey);
-  }
-  if (validationRules.hasOwnProperty('punctuation')) {
-    expect(task.punctuation).toBe(validationRules.punctuation);
-  }
-  if (validationRules.truth) {
-    expectTruthValue(
-      task.state.truthValue,
-      validationRules.truth.frequency,
-      validationRules.truth.confidence
-    );
-  }
-  if (validationRules.priority !== undefined) {
-    expect(task.state.priority).toBe(validationRules.priority);
-  }
-  if (validationRules.hasOwnProperty('type')) {
-    expect(task.type).toBe(validationRules.type);
-  }
+    if (validationRules.hasOwnProperty('termKey')) {
+        expect(task.termKey).toBe(validationRules.termKey);
+    }
+    if (validationRules.hasOwnProperty('punctuation')) {
+        expect(task.punctuation).toBe(validationRules.punctuation);
+    }
+    if (validationRules.truth) {
+        expectTruthValue(
+            task.state.truthValue,
+            validationRules.truth.frequency,
+            validationRules.truth.confidence
+        );
+    }
+    if (validationRules.priority !== undefined) {
+        expect(task.state.priority).toBe(validationRules.priority);
+    }
+    if (validationRules.hasOwnProperty('type')) {
+        expect(task.type).toBe(validationRules.type);
+    }
 };
