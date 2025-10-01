@@ -46,7 +46,18 @@ describe('CostManager', () => {
             costIndex: new Map(),
         };
         memory.getTerm = vi.fn(key => new Term(key));
-        costManager = new CostManager(memory);
+        
+        // Mock configManager for CostManager
+        const mockConfigManager = {
+            get: vi.fn((path, defaultValue) => {
+                if (path === 'COST_MANAGER.defaultCost') {
+                    return 1;
+                }
+                return defaultValue;
+            })
+        };
+        
+        costManager = new CostManager(memory, mockConfigManager);
     });
 
     describe('getActionCost', () => {

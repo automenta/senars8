@@ -98,12 +98,15 @@ class ActionExecutor {
                 return await this._executeOperation(action.operationTerm);
             }
 
-            const handler = this._findHandler(action.name);
+            // Safely extract action name for error messages
+            const actionName = action?.name || 'unknown';
+            
+            const handler = this._findHandler(actionName);
             if (!handler) {
-                throw new Error(`No handler found for action: ${action.name}`);
+                throw new Error(`No handler found for action: ${actionName}`);
             }
 
-            const actionId = generateId(`action-${action.name}`);
+            const actionId = generateId(`action-${actionName}`);
             const startTime = Date.now();
 
             try {
@@ -112,7 +115,7 @@ class ActionExecutor {
 
                 this.actionHistory.push({
                     id: actionId,
-                    action: action.name,
+                    action: actionName,
                     parameters: action.parameters,
                     result,
                     startTime,
@@ -123,7 +126,7 @@ class ActionExecutor {
 
                 this.eventBus.emit('ActionExecuted', {
                     id: actionId,
-                    action: action.name,
+                    action: actionName,
                     result,
                     duration: endTime - startTime
                 });
@@ -133,7 +136,7 @@ class ActionExecutor {
                 const endTime = Date.now();
                 this.actionHistory.push({
                     id: actionId,
-                    action: action.name,
+                    action: actionName,
                     parameters: action.parameters,
                     error: error.message,
                     startTime,
@@ -144,14 +147,14 @@ class ActionExecutor {
 
                 this.eventBus.emit('ActionFailed', {
                     id: actionId,
-                    action: action.name,
+                    action: actionName,
                     error: error.message,
                     duration: endTime - startTime
                 });
 
                 throw error;
             }
-        }, `executeAction: ${action.name}`);
+        }, `executeAction: ${action?.name || 'undefined'}`);
     }
 
     /**
@@ -257,7 +260,10 @@ class ActionExecutor {
 
     _isActionRunnable(item) {
         return errorHandler.executeSync(() => {
-            this._validate(item.action);
+            if (!item?.action) {
+                throw new Error('Action cannot be null or undefined in queue item');
+            }
+            this._validateAction(item.action);
             return this._checkResourceAvailability(item.action);
         }, 'isActionRunnable', (validationError) => {
             this._rejectActionWithError(item, validationError);
@@ -277,6 +283,10 @@ class ActionExecutor {
             resolve,
             reject
         } = item;
+        
+        // Validate action before processing
+        this._validateAction(action);
+        
         const actionRecord = this._createActionRecord(action, actionId);
 
         this._acquireResources(action);
@@ -286,8 +296,9 @@ class ActionExecutor {
                 const result = await this._executeOperation(action.operationTerm);
                 resolve(this._recordSuccess(actionRecord, result));
             } else {
-                const handler = this._findHandler(action.name);
-                if (!handler) throw new Error(`No handler for action: ${action.name}`);
+                const actionName = action?.name || 'unknown';
+                const handler = this._findHandler(actionName);
+                if (!handler) throw new Error(`No handler for action: ${actionName}`);
                 const result = await handler(action);
                 resolve(this._recordSuccess(actionRecord, result));
             }
@@ -315,6 +326,9 @@ class ActionExecutor {
 
     _validateAction(action) {
         return errorHandler.executeSync(() => {
+            if (!action) {
+                throw new Error('Action cannot be null or undefined');
+            }
             if (!action?.name && !action?.operationTerm) {
                 throw new Error('Action name or operationTerm is required');
             }

@@ -3,8 +3,8 @@ import createConfigAccessor from '../config/ConfigAccessor.js';
 class CostManager {
     constructor(memory, configManager) {
         this.memory = memory;
-        this.config = createConfigAccessor(configManager, 'COST_MANAGER');
-        this.defaultCost = this.config.get('defaultCost', 1);
+        this.config = configManager ? createConfigAccessor(configManager, 'COST_MANAGER') : null;
+        this.defaultCost = this.config ? this.config.get('defaultCost', 1) : 1;
     }
 
     getTaskDifficulty(taskTerm) {
