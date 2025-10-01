@@ -51,9 +51,24 @@ class System {
         const memoryStats = await this.commandBus.request(SystemCommands.MEMORY_GET_STATS);
         const allTasks = await this.commandBus.request(SystemCommands.MEMORY_GET_ALL_TASKS);
 
-        const beliefs = allTasks.filter(t => t.punctuation === '.').length;
-        const goals = allTasks.filter(t => t.punctuation === '!').length;
-        const questions = allTasks.filter(t => t.punctuation === '?').length;
+        // Count tasks by punctuation in a single pass for better performance
+        let beliefs = 0;
+        let goals = 0;
+        let questions = 0;
+        
+        for (const task of allTasks) {
+            switch (task.punctuation) {
+                case '.':
+                    beliefs++;
+                    break;
+                case '!':
+                    goals++;
+                    break;
+                case '?':
+                    questions++;
+                    break;
+            }
+        }
 
         return {
             cycleCount: this.cycleCount,
@@ -81,13 +96,28 @@ class System {
         sync: false
     }) {
         await errorHandler.execute(async () => {
-            const termKeys = [...new Set(tasks.map(task => task.termKey))];
+            // Use Set to deduplicate term keys efficiently
+            const termKeySet = new Set();
+            for (const task of tasks) {
+                termKeySet.add(task.termKey);
+            }
+            const termKeys = Array.from(termKeySet);
+            
+            if (termKeys.length === 0) return;
+
             const termExistence = await Promise.all(
                 termKeys.map(key => this.commandBus.request(SystemCommands.MEMORY_GET_TERM, key))
             );
-            const newTermKeys = termKeys.filter((_, i) => !termExistence[i]);
+            
+            // Build new term keys array directly without filtering
+            const newTermKeys = [];
+            for (let i = 0; i < termKeys.length; i++) {
+                if (!termExistence[i]) {
+                    newTermKeys.push(termKeys[i]);
+                }
+            }
 
-            if (!newTermKeys.length) return;
+            if (newTermKeys.length === 0) return;
 
             debug(`Bootstrapping ${newTermKeys.length} new terms...`);
             const newTerms = (await Promise.all(

@@ -208,13 +208,11 @@ class Memory {
             }
         }
 
-        const pqElements = pq.toArray();
-        const result = new Array(pqElements.length);
-        for (let i = 0; i < pqElements.length; i++) {
-            result[i] = pqElements[i].element;
+        // Instead of converting to array and then sorting, extract elements in priority order
+        const result = [];
+        while (!pq.isEmpty()) {
+            result.unshift(pq.dequeue().element);  // Add to beginning to maintain descending order
         }
-
-        result.sort((a, b) => b.state.priority - a.state.priority);
         return result;
     }
 
@@ -223,22 +221,20 @@ class Memory {
             if (k <= 0) return [];
 
             const allTasks = await this.getAllTasks();
-            if (k >= allTasks.length) {
-                const result = new Array(allTasks.length);
-                for (let i = 0; i < allTasks.length; i++) {
-                    result[i] = allTasks[i];
-                }
-                return result.sort((a, b) => b.state.priority - a.state.priority);
+            const totalTasks = allTasks.length;
+            if (k >= totalTasks) {
+                // Sort all tasks by priority in descending order
+                return [...allTasks].sort((a, b) => b.state.priority - a.state.priority);
             }
 
-            if (this._shouldUsePriorityQueue(k, allTasks.length)) {
+            if (this._shouldUsePriorityQueue(k, totalTasks)) {
                 return this._getHighestPriorityTasksWithPQ(allTasks, k);
             } else {
-                const result = new Array(allTasks.length);
-                for (let i = 0; i < allTasks.length; i++) {
-                    result[i] = allTasks[i];
-                }
-                return result.sort((a, b) => b.state.priority - a.state.priority).slice(0, k);
+                // For larger k values relative to total tasks, partial sort is more efficient
+                // Use a simple approach: sort and slice
+                return [...allTasks]
+                    .sort((a, b) => b.state.priority - a.state.priority)
+                    .slice(0, k);
             }
         }, 'getHighestPriorityTasks', []);
     }

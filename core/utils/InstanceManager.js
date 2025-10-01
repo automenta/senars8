@@ -81,7 +81,8 @@ class InstanceManager {
             this.#stats.hits++;
             // Move to end to mark as most recently used (LRU)
             // Only move if there are multiple items to avoid unnecessary operations
-            if (this.#cache.size > 1) {
+            // Skip if cache is at max size since eviction will happen anyway
+            if (this.#cache.size > 1 && this.#cache.size < this.#maxSize) {
                 this.#cache.delete(key);
                 this.#cache.set(key, value);
             }
