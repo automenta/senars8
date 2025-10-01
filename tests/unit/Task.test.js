@@ -1,4 +1,6 @@
+import { expect } from 'vitest';
 import Task from '../../core/core/Task.js';
+import { expectTruthValue } from '../assertion-helpers.js';
 
 vi.mock('../../core/core/Term.js', () => ({
     default: vi.fn().mockImplementation(key => ({
@@ -7,12 +9,6 @@ vi.mock('../../core/core/Term.js', () => ({
 }));
 
 const {default: Term} = await import('../../core/core/Term.js');
-
-// Local helper function to validate truth values
-const expectTruthValue = (actual, expectedFreq, expectedConf) => {
-    expect(actual.frequency).toBeCloseTo(expectedFreq, 3);
-    expect(actual.confidence).toBeCloseTo(expectedConf, 3);
-};
 
 describe('Task', () => {
     beforeEach(() => {

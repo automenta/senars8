@@ -1,7 +1,9 @@
+import { vi } from 'vitest';
 import Memory from '../../core/memory/Memory.js';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import ConfigManager from '../../core/config/ConfigManager.js';
+import { createConsistentMock } from '../mock-builders.js';
 
 describe('Memory - Edge Cases', () => {
     let memory;

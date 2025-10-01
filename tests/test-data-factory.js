@@ -3,6 +3,7 @@
  * Provides consistent and reusable test data creation with sensible defaults
  */
 
+import { vi } from 'vitest';
 import Term from '../core/core/Term.js';
 import Task from '../core/core/Task.js';
 
