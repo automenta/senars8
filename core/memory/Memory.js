@@ -26,7 +26,6 @@ class Memory {
         this.indexer = new MemoryIndexer();
         this.cycleCounter = 0;
         this._cachedAllTasks = null;
-        this._cachedTaskCount = 0;
         this._loadForgettingStrategy();
         this._registerEventListeners();
         this._registerCommandHandlers();
@@ -102,7 +101,7 @@ class Memory {
 
         this.shortTermTasks = newShortTermTasks;
         this.longTermTasks = newLongTermTasks;
-        this._invalidateTaskCache();
+        this._invalidateCachedTasks();
     }
 
     _pruneMemory() {
@@ -110,13 +109,10 @@ class Memory {
         const options = this.config.getObject('memory.FORGETTING_STRATEGY_OPTIONS', {});
         this.shortTermTasks = this.forgettingStrategy.prune(this.shortTermTasks, options.shortTerm);
         this.longTermTasks = this.forgettingStrategy.prune(this.longTermTasks, options.longTerm);
-        this._invalidateTaskCache();
+        this._invalidateCachedTasks();
     }
 
-    _invalidateTaskCache() {
-        this._cachedAllTasks = null;
-        this._cachedTaskCount = this.shortTermTasks.size + this.longTermTasks.size;
-    }
+    // Old function removed - replaced with _invalidateCachedTasks()
 
     async _addTerm(term) {
         if (term === null || term === undefined || !(term instanceof Term)) {
@@ -162,7 +158,7 @@ class Memory {
         }
 
         if (addedCount > 0) {
-            this._invalidateTaskCache();
+            this._invalidateCachedTasks();
             debug(`Added ${addedCount} tasks.`);
         }
     }
@@ -178,21 +174,34 @@ class Memory {
             this.shortTermTasks.delete(taskId);
             this.longTermTasks.delete(taskId);
             this.indexer.unindexTask(task);
-            this._invalidateTaskCache();
+            this._invalidateCachedTasks();
             await this.eventBus.emitAsync(SystemEvents.TASK_REMOVE, task);
         }
     }
 
     _getAllTasks() {
-        const currentCount = this.shortTermTasks.size + this.longTermTasks.size;
-        if (!this._cachedAllTasks || this._cachedTaskCount !== currentCount) {
-            this._cachedAllTasks = Array.from(this.shortTermTasks.values());
-            for (const task of this.longTermTasks.values()) {
-                this._cachedAllTasks.push(task);
-            }
-            this._cachedTaskCount = currentCount;
+        if (!this._cachedAllTasks) {
+            this._cachedAllTasks = [];
+            this._updateCachedTasks();
         }
         return this._cachedAllTasks;
+    }
+    
+    _updateCachedTasks() {
+        const currentCount = this.shortTermTasks.size + this.longTermTasks.size;
+        this._cachedAllTasks = new Array(currentCount);
+        
+        let index = 0;
+        for (const task of this.shortTermTasks.values()) {
+            this._cachedAllTasks[index++] = task;
+        }
+        for (const task of this.longTermTasks.values()) {
+            this._cachedAllTasks[index++] = task;
+        }
+    }
+    
+    _invalidateCachedTasks() {
+        this._cachedAllTasks = null;
     }
 
     _shouldUsePriorityQueue(k, totalTasks) {
@@ -277,7 +286,7 @@ class Memory {
         this.longTermTasks.clear();
         this.indexer.clear();
         this.cycleCounter = 0;
-        this._invalidateTaskCache();
+        this._invalidateCachedTasks();
         await this.eventBus.emitAsync(SystemEvents.SYSTEM_RESET);
     }
 
@@ -330,12 +339,13 @@ class Memory {
             }
         }
 
-        // Extract items and return them in descending order - more efficient than unshift in loop
-        const result = [];
+        // Extract items in descending order - pre-allocate result array to avoid multiple allocations
+        const result = new Array(pq.size());
+        let i = result.length - 1;
         while (!pq.isEmpty()) {
-            result.push(pq.dequeue().element);
+            result[i--] = pq.dequeue().element;
         }
-        return result.reverse(); // O(count) operation to reverse instead of O(count²) from multiple unshifts
+        return result;
     }
 
     async _queryTasks(filters = {}) {
@@ -400,7 +410,7 @@ class Memory {
 
         await processTasks(state.shortTermTasks, this.shortTermTasks);
         await processTasks(state.longTermTasks, this.longTermTasks);
-        this._invalidateTaskCache();
+        this._invalidateCachedTasks();
     }
 }
 

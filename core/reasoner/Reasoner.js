@@ -174,8 +174,11 @@ class Reasoner {
     async #performSymbolicInference(focusSet, maxDerived) {
         const derivedTasks = [];
 
-        // Clear the processed combinations cache for this inference cycle
-        this._processedCombinations.clear();
+        // Only clear the processed combinations cache if it has grown too large
+        // to prevent memory bloat and maintain performance
+        if (this._processedCombinations.size > 1000) {
+            this._processedCombinations.clear();
+        }
 
         debug(`Starting symbolic inference with ${this.rules.length} rules on ${focusSet.length} tasks`);
 

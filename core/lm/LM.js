@@ -292,8 +292,10 @@ class LM {
     _calculateDynamicDelay() {
         // Reduce delay when queue is large, increase when small
         const baseDelay = this.config.getNumber('LM.EMBEDDING_BATCH_DELAY_MS', 100);
+        const minDelay = Math.max(10, baseDelay * 0.1); // Ensure minimum delay to prevent high CPU usage
         const queueFactor = Math.max(0.1, Math.min(1, this._embeddingQueue.length / 100));
-        return baseDelay * (1 - queueFactor * 0.9);
+        const calculatedDelay = baseDelay * (1 - queueFactor * 0.9);
+        return Math.max(minDelay, calculatedDelay); // Ensure delay doesn't go too low
     }
 
     async dispose() {

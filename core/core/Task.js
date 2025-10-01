@@ -124,6 +124,7 @@ class Task extends BaseEntity {
             processedTerm = parseTerm(term);
         } else {
             termKey = term.key;
+            // Avoid re-parsing if the term already has the required structure
             processedTerm = term.type ? term : parseTerm(term.key);
         }
 
