@@ -206,7 +206,7 @@ class Agent {
             return {tasks: [], beliefs: [], goals: [], questions: []};
         }
 
-        try {
+        return errorHandler.runSync(() => {
             const memory = this.system.memory;
             return {
                 tasks: memory.getAllTasks?.() || [],
@@ -214,10 +214,7 @@ class Agent {
                 goals: memory.getGoals?.() || [],
                 questions: memory.getQuestions?.() || [],
             };
-        } catch (error) {
-            agentLogger.warn('Error getting agent state:', error.message);
-            return {tasks: [], beliefs: [], goals: [], questions: []};
-        }
+        }, 'getAgentState', { defaultValue: {tasks: [], beliefs: [], goals: [], questions: []} });
     }
 }
 

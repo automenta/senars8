@@ -21,16 +21,11 @@ export const startWebSocketServer = (port) => {
 
         ws.on('message', async (data) => {
             if (messageHandler) {
-                try {
+                const {executeAsync} = await import('./utils/asyncWrapper.js');
+                await executeAsync(async () => {
                     const message = JSON.parse(data);
                     await messageHandler(message, ws);
-                } catch (err) {
-                    serverError('Failed to handle message:', err);
-                    ws.send(JSON.stringify({
-                        type: 'error',
-                        payload: {message: 'Invalid message format or handler error.'}
-                    }));
-                }
+                }, ws, 'handle message');
             }
         });
 

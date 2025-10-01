@@ -28,7 +28,7 @@ class FileMonitoring {
     async start() {
         if (this.isWatching) {
             info('File monitoring is already running.');
-            return;
+            return true;
         }
 
         try {
@@ -59,6 +59,7 @@ class FileMonitoring {
             info('File monitoring started successfully.');
             return true;
         } catch (error) {
+            this.errorHandler.handleWithDefault(error, 'start', false);
             warn('Failed to start file monitoring:', error.message);
             return false;
         }
@@ -124,7 +125,7 @@ class FileMonitoring {
     }
 
     async processFile(filePath, options = {}) {
-        try {
+        return await this.errorHandler.runAsync(async () => {
             const goals = await this.planProcessor.processFile(filePath, options);
             if (goals.length === 0) return [];
 
@@ -144,10 +145,7 @@ class FileMonitoring {
             }
             this.processedFiles.add(filePath);
             return tasks;
-        } catch (error) {
-            warn(`Error processing file ${filePath}:`, error.message);
-            throw error;
-        }
+        }, 'processFile', { rethrow: true });
     }
 
     async addPatterns(patterns) {

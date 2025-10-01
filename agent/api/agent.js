@@ -1,25 +1,20 @@
 import {SystemCommands} from '../../core/system/SystemCommands.js';
 import Task from '../../core/core/Task.js';
-import {serverError, serverWarn} from '../utils/logger.js';
+import {serverWarn} from '../utils/logger.js';
 import {createCompositeFilter, createPriorityFilter, createTaskFilter,} from '../utils/taskUtils.js';
+import {executeAsync} from '../utils/asyncWrapper.js';
 
 export const handleNarsese = async (payload, ws, agent, broadcast) => {
     const narseseInput = payload;
     broadcast({type: 'log', payload: {source: 'user', message: narseseInput}});
 
     if (agent.system && agent.system.commandBus) {
-        try {
+        return executeAsync(async () => {
             await agent.system.commandBus.request(SystemCommands.PROCESS_RAW_INPUT, {
                 modality: 'narsese',
                 input: narseseInput,
             });
-        } catch (error) {
-            serverError('Failed to process Narsese input:', error);
-            ws.send(JSON.stringify({
-                type: 'error',
-                payload: {message: `Failed to process input: ${error.message}`}
-            }));
-        }
+        }, ws, 'process Narsese input');
     } else {
         serverWarn('CommandBus not available. Cannot process Narsese input.');
     }
@@ -40,26 +35,20 @@ export const handleAgentControl = async (payload, ws, agent, broadcast) => {
 
     const systemCommand = commandMap[command];
     if (systemCommand) {
-        try {
+        return executeAsync(async () => {
             broadcast({
                 type: 'log',
                 payload: {source: 'system', message: `Agent command received: ${command}`}
             });
             await agent.system.commandBus.request(systemCommand, {maxCycles});
-        } catch (error) {
-            serverError(`Failed to execute agent control command '${command}':`, error);
-            ws.send(JSON.stringify({
-                type: 'error',
-                payload: {message: `Failed to execute command: ${error.message}`}
-            }));
-        }
+        }, ws, `execute agent control command '${command}'`);
     } else {
         serverWarn(`Unknown agent control command: ${command}`);
     }
 };
 
 export const handleGetTasks = async (payload, ws, agent) => {
-    try {
+    return executeAsync(async () => {
         if (!agent.system || !agent.system.commandBus) {
             return ws.send(JSON.stringify({type: 'error', payload: {message: 'CommandBus not available.'}}));
         }
@@ -90,17 +79,11 @@ export const handleGetTasks = async (payload, ws, agent) => {
                 total: filteredTasks.length
             }
         }));
-    } catch (error) {
-        serverError('Failed to get tasks:', error);
-        ws.send(JSON.stringify({
-            type: 'error',
-            payload: {message: `Failed to get tasks: ${error.message}`}
-        }));
-    }
+    }, ws, 'get tasks');
 };
 
 export const handleTaskAction = async (payload, ws, agent, broadcast) => {
-    try {
+    return executeAsync(async () => {
         const {action, taskId, task} = payload;
 
         switch (action) {
@@ -132,17 +115,11 @@ export const handleTaskAction = async (payload, ws, agent, broadcast) => {
                 }));
                 break;
         }
-    } catch (error) {
-        serverError('Failed to execute task action:', error);
-        ws.send(JSON.stringify({
-            type: 'error',
-            payload: {message: `Failed task action: ${error.message}`}
-        }));
-    }
+    }, ws, 'execute task action');
 };
 
 export const handleAddTask = async (payload, ws, agent, broadcast) => {
-    try {
+    return executeAsync(async () => {
         const {taskData} = payload;
         if (!agent.system || !agent.system.commandBus) {
             return ws.send(JSON.stringify({type: 'error', payload: {message: 'CommandBus not available.'}}));
@@ -162,18 +139,11 @@ export const handleAddTask = async (payload, ws, agent, broadcast) => {
             type: 'task_added',
             payload: {task: task.toString(), id: task.id}
         });
-
-    } catch (error) {
-        serverError('Failed to add task:', error);
-        ws.send(JSON.stringify({
-            type: 'error',
-            payload: {message: `Failed to add task: ${error.message}`}
-        }));
-    }
+    }, ws, 'add task');
 };
 
 export const handleSearch = async (payload, ws, agent) => {
-    try {
+    return executeAsync(async () => {
         const {query, scope, limit, _filters} = payload || {};
 
         if (!query) {
@@ -209,11 +179,5 @@ export const handleSearch = async (payload, ws, agent) => {
             type: 'search_results',
             payload: {results, query, total: results.length}
         }));
-    } catch (error) {
-        serverError('Search failed:', error);
-        ws.send(JSON.stringify({
-            type: 'search_error',
-            payload: {message: `Search failed: ${error.message}`}
-        }));
-    }
+    }, ws, 'search');
 };
