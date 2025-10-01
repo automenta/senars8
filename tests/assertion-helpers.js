@@ -4,6 +4,7 @@
  */
 
 import { expect } from 'vitest';
+import { commonValidators } from './common-validation-utils.js';
 
 /**
  * Common truth value validation helper
@@ -29,6 +30,21 @@ export const assertTask = (task, expectedTermKey, expectedPunctuation, expectedT
   expect(task.punctuation).toBe(expectedPunctuation);
   if (expectedTruth) {
     expectTruthValue(task.state.truthValue, expectedTruth.frequency, expectedTruth.confidence);
+  }
+};
+
+/**
+ * Enhanced task assertion using common validators
+ * @param {Object} task - The task to validate
+ * @param {Object} validationSpec - Specification with expected values
+ */
+export const assertTaskWithSpec = (task, validationSpec) => {
+  const { termKey, punctuation, truth } = validationSpec;
+  
+  if (termKey !== undefined) commonValidators.termKey(termKey)(task.termKey, 'task.termKey');
+  if (punctuation !== undefined) commonValidators.punctuation(punctuation)(task.punctuation, 'task.punctuation');
+  if (truth && truth.frequency !== undefined && truth.confidence !== undefined) {
+    commonValidators.truthValue(truth.frequency, truth.confidence)(task.state.truthValue, 'task.state.truthValue');
   }
 };
 

@@ -90,34 +90,6 @@ export const createTestSystem = (userConfig = {}) => {
 };
 
 /**
- * Common assertion for testing if an object is a valid task
- * @param {Object} task - The task to validate
- * @param {string} expectedTermKey - Expected term key
- * @param {string} expectedPunctuation - Expected punctuation
- * @param {Object} expectedTruth - Expected truth values
- */
-export const assertTask = (task, expectedTermKey, expectedPunctuation, expectedTruth = null) => {
-  expect(task).toBeDefined();
-  expect(task.termKey).toBe(expectedTermKey);
-  expect(task.punctuation).toBe(expectedPunctuation);
-  if (expectedTruth) {
-    expect(task.state.truthValue.frequency).toBeCloseTo(expectedTruth.frequency, 3);
-    expect(task.state.truthValue.confidence).toBeCloseTo(expectedTruth.confidence, 3);
-  }
-};
-
-/**
- * Common truth value validation helper
- * @param {Object} actual - Actual truth value object
- * @param {number} expectedFreq - Expected frequency
- * @param {number} expectedConf - Expected confidence
- */
-export const expectTruthValue = (actual, expectedFreq, expectedConf) => {
-  expect(actual.frequency).toBeCloseTo(expectedFreq, 3);
-  expect(actual.confidence).toBeCloseTo(expectedConf, 3);
-};
-
-/**
  * Common setup for tests that need basic mocking and utilities
  * @param {object} config - Configuration for the test system
  * @returns {object} Object with system and common test utilities
@@ -125,9 +97,7 @@ export const expectTruthValue = (actual, expectedFreq, expectedConf) => {
 export const setupTestEnvironment = (config = {}) => {
   const testSystem = createTestSystem(config);
   return {
-    ...testSystem,
-    expectTruthValue,
-    assertTask
+    ...testSystem
   };
 };
 
@@ -152,8 +122,6 @@ export const createTaskDef = (sentence, punctuation = '.', truth = [1.0, 0.9]) =
  */
 export const getCommonTestHelpers = () => {
   return {
-    expectTruthValue,
-    assertTask,
     createTaskDef
   };
 };

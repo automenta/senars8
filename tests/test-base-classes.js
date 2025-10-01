@@ -3,10 +3,11 @@
  * Base test classes for common test categories and shared setup patterns
  */
 
-import { beforeEach, afterEach, describe, test } from 'vitest';
+import { beforeEach, afterEach, describe, test, expect } from 'vitest';
 import { createTestSystem } from './test-helpers.js';
 import { createTask, createTerm } from './test-data-factory.js';
 import { expectTruthValue, expectToThrowError } from './assertion-helpers.js';
+import { createTaskProcessingContext, createMemoryContext, cleanupTestContext, createTestContext } from './test-setup-utils.js';
 
 /**
  * Base test class for all test categories
@@ -50,24 +51,17 @@ export class BaseTestClass {
  */
 export class ReasonerTestBase extends BaseTestClass {
   async setup(config = {}) {
-    this.systemData = createTestSystem(config);
-    this.system = this.systemData.system;
-    this.reasoner = this.systemData.container.get('reasoner');
-    this.memory = this.systemData.container.get('memory');
+    const context = await createTaskProcessingContext({
+      testData: { config },
+      ...config
+    });
     
-    this.context = {
-      system: this.system,
-      reasoner: this.reasoner,
-      memory: this.memory,
-      commandBus: this.systemData.commandBus,
-      eventBus: this.systemData.eventBus
-    };
+    this.systemData = context.systemData;
+    this.context = context;
   }
 
   async teardown() {
-    if (this.system && this.system.destroy) {
-      await this.system.destroy();
-    }
+    await cleanupTestContext(this.context);
   }
 
   /**
@@ -78,7 +72,7 @@ export class ReasonerTestBase extends BaseTestClass {
    */
   async processTask(termOrKey, punctuation = '.', truthValue = null) {
     const task = createTask(termOrKey, punctuation, truthValue);
-    return await this.reasoner.processTask(task);
+    return await this.context.processTask(task);
   }
 
   /**
@@ -99,28 +93,17 @@ export class ReasonerTestBase extends BaseTestClass {
  */
 export class MemoryTestBase extends BaseTestClass {
   async setup(config = {}) {
-    this.systemData = createTestSystem({
-      memory: {
-        capacity: config.capacity || 1000,
-        forgetThreshold: config.forgetThreshold || 0.1
-      },
+    const context = await createMemoryContext({
+      testData: { config },
       ...config
     });
     
-    this.system = this.systemData.system;
-    this.memory = this.systemData.container.get('memory');
-    
-    this.context = {
-      memory: this.memory,
-      system: this.system,
-      config
-    };
+    this.systemData = context.systemData;
+    this.context = context;
   }
 
   async teardown() {
-    if (this.system && this.system.destroy) {
-      await this.system.destroy();
-    }
+    await cleanupTestContext(this.context);
   }
 
   /**
@@ -128,10 +111,7 @@ export class MemoryTestBase extends BaseTestClass {
    * @param {Array} tasksData - Array of task definition objects
    */
   async addTasksToMemory(tasksData) {
-    for (const taskData of tasksData) {
-      const task = createTask(taskData.key, taskData.punctuation, taskData.truthValue);
-      await this.memory.addTask(task);
-    }
+    return await this.context.addMultipleTasks(tasksData);
   }
 
   /**
@@ -139,14 +119,7 @@ export class MemoryTestBase extends BaseTestClass {
    * @param {object} expectedState - Expected memory state
    */
   assertMemoryState(expectedState) {
-    if (expectedState.hasOwnProperty('size')) {
-      expect(this.memory.size).toBe(expectedState.size);
-    }
-    if (expectedState.hasOwnProperty('contains')) {
-      for (const termKey of expectedState.contains) {
-        expect(this.memory.has(termKey)).toBe(true);
-      }
-    }
+    this.context.assertMemoryState(expectedState);
   }
 }
 
@@ -155,23 +128,17 @@ export class MemoryTestBase extends BaseTestClass {
  */
 export class SystemTestBase extends BaseTestClass {
   async setup(config = {}) {
-    this.systemData = createTestSystem(config);
-    this.system = this.systemData.system;
-    this.container = this.systemData.container;
+    const context = await createTestContext({
+      testData: { config },
+      ...config
+    });
     
-    this.context = {
-      system: this.system,
-      container: this.container,
-      commandBus: this.systemData.commandBus,
-      eventBus: this.systemData.eventBus,
-      config
-    };
+    this.systemData = context.systemData;
+    this.context = context;
   }
 
   async teardown() {
-    if (this.system && this.system.destroy) {
-      await this.system.destroy();
-    }
+    await cleanupTestContext(this.context);
   }
 
   /**
@@ -180,7 +147,7 @@ export class SystemTestBase extends BaseTestClass {
    */
   verifyComponents(componentNames) {
     for (const name of componentNames) {
-      const component = this.container.get(name);
+      const component = this.context.container.get(name);
       expect(component).toBeDefined();
       expect(component).not.toBeNull();
     }
@@ -216,8 +183,15 @@ export class SystemTestBase extends BaseTestClass {
  */
 export class ConfigTestBase extends BaseTestClass {
   async setup(config = {}) {
-    this.configManager = this.systemData?.container?.get('configManager') || null;
+    const context = await createTestContext({
+      testData: { config },
+      ...config
+    });
+    
+    this.systemData = context.systemData;
+    this.configManager = context.container?.get('configManager') || null;
     this.context = {
+      ...context,
       configManager: this.configManager,
       config: config
     };
