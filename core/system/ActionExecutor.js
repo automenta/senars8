@@ -7,6 +7,7 @@ import NarseseTranslator from '../utils/NarseseTranslator.js';
 import {OP} from '../config/constants.js';
 import {parseTerm} from '../parser/narseseParser.js';
 import {SystemCommands} from './SystemCommands.js';
+import logger from '../utils/logger.js';
 
 const errorHandler = createUnifiedErrorHandler('ActionExecutor');
 
@@ -90,9 +91,35 @@ class ActionExecutor {
      * Execute an action, with special handling for operation terms
      */
     async executeAction(action) {
-        return await errorHandler.execute(async () => {
-            this._validateAction(action);
+        const validationResult = this._validateAction(action);
+        if (!validationResult) {
+            // Action failed validation, log and return a default result
+            const actionId = generateId('action-invalid');
+            const startTime = Date.now();
+            const endTime = Date.now();
+            
+            this.actionHistory.push({
+                id: actionId,
+                action: 'invalid',
+                parameters: action || {},
+                error: 'Action failed validation',
+                startTime,
+                endTime,
+                duration: endTime - startTime,
+                status: 'error'
+            });
 
+            this.eventBus.emit('ActionFailed', {
+                id: actionId,
+                action: 'invalid',
+                error: 'Action failed validation',
+                duration: endTime - startTime
+            });
+            
+            return { success: false, error: 'Action failed validation' };
+        }
+
+        return await errorHandler.execute(async () => {
             // Check if this is an operation term that should be handled by tools
             if (action.operationTerm) {
                 return await this._executeOperation(action.operationTerm);
@@ -103,7 +130,34 @@ class ActionExecutor {
             
             const handler = this._findHandler(actionName);
             if (!handler) {
-                throw new Error(`No handler found for action: ${actionName}`);
+                // Instead of throwing an error, log a warning and return a default result
+                logger.warn(`No handler found for action: ${actionName}`);
+                
+                // Add to action history as failed
+                const actionId = generateId(`action-${actionName}`);
+                const startTime = Date.now();
+                const endTime = Date.now();
+                
+                this.actionHistory.push({
+                    id: actionId,
+                    action: actionName,
+                    parameters: action?.parameters || {},
+                    error: `No handler found for action: ${actionName}`,
+                    startTime,
+                    endTime,
+                    duration: endTime - startTime,
+                    status: 'error'
+                });
+
+                this.eventBus.emit('ActionFailed', {
+                    id: actionId,
+                    action: actionName,
+                    error: `No handler found for action: ${actionName}`,
+                    duration: endTime - startTime
+                });
+                
+                // Return a default response instead of throwing an error
+                return { success: false, error: `No handler found for action: ${actionName}` };
             }
 
             const actionId = generateId(`action-${actionName}`);
@@ -290,6 +344,15 @@ class ActionExecutor {
         const actionRecord = this._createActionRecord(action, actionId);
 
         this._acquireResources(action);
+        const validationResult = this._validateAction(action);
+        if (!validationResult) {
+            // Action failed validation, resolve with a default result
+            const defaultResult = { success: false, error: 'Action failed validation' };
+            resolve(this._recordSuccess(actionRecord, defaultResult));
+            this._releaseResources(action);
+            return;
+        }
+        
         await errorHandler.execute(async () => {
             // Check if this is an operation term
             if (action.operationTerm) {
@@ -298,7 +361,13 @@ class ActionExecutor {
             } else {
                 const actionName = action?.name || 'unknown';
                 const handler = this._findHandler(actionName);
-                if (!handler) throw new Error(`No handler for action: ${actionName}`);
+                if (!handler) {
+                    // Handle unknown actions gracefully instead of throwing an error
+                    logger.warn(`No handler found for action: ${actionName}`);
+                    const defaultResult = { success: false, error: `No handler found for action: ${actionName}` };
+                    resolve(this._recordSuccess(actionRecord, defaultResult));
+                    return;
+                }
                 const result = await handler(action);
                 resolve(this._recordSuccess(actionRecord, result));
             }
@@ -327,16 +396,22 @@ class ActionExecutor {
     _validateAction(action) {
         return errorHandler.executeSync(() => {
             if (!action) {
-                throw new Error('Action cannot be null or undefined');
+                // Instead of throwing an error, log a warning and return false
+                logger.warn('Action cannot be null or undefined');
+                return false;
             }
             if (!action?.name && !action?.operationTerm) {
-                throw new Error('Action name or operationTerm is required');
+                // Instead of throwing an error, log a warning and return false
+                logger.warn('Action name or operationTerm is required');
+                return false;
             }
             if (this.constraints.size === 0) return true;
 
             for (const [name, constraint] of this.constraints) {
                 if (typeof constraint === 'function' && !constraint(action)) {
-                    throw new Error(`Action failed constraint: ${name}`);
+                    // Instead of throwing an error, log a warning and return false
+                    logger.warn(`Action failed constraint: ${name}`);
+                    return false;
                 }
             }
             return true;
