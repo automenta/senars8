@@ -1,7 +1,19 @@
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest';
 import Term from '../../core/core/Term.js';
 import {structuralSimilarity} from '../../core/core/TermUtils.js';
+import * as logger from '../../core/utils/logger.js';
 
 describe('Term - Edge Cases', () => {
+    let warnSpy;
+
+    beforeEach(() => {
+        warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        warnSpy.mockRestore();
+    });
+
     test('should handle empty embedding arrays', () => {
         const term = new Term('cat', []);
         expect(term.embedding).toEqual([]);

@@ -1,5 +1,6 @@
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest';
 import Task from '../../core/core/Task.js';
+import * as logger from '../../core/utils/logger.js';
 
 vi.mock('@xenova/transformers', () => ({
     pipeline: vi.fn(async () => {
@@ -14,8 +15,11 @@ const {default: SystemFactory} = await import('../../core/system/SystemFactory.j
 
 describe('System-level Contradiction Resolution', () => {
     let system;
+    let warnSpy;
 
     beforeEach(() => {
+        warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+
         const customConfig = {
             reasoner: {
                 strategy: 'BruteForceStrategy'
@@ -28,6 +32,7 @@ describe('System-level Contradiction Resolution', () => {
     });
 
     afterEach(() => {
+        warnSpy.mockRestore();
         if (system) {
             system.stop();
         }

@@ -2,12 +2,13 @@
  * Example test demonstrating the usage of all new refactored utilities
  */
 
-import {describe, expect, test} from 'vitest';
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest';
 import {createTaskDef, createTermDef} from './test-data-factory.js';
 import {assertTask, expectTruthValue} from './assertion-helpers.js';
 import {createTestConfig} from './config-driven-tests.js';
 import {TaskProcessingScenario} from './reusable-test-scenarios.js';
 import {EdgeCaseTester} from './coverage-quality-checks.js';
+import * as logger from '../core/utils/logger.js';
 import {BaseReasonerTest} from './test-base-classes.js';
 import {createConsistentMock, MockValidator} from './mock-builders.js';
 import {TestDocumentationGenerator} from './documentation-structure.js';
@@ -15,6 +16,16 @@ import {TestDocumentationGenerator} from './documentation-structure.js';
 // Example usage of the new test utilities
 
 describe('Refactored Test Utilities - Example Usage', () => {
+    let warnSpy;
+
+    beforeEach(() => {
+        warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        warnSpy.mockRestore();
+    });
+
     test('should demonstrate test data factory usage', () => {
         // Using the test data factory
         const taskDef = createTaskDef('<cat --> animal>', '.', [0.8, 0.9]);

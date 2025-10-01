@@ -1,5 +1,6 @@
-import {describe, test} from 'vitest';
+import {afterEach, beforeEach, describe, test, vi} from 'vitest';
 import {createDemoTest} from './test-utils.js';
+import * as logger from '../../core/utils/logger.js';
 import basicDemo from './basic-demo.js';
 import mathInferenceDemo from './math-inference-demo.js';
 import nlpIntegrationDemo from './nlp-integration-demo.js';
@@ -21,6 +22,19 @@ import libraryUsageDemo from './library-usage-demo.js';
 import strategyComparisonDemo from './strategy-comparison-demo.js';
 
 describe('Demos as Tests', () => {
+    let errorSpy;
+    let warnSpy;
+
+    beforeEach(() => {
+        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
+        warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        errorSpy.mockRestore();
+        warnSpy.mockRestore();
+    });
+
     const demos = [
         {name: 'basic-demo', fn: basicDemo, mock: true},
         {name: 'math-inference-demo', fn: mathInferenceDemo, mock: true},

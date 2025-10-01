@@ -29,8 +29,8 @@ async function comprehensiveActionDemo(options = {}) {
 
     // 2. Sequential and Parallel Actions
     const complexActionTasks = [
-        {sentence: '(&/, (make --> coffee), (drink --> coffee))!', truth: [1.0, 0.9]},
-        {sentence: '(||, (monitor --> temperature), (monitor --> pressure))!', truth: [1.0, 0.9]},
+        {sentence: '(&&, (make --> coffee), (drink --> coffee))!', truth: [1.0, 0.9]},
+        {sentence: '(|&, (monitor --> temperature), (monitor --> pressure))!', truth: [1.0, 0.9]},
     ];
     const complexActionHandlers = [
         {name: 'make', handler: async (action) => info(`Action: Making ${action.parameters[0]}`)},

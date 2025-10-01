@@ -1,11 +1,18 @@
-import {beforeEach, describe, expect, test, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest';
 import Tools from '../../core/lm/Tools.js';
+import * as logger from '../../core/utils/logger.js';
 
 describe('Tools', () => {
     let tools;
+    let errorSpy;
 
     beforeEach(() => {
+        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
         tools = new Tools();
+    });
+
+    afterEach(() => {
+        errorSpy.mockRestore();
     });
 
     test('should create a new Tools instance', () => {

@@ -44,6 +44,7 @@ const BINARY_RELATION_MAP = {
 
 class NarseseParser {
     constructor(input) {
+        this.input = input;
         this.lexer = lexer.clone().reset(input);
         this.current = null;
         this.recursionDepth = 0;
@@ -114,6 +115,10 @@ class NarseseParser {
             throw new Error(`Recursion depth exceeded maximum of ${this.maxRecursionDepth}`);
         }
 
+        if (this.current && this.current.type in BINARY_RELATION_MAP) {
+            throw new Error(`Missing subject for binary relation '${this.current.type}'`);
+        }
+
         const parsers = {
             [TOKEN.LPAREN]: () => this.parseCompoundTerm(),
             [TOKEN.LBRACE]: () => this.parseSet(OP.EXTENSIONAL_SET, TOKEN.LBRACE, TOKEN.RBRACE),
@@ -144,48 +149,52 @@ class NarseseParser {
     }
 
     parseCompoundTerm() {
+        const start = this.current.offset;
         this.consume(TOKEN.LPAREN);
+
         let term;
-        if (this.current?.type in OPERATOR_MAP) {
+
+        // Handle empty parentheses for empty product
+        if (this.match(TOKEN.RPAREN)) {
+            term = { type: OP.PRODUCT, terms: [] };
+        } else if (this.current?.type in OPERATOR_MAP) {
             term = this.parseOperator();
         } else {
-            let subject = null;
-            // Check if this is an empty product ()
-            if (this.match(TOKEN.RPAREN)) {
-                // Empty product case: ()
-                term = {
-                    type: OP.PRODUCT,
-                    terms: []
-                };
-            } else if (!(this.current?.type in BINARY_RELATION_MAP)) {
-                subject = this.parseTerm();
+            const left = this.parseTerm();
 
-                if (this.current?.type in BINARY_RELATION_MAP) {
-                    const relationType = BINARY_RELATION_MAP[this.current.type];
-                    term = this.parseBinaryRelation(subject, this.current.type, relationType);
-                } else if (this.match(TOKEN.COMMA)) {
-                    // Handle product shorthand: (x, y, z) should become (*, x, y, z)
-                    // We already parsed the first term as 'subject', now collect all terms after commas
-                    const productTerms = [subject];
-                    while (this.match(TOKEN.COMMA)) {
-                        this.consume(TOKEN.COMMA);
-                        if (!this.match(TOKEN.RPAREN)) {
-                            productTerms.push(this.parseTerm());
-                        }
-                    }
-
-                    term = {
-                        type: OP.PRODUCT,
-                        terms: productTerms
-                    };
-                } else {
-                    term = subject;
+            if (this.current?.type in BINARY_RELATION_MAP) {
+                const relationType = BINARY_RELATION_MAP[this.current.type];
+                term = this.parseBinaryRelation(left, this.current.type, relationType);
+            } else if (this.current?.type in BINARY_OPERATOR_MAP) {
+                const terms = [left];
+                const operator = this.current.type;
+                while (this.match(operator)) {
+                    this.consume(operator);
+                    terms.push(this.parseTerm());
                 }
+                term = { type: BINARY_OPERATOR_MAP[operator], terms };
+            } else if (this.match(TOKEN.COMMA)) {
+                const productTerms = [left];
+                while (this.match(TOKEN.COMMA)) {
+                    this.consume(TOKEN.COMMA);
+                    if (!this.match(TOKEN.RPAREN)) {
+                        productTerms.push(this.parseTerm());
+                    }
+                }
+                term = { type: OP.PRODUCT, terms: productTerms };
             } else {
-                term = subject;
+                term = left;
             }
         }
+
+        const end = this.current.offset + this.current.text.length;
         this.consume(TOKEN.RPAREN);
+
+        // Assign the original string segment as the key for the compound term
+        if (term && typeof term === 'object' && !term.key) {
+            term.key = this.input.substring(start, end);
+        }
+
         return term;
     }
 
@@ -209,6 +218,9 @@ class NarseseParser {
     }
 
     parseBinaryRelation(subject, tokenType, relationType) {
+        if (!subject) {
+            throw new Error(`Missing subject for binary relation '${tokenType}'`);
+        }
         this.consume(tokenType);
         // Check recursion depth before recursive call
         this.recursionDepth++;

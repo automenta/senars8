@@ -1,12 +1,19 @@
-import {beforeEach, describe, expect, test} from 'vitest';
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest';
 import NarseseTranslator from '../../core/utils/NarseseTranslator.js';
 import {OP, PUNCTUATION} from '../../core/config/constants.js';
+import * as logger from '../../core/utils/logger.js';
 
 describe('NarseseTranslator', () => {
     let translator;
+    let errorSpy;
 
     beforeEach(() => {
+        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
         translator = new NarseseTranslator();
+    });
+
+    afterEach(() => {
+        errorSpy.mockRestore();
     });
 
     test('should create a new NarseseTranslator instance', () => {

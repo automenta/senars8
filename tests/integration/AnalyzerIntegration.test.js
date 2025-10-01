@@ -1,6 +1,18 @@
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest';
 import {UnitTestAnalyzer} from '../../core/analyzer/index.js';
+import * as logger from '../../core/utils/logger.js';
 
 describe('Analyzer Integration Test', () => {
+    let errorSpy;
+
+    beforeEach(() => {
+        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        errorSpy.mockRestore();
+    });
+
     test('should analyze test data and generate reports', async () => {
         // Create analyzer with all features enabled
         const analyzer = new UnitTestAnalyzer({

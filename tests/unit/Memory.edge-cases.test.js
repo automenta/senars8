@@ -3,11 +3,17 @@ import Memory from '../../core/memory/Memory.js';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import ConfigManager from '../../core/config/ConfigManager.js';
+import * as logger from '../../core/utils/logger.js';
 
 describe('Memory - Edge Cases', () => {
     let memory;
+    let errorSpy;
+    let warnSpy;
 
     beforeEach(() => {
+        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
+        warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+
         const configManager = new ConfigManager();
         const mockEventBus = {
             on: vi.fn(),
@@ -19,6 +25,11 @@ describe('Memory - Edge Cases', () => {
             request: vi.fn(),
         };
         memory = new Memory(configManager, mockEventBus, mockCommandBus);
+    });
+
+    afterEach(() => {
+        errorSpy.mockRestore();
+        warnSpy.mockRestore();
     });
 
     test('should handle adding null and undefined terms', async () => {

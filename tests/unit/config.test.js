@@ -1,7 +1,19 @@
+import {afterEach, beforeEach, describe, it, expect, vi} from 'vitest';
 import ConfigManager from '../../core/config/ConfigManager.js';
 import defaultConfig from '../../core/config/default-config.js';
+import * as logger from '../../core/utils/logger.js';
 
 describe('ConfigManager', () => {
+    let warnSpy;
+
+    beforeEach(() => {
+        warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        warnSpy.mockRestore();
+    });
+
     it('should initialize with default configuration', () => {
         const configManager = new ConfigManager();
         // Check that all default config properties are present
