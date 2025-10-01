@@ -68,7 +68,12 @@ class Cycle {
         const focusSet = await this.commandBus.request(SystemCommands.MEMORY_GET_HIGHEST_PRIORITY_TASKS, focusSetSize);
         if (!focusSet) return [];
 
-        focusSet.forEach(task => this.priorityManager?.updatePriority?.(task));
+        // Only update priorities if priorityManager exists
+        if (this.priorityManager && this.priorityManager.updatePriority) {
+            for (const task of focusSet) {
+                this.priorityManager.updatePriority(task);
+            }
+        }
 
         return focusSet;
     }
@@ -84,11 +89,25 @@ class Cycle {
         const derivedTasks = await this.commandBus.request(SystemCommands.REASONER_PROCESS_TASK, {
             focusSet
         });
-        const allTasks = [...focusSet, ...derivedTasks];
+        
+        // Combine and filter in a single pass to avoid intermediate arrays
         const priorityThreshold = this.config.getNumber('ACTIONABLE_GOAL_PRIORITY_THRESHOLD', 0.1);
-        const actionableGoals = getGoalTasks(allTasks).filter(goal =>
-            goal.state?.priority >= priorityThreshold
-        );
+        const actionableGoals = [];
+        
+        // Check focusSet for actionable goals
+        for (const task of focusSet) {
+            if (task.punctuation === '!' && task.state?.priority >= priorityThreshold) {
+                actionableGoals.push(task);
+            }
+        }
+        
+        // Check derivedTasks for actionable goals
+        for (const task of derivedTasks) {
+            if (task.punctuation === '!' && task.state?.priority >= priorityThreshold) {
+                actionableGoals.push(task);
+            }
+        }
+        
         return {
             derivedTasks,
             actionableGoals

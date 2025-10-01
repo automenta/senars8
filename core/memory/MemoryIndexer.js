@@ -62,7 +62,12 @@ class MemoryIndexer {
         const beliefs = this.beliefIndex.get(task.termKey);
         const index = beliefs.indexOf(task);
         if (index !== -1) {
-            beliefs.splice(index, 1);
+            // More efficient removal: swap with last element and pop (O(1) vs O(n) for splice)
+            const lastIdx = beliefs.length - 1;
+            if (index !== lastIdx) {
+                beliefs[index] = beliefs[lastIdx];
+            }
+            beliefs.pop();
             if (beliefs.length === 0) {
                 this.beliefIndex.delete(task.termKey);
             }
@@ -207,11 +212,30 @@ class MemoryIndexer {
 
     clone() {
         const newIndexer = new MemoryIndexer();
-        newIndexer.implicationIndex = new Map(Array.from(this.implicationIndex.entries()).map(([key, value]) => [key, [...value]]));
-        newIndexer.beliefIndex = new Map(Array.from(this.beliefIndex.entries()).map(([key, value]) => [key, [...value]]));
+        
+        // Efficiently copy maps and their contents
+        newIndexer.implicationIndex = new Map();
+        for (const [key, value] of this.implicationIndex) {
+            newIndexer.implicationIndex.set(key, Array.from(value));
+        }
+        
+        newIndexer.beliefIndex = new Map();
+        for (const [key, value] of this.beliefIndex) {
+            newIndexer.beliefIndex.set(key, Array.from(value));
+        }
+        
         newIndexer.costIndex = new Map(this.costIndex);
-        newIndexer.punctuationIndex = new Map(Array.from(this.punctuationIndex.entries()).map(([key, value]) => [key, new Set(value)]));
-        newIndexer.priorityIndex = new Map(Array.from(this.priorityIndex.entries()).map(([key, value]) => [key, new Set(value)]));
+        
+        newIndexer.punctuationIndex = new Map();
+        for (const [key, value] of this.punctuationIndex) {
+            newIndexer.punctuationIndex.set(key, new Set(value));
+        }
+        
+        newIndexer.priorityIndex = new Map();
+        for (const [key, value] of this.priorityIndex) {
+            newIndexer.priorityIndex.set(key, new Set(value));
+        }
+        
         return newIndexer;
     }
 }

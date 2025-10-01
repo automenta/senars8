@@ -319,10 +319,37 @@ class Memory {
 
     async getRecentTasks(count = 10) {
         return errorHandler.execute(async () => {
+            if (count <= 0) return [];
+            
             const allTasks = await this.getAllTasks();
-            return [...allTasks]
-                .sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime))
-                .slice(0, count);
+            if (count >= allTasks.length) {
+                // If we want all or more tasks than we have, sort all and return
+                return [...allTasks]
+                    .sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime));
+            }
+            
+            // For small count relative to total tasks, use a min-heap to efficiently 
+            // track the 'count' most recent tasks without sorting all
+            const pq = new MinPriorityQueue({
+                priority: task => Number(task.state.stamp.creationTime)
+            });
+            
+            for (const task of allTasks) {
+                if (pq.size() < count) {
+                    pq.enqueue(task);
+                } else if (Number(task.state.stamp.creationTime) > pq.front().priority) {
+                    pq.dequeue();
+                    pq.enqueue(task);
+                }
+            }
+            
+            // Extract items and sort them by recency (most recent first)
+            const result = [];
+            while (!pq.isEmpty()) {
+                result.unshift(pq.dequeue().element); // Add to beginning for descending order
+            }
+            
+            return result;
         }, 'getRecentTasks', []);
     }
 

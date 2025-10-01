@@ -239,7 +239,7 @@ class LM {
         if (!termKey) throw new Error('termKey must be a non-empty string.');
 
         const complexity = termKey.split(/[(&,)/]/).filter(Boolean).length;
-        const term = new Term(termKey, [], complexity);
+        const term = new Term(termKey, null, complexity); // Pass null instead of creating a new empty array
 
         if (options.sync) {
             debug(`Bootstrapping term synchronously: ${termKey}`);
