@@ -143,45 +143,27 @@ const safeSync = (operation, context, defaultValue = null) => {
     }
 };
 
-// Error handler factory for modules
-const createModuleErrorHandler = (moduleName) => ({
-    handle: (error, context, shouldThrow = true) => {
-        const fullContext = `${moduleName}.${context}`;
-        return shouldThrow ? logAndThrow(error, fullContext) : logAndReturn(error, fullContext, null);
-    },
-
-    handleWithDefault: (error, context, defaultValue = null) => {
-        const fullContext = `${moduleName}.${context}`;
-        logErrorWithContext(error, fullContext);
-        return defaultValue;
-    },
-
-    safeAsync: async (operation, context, defaultValue = null) => {
-        return await safeAsync(operation, `${moduleName}.${context}`, defaultValue);
-    },
-
-    safeSync: (operation, context, defaultValue = null) => {
-        return safeSync(operation, `${moduleName}.${context}`, defaultValue);
-    },
-});
-
 // Unified error handler class for consistent API
 class UnifiedErrorHandler {
     constructor(moduleName) {
         this.moduleName = moduleName;
-        this.handler = createModuleErrorHandler(moduleName);
+    }
+
+    _getFullContext(context) {
+        return context ? `${this.moduleName}.${context}` : this.moduleName;
     }
 
     async execute(operation, context, defaultValue = null) {
-        return await this.handler.safeAsync(operation, context, defaultValue);
+        return safeAsync(operation, this._getFullContext(context), defaultValue);
     }
 
     executeSync(operation, context, defaultValue = null) {
-        return this.handler.safeSync(operation, context, defaultValue);
+        return safeSync(operation, this._getFullContext(context), defaultValue);
     }
 
     handleWithDefault(error, context, defaultValue = null) {
-        return this.handler.handleWithDefault(error, context, defaultValue);
+        logErrorWithContext(error, this._getFullContext(context));
+        return defaultValue;
     }
 
     // Convenience methods
@@ -229,7 +211,6 @@ const diContainerErrorHandler = createUnifiedErrorHandler('DIContainer');
 export {
     UnifiedErrorHandler,
     createUnifiedErrorHandler,
-    createModuleErrorHandler,
     safeAsync,
     safeSync,
     logAndExit,

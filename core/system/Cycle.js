@@ -1,9 +1,22 @@
-import {debug, info} from '../utils/logger.js';
-import {getGoalTasks} from '../utils/task-utils.js';
-import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
-import {configService} from '../config/index.js';
-import {SystemCommands} from './SystemCommands.js';
-import {SystemEvents} from './SystemEvents.js';
+import {
+    debug,
+    info
+} from '../utils/logger.js';
+import {
+    createUnifiedErrorHandler
+} from '../utils/errorHandler.js';
+import {
+    wrapAsync
+} from '../utils/asyncWrapper.js';
+import {
+    configService
+} from '../config/index.js';
+import {
+    SystemCommands
+} from './SystemCommands.js';
+import {
+    SystemEvents
+} from './SystemEvents.js';
 
 const errorHandler = createUnifiedErrorHandler('Cycle');
 
@@ -33,30 +46,30 @@ class Cycle {
         this.eventBus = eventBus;
         this.commandBus = commandBus;
         this.cycleCount = 0;
+
+        this.runOnce = wrapAsync(this._runOnce.bind(this), 'Cycle', 'runOnce');
     }
 
     async bootstrap(_constitutionTasks) {
         info('Cycle: Bootstrap completed');
     }
 
-    async runOnce() {
+    async _runOnce() {
         this.cycleCount++;
         debug(`Starting cycle ${this.cycleCount}`);
         this.eventBus.emit(SystemEvents.CYCLE_START, this.cycleCount);
 
-        await errorHandler.execute(async () => {
-            const focusSet = await this._selectFocusSet();
-            const {
-                derivedTasks,
-                actionableGoals
-            } = await this._performInference(focusSet);
+        const focusSet = await this._selectFocusSet();
+        const {
+            derivedTasks,
+            actionableGoals
+        } = await this._performInference(focusSet);
 
-            await this._executeActions(actionableGoals);
-            await this._learnFromExperience(derivedTasks);
+        await this._executeActions(actionableGoals);
+        await this._learnFromExperience(derivedTasks);
 
-            await this._updateMemory(derivedTasks);
-            this.eventBus.emit(SystemEvents.CYCLE_COMPLETE, this.cycleCount);
-        }, 'runOnce');
+        await this._updateMemory(derivedTasks);
+        this.eventBus.emit(SystemEvents.CYCLE_COMPLETE, this.cycleCount);
     }
 
     async run() {

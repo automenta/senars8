@@ -6,11 +6,10 @@ import {isTask} from '../utils/task-utils.js';
 import TimeBasedForgettingStrategy from './strategies/TimeBasedForgettingStrategy.js';
 import {debug, warn} from '../utils/logger.js';
 import MemoryIndexer from './MemoryIndexer.js';
-import {createError, createUnifiedErrorHandler} from '../utils/errorHandler.js';
+import {createError} from '../utils/errorHandler.js';
+import {wrapAsync} from '../utils/asyncWrapper.js';
 import {SystemEvents} from '../system/SystemEvents.js';
 import {SystemCommands} from '../system/SystemCommands.js';
-
-const errorHandler = createUnifiedErrorHandler('Memory');
 
 const FORGETTING_STRATEGIES = {
     TimeBased: TimeBasedForgettingStrategy,
@@ -31,6 +30,23 @@ class Memory {
         this._loadForgettingStrategy();
         this._registerEventListeners();
         this._registerCommandHandlers();
+
+        this.addTerm = wrapAsync(this._addTerm.bind(this), 'Memory', 'addTerm', { rethrow: true });
+        this.addTasks = wrapAsync(this._addTasks.bind(this), 'Memory', 'addTasks');
+        this.removeTask = wrapAsync(this._removeTask.bind(this), 'Memory', 'removeTask');
+        this.getAllTasks = wrapAsync(this._getAllTasks.bind(this), 'Memory', 'getAllTasks', { defaultValue: [] });
+        this.getHighestPriorityTasks = wrapAsync(this._getHighestPriorityTasks.bind(this), 'Memory', 'getHighestPriorityTasks', { defaultValue: [] });
+        this.clone = wrapAsync(this._clone.bind(this), 'Memory', 'clone', { defaultValue: null });
+        this.removeTerm = wrapAsync(this._removeTerm.bind(this), 'Memory', 'removeTerm');
+        this.clear = wrapAsync(this._clear.bind(this), 'Memory', 'clear');
+        this.getStatistics = wrapAsync(this._getStatistics.bind(this), 'Memory', 'getStatistics', { defaultValue: {} });
+        this.getBeliefs = wrapAsync(this._getTasksByPunctuation.bind(this, '.'), 'Memory', 'getBeliefs', { defaultValue: [] });
+        this.getGoals = wrapAsync(this._getTasksByPunctuation.bind(this, '!'), 'Memory', 'getGoals', { defaultValue: [] });
+        this.getQuestions = wrapAsync(this._getTasksByPunctuation.bind(this, '?'), 'Memory', 'getQuestions', { defaultValue: [] });
+        this.getRecentTasks = wrapAsync(this._getRecentTasks.bind(this), 'Memory', 'getRecentTasks', { defaultValue: [] });
+        this.queryTasks = wrapAsync(this._queryTasks.bind(this), 'Memory', 'queryTasks', { defaultValue: [] });
+        this.exportState = wrapAsync(this._exportState.bind(this), 'Memory', 'exportState', { defaultValue: '{}' });
+        this.importState = wrapAsync(this._importState.bind(this), 'Memory', 'importState', { rethrow: true });
     }
 
     _loadForgettingStrategy() {
@@ -102,21 +118,19 @@ class Memory {
         this._cachedTaskCount = this.shortTermTasks.size + this.longTermTasks.size;
     }
 
-    async addTerm(term) {
+    async _addTerm(term) {
         if (term === null || term === undefined || !(term instanceof Term)) {
             throw createError.ValidationError('Can only add valid Term instances to memory');
         }
 
-        await errorHandler.execute(async () => {
-            if (this.terms.has(term.key)) {
-                debug(`Term '${term.key}' already exists, skipping.`);
-                return;
-            }
-            this.terms.set(term.key, term);
-            this.indexer.indexTerm(term);
-            await this.eventBus.emitAsync(SystemEvents.TERM_ADD, term);
-            debug(`Added term '${term.key}'.`);
-        }, 'addTerm');
+        if (this.terms.has(term.key)) {
+            debug(`Term '${term.key}' already exists, skipping.`);
+            return;
+        }
+        this.terms.set(term.key, term);
+        this.indexer.indexTerm(term);
+        await this.eventBus.emitAsync(SystemEvents.TERM_ADD, term);
+        debug(`Added term '${term.key}'.`);
     }
 
     getTerm(key) {
@@ -131,60 +145,54 @@ class Memory {
         return [...this.terms.values()];
     }
 
-    async addTasks(tasks) {
-        await errorHandler.execute(async () => {
-            const tasksToAdd = normalizeToArray(tasks);
-            if (!tasksToAdd.length) return;
+    async _addTasks(tasks) {
+        const tasksToAdd = normalizeToArray(tasks);
+        if (!tasksToAdd.length) return;
 
-            let addedCount = 0;
-            for (const task of tasksToAdd) {
-                if (!isTask(task)) {
-                    warn(`Skipping invalid task: ${typeof task}`);
-                    continue;
-                }
-                this.shortTermTasks.set(task.id, task);
-                this.indexer.indexTask(task);
-                await this.eventBus.emitAsync(SystemEvents.TASK_ADD, task);
-                addedCount++;
+        let addedCount = 0;
+        for (const task of tasksToAdd) {
+            if (!isTask(task)) {
+                warn(`Skipping invalid task: ${typeof task}`);
+                continue;
             }
+            this.shortTermTasks.set(task.id, task);
+            this.indexer.indexTask(task);
+            await this.eventBus.emitAsync(SystemEvents.TASK_ADD, task);
+            addedCount++;
+        }
 
-            if (addedCount > 0) {
-                this._invalidateTaskCache();
-                debug(`Added ${addedCount} tasks.`);
-            }
-        }, 'addTasks');
+        if (addedCount > 0) {
+            this._invalidateTaskCache();
+            debug(`Added ${addedCount} tasks.`);
+        }
     }
 
     getTask(id) {
         return this.shortTermTasks.get(id) || this.longTermTasks.get(id);
     }
 
-    async removeTask(taskId) {
-        await errorHandler.execute(async () => {
-            if (!taskId) return;
-            const task = this.getTask(taskId);
-            if (task) {
-                this.shortTermTasks.delete(taskId);
-                this.longTermTasks.delete(taskId);
-                this.indexer.unindexTask(task);
-                this._invalidateTaskCache();
-                await this.eventBus.emitAsync(SystemEvents.TASK_REMOVE, task);
-            }
-        }, 'removeTask');
+    async _removeTask(taskId) {
+        if (!taskId) return;
+        const task = this.getTask(taskId);
+        if (task) {
+            this.shortTermTasks.delete(taskId);
+            this.longTermTasks.delete(taskId);
+            this.indexer.unindexTask(task);
+            this._invalidateTaskCache();
+            await this.eventBus.emitAsync(SystemEvents.TASK_REMOVE, task);
+        }
     }
 
-    async getAllTasks() {
-        return errorHandler.execute(async () => {
-            const currentCount = this.shortTermTasks.size + this.longTermTasks.size;
-            if (!this._cachedAllTasks || this._cachedTaskCount !== currentCount) {
-                this._cachedAllTasks = Array.from(this.shortTermTasks.values());
-                for (const task of this.longTermTasks.values()) {
-                    this._cachedAllTasks.push(task);
-                }
-                this._cachedTaskCount = currentCount;
+    _getAllTasks() {
+        const currentCount = this.shortTermTasks.size + this.longTermTasks.size;
+        if (!this._cachedAllTasks || this._cachedTaskCount !== currentCount) {
+            this._cachedAllTasks = Array.from(this.shortTermTasks.values());
+            for (const task of this.longTermTasks.values()) {
+                this._cachedAllTasks.push(task);
             }
-            return this._cachedAllTasks;
-        }, 'getAllTasks', []);
+            this._cachedTaskCount = currentCount;
+        }
+        return this._cachedAllTasks;
     }
 
     _shouldUsePriorityQueue(k, totalTasks) {
@@ -216,153 +224,129 @@ class Memory {
         return result;
     }
 
-    async getHighestPriorityTasks(k = 20) {
-        return errorHandler.execute(async () => {
-            if (k <= 0) return [];
+    async _getHighestPriorityTasks(k = 20) {
+        if (k <= 0) return [];
 
-            const allTasks = await this.getAllTasks();
-            const totalTasks = allTasks.length;
-            if (k >= totalTasks) {
-                // Sort all tasks by priority in descending order
-                return [...allTasks].sort((a, b) => b.state.priority - a.state.priority);
-            }
+        const allTasks = await this.getAllTasks();
+        const totalTasks = allTasks.length;
+        if (k >= totalTasks) {
+            // Sort all tasks by priority in descending order
+            return [...allTasks].sort((a, b) => b.state.priority - a.state.priority);
+        }
 
-            if (this._shouldUsePriorityQueue(k, totalTasks)) {
-                return this._getHighestPriorityTasksWithPQ(allTasks, k);
-            } else {
-                // For larger k values relative to total tasks, partial sort is more efficient
-                // Use a simple approach: sort and slice
-                return [...allTasks]
-                    .sort((a, b) => b.state.priority - a.state.priority)
-                    .slice(0, k);
-            }
-        }, 'getHighestPriorityTasks', []);
+        if (this._shouldUsePriorityQueue(k, totalTasks)) {
+            return this._getHighestPriorityTasksWithPQ(allTasks, k);
+        } else {
+            // For larger k values relative to total tasks, partial sort is more efficient
+            // Use a simple approach: sort and slice
+            return [...allTasks]
+                .sort((a, b) => b.state.priority - a.state.priority)
+                .slice(0, k);
+        }
     }
 
-    async clone() {
-        return errorHandler.execute(async () => {
-            const newMemory = new Memory(this.config, this.eventBus, this.commandBus);
-            Object.assign(newMemory, {
-                terms: new Map(this.terms),
-                shortTermTasks: new Map(this.shortTermTasks),
-                longTermTasks: new Map(this.longTermTasks),
-                indexer: this.indexer.clone(),
-                forgettingStrategy: this.forgettingStrategy,
-                cycleCounter: this.cycleCounter,
-            });
-            return newMemory;
-        }, 'clone', null);
+    async _clone() {
+        const newMemory = new Memory(this.config, this.eventBus, this.commandBus);
+        Object.assign(newMemory, {
+            terms: new Map(this.terms),
+            shortTermTasks: new Map(this.shortTermTasks),
+            longTermTasks: new Map(this.longTermTasks),
+            indexer: this.indexer.clone(),
+            forgettingStrategy: this.forgettingStrategy,
+            cycleCounter: this.cycleCounter,
+        });
+        return newMemory;
     }
 
-    async removeTerm(key) {
-        await errorHandler.execute(async () => {
-            const term = this.terms.get(key);
-            if (!term) return;
-            term.destroy?.();
-            this.terms.delete(key);
-            this.indexer.removeTerm(key);
-            await this.eventBus.emitAsync(SystemEvents.TERM_REMOVE, {
-                key
-            });
-        }, 'removeTerm');
+    async _removeTerm(key) {
+        const term = this.terms.get(key);
+        if (!term) return;
+        term.destroy?.();
+        this.terms.delete(key);
+        this.indexer.removeTerm(key);
+        await this.eventBus.emitAsync(SystemEvents.TERM_REMOVE, {
+            key
+        });
     }
 
-    async clear() {
-        await errorHandler.execute(async () => {
-            this.terms.forEach(term => term.destroy?.());
-            this.terms.clear();
-            this.shortTermTasks.clear();
-            this.longTermTasks.clear();
-            this.indexer.clear();
-            this.cycleCounter = 0;
-            this._invalidateTaskCache();
-            await this.eventBus.emitAsync(SystemEvents.SYSTEM_RESET);
-        }, 'clear');
+    async _clear() {
+        this.terms.forEach(term => term.destroy?.());
+        this.terms.clear();
+        this.shortTermTasks.clear();
+        this.longTermTasks.clear();
+        this.indexer.clear();
+        this.cycleCounter = 0;
+        this._invalidateTaskCache();
+        await this.eventBus.emitAsync(SystemEvents.SYSTEM_RESET);
     }
 
-    async getStatistics() {
-        return errorHandler.execute(async () => ({
+    _getStatistics() {
+        return {
             terms: this.terms.size,
             shortTermTasks: this.shortTermTasks.size,
             longTermTasks: this.longTermTasks.size,
             ...this.indexer.getStatistics(),
-        }), 'getStatistics', {});
+        };
     }
 
-    async _getTasksByPunctuation(punctuation, methodName) {
-        return errorHandler.execute(async () => {
-            const taskIds = this.indexer.punctuationIndex.get(punctuation);
-            if (!taskIds) return [];
+    async _getTasksByPunctuation(punctuation) {
+        const taskIds = this.indexer.punctuationIndex.get(punctuation);
+        if (!taskIds) return [];
 
-            const result = [];
-            for (const taskId of taskIds) {
-                const task = this.getTask(taskId);
-                if (task) {
-                    result.push(task);
-                }
+        const result = [];
+        for (const taskId of taskIds) {
+            const task = this.getTask(taskId);
+            if (task) {
+                result.push(task);
             }
-            return result;
-        }, methodName, []);
+        }
+        return result;
     }
 
-    async getBeliefs() {
-        return await this._getTasksByPunctuation('.', 'getBeliefs');
-    }
+    async _getRecentTasks(count = 10) {
+        if (count <= 0) return [];
 
-    async getGoals() {
-        return await this._getTasksByPunctuation('!', 'getGoals');
-    }
+        const allTasks = await this.getAllTasks();
+        if (count >= allTasks.length) {
+            // If we want all or more tasks than we have, sort all and return
+            return [...allTasks]
+                .sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime));
+        }
 
-    async getQuestions() {
-        return await this._getTasksByPunctuation('?', 'getQuestions');
-    }
+        // For small count relative to total tasks, use a min-heap to efficiently
+        // track the 'count' most recent tasks without sorting all
+        const pq = new MinPriorityQueue({
+            priority: task => Number(task.state.stamp.creationTime)
+        });
 
-    async getRecentTasks(count = 10) {
-        return errorHandler.execute(async () => {
-            if (count <= 0) return [];
-            
-            const allTasks = await this.getAllTasks();
-            if (count >= allTasks.length) {
-                // If we want all or more tasks than we have, sort all and return
-                return [...allTasks]
-                    .sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime));
+        for (const task of allTasks) {
+            if (pq.size() < count) {
+                pq.enqueue(task);
+            } else if (Number(task.state.stamp.creationTime) > pq.front().priority) {
+                pq.dequeue();
+                pq.enqueue(task);
             }
-            
-            // For small count relative to total tasks, use a min-heap to efficiently 
-            // track the 'count' most recent tasks without sorting all
-            const pq = new MinPriorityQueue({
-                priority: task => Number(task.state.stamp.creationTime)
-            });
-            
-            for (const task of allTasks) {
-                if (pq.size() < count) {
-                    pq.enqueue(task);
-                } else if (Number(task.state.stamp.creationTime) > pq.front().priority) {
-                    pq.dequeue();
-                    pq.enqueue(task);
-                }
-            }
-            
-            // Extract items and sort them by recency (most recent first)
-            const result = [];
-            while (!pq.isEmpty()) {
-                result.unshift(pq.dequeue().element); // Add to beginning for descending order
-            }
-            
-            return result;
-        }, 'getRecentTasks', []);
+        }
+
+        // Extract items and sort them by recency (most recent first)
+        const result = [];
+        while (!pq.isEmpty()) {
+            result.unshift(pq.dequeue().element); // Add to beginning for descending order
+        }
+
+        return result;
     }
 
-    async queryTasks(filters = {}) {
-        return errorHandler.execute(async () => this.indexer.queryTasks(await this.getAllTasks(), filters), 'queryTasks', []);
+    async _queryTasks(filters = {}) {
+        return this.indexer.queryTasks(await this.getAllTasks(), filters);
     }
 
-    async exportState() {
-        return errorHandler.execute(async () => JSON.stringify({
+    _exportState() {
+        return JSON.stringify({
             terms: [...this.terms.values()],
             shortTermTasks: [...this.shortTermTasks.values()],
             longTermTasks: [...this.longTermTasks.values()],
-        }, (key, value) => typeof value === 'bigint' ? value.toString() : value, 2), 'exportState', '{}');
+        }, (key, value) => typeof value === 'bigint' ? value.toString() : value, 2);
     }
 
     _createTaskFromJSON(json) {
@@ -381,7 +365,7 @@ class Memory {
         return task;
     }
 
-    async importState(jsonState) {
+    async _importState(jsonState) {
         if (typeof jsonState !== 'string') {
             await this.clear();
             return;
