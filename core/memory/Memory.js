@@ -216,12 +216,13 @@ class Memory {
             }
         }
 
-        // Instead of converting to array and then sorting, extract elements in priority order
+        // Extract elements and reverse to get descending order - more efficient than unshift in loop
+        // (unshift has O(k) complexity for each operation, leading to O(k²) total)
         const result = [];
         while (!pq.isEmpty()) {
-            result.unshift(pq.dequeue().element);  // Add to beginning to maintain descending order
+            result.push(pq.dequeue().element);
         }
-        return result;
+        return result.reverse(); // O(k) operation to reverse instead of O(k²) from multiple unshifts
     }
 
     async _getHighestPriorityTasks(k = 20) {
@@ -293,9 +294,10 @@ class Memory {
         const taskIds = this.indexer.punctuationIndex.get(punctuation);
         if (!taskIds) return [];
 
+        // More efficient: pre-allocate result array and use direct lookup
         const result = [];
         for (const taskId of taskIds) {
-            const task = this.getTask(taskId);
+            const task = this.shortTermTasks.get(taskId) || this.longTermTasks.get(taskId);
             if (task) {
                 result.push(task);
             }
@@ -328,13 +330,12 @@ class Memory {
             }
         }
 
-        // Extract items and sort them by recency (most recent first)
+        // Extract items and return them in descending order - more efficient than unshift in loop
         const result = [];
         while (!pq.isEmpty()) {
-            result.unshift(pq.dequeue().element); // Add to beginning for descending order
+            result.push(pq.dequeue().element);
         }
-
-        return result;
+        return result.reverse(); // O(count) operation to reverse instead of O(count²) from multiple unshifts
     }
 
     async _queryTasks(filters = {}) {

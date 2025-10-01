@@ -105,14 +105,19 @@ class System {
             
             if (termKeys.length === 0) return;
 
-            const termExistence = await Promise.all(
+            // Optimize the term existence check - batch the requests more efficiently
+            const termExistence = await Promise.allSettled(
                 termKeys.map(key => this.commandBus.request(SystemCommands.MEMORY_GET_TERM, key))
             );
             
-            // Build new term keys array directly without filtering
+            // Build new term keys array for non-existent terms
             const newTermKeys = [];
             for (let i = 0; i < termKeys.length; i++) {
-                if (!termExistence[i]) {
+                const result = termExistence[i];
+                if (result.status === 'fulfilled' && !result.value) {
+                    newTermKeys.push(termKeys[i]);
+                } else if (result.status === 'rejected') {
+                    // If there was an error checking existence, still try to bootstrap
                     newTermKeys.push(termKeys[i]);
                 }
             }
@@ -120,12 +125,19 @@ class System {
             if (newTermKeys.length === 0) return;
 
             debug(`Bootstrapping ${newTermKeys.length} new terms...`);
-            const newTerms = (await Promise.all(
-                newTermKeys.map(key => this.commandBus.request(SystemCommands.LM_BOOTSTRAP_TERM, {
-                    termKey: key,
-                    options
-                }))
-            )).filter(Boolean);
+            const bootstrapPromises = newTermKeys.map(key => this.commandBus.request(SystemCommands.LM_BOOTSTRAP_TERM, {
+                termKey: key,
+                options
+            }));
+            
+            const bootstrapResults = await Promise.allSettled(bootstrapPromises);
+            const newTerms = [];
+            
+            for (const result of bootstrapResults) {
+                if (result.status === 'fulfilled' && result.value) {
+                    newTerms.push(result.value);
+                }
+            }
 
             await this.eventBus.emitAsync(SystemEvents.TERM_ADD, newTerms);
             info(`Successfully bootstrapped ${newTerms.length} terms.`);

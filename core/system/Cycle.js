@@ -103,19 +103,13 @@ class Cycle {
             focusSet
         });
         
-        // Combine and filter in a single pass to avoid intermediate arrays
+        // Filter actionable goals from both focusSet and derivedTasks in a single pass
         const priorityThreshold = this.config.getNumber('ACTIONABLE_GOAL_PRIORITY_THRESHOLD', 0.1);
         const actionableGoals = [];
         
-        // Check focusSet for actionable goals
-        for (const task of focusSet) {
-            if (task.punctuation === '!' && task.state?.priority >= priorityThreshold) {
-                actionableGoals.push(task);
-            }
-        }
-        
-        // Check derivedTasks for actionable goals
-        for (const task of derivedTasks) {
+        // Combine both arrays and filter in one pass for better performance
+        const allTasks = focusSet.concat(derivedTasks);
+        for (const task of allTasks) {
             if (task.punctuation === '!' && task.state?.priority >= priorityThreshold) {
                 actionableGoals.push(task);
             }

@@ -85,9 +85,19 @@ class Reasoner {
      * @returns {string} Unique combination key
      */
     _getCombinationKey(ruleName, tasks) {
-        // Sort task IDs to ensure consistent keys regardless of task order
-        const sortedTaskIds = tasks.map(t => t.id).sort();
-        return `${ruleName}:${sortedTaskIds.join(',')}`;
+        // For small combinations (arity <= 2), use simple concatenation to avoid sort overhead
+        // For larger combinations, sort task IDs to ensure consistent keys regardless of task order
+        let key;
+        if (tasks.length <= 2) {
+            // For unary and binary rules, just use the IDs in order - there are only few possible
+            // orderings, so we'll have at most a few cache misses due to different orderings
+            key = tasks.map(t => t.id).join(',');
+        } else {
+            // For larger combinations, sort to ensure consistency
+            const sortedTaskIds = tasks.map(t => t.id).sort();
+            key = sortedTaskIds.join(',');
+        }
+        return `${ruleName}:${key}`;
     }
 
     /**
