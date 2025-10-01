@@ -99,14 +99,13 @@ class InstanceManager {
      * @param {any} instance - The instance to cache.
      */
     add(key, instance) {
-        // Add the new item first (for LRU - new item should be at end)
-        this.#cache.set(key, instance);
-        
-        // Check if we need to evict old items after adding
-        if (this.#cache.size > this.#maxSize) {
+        // Check if we need to evict old items
+        if (this.#cache.size >= this.#maxSize) {
             this._evictOldest();
         }
 
+        // Add the new item
+        this.#cache.set(key, instance);
         this.#stats.currentSize = this.#cache.size;
     }
 

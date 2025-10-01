@@ -1,6 +1,6 @@
 export default {
     performance: {
-        ENABLE_INSTANCE_SHARING: false,
+        ENABLE_INSTANCE_SHARING: true,
     },
     FOCUS_SET_SIZE: 20,
     META_TASK_PRIORITY: 0.9,

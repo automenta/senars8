@@ -17,16 +17,58 @@ const CURRENT_LOG_LEVEL = LOG_LEVELS[process.env.LOG_LEVEL?.toUpperCase()] ?? LO
 
 const log = (level, levelName, consoleMethod, message, ...args) => {
     if (level <= CURRENT_LOG_LEVEL) {
-        const timestamp = new Date().toISOString();
+        const timestamp = getTimestamp();
         consoleMethod(`[${timestamp}] [${levelName}]`, message, ...args);
     }
 };
 
-export const error = (message, ...args) => log(LOG_LEVELS.ERROR, 'ERROR', console.error, message, ...args);
-export const warn = (message, ...args) => log(LOG_LEVELS.WARN, 'WARN', console.warn, message, ...args);
-export const info = (message, ...args) => log(LOG_LEVELS.INFO, 'INFO', console.log, message, ...args);
-export const debug = (message, ...args) => log(LOG_LEVELS.DEBUG, 'DEBUG', console.log, message, ...args);
-export const trace = (message, ...args) => log(LOG_LEVELS.TRACE, 'TRACE', console.trace, message, ...args);
+// Cached timestamp function to reduce Date object creation overhead when logging is active
+let lastTimestamp = '';
+let lastTimestampTime = 0;
+const getTimestamp = () => {
+    const now = Date.now();
+    // Cache timestamp for 100ms to reduce Date object creation overhead
+    if (now - lastTimestampTime > 100) {
+        lastTimestamp = new Date().toISOString();
+        lastTimestampTime = now;
+    }
+    return lastTimestamp;
+};
+
+export const error = (message, ...args) => {
+    if (LOG_LEVELS.ERROR <= CURRENT_LOG_LEVEL) {
+        const timestamp = getTimestamp();
+        console.error(`[${timestamp}] [ERROR]`, message, ...args);
+    }
+};
+
+export const warn = (message, ...args) => {
+    if (LOG_LEVELS.WARN <= CURRENT_LOG_LEVEL) {
+        const timestamp = getTimestamp();
+        console.warn(`[${timestamp}] [WARN]`, message, ...args);
+    }
+};
+
+export const info = (message, ...args) => {
+    if (LOG_LEVELS.INFO <= CURRENT_LOG_LEVEL) {
+        const timestamp = getTimestamp();
+        console.log(`[${timestamp}] [INFO]`, message, ...args);
+    }
+};
+
+export const debug = (message, ...args) => {
+    if (LOG_LEVELS.DEBUG <= CURRENT_LOG_LEVEL) {
+        const timestamp = getTimestamp();
+        console.log(`[${timestamp}] [DEBUG]`, message, ...args);
+    }
+};
+
+export const trace = (message, ...args) => {
+    if (LOG_LEVELS.TRACE <= CURRENT_LOG_LEVEL) {
+        const timestamp = getTimestamp();
+        console.trace(`[${timestamp}] [TRACE]`, message, ...args);
+    }
+};
 
 // Default export for convenience, maintaining compatibility with previous logger objects.
 const logger = {
