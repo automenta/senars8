@@ -1,31 +1,114 @@
+import { Agent } from './index.js';
+import { error, info, warn, debug } from '../core/utils/logger.js';
+import { formatTaskForBroadcast } from './utils/taskUtils.js';
+import { SystemCommands } from '../core/system/SystemCommands.js';
 import chokidar from 'chokidar';
 import PlanProcessor from '../core/utils/PlanProcessor.js';
-import {debug, info, warn} from '../core/utils/logger.js';
-import {createUnifiedErrorHandler} from '../core/utils/errorHandler.js';
+import { createUnifiedErrorHandler } from '../core/utils/errorHandler.js';
 import FileMonitoringConfig from './fileMonitoringConfig.js';
+import { globSync } from 'glob';
 
-/**
- * A self-contained module for monitoring files, processing them,
- * and integrating the results into the agent's cognitive system.
- */
-class FileMonitoring {
-    constructor(agent, options = {}) {
-        this.agent = agent;
-        this.system = agent.system;
-        this.config = new FileMonitoringConfig(options);
+class AgentManager {
+    constructor(broadcast) {
+        this.agent = new Agent();
+        this.broadcast = broadcast;
+        this.system = null;
+
+        // File monitoring properties
+        const fileMonitoringOptions = this.agent.config.fileMonitoring || {};
+        this.config = new FileMonitoringConfig(fileMonitoringOptions);
         this.options = this.config.getConfig();
-
         this.errorHandler = createUnifiedErrorHandler('FileMonitoring');
-        this.planProcessor = new PlanProcessor(this.system, this.options);
+        this.planProcessor = null;
         this.watcher = null;
         this.isWatching = false;
         this.processedFiles = new Set();
         this.debounceTimers = new Map();
-
-        this.planProcessor.initialize();
     }
 
-    async start() {
+    async initialize() {
+        try {
+            await this.agent.initialize();
+            this.system = this.agent.system;
+            this.planProcessor = new PlanProcessor(this.system, this.options);
+            this.planProcessor.initialize();
+
+            info('Agent initialized');
+            this.broadcast({ type: 'agentStatus', payload: 'initialized' });
+            this.setupEventListeners();
+            await this.startFileMonitoring();
+            return true;
+        } catch (err) {
+            error('Agent initialization failed:', err);
+            this.broadcast({ type: 'agentStatus', payload: 'initialization_failed' });
+            return false;
+        }
+    }
+
+    setupEventListeners() {
+        const eventBus = this.agent.system.eventBus;
+        if (eventBus) {
+            info('Attaching event listeners to EventBus');
+            eventBus.on('status_update', (status) => this.broadcast({ type: 'status_update', payload: status }));
+            eventBus.on('system_cycle', (cycleCount) => this.broadcast({
+                type: 'system_cycle',
+                payload: { cycleCount }
+            }));
+            eventBus.on('add_belief', (belief) => this.broadcast({
+                type: 'add_belief',
+                payload: formatTaskForBroadcast(belief)
+            }));
+            eventBus.on('add_goal', (goal) => this.broadcast({
+                type: 'add_goal',
+                payload: formatTaskForBroadcast(goal)
+            }));
+            eventBus.on('add_question', (question) => this.broadcast({
+                type: 'add_question',
+                payload: formatTaskForBroadcast(question)
+            }));
+            eventBus.on('add_task', (task) => this.broadcast({
+                type: 'task_added',
+                payload: formatTaskForBroadcast(task)
+            }));
+            eventBus.on('reasoning_step', (step) => this.broadcast({ type: 'reasoning_step', payload: step }));
+            eventBus.on('memory_changed', (changes) => this.broadcast({
+                type: 'memory_update',
+                payload: changes
+            }));
+        } else {
+            warn('Agent event bus not available. UI will not receive real-time updates.');
+        }
+    }
+
+    getAgent() {
+        return this.agent;
+    }
+
+    async start(maxCycles) {
+        if (this.agent.system && this.agent.system.commandBus) {
+            this.broadcast({ type: 'log', payload: { source: 'system', message: 'Agent command received: start' } });
+            await this.agent.system.commandBus.request(SystemCommands.SYSTEM_START_CYCLING, { maxCycles });
+        }
+    }
+
+    async stop() {
+        if (this.agent.system && this.agent.system.commandBus) {
+            this.broadcast({ type: 'log', payload: { source: 'system', message: 'Agent command received: stop' } });
+            await this.agent.system.commandBus.request(SystemCommands.SYSTEM_STOP_CYCLING);
+        }
+        await this.stopFileMonitoring();
+    }
+
+    async reset() {
+        if (this.agent.system && this.agent.system.commandBus) {
+            this.broadcast({ type: 'log', payload: { source: 'system', message: 'Agent command received: reset' } });
+            await this.agent.system.commandBus.request(SystemCommands.SYSTEM_RESET);
+        }
+    }
+
+    // --- File Monitoring Methods ---
+
+    async startFileMonitoring() {
         if (this.isWatching) {
             info('File monitoring is already running.');
             return true;
@@ -50,7 +133,7 @@ class FileMonitoring {
                 },
             });
 
-            this.setupEventHandlers();
+            this.setupFileMonitoringEventHandlers();
             if (this.system.eventBus) {
                 this.setupSystemEventHandlers();
             }
@@ -59,13 +142,13 @@ class FileMonitoring {
             info('File monitoring started successfully.');
             return true;
         } catch (error) {
-            this.errorHandler.handleWithDefault(error, 'start', false);
+            this.errorHandler.handleWithDefault(error, 'startFileMonitoring', false);
             warn('Failed to start file monitoring:', error.message);
             return false;
         }
     }
 
-    setupEventHandlers() {
+    setupFileMonitoringEventHandlers() {
         this.watcher
             .on('add', (filePath) => this.handleFileChange(filePath))
             .on('change', (filePath) => this.handleFileChange(filePath))
@@ -100,10 +183,9 @@ class FileMonitoring {
 
     async processExistingFiles() {
         for (const pattern of this.options.patterns) {
-            const glob = await import('glob');
-            const files = glob.glob.sync(pattern, {cwd: this.options.watchDir, absolute: true});
+            const files = globSync(pattern, { cwd: this.options.watchDir, absolute: true });
             for (const file of files) {
-                await this.processFile(file, {initial: true});
+                await this.processFile(file, { initial: true });
             }
         }
     }
@@ -148,29 +230,7 @@ class FileMonitoring {
         }, 'processFile', { rethrow: true });
     }
 
-    async addPatterns(patterns) {
-        if (!Array.isArray(patterns)) patterns = [patterns];
-
-        const newPatterns = patterns.filter(p => !this.options.patterns.includes(p));
-        if (newPatterns.length === 0) return;
-
-        this.options.patterns.push(...newPatterns);
-
-        if (this.watcher) {
-            await this.watcher.add(newPatterns);
-            await this.processExistingFiles();
-        }
-    }
-
-    removePatterns(patterns) {
-        if (!Array.isArray(patterns)) patterns = [patterns];
-        this.options.patterns = this.options.patterns.filter(p => !patterns.includes(p));
-        if (this.watcher) {
-            this.watcher.unwatch(patterns);
-        }
-    }
-
-    async stop() {
+    async stopFileMonitoring() {
         if (!this.isWatching) return;
         for (const timer of this.debounceTimers.values()) {
             clearTimeout(timer);
@@ -182,32 +242,6 @@ class FileMonitoring {
         this.isWatching = false;
         info('File monitoring stopped.');
     }
-
-    getStatistics() {
-        return {
-            isWatching: this.isWatching,
-            patterns: this.options.patterns,
-            processedFilesCount: this.processedFiles.size,
-            processorStats: this.planProcessor.getStatistics(),
-            watchedDirs: this.watcher ? this.watcher.getWatched() : [],
-        };
-    }
-
-    async processFilesNow(filePaths) {
-        const allTasks = [];
-        if (typeof filePaths === 'string') filePaths = [filePaths];
-        for (const filePath of filePaths) {
-            const tasks = await this.processFile(filePath, {initial: true});
-            allTasks.push(...tasks);
-        }
-        return allTasks;
-    }
-
-    updateConfig(newConfig) {
-        this.config.updateConfig(newConfig);
-        this.options = this.config.getConfig();
-        Object.assign(this.planProcessor.options, this.options);
-    }
 }
 
-export default FileMonitoring;
+export default AgentManager;

@@ -1,6 +1,5 @@
 import Agent from './Agent.js';
-import FileMonitoring from './fileMonitoring.js';
 import FileMonitoringConfig from './fileMonitoringConfig.js';
 
-export {Agent, FileMonitoring, FileMonitoringConfig};
+export {Agent, FileMonitoringConfig};
 export default Agent;

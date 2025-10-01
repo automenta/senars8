@@ -1,8 +1,9 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import Agent from '../../agent/Agent.js';
+import AgentManager from '../../agent/AgentManager.js';
 import fs from 'fs';
 import {glob} from 'glob';
 import PlanProcessor from '../../core/utils/PlanProcessor.js';
+import { SystemCommands } from '../../core/system/SystemCommands.js';
 
 vi.mock('../../core/utils/PlanProcessor.js');
 
@@ -16,6 +17,9 @@ const {mockSystem} = vi.hoisted(() => ({
             getQuestions: vi.fn().mockReturnValue([{id: 'question1'}]),
         },
         addTasks: vi.fn().mockResolvedValue(undefined),
+        commandBus: {
+            request: vi.fn()
+        },
         reasoner: {
             planner: {
                 createPlan: vi.fn().mockResolvedValue({steps: [{key: 'action'}]}),
@@ -28,14 +32,16 @@ const {mockSystem} = vi.hoisted(() => ({
 const {watcherInstance} = vi.hoisted(() => {
     const instance = {
         on: vi.fn(),
-        add: vi.fn(), // Added the missing mock function
+        add: vi.fn(),
         close: vi.fn().mockResolvedValue(undefined),
+        stop: vi.fn(),
         _events: {},
         _clear: function () {
             this._events = {};
             this.on.mockClear();
             this.add.mockClear();
             this.close.mockClear();
+            this.stop.mockClear();
         },
         _trigger: function (event, ...args) {
             if (this._events[event]) this._events[event](...args);
@@ -65,9 +71,10 @@ vi.mock('chokidar', () => ({
 vi.mock('fs');
 vi.mock('glob');
 
-describe('Agent Integration Test', () => {
-    let agent;
+describe('AgentManager Integration Test', () => {
+    let agentManager;
     let mockPlanProcessor;
+    let mockBroadcast;
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -85,45 +92,41 @@ describe('Agent Integration Test', () => {
         fs.existsSync.mockReturnValue(true);
         glob.sync.mockReturnValue(['/test/docs/test.md']);
 
-        agent = new Agent({
-            fileMonitoring: {
-                patterns: ['/test/docs/**/*.md'],
-                watchDir: '/test',
-                debounce: 10,
-            },
-        });
+        mockBroadcast = vi.fn();
+        agentManager = new AgentManager(mockBroadcast);
     });
 
     it('should initialize correctly', async () => {
-        await agent.initialize();
+        await agentManager.initialize();
+        const agent = agentManager.getAgent();
         expect(agent.isInitialized).toBe(true);
-        expect(agent.fileMonitoring.isWatching).toBe(true);
     });
 
     it('should process an existing file on startup', async () => {
-        await agent.initialize();
+        await agentManager.initialize();
         await new Promise(resolve => setTimeout(resolve, 20));
+        const agent = agentManager.getAgent();
         expect(agent.system.addTasks).toHaveBeenCalledWith([{goal: 'task'}]);
     });
 
-    it('should get agent state', async () => {
-        await agent.initialize();
+    it('should get agent state from the agent', async () => {
+        await agentManager.initialize();
+        const agent = agentManager.getAgent();
         const state = agent.getAgentState();
         expect(state.tasks).toEqual([{id: 'task1'}]);
     });
 
-    it('should call addPatterns', async () => {
-        await agent.initialize();
-        await agent.addMonitoringPatterns(['**/*.txt']);
-        expect(watcherInstance.add).toHaveBeenCalledWith(['**/*.txt']);
-        expect(agent.fileMonitoring.options.patterns).toContain('**/*.txt');
+    it('should stop agent cycling via command', async () => {
+        await agentManager.initialize();
+        await agentManager.stop();
+        const agent = agentManager.getAgent();
+        expect(agent.system.commandBus.request).toHaveBeenCalledWith(SystemCommands.SYSTEM_STOP_CYCLING);
     });
 
-    it('should stop all services gracefully', async () => {
-        await agent.initialize();
-        vi.spyOn(agent.fileMonitoring, 'stop');
-        await agent.stop();
-        expect(agent.fileMonitoring.stop).toHaveBeenCalled();
-        expect(agent.system.stop).toHaveBeenCalled();
+    it('should reset agent via command', async () => {
+        await agentManager.initialize();
+        await agentManager.reset();
+        const agent = agentManager.getAgent();
+        expect(agent.system.commandBus.request).toHaveBeenCalledWith(SystemCommands.SYSTEM_RESET);
     });
 });

@@ -1,6 +1,6 @@
 import {SystemCommands} from '../../core/system/SystemCommands.js';
 import Task from '../../core/core/Task.js';
-import {serverWarn} from '../utils/logger.js';
+import {warn} from '../../core/utils/logger.js';
 import {createCompositeFilter, createPriorityFilter, createTaskFilter,} from '../utils/taskUtils.js';
 import {executeAsync} from '../utils/asyncWrapper.js';
 
@@ -16,15 +16,29 @@ export const handleNarsese = async (payload, ws, agent, broadcast) => {
             });
         }, ws, 'process Narsese input');
     } else {
-        serverWarn('CommandBus not available. Cannot process Narsese input.');
+        warn('CommandBus not available. Cannot process Narsese input.');
     }
 };
 
-export const handleAgentControl = async (payload, ws, agent, broadcast) => {
-    if (!agent.system || !agent.system.commandBus) {
-        serverWarn('CommandBus not available. Cannot process agent control command.');
-        return;
-    }
+export const handleAgentControl = async (payload, ws, agentManager, broadcast) => {
+    const {command, maxCycles} = payload;
+
+    return executeAsync(async () => {
+        switch (command) {
+            case 'start':
+                await agentManager.start(maxCycles);
+                break;
+            case 'stop':
+                await agentManager.stop();
+                break;
+            case 'reset':
+                await agentManager.reset();
+                break;
+            default:
+                warn(`Unknown agent control command: ${command}`);
+        }
+    }, ws, `execute agent control command '${command}'`);
+};
 
     const {command, maxCycles} = payload;
     const commandMap = {
@@ -33,19 +47,6 @@ export const handleAgentControl = async (payload, ws, agent, broadcast) => {
         reset: SystemCommands.SYSTEM_RESET,
     };
 
-    const systemCommand = commandMap[command];
-    if (systemCommand) {
-        return executeAsync(async () => {
-            broadcast({
-                type: 'log',
-                payload: {source: 'system', message: `Agent command received: ${command}`}
-            });
-            await agent.system.commandBus.request(systemCommand, {maxCycles});
-        }, ws, `execute agent control command '${command}'`);
-    } else {
-        serverWarn(`Unknown agent control command: ${command}`);
-    }
-};
 
 export const handleGetTasks = async (payload, ws, agent) => {
     return executeAsync(async () => {

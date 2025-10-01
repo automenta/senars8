@@ -1,4 +1,4 @@
-import {serverDebug} from './utils/logger.js';
+import {debug} from '../core/utils/logger.js';
 import {
     handleCreateDirectory,
     handleCreateFile,
@@ -18,7 +18,8 @@ import {
     handleTaskAction
 } from './api/agent.js';
 
-export const createMessageHandler = (agent, broadcast) => {
+export const createMessageHandler = (agentManager, broadcast) => {
+    const agent = agentManager.getAgent();
     const messageHandlers = {
         // File System
         readDirectory: (payload, ws) => handleReadDirectory(payload, ws),
@@ -34,7 +35,7 @@ export const createMessageHandler = (agent, broadcast) => {
 
         // Agent
         narsese: (payload, ws) => handleNarsese(payload, ws, agent, broadcast),
-        agentControl: (payload, ws) => handleAgentControl(payload, ws, agent, broadcast),
+        agentControl: (payload, ws) => handleAgentControl(payload, ws, agentManager, broadcast),
         get_tasks: (payload, ws) => handleGetTasks(payload, ws, agent),
         task_action: (payload, ws) => handleTaskAction(payload, ws, agent, broadcast),
         add_task: (payload, ws) => handleAddTask(payload, ws, agent, broadcast),
@@ -43,7 +44,7 @@ export const createMessageHandler = (agent, broadcast) => {
 
     return async (message, ws) => {
         const {type, payload} = message;
-        serverDebug(`received: ${type}`, payload);
+        debug(`received: ${type}`, payload);
 
         const handler = messageHandlers[type];
         if (handler) {

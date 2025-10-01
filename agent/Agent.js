@@ -3,7 +3,6 @@ import {parseTerm} from '../core/parser/parse-utils.js';
 import Task from '../core/core/Task.js';
 import logger from '../common/services/Logger.js';
 import MCP from './MCP.js';
-import FileMonitoring from './fileMonitoring.js';
 
 const agentLogger = logger.createNamespace('Agent');
 
@@ -26,7 +25,6 @@ class Agent {
         this.isInitialized = false;
         this.mcp = new MCP(this);
         this.tools = {};
-        this.fileMonitoring = null;
     }
 
     async initialize() {
@@ -48,10 +46,6 @@ class Agent {
                     });
                 }
             }
-
-            // Initialize and start file monitoring
-            this.fileMonitoring = new FileMonitoring(this, this.config.fileMonitoring || {});
-            await this.fileMonitoring.start();
 
             agentLogger.debug('Agent initialized successfully.');
         }, 'initialize');
@@ -144,9 +138,6 @@ class Agent {
             throw new Error('Agent must be initialized before stopping.');
         }
 
-        // Stop file monitoring first
-        this.fileMonitoring?.stop?.();
-
         // Then stop the main system
         this.system?.stop?.();
         if (!this.system?.stop) {
@@ -157,42 +148,6 @@ class Agent {
     async reset() {
         this.system?.stop?.();
         await this.initialize();
-    }
-
-    // File monitoring agent methods
-    async addMonitoringPatterns(patterns) {
-        if (!this.isInitialized) {
-            throw new Error('Agent must be initialized before adding monitoring patterns.');
-        }
-        return this.fileMonitoring.addPatterns(patterns);
-    }
-
-    async removeMonitoringPatterns(patterns) {
-        if (!this.isInitialized) {
-            throw new Error('Agent must be initialized before removing monitoring patterns.');
-        }
-        return this.fileMonitoring.removePatterns(patterns);
-    }
-
-    async processFilesNow(filePaths) {
-        if (!this.isInitialized) {
-            throw new Error('Agent must be initialized before processing files.');
-        }
-        return this.fileMonitoring.processFilesNow(filePaths);
-    }
-
-    getFileMonitoringStatistics() {
-        if (!this.isInitialized) {
-            throw new Error('Agent must be initialized before getting statistics.');
-        }
-        return this.fileMonitoring.getStatistics();
-    }
-
-    updateFileMonitoringConfig(newConfig) {
-        if (!this.isInitialized) {
-            throw new Error('Agent must be initialized before updating configuration.');
-        }
-        this.fileMonitoring.updateConfig(newConfig);
     }
 
     /**
