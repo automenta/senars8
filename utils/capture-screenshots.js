@@ -6,17 +6,17 @@ import { fileURLToPath } from 'url';
 import { spawn, execSync } from 'child_process';
 import chalk from 'chalk';
 
-// Import the console animation recorder
+// Import the Asciinema recorder
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const ConsoleAnimationRecorder = (await import('./console-animation-recorder.js')).default;
+const AsciinemaRecorder = (await import('./AsciinemaRecorder.js')).default;
 
-// Configuration
-const SCREENSHOTS_DIR = path.join(__dirname, '../docs/screenshots');
-const DEMOS_DIR = path.join(__dirname, '../tests/demos');
-const UNIT_TESTS_DIR = path.join(__dirname, '../tests/unit');
-const TUI_DIR = path.join(__dirname, '../tui');
-const UI_DIR = path.join(__dirname, '../ui');
+// --- Configuration ---
+const ROOT_DIR = path.join(__dirname, '..');
+const SCREENSHOTS_DIR = path.join(ROOT_DIR, 'docs/screenshots');
+const DEMOS_DIR = path.join(ROOT_DIR, 'tests/demos');
+const UI_DIR = path.join(ROOT_DIR, 'ui');
+const TUI_DIR = path.join(ROOT_DIR, 'tui');
 
 // Supported capture types
 const CAPTURE_TYPES = {
@@ -46,36 +46,22 @@ class ScreenshotCapture {
    */
   async captureDemos() {
     console.log(chalk.blue('Capturing screenshots for demos...'));
-
     const files = await fs.readdir(DEMOS_DIR);
     const jsFiles = files.filter(file => file.endsWith('.js') && !file.includes('.test.'));
-
     for (const file of jsFiles) {
       try {
         console.log(chalk.gray(`  Processing demo: ${file}`));
-
-        // Run the demo and capture its output
         const demoPath = path.join(DEMOS_DIR, file);
-        const output = await this.runDemoCapture(demoPath, file);
-
-        // Save the output as a console animation or screenshot
+        const output = await this.runDemoCapture(demoPath);
         const fileName = path.parse(file).name;
         await this.saveConsoleOutput(output, 'demos', `${fileName}-console.txt`);
-
-        // For interactive demos, save as animation frames if applicable
         if (output.stdout.includes('interactive') || output.stdout.includes('TUI')) {
-          const recorder = new ConsoleAnimationRecorder(path.join(this.outputDir, 'demos'));
-          // Convert the single output to animation frames (simplified)
-          const frames = [{
-            timestamp: 0,
-            content: output.stdout || output.stderr || 'No output',
-            frameNumber: 0
-          }];
-          await recorder.saveAnimationAsFrames(frames, `${fileName}-demo`);
-          await recorder.createReplayScript(`${fileName}-demo`);
+            const recorder = new AsciinemaRecorder(path.join(this.outputDir, 'demos'));
+            console.log(chalk.gray(`  Recording interactive demo: ${file}`));
+            const command = `node ${demoPath}`;
+            await recorder.recordSession(command, `${fileName}-demo`, { timeout: 15000, cwd: ROOT_DIR });
+            console.log(chalk.green(`  Interactive demo recording saved for ${file}`));
         }
-
-        // Wait a bit between captures
         await this.delay(1000);
       } catch (error) {
         console.error(chalk.red(`    Error capturing demo ${file}:`), error.message);
@@ -86,37 +72,18 @@ class ScreenshotCapture {
   /**
    * Run a demo and capture its output
    */
-  async runDemoCapture(demoPath, fileName) {
-    return new Promise((resolve, reject) => {
+  async runDemoCapture(demoPath) {
+    return new Promise((resolve) => {
       let output = '';
       let errorOutput = '';
-
-      // Use 'node -r esm' or similar to run in a more compatible mode
-      // Or run with a custom environment that doesn't conflict
-      const child = spawn('node', ['-r', 'module', demoPath], {
+      const child = spawn('node', [demoPath], {
         stdio: ['pipe', 'pipe', 'pipe'],
-        cwd: path.dirname(demoPath),
-        env: {
-          ...process.env,
-          NODE_ENV: 'test',
-          NODE_OPTIONS: '--experimental-vm-modules'
-        }
+        cwd: ROOT_DIR, // Run from root to resolve monorepo dependencies
+        env: { ...process.env, NODE_ENV: 'test' }
       });
-
-      child.stdout.on('data', (data) => {
-        output += data.toString();
-      });
-
-      child.stderr.on('data', (data) => {
-        errorOutput += data.toString();
-      });
-
-      child.on('close', (code) => {
-        // Resolve even if there's an error code, as we still want the output
-        resolve({ stdout: output, stderr: errorOutput, exitCode: code });
-      });
-
-      // Set timeout for the process
+      child.stdout.on('data', (data) => { output += data.toString(); });
+      child.stderr.on('data', (data) => { errorOutput += data.toString(); });
+      child.on('close', (code) => { resolve({ stdout: output, stderr: errorOutput, exitCode: code }); });
       setTimeout(() => {
         child.kill();
         resolve({ stdout: output, stderr: errorOutput, exitCode: -1 });
@@ -125,71 +92,10 @@ class ScreenshotCapture {
   }
 
   /**
-   * Capture screenshots for unit tests
+   * Capture screenshots for unit tests (currently disabled)
    */
   async captureUnitTests() {
-    console.log(chalk.blue('Capturing screenshots for unit tests...'));
-
-    const files = await fs.readdir(UNIT_TESTS_DIR);
-    const testFiles = files.filter(file => file.endsWith('.test.js') || file.endsWith('.js'));
-
-    for (const file of testFiles) {
-      try {
-        console.log(chalk.gray(`  Processing unit test: ${file}`));
-
-        const testPath = path.join(UNIT_TESTS_DIR, file);
-        const output = await this.runTestCapture(testPath, file);
-
-        // Save the test output
-        const fileName = path.parse(file).name;
-        await this.saveConsoleOutput(output, 'unit_tests', `${fileName}-output.txt`);
-
-        await this.delay(500);
-      } catch (error) {
-        console.error(chalk.red(`    Error capturing unit test ${file}:`), error.message);
-      }
-    }
-  }
-
-  /**
-   * Run a unit test and capture its output
-   */
-  async runTestCapture(testPath, fileName) {
-    return new Promise((resolve, reject) => {
-      let output = '';
-      let errorOutput = '';
-
-      // Use vitest to run the specific test file but in a child process
-      // Run in the project root to avoid module resolution issues
-      const child = spawn('npx', ['vitest', 'run', testPath], {
-        stdio: ['pipe', 'pipe', 'pipe'],
-        cwd: path.dirname(path.dirname(__dirname)), // Root directory (go up two levels from utils/capture-screenshots.js)
-        env: {
-          ...process.env,
-          NODE_ENV: 'test',
-          ORT_LOGGING_LEVEL: 'FATAL', // Suppress transformers logging
-          CI: 'true' // Run in CI mode to avoid interactive prompts
-        }
-      });
-
-      child.stdout.on('data', (data) => {
-        output += data.toString();
-      });
-
-      child.stderr.on('data', (data) => {
-        errorOutput += data.toString();
-      });
-
-      child.on('close', (code) => {
-        resolve({ stdout: output, stderr: errorOutput, exitCode: code });
-      });
-
-      // Set timeout for the process
-      setTimeout(() => {
-        child.kill();
-        resolve({ stdout: output, stderr: errorOutput, exitCode: -1 });
-      }, this.timeout);
-    });
+    console.log(chalk.yellow('Skipping unit test capture due to ongoing memory issues in the test suite.'));
   }
 
   /**
@@ -197,31 +103,16 @@ class ScreenshotCapture {
    */
   async captureTUI() {
     console.log(chalk.blue('Capturing console animations for TUI...'));
-
     try {
-      const recorder = new ConsoleAnimationRecorder(path.join(this.outputDir, 'tui'));
-
-      // Define a script of TUI commands to demonstrate different features
-      const tuiScript = [
-        'help',
-        'status',
-        'list',
-        'stats',
-        'config list',
-        'exit'
-      ];
-
-      console.log(chalk.gray('  Recording TUI session...'));
-      const animationFrames = await recorder.recordTUISession(tuiScript, 15000); // 15 seconds recording
-
-      console.log(chalk.gray(`  Recorded ${animationFrames.length} frames`));
-
-      await recorder.saveAnimationAsFrames(animationFrames, 'tui-demo');
-      await recorder.createReplayScript('tui-demo');
-
-      console.log(chalk.green('  TUI animation capture completed'));
+        const recorder = new AsciinemaRecorder(path.join(this.outputDir, 'tui'));
+        const tuiScriptPath = path.join(TUI_DIR, 'src', 'index.js');
+        const command = `node ${tuiScriptPath}`;
+        const inputs = ['help', 'status', 'list', 'stats', 'config list', 'exit'];
+        console.log(chalk.gray('  Recording TUI session with asciinema...'));
+        await recorder.recordSession(command, 'tui-demo', { timeout: 20000, inputs, cwd: ROOT_DIR });
+        console.log(chalk.green('  TUI animation capture completed and saved as tui-demo.cast'));
     } catch (error) {
-      console.error(chalk.red('    Error capturing TUI:'), error.message);
+      console.error(chalk.red(`    Error capturing TUI:`), error.message);
     }
   }
 
@@ -230,34 +121,26 @@ class ScreenshotCapture {
    */
   async captureWebUI() {
     console.log(chalk.blue('Capturing screenshots for Web UI...'));
-
+    let webUIServer;
     try {
-      // Check if Playwright is available
       let playwright;
       try {
         playwright = await import('playwright');
       } catch (error) {
         console.log(chalk.yellow('  Playwright not available. Installing temporarily...'));
-        // Try to install playwright dynamically
-        execSync('npm install playwright', { cwd: path.dirname(__dirname), stdio: 'pipe' });
+        execSync('npm install playwright', { cwd: ROOT_DIR, stdio: 'pipe' });
         playwright = await import('playwright');
       }
-
-      // Start the Web UI server
-      const webUIServer = await this.startWebUIServer();
-
-      // Wait for server to start
-      await this.delay(3000);
-
-      // Capture screenshots using Playwright
+      webUIServer = await this.startWebUIServer();
+      await this.delay(12000); // Allow more time for the dev server to start
       await this.captureWebUIPages(playwright, webUIServer.port);
-
-      // Stop the server
-      webUIServer.server.kill();
-
       console.log(chalk.green('  Web UI capture completed'));
     } catch (error) {
       console.error(chalk.red('    Error capturing Web UI:'), error.message);
+    } finally {
+        if (webUIServer && webUIServer.server) {
+            webUIServer.server.kill();
+        }
     }
   }
 
@@ -266,153 +149,80 @@ class ScreenshotCapture {
    */
   async startWebUIServer() {
     return new Promise((resolve, reject) => {
-      // Try running with vite dev server instead of node directly
-      const server = spawn('npx', ['vite', '--port', '3001'], {
+      const server = spawn('npm', ['run', 'dev'], {
         stdio: ['pipe', 'pipe', 'pipe'],
-        cwd: UI_DIR,
-        env: {
-          ...process.env,
-          NODE_ENV: 'production',
-          PORT: '3001',
-          BROWSER: 'none' // Don't open browser
-        }
+        cwd: UI_DIR, // Run from the UI directory
+        env: { ...process.env, BROWSER: 'none' }
       });
-
-      let serverPort = 3001;
       let serverStarted = false;
-
       server.stdout.on('data', (data) => {
         const output = data.toString();
         console.log(chalk.gray(`    WebUI: ${output.trim()}`));
-        // Look for the server start message in the output
-        if (output.includes('http://') && output.includes('3001')) {
+        if (output.includes('http://localhost:3001')) {
           serverStarted = true;
-          console.log(chalk.green(`    Web UI server started on port ${serverPort}`));
-          resolve({ server, port: serverPort });
+          console.log(chalk.green(`    Web UI server started on port 3001`));
+          resolve({ server, port: 3001 });
         }
       });
-
       server.stderr.on('data', (data) => {
         const errorOutput = data.toString();
         console.log(chalk.red(`    WebUI Error: ${errorOutput.trim()}`));
-        if (errorOutput.includes('EADDRINUSE') || errorOutput.includes('port')) {
-          // Try different port
-          serverPort = 3002;
-          server.kill();
-          setTimeout(() => resolve(this.startWebUIServer()), 1000);
-        }
       });
-
       server.on('error', (error) => {
         console.log(chalk.red(`    Web UI server error: ${error.message}`));
         reject(error);
       });
-
       setTimeout(() => {
         if (!serverStarted) {
           server.kill();
-          reject(new Error('Web UI server failed to start within timeout'));
+          reject(new Error('Web UI server failed to start within timeout.'));
         }
-      }, 15000); // Increased timeout
+      }, 35000); // Increased timeout
     });
   }
 
   /**
-   * Capture web UI pages using Playwright
+   * Capture web UI pages using Playwright based on a config file
    */
   async captureWebUIPages(playwright, port) {
     const browser = await playwright.chromium.launch({ headless: this.isHeadless });
     const context = await browser.newContext();
     const page = await context.newPage();
-
     try {
-      // Navigate to the Web UI
-      await page.goto(`http://localhost:${port}`, { waitUntil: 'networkidle', timeout: 10000 });
-
-      // Wait a bit for the page to load fully
-      await page.waitForTimeout(2000);
-
-      // Take screenshot of the main page
-      await page.screenshot({
-        path: path.join(this.outputDir, 'web_ui', 'main-page.png'),
-        fullPage: true
-      });
-
-      console.log(chalk.green('    Main page screenshot saved'));
-
-      // Simulate some interactions and take more screenshots
-      // Example: Click on different components if they exist
-      const selectors = [
-        '[data-testid="reasoning-panel"]',
-        '[data-testid="memory-panel"]',
-        '[data-testid="task-list"]',
-        '.graph-container', // Common selector for graph components
-        '.terminal-container' // Common selector for terminal components
-      ];
-
-      for (const [index, selector] of selectors.entries()) {
-        try {
-          // Wait for element to be available
-          await page.waitForSelector(selector, { timeout: 2000 });
-
-          // Highlight the element temporarily
-          await page.$eval(selector, el => {
-            el.style.border = '2px solid #ff0000';
-          });
-
-          // Take screenshot
-          await page.screenshot({
-            path: path.join(this.outputDir, 'web_ui', `component-${index}.png`),
-            fullPage: false
-          });
-
-          // Remove highlight
-          await page.$eval(selector, el => {
-            el.style.border = '';
-          });
-
-          console.log(chalk.green(`    Component screenshot ${index} saved`));
-        } catch (error) {
-          // Element not found, continue with next
-          console.log(chalk.yellow(`    Component selector ${selector} not found, skipping...`));
-          continue;
+        const configPath = path.join(__dirname, 'screenshot-config.json');
+        const config = JSON.parse(await fs.readFile(configPath, 'utf-8'));
+        for (const p of config.pages) {
+            console.log(chalk.gray(`  Capturing page: ${p.name}`));
+            await page.goto(`http://localhost:${port}${p.url}`, { waitUntil: 'networkidle' });
+            await page.screenshot({ path: path.join(this.outputDir, 'web_ui', `${p.name}.png`), fullPage: p.fullPage });
+            console.log(chalk.green(`    Screenshot saved for ${p.name}`));
         }
-      }
-
-      // Additional screenshots for different UI states
-      // Try to capture different views by interacting with the UI
-      try {
-        // Example: If there are navigation elements, click them
-        const navSelectors = [
-          'nav a',
-          '.sidebar a',
-          '[data-testid="nav-item"]',
-          '.menu-item'
-        ];
-
-        for (const [index, navSelector] of navSelectors.entries()) {
-          try {
-            const elements = await page.$(navSelector);
-            if (elements.length > 0) {
-              // Click the first navigation element we find
-              await elements[0].click();
-              await page.waitForTimeout(1000); // Wait for transition
-
-              await page.screenshot({
-                path: path.join(this.outputDir, 'web_ui', `nav-view-${index}.png`),
-                fullPage: true
-              });
-
-              console.log(chalk.green(`    Navigation view ${index} screenshot saved`));
-              break; // Only capture one nav view to avoid too many clicks
+        for (const component of config.components) {
+            console.log(chalk.gray(`  Capturing component: ${component.name}`));
+            try {
+                await page.waitForSelector(component.selector, { timeout: 5000 });
+                const element = await page.$(component.selector);
+                if (element) {
+                    await element.screenshot({ path: path.join(this.outputDir, 'web_ui', `component-${component.name}.png`) });
+                    console.log(chalk.green(`    Screenshot saved for component ${component.name}`));
+                }
+            } catch (error) {
+                console.log(chalk.yellow(`    Component selector ${component.selector} not found, skipping...`));
             }
-          } catch (error) {
-            continue; // Try next selector
-          }
         }
-      } catch (error) {
-        console.log(chalk.yellow(`    Could not capture navigation views: ${error.message}`));
-      }
+        for (const interaction of config.interactions) {
+            console.log(chalk.gray(`  Performing interaction: ${interaction.name}`));
+            try {
+                for (const step of interaction.steps) {
+                    if (step.action === 'click') { await page.click(step.selector); }
+                    else if (step.action === 'wait') { await page.waitForTimeout(step.duration); }
+                }
+                await page.screenshot({ path: path.join(this.outputDir, 'web_ui', `interaction-${interaction.name}.png`), fullPage: true });
+                console.log(chalk.green(`    Screenshot saved for interaction ${interaction.name}`));
+            } catch (error) {
+                console.log(chalk.yellow(`    Interaction ${interaction.name} failed, skipping...`));
+            }
+        }
     } catch (error) {
       console.error(chalk.red('    Error during Web UI capture:'), error.message);
     } finally {
@@ -424,11 +234,10 @@ class ScreenshotCapture {
    * Save console output to file
    */
   async saveConsoleOutput(output, type, filename) {
-    const content = `# ${filename}\n\n`;
+    let content = `# ${filename}\n\n`;
     content += `STDOUT:\n${output.stdout || 'No stdout'}\n\n`;
     content += `STDERR:\n${output.stderr || 'No stderr'}\n\n`;
     content += `EXIT CODE: ${output.exitCode || 'N/A'}\n`;
-
     const filePath = path.join(this.outputDir, type, filename);
     await fs.writeFile(filePath, content);
   }
@@ -441,49 +250,43 @@ class ScreenshotCapture {
   }
 
   /**
-   * Main capture method
+   * Main capture method to run all or selected capture types
    */
-  async captureAll() {
+  async captureAll(types = Object.values(CAPTURE_TYPES)) {
     await this.ensureOutputDir();
-
     console.log(chalk.bold('Starting screenshot capture process...'));
     console.log(chalk.gray(`Output directory: ${this.outputDir}\n`));
-
-    // Capture all types
-    await this.captureDemos();
-    await this.captureUnitTests();
-    await this.captureTUI();
-    await this.captureWebUI();
-
+    if (types.includes(CAPTURE_TYPES.DEMOS)) await this.captureDemos();
+    if (types.includes(CAPTURE_TYPES.UNIT_TESTS)) await this.captureUnitTests();
+    if (types.includes(CAPTURE_TYPES.TUI)) await this.captureTUI();
+    if (types.includes(CAPTURE_TYPES.WEB_UI)) await this.captureWebUI();
     console.log(chalk.bold.green('\nScreenshot capture completed successfully!'));
     console.log(chalk.gray(`Screenshots saved to: ${this.outputDir}`));
   }
 }
 
-// Main execution
-if (import.meta.url.startsWith('file:') && process.argv[1] === import.meta.url.slice(7)) {
-  const capture = new ScreenshotCapture();
-
-  // Parse command line arguments
-  const args = process.argv.slice(2);
-  const captureTypes = [];
-
-  if (args.length === 0 || args.includes('all')) {
-    captureTypes.push(...Object.values(CAPTURE_TYPES));
-  } else {
-    for (const arg of args) {
-      if (Object.values(CAPTURE_TYPES).includes(arg)) {
-        captureTypes.push(arg);
-      }
+async function main() {
+    const capture = new ScreenshotCapture();
+    const args = process.argv.slice(2);
+    let captureTypes = [];
+    if (args.length === 0 || args.includes('all')) {
+        captureTypes = Object.values(CAPTURE_TYPES);
+    } else {
+        captureTypes = args.filter(arg => Object.values(CAPTURE_TYPES).includes(arg));
     }
-  }
+    if (captureTypes.length > 0) {
+        console.log(chalk.blue(`Capturing: ${captureTypes.join(', ')}`));
+        await capture.captureAll(captureTypes);
+    } else {
+        console.log(chalk.yellow('No valid capture types specified. Use "all" or a combination of: demos, unit_tests, tui, web_ui.'));
+    }
+}
 
-  console.log(chalk.blue(`Capturing: ${captureTypes.join(', ')}`));
-
-  capture.captureAll().catch(error => {
-    console.error(chalk.red('Capture process failed:'), error);
-    process.exit(1);
-  });
+if (import.meta.url.startsWith('file:') && process.argv[1] === import.meta.url.slice(7)) {
+    main().catch(error => {
+        console.error(chalk.red('Capture process failed:'), error);
+        process.exit(1);
+    });
 }
 
 export default ScreenshotCapture;

@@ -1,0 +1,40 @@
+{
+  "pages": [
+    {
+      "name": "main-page",
+      "url": "/",
+      "fullPage": true
+    }
+  ],
+  "components": [
+    {
+      "name": "reasoning-panel",
+      "selector": "[data-testid='reasoning-panel']"
+    },
+    {
+      "name": "memory-panel",
+      "selector": "[data-testid='memory-panel']"
+    },
+    {
+      "name": "task-list",
+      "selector": "[data-testid='task-list']"
+    },
+    {
+        "name": "graph-container",
+        "selector": ".graph-container"
+    },
+    {
+        "name": "terminal-container",
+        "selector": ".terminal-container"
+    }
+  ],
+  "interactions": [
+    {
+      "name": "navigate-to-settings",
+      "steps": [
+        { "action": "click", "selector": "[data-testid='nav-item-settings']" },
+        { "action": "wait", "duration": 1000 }
+      ]
+    }
+  ]
+}
