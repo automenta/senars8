@@ -1,5 +1,5 @@
-import logger from '@core/utils/logger.js';
-import UiComponents from '@common/services/UiComponents.js';
+import logger from '@senars/core/utils/logger.js';
+import UiComponents from '@senars/common/services/UiComponents.js';
 
 class TuiView {
     constructor(apiService, renderer) {

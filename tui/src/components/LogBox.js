@@ -1,4 +1,4 @@
-import {COLORS, EMOJIS, STYLES} from '@common/constants/tui.js';
+import {COLORS, EMOJIS, STYLES} from '@senars/common/constants/tui.js';
 
 /**
  * Returns the configuration for the log box component.

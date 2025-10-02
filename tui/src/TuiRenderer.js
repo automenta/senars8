@@ -1,8 +1,8 @@
 import blessed from 'blessed';
 import contrib from 'blessed-contrib';
 import chalk from 'chalk';
-import {CONFIG} from '@common/constants/config.js';
-import UiComponents from '@common/services/UiComponents.js';
+import {CONFIG} from '@senars/common/constants/config.js';
+import UiComponents from '@senars/common/services/UiComponents.js';
 
 class TuiRenderer {
     constructor() {

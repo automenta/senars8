@@ -1,5 +1,5 @@
 import blessed from 'blessed';
-import {EMOJIS, STYLES} from '@common/constants/tui.js';
+import {EMOJIS, STYLES} from '@senars/common/constants/tui.js';
 
 /**
  * Creates the detail view box component. This box is shown dynamically.

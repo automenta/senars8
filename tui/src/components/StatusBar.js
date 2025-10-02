@@ -1,4 +1,4 @@
-import {COLORS} from '@common/constants/tui.js';
+import {COLORS} from '@senars/common/constants/tui.js';
 
 /**
  * Returns the configuration for the status bar component.

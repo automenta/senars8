@@ -1,9 +1,7 @@
 {
-  "name": "@project/common",
-  "version": "1.0.0",
+  "name": "@senars/common",
+  "version": "0.1.0",
+  "private": true,
   "main": "index.js",
-  "type": "module",
-  "dependencies": {
-    "ws": "^8.18.0"
-  }
+  "type": "module"
 }

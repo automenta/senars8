@@ -1,4 +1,4 @@
-import {COLORS, EMOJIS} from '@common/constants/tui.js';
+import {COLORS, EMOJIS} from '@senars/common/constants/tui.js';
 
 /**
  * Returns the configuration for the header component.

@@ -1,9 +1,9 @@
 import {TuiView} from './TuiView.js';
 import {TuiController} from './TuiController.js';
 import {TuiRenderer} from './TuiRenderer.js';
-import ApiService from '@common/services/ApiService.js';
-import {CONFIG} from '@common/constants/config.js';
-import logger from '@core/utils/logger.js';
+import ApiService from '@senars/common/services/ApiService.js';
+import {CONFIG} from '@senars/common/constants/config.js';
+import logger from '@senars/core/utils/logger.js';
 
 class Application {
     constructor() {

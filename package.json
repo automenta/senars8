@@ -9,7 +9,8 @@
     "core",
     "agent",
     "tui",
-    "ui"
+    "ui",
+    "common"
   ],
   "files": [
     "core/",

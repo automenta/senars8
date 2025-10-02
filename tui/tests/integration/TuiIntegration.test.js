@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest';
 import Application from '../../src/Application.js';
-import ApiService from '@common/services/ApiService.js';
+import ApiService from '@senars/common/services/ApiService.js';
 
 // Mock the terminal UI components
 vi.mock('blessed', () => ({
@@ -87,8 +87,8 @@ vi.mock('blessed-contrib', () => ({
 }));
 
 // Mock the API service to prevent actual connections
-vi.mock('@common/services/ApiService.js', async () => {
-  const actual = await vi.importActual('@common/services/ApiService.js');
+vi.mock('@senars/common/services/ApiService.js', async () => {
+  const actual = await vi.importActual('@senars/common/services/ApiService.js');
   return {
     default: vi.fn(() => ({
       connect: vi.fn(),
@@ -115,7 +115,7 @@ vi.mock('@common/services/ApiService.js', async () => {
 });
 
 // Mock the logger to prevent console output during tests
-vi.mock('@core/utils/logger.js', () => ({
+vi.mock('@senars/core/utils/logger.js', () => ({
   default: {
     create: vi.fn(() => ({
       info: vi.fn(),
@@ -131,7 +131,7 @@ vi.mock('@core/utils/logger.js', () => ({
 }));
 
 // Mock the config to provide consistent test values
-vi.mock('@common/constants/config.js', () => ({
+vi.mock('@senars/common/constants/config.js', () => ({
   CONFIG: {
     TUI: {
       UPDATE_INTERVAL: 100, // Faster updates for tests

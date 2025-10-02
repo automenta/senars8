@@ -1,4 +1,4 @@
-import logger from '@core/utils/logger.js';
+import logger from '@senars/core/utils/logger.js';
 import {throttle} from './utils/async.js';
 
 const VIEW_UPDATE_EVENTS = [
