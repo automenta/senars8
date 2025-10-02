@@ -29,6 +29,10 @@ class Memory {
         this._loadForgettingStrategy();
         this._registerEventListeners();
         this._registerCommandHandlers();
+        
+        // Track recently logged invalid task warnings to reduce noise
+        this._recentInvalidTaskWarnings = new Map();
+        this._invalidTaskWarningTimeout = 30000; // 30 seconds
 
         this.addTerm = wrapAsync(this._addTerm.bind(this), 'Memory', 'addTerm', {rethrow: true});
         this.addTasks = wrapAsync(this._addTasks.bind(this), 'Memory', 'addTasks');
@@ -130,9 +134,8 @@ class Memory {
     }
 
     getTerm(key) {
-        if (typeof key !== 'string') {
-            warn(`Invalid term key type: ${typeof key}.`);
-            return null;
+        if (typeof key !== 'string' || !key || key.trim() === '') {
+            return null; // Return null instead of warning for invalid keys, since this is expected behavior in some cases
         }
         return this.terms.get(key);
     }
@@ -148,7 +151,38 @@ class Memory {
         let addedCount = 0;
         for (const task of tasksToAdd) {
             if (!isTask(task)) {
-                warn(`Skipping invalid task: ${typeof task}`);
+                // Only warn for non-null/undefined tasks that are not proper Task instances
+                if (task != null) {
+                    // Create a signature for this invalid task to avoid repeated warnings
+                    const taskSignature = this._getInvalidTaskSignature(task);
+                    
+                    const now = Date.now();
+                    const lastWarning = this._recentInvalidTaskWarnings.get(taskSignature);
+                    
+                    // Only warn if we haven't warned about this signature recently
+                    if (!lastWarning || now - lastWarning > this._invalidTaskWarningTimeout) {
+                        // Create a more meaningful warning message that includes relevant properties
+                        let taskInfo = typeof task;
+                        if (task && typeof task === 'object') {
+                            const relevantProps = [];
+                            if (task.hasOwnProperty('termKey')) relevantProps.push(`termKey:${task.termKey}`);
+                            if (task.hasOwnProperty('punctuation')) relevantProps.push(`punct:${task.punctuation}`);
+                            if (task.hasOwnProperty('id')) relevantProps.push(`id:${task.id}`);
+                            if (task.hasOwnProperty('type')) relevantProps.push(`type:${task.type}`);
+                            
+                            if (relevantProps.length > 0) {
+                                taskInfo += ` {${relevantProps.join(', ')}}`;
+                            } else {
+                                taskInfo += ` with ${Object.keys(task).length} properties`;
+                            }
+                        }
+                        warn(`Skipping invalid task: ${taskInfo}`);
+                        this._recentInvalidTaskWarnings.set(taskSignature, now);
+                        
+                        // Clean up old entries periodically to prevent memory issues
+                        this._cleanupOldInvalidTaskWarnings(now);
+                    }
+                }
                 continue;
             }
             this.shortTermTasks.set(task.id, task);
@@ -160,6 +194,28 @@ class Memory {
         if (addedCount > 0) {
             this._invalidateCachedTasks();
             debug(`Added ${addedCount} tasks.`);
+        }
+    }
+    
+    _getInvalidTaskSignature(task) {
+        // Create a signature that identifies the "type" of invalid task
+        if (task && typeof task === 'object') {
+            // Include key properties that would identify the source/type of object
+            const keys = Object.keys(task).sort();
+            return `obj_${keys.length}_${JSON.stringify(keys)}`;
+        }
+        return `prim_${typeof task}`;
+    }
+    
+    _cleanupOldInvalidTaskWarnings(now) {
+        // Run cleanup when we have many entries to prevent memory issues
+        if (this._recentInvalidTaskWarnings.size > 100) { // If we have many entries
+            const cutoff = now - (this._invalidTaskWarningTimeout * 2); // 2x timeout
+            for (const [signature, timestamp] of this._recentInvalidTaskWarnings.entries()) {
+                if (timestamp < cutoff) {
+                    this._recentInvalidTaskWarnings.delete(signature);
+                }
+            }
         }
     }
 

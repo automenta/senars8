@@ -96,10 +96,12 @@ class System {
         sync: false
     }) {
         await errorHandler.execute(async () => {
-            // Use Set to deduplicate term keys efficiently
+            // Use Set to deduplicate term keys efficiently, filtering out invalid term keys
             const termKeySet = new Set();
             for (const task of tasks) {
-                termKeySet.add(task.termKey);
+                if (task?.termKey && typeof task.termKey === 'string' && task.termKey.trim() !== '') {
+                    termKeySet.add(task.termKey);
+                }
             }
             const termKeys = Array.from(termKeySet);
 
