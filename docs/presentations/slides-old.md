@@ -435,11 +435,11 @@ SeNARS implements rigorous, explainable reasoning through formal inference rules
 
 | Rule             | Structure                          | Purpose                        |
 |------------------|------------------------------------|--------------------------------|
-| **Deduction**    | `<M --> P>, <S --> M> ⊢ <S --> P>` | Classical logical deduction    |
-| **Induction**    | `<M --> P>, <M --> S> ⊢ <S --> P>` | Evidence-based generalization  |
-| **Abduction**    | `<P --> M>, <S --> M> ⊢ <S --> P>` | Hypothesis generation          |
-| **Analogy**      | `<M --> P>, <M <-> S> ⊢ <S --> P>` | Structure-preserving inference |
-| **Modus Ponens** | `<P ==> Q>, <P> ⊢ <Q>`             | Conditional reasoning          |
+| **Deduction**    | `(M --> P), (S --> M) ⊢ (S --> P)` | Classical logical deduction    |
+| **Induction**    | `(M --> P), (M --> S) ⊢ (S --> P)` | Evidence-based generalization  |
+| **Abduction**    | `(P --> M), (S --> M) ⊢ (S --> P)` | Hypothesis generation          |
+| **Analogy**      | `(M --> P), (M <-> S) ⊢ (S --> P)` | Structure-preserving inference |
+| **Modus Ponens** | `(P ==> Q), P ⊢ Q`             | Conditional reasoning          |
 
 ---
 
@@ -547,8 +547,8 @@ SeNARS supports a comprehensive set of Narsese expressions:
 | Type                       | Syntax                     | Example                             |
 |----------------------------|----------------------------|-------------------------------------|
 | **Atomic Terms**           | Simple identifiers         | `cat`                               |
-| **Inheritance**            | `<subject --> predicate>`  | `(cat --> mammal)`                  |
-| **Implication**            | `<premise ==> conclusion>` | `(cat ==> furry)`                   |
+| **Inheritance**            | `(subject --> predicate)`  | `(cat --> mammal)`                  |
+| **Implication**            | `(premise ==> conclusion)` | `(cat ==> furry)`                   |
 | **Negation**               | `(--, term)`               | `(--, cat)`                         |
 | **Conjunction**            | `(&, term1, term2, ...)`   | `(&, cat, dog)`                     |
 | **Disjunction**            | `(                         |                                     |, term1, term2, ...)` | `(||, cat, dog)` |

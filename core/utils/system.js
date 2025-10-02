@@ -1,9 +1,23 @@
-export {default as System} from '../system/System.js';
-export {default as SystemFactory} from '../system/SystemFactory.js';
-export {default as Cycle} from '../system/Cycle.js';
-export {default as ActionExecutor} from '../system/ActionExecutor.js';
-export {default as Perception} from '../system/Perception.js';
-export {default as Planner} from '../system/Planner.js';
-export {default as MetaCognition} from '../system/MetaCognition.js';
-export {default as Introspection} from '../system/Introspection.js';
-export {default as EventBus} from '../system/EventBus.js';
+/**
+ * Shuts down the application gracefully.
+ * @param {string} signal - The signal received.
+ * @param {object} logger - The logger instance.
+ * @param {Function} cleanup - The cleanup function to call before exiting.
+ */
+export async function gracefulShutdown(signal, logger, cleanup) {
+    logger.info(`Received ${signal}, shutting down gracefully...`);
+    await cleanup();
+    process.exit(0);
+}
+
+/**
+ * Handles uncaught errors, logs them, and shuts down the application.
+ * @param {Error} error - The uncaught error.
+ * @param {object} logger - The logger instance.
+ * @param {Function} cleanup - The cleanup function to call before exiting.
+ */
+export async function handleUncaughtError(error, logger, cleanup) {
+    logger.error('Unhandled error:', error);
+    await cleanup();
+    process.exit(1);
+}

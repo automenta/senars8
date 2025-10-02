@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
@@ -172,7 +172,7 @@ function TaskInspectorPanel() {
     };
 
     return (
-        <Panel title={<><List size={18}/> Task Inspector</>}>
+        <Panel header={<><List size={18}/> Task Inspector</>}>
             <div className="task-inspector-panel">
                 <div className="inspector-header">
                     <div className="filter-controls">
@@ -331,7 +331,7 @@ function TaskInspectorPanel() {
                                     <strong>Truth Value:</strong>
                                     <span>
                                         {selectedTask.truthValue ?
-                                            `F: ${selectedTask.truthValue.frequency?.toFixed(3)}, 
+                                            `F: ${selectedTask.truthValue.frequency?.toFixed(3)},
                                              C: ${selectedTask.truthValue.confidence?.toFixed(3)}` :
                                             'N/A'}
                                     </span>

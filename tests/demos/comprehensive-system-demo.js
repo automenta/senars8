@@ -1,7 +1,7 @@
 // Category: API Usage
 // Description: A blueprint demonstration of how to create, run, and inspect a SeNARS system using its core API.
 
-import {runDemo} from '../../utils/shared/demo-utils.js';
+import {runSystem} from '../../utils/runner.js';
 import {info} from '../../core/utils/logger.js';
 
 /**
@@ -15,7 +15,7 @@ async function comprehensiveSystemDemo(options = {}) {
         {sentence: '(mammal --> warm_blooded).', truth: [1.0, 0.9]},
         {sentence: '(dog --> mammal).', truth: [1.0, 0.95]},
         // A question for the system to answer
-        {sentence: '(<dog> --> warm_blooded)?', truth: [1.0, 0.9]}
+        {sentence: '(dog --> warm_blooded)?', truth: [1.0, 0.9]}
     ];
 
     const defaultOptions = {
@@ -29,13 +29,13 @@ async function comprehensiveSystemDemo(options = {}) {
         postCycleCallback: (system) => {
             info('Inspecting final memory state...');
             const answerTasks = system.introspection.queryTasks({
-                termKey: '(<dog> --> warm_blooded)',
+                termKey: '(dog --> warm_blooded)',
                 punctuation: '.' // We are looking for a belief (an answer)
             });
 
             if (answerTasks.length > 0) {
                 const bestAnswer = answerTasks.sort((a, b) => b.state.truthValue.confidence - a.state.truthValue.confidence)[0];
-                info(`System's answer to "(<dog> --> warm_blooded)?": YES, with confidence ${bestAnswer.state.truthValue.confidence.toFixed(2)}`);
+                info(`System's answer to "(dog --> warm_blooded)?": YES, with confidence ${bestAnswer.state.truthValue.confidence.toFixed(2)}`);
             } else {
                 info('System did not find a definitive answer to our question in time.');
             }
@@ -43,7 +43,7 @@ async function comprehensiveSystemDemo(options = {}) {
     };
 
     const mergedOptions = {...defaultOptions, ...options};
-    return await runDemo('Comprehensive System Demo', taskDefs, mergedOptions);
+    return await runSystem('Comprehensive System Demo', taskDefs, mergedOptions);
 }
 
 export default comprehensiveSystemDemo;

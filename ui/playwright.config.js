@@ -39,7 +39,7 @@ export default defineConfig({
         {
             name: 'chromium',
             use: {
-                channel: 'chrome',
+                channel: 'chromium',
             },
         },
     ],

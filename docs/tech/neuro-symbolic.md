@@ -19,12 +19,12 @@ graph TD
         P[Planner]
         MC[MetaCognition]
     end
-    
+
     subgraph "Memory System"
         B[Unified Memory]
         MI[Memory Indexer]
     end
-    
+
     subgraph "Neural Services"
         C[LM Core Engine]
         C1[HypothesisGenerator]
@@ -35,13 +35,13 @@ graph TD
         C6[Semantic Similarity Engine]
         C7[NLP Processor]
     end
-    
+
     A <--> B
     B <--> C
     TR <--> B
     P <--> B
     MC <--> B
-    
+
     C --> C1
     C --> C2
     C --> C3
@@ -49,7 +49,7 @@ graph TD
     C --> C5
     C --> C6
     C --> C7
-    
+
     A -- "Gap Detection" --> C
     C -- "Enriched Knowledge" --> B
     C -- "Semantic Insights" --> A

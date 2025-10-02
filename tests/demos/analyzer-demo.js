@@ -1,7 +1,7 @@
 // Category: Analysis
 // Description: Demonstrates the unit test analyzer capabilities.
 
-import {runDemo} from '../../utils/shared/demo-utils.js';
+import {runSystem} from '../../utils/runner.js';
 import {info} from '../../core/utils/logger.js';
 import {UnitTestAnalyzer} from '../../core/analyzer/index.js';
 import {writeFileSync} from 'fs';
@@ -192,7 +192,7 @@ async function analyzerDemo(options = {}) {
     };
 
     const mergedOptions = {...defaultOptions, ...options};
-    return await runDemo('Analyzer Demo', taskDefs, mergedOptions);
+    return await runSystem('Analyzer Demo', taskDefs, mergedOptions);
 }
 
 export default analyzerDemo;

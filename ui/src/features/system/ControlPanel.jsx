@@ -1,6 +1,6 @@
 import React from 'react';
-import {Panel} from '@ui/components';
-import agentIntegrationService from '@/services/agentIntegration';
+import {Panel} from '@/components';
+import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import {useConnection} from '@/context/useConnection';
 import {Play, RotateCcw, Settings, Square} from 'lucide-react';
@@ -9,27 +9,27 @@ import './ControlPanel.css';
 function ControlPanel() {
     const {isConnected} = useConnection();
 
-    const handleStart = async () => {
+    const handleStart = () => {
         try {
-            await agentIntegrationService.sendAgentCommand('start');
+            agentService.sendAgentControl('start');
             notificationService.addInfo('Agent Control', 'Start command sent to agent');
         } catch (error) {
             notificationService.addError('Agent Control Error', `Failed to start agent: ${error.message}`);
         }
     };
 
-    const handleStop = async () => {
+    const handleStop = () => {
         try {
-            await agentIntegrationService.sendAgentCommand('stop');
+            agentService.sendAgentControl('stop');
             notificationService.addInfo('Agent Control', 'Stop command sent to agent');
         } catch (error) {
             notificationService.addError('Agent Control Error', `Failed to stop agent: ${error.message}`);
         }
     };
 
-    const handleReset = async () => {
+    const handleReset = () => {
         try {
-            await agentIntegrationService.sendAgentCommand('reset');
+            agentService.sendAgentControl('reset');
             notificationService.addWarning('Agent Control', 'Reset command sent to agent - all memory cleared');
         } catch (error) {
             notificationService.addError('Agent Control Error', `Failed to reset agent: ${error.message}`);

@@ -62,7 +62,12 @@ class MemoryIndexer {
         const beliefs = this.beliefIndex.get(task.termKey);
         const index = beliefs.indexOf(task);
         if (index !== -1) {
-            beliefs.splice(index, 1);
+            // More efficient removal: swap with last element and pop (O(1) vs O(n) for splice)
+            const lastIdx = beliefs.length - 1;
+            if (index !== lastIdx) {
+                beliefs[index] = beliefs[lastIdx];
+            }
+            beliefs.pop();
             if (beliefs.length === 0) {
                 this.beliefIndex.delete(task.termKey);
             }
@@ -133,25 +138,83 @@ class MemoryIndexer {
     }
 
     queryTasks(tasks, filters) {
-        let filteredTasks = [...tasks];
+        // If no filters, return sorted tasks
+        if (!filters || Object.keys(filters).length === 0) {
+            const result = new Array(tasks.length);
+            for (let i = 0; i < tasks.length; i++) {
+                result[i] = tasks[i];
+            }
+            return result.sort((a, b) => b.state.priority - a.state.priority);
+        }
 
+        let filteredTasks = tasks;
+
+        // Apply punctuation filter first if available (most efficient)
         if (filters.punctuation) {
             const taskIds = this.punctuationIndex.get(filters.punctuation);
-            if (!taskIds) return [];
-            const taskMap = new Map(tasks.map(t => [t.id, t]));
-            filteredTasks = [...taskIds].map(id => taskMap.get(id)).filter(Boolean);
+            if (!taskIds || taskIds.size === 0) return [];
+
+            // More efficient approach: create task map and directly map IDs to tasks
+            const taskMap = new Map();
+            for (let i = 0; i < tasks.length; i++) {
+                taskMap.set(tasks[i].id, tasks[i]);
+            }
+
+            const result = new Array(taskIds.size);
+            let j = 0;
+            for (const id of taskIds) {
+                const task = taskMap.get(id);
+                if (task) {
+                    result[j++] = task;
+                }
+            }
+
+            // Trim array to actual size
+            filteredTasks = result.slice(0, j);
+        }
+
+        // Apply other filters sequentially using for loops for better performance
+        if (filters.term) {
+            const result = [];
+            for (let i = 0; i < filteredTasks.length; i++) {
+                if (filteredTasks[i].term.key.includes(filters.term)) {
+                    result.push(filteredTasks[i]);
+                }
+            }
+            filteredTasks = result;
         }
 
         if (filters.termKey) {
-            filteredTasks = filteredTasks.filter(task => task.termKey === filters.termKey);
-        }
-        if (filters.minPriority !== undefined) {
-            filteredTasks = filteredTasks.filter(task => task.state.priority >= filters.minPriority);
-        }
-        if (filters.minConfidence !== undefined) {
-            filteredTasks = filteredTasks.filter(task => task.state.truthValue.confidence >= filters.minConfidence);
+            const result = [];
+            for (let i = 0; i < filteredTasks.length; i++) {
+                if (filteredTasks[i].termKey === filters.termKey) {
+                    result.push(filteredTasks[i]);
+                }
+            }
+            filteredTasks = result;
         }
 
+        if (filters.minPriority !== undefined) {
+            const result = [];
+            for (let i = 0; i < filteredTasks.length; i++) {
+                if (filteredTasks[i].state.priority >= filters.minPriority) {
+                    result.push(filteredTasks[i]);
+                }
+            }
+            filteredTasks = result;
+        }
+
+        if (filters.minConfidence !== undefined) {
+            const result = [];
+            for (let i = 0; i < filteredTasks.length; i++) {
+                if (filteredTasks[i].state.truthValue.confidence >= filters.minConfidence) {
+                    result.push(filteredTasks[i]);
+                }
+            }
+            filteredTasks = result;
+        }
+
+        // Sort and limit
         filteredTasks.sort((a, b) => b.state.priority - a.state.priority);
 
         return filters.limit ? filteredTasks.slice(0, filters.limit) : filteredTasks;
@@ -159,11 +222,30 @@ class MemoryIndexer {
 
     clone() {
         const newIndexer = new MemoryIndexer();
-        newIndexer.implicationIndex = new Map(Array.from(this.implicationIndex.entries()).map(([key, value]) => [key, [...value]]));
-        newIndexer.beliefIndex = new Map(Array.from(this.beliefIndex.entries()).map(([key, value]) => [key, [...value]]));
+
+        // Efficiently copy maps and their contents
+        newIndexer.implicationIndex = new Map();
+        for (const [key, value] of this.implicationIndex) {
+            newIndexer.implicationIndex.set(key, Array.from(value));
+        }
+
+        newIndexer.beliefIndex = new Map();
+        for (const [key, value] of this.beliefIndex) {
+            newIndexer.beliefIndex.set(key, Array.from(value));
+        }
+
         newIndexer.costIndex = new Map(this.costIndex);
-        newIndexer.punctuationIndex = new Map(Array.from(this.punctuationIndex.entries()).map(([key, value]) => [key, new Set(value)]));
-        newIndexer.priorityIndex = new Map(Array.from(this.priorityIndex.entries()).map(([key, value]) => [key, new Set(value)]));
+
+        newIndexer.punctuationIndex = new Map();
+        for (const [key, value] of this.punctuationIndex) {
+            newIndexer.punctuationIndex.set(key, new Set(value));
+        }
+
+        newIndexer.priorityIndex = new Map();
+        for (const [key, value] of this.priorityIndex) {
+            newIndexer.priorityIndex.set(key, new Set(value));
+        }
+
         return newIndexer;
     }
 }

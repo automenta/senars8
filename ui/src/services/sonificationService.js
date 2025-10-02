@@ -1,4 +1,4 @@
-import log from '@/utils/logger';
+import log from '@core/utils/logger.js';
 
 /**
  * Service for playing audio feedback sounds in the UI

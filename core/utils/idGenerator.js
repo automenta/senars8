@@ -14,25 +14,18 @@ function generateHashId(content) {
     return Math.abs(hash).toString(36);
 }
 
-function generateOptimizedId(content) {
+/**
+ * Generates a unique ID.
+ * If content is provided, it generates a hash-based ID.
+ * Otherwise, it generates a simple sequential ID.
+ * @param {string} [content] - Optional content to base the ID on.
+ * @returns {string} The generated ID.
+ */
+function generateId(content) {
     if (content && content.length > 0) {
         return `${generateHashId(content)}-${generateSequentialId()}`;
     }
     return `id-${generateSequentialId()}`;
 }
 
-function generateActionId(actionName) {
-    return generateOptimizedId(`action-${actionName}`);
-}
-
-function generatePlanId(goalKey) {
-    return generateOptimizedId(`plan-${goalKey}`);
-}
-
-export {
-    generateSequentialId,
-    generateHashId,
-    generateOptimizedId,
-    generateActionId,
-    generatePlanId
-};
+export {generateId};

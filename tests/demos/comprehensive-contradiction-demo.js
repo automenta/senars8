@@ -1,7 +1,7 @@
 // Category: Reasoning
 // Description: A comprehensive demonstration of how the system handles contradictions, from simple resolution to generating clarifying questions.
 
-import {runDemo} from '../../utils/shared/demo-utils.js';
+import {runSystem} from '../../utils/runner.js';
 import {info} from '../../core/utils/logger.js';
 
 async function comprehensiveContradictionDemo(options = {}) {
@@ -12,7 +12,7 @@ async function comprehensiveContradictionDemo(options = {}) {
         {sentence: '(penguin --> not_fly).', truth: [1.0, 0.9]},
     ];
 
-    await runDemo('Simple Contradiction Resolution', simpleContradictionTasks, {
+    await runSystem('Simple Contradiction Resolution', simpleContradictionTasks, {
         cycleCount: 8,
         postCycleCallback: (system) => {
             info("Checking for resolved contradictions...");
@@ -29,11 +29,11 @@ async function comprehensiveContradictionDemo(options = {}) {
     // 2. Enhanced Contradiction Resolution
     const enhancedContradictionTasks = [
         {sentence: '(all_swans --> white).', truth: [0.9, 0.8]},
-        {sentence: '(<black_swan> --> swan).', truth: [1.0, 0.95]},
-        {sentence: '(<black_swan> --> black).', truth: [1.0, 0.95]},
+        {sentence: '(black_swan --> swan).', truth: [1.0, 0.95]},
+        {sentence: '(black_swan --> black).', truth: [1.0, 0.95]},
     ];
 
-    return await runDemo('Enhanced Contradiction Resolution', enhancedContradictionTasks, {
+    return await runSystem('Enhanced Contradiction Resolution', enhancedContradictionTasks, {
         cycleCount: 7,
         postCycleCallback: (system) => {
             info("Checking for meta-cognitive tasks (e.g., questions for clarification)...");

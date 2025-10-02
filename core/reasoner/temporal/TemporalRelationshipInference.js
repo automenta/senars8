@@ -1,4 +1,4 @@
-import {createTemporalRelationshipTask, determineTemporalRelationship} from '../../utils/temporal/index.js';
+import {createTemporalRelationshipTask, determineTemporalRelationship} from '../../utils/temporal.js';
 import {debug} from '../../utils/logger.js';
 import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
 import config from '../../config/index.js';

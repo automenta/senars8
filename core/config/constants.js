@@ -36,6 +36,7 @@ export const OP = {
     INTENSIONAL_SET: 'IntensionalSet',
     NUMBER: 'Number',
     STATEMENT: 'Statement',
+    OPERATION: 'Operation',
 };
 
 export const REL = {
@@ -60,6 +61,7 @@ export const REL = {
     EXTENSIONAL_DIFFERENCE: '#,',
     INTENSIONAL_DIFFERENCE: '\\\\,',
     PRODUCT: '*,',
+    OPERATION: '^',
 };
 
 export const TOKEN = {
@@ -96,6 +98,7 @@ export const TOKEN = {
     EXTENSIONAL_DIFFERENCE: 'extensionalDifference',
     INTENSIONAL_DIFFERENCE: 'intensionalDifference',
     PRODUCT: 'product',
+    OPERATION: 'operation',
     IDENTIFIER: 'identifier',
     STRING: 'string',
     INDEPENDENT_VAR: 'independentVar',

@@ -1,72 +1,66 @@
 #!/usr/bin/env node
 
 import fs from 'fs';
-import UnitTestAnalyzer from
+import {UnitTestAnalyzer} from '../../core/analyzer/index.js';
+import {logAndExit, safeAsync} from '../../core/utils/errorHandler.js';
+import {loadJsonFile} from './file-utils.js';
 
-..
-/../
-core / analyzer / index.js
-';
-import {logAndExit, safeAsync} from
+const TEST_RESULTS_PATH = './test-results.json';
+const HTML_REPORT_PATH = './actual-test-failures-analysis.html';
 
-..
-/../
-core / utils / errorHandler.js
-';
+const loadAndFilterFailures = () => {
+    console.log(`Reading test results from ${TEST_RESULTS_PATH}...`);
+    const testResultsData = loadJsonFile(TEST_RESULTS_PATH);
 
-async function analyzeActualFailures() {
-    console.log("=== Unit Test Analyzer - Actual Test Failures ===\n");
+    if (!testResultsData) {
+        console.log('Test results file not found or is empty. Nothing to analyze.');
+        return null;
+    }
+
+    const failingSuites = testResultsData.testResults.filter(suite => suite.numFailingTests > 0);
+
+    if (failingSuites.length === 0) {
+        console.log('All tests are passing! No failures to analyze.');
+        return null;
+    }
+
+    console.log(`Found ${failingSuites.length} test suites with failures.`);
+    return {testResults: failingSuites};
+};
+
+const analyzeAndGenerateReports = async (failureData) => {
+    const analyzer = new UnitTestAnalyzer({
+        enableCoverageAnalysis: false,
+        enablePerformanceAnalysis: false,
+    });
+
+    console.log('Processing actual test failure data...');
+    const analysisResult = await analyzer.analyzeTestData(failureData, null, null);
+
+    if (!analysisResult) {
+        throw new Error('Analysis failed!');
+    }
+
+    console.log('\n=== ANALYSIS RESULTS ===\n');
+    const textReport = analyzer.generateReport('text');
+    console.log(textReport);
+
+    console.log('Generating HTML report...');
+    const htmlReport = await analyzer.generateDetailedReport('html');
+    fs.writeFileSync(HTML_REPORT_PATH, htmlReport);
+    console.log(`HTML report saved to ${HTML_REPORT_PATH}`);
+};
+
+const run = async () => {
+    console.log('=== Unit Test Analyzer - Actual Test Failures ===\n');
 
     await safeAsync(async () => {
-        // Read the actual test results
-        console.log("Reading actual test results...");
-        const testResultsData = JSON.parse(fs.readFileSync('./test-results.json', 'utf8'));
-
-        // Check if there are any failures
-        const hasFailures = testResultsData.testResults.some(suite => suite.numFailingTests > 0);
-
-        if (!hasFailures) {
-            console.log("All tests are passing! No failures to analyze.");
-            return;
+        const failureData = loadAndFilterFailures();
+        if (failureData) {
+            await analyzeAndGenerateReports(failureData);
         }
-
-        // Filter to only suites with failures
-        const failingSuites = testResultsData.testResults.filter(suite => suite.numFailingTests > 0);
-
-        console.log(`Found ${failingSuites.length} test suites with failures.`);
-
-        // Create analyzer
-        const analyzer = new UnitTestAnalyzer({
-            enableCoverageAnalysis: false,
-            enablePerformanceAnalysis: false
-        });
-
-        // Process test data
-        console.log("Processing actual test failure data...");
-        const results = await analyzer.analyzeTestData({testResults: failingSuites}, null, null);
-
-        if (!results) {
-            console.error("Analysis failed!");
-            return;
-        }
-
-        // Generate text report
-        console.log("\n=== ANALYSIS RESULTS ===\n");
-        const textReport = analyzer.generateReport('text');
-        console.log(textReport);
-
-        // Generate HTML report
-        console.log("Generating HTML report...");
-        const htmlReport = await analyzer.generateDetailedReport('html');
-
-        // Save HTML report
-        fs.writeFileSync('./actual-test-failures-analysis.html', htmlReport);
-        console.log("HTML report saved to actual-test-failures-analysis.html");
-
-        console.log("\n=== ANALYSIS COMPLETE ===");
-
+        console.log('\n=== ANALYSIS COMPLETE ===');
     }, 'analyzeActualFailures');
-}
+};
 
-// Run the analysis
-analyzeActualFailures().catch(logAndExit);
+run().catch(logAndExit);

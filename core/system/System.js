@@ -1,38 +1,30 @@
-import {systemErrorHandler as errorHandler} from '../utils/errorHandling.js';
+import {systemErrorHandler as errorHandler} from '../utils/errorHandler.js';
 import {debug, error as logError, info, warn} from '../utils/logger.js';
 import {normalizeToArray} from '../utils/collections/index.js';
 import Introspection from './Introspection.js';
 import {configService} from '../config/index.js';
 import registerDefaultActions from './default-actions.js';
+import {SystemEvents} from './SystemEvents.js';
+import {SystemCommands} from './SystemCommands.js';
 
 class System {
     constructor(
         configManager,
         memory,
         reasoner,
-        lm,
         actionExecutor,
         cycle,
         planner,
         metaCognition,
         perception,
-        eventBus
+        eventBus,
+        commandBus
     ) {
         this.config = configService;
-        debug('System: Constructor called with components:', {
-            memory,
-            reasoner,
-            lm,
-            actionExecutor,
-            cycle,
-            planner,
-            metaCognition,
-            perception,
-        });
         this.eventBus = eventBus;
-        this.memory = memory;
+        this.commandBus = commandBus;
+        this.memory = memory; // Direct access for now, to be phased out
         this.reasoner = reasoner;
-        this.lm = lm;
         this.actionExecutor = actionExecutor;
         this.cycle = cycle;
         this.planner = planner;
@@ -41,19 +33,61 @@ class System {
         this.isRunning = false;
         this.cycleCount = 0;
         this.introspection = new Introspection(this);
+        this.constitutionTasks = [];
 
         registerDefaultActions(this.actionExecutor);
-        this.eventBus.on('tasks.add', (tasks) => this._bootstrapTerms(tasks));
+
+        // Register command handlers to control the system
+        this.commandBus.handle(SystemCommands.SYSTEM_START_CYCLING, (payload) => this.start(payload?.maxCycles));
+        this.commandBus.handle(SystemCommands.SYSTEM_STOP_CYCLING, () => this.stop());
+        this.commandBus.handle(SystemCommands.SYSTEM_RESET, () => this.reset());
+        this.commandBus.handle(SystemCommands.SYSTEM_ADD_TASKS, (tasks) => this.addTasks(tasks));
+        this.commandBus.handle(SystemCommands.SYSTEM_GET_STATS, () => this.getStats());
+
         info('System components created and initialized.');
+    }
+
+    async getStats() {
+        const memoryStats = await this.commandBus.request(SystemCommands.MEMORY_GET_STATS);
+        const allTasks = await this.commandBus.request(SystemCommands.MEMORY_GET_ALL_TASKS);
+
+        // Count tasks by punctuation in a single pass for better performance
+        let beliefs = 0;
+        let goals = 0;
+        let questions = 0;
+
+        for (const task of allTasks) {
+            switch (task.punctuation) {
+                case '.':
+                    beliefs++;
+                    break;
+                case '!':
+                    goals++;
+                    break;
+                case '?':
+                    questions++;
+                    break;
+            }
+        }
+
+        return {
+            cycleCount: this.cycleCount,
+            memoryUsage: memoryStats.terms + memoryStats.shortTermTasks + memoryStats.longTermTasks,
+            beliefs,
+            goals,
+            questions,
+            tasks: allTasks.length,
+        };
     }
 
     async initialize(constitutionTasks) {
         await errorHandler.execute(async () => {
             info('System: Initializing with constitution...');
-            if (constitutionTasks?.length > 0) {
-                this.eventBus.emit('tasks.add', constitutionTasks);
+            this.constitutionTasks = constitutionTasks || [];
+            if (this.constitutionTasks.length > 0) {
+                await this.addTasks(this.constitutionTasks);
             }
-            await this.cycle.bootstrap(constitutionTasks);
+            await this.cycle.bootstrap(this.constitutionTasks);
             info('System: Initialized successfully.');
         }, 'initialize');
     }
@@ -62,15 +96,56 @@ class System {
         sync: false
     }) {
         await errorHandler.execute(async () => {
-            const newTermKeys = [...new Set(tasks.map(task => task.termKey).filter(key => !this.memory.getTerm(key)))];
-            if (!newTermKeys.length) return;
+            // Use Set to deduplicate term keys efficiently, filtering out invalid term keys
+            const termKeySet = new Set();
+            for (const task of tasks) {
+                if (task?.termKey && typeof task.termKey === 'string' && task.termKey.trim() !== '') {
+                    termKeySet.add(task.termKey);
+                }
+            }
+            const termKeys = Array.from(termKeySet);
+
+            if (termKeys.length === 0) return;
+
+            // Optimize the term existence check - batch the requests more efficiently
+            const termExistence = await Promise.allSettled(
+                termKeys.map(key => this.commandBus.request(SystemCommands.MEMORY_GET_TERM, key))
+            );
+
+            // Build new term keys array for non-existent terms
+            const newTermKeys = [];
+            for (let i = 0; i < termKeys.length; i++) {
+                const result = termExistence[i];
+                if (result.status === 'fulfilled' && !result.value) {
+                    newTermKeys.push(termKeys[i]);
+                } else if (result.status === 'rejected') {
+                    // If there was an error checking existence, still try to bootstrap
+                    newTermKeys.push(termKeys[i]);
+                }
+            }
+
+            if (newTermKeys.length === 0) return;
 
             debug(`Bootstrapping ${newTermKeys.length} new terms...`);
-            const newTerms = (await Promise.all(newTermKeys.map(key => this.lm.bootstrapTerm(key, options)))).filter(Boolean);
-            newTerms.forEach(term => this.eventBus.emit('term.add', term));
-            info(`Successfully bootstra-pped ${newTerms.length} terms.`);
+            const bootstrapPromises = newTermKeys.map(key => this.commandBus.request(SystemCommands.LM_BOOTSTRAP_TERM, {
+                termKey: key,
+                options
+            }));
+
+            const bootstrapResults = await Promise.allSettled(bootstrapPromises);
+            const newTerms = [];
+
+            for (const result of bootstrapResults) {
+                if (result.status === 'fulfilled' && result.value) {
+                    newTerms.push(result.value);
+                }
+            }
+
+            await this.eventBus.emitAsync(SystemEvents.TERM_ADD, newTerms);
+            info(`Successfully bootstrapped ${newTerms.length} terms.`);
         }, '_bootstrapTerms');
     }
+
 
     async runCycle() {
         return await errorHandler.execute(async () => {
@@ -88,10 +163,10 @@ class System {
                 warn('System is already running.');
                 return;
             }
-            info(`Starting system with maxCycles=${maxCycles || 'infinite'}`);
+            info(`Starting system with maxCycles=${maxCycles === 0 ? 'infinite' : maxCycles}`);
             this.isRunning = true;
             this.cycleCount = 0;
-            this.lm.startEmbeddingProcessor();
+            this.eventBus.emit(SystemEvents.SYSTEM_START);
 
             while (this.isRunning && (maxCycles === 0 || this.cycleCount < maxCycles)) {
                 const result = await errorHandler.execute(async () => {
@@ -117,7 +192,7 @@ class System {
         errorHandler.executeSync(() => {
             if (!this.isRunning) return;
             this.isRunning = false;
-            this.lm.stopEmbeddingProcessor();
+            this.eventBus.emit(SystemEvents.SYSTEM_STOP);
             info(`System stopped after ${this.cycleCount} cycles.`);
         }, 'stop');
     }
@@ -128,16 +203,18 @@ class System {
             if (!tasksToAdd.length) return;
 
             debug(`Adding ${tasksToAdd.length} new tasks to the system...`);
-            this.eventBus.emit('tasks.add', tasksToAdd);
+            await this._bootstrapTerms(tasksToAdd);
+            await this.eventBus.emitAsync(SystemEvents.TASKS_ADD, tasksToAdd);
             info(`Successfully added ${tasksToAdd.length} tasks.`);
         }, 'addTasks');
     }
 
-    reset() {
-        errorHandler.executeSync(() => {
-            this.eventBus.emit('system.reset');
+    async reset() {
+        await errorHandler.execute(async () => {
+            await this.eventBus.emitAsync(SystemEvents.SYSTEM_RESET);
             this.cycleCount = 0;
-            info('System has been reset.');
+            await this.initialize(this.constitutionTasks);
+            info('System has been reset and re-initialized with constitution.');
         }, 'reset');
     }
 }

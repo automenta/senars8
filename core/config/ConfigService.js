@@ -1,3 +1,5 @@
+import {safeGet} from '../utils/collections/index.js';
+
 /**
  * Singleton configuration service that provides centralized configuration access
  */
@@ -33,19 +35,7 @@ class ConfigService {
             return defaultValue;
         }
 
-        // Simple path resolution (splits by dot notation)
-        const keys = path.split('.');
-        let value = this.config;
-
-        for (const key of keys) {
-            if (value && typeof value === 'object' && key in value) {
-                value = value[key];
-            } else {
-                return defaultValue;
-            }
-        }
-
-        return value;
+        return safeGet(this.config, path, defaultValue);
     }
 
     /**

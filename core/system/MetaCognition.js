@@ -1,19 +1,24 @@
 import {parseTerm} from '../parser/parse-utils.js';
 import {debug, info} from '../utils/logger.js';
 import {getBeliefTasks} from '../utils/task-utils.js';
-import {metaCognitionErrorHandler as errorHandler} from '../utils/errorHandling.js';
+import {metaCognitionErrorHandler as errorHandler} from '../utils/errorHandler.js';
+import {SystemCommands} from './SystemCommands.js';
 
 class MetaCognition {
-    constructor(configManager, contradictionAnalyzer, resolutionStrategy, eventBus) {
+    constructor(configManager, contradictionAnalyzer, resolutionStrategy, eventBus, commandBus) {
         this.configManager = configManager;
         this.contradictionAnalyzer = contradictionAnalyzer;
         this.resolutionStrategy = resolutionStrategy;
         this.eventBus = eventBus;
+        this.commandBus = commandBus;
         this.contradictions = [];
+        this._registerCommandHandlers();
         info('MetaCognition initialized');
+    }
 
-        this.eventBus.handle('MetaCognition.findContradictions', this.findContradictions.bind(this));
-        this.eventBus.handle('MetaCognition.resolve', this.resolve.bind(this));
+    _registerCommandHandlers() {
+        this.commandBus.handle(SystemCommands.METACOGNITION_FIND_CONTRADICTIONS, this.findContradictions.bind(this));
+        this.commandBus.handle(SystemCommands.METACOGNITION_RESOLVE_CONTRADICTION, this.resolve.bind(this));
     }
 
     findContradictions(tasks) {

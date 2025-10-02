@@ -52,6 +52,22 @@ class NarseseTranslator {
         this.config = {
             termSimilarityThreshold: config.termSimilarityThreshold || 0.7,
             confidenceThreshold: config.confidenceThreshold || 0.5,
+            // Test result confidence defaults
+            testSuiteExecutionConfidence: config.testSuiteExecutionConfidence || 0.9,
+            testSuiteDurationConfidence: config.testSuiteDurationConfidence || 0.8,
+            testFailureConfidence: config.testFailureConfidence || 0.95,
+            testFailureImplicationConfidence: config.testFailureImplicationConfidence || 0.8,
+            testErrorPatternConfidence: config.testErrorPatternConfidence || 0.9,
+            testSummaryConfidence: config.testSummaryConfidence || 0.9,
+            // Coverage data confidence defaults
+            coverageStatementConfidence: config.coverageStatementConfidence || 0.9,
+            coverageCategoryConfidence: config.coverageCategoryConfidence || 0.8,
+            coverageAverageConfidence: config.coverageAverageConfidence || 0.9,
+            // Profiling data confidence defaults
+            profilingConfidence: config.profilingConfidence || 0.8,
+            performanceStatementConfidence: config.performanceStatementConfidence || 0.7,
+            performanceCategoryConfidence: config.performanceCategoryConfidence || 0.9,
+            performanceTrendConfidence: config.performanceTrendConfidence || 0.9,
             ...config
         };
     }
@@ -95,7 +111,7 @@ class NarseseTranslator {
                 truth: {
                     frequency: suite.status === 'pass' ? 1.0 :
                         suite.status === 'fail' ? 0.0 : 0.5,
-                    confidence: 0.9
+                    confidence: this.config.testSuiteExecutionConfidence
                 }
             });
 
@@ -106,7 +122,7 @@ class NarseseTranslator {
                     term: new Term(`(${suiteKey} duration_category ${durationCategory})`),
                     truth: {
                         frequency: 1.0,
-                        confidence: 0.8
+                        confidence: this.config.testSuiteDurationConfidence
                     }
                 });
             }
@@ -122,7 +138,7 @@ class NarseseTranslator {
                 term: new Term(`(${testKey} has_status failed)`),
                 truth: {
                     frequency: 1.0,
-                    confidence: 0.95
+                    confidence: this.config.testFailureConfidence
                 }
             });
 
@@ -131,7 +147,7 @@ class NarseseTranslator {
                 term: new Term(`((${testKey} has_status failed) ==> (${suiteKey} has_failures))`),
                 truth: {
                     frequency: 0.9,
-                    confidence: 0.8
+                    confidence: this.config.testFailureImplicationConfidence
                 }
             });
 
@@ -144,7 +160,7 @@ class NarseseTranslator {
                             term: new Term(`(${testKey} error_pattern ${pattern})`),
                             truth: {
                                 frequency: 1.0,
-                                confidence: 0.9
+                                confidence: this.config.testErrorPatternConfidence
                             }
                         });
                     });
@@ -162,7 +178,7 @@ class NarseseTranslator {
                 term: new Term('(system test_pass_rate 1.0)'),
                 truth: {
                     frequency: passRate,
-                    confidence: 0.9
+                    confidence: this.config.testSummaryConfidence
                 }
             });
         }
@@ -182,7 +198,7 @@ class NarseseTranslator {
                         term: new Term(`(${fileKey} ${type}_coverage ${coverageLevel})`),
                         truth: {
                             frequency: pct / 100,
-                            confidence: 0.9
+                            confidence: this.config.coverageStatementConfidence
                         }
                     });
 
@@ -192,7 +208,7 @@ class NarseseTranslator {
                             term: new Term(`(${fileKey} ${type}_coverage high)`),
                             truth: {
                                 frequency: pct / 100,
-                                confidence: 0.8
+                                confidence: this.config.coverageCategoryConfidence
                             }
                         });
                     }
@@ -210,7 +226,7 @@ class NarseseTranslator {
                 term: new Term('(system overall_coverage_quality good)'),
                 truth: {
                     frequency: avgCoverage / 100,
-                    confidence: 0.9
+                    confidence: this.config.coverageAverageConfidence
                 }
             });
         }
@@ -227,7 +243,7 @@ class NarseseTranslator {
                 term: new Term(`(${funcKey} performance ${performanceCategory})`),
                 truth: {
                     frequency: calculatePerformanceFrequency(func.averageTime),
-                    confidence: 0.8
+                    confidence: this.config.profilingConfidence
                 }
             });
 
@@ -237,7 +253,7 @@ class NarseseTranslator {
                     term: new Term(`((${funcKey} performance ${performanceCategory}) ==> (${funcKey} is_bottleneck))`),
                     truth: {
                         frequency: 0.7,
-                        confidence: 0.7
+                        confidence: this.config.performanceStatementConfidence
                     }
                 });
             }
@@ -251,7 +267,7 @@ class NarseseTranslator {
                 term: new Term(`(${funcKey} is_bottleneck)`),
                 truth: {
                     frequency: 0.9,
-                    confidence: 0.9
+                    confidence: this.config.performanceCategoryConfidence
                 }
             });
 
@@ -260,7 +276,7 @@ class NarseseTranslator {
                 term: new Term(`(${funcKey} performance fast)`),
                 truth: {
                     frequency: 0.1, // Currently slow
-                    confidence: 0.9
+                    confidence: this.config.performanceTrendConfidence
                 }
             });
         });

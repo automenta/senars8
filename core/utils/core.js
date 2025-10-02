@@ -9,13 +9,7 @@ export {
     sumBy
 } from './collections/index.js';
 export {cosineSimilarity, embeddingsEqual} from './math.js';
-export {
-    generateActionId,
-    generateHashId,
-    generateOptimizedId,
-    generatePlanId,
-    generateSequentialId
-} from './idGenerator.js';
+export {generateId} from './idGenerator.js';
 export {
     getBeliefTasks,
     getGoalTasks,

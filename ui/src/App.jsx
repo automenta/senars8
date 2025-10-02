@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {Layout} from 'flexlayout-react';
 import 'flexlayout-react/style/light.css';
 import panelRegistry from '@/features/panelRegistry';
@@ -12,20 +12,20 @@ import {SearchProvider} from '@/context/SearchContext';
 import {NotificationProvider} from '@/context/NotificationContext';
 import './App.css';
 
-const factory = (node) => {
-    const componentName = node.getComponent();
-    const PanelComponent = panelRegistry[componentName];
-    return (
-        <ErrorBoundary>
-            {PanelComponent ? <PanelComponent/> : <div>Panel not found: {componentName}</div>}
-        </ErrorBoundary>
-    );
-};
-
 function App() {
     const {model, onModelChange} = useLayoutModel();
     const {theme} = useTheme();
     useAppInit();
+
+    const factory = useCallback((node) => {
+        const componentName = node.getComponent();
+        const PanelComponent = panelRegistry[componentName];
+        return (
+            <ErrorBoundary>
+                {PanelComponent ? <PanelComponent/> : <div>Panel not found: {componentName}</div>}
+            </ErrorBoundary>
+        );
+    }, []);
 
     return (
         <NotificationProvider>

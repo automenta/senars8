@@ -154,14 +154,14 @@ reasoning and causal analysis.
 
 | Type                          | Syntax                      | Example                             | Cognitive Purpose                                                |
 |-------------------------------|-----------------------------|-------------------------------------|------------------------------------------------------------------|
-| **Inheritance**               | `<subject --> predicate>`   | `(cat --> mammal)`                  | Represents "is-a" relationships and hierarchical knowledge.      |
-| **Implication**               | `<premise ==> conclusion>`  | `(raining ==> wet_streets)`         | Represents predictive or causal links with temporal aspects.     |
+| **Inheritance**               | `(subject --> predicate)`   | `(cat --> mammal)`                  | Represents "is-a" relationships and hierarchical knowledge.      |
+| **Implication**               | `(premise ==> conclusion)`  | `(raining ==> wet_streets)`         | Represents predictive or causal links with temporal aspects.     |
 | **Conjunction**               | `(&, term1, term2, ...)`    | `(&, cat, furry, pet)`              | Represents logical AND and complex, multi-faceted concepts.      |
 | **Disjunction**               | `(\|, term1, term2, ...)`   | `(\|, cat, dog, bird)`              | Represents logical OR and alternative possibilities.             |
 | **Negation**                  | `(--, term)`                | `(--, (cat --> bird))`              | Represents logical NOT and contradiction handling.               |
-| **Temporal Implication**      | `<premise =/> conclusion>`  | `(see_lightning =/> hear_thunder)`  | Represents temporal sequences and cause-effect relationships.    |
-| **Retrospective Implication** | `<premise =\\> conclusion>` | `(hear_thunder =\\> see_lightning)` | Represents backward temporal reasoning and diagnostic inference. |
-| **Concurrent Implication**    | `<premise <> conclusion>`   | `(lightning <> thunder)`            | Represents synchronous or concurrent relationships.              |
+| **Temporal Implication**      | `(premise =/> conclusion)`  | `(see_lightning =/> hear_thunder)`  | Represents temporal sequences and cause-effect relationships.    |
+| **Retrospective Implication** | `(premise =\\> conclusion)` | `(hear_thunder =\\> see_lightning)` | Represents backward temporal reasoning and diagnostic inference. |
+| **Concurrent Implication**    | `(premise <=> conclusion)`   | `(lightning <=> thunder)`            | Represents synchronous or concurrent relationships.              |
 | **Instance**                  | `(instance {-- class)`      | `(fluffy {-- cat)`                  | Represents specific instances of general concepts.               |
 | **Property**                  | `(object --} property)`     | `(cat --} furry)`                   | Represents attribute relationships and characteristics.          |
 | **Operation**                 | `(&/, action, condition)`   | `(&/, clean, dirty_room)`           | Represents conditional operations and action planning.           |
@@ -188,7 +188,7 @@ other's capabilities.
 graph TD
     A[Symbolic Reasoner] -- Identifies Gap --> B{LM Service Orchestrator}
     B --> C[HypothesisGenerator]
-    B --> D[PlanRepairer] 
+    B --> D[PlanRepairer]
     B --> E[ExplanationGenerator]
     B --> F[QAService]
     B --> G[ProactiveEnricher]
@@ -257,11 +257,11 @@ understanding of dynamic situations.
 
 | Type                          | Syntax               | Example                              | Cognitive Application                                  |
 |-------------------------------|----------------------|--------------------------------------|--------------------------------------------------------|
-| **Predictive Implication**    | `<task1 =/> task2>`  | `(see_lightning =/> hear_thunder)`   | Predicting future events based on current observations |
-| **Retrospective Implication** | `<task1 \> task2>`   | `(wet_streets \> rained_last_night)` | Diagnostic reasoning and cause identification          |
-| **Concurrent Implication**    | `<task1 <> task2>`   | `(lightning <> thunder)`             | Understanding simultaneous events                      |
-| **Duration Representation**   | `<event [duration]>` | `(meeting [60_minutes])`             | Representing event durations and temporal extents      |
-| **Temporal Ordering**         | `<event1 < event2>`  | `(breakfast < lunch)`                | Representing sequence relationships                    |
+| **Predictive Implication**    | `(task1 =/> task2)`  | `(see_lightning =/> hear_thunder)`   | Predicting future events based on current observations |
+| **Retrospective Implication** | `(task1 \\> task2)`   | `(wet_streets \\> rained_last_night)` | Diagnostic reasoning and cause identification          |
+| **Concurrent Implication**    | `(task1 <=> task2)`   | `(lightning <=> thunder)`             | Understanding simultaneous events                      |
+| **Duration Representation**   | `(event [duration])` | `(meeting [60_minutes])`             | Representing event durations and temporal extents      |
+| **Temporal Ordering**         | `(event1 < event2)`  | `(breakfast < lunch)`                | Representing sequence relationships                    |
 
 ### Planning Architecture
 
@@ -498,11 +498,11 @@ SeNARS uses a rich, formal grammar called Narsese to represent knowledge with pr
 
 | Type                     | Syntax                     | Example                            | Purpose                                 |
 |--------------------------|----------------------------|------------------------------------|-----------------------------------------|
-| **Inheritance**          | `<subject --> predicate>`  | `(cat --> mammal)`                 | Represents an "is-a" relationship.      |
-| **Implication**          | `<premise ==> conclusion>` | `(raining ==> wet_streets)`        | Represents a predictive or causal link. |
+| **Inheritance**          | `(subject --> predicate)`  | `(cat --> mammal)`                 | Represents an "is-a" relationship.      |
+| **Implication**          | `(premise ==> conclusion)` | `(raining ==> wet_streets)`        | Represents a predictive or causal link. |
 | **Conjunction**          | `(&, term1, term2, ...)`   | `(&, cat, furry)`                  | Represents a logical AND.               |
 | **Negation**             | `(--, term)`               | `(--, cat)`                        | Represents logical NOT.                 |
-| **Temporal Implication** | `<premise =/> conclusion>` | `(see_lightning =/> hear_thunder)` | Represents a temporal sequence.         |
+| **Temporal Implication** | `(premise =/> conclusion)` | `(see_lightning =/> hear_thunder)` | Represents a temporal sequence.         |
 
 This formal grammar is the foundation for the system's rigorous, explainable reasoning capabilities.
 

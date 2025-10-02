@@ -1,11 +1,14 @@
-const Reasoner = require('../../core/reasoner/Reasoner');
-const Memory = require('../../core/memory/Memory');
-const {createTask} = require('../shared/demo-utils');
+import Reasoner from '../../core/reasoner/Reasoner.js';
+import Memory from '../../core/memory/Memory.js';
+import Task from '../../core/core/Task.js';
 
 function setupMemory(numTerms) {
     const memory = new Memory();
     for (let i = 0; i < numTerms - 1; i++) {
-        const task = createTask(`(t${i} --> t${i + 1})`, '.', {frequency: 0.9, confidence: 0.9}, {}, 1.0);
+        const task = Task.fromMacro({
+            sentence: `(t${i} --> t${i + 1}).`,
+            truth: [0.9, 0.9]
+        });
         if (task) {
             memory.addTasks([task]);
         }

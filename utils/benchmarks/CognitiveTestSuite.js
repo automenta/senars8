@@ -1,6 +1,6 @@
 // benchmarks/CognitiveTestSuite.js
 import {SystemFactory} from '../../core/index.js';
-import {runBenchmarkTest} from '../shared/benchmark-utils.js';
+import {runSystem} from '../runner.js';
 
 export default class CognitiveTestSuite {
     constructor() {
@@ -65,7 +65,7 @@ export default class CognitiveTestSuite {
 
         for (const test of tests) {
             const startTime = Date.now();
-            const result = await this.testDeduction(test.premises, test.conclusion);
+            const result = await this.testDeduction(test.name, test.premises, test.conclusion);
             const endTime = Date.now();
 
             this.results.deductive.push({
@@ -78,7 +78,7 @@ export default class CognitiveTestSuite {
         }
     }
 
-    async testDeduction(premises, conclusion) {
+    async testDeduction(testName, premises, conclusion) {
         this.system.reset();
         const verifyCallback = (testSystem) => {
             const allTasks = testSystem.memory.getAllTasks();
@@ -89,7 +89,11 @@ export default class CognitiveTestSuite {
             return !!conclusionTask;
         };
 
-        return await runBenchmarkTest(this.system, premises, verifyCallback);
+        return await runSystem(testName, premises, {
+            system: this.system,
+            verify: verifyCallback,
+            cycleCount: 5, // Default cycle count for tests
+        });
     }
 
     async runInductiveTests() {
@@ -108,7 +112,7 @@ export default class CognitiveTestSuite {
 
         for (const test of tests) {
             const startTime = Date.now();
-            const result = await this.testInduction(test.observations, test.hypothesis);
+            const result = await this.testInduction(test.name, test.observations, test.hypothesis);
             const endTime = Date.now();
 
             this.results.inductive.push({
@@ -121,7 +125,7 @@ export default class CognitiveTestSuite {
         }
     }
 
-    async testInduction(observations, hypothesis) {
+    async testInduction(testName, observations, hypothesis) {
         this.system.reset();
         const initialTasks = [
             ...observations,
@@ -134,7 +138,11 @@ export default class CognitiveTestSuite {
             return derivedBeliefs.length > observations.length ? 'generalization' : 'no_generalization';
         };
 
-        return await runBenchmarkTest(this.system, initialTasks, verifyCallback);
+        return await runSystem(testName, initialTasks, {
+            system: this.system,
+            verify: verifyCallback,
+            cycleCount: 5,
+        });
     }
 
     async runConstitutionalTests() {
@@ -151,7 +159,7 @@ export default class CognitiveTestSuite {
 
         for (const test of tests) {
             const startTime = Date.now();
-            const result = await this.testConstitutionalConstraint(test.scenario, test.action);
+            const result = await this.testConstitutionalConstraint(test.name, test.scenario, test.action);
             const endTime = Date.now();
 
             this.results.constitutional.push({
@@ -164,7 +172,7 @@ export default class CognitiveTestSuite {
         }
     }
 
-    async testConstitutionalConstraint(scenario, action) {
+    async testConstitutionalConstraint(testName, scenario, action) {
         this.system.reset();
         const initialTasks = [
             ...scenario,
@@ -176,7 +184,11 @@ export default class CognitiveTestSuite {
             return 'blocked'; // Placeholder
         };
 
-        return await runBenchmarkTest(this.system, initialTasks, verifyCallback);
+        return await runSystem(testName, initialTasks, {
+            system: this.system,
+            verify: verifyCallback,
+            cycleCount: 5,
+        });
     }
 
     async runCreativeTests() {
@@ -191,7 +203,7 @@ export default class CognitiveTestSuite {
 
         for (const test of tests) {
             const startTime = Date.now();
-            const result = await this.testAnalogy(test.source, test.target);
+            const result = await this.testAnalogy(test.name, test.source, test.target);
             const endTime = Date.now();
 
             this.results.creative.push({
@@ -204,7 +216,7 @@ export default class CognitiveTestSuite {
         }
     }
 
-    async testAnalogy(source, target) {
+    async testAnalogy(testName, source, target) {
         this.system.reset();
         const initialTasks = [
             {sentence: `${source}.`, truth: [1.0, 0.9]},
@@ -216,7 +228,11 @@ export default class CognitiveTestSuite {
             return 'animal'; // Placeholder
         };
 
-        return await runBenchmarkTest(this.system, initialTasks, verifyCallback);
+        return await runSystem(testName, initialTasks, {
+            system: this.system,
+            verify: verifyCallback,
+            cycleCount: 5,
+        });
     }
 
     generateReport() {

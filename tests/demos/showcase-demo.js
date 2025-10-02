@@ -1,8 +1,9 @@
 // Category: Showcase
 // Description: A comprehensive showcase of the SeNARS system's core capabilities, from basic reasoning to advanced planning and learning.
 
-import {runDemo} from '../../utils/shared/demo-utils.js';
+import {runSystem} from '../../utils/runner.js';
 import {info} from '../../core/utils/logger.js';
+import {SystemCommands} from '../../core/system/SystemCommands.js';
 
 /**
  * A unified showcase demo that demonstrates core system capabilities.
@@ -84,7 +85,7 @@ async function showcaseDemo(options = {}) {
             preCycleCallback: async (system) => {
                 const nl = "A car is a vehicle.";
                 info(`Parsing natural language: "${nl}"`);
-                const parsed = await system.lm.nlp.parse(nl);
+                const parsed = await system.commandBus.request(SystemCommands.LM_NLP_PARSE, nl);
                 system.addTasks(parsed);
             },
             postCycleCallback: (system) => {
@@ -115,7 +116,7 @@ async function showcaseDemo(options = {}) {
             ...options
         };
 
-        system = await runDemo(step.name, step.tasks, stepOptions);
+        system = await runSystem(step.name, step.tasks, stepOptions);
     }
 
     info("\n--- 🚀 Showcase Complete! ---");

@@ -1,57 +1,66 @@
-import SystemFactory from '../../core/system/SystemFactory.js';
+import {beforeEach, describe, expect, test, vi} from 'vitest';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
+import {createTestConfig, setupTestEnvironment} from '../test-helpers.js';
+import {SystemCommands} from '../../core/system/SystemCommands.js';
 
-jest.mock('@xenova/transformers', () => {
-    const transformers = jest.createMockFromModule('@xenova/transformers');
-    transformers.pipeline = jest.fn(async () =>
-        jest.fn(() => ({
+vi.mock('@xenova/transformers', () => ({
+    pipeline: vi.fn(async () =>
+        vi.fn(() => ({
             data: new Float32Array([1, 2, 3])
         }))
-    );
-    return transformers;
-});
+    ),
+    env: {},
+}));
 
-const createTerm = async (lm, memory, termKey) => {
-    const term = await lm.bootstrapTerm(termKey);
-    memory.addTerm(term);
+const createTerm = async (commandBus, memory, termKey) => {
+    const term = await commandBus.request(SystemCommands.LM_BOOTSTRAP_TERM, {termKey});
+    await memory.addTerm(term);
     return term;
 };
 
+// Local helper to set up command bus mock for system
+const setupCommandBusMock = (commandBus) => {
+    commandBus.request.mockImplementation(async (command, payload) => {
+        if (command === SystemCommands.LM_BOOTSTRAP_TERM) {
+            return new Term(payload.termKey, [], 1);
+        }
+        return null;
+    });
+};
+
 describe('Reasoner Integration Test', () => {
-    let system, reasoner, memory, lm;
+    let system, reasoner, memory, commandBus;
 
     beforeEach(() => {
-        system = SystemFactory.createSystem({
-            reasoner: {
-                strategy: 'BruteForce'
-            }
-        });
+        const testEnv = setupTestEnvironment(createTestConfig());
+        system = testEnv.system;
         reasoner = system.reasoner;
-        memory = system.memory;
-        lm = system.lm;
-        jest.spyOn(lm, 'bootstrapTerm').mockImplementation(async termKey => new Term(termKey, [], 1));
+        memory = testEnv.container.get('memory'); // Get memory from container
+        commandBus = testEnv.commandBus;
+
+        setupCommandBusMock(commandBus);
     });
 
     test('should perform modus ponens', async () => {
-        const termA = await createTerm(lm, memory, 'cat');
-        await createTerm(lm, memory, 'mammal');
+        const termA = await createTerm(commandBus, memory, 'cat');
+        await createTerm(commandBus, memory, 'mammal');
         const task1 = new Task(parseTerm('(cat ==> mammal)'), '.');
         const task2 = new Task(termA, '.');
 
-        const derivedTasks = reasoner.performInference([task1, task2]);
+        const derivedTasks = await reasoner.performInference([task1, task2]);
         expect(derivedTasks.some(t => t.termKey === 'mammal')).toBe(true);
     });
 
     test('should perform inheritance chaining', async () => {
-        await createTerm(lm, memory, 'cat');
-        await createTerm(lm, memory, 'mammal');
-        await createTerm(lm, memory, 'animal');
+        await createTerm(commandBus, memory, 'cat');
+        await createTerm(commandBus, memory, 'mammal');
+        await createTerm(commandBus, memory, 'animal');
         const task1 = new Task(parseTerm('(cat --> mammal)'), '.');
         const task2 = new Task(parseTerm('(mammal --> animal)'), '.');
 
-        const derivedTasks = reasoner.performInference([task1, task2]);
+        const derivedTasks = await reasoner.performInference([task1, task2]);
         expect(derivedTasks.some(t => t.termKey === '(cat --> animal)')).toBe(true);
     });
 });

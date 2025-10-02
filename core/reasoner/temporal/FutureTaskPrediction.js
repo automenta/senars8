@@ -1,4 +1,4 @@
-import {advancedPredictFutureTasks} from '../../utils/temporal/index.js';
+import {advancedPredictFutureTasks} from '../../utils/temporal.js';
 import {debug} from '../../utils/logger.js';
 import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
 

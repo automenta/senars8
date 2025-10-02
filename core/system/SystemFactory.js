@@ -24,6 +24,7 @@ const createSystem = (userConfig = {}, components = {}) => {
     // Initialize the global config service with the merged configuration
     configService.initialize(configManager.getAll());
 
+    info('SystemFactory: Registering components...');
     registerComponents(container, configManager);
 
     // Override with any user-provided components
@@ -31,13 +32,17 @@ const createSystem = (userConfig = {}, components = {}) => {
         container.registerValue(name, instance);
     }
 
+    info('SystemFactory: Registering strategies...');
     const strategyRegistry = container.get('strategyRegistry');
     strategyRegistry.registerStrategies([
         BagSamplingStrategy,
         BruteForceStrategy,
     ]);
 
+    info('SystemFactory: Getting system instance...');
     const system = container.get('system');
+
+    info('SystemFactory: Initializing system...');
     initializeSystem(system);
 
     info('SystemFactory: System creation complete.');

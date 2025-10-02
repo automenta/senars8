@@ -1,0 +1,39 @@
+jest.mock('y-websocket', () => ({
+    WebsocketProvider: jest.fn().mockImplementation(() => ({
+        awareness: {
+            on: jest.fn(),
+        },
+        destroy: jest.fn(),
+    })),
+}));
+
+import agentService from '../agentService';
+import AgentCommunicationService from '@common/services/AgentCommunicationService.js';
+
+describe('AgentService', () => {
+    let communicationServiceSpy;
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        communicationServiceSpy = jest.spyOn(AgentCommunicationService.prototype, 'sendMessage');
+    });
+
+    afterEach(() => {
+        communicationServiceSpy.mockRestore();
+    });
+
+    it('should connect to WebSocket', () => {
+        agentService.connect();
+        expect(agentService.yProvider).not.toBeNull();
+    });
+
+    it('should send NARSese messages', () => {
+        agentService.sendNarsese('(test --> test).');
+        expect(communicationServiceSpy).toHaveBeenCalledWith('narsese', '(test --> test).', {});
+    });
+
+    it('should send agent control commands', () => {
+        agentService.sendAgentControl('start');
+        expect(communicationServiceSpy).toHaveBeenCalledWith('agentControl', {command: 'start'}, {});
+    });
+});

@@ -1,21 +1,26 @@
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest';
 import Task from '../../core/core/Task.js';
-import SystemFactory from '../../core/system/SystemFactory.js';
+import * as logger from '../../core/utils/logger.js';
 
-
-jest.mock('@xenova/transformers', () => {
-    const transformers = jest.createMockFromModule('@xenova/transformers');
-    transformers.pipeline = jest.fn(async () => {
-        return jest.fn(() => ({
+vi.mock('@xenova/transformers', () => ({
+    pipeline: vi.fn(async () => {
+        return vi.fn(() => ({
             data: new Float32Array([1, 2, 3])
         }));
-    });
-    return transformers;
-});
+    }),
+    env: {},
+}));
+
+const {default: SystemFactory} = await import('../../core/system/SystemFactory.js');
 
 describe('System-level Contradiction Resolution', () => {
     let system;
+    let warnSpy;
 
     beforeEach(() => {
+        warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {
+        });
+
         const customConfig = {
             reasoner: {
                 strategy: 'BruteForceStrategy'
@@ -28,17 +33,18 @@ describe('System-level Contradiction Resolution', () => {
     });
 
     afterEach(() => {
+        warnSpy.mockRestore();
         if (system) {
             system.stop();
         }
     });
 
     test('should detect and propose a resolution for a direct contradiction', async () => {
-        const task1 = new Task('<a --> b>.', '.', {
+        const task1 = new Task('(a --> b).', '.', {
             confidence: 0.9,
             priority: 0.9
         });
-        const task2 = new Task('<a --> b_neg>.', '.', {
+        const task2 = new Task('(a --> b_neg).', '.', {
             confidence: 0.9,
             priority: 0.9
         });

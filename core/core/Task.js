@@ -1,10 +1,11 @@
-import {generateOptimizedId} from '../utils/idGenerator.js';
+import {generateId} from '../utils/idGenerator.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
 import TruthValueManager from '../reasoner/TruthValueManager.js';
 import * as validation from '../utils/validation.js';
+import {warn} from '../utils/logger.js';
 import BaseEntity from './BaseEntity.js';
-
+import {createSharedInstance} from '../utils/instance-sharing.js';
 
 const {
     DEFAULT_TRUTH_VALUE
@@ -31,7 +32,7 @@ class Task extends BaseEntity {
             termKey
         } = this.#processTerm(term);
 
-        this.#id = generateOptimizedId(`${termKey}${punctuation}`);
+        this.#id = generateId(`${termKey}${punctuation}`);
         this.#term = processedTerm;
         this.#termKey = termKey;
         this.#punctuation = punctuation;
@@ -43,7 +44,7 @@ class Task extends BaseEntity {
         };
     }
 
-    // Getters for private properties
+    // Getters
     get id() {
         return this.#id;
     }
@@ -69,45 +70,92 @@ class Task extends BaseEntity {
     }
 
     static createInner(term, punctuation, truthValue = {}, stamp = {}) {
-        try {
-            // For inner operations, we just return null instead of throwing for invalid inputs
-            validation.validateTerm(term, 'Task term');
-            validation.validatePunctuation(punctuation, 'Task punctuation');
+        const termKey = typeof term === 'string' ? term : term.key;
+        const taskId = generateId(`${termKey}${punctuation}`);
 
-            const processedTerm = typeof term === 'string' ? parseTerm(term) : (term.type ? term : parseTerm(term.key));
-
-            // If we couldn't process the term, return null for inner operations
-            if (!processedTerm) {
-                return null;
-            }
-
-            return new Task(term, punctuation, truthValue, stamp);
-        } catch {
-            return null;
-        }
+        return createSharedInstance(taskId, Task, term, punctuation, truthValue, stamp);
     }
 
+    static fromMacro(macro) {
+        let termKey;
+        let punctuation;
+        let truthValue;
+        let stamp;
+
+        if (macro.term && macro.punctuation) {
+            termKey = macro.term.key;
+            punctuation = macro.punctuation;
+            truthValue = macro.truth;
+            stamp = macro.stamp;
+        } else if (macro.sentence) {
+            const {sentence, truth, stamp: macroStamp} = macro;
+            punctuation = sentence.slice(-1);
+            termKey = sentence.slice(0, -1);
+            truthValue = (truth && truth.length === 2) ?
+                {frequency: truth[0], confidence: truth[1]} :
+                undefined;
+            stamp = macroStamp;
+        } else {
+            warn(`Invalid macro definition: ${JSON.stringify(macro)}`);
+            return null;
+        }
+
+        if (!['.', '?', '!'].includes(punctuation)) {
+            warn(`Invalid or missing punctuation in macro sentence: "${termKey}${punctuation}"`);
+            return null;
+        }
+
+        const parsedTerm = parseTerm(termKey);
+        if (!parsedTerm) {
+            warn(`Failed to parse term from macro: "${termKey}"`);
+            return null;
+        }
+
+        const taskId = generateId(`${termKey}${punctuation}`);
+        return createSharedInstance(taskId, Task, parsedTerm, punctuation, truthValue, stamp);
+    }
+
+
     #processTerm(term) {
-        const termKey = typeof term === 'string' ? term : term.key;
-        const processedTerm = typeof term === 'string' ? parseTerm(term) : (term.type ? term : parseTerm(term.key));
+        let termKey, processedTerm;
+
+        if (typeof term === 'string') {
+            termKey = term;
+            processedTerm = parseTerm(term);
+        } else {
+            termKey = term.key;
+            // Avoid re-parsing if the term already has the required structure
+            processedTerm = term.type ? term : parseTerm(term.key);
+        }
 
         if (!processedTerm) {
             throw new Error(`Failed to parse term: '${termKey}'.`);
         }
 
-        return {processedTerm, termKey};
+        return {
+            processedTerm,
+            termKey
+        };
     }
 
     #normalizeTruthValue(truthValue) {
-        const {frequency, confidence} = truthValue || {};
+        const {
+            frequency,
+            confidence
+        } = truthValue || {};
         if (typeof frequency === 'number' && typeof confidence === 'number') {
             const freq = Math.max(0, Math.min(1, frequency));
             const conf = Math.max(0, Math.min(1, confidence));
             if (!isNaN(freq) && !isNaN(conf)) {
-                return {frequency: freq, confidence: conf};
+                return {
+                    frequency: freq,
+                    confidence: conf
+                };
             }
         }
-        return {...DEFAULT_TRUTH_VALUE};
+        return {
+            ...DEFAULT_TRUTH_VALUE
+        };
     }
 
     #createStamp(stamp) {
@@ -134,8 +182,21 @@ class Task extends BaseEntity {
     }
 
     formatString() {
-        const {frequency, confidence} = this.#state.truthValue;
+        const {
+            frequency,
+            confidence
+        } = this.#state.truthValue;
         return `${this.#termKey}${this.#punctuation} (f: ${frequency.toFixed(3)}, c: ${confidence.toFixed(3)})`;
+    }
+
+    toString() {
+        return this.formatString();
+    }
+
+    toDisplayString() {
+        const truthValue = this.#state.truthValue;
+        const priorityPercent = Math.round(this.#state.priority * 100);
+        return `${this.#termKey}${this.#punctuation} [priority: ${priorityPercent}%, confidence: ${(truthValue.confidence * 100).toFixed(1)}%]`;
     }
 
     getId() {
@@ -145,11 +206,12 @@ class Task extends BaseEntity {
     clone() {
         const clonedTask = new Task(
             this.#term,
-            this.#punctuation,
-            {...this.#state.truthValue},
-            {...this.#state.stamp}
+            this.#punctuation, {
+                ...this.#state.truthValue
+            }, {
+                ...this.#state.stamp
+            }
         );
-        // Preserve the same ID for cloned tasks
         clonedTask.#id = this.#id;
         return clonedTask;
     }

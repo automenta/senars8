@@ -1,7 +1,7 @@
 // Category: Reasoning
 // Description: Demonstrates advanced truth value revision mechanisms.
 
-import {runDemo} from '../../utils/shared/demo-utils.js';
+import {runSystem} from '../../utils/runner.js';
 import {info} from '../../core/utils/logger.js';
 
 async function advancedTruthValueRevisionDemo(options = {}) {
@@ -13,7 +13,7 @@ async function advancedTruthValueRevisionDemo(options = {}) {
         cycleCount: 1,
         postCycleCallback: async (system) => {
             info("Revising truth value of '(bird --> flies)' with new evidence...");
-            const tasks = system.memory.getAllTasks();
+            const tasks = await system.introspection.queryTasks({});
             const taskToRevise = tasks.find(t => t.termKey === '(bird --> flies)');
             if (taskToRevise) {
                 const newEvidence = {
@@ -28,7 +28,7 @@ async function advancedTruthValueRevisionDemo(options = {}) {
     };
 
     const mergedOptions = {...defaultOptions, ...options};
-    return await runDemo('Advanced Truth Value Revision Demo', taskDefs, mergedOptions);
+    return await runSystem('Advanced Truth Value Revision Demo', taskDefs, mergedOptions);
 }
 
 export default advancedTruthValueRevisionDemo;

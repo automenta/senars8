@@ -1,8 +1,12 @@
 // Category: Language Model
 // Description: Demonstrates the system's advanced hypothesis generation capabilities using large language models.
 
-import {runDemo} from '../../utils/shared/demo-utils.js';
+import {runSystem} from '../../utils/runner.js';
 import {info} from '../../core/utils/logger.js';
+import {SystemCommands} from '../../core/system/SystemCommands.js';
+import {createTestSystem} from '../test-helpers.js';
+import Task from '../../core/core/Task.js';
+import Term from '../../core/core/Term.js';
 
 /**
  * A unified demo that demonstrates advanced hypothesis generation capabilities.
@@ -16,24 +20,47 @@ import {info} from '../../core/utils/logger.js';
  */
 async function advancedHypothesisGenerationDemo(options = {}) {
     const taskDefs = [
-        {sentence: '<a --> b>.', truth: [1.0, 0.9]},
-        {sentence: '<b --> c>.', truth: [1.0, 0.9]},
-        {sentence: '<d --> c>.', truth: [1.0, 0.9]},
+        {sentence: '(a --> b).', truth: [1.0, 0.9]},
+        {sentence: '(b --> c).', truth: [1.0, 0.9]},
+        {sentence: '(d --> c).', truth: [1.0, 0.9]},
     ];
+
+    const {system, commandBus} = createTestSystem();
+
+    commandBus.request.mockImplementation(async (command, payload) => {
+        if (command === SystemCommands.LM_GENERATE_HYPOTHESES) {
+            return [new Task(new Term('hypothesis1'), '.', {frequency: 0.6, confidence: 0.6})];
+        }
+        if (command === SystemCommands.LM_EVALUATE_AND_RANK_HYPOTHESES) {
+            return payload.hypotheses.sort((a, b) => b.state.truthValue.confidence - a.state.truthValue.confidence);
+        }
+        if (command === SystemCommands.MEMORY_GET_ALL_TASKS) {
+            return await system.introspection.queryTasks({});
+        }
+        return null;
+    });
+
 
     const defaultOptions = {
         cycleCount: 3,
-        postCycleCallback: async (system) => {
+        postCycleCallback: async (sys) => {
             info("Running hypothesis generation...");
-            const hypotheses = await system.lm.generateHypotheses(system.memory.getAllTasks(), {
-                type: 'creative',
-                num: 5
+            const allTasks = await sys.commandBus.request(SystemCommands.MEMORY_GET_ALL_TASKS);
+            const hypotheses = await sys.commandBus.request(SystemCommands.LM_GENERATE_HYPOTHESES, {
+                tasks: allTasks,
+                options: {
+                    type: 'creative',
+                    num: 5
+                }
             });
 
             info(`Generated ${hypotheses.length} creative hypotheses:`);
 
             info("Evaluating and ranking hypotheses...");
-            const rankedHypotheses = await system.lm.evaluateAndRankHypotheses(system.memory.getAllTasks(), hypotheses);
+            const rankedHypotheses = await sys.commandBus.request(SystemCommands.LM_EVALUATE_AND_RANK_HYPOTHESES, {
+                tasks: allTasks,
+                hypotheses,
+            });
 
             info(`Ranked hypotheses (${rankedHypotheses.length} total):`);
             rankedHypotheses.slice(0, 3).forEach((hypothesis, index) => {
@@ -43,10 +70,10 @@ async function advancedHypothesisGenerationDemo(options = {}) {
     };
 
     // Merge options with defaults
-    const mergedOptions = {...defaultOptions, ...options};
+    const mergedOptions = {...defaultOptions, ...options, system};
 
     // Run the demo using the shared utility
-    return await runDemo('Advanced Hypothesis Generation Demo', taskDefs, mergedOptions);
+    return await runSystem('Advanced Hypothesis Generation Demo', taskDefs, mergedOptions);
 }
 
 export default advancedHypothesisGenerationDemo;

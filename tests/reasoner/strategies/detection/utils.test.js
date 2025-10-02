@@ -1,9 +1,22 @@
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {analyzeNegationConflict, analyzeSetLikeConflict} from '../../../../core/reasoner/strategies/detection/utils.js';
 import Term from '../../../../core/core/Term.js';
 import Task from '../../../../core/core/Task.js';
 import {CONTRADICTION_TYPES} from '../../../../core/reasoner/contradiction-types.js';
+import * as logger from '../../../../core/utils/logger.js';
 
 describe('Detection Strategy Utils', () => {
+    let errorSpy;
+
+    beforeEach(() => {
+        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {
+        });
+    });
+
+    afterEach(() => {
+        errorSpy.mockRestore();
+    });
+
     describe('analyzeNegationConflict', () => {
         it('should detect a conflict between a statement and its negation', () => {
             const term1 = new Term('a --> b');

@@ -173,7 +173,7 @@ const NarseseTaskPanel = () => {
                             type="text"
                             value={newTaskInput}
                             onChange={(e) => setNewTaskInput(e.target.value)}
-                            placeholder="Enter Narsese task (e.g., <cat --> animal>.)"
+                            placeholder="Enter Narsese task (e.g., (cat --> animal).)"
                             className="task-title-input"
                             maxLength={500}
                         />
@@ -273,7 +273,7 @@ const NarseseTaskPanel = () => {
                                                 <div className="meta-row">
                                                     <span className="meta-label">Truth:</span>
                                                     <span className="meta-value">
-                                                        F: {task.truthValue.frequency?.toFixed(3)}, 
+                                                        F: {task.truthValue.frequency?.toFixed(3)},
                                                         C: {task.truthValue.confidence?.toFixed(3)}
                                                     </span>
                                                 </div>

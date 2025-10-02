@@ -8,8 +8,13 @@ const errorHandler = createUnifiedErrorHandler('rule-factories');
 
 const prepareTasks = (tasks, arity) => {
     if (tasks.length !== arity) return null;
-    const parsedTasks = tasks.map(t => parseTerm(t.termKey));
-    if (parsedTasks.some(t => !t)) return null;
+
+    // More efficient approach: avoid creating intermediate arrays when possible
+    const parsedTasks = new Array(arity);
+    for (let i = 0; i < arity; i++) {
+        parsedTasks[i] = parseTerm(tasks[i].termKey);
+        if (!parsedTasks[i]) return null;
+    }
     return parsedTasks;
 };
 

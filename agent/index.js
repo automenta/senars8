@@ -1,13 +1,5 @@
-export {default as Agent} from './Agent.js';
-export {default as MCP} from './MCP.js';
+import Agent from './Agent.js';
+import FileMonitoringConfig from './fileMonitoringConfig.js';
 
-// Re-export core components that the agent uses
-export {
-    Task,
-    Term,
-    parseTerm,
-    createSystem,
-    agentErrorHandler,
-    debug,
-    warn
-} from '@project/core';
+export {Agent, FileMonitoringConfig};
+export default Agent;

@@ -1,7 +1,20 @@
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
+import * as logger from '../../core/utils/logger.js';
 
 describe('Task - Edge Cases', () => {
+    let errorSpy;
+
+    beforeEach(() => {
+        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {
+        });
+    });
+
+    afterEach(() => {
+        errorSpy.mockRestore();
+    });
+
     test('should handle invalid truthValue objects with NaN values', () => {
         const term = new Term('cat');
         const truthValue = {

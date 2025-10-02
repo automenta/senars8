@@ -1,4 +1,4 @@
-import {createContext, useCallback, useContext, useEffect, useState} from 'react';
+import {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import agentService from '@/services/agentService';
 import {MESSAGE_TYPES} from '@/constants/ui';
 
@@ -70,7 +70,7 @@ export const SearchProvider = ({children}) => {
         setIsSearching(false);
     }, []);
 
-    const value = {
+    const value = useMemo(() => ({
         searchTerm,
         setSearchTerm,
         searchResults,
@@ -79,7 +79,7 @@ export const SearchProvider = ({children}) => {
         setSearchScope,
         performSearch,
         clearSearch
-    };
+    }), [searchTerm, searchResults, isSearching, searchScope, performSearch, clearSearch]);
 
     return (
         <SearchContext.Provider value={value}>

@@ -14,18 +14,18 @@ multiple domains and complexity levels.
 
 | Rule Class               | Specific Rule             | Structure                                           | Cognitive Purpose                                                      | Realizable Potential                                             |
 |--------------------------|---------------------------|-----------------------------------------------------|------------------------------------------------------------------------|------------------------------------------------------------------|
-| **Classical Logic**      | **Deduction**             | `<M --> P>, <S --> M> ⊢ <S --> P>`                  | Derive specific conclusions from general principles and specific facts | Enables systematic, reliable derivation of logical consequences  |
-|                          | **Modus Ponens**          | `<P ==> Q>, <P> ⊢ <Q>`                              | Apply conditional statements to specific instances                     | Foundation for conditional reasoning and inference chains        |
-|                          | **Modus Tollens**         | `<P ==> Q>, (--, Q) ⊢ (--, P)`                      | Apply conditional reasoning in reverse                                 | Enables diagnostic reasoning and contradiction detection         |
-| **Inductive Reasoning**  | **Induction**             | `<M --> P>, <M --> S> ⊢ <S --> P>`                  | Generalize from specific observations                                  | Enables learning from examples and pattern recognition           |
-|                          | **Temporal Induction**    | `<M =/> P>, <M =/> S> ⊢ <S =/> P>`                  | Generalize temporal patterns                                           | Enables learning of cause-effect relationships from observations |
-| **Abductive Reasoning**  | **Abduction**             | `<P --> M>, <S --> M> ⊢ <S --> P>`                  | Generate most plausible explanations                                   | Enables diagnostic reasoning and hypothesis formation            |
-|                          | **Causal Abduction**      | `<P =/> M>, <S =/> M> ⊢ <S =/> P>`                  | Infer causes from observed effects                                     | Enables sophisticated diagnostic capabilities                    |
-| **Analogical Reasoning** | **Analogy**               | `<M --> P>, <M <-> S> ⊢ <S --> P>`                  | Transfer knowledge between similar domains                             | Enables transfer learning and cross-domain insight               |
+| **Classical Logic**      | **Deduction**             | `(M --> P), (S --> M) ⊢ (S --> P)`                  | Derive specific conclusions from general principles and specific facts | Enables systematic, reliable derivation of logical consequences  |
+|                          | **Modus Ponens**          | `(P ==> Q), P ⊢ Q`                              | Apply conditional statements to specific instances                     | Foundation for conditional reasoning and inference chains        |
+|                          | **Modus Tollens**         | `(P ==> Q), (--, Q) ⊢ (--, P)`                      | Apply conditional reasoning in reverse                                 | Enables diagnostic reasoning and contradiction detection         |
+| **Inductive Reasoning**  | **Induction**             | `(M --> P), (M --> S) ⊢ (S --> P)`                  | Generalize from specific observations                                  | Enables learning from examples and pattern recognition           |
+|                          | **Temporal Induction**    | `(M =/> P), (M =/> S) ⊢ (S =/> P)`                  | Generalize temporal patterns                                           | Enables learning of cause-effect relationships from observations |
+| **Abductive Reasoning**  | **Abduction**             | `(P --> M), (S --> M) ⊢ (S --> P)`                  | Generate most plausible explanations                                   | Enables diagnostic reasoning and hypothesis formation            |
+|                          | **Causal Abduction**      | `(P =/> M), (S =/> M) ⊢ (S =/> P)`                  | Infer causes from observed effects                                     | Enables sophisticated diagnostic capabilities                    |
+| **Analogical Reasoning** | **Analogy**               | `(M --> P), (M <-> S) ⊢ (S --> P)`                  | Transfer knowledge between similar domains                             | Enables transfer learning and cross-domain insight               |
 |                          | **Structure Mapping**     | Complex structural correspondences                  | Map relationships between different domains                            | Enables creative problem-solving through analogy                 |
 | **Set Operations**       | **Intersection**          | `(&, A, B) --> C`                                   | Combine multiple conditions                                            | Enables complex constraint satisfaction                          |
 |                          | **Union**                 | `(\|, A, B) --> C`                                  | Represent alternative conditions                                       | Enables reasoning about choices and alternatives                 |
-| **Negation Handling**    | **Contraposition**        | `<A --> B> ⊢ <--, B> --> <--, A>`                   | Handle negation relationships                                          | Enables comprehensive logical reasoning                          |
+| **Negation Handling**    | **Contraposition**        | `(A --> B) ⊢ ((--, B) --> (--, A))`                   | Handle negation relationships                                          | Enables comprehensive logical reasoning                          |
 | **Higher-Order**         | **Variable Introduction** | Rules for handling variables in complex expressions | Enable reasoning about classes and relationships                       | Supports abstract reasoning and general principles               |
 
 **Advanced Inference Capabilities:**
@@ -60,16 +60,16 @@ reasoning capabilities.
 
 | Temporal Type                 | Syntax                     | Example                                       | Cognitive Application                                                  |
 |-------------------------------|----------------------------|-----------------------------------------------|------------------------------------------------------------------------|
-| **Predictive Implication**    | `<task1 =/> task2>`        | `(see_lightning =/> hear_thunder)`            | Predictive reasoning about future events based on current observations |
-| **Retrospective Implication** | `<task1 \> task2>`         | `(wet_streets \> rained_last_night)`          | Diagnostic reasoning and cause identification from effects             |
-| **Concurrent Implication**    | `<task1 <> task2>`         | `(lightning <> thunder)`                      | Understanding of simultaneous or nearly simultaneous events            |
-| **Duration Specification**    | `<event [duration]>`       | `(meeting [60_minutes])`                      | Precise representation of event durations and temporal extents         |
-| **Temporal Ordering**         | `<event1 < event2>`        | `(breakfast < lunch)`                         | Representation of sequence relationships and temporal precedence       |
-| **Interval Relationships**    | `<interval1 op interval2>` | `([monday,tuesday] before [friday,saturday])` | Complex relationships between time intervals                           |
-| **Cyclical Patterns**         | `<pattern ~ period>`       | `(tides ~ 12.4_hours)`                        | Representation of periodic and cyclical phenomena                      |
-| **Temporal Constraints**      | `<event @ time>`           | `(appointment @ 3pm)`                         | Representation of specific timing constraints                          |
-| **Duration Relations**        | `<event1 during event2>`   | `(meeting during conference)`                 | Relationships between events with duration                             |
-| **Temporal Quantification**   | `(<n times> event)`        | `(<3 times> weekly)`                          | Quantification over temporal occurrences                               |
+| **Predictive Implication**    | `(task1 =/> task2)`        | `(see_lightning =/> hear_thunder)`            | Predictive reasoning about future events based on current observations |
+| **Retrospective Implication** | `(task1 \\> task2)`         | `(wet_streets \\> rained_last_night)`          | Diagnostic reasoning and cause identification from effects             |
+| **Concurrent Implication**    | `(task1 <=> task2)`         | `(lightning <=> thunder)`                      | Understanding of simultaneous or nearly simultaneous events            |
+| **Duration Specification**    | `(event [duration])`       | `(meeting [60_minutes])`                      | Precise representation of event durations and temporal extents         |
+| **Temporal Ordering**         | `(event1 < event2)`        | `(breakfast < lunch)`                         | Representation of sequence relationships and temporal precedence       |
+| **Interval Relationships**    | `(interval1 op interval2)` | `([monday,tuesday] before [friday,saturday])` | Complex relationships between time intervals                           |
+| **Cyclical Patterns**         | `(pattern ~ period)`       | `(tides ~ 12.4_hours)`                        | Representation of periodic and cyclical phenomena                      |
+| **Temporal Constraints**      | `(event @ time)`           | `(appointment @ 3pm)`                         | Representation of specific timing constraints                          |
+| **Duration Relations**        | `(event1 during event2)`   | `(meeting during conference)`                 | Relationships between events with duration                             |
+| **Temporal Quantification**   | `((n times) event)`        | `((3 times) weekly)`                          | Quantification over temporal occurrences                               |
 
 ### Advanced Temporal Operations
 
@@ -186,11 +186,11 @@ cognitive architectures.
 | Expression Type                | Syntax                       | Example                                        | Advanced Application                       |
 |--------------------------------|------------------------------|------------------------------------------------|--------------------------------------------|
 | **Atomic Terms**               | Simple identifiers           | `cat`                                          | Basic concept representation               |
-| **Inheritance Relations**      | `<subject --> predicate>`    | `(cat --> mammal)`                             | Taxonomic relationships and classification |
-| **Implication Relations**      | `<premise ==> conclusion>`   | `(raining ==> wet_streets)`                    | Conditional relationships and rules        |
-| **Predictive Implications**    | `<premise =/> conclusion>`   | `(low_pressure =/> storm)`                     | Temporal prediction and causation          |
-| **Retrospective Implications** | `<conclusion \> premise>`    | `(storm \> low_pressure>`                      | Diagnostic reasoning and causation         |
-| **Concurrent Relations**       | `<event1 <> event2>`         | `(lightning <> thunder)`                       | Synchronous relationship modeling          |
+| **Inheritance Relations**      | `(subject --> predicate)`    | `(cat --> mammal)`                             | Taxonomic relationships and classification |
+| **Implication Relations**      | `(premise ==> conclusion)`   | `(raining ==> wet_streets)`                    | Conditional relationships and rules        |
+| **Predictive Implications**    | `(premise =/> conclusion)`   | `(low_pressure =/> storm)`                     | Temporal prediction and causation          |
+| **Retrospective Implications** | `(conclusion \\> premise)`    | `(storm \\> low_pressure)`                      | Diagnostic reasoning and causation         |
+| **Concurrent Relations**       | `(event1 <=> event2)`         | `(lightning <=> thunder)`                       | Synchronous relationship modeling          |
 | **Conjunctions**               | `(&, term1, term2, ...)`     | `(&, intelligent, creative, human)`            | Complex condition representation           |
 | **Disjunctions**               | `(\|, term1, term2, ...)`    | `(\|, cat, dog, bird)`                         | Alternative condition representation       |
 | **Negations**                  | `(--, term)`                 | `(--, (cat --> reptile))`                      | Contradiction and negation handling        |
@@ -202,7 +202,7 @@ cognitive architectures.
 | **Intensional Sets**           | `[property1, property2]`     | `[furry, pet, mammal]`                         | Property-based set definition              |
 | **Variable Relations**         | Complex variable expressions | `(X --> Y)`                                    | Abstract reasoning and generalization      |
 | **Higher-Order Relations**     | Relations between relations  | `((A --> B) --> (C --> D))`                    | Meta-level reasoning                       |
-| **Quantified Expressions**     | Various quantifications      | `(<n times> event)`                            | Temporal and numerical quantification      |
+| **Quantified Expressions**     | Various quantifications      | `((n times) event)`                            | Temporal and numerical quantification      |
 | **Nested Expressions**         | Complex hierarchies          | `(cat --> (&, mammal, pet, (furry --> cute)))` | Sophisticated concept representation       |
 
 ### Advanced Narsese Capabilities

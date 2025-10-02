@@ -1,20 +1,22 @@
 import Task from './Task.js';
-import {createTemporalTask} from '../utils/temporal/index.js';
+import {createTemporalTask} from '../utils/temporal.js';
 import {parseTerm} from '../parser/parse-utils.js';
 import config from '../config/index.js';
 import {safeAsync} from '../utils/errorHandler.js';
+import {SystemCommands} from '../system/SystemCommands.js';
 
 class TaskFactory {
-    constructor(memory, lm, eventBus) {
+    constructor(memory, lm, eventBus, commandBus) {
         this.memory = memory;
         this.lm = lm;
         this.eventBus = eventBus;
+        this.commandBus = commandBus;
         this.eventHandlers = this._initializeEventHandlers();
     }
 
     async _ensureTermExists(termKey) {
         if (!this.memory.getTerm(termKey)) {
-            const term = await this.lm.bootstrapTerm(termKey);
+            const term = await this.commandBus.request(SystemCommands.LM_BOOTSTRAP_TERM, {termKey});
             this.eventBus.emit('term.add', term);
         }
     }

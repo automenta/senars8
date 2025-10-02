@@ -1,7 +1,7 @@
 // Category: Action & Planning
 // Description: A comprehensive demonstration of the system's planning and action execution capabilities.
 
-import {runDemo} from '../../utils/shared/demo-utils.js';
+import {runSystem} from '../../utils/runner.js';
 import {info} from '../../core/utils/logger.js';
 
 async function comprehensiveActionDemo(options = {}) {
@@ -21,7 +21,7 @@ async function comprehensiveActionDemo(options = {}) {
         },
     ];
 
-    await runDemo('Simple Action Execution', simpleActionTasks, {
+    await runSystem('Simple Action Execution', simpleActionTasks, {
         cycleCount: 3,
         actionHandlers: simpleActionHandlers,
         ...options
@@ -29,8 +29,8 @@ async function comprehensiveActionDemo(options = {}) {
 
     // 2. Sequential and Parallel Actions
     const complexActionTasks = [
-        {sentence: '(&/, (make --> coffee), (drink --> coffee))!', truth: [1.0, 0.9]},
-        {sentence: '(||, (monitor --> temperature), (monitor --> pressure))!', truth: [1.0, 0.9]},
+        {sentence: '(&&, (make --> coffee), (drink --> coffee))!', truth: [1.0, 0.9]},
+        {sentence: '(|&, (monitor --> temperature), (monitor --> pressure))!', truth: [1.0, 0.9]},
     ];
     const complexActionHandlers = [
         {name: 'make', handler: async (action) => info(`Action: Making ${action.parameters[0]}`)},
@@ -38,7 +38,7 @@ async function comprehensiveActionDemo(options = {}) {
         {name: 'monitor', handler: async (action) => info(`Action: Monitoring ${action.parameters[0]}`)},
     ];
 
-    await runDemo('Complex Action Execution', complexActionTasks, {
+    await runSystem('Complex Action Execution', complexActionTasks, {
         cycleCount: 4,
         actionHandlers: complexActionHandlers,
         ...options
@@ -54,7 +54,7 @@ async function comprehensiveActionDemo(options = {}) {
         {name: 'get_water', handler: async () => info("Action: Getting water.")},
     ];
 
-    return await runDemo('Simple Planning', planningTasks, {
+    return await runSystem('Simple Planning', planningTasks, {
         cycleCount: 8,
         actionHandlers: planningActionHandlers,
         postCycleCallback: (system) => {

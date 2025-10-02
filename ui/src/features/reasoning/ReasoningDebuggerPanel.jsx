@@ -96,16 +96,16 @@ function ReasoningDebuggerPanel() {
     };
 
     const examples = [
-        '<bird --> animal>.',
-        '<robin --> bird>?',
-        '<robin --> animal>.',
-        '(&&, <bird --> animal>, <robin --> bird>)?',
-        '<robin --> flyer>.',
-        '<animal --> living>.',
+        '(bird --> animal).',
+        '(robin --> bird)?',
+        '(robin --> animal).',
+        '(&&, (bird --> animal), (robin --> bird))?',
+        '(robin --> flyer).',
+        '(animal --> living).',
     ];
 
     return (
-        <Panel title={<><Zap size={18}/> Reasoning Debugger</>}>
+        <Panel header={<><Zap size={18}/> Reasoning Debugger</>}>
             <div className="reasoning-debugger-panel">
                 <div className="debug-input-section">
                     <div className="input-group">
@@ -116,14 +116,14 @@ function ReasoningDebuggerPanel() {
                                 type="text"
                                 value={inputStatement}
                                 onChange={(e) => setInputStatement(e.target.value)}
-                                placeholder="Enter Narsese statement (e.g., <bird --> animal>.)"
-                                disabled={isProcessing}
+                                placeholder="Enter Narsese statement (e.g., (bird --> animal).)"
+                                disabled={isDebugProcessing}
                                 className="statement-input"
                             />
                             <div className="input-actions">
                                 <button
                                     onClick={handleExecuteStatement}
-                                    disabled={!isConnected || !inputStatement.trim() || isProcessing}
+                                    disabled={!isConnected || !inputStatement.trim() || isDebugProcessing}
                                     className="execute-btn"
                                     title="Execute statement in agent"
                                 >
@@ -131,7 +131,7 @@ function ReasoningDebuggerPanel() {
                                 </button>
                                 <button
                                     onClick={handleDebugReasoning}
-                                    disabled={!isConnected || !inputStatement.trim() || isProcessing}
+                                    disabled={!isConnected || !inputStatement.trim() || isDebugProcessing}
                                     className="debug-btn"
                                     title="Debug reasoning for this statement"
                                 >

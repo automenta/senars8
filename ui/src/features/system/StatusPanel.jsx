@@ -1,12 +1,10 @@
 import React, {useEffect, useState} from 'react';
-import {Panel, SonificationToggle} from '@ui/components';
+import {Panel, SonificationToggle} from '@/components';
 import {useConnection} from '@/context/useConnection';
 import agentService from '@/services/agentService';
-import agentIntegrationService from '@/services/agentIntegration';
 import notificationService from '@/services/notificationService';
-import log from '@/utils/logger';
+import log from '@core/utils/logger.js';
 import {Activity, BarChart2, Database, RotateCcw, Server, Thermometer, Wifi, WifiOff, Zap} from 'lucide-react';
-import {MESSAGE_TYPES} from '@/constants/ui';
 import './StatusPanel.css';
 
 function StatusPanel() {
@@ -18,219 +16,137 @@ function StatusPanel() {
         temperature: 0,
         beliefs: 0,
         goals: 0,
-        questions: 0
+        questions: 0,
+        isRunning: false,
     });
-    const [connectionStats, setConnectionStats] = useState({
-        totalConnections: 0,
-        totalFailedConnections: 0,
-        totalReconnections: 0,
-        lastConnectionAttempt: null,
-        lastSuccessfulConnection: null,
-        lastDisconnection: null
-    });
+    const [connectionStats, setConnectionStats] = useState(null);
 
     useEffect(() => {
-        // Listen for connection stats updates
         const handleConnectionStats = (stats) => {
             setConnectionStats(stats);
         };
 
-        const handleConnectionStatsError = (error) => {
-            log.error('Error in connection stats:', error);
-            notificationService.addError('Connection Stats Error', 'Error receiving connection statistics');
+        const handleStatsUpdate = (stats) => {
+            setSystemStats(prev => ({...prev, ...stats}));
+        };
+
+        const handleError = (error) => {
+            log.error('StatusPanel error:', error);
+            notificationService.addError('Status Panel Error', 'Error receiving status updates.');
         };
 
         agentService.on('connection_stats', handleConnectionStats);
-        agentService.on('error', handleConnectionStatsError);
-
-        const handleCycleUpdate = (payload) => {
-            try {
-                setSystemStats(prev => ({
-                    ...prev,
-                    cycleCount: payload.cycleCount || prev.cycleCount
-                }));
-            } catch (error) {
-                log.error('Error updating cycle stats:', error);
-                notificationService.addError('System Stats Error', 'Error updating system statistics');
-            }
-        };
-
-        const handleStatsUpdate = (stats) => {
-            try {
-                setSystemStats(prev => ({
-                    ...prev,
-                    ...stats
-                }));
-            } catch (error) {
-                log.error('Error updating system stats:', error);
-                notificationService.addError('System Stats Error', 'Error updating system statistics');
-            }
-        };
-
-        const handleStatsError = (error) => {
-            log.error('Error in system stats:', error);
-            notificationService.addError('System Stats Error', 'Error receiving system statistics');
-        };
-
-        agentService.on('system_cycle', handleCycleUpdate);
         agentService.on('system_stats', handleStatsUpdate);
-        agentService.on('error', handleStatsError);
+        agentService.on('error', handleError);
 
-        const getSystemStats = () => {
-            agentService.sendMessage(MESSAGE_TYPES.SYSTEM_STATS, {}, {expectResponse: true, timeout: 5000});
-        };
+        // Fetch initial stats
+        if (isConnected) {
+            agentService.sendMessage('get_system_stats', {});
+        }
 
-        // Set up periodic updates
+        // Setup periodic updates
         const interval = setInterval(() => {
-            try {
+            if (isConnected) {
                 agentService.sendMessage('get_system_stats', {});
-            } catch (error) {
-                log.error('Failed to request stats update:', error);
             }
         }, 3000); // Update every 3 seconds
 
-        // Set up agent integration updates
-        const agentInterval = setInterval(async () => {
-            try {
-                await agentIntegrationService.initialize();
-                const agentInfo = agentIntegrationService.getAgentInfo();
-                setSystemStats(prev => ({
-                    ...prev,
-                    beliefs: agentInfo.beliefsCount,
-                    goals: agentInfo.goalsCount,
-                    questions: agentInfo.questionsCount,
-                    cycleCount: agentInfo.cycleCount,
-                    isRunning: agentInfo.isActive
-                }));
-            } catch (error) {
-                log.warn('Could not get agent info for status panel:', error);
-            }
-        }, 5000); // Update agent stats every 5 seconds
-
         return () => {
             agentService.off('connection_stats', handleConnectionStats);
-            agentService.off('system_cycle', handleCycleUpdate);
             agentService.off('system_stats', handleStatsUpdate);
-            agentService.off('error', handleConnectionStatsError);
-            agentService.off('error', handleStatsError);
+            agentService.off('error', handleError);
             clearInterval(interval);
-            clearInterval(agentInterval);
         };
-    }, []);
+    }, [isConnected]);
 
     const formatBytes = (bytes) => {
-        if (bytes === 0) return '0 Bytes';
+        if (!bytes || bytes === 0) return '0 Bytes';
         const k = 1024;
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
     };
 
     return (
         <Panel title={<><Server size={18}/> Status</>}>
             <div className="status-panel-content">
-                {/* Connection Status */}
                 <div className={`status-item connection-status ${connectionStatus}`}>
-                    {connectionStatus === 'connected' ? (
+                    {isConnected ? (
                         <><Wifi size={16} color="limegreen"/> Connected</>
-                    ) : connectionStatus === 'connecting' ? (
-                        <><Wifi size={16} color="orange"/> Connecting...</>
-                    ) : connectionStatus === 'failed' ? (
-                        <><WifiOff size={16} color="red"/> Connection Failed</>
                     ) : (
-                        <><WifiOff size={16} color="gray"/> Disconnected</>
+                        <><WifiOff size={16} color="red"/> Disconnected</>
                     )}
                 </div>
 
-                {/* Reconnect Button */}
-                {!isConnected && connectionStatus !== 'disconnected' && (
+                {!isConnected && (
                     <div className="status-item">
-                        <button
-                            onClick={reconnect}
-                            className="reconnect-button-status"
-                            title="Reconnect to agent"
-                        >
+                        <button onClick={reconnect} className="reconnect-button-status" title="Reconnect to agent">
                             <RotateCcw size={16}/> Reconnect
                         </button>
                     </div>
                 )}
 
-                {/* Cycle Counter */}
                 <div className="status-item">
                     <Activity size={16}/>
                     <span>Cycle: {systemStats.cycleCount.toLocaleString()}</span>
                 </div>
 
-                {/* Memory Usage */}
                 <div className="status-item">
                     <Database size={16}/>
                     <span>Memory: {formatBytes(systemStats.memoryUsage)}</span>
                 </div>
 
-                {/* CPU Usage */}
                 <div className="status-item">
                     <Zap size={16}/>
-                    <span>CPU: {systemStats.cpuUsage.toFixed(1)}%</span>
+                    <span>CPU: {systemStats.cpuUsage?.toFixed(1) || 0}%</span>
                 </div>
 
-                {/* Temperature */}
                 <div className="status-item">
                     <Thermometer size={16}/>
-                    <span>Temp: {systemStats.temperature.toFixed(2)}</span>
+                    <span>Temp: {systemStats.temperature?.toFixed(2) || 0}</span>
                 </div>
 
-                {/* Beliefs Count */}
                 <div className="status-item">
                     <Database size={16}/>
-                    <span>Beliefs: {systemStats.beliefs.toLocaleString()}</span>
+                    <span>Beliefs: {systemStats.beliefs?.toLocaleString() || 0}</span>
                 </div>
 
-                {/* Goals Count */}
                 <div className="status-item">
                     <Zap size={16}/>
-                    <span>Goals: {systemStats.goals.toLocaleString()}</span>
+                    <span>Goals: {systemStats.goals?.toLocaleString() || 0}</span>
                 </div>
 
-                {/* Agent Running Status */}
                 <div className={`status-item agent-status ${systemStats.isRunning ? 'running' : 'stopped'}`}>
                     <Activity size={16}/>
                     <span>Agent: {systemStats.isRunning ? 'Running' : 'Stopped'}</span>
                 </div>
 
-                {/* Questions Count */}
                 <div className="status-item">
                     <Zap size={16}/>
                     <span>Questions: {(systemStats.questions || 0).toLocaleString()}</span>
                 </div>
 
-                {/* Agent Integration Status */}
-                <div className="status-item">
-                    <Zap size={16}/>
-                    <span>AI: {agentIntegrationService.getInitializedStatus() ? 'Ready' : 'Initializing'}</span>
-                </div>
-
-                {/* Sonification Toggle */}
                 <div className="status-item sonification-toggle">
                     <SonificationToggle/>
                 </div>
 
-                {/* Connection Statistics */}
-                <div className="status-item">
-                    <BarChart2 size={16}/>
-                    <span>Conn: {connectionStats.totalConnections}</span>
-                </div>
+                {connectionStats && (
+                    <>
+                        <div className="status-item">
+                            <BarChart2 size={16}/>
+                            <span>Conn: {connectionStats.totalConnections}</span>
+                        </div>
+                        <div className="status-item">
+                            <BarChart2 size={16}/>
+                            <span>Reconn: {connectionStats.reconnectAttempts}</span>
+                        </div>
+                        <div className="status-item">
+                            <BarChart2 size={16}/>
+                            <span>Fail: {connectionStats.totalFailedConnections}</span>
+                        </div>
+                    </>
+                )}
 
-                <div className="status-item">
-                    <BarChart2 size={16}/>
-                    <span>Reconn: {connectionStats.totalReconnections}</span>
-                </div>
-
-                <div className="status-item">
-                    <BarChart2 size={16}/>
-                    <span>Fail: {connectionStats.totalFailedConnections}</span>
-                </div>
-
-                {/* Connection Error Display */}
                 {connectionError && (
                     <div className="status-item connection-error">
                         <span

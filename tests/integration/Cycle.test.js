@@ -1,39 +1,65 @@
-import SystemFactory from '../../core/system/SystemFactory.js';
+import {beforeEach, describe, expect, test, vi} from 'vitest';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import CONSTITUTION_TASKS from '../../core/system/Constitution.js';
+import {createTestConfig, setupTestEnvironment} from '../test-helpers.js';
+import {SystemCommands} from '../../core/system/SystemCommands.js';
 
-jest.mock('@xenova/transformers', () => {
-    const transformers = jest.createMockFromModule('@xenova/transformers');
-    transformers.pipeline = jest.fn(async () =>
-        jest.fn(() => ({
+vi.mock('@xenova/transformers', () => ({
+    pipeline: vi.fn(async () =>
+        vi.fn(() => ({
             data: new Float32Array([1, 2, 3])
         }))
-    );
-    return transformers;
-});
+    ),
+    env: {
+        allowLocalModels: false,
+        allowRemoteModels: true,
+    },
+}));
+
+// Local helper to set up command bus mock for system
+const setupCommandBusMock = (commandBus, memory) => {
+    commandBus.request.mockImplementation(async (command, payload) => {
+        if (command === SystemCommands.LM_GENERATE_HYPOTHESES) {
+            return [];
+        }
+        if (command === SystemCommands.LM_EVALUATE_AND_RANK_HYPOTHESES) {
+            return payload.hypotheses;
+        }
+        if (command === SystemCommands.LM_BOOTSTRAP_TERM) {
+            return new Term(payload.termKey, [], 1);
+        }
+        if (command === SystemCommands.LM_ENRICH_TERM) {
+            return [];
+        }
+        if (command === SystemCommands.MEMORY_GET_ALL_TASKS) {
+            return await memory.getAllTasks(); // Use public API
+        }
+        if (command === SystemCommands.MEMORY_GET_TERM) {
+            return memory.getTerm(payload); // Use public API
+        }
+        // Let other commands pass through or return null
+        return null;
+    });
+};
 
 describe('Cycle Integration Test', () => {
-    let system, memory, cycle;
+    let system, memory, cycle, commandBus;
 
     beforeEach(() => {
-        system = SystemFactory.createSystem({
-            reasoner: {
-                strategy: 'BruteForce'
-            },
+        const config = createTestConfig({
             planner: {
                 strategy: 'HTN'
             }
         });
-        memory = system.memory;
+        const testEnv = setupTestEnvironment(config);
+        system = testEnv.system;
+        memory = testEnv.container.get('memory'); // Get memory from container
         cycle = system.cycle;
-        const lm = system.lm;
+        commandBus = testEnv.commandBus;
 
-        // Mock LM methods
-        jest.spyOn(lm, 'generateHypotheses').mockResolvedValue([]);
-        jest.spyOn(lm, 'evaluateAndRankHypotheses').mockImplementation(async (_, hypotheses) => hypotheses);
-        jest.spyOn(lm, 'bootstrapTerm').mockImplementation(async termKey => new Term(termKey, [], 1));
-        jest.spyOn(lm, 'proactiveEnrichment').mockResolvedValue([]);
+        // Mock commandBus requests for LM commands
+        setupCommandBusMock(commandBus, memory);
     });
 
     test('should run a cycle without errors', async () => {
@@ -55,7 +81,7 @@ describe('Cycle Integration Test', () => {
         await cycle.bootstrap(CONSTITUTION_TASKS);
         await cycle.runOnce();
 
-        const tasks = memory.getAllTasks();
+        const tasks = await memory.getAllTasks(); // Use public API
         const acquireKnowledgeTask = tasks.find(t => t.termKey === 'AcquireKnowledge');
         const catTask = tasks.find(t => t.termKey === 'cat');
 

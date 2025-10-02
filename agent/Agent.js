@@ -1,17 +1,11 @@
-import {agentErrorHandler as errorHandler, createSystem, debug, parseTerm, Task, warn} from '@project/core';
+import {agentErrorHandler as errorHandler, createSystem} from '../core/index.js';
+import {parseTerm} from '../core/parser/parse-utils.js';
+import Task from '../core/core/Task.js';
+import logger from '../core/utils/logger.js';
 import MCP from './MCP.js';
+import {parseTermToAction} from './utils/index.js';
 
-const termToActionParsers = {
-    Atomic: (term) => ({tool: term.key, parameters: []}),
-    SequentialConjunction: (term) => {
-        const [nameTerm, ...paramTerms] = term.terms;
-        return nameTerm ? {
-            tool: nameTerm.key,
-            parameters: paramTerms.map(t => t.key.replace(/"/g, ''))
-        } : null;
-    },
-    Conjunction: (term) => termToActionParsers.SequentialConjunction(term),
-};
+const agentLogger = logger.create('Agent');
 
 class Agent {
     constructor(config = {}) {
@@ -30,24 +24,19 @@ class Agent {
 
             // Set up event listeners for real-time UI updates
             if (this.system.eventBus) {
-                this.system.eventBus.on('add_task', (task) => {
-                    this.mcp.log({type: 'task_added', content: task, timestamp: new Date().toISOString()});
-                });
-
-                this.system.eventBus.on('add_belief', (task) => {
-                    this.mcp.log({type: 'belief_added', content: task, timestamp: new Date().toISOString()});
-                });
-
-                this.system.eventBus.on('add_goal', (task) => {
-                    this.mcp.log({type: 'goal_added', content: task, timestamp: new Date().toISOString()});
-                });
-
-                this.system.eventBus.on('add_question', (task) => {
-                    this.mcp.log({type: 'question_added', content: task, timestamp: new Date().toISOString()});
-                });
+                const eventTypes = ['task', 'belief', 'goal', 'question'];
+                for (const eventType of eventTypes) {
+                    this.system.eventBus.on(`add_${eventType}`, (task) => {
+                        this.mcp.log({
+                            type: `${eventType}_added`,
+                            content: task,
+                            timestamp: new Date().toISOString()
+                        });
+                    });
+                }
             }
 
-            debug('Agent initialized successfully.');
+            agentLogger.debug('Agent initialized successfully.');
         }, 'initialize');
     }
 
@@ -58,21 +47,21 @@ class Agent {
         }
         this.tools[tool.name] = tool;
         this.system.actionExecutor.registerActionHandler(tool.name, tool.handler);
-        debug(`Tool registered: ${tool.name}`);
+        agentLogger.debug(`Tool registered: ${tool.name}`);
     }
 
     async decideNextAction(goalString) {
         if (!this.isInitialized) throw new Error('Agent not initialized.');
-        debug('Deciding next action for goal:', goalString);
+        agentLogger.debug('Deciding next action for goal:', goalString);
 
         const plan = await this.createPlan(goalString);
         if (!plan?.steps.length) {
-            debug('No actionable plan found.');
+            agentLogger.debug('No actionable plan found.');
             return null;
         }
 
         const action = this._parseTermToAction(plan.steps[0]);
-        debug('Next action determined:', action);
+        agentLogger.debug('Next action determined:', action);
         return action;
     }
 
@@ -80,32 +69,27 @@ class Agent {
         const tool = this.tools[action.tool];
         if (!tool) throw new Error(`Tool not found: ${action.tool}`);
 
-        const {handler, parameters: toolParamsDef} = tool;
-        const paramNames = Object.keys(toolParamsDef?.properties || {});
-        const params = Object.fromEntries(
-            paramNames.map((paramName, i) => [paramName, action.parameters[i]])
-        );
+        const params = this._buildToolParameters(tool, action.parameters);
+        return tool.handler(params);
+    }
 
-        return handler(params);
+    _buildToolParameters(tool, actionParams) {
+        const toolParamsDef = tool.parameters;
+        const paramNames = Object.keys(toolParamsDef?.properties || {});
+        return Object.fromEntries(
+            paramNames.map((paramName, i) => [paramName, actionParams[i]])
+        );
     }
 
     _parseTermToAction(term) {
-        if (!term) return null;
-
-        const parser = termToActionParsers[term.type];
-        if (parser) {
-            return parser(term);
-        }
-
-        warn(`Cannot parse term of type '${term.type}' to an action:`, term);
-        return null;
+        return parseTermToAction(term, agentLogger);
     }
 
     async createPlan(goalString) {
         return errorHandler.execute(async () => {
             const goalTerm = parseTerm(goalString);
             if (!goalTerm) {
-                warn(`Could not parse goal string: ${goalString}`);
+                agentLogger.warn(`Could not parse goal string: ${goalString}`);
                 return null;
             }
 
@@ -113,7 +97,7 @@ class Agent {
             const plan = await this.system.reasoner.planner.createPlan(goalTask);
 
             if (!plan || plan.steps.length === 0) {
-                warn(`No plan could be created for goal: ${goalString}`);
+                agentLogger.warn(`No plan could be created for goal: ${goalString}`);
                 return null;
             }
             return plan;
@@ -126,7 +110,7 @@ class Agent {
         }
         this.system?.start?.();
         if (!this.system?.start) {
-            debug('System does not have a start method.');
+            agentLogger.debug('System does not have a start method.');
         }
     }
 
@@ -134,9 +118,11 @@ class Agent {
         if (!this.isInitialized) {
             throw new Error('Agent must be initialized before stopping.');
         }
+
+        // Then stop the main system
         this.system?.stop?.();
         if (!this.system?.stop) {
-            debug('System does not have a stop method.');
+            agentLogger.debug('System does not have a stop method.');
         }
     }
 
@@ -145,40 +131,26 @@ class Agent {
         await this.initialize();
     }
 
-    // Methods to access agent's memory and tasks for UI integration
-    getBeliefs() {
-        if (!this.isInitialized || !this.system || !this.system.memory) {
-            return [];
+    /**
+     * Get the current state of the agent's memory for UI integration.
+     * This provides a single, efficient entry point for accessing agent state.
+     * @returns {Object} An object containing tasks, beliefs, goals, and questions.
+     */
+    getAgentState() {
+        if (!this.isInitialized || !this.system?.memory) {
+            agentLogger.debug('Cannot access agent state: Agent not initialized or no system memory.');
+            return {tasks: [], beliefs: [], goals: [], questions: []};
         }
-        return this.system.memory.getBeliefs() || [];
-    }
 
-    getGoals() {
-        if (!this.isInitialized || !this.system || !this.system.memory) {
-            return [];
-        }
-        return this.system.memory.getGoals() || [];
-    }
-
-    getQuestions() {
-        if (!this.isInitialized || !this.system || !this.system.memory) {
-            return [];
-        }
-        return this.system.memory.getQuestions() || [];
-    }
-
-    getAllTasks() {
-        if (!this.isInitialized || !this.system || !this.system.memory) {
-            return [];
-        }
-        return this.system.memory.getAllTasks() || [];
-    }
-
-    getRecentTasks(count = 10) {
-        if (!this.isInitialized || !this.system || !this.system.memory) {
-            return [];
-        }
-        return this.system.memory.getRecentTasks(count) || [];
+        return errorHandler.runSync(() => {
+            const memory = this.system.memory;
+            return {
+                tasks: memory.getAllTasks?.() || [],
+                beliefs: memory.getBeliefs?.() || [],
+                goals: memory.getGoals?.() || [],
+                questions: memory.getQuestions?.() || [],
+            };
+        }, 'getAgentState', {defaultValue: {tasks: [], beliefs: [], goals: [], questions: []}});
     }
 }
 

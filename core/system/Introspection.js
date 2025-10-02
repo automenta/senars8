@@ -1,5 +1,4 @@
-import EventBus from './EventBus.js';
-import {safeSync} from '../utils/errorHandler.js';
+import {safeAsync, safeSync} from '../utils/errorHandler.js';
 
 class Introspection {
     constructor(system) {
@@ -8,15 +7,16 @@ class Introspection {
         this.reasoner = system.reasoner;
         this.planner = system.planner;
         this.metaCognition = system.metaCognition;
+        this.eventBus = system.eventBus;
         // Use the config accessor if available, otherwise fall back to configManager
         this.configAccessor = system.config || {getAll: () => system.configManager?.getAll() || {}};
     }
 
-    getStatus() {
-        return safeSync(() => ({
+    async getStatus() {
+        return safeAsync(async () => ({
             isRunning: this.system.isRunning,
             cycleCount: this.system.cycleCount,
-            memory: this.memory.getStatistics(),
+            memory: await this.memory.getStatistics(),
             rules: this.reasoner.getRuleNames().length,
             actionHistory: this.system.actionExecutor.getActionHistory().length,
         }), 'getStatus', {});
@@ -72,11 +72,11 @@ class Introspection {
     }
 
     on(eventName, callback) {
-        EventBus.on(eventName, callback);
+        this.eventBus.on(eventName, callback);
     }
 
     off(eventName, callback) {
-        EventBus.off(eventName, callback);
+        this.eventBus.off(eventName, callback);
     }
 }
 

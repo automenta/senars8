@@ -1,7 +1,8 @@
 // Category: Core Reasoning
 // Description: A basic demonstration of the system's core reasoning capabilities, including deduction and inheritance.
 
-import {runDemo} from '../../utils/shared/demo-utils.js';
+import {runSystem} from '../../utils/runner.js';
+import {info} from '../../core/utils/logger.js';
 
 /**
  * A unified demo that demonstrates basic reasoning capabilities.
@@ -24,12 +25,12 @@ async function basicDemo(options = {}) {
     const defaultOptions = {
         cycleCount: 5,
         postCycleCallback: async (system) => {
-            console.log("\nQuerying for inferred knowledge...");
+            info("\nQuerying for inferred knowledge...");
             const inferred = system.introspection.queryTasks({term: 'living', punctuation: '.'});
             if (inferred.length > 0) {
-                console.log("Inferred that 'bird' is 'living'.");
+                info("Inferred that 'bird' is 'living'.");
             } else {
-                console.log("Inference not yet made.");
+                info("Inference not yet made.");
             }
         }
     };
@@ -38,7 +39,7 @@ async function basicDemo(options = {}) {
     const mergedOptions = {...defaultOptions, ...options};
 
     // Run the demo using the shared utility
-    return await runDemo('Basic Demo', taskDefs, mergedOptions);
+    return await runSystem('Basic Demo', taskDefs, mergedOptions);
 }
 
 export default basicDemo;

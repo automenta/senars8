@@ -26,6 +26,7 @@ const PUNCTUATION = {
     disjunction: '||',
     intensionalDifference: '\\',
     product: '*',
+
     equivalence: '<=>',
     similarity: '<->',
     retrospection: '=/>',

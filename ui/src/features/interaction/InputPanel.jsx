@@ -5,6 +5,8 @@ import notificationService from '@/services/notificationService';
 import sonificationService from '@/services/sonificationService';
 import {useUIErrorHandler} from '@/services/uiErrorHandler';
 import {useConnection} from '@/context/useConnection';
+import {useSettings} from '@/context/useSettings';
+import useInputHistory from '@/hooks/useInputHistory';
 import {validateNarseseStatement} from '@/utils/coreIntegration';
 import {AlertCircle, HelpCircle, Lightbulb, MessageCircle, Wifi, WifiOff} from 'lucide-react';
 import './InputPanel.css';
@@ -33,13 +35,13 @@ function InputPanel() {
 
 // Example Narsese statements for quick access
     const NARSESE_EXAMPLES = [
-        '<robin --> bird>.',
-        '<bird --> animal>.',
-        '(&&, <robin --> bird>, <robin --> animal>)?',
-        '<(*, TOM, book) --> own>.',
-        '<(*, book, interesting) --> property>.',
-        '<<$x --> bird> ==> <$x --> animal>>?',
-        '<bird <-> animal>?',
+        '(robin --> bird).',
+        '(bird --> animal).',
+        '(&&, (robin --> bird), (robin --> animal))?',
+        '((* , TOM, book) --> own).',
+        '((* , book, interesting) --> property).',
+        '(($x --> bird) ==> ($x --> animal))?',
+        '(bird <-> animal)?',
     ];
 
     // Enhanced Narsese input validation and sanitization using core integration
@@ -120,30 +122,26 @@ function InputPanel() {
         const trimmedInput = input.trim();
 
         try {
-            // Determine if input is Narsese based on syntax
-            const isNarsese = trimmedInput.includes('<') && trimmedInput.includes('>') ||
-                trimmedInput.endsWith('.') ||
-                trimmedInput.endsWith('!') ||
-                trimmedInput.endsWith('?');
+            setIsSending(true);
 
-            // Validate Narsese input if it appears to be Narsese
-            if (isNarsese) {
+            if (inputMode === 'narsese') {
                 const validation = validateNarseseStatement(trimmedInput);
                 if (!validation.valid) {
                     notificationService.addWarning('Invalid Narsese', validation.error);
                     setValidationError(validation.error);
+                    setIsSending(false);
                     return;
                 }
-                setValidationError(''); // Clear any previous validation errors
+                setValidationError('');
+                agentService.sendNarsese(trimmedInput);
+                notificationService.addSuccess('Narsese Sent', `Statement: ${trimmedInput}`, 3000);
+            } else {
+                agentService.sendNaturalLanguage(trimmedInput);
+                notificationService.addInfo('NL Sent', `Input: ${trimmedInput}`, 3000);
             }
 
-            // Add to input history
             addToHistory(trimmedInput);
 
-            // Show visual feedback
-            setIsSending(true);
-
-            // Play sonification if enabled
             if (isSonificationEnabled) {
                 try {
                     sonificationService.play('send');
@@ -152,16 +150,6 @@ function InputPanel() {
                 }
             }
 
-            // Send message based on type
-            if (isNarsese) {
-                agentService.sendNarsese(trimmedInput);
-                notificationService.addSuccess('Narsese Sent', `Statement: ${trimmedInput}`, 3000);
-            } else {
-                agentService.sendNaturalLanguage(trimmedInput);
-                notificationService.addInfo('NL Sent', `Input: ${trimmedInput}`, 3000);
-            }
-
-            // Clear input
             setInputValue('');
         } catch (error) {
             handleError(error, {
@@ -170,10 +158,9 @@ function InputPanel() {
             });
             notificationService.addError('Send Error', 'Failed to send message to agent');
         } finally {
-            // Clear sending state after a delay
             setTimeout(() => setIsSending(false), 1000);
         }
-    }, [addToHistory, isSonificationEnabled, handleError, validateNarseseStatement]);
+    }, [inputMode, addToHistory, isSonificationEnabled, handleError, setInputValue, validateNarseseStatement]);
 
     // Generate suggested responses based on user input and intent
     const generateSuggestedResponses = useCallback((input, intent) => {
@@ -268,10 +255,10 @@ function InputPanel() {
                         <h4>Narsese Syntax Guide</h4>
                         <p>Narsese is the formal language for the NARS system. Here are some basic examples:</p>
                         <ul>
-                            <li><code>&lt;bird --&gt; animal&gt;.</code> - A bird is an animal (inheritance relation)
+                            <li><code>(bird --&gt; animal).</code> - A bird is an animal (inheritance relation)
                             </li>
-                            <li><code>&lt;robin --&gt; bird&gt;?</code> - Is a robin a bird? (question)</li>
-                            <li><code>(&&, &lt;robin --&gt; bird&gt;, &lt;bird --&gt; animal&gt;)</code> - Logical
+                            <li><code>(robin --&gt; bird)?</code> - Is a robin a bird? (question)</li>
+                            <li><code>(&&, (robin --&gt; bird), (bird --&gt; animal))</code> - Logical
                                 conjunction
                             </li>
                         </ul>

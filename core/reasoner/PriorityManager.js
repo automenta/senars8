@@ -12,8 +12,16 @@ class PriorityManager {
         const term = this.memory.getTerm(task.termKey);
         if (!term?.embedding?.length) return 0;
 
-        const maxSimilarity = driveEmbeddings.reduce((max, driveEmbedding) =>
-            Math.max(max, cosineSimilarity(term.embedding, driveEmbedding)), 0);
+        // Optimize the similarity calculation with early termination
+        let maxSimilarity = 0;
+        for (let i = 0; i < driveEmbeddings.length; i++) {
+            const similarity = cosineSimilarity(term.embedding, driveEmbeddings[i]);
+            if (similarity > maxSimilarity) {
+                maxSimilarity = similarity;
+                // Early termination optimization if we reach maximum possible similarity
+                if (similarity >= 0.999) break;
+            }
+        }
 
         const config = this.config.getAll();
         const I = (maxSimilarity + config.SIMILARITY_OFFSET) / config.SIMILARITY_SCALE;

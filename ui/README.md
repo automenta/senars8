@@ -1,6 +1,6 @@
 # SeNARS IDE UI
 
-This is the UI component of the SeNARS (Self-Evolving Neuromorphic-Adaptive Reasoning System) IDE, built with React and
+This is the UI component of the SeNARS IDE, built with React and
 Vite.
 The IDE provides a comprehensive interface for interacting with NARS agents, visualizing knowledge graphs, memory,
 reasoning traces,
@@ -61,6 +61,7 @@ npm run dev
 ## Integration with Core Components
 
 The Web UI connects to the agent service and integrates with:
+
 - Core reasoning engine through the agent service
 - Memory systems for task management
 - Event system for real-time updates

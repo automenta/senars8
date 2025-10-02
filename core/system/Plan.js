@@ -1,4 +1,4 @@
-import {generatePlanId} from '../utils/idGenerator.js';
+import {generateId} from '../utils/idGenerator.js';
 import Action from '../core/Action.js';
 
 class Plan {
@@ -6,7 +6,7 @@ class Plan {
         if (!steps || !actionExecutor) {
             throw new Error('Plan requires steps and an actionExecutor instance.');
         }
-        this.id = generatePlanId(goalKey);
+        this.id = generateId(`plan-${goalKey}`);
         this.steps = steps;
         this.actionExecutor = actionExecutor;
     }

@@ -13,10 +13,9 @@ import ProactiveEnricher from './ProactiveEnricher.js';
 import NLP from './NLP.js';
 import {debug, info, warn} from '../utils/logger.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
-import {suppressOnnxWarnings} from '../utils/onnxSuppression.js';
 import {configService} from '../config/index.js';
-
-suppressOnnxWarnings();
+import {SystemCommands} from '../system/SystemCommands.js';
+import {SystemEvents} from '../system/SystemEvents.js';
 
 const errorHandler = createUnifiedErrorHandler('LM');
 
@@ -27,8 +26,10 @@ const PIPELINE_TYPES = {
 };
 
 class LM {
-    constructor(_configManager) {
+    constructor(_configManager, commandBus, eventBus) {
         this.config = configService;
+        this.commandBus = commandBus;
+        this.eventBus = eventBus;
         this._pipelineFactory = PipelineFactory;
         this._llm = null;
         this._reasoner = null;
@@ -46,6 +47,21 @@ class LM {
         this._activeEmbeddingJobs = 0;
 
         info('LM initialized');
+
+        // Register command handlers
+        this.commandBus.handle(SystemCommands.LM_BOOTSTRAP_TERM, ({
+                                                                      termKey,
+                                                                      options
+                                                                  }) => this.bootstrapTerm(termKey, options));
+        this.commandBus.handle(SystemCommands.LM_ENRICH_TERM, (task) => this.proactiveEnrichment([task]));
+        this.commandBus.handle(SystemCommands.LM_NLP_PARSE, (payload) => this.nlp.parse(payload));
+        this.commandBus.handle(SystemCommands.LM_GENERATE_HYPOTHESES, (payload) => this.generateHypotheses(payload.tasks, payload.options));
+        this.commandBus.handle(SystemCommands.LM_EXPLAIN, (payload) => this.explain(payload.termKey, payload.options));
+        this.commandBus.handle(SystemCommands.LM_EVALUATE_AND_RANK_HYPOTHESES, (payload) => this.evaluateAndRankHypotheses(payload.tasks, payload.hypotheses));
+
+        // Register event listeners
+        this.eventBus.on(SystemEvents.SYSTEM_START, () => this.startEmbeddingProcessor());
+        this.eventBus.on(SystemEvents.SYSTEM_STOP, () => this.stopEmbeddingProcessor());
     }
 
     startEmbeddingProcessor() {
@@ -68,23 +84,27 @@ class LM {
 
         while (this._isProcessingEmbeddings) {
             // Process multiple batches concurrently
-            const promises = [];
-            for (let i = 0; i < this._maxConcurrency && this._embeddingQueue.length > 0; i++) {
-                const batch = this._embeddingQueue.splice(0, batchSize);
-                if (batch.length > 0) {
-                    promises.push(this._processEmbeddingBatch(batch));
-                }
-            }
-
-            if (promises.length > 0) {
-                await Promise.all(promises);
-            }
+            await this._processConcurrentBatches(batchSize);
 
             // Adjust delay based on queue size
             const delay = this._calculateDynamicDelay();
             await new Promise(resolve => setTimeout(resolve, delay));
         }
         debug('Embedding processing loop finished.');
+    }
+
+    async _processConcurrentBatches(batchSize) {
+        const promises = [];
+        for (let i = 0; i < this._maxConcurrency && this._embeddingQueue.length > 0; i++) {
+            const batch = this._embeddingQueue.splice(0, batchSize);
+            if (batch.length > 0) {
+                promises.push(this._processEmbeddingBatch(batch));
+            }
+        }
+
+        if (promises.length > 0) {
+            await Promise.all(promises);
+        }
     }
 
     setReasoner(reasoner) {
@@ -216,7 +236,7 @@ class LM {
         if (!termKey) throw new Error('termKey must be a non-empty string.');
 
         const complexity = termKey.split(/[(&,)/]/).filter(Boolean).length;
-        const term = new Term(termKey, [], complexity);
+        const term = new Term(termKey, null, complexity); // Pass null instead of creating a new empty array
 
         if (options.sync) {
             debug(`Bootstrapping term synchronously: ${termKey}`);
@@ -269,8 +289,10 @@ class LM {
     _calculateDynamicDelay() {
         // Reduce delay when queue is large, increase when small
         const baseDelay = this.config.getNumber('LM.EMBEDDING_BATCH_DELAY_MS', 100);
+        const minDelay = Math.max(10, baseDelay * 0.1); // Ensure minimum delay to prevent high CPU usage
         const queueFactor = Math.max(0.1, Math.min(1, this._embeddingQueue.length / 100));
-        return baseDelay * (1 - queueFactor * 0.9);
+        const calculatedDelay = baseDelay * (1 - queueFactor * 0.9);
+        return Math.max(minDelay, calculatedDelay); // Ensure delay doesn't go too low
     }
 
     async dispose() {
@@ -282,6 +304,7 @@ class LM {
         this._llm = null;
         this._reasoner = null;
         this._memory = null;
+        this._embeddingQueue = []; // Clear the queue to release references
         info('LM resources disposed');
     }
 }

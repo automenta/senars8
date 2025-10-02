@@ -8,13 +8,7 @@ import {
     safeGet,
     sumBy
 } from './collections/index.js';
-import {
-    generateActionId,
-    generateHashId,
-    generateOptimizedId,
-    generatePlanId,
-    generateSequentialId
-} from './idGenerator.js';
+import {generateId} from './idGenerator.js';
 import {
     getBeliefTasks,
     getGoalTasks,
@@ -31,7 +25,7 @@ import {debug, error, info, warn} from './logger.js';
 import Validator from './Validator.js';
 import EventBus from '../system/EventBus.js';
 import * as validation from './validation.js';
-import * as errorHandling from './errorHandling.js';
+import {createSharedInstance} from './instance-sharing.js';
 
 // Re-export commonly used utilities
 export {
@@ -49,11 +43,7 @@ export {
     safeGet,
 
     // ID generation utilities
-    generateSequentialId,
-    generateHashId,
-    generateOptimizedId,
-    generateActionId,
-    generatePlanId,
+    generateId,
 
     // Task utilities
     isBelief,
@@ -85,6 +75,8 @@ export {
     // Event system
     EventBus,
 
+    // Instance sharing utilities
+    createSharedInstance,
+
     // Error handling utilities
-    errorHandling
 };

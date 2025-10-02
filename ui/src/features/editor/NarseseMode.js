@@ -67,13 +67,13 @@ ace.define('ace/mode/narsese', ['require', 'exports', 'module', 'ace/lib/oop', '
         // Add specific Narsese patterns
         this.addRules({
             start: [{
-                // Narsese statement patterns: <subject --> predicate>.
+                // Narsese statement patterns: (subject --> predicate).
                 token: 'narsese.statement',
-                regex: '<[^>]*--[^>]*>\\s*[\\?\\.]'
+                regex: '\\([^)]*--[^)]*\\)\\s*[\\?\\.]'
             }, {
-                // Narsese statement patterns: <subject <-> predicate>.
+                // Narsese statement patterns: (subject <-> predicate).
                 token: 'narsese.statement',
-                regex: '<[^>]*<->[^>]*>\\s*[\\?\\.]'
+                regex: '\\([^)]*<->[^)]*\\)\\s*[\\?\\.]'
             }, {
                 // Narsese statement patterns with connectors: (&&, ||, etc.)
                 token: 'narsese.connector',

@@ -21,12 +21,38 @@ function parseTermInner(termKey) {
 const MALFORMED_PATTERNS = [
     /\(\s*-->\s*\)/, /\(\s*==>\s*\)/, /\(\s*<->\s*\)/, /\(\s*<=>\s*\)/,
     /\(\s*{\s*--\s*\)/, /\(\s*--\s*}\s*\)/, /\(\s*=\\>\s*\)/, /\(\s*=\/>\s*\)/,
-    /\(\s*=<>\s*\)/, /\(--,\s*\)/, /\(\)/, /\(,\)/, /, \)/
+    /\(\s*=<>\s*\)/, /\(--,\s*\)/, /\(,\)/, /, \)/,
+    /\(\s*\^\s*\,\s*\)/  // Empty operation: (^,) or (^ ,)
 ].map(r => r.source).join('|');
 const MALFORMED_REGEX = new RegExp(MALFORMED_PATTERNS);
 
 function validateTermKey(termKey) {
-    return !termKey || typeof termKey !== 'string' || !termKey.length ? false : !(termKey.includes("(") && MALFORMED_REGEX.test(termKey));
+    if (!termKey || typeof termKey !== 'string' || !termKey.length) return false;
+
+    // Check for malformed patterns
+    if (termKey.includes("(") && MALFORMED_REGEX.test(termKey)) {
+        return false;
+    }
+
+    // Check for potential DoS with too many nested parentheses
+    let parenDepth = 0;
+    let maxDepth = 0;
+    for (let char of termKey) {
+        if (char === '(') {
+            parenDepth++;
+            maxDepth = Math.max(maxDepth, parenDepth);
+        } else if (char === ')') {
+            parenDepth--;
+            if (parenDepth < 0) return false; // Unbalanced parentheses
+        }
+    }
+    if (maxDepth > 50) return false; // Prevent extremely deep nesting
+
+    // Check for potential DoS with repeated operators
+    const operationMatches = termKey.match(/\^/g);
+    if (operationMatches && operationMatches.length > 100) return false; // Too many operations
+
+    return true;
 }
 
 function validateTermKeyInner(termKey) {
