@@ -139,23 +139,23 @@ export const createScenario = (name, config) => {
  */
 export const TEST_SCENARIOS = {
     BASIC_TASK: () => ({
-        task: createTaskDef('<cat --> animal>', '.', [0.8, 0.9])
+        task: createTaskDef('(cat --> animal)', '.', [0.8, 0.9])
     }),
 
     INHERITANCE_TASK: () => ({
-        subjectTask: createTaskDef('<cat --> animal>', '.', [0.8, 0.9]),
-        predicateTask: createTaskDef('<dog --> animal>', '.', [0.7, 0.85])
+        subjectTask: createTaskDef('(cat --> animal)', '.', [0.8, 0.9]),
+        predicateTask: createTaskDef('(dog --> animal)', '.', [0.7, 0.85])
     }),
 
     DEDUCTION: () => ({
-        premise1: createTaskDef('<bird --> animal>', '.', [0.9, 0.8]),
-        premise2: createTaskDef('<animal --> living_thing>', '.', [0.95, 0.85]),
-        expected: createTaskDef('<bird --> living_thing>', '.', [0.85, 0.72])
+        premise1: createTaskDef('(bird --> animal)', '.', [0.9, 0.8]),
+        premise2: createTaskDef('(animal --> living_thing)', '.', [0.95, 0.85]),
+        expected: createTaskDef('(bird --> living_thing)', '.', [0.85, 0.72])
     }),
 
     TEMPORAL_SEQUENCE: () => ({
-        first: createTaskDef('<A --> state>', '.', [1.0, 0.9]),
-        second: createTaskDef('<B --> state>', '.', [1.0, 0.9]),
+        first: createTaskDef('(A --> state)', '.', [1.0, 0.9]),
+        second: createTaskDef('(B --> state)', '.', [1.0, 0.9]),
         temporalRelation: '&/ A B'  // Sequential relation
     })
 };

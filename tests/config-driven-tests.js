@@ -163,12 +163,12 @@ export const DATA_DRIVEN_TESTS = {
     TASK_PROCESSING: [
         {
             name: 'basic task processing',
-            input: {sentence: '<cat --> animal>', punctuation: '.', truth: [0.8, 0.9]},
+            input: {sentence: '(cat --> animal)', punctuation: '.', truth: [0.8, 0.9]},
             expected: {success: true, resultType: 'processed'}
         },
         {
             name: 'complex inheritance task',
-            input: {sentence: '(<cat --> animal> && <animal --> living>)', punctuation: '.', truth: [0.7, 0.85]},
+            input: {sentence: '((cat --> animal) && (animal --> living))', punctuation: '.', truth: [0.7, 0.85]},
             expected: {success: true, resultType: 'inference'}
         },
         {
@@ -182,26 +182,26 @@ export const DATA_DRIVEN_TESTS = {
         {
             name: 'deduction',
             premises: [
-                {sentence: '<bird --> animal>', truth: [0.9, 0.8]},
-                {sentence: '<animal --> living_thing>', truth: [0.95, 0.85]}
+                {sentence: '(bird --> animal)', truth: [0.9, 0.8]},
+                {sentence: '(animal --> living_thing)', truth: [0.95, 0.85]}
             ],
-            expected: {conclusion: '<bird --> living_thing>', truth: [0.85, 0.72]}
+            expected: {conclusion: '(bird --> living_thing)', truth: [0.85, 0.72]}
         },
         {
             name: 'induction',
             premises: [
-                {sentence: '<robin --> bird>', truth: [1.0, 0.9]},
-                {sentence: '<robin --> flyer>', truth: [0.8, 0.85]}
+                {sentence: '(robin --> bird)', truth: [1.0, 0.9]},
+                {sentence: '(robin --> flyer)', truth: [0.8, 0.85]}
             ],
-            expected: {conclusion: '<bird --> flyer>', truth: [0.8, 0.68]}
+            expected: {conclusion: '(bird --> flyer)', truth: [0.8, 0.68]}
         },
         {
             name: 'abduction',
             premises: [
-                {sentence: '<eagle --> bird>', truth: [1.0, 0.9]},
-                {sentence: '<eagle --> flyer>', truth: [0.9, 0.85]}
+                {sentence: '(eagle --> bird)', truth: [1.0, 0.9]},
+                {sentence: '(eagle --> flyer)', truth: [0.9, 0.85]}
             ],
-            expected: {conclusion: '<bird --> flyer>', truth: [0.9, 0.77]}
+            expected: {conclusion: '(bird --> flyer)', truth: [0.9, 0.77]}
         }
     ],
 
@@ -235,7 +235,7 @@ export const createScenarioData = (scenarioType, params = {}) => {
         case 'TASK_CREATION':
             return {
                 taskDef: {
-                    sentence: params.sentence || '<test --> term>',
+                    sentence: params.sentence || '(test --> term)',
                     punctuation: params.punctuation || '.',
                     truth: params.truth || [0.9, 0.8]
                 }
@@ -244,10 +244,10 @@ export const createScenarioData = (scenarioType, params = {}) => {
         case 'REASONING_CYCLE':
             return {
                 inputTasks: params.inputTasks || [
-                    {sentence: '<A --> B>', truth: [0.8, 0.9]},
-                    {sentence: '<B --> C>', truth: [0.85, 0.88]}
+                    {sentence: '(A --> B)', truth: [0.8, 0.9]},
+                    {sentence: '(B --> C)', truth: [0.85, 0.88]}
                 ],
-                expectedOutput: params.expectedOutput || {sentence: '<A --> C>', truth: [0.68, 0.70]},
+                expectedOutput: params.expectedOutput || {sentence: '(A --> C)', truth: [0.68, 0.70]},
                 config: params.config || {strategy: 'BruteForce'}
             };
 

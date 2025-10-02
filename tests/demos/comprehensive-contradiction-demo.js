@@ -29,8 +29,8 @@ async function comprehensiveContradictionDemo(options = {}) {
     // 2. Enhanced Contradiction Resolution
     const enhancedContradictionTasks = [
         {sentence: '(all_swans --> white).', truth: [0.9, 0.8]},
-        {sentence: '(<black_swan> --> swan).', truth: [1.0, 0.95]},
-        {sentence: '(<black_swan> --> black).', truth: [1.0, 0.95]},
+        {sentence: '(black_swan --> swan).', truth: [1.0, 0.95]},
+        {sentence: '(black_swan --> black).', truth: [1.0, 0.95]},
     ];
 
     return await runSystem('Enhanced Contradiction Resolution', enhancedContradictionTasks, {

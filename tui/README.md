@@ -49,9 +49,9 @@ Once started, the TUI will attempt to connect to the agent service at `ws://loca
 ## Examples
 
 ```
-!add <cat --> animal>.
-!query <cat --> animal>?
-<bird --> animal>.
+!add (cat --> animal).
+!query (cat --> animal)?
+(bird --> animal).
 ```
 
 ## Integration with Core Components

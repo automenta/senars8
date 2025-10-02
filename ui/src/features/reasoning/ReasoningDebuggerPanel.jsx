@@ -96,12 +96,12 @@ function ReasoningDebuggerPanel() {
     };
 
     const examples = [
-        '<bird --> animal>.',
-        '<robin --> bird>?',
-        '<robin --> animal>.',
-        '(&&, <bird --> animal>, <robin --> bird>)?',
-        '<robin --> flyer>.',
-        '<animal --> living>.',
+        '(bird --> animal).',
+        '(robin --> bird)?',
+        '(robin --> animal).',
+        '(&&, (bird --> animal), (robin --> bird))?',
+        '(robin --> flyer).',
+        '(animal --> living).',
     ];
 
     return (
@@ -116,7 +116,7 @@ function ReasoningDebuggerPanel() {
                                 type="text"
                                 value={inputStatement}
                                 onChange={(e) => setInputStatement(e.target.value)}
-                                placeholder="Enter Narsese statement (e.g., <bird --> animal>.)"
+                                placeholder="Enter Narsese statement (e.g., (bird --> animal).)"
                                 disabled={isDebugProcessing}
                                 className="statement-input"
                             />

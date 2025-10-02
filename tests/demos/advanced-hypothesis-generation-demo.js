@@ -20,9 +20,9 @@ import Term from '../../core/core/Term.js';
  */
 async function advancedHypothesisGenerationDemo(options = {}) {
     const taskDefs = [
-        {sentence: '<a --> b>.', truth: [1.0, 0.9]},
-        {sentence: '<b --> c>.', truth: [1.0, 0.9]},
-        {sentence: '<d --> c>.', truth: [1.0, 0.9]},
+        {sentence: '(a --> b).', truth: [1.0, 0.9]},
+        {sentence: '(b --> c).', truth: [1.0, 0.9]},
+        {sentence: '(d --> c).', truth: [1.0, 0.9]},
     ];
 
     const {system, commandBus} = createTestSystem();

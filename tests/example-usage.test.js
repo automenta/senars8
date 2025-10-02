@@ -29,10 +29,10 @@ describe('Refactored Test Utilities - Example Usage', () => {
 
     test('should demonstrate test data factory usage', () => {
         // Using the test data factory
-        const taskDef = createTaskDef('<cat --> animal>', '.', [0.8, 0.9]);
+        const taskDef = createTaskDef('(cat --> animal)', '.', [0.8, 0.9]);
         const termDef = createTermDef('cat', [0.1, 0.2, 0.3], 1);
 
-        expect(taskDef.sentence).toBe('<cat --> animal>');
+        expect(taskDef.sentence).toBe('(cat --> animal)');
         expect(taskDef.punctuation).toBe('.');
         expect(taskDef.truth).toEqual([0.8, 0.9]);
         expect(termDef.key).toBe('cat');

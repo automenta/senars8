@@ -202,7 +202,7 @@ describe('TUI Integration Tests', () => {
   });
 
   it('should send tasks via ApiService', async () => {
-    const testTask = '<bird --> animal>.';
+    const testTask = '(bird --> animal).';
     
     await app.addTask(testTask);
     
@@ -217,7 +217,7 @@ describe('TUI Integration Tests', () => {
     
     // This should not crash the application and should handle the promise rejection gracefully
     await expect(async () => {
-      await app.addTask('<test --> task>.');
+      await app.addTask('(test --> task).');
     }).not.toThrow();
   });
 

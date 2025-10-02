@@ -40,11 +40,11 @@ describe('System-level Contradiction Resolution', () => {
     });
 
     test('should detect and propose a resolution for a direct contradiction', async () => {
-        const task1 = new Task('<a --> b>.', '.', {
+        const task1 = new Task('(a --> b).', '.', {
             confidence: 0.9,
             priority: 0.9
         });
-        const task2 = new Task('<a --> b_neg>.', '.', {
+        const task2 = new Task('(a --> b_neg).', '.', {
             confidence: 0.9,
             priority: 0.9
         });

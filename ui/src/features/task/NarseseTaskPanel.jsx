@@ -173,7 +173,7 @@ const NarseseTaskPanel = () => {
                             type="text"
                             value={newTaskInput}
                             onChange={(e) => setNewTaskInput(e.target.value)}
-                            placeholder="Enter Narsese task (e.g., <cat --> animal>.)"
+                            placeholder="Enter Narsese task (e.g., (cat --> animal).)"
                             className="task-title-input"
                             maxLength={500}
                         />
