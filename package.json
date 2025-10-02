@@ -20,8 +20,8 @@
   ],
   "scripts": {
     "start": "node agent/server.js",
-    "dev": "concurrently \"node agent/server.js\" \"npm run dev --prefix ui\"",
-    "tui": "npm start --prefix tui",
+    "dev": "node agent/server.js --dev",
+    "tui": "node agent/server.js --tui",
     "test": "ORT_LOGGING_LEVEL=FATAL vitest --run --silent",
     "test:ui": "ORT_LOGGING_LEVEL=FATAL vitest --ui --silent",
     "lint": "eslint core agent tests",
@@ -86,7 +86,6 @@
     "@vitejs/plugin-react": "^5.0.3",
     "@vitest/ui": "^2.0.5",
     "blessed": "^0.1.81",
-    "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
     "eslint": "^9.35.0",
     "eslint-plugin-promise": "^7.2.1",

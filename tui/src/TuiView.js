@@ -52,6 +52,11 @@ class TuiView {
         this.logger.debug('TUI View stopped');
     }
 
+    displayError(message) {
+        this.renderer.log(`{red-fg}ERROR: ${message}{/red-fg}`);
+        this.render();
+    }
+
     render() {
         if (!this.isRunning) return;
         try {

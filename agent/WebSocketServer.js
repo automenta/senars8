@@ -1,8 +1,8 @@
 import {WebSocketServer as WsServer} from 'ws';
 import {error as serverError, info as serverInfo} from '../core/utils/logger.js';
 
-export const startWebSocketServer = (port) => {
-    const wss = new WsServer({port});
+export const startWebSocketServer = (server) => {
+    const wss = new WsServer({server});
     let messageHandler = null;
 
     const broadcast = (data) => {
@@ -37,8 +37,6 @@ export const startWebSocketServer = (port) => {
     const setMessageHandler = (handler) => {
         messageHandler = handler;
     };
-
-    serverInfo(`Agent WebSocket server started on port ${port}`);
 
     return {wss, broadcast, setMessageHandler};
 };

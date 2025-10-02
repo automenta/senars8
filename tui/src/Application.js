@@ -28,6 +28,11 @@ class Application {
         this.tuiView = new TuiView(this.apiService, this.tuiRenderer);
         this.tuiController = new TuiController(this.apiService, this.tuiView);
 
+        this.apiService.on('error', (err) => {
+            this.logger.error('ApiService Error:', err);
+            this.tuiView.displayError('Connection to agent failed. Please ensure the agent is running and restart the TUI.');
+        });
+
         this.logger.info('TUI Application initialized');
     }
 
