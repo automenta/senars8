@@ -141,20 +141,17 @@ describe('UI-Agent-Core Integration Tests', () => {
 
     describe('Input Panel Integration', () => {
         test('sends narsese statement to agent', async () => {
-            agentService.sendNarsese.mockResolvedValue(true);
-            renderWithProviders(<App/>);
-
             const input = screen.getByLabelText('Narsese input');
-            await userEvent.type(input, '<bird --> animal>.');
+            await userEvent.type(input, '(bird --> animal).');
 
             const sendButton = screen.getByRole('button', {name: /Send/i});
             fireEvent.click(sendButton);
 
             await waitFor(() => {
-                expect(agentService.sendNarsese).toHaveBeenCalledWith('<bird --> animal>.');
+                expect(agentService.sendNarsese).toHaveBeenCalledWith('(bird --> animal).');
                 expect(notificationService.addSuccess).toHaveBeenCalledWith(
                     'Narsese Sent',
-                    'Statement: <bird --> animal>.',
+                    'Statement: (bird --> animal).',
                     3000
                 );
             });
@@ -187,7 +184,7 @@ describe('UI-Agent-Core Integration Tests', () => {
             renderWithProviders(<App/>);
 
             const input = screen.getByLabelText('Narsese input');
-            await userEvent.type(input, '<bird --> animal>.');
+            await userEvent.type(input, '(bird --> animal).');
 
             const sendButton = screen.getByRole('button', {name: /Send/i});
             fireEvent.click(sendButton);

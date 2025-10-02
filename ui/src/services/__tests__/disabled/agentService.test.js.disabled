@@ -28,8 +28,8 @@ describe('AgentService', () => {
     });
 
     it('should send NARSese messages', () => {
-        agentService.sendNarsese('<test --> test>.');
-        expect(communicationServiceSpy).toHaveBeenCalledWith('narsese', '<test --> test>.', {});
+        agentService.sendNarsese('(test --> test).');
+        expect(communicationServiceSpy).toHaveBeenCalledWith('narsese', '(test --> test).', {});
     });
 
     it('should send agent control commands', () => {

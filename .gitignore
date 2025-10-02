@@ -1,6 +1,8 @@
 node_modules/
 .idea
 dist/
+ui/dist
+tui/dist
 results/
 test-analysis-report.html
 coverage

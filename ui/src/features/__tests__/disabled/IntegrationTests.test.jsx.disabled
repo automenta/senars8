@@ -82,13 +82,13 @@ describe('Core Integration Utilities', () => {
     it('validateNarseseStatement works correctly', async () => {
         const {validateNarseseStatement} = await import('@/utils/coreIntegration');
 
-        expect(validateNarseseStatement('<bird --> animal>.')).toEqual({
+        expect(validateNarseseStatement('(bird --> animal).')).toEqual({
             valid: true,
             parsed: expect.any(Object),
             error: null,
         });
 
-        expect(validateNarseseStatement('<robin --> bird>?')).toEqual({
+        expect(validateNarseseStatement('(robin --> bird)?')).toEqual({
             valid: true,
             parsed: expect.any(Object),
             error: null,
