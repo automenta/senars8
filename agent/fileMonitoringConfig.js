@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import {merge} from 'lodash';
+import _ from 'lodash';
+
+const {merge} = _;
 
 const defaultConfig = {
     patterns: ['docs/**/*.md', 'PLAN.*.md', 'TODO.md', 'ROADMAP.md'],

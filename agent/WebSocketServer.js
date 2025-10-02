@@ -1,5 +1,5 @@
 import {WebSocketServer as WsServer} from 'ws';
-import {serverError, serverInfo} from './utils/logger.js';
+import {error as serverError, info as serverInfo} from '../core/utils/logger.js';
 
 export const startWebSocketServer = (port) => {
     const wss = new WsServer({port});

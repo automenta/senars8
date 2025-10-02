@@ -34,7 +34,8 @@ class Logger {
         const envLevel = (process.env.LOG_LEVEL || 'info').toUpperCase();
         const debugFlag = process.env.DEBUG === 'true' || process.env.DEBUG === '*';
         if (debugFlag) return LogLevel.DEBUG;
-        return LogLevel[levelStr?.toUpperCase() || envLevel] ?? LogLevel.INFO;
+        const levelToCheck = (levelStr && typeof levelStr === 'string') ? levelStr.toUpperCase() : envLevel;
+        return LogLevel[levelToCheck] ?? LogLevel.INFO;
     }
 
     log(level, message, ...args) {

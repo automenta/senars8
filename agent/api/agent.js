@@ -40,7 +40,6 @@ export const handleAgentControl = async (payload, ws, agentManager, broadcast) =
     }, ws, `execute agent control command '${command}'`);
 };
 
-const {command, maxCycles} = payload;
 const commandMap = {
     start: SystemCommands.SYSTEM_START_CYCLING,
     stop: SystemCommands.SYSTEM_STOP_CYCLING,

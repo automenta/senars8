@@ -86,7 +86,6 @@ export const safeUICall = async (operation, operationName = 'UI Operation') => {
     try {
         return await operation();
     } catch (error)
-    _
     {
         uiErrorHandler(error, {
             operation: operationName,

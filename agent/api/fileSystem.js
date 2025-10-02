@@ -1,8 +1,12 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
 import {executeFileOperation} from '../utils/asyncWrapper.js';
 
-const ROOT_DIR = path.resolve(__dirname, '..', '..', '..'); // Project root directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const ROOT_DIR = resolve(__dirname, '..', '..', '..'); // Project root directory
 
 export const handleReadDirectory = async (payload, ws) => {
     return executeFileOperation(async () => {
