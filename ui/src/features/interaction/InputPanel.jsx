@@ -5,7 +5,7 @@ import notificationService from '@/services/notificationService';
 import sonificationService from '@/services/sonificationService';
 import {useUIErrorHandler} from '@/services/uiErrorHandler';
 import {useConnection} from '@/context/useConnection';
-import {useSettings} from '@/context/SettingsProvider';
+import {useSettings} from '@/context/useSettings';
 import useInputHistory from '@/hooks/useInputHistory';
 import {validateNarseseStatement} from '@/utils/coreIntegration';
 import {AlertCircle, HelpCircle, Lightbulb, MessageCircle, Wifi, WifiOff} from 'lucide-react';

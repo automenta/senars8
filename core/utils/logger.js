@@ -30,12 +30,18 @@ class Logger {
     }
 
     getLogLevel(levelStr) {
-        if (process.env.NODE_ENV === 'test') return LogLevel.ERROR;
-        const envLevel = (process.env.LOG_LEVEL || 'info').toUpperCase();
-        const debugFlag = process.env.DEBUG === 'true' || process.env.DEBUG === '*';
-        if (debugFlag) return LogLevel.DEBUG;
-        const levelToCheck = (levelStr && typeof levelStr === 'string') ? levelStr.toUpperCase() : envLevel;
-        return LogLevel[levelToCheck] ?? LogLevel.INFO;
+        // Check if we're in a Node.js environment before accessing process
+        if (typeof process !== 'undefined' && process.env) {
+            if (process.env.NODE_ENV === 'test') return LogLevel.ERROR;
+            const envLevel = (process.env.LOG_LEVEL || 'info').toUpperCase();
+            const debugFlag = process.env.DEBUG === 'true' || process.env.DEBUG === '*';
+            if (debugFlag) return LogLevel.DEBUG;
+            const levelToCheck = (levelStr && typeof levelStr === 'string') ? levelStr.toUpperCase() : envLevel;
+            return LogLevel[levelToCheck] ?? LogLevel.INFO;
+        } else {
+            // Browser environment - use a safe fallback
+            return LogLevel.INFO;
+        }
     }
 
     log(level, message, ...args) {
