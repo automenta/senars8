@@ -7,7 +7,8 @@ describe('Task - Edge Cases', () => {
     let errorSpy;
 
     beforeEach(() => {
-        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
+        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {
+        });
     });
 
     afterEach(() => {

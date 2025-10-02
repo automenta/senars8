@@ -30,22 +30,22 @@ class Memory {
         this._registerEventListeners();
         this._registerCommandHandlers();
 
-        this.addTerm = wrapAsync(this._addTerm.bind(this), 'Memory', 'addTerm', { rethrow: true });
+        this.addTerm = wrapAsync(this._addTerm.bind(this), 'Memory', 'addTerm', {rethrow: true});
         this.addTasks = wrapAsync(this._addTasks.bind(this), 'Memory', 'addTasks');
         this.removeTask = wrapAsync(this._removeTask.bind(this), 'Memory', 'removeTask');
-        this.getAllTasks = wrapAsync(this._getAllTasks.bind(this), 'Memory', 'getAllTasks', { defaultValue: [] });
-        this.getHighestPriorityTasks = wrapAsync(this._getHighestPriorityTasks.bind(this), 'Memory', 'getHighestPriorityTasks', { defaultValue: [] });
-        this.clone = wrapAsync(this._clone.bind(this), 'Memory', 'clone', { defaultValue: null });
+        this.getAllTasks = wrapAsync(this._getAllTasks.bind(this), 'Memory', 'getAllTasks', {defaultValue: []});
+        this.getHighestPriorityTasks = wrapAsync(this._getHighestPriorityTasks.bind(this), 'Memory', 'getHighestPriorityTasks', {defaultValue: []});
+        this.clone = wrapAsync(this._clone.bind(this), 'Memory', 'clone', {defaultValue: null});
         this.removeTerm = wrapAsync(this._removeTerm.bind(this), 'Memory', 'removeTerm');
         this.clear = wrapAsync(this._clear.bind(this), 'Memory', 'clear');
-        this.getStatistics = wrapAsync(this._getStatistics.bind(this), 'Memory', 'getStatistics', { defaultValue: {} });
-        this.getBeliefs = wrapAsync(this._getTasksByPunctuation.bind(this, '.'), 'Memory', 'getBeliefs', { defaultValue: [] });
-        this.getGoals = wrapAsync(this._getTasksByPunctuation.bind(this, '!'), 'Memory', 'getGoals', { defaultValue: [] });
-        this.getQuestions = wrapAsync(this._getTasksByPunctuation.bind(this, '?'), 'Memory', 'getQuestions', { defaultValue: [] });
-        this.getRecentTasks = wrapAsync(this._getRecentTasks.bind(this), 'Memory', 'getRecentTasks', { defaultValue: [] });
-        this.queryTasks = wrapAsync(this._queryTasks.bind(this), 'Memory', 'queryTasks', { defaultValue: [] });
-        this.exportState = wrapAsync(this._exportState.bind(this), 'Memory', 'exportState', { defaultValue: '{}' });
-        this.importState = wrapAsync(this._importState.bind(this), 'Memory', 'importState', { rethrow: true });
+        this.getStatistics = wrapAsync(this._getStatistics.bind(this), 'Memory', 'getStatistics', {defaultValue: {}});
+        this.getBeliefs = wrapAsync(this._getTasksByPunctuation.bind(this, '.'), 'Memory', 'getBeliefs', {defaultValue: []});
+        this.getGoals = wrapAsync(this._getTasksByPunctuation.bind(this, '!'), 'Memory', 'getGoals', {defaultValue: []});
+        this.getQuestions = wrapAsync(this._getTasksByPunctuation.bind(this, '?'), 'Memory', 'getQuestions', {defaultValue: []});
+        this.getRecentTasks = wrapAsync(this._getRecentTasks.bind(this), 'Memory', 'getRecentTasks', {defaultValue: []});
+        this.queryTasks = wrapAsync(this._queryTasks.bind(this), 'Memory', 'queryTasks', {defaultValue: []});
+        this.exportState = wrapAsync(this._exportState.bind(this), 'Memory', 'exportState', {defaultValue: '{}'});
+        this.importState = wrapAsync(this._importState.bind(this), 'Memory', 'importState', {rethrow: true});
     }
 
     _loadForgettingStrategy() {

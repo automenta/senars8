@@ -26,8 +26,10 @@ describe('Demos as Tests', () => {
     let warnSpy;
 
     beforeEach(() => {
-        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
-        warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {
+        });
+        warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {
+        });
     });
 
     afterEach(() => {

@@ -53,7 +53,10 @@ class Logger {
         const levelName = levelNames[level].padEnd(5);
         const color = levelColors[level];
         const namespaceStr = this.namespace ? `[${this.namespace}]` : '';
-        const formattedArgs = args.map(arg => typeof arg === 'object' ? util.inspect(arg, { depth: null, colors: true }) : arg).join(' ');
+        const formattedArgs = args.map(arg => typeof arg === 'object' ? util.inspect(arg, {
+            depth: null,
+            colors: true
+        }) : arg).join(' ');
 
         return `${chalk.gray(timestamp)} ${color(levelName)} ${chalk.green(namespaceStr)} ${message} ${formattedArgs}`;
     }

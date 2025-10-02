@@ -25,7 +25,7 @@ function parseSequentialConjunction(term) {
 }
 
 const termToActionParsers = new Map([
-    ['Atomic', (term) => ({ tool: term.key, parameters: [] })],
+    ['Atomic', (term) => ({tool: term.key, parameters: []})],
     ['SequentialConjunction', parseSequentialConjunction],
     ['Conjunction', parseSequentialConjunction],
 ]);
@@ -46,7 +46,7 @@ export function parseTermToAction(term, logger) {
         try {
             return parser(term);
         } catch (error) {
-            logger?.error(`Error parsing term of type '${term.type}':`, { term, error });
+            logger?.error(`Error parsing term of type '${term.type}':`, {term, error});
             return null;
         }
     }

@@ -1,11 +1,11 @@
-import { suppressOnnxWarnings } from './core/utils/onnxSuppression.js';
-suppressOnnxWarnings();
-
-import { Agent } from './agent/index.js';
+import {suppressOnnxWarnings} from './core/utils/onnxSuppression.js';
+import {Agent} from './agent/index.js';
 import TUIApplication from './tui/src/Application.js';
 import WebUI from './ui/src/WebUI.js';
 import logger from './core/utils/logger.js';
-import { gracefulShutdown, handleUncaughtError } from './core/utils/system.js';
+import {gracefulShutdown, handleUncaughtError} from './core/utils/system.js';
+
+suppressOnnxWarnings();
 
 const mainLogger = logger.createNamespace('Main');
 
@@ -15,6 +15,25 @@ class SENARSMain {
         this.tui = new TUIApplication();
         this.webui = new WebUI();
         this.isShuttingDown = false;
+    }
+
+    static async run() {
+        const main = new SENARSMain();
+
+        process.on('uncaughtException', (err) => handleUncaughtError(err, mainLogger, () => main.stop()));
+        process.on('unhandledRejection', (reason) => handleUncaughtError(reason, mainLogger, () => main.stop()));
+
+        for (const signal of ['SIGINT', 'SIGTERM']) {
+            process.on(signal, () => gracefulShutdown(signal, mainLogger, () => main.stop()));
+        }
+
+        try {
+            await main.start();
+        } catch (error) {
+            mainLogger.error('Failed to start SENARS system:', error);
+            await main.stop();
+            process.exit(1);
+        }
     }
 
     async start() {
@@ -46,25 +65,6 @@ class SENARSMain {
             mainLogger.info('SENARS system stopped');
         } catch (error) {
             mainLogger.error('Error during shutdown:', error);
-        }
-    }
-
-    static async run() {
-        const main = new SENARSMain();
-
-        process.on('uncaughtException', (err) => handleUncaughtError(err, mainLogger, () => main.stop()));
-        process.on('unhandledRejection', (reason) => handleUncaughtError(reason, mainLogger, () => main.stop()));
-
-        for (const signal of ['SIGINT', 'SIGTERM']) {
-            process.on(signal, () => gracefulShutdown(signal, mainLogger, () => main.stop()));
-        }
-
-        try {
-            await main.start();
-        } catch (error) {
-            mainLogger.error('Failed to start SENARS system:', error);
-            await main.stop();
-            process.exit(1);
         }
     }
 }

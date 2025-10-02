@@ -1,21 +1,13 @@
-import {
-    describe,
-    it,
-    expect,
-    beforeEach,
-    afterEach,
-    vi
-} from 'vitest';
-import {
-    wrapAsync
-} from '../../core/utils/asyncWrapper.js';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {wrapAsync} from '../../core/utils/asyncWrapper.js';
 import * as logger from '../../core/utils/logger.js';
 
 describe('wrapAsync', () => {
     let errorSpy;
 
     beforeEach(() => {
-        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
+        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {
+        });
     });
 
     afterEach(() => {

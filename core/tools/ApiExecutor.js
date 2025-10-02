@@ -3,9 +3,9 @@
  * Provides HTTP client capabilities with authentication and rate limiting
  */
 
-import { debug, error as logError, info, warn } from '../utils/logger.js';
-import { createUnifiedErrorHandler } from '../utils/errorHandler.js';
-import { randomUUID } from 'crypto';
+import {debug, error as logError, info, warn} from '../utils/logger.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
+import {randomUUID} from 'crypto';
 
 const errorHandler = createUnifiedErrorHandler('ApiExecutor');
 
@@ -152,7 +152,7 @@ class ApiExecutor {
     }
 
     async prepareRequestOptions(options) {
-        const { method, headers, body, timeout, maxRedirects, auth, followRedirects } = options;
+        const {method, headers, body, timeout, maxRedirects, auth, followRedirects} = options;
 
         const requestOptions = {
             method,
@@ -189,7 +189,7 @@ class ApiExecutor {
     }
 
     async applyAuthentication(requestOptions, auth) {
-        const { type, ...authParams } = auth;
+        const {type, ...authParams} = auth;
 
         const authHandler = this.authProviders.get(type);
         if (!authHandler) {
@@ -199,24 +199,24 @@ class ApiExecutor {
         await authHandler(requestOptions, authParams);
     }
 
-    async basicAuth(requestOptions, { username, password }) {
+    async basicAuth(requestOptions, {username, password}) {
         const encoded = Buffer.from(`${username}:${password}`).toString('base64');
         requestOptions.headers['Authorization'] = `Basic ${encoded}`;
     }
 
-    async bearerAuth(requestOptions, { token }) {
+    async bearerAuth(requestOptions, {token}) {
         requestOptions.headers['Authorization'] = `Bearer ${token}`;
     }
 
-    async apiKeyAuth(requestOptions, { key, value, header = 'X-API-Key' }) {
+    async apiKeyAuth(requestOptions, {key, value, header = 'X-API-Key'}) {
         requestOptions.headers[header] = value;
     }
 
-    async oauth2Auth(requestOptions, { accessToken, tokenType = 'Bearer' }) {
+    async oauth2Auth(requestOptions, {accessToken, tokenType = 'Bearer'}) {
         requestOptions.headers['Authorization'] = `${tokenType} ${accessToken}`;
     }
 
-    async customAuth(requestOptions, { handler }) {
+    async customAuth(requestOptions, {handler}) {
         if (typeof handler === 'function') {
             await handler(requestOptions);
         } else {
@@ -321,28 +321,28 @@ class ApiExecutor {
 
     // Specialized API methods
     async get(url, params = {}) {
-        return this.makeRequest({ ...params, url, method: 'GET' });
+        return this.makeRequest({...params, url, method: 'GET'});
     }
 
     async post(url, data, params = {}) {
-        return this.makeRequest({ ...params, url, method: 'POST', body: data });
+        return this.makeRequest({...params, url, method: 'POST', body: data});
     }
 
     async put(url, data, params = {}) {
-        return this.makeRequest({ ...params, url, method: 'PUT', body: data });
+        return this.makeRequest({...params, url, method: 'PUT', body: data});
     }
 
     async delete(url, params = {}) {
-        return this.makeRequest({ ...params, url, method: 'DELETE' });
+        return this.makeRequest({...params, url, method: 'DELETE'});
     }
 
     async patch(url, data, params = {}) {
-        return this.makeRequest({ ...params, url, method: 'PATCH', body: data });
+        return this.makeRequest({...params, url, method: 'PATCH', body: data});
     }
 
     // Batch processing
     async batchRequests(requests, options = {}) {
-        const { concurrency = 5, delay = 100 } = options;
+        const {concurrency = 5, delay = 100} = options;
 
         const results = [];
         const queue = [...requests];
@@ -364,14 +364,14 @@ class ApiExecutor {
 
         return results.map(result =>
             result.status === 'fulfilled'
-                ? { success: true, data: result.value }
-                : { success: false, error: result.reason }
+                ? {success: true, data: result.value}
+                : {success: false, error: result.reason}
         );
     }
 
     // Web scraping utilities
     async scrapeWebPage(url, options = {}) {
-        const { selectors, waitFor, screenshot } = options;
+        const {selectors, waitFor, screenshot} = options;
 
         // First, get the page content
         const response = await this.get(url);

@@ -156,7 +156,7 @@ class NarseseParser {
 
         // Handle empty parentheses for empty product
         if (this.match(TOKEN.RPAREN)) {
-            term = { type: OP.PRODUCT, terms: [] };
+            term = {type: OP.PRODUCT, terms: []};
         } else if (this.current?.type in OPERATOR_MAP) {
             term = this.parseOperator();
         } else {
@@ -172,7 +172,7 @@ class NarseseParser {
                     this.consume(operator);
                     terms.push(this.parseTerm());
                 }
-                term = { type: BINARY_OPERATOR_MAP[operator], terms };
+                term = {type: BINARY_OPERATOR_MAP[operator], terms};
             } else if (this.match(TOKEN.COMMA)) {
                 const productTerms = [left];
                 while (this.match(TOKEN.COMMA)) {
@@ -181,7 +181,7 @@ class NarseseParser {
                         productTerms.push(this.parseTerm());
                     }
                 }
-                term = { type: OP.PRODUCT, terms: productTerms };
+                term = {type: OP.PRODUCT, terms: productTerms};
             } else {
                 term = left;
             }

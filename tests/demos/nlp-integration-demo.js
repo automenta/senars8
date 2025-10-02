@@ -3,8 +3,6 @@
 
 import {runSystem} from '../../utils/runner.js';
 import {SystemCommands} from '../../core/system/SystemCommands.js';
-import {createTestSystem} from '../test-helpers.js';
-import Task from '../../core/core/Task.js';
 
 /**
  * A unified demo that demonstrates NLP integration capabilities.

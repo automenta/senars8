@@ -3,11 +3,10 @@
  * Provides multi-modal processing capabilities including PDF, image, audio, and video
  */
 
-import { debug, error as logError, info, warn } from '../utils/logger.js';
-import { createUnifiedErrorHandler } from '../utils/errorHandler.js';
-import { readFile, access } from 'fs/promises';
-import { extname } from 'path';
-import { randomUUID } from 'crypto';
+import {debug, error as logError, info, warn} from '../utils/logger.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
+import {access, readFile} from 'fs/promises';
+import {extname} from 'path';
 
 const errorHandler = createUnifiedErrorHandler('MediaProcessorExecutor');
 
@@ -56,7 +55,7 @@ class MediaProcessorExecutor {
     }
 
     async processPDF(params) {
-        const { path, extractText, extractImages, pageRange } = {
+        const {path, extractText, extractImages, pageRange} = {
             extractText: true,
             extractImages: false,
             pageRange: null,
@@ -118,7 +117,7 @@ class MediaProcessorExecutor {
     }
 
     async processDOC(params) {
-        const { path, extractText } = {
+        const {path, extractText} = {
             extractText: true,
             ...params
         };
@@ -153,7 +152,7 @@ class MediaProcessorExecutor {
     }
 
     async processDOCX(params) {
-        const { path, extractText, extractImages } = {
+        const {path, extractText, extractImages} = {
             extractText: true,
             extractImages: false,
             ...params
@@ -206,7 +205,7 @@ class MediaProcessorExecutor {
     }
 
     async processImage(params) {
-        const { path, performOCR, analyzeContent, detectObjects } = {
+        const {path, performOCR, analyzeContent, detectObjects} = {
             performOCR: this.config.enableOCR,
             analyzeContent: this.config.enableImageAnalysis,
             detectObjects: false,
@@ -240,7 +239,7 @@ class MediaProcessorExecutor {
                     result.ocr = await this.performOCR(imageBuffer);
                 } catch (error) {
                     warn(`OCR failed for image: ${path}`, error.message);
-                    result.ocr = { error: error.message };
+                    result.ocr = {error: error.message};
                 }
             }
 
@@ -250,7 +249,7 @@ class MediaProcessorExecutor {
                     result.analysis = await this.analyzeImageContent(imageBuffer);
                 } catch (error) {
                     warn(`Image analysis failed: ${path}`, error.message);
-                    result.analysis = { error: error.message };
+                    result.analysis = {error: error.message};
                 }
             }
 
@@ -260,7 +259,7 @@ class MediaProcessorExecutor {
                     result.objects = await this.detectObjects(imageBuffer);
                 } catch (error) {
                     warn(`Object detection failed: ${path}`, error.message);
-                    result.objects = { error: error.message };
+                    result.objects = {error: error.message};
                 }
             }
 
@@ -274,7 +273,7 @@ class MediaProcessorExecutor {
     }
 
     async processAudio(params) {
-        const { path, transcribe, analyzeContent } = {
+        const {path, transcribe, analyzeContent} = {
             transcribe: this.config.enableAudioTranscription,
             analyzeContent: false,
             ...params
@@ -307,7 +306,7 @@ class MediaProcessorExecutor {
                     result.transcription = await this.transcribeAudio(audioBuffer, ext);
                 } catch (error) {
                     warn(`Audio transcription failed: ${path}`, error.message);
-                    result.transcription = { error: error.message };
+                    result.transcription = {error: error.message};
                 }
             }
 
@@ -317,7 +316,7 @@ class MediaProcessorExecutor {
                     result.analysis = await this.analyzeAudioContent(result.transcription.text);
                 } catch (error) {
                     warn(`Audio content analysis failed: ${path}`, error.message);
-                    result.analysis = { error: error.message };
+                    result.analysis = {error: error.message};
                 }
             }
 
@@ -331,7 +330,7 @@ class MediaProcessorExecutor {
     }
 
     async processVideo(params) {
-        const { path, extractFrames, extractAudio, analyzeContent } = {
+        const {path, extractFrames, extractAudio, analyzeContent} = {
             extractFrames: false,
             extractAudio: false,
             analyzeContent: this.config.enableVideoProcessing,
@@ -359,15 +358,15 @@ class MediaProcessorExecutor {
             };
 
             if (extractFrames) {
-                result.frames = { note: 'Frame extraction not implemented' };
+                result.frames = {note: 'Frame extraction not implemented'};
             }
 
             if (extractAudio) {
-                result.audio = { note: 'Audio extraction not implemented' };
+                result.audio = {note: 'Audio extraction not implemented'};
             }
 
             if (analyzeContent) {
-                result.analysis = { note: 'Video content analysis not implemented' };
+                result.analysis = {note: 'Video content analysis not implemented'};
             }
 
             info(`Video processed: ${path}`);
@@ -381,14 +380,14 @@ class MediaProcessorExecutor {
 
     async performOCR(imageBuffer) {
         try {
-            const { createWorker } = await import('tesseract.js');
+            const {createWorker} = await import('tesseract.js');
             const worker = await createWorker();
 
             try {
                 await worker.loadLanguage('eng');
                 await worker.initialize('eng');
 
-                const { data: { text } } = await worker.recognize(imageBuffer);
+                const {data: {text}} = await worker.recognize(imageBuffer);
 
                 return {
                     text: text.trim(),
@@ -494,7 +493,7 @@ class MediaProcessorExecutor {
         }
 
         // Check file size
-        const { stat } = await import('fs/promises');
+        const {stat} = await import('fs/promises');
         const stats = await stat(path);
         if (stats.size > this.config.maxFileSize) {
             throw new Error(`File too large: ${stats.size} bytes (max: ${this.config.maxFileSize})`);
@@ -513,7 +512,7 @@ class MediaProcessorExecutor {
             };
         } catch (error) {
             warn('Failed to get image dimensions:', error.message);
-            return { width: null, height: null, type: null };
+            return {width: null, height: null, type: null};
         }
     }
 
@@ -573,7 +572,7 @@ class MediaProcessorExecutor {
         return Object.entries(frequency)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 10)
-            .map(([word, count]) => ({ word, count }));
+            .map(([word, count]) => ({word, count}));
     }
 
     isStopWord(word) {

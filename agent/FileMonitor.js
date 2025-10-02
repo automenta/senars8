@@ -1,7 +1,7 @@
 import chokidar from 'chokidar';
-import { globSync } from 'glob';
-import { createUnifiedErrorHandler } from '../core/utils/errorHandler.js';
-import { info, warn, debug } from '../core/utils/logger.js';
+import {globSync} from 'glob';
+import {createUnifiedErrorHandler} from '../core/utils/errorHandler.js';
+import {debug, info, warn} from '../core/utils/logger.js';
 import PlanProcessor from '../core/utils/PlanProcessor.js';
 import FileMonitoringConfig from './fileMonitoringConfig.js';
 
@@ -83,9 +83,9 @@ class FileMonitor {
 
     async processExistingFiles() {
         for (const pattern of this.options.patterns) {
-            const files = globSync(pattern, { cwd: this.options.watchDir, absolute: true });
+            const files = globSync(pattern, {cwd: this.options.watchDir, absolute: true});
             for (const file of files) {
-                await this.processFile(file, { initial: true });
+                await this.processFile(file, {initial: true});
             }
         }
     }
@@ -125,7 +125,7 @@ class FileMonitor {
             }
             this.processedFiles.add(filePath);
             return tasks;
-        }, 'processFile', { rethrow: true });
+        }, 'processFile', {rethrow: true});
     }
 
     async stop() {

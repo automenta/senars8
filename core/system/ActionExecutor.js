@@ -116,7 +116,7 @@ class ActionExecutor {
                 duration: endTime - startTime
             });
 
-            return { success: false, error: 'Action failed validation' };
+            return {success: false, error: 'Action failed validation'};
         }
 
         return await errorHandler.execute(async () => {
@@ -157,7 +157,7 @@ class ActionExecutor {
                 });
 
                 // Return a default response instead of throwing an error
-                return { success: false, error: `No handler found for action: ${actionName}` };
+                return {success: false, error: `No handler found for action: ${actionName}`};
             }
 
             const actionId = generateId(`action-${actionName}`);
@@ -347,7 +347,7 @@ class ActionExecutor {
         const validationResult = this._validateAction(action);
         if (!validationResult) {
             // Action failed validation, resolve with a default result
-            const defaultResult = { success: false, error: 'Action failed validation' };
+            const defaultResult = {success: false, error: 'Action failed validation'};
             resolve(this._recordSuccess(actionRecord, defaultResult));
             this._releaseResources(action);
             return;
@@ -364,7 +364,7 @@ class ActionExecutor {
                 if (!handler) {
                     // Handle unknown actions gracefully instead of throwing an error
                     logger.warn(`No handler found for action: ${actionName}`);
-                    const defaultResult = { success: false, error: `No handler found for action: ${actionName}` };
+                    const defaultResult = {success: false, error: `No handler found for action: ${actionName}`};
                     resolve(this._recordSuccess(actionRecord, defaultResult));
                     return;
                 }

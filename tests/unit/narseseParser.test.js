@@ -1,6 +1,6 @@
-import { describe, test, expect } from 'vitest';
-import { parseTerm } from '../../core/parser/narseseParser.js';
-import { OP } from '../../core/config/constants.js';
+import {describe, expect, test} from 'vitest';
+import {parseTerm} from '../../core/parser/narseseParser.js';
+import {OP} from '../../core/config/constants.js';
 
 describe('Narsese Parser Infix and Error Handling', () => {
     test('should handle simple infix conjunction', () => {
@@ -8,8 +8,8 @@ describe('Narsese Parser Infix and Error Handling', () => {
         const expected = {
             type: OP.CONJUNCTION,
             terms: [
-                { type: OP.ATOMIC, key: 'a' },
-                { type: OP.ATOMIC, key: 'b' },
+                {type: OP.ATOMIC, key: 'a'},
+                {type: OP.ATOMIC, key: 'b'},
             ],
             key: '(a & b)',
         };
@@ -21,9 +21,9 @@ describe('Narsese Parser Infix and Error Handling', () => {
         const expected = {
             type: OP.CONJUNCTION,
             terms: [
-                { type: OP.ATOMIC, key: 'a' },
-                { type: OP.ATOMIC, key: 'b' },
-                { type: OP.ATOMIC, key: 'c' },
+                {type: OP.ATOMIC, key: 'a'},
+                {type: OP.ATOMIC, key: 'b'},
+                {type: OP.ATOMIC, key: 'c'},
             ],
             key: '(a & b & c)',
         };
@@ -42,12 +42,12 @@ describe('Narsese Parser Infix and Error Handling', () => {
             subject: {
                 type: OP.CONJUNCTION,
                 terms: [
-                    { type: OP.ATOMIC, key: 'a' },
-                    { type: OP.ATOMIC, key: 'b' },
+                    {type: OP.ATOMIC, key: 'a'},
+                    {type: OP.ATOMIC, key: 'b'},
                 ],
                 key: '(a & b)',
             },
-            predicate: { type: OP.ATOMIC, key: 'c' },
+            predicate: {type: OP.ATOMIC, key: 'c'},
             key: '((a & b) --> c)',
         };
         expect(parseTerm(input)).toEqual(expected);

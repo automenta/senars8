@@ -3,13 +3,13 @@
  * Provides secure command execution with resource limits and monitoring
  */
 
-import { spawn } from 'child_process';
-import { debug, error as logError, info, warn } from '../utils/logger.js';
-import { createUnifiedErrorHandler } from '../utils/errorHandler.js';
-import { randomUUID } from 'crypto';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { tmpdir } from 'os';
+import {spawn} from 'child_process';
+import {debug, error as logError, info, warn} from '../utils/logger.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
+import {randomUUID} from 'crypto';
+import {mkdir, writeFile} from 'fs/promises';
+import {join} from 'path';
+import {tmpdir} from 'os';
 
 const errorHandler = createUnifiedErrorHandler('CommandExecutor');
 
@@ -48,7 +48,7 @@ class CommandExecutor {
     }
 
     async execute(params) {
-        const { command, args, cwd, env, timeout, allowedCommands } = {
+        const {command, args, cwd, env, timeout, allowedCommands} = {
             args: [],
             cwd: this.config.workingDirectory,
             timeout: this.config.timeout,
@@ -232,12 +232,12 @@ class CommandExecutor {
         const sandboxPath = join(this.sandboxDir, executionId);
 
         try {
-            await mkdir(sandboxPath, { recursive: true });
+            await mkdir(sandboxPath, {recursive: true});
 
             // Create basic directory structure
             const dirs = ['tmp', 'work', 'output'];
             for (const dir of dirs) {
-                await mkdir(join(sandboxPath, dir), { recursive: true });
+                await mkdir(join(sandboxPath, dir), {recursive: true});
             }
 
             debug(`Created sandbox: ${sandboxPath}`);
@@ -252,8 +252,8 @@ class CommandExecutor {
         const sandboxPath = join(this.sandboxDir, executionId);
 
         try {
-            const { rm } = await import('fs/promises');
-            await rm(sandboxPath, { recursive: true, force: true });
+            const {rm} = await import('fs/promises');
+            await rm(sandboxPath, {recursive: true, force: true});
             debug(`Cleaned up sandbox: ${sandboxPath}`);
         } catch (error) {
             warn(`Failed to cleanup sandbox: ${sandboxPath}`, error.message);
@@ -365,7 +365,7 @@ class CommandExecutor {
     }
 
     async executeScript(params) {
-        const { script, language, timeout } = {
+        const {script, language, timeout} = {
             language: 'javascript',
             timeout: this.config.timeout,
             ...params
@@ -384,7 +384,7 @@ class CommandExecutor {
 
             const scriptFile = scriptPath + (extensions[language] || '.txt');
 
-            await mkdir(dirname(scriptFile), { recursive: true });
+            await mkdir(dirname(scriptFile), {recursive: true});
             await writeFile(scriptFile, script, 'utf8');
 
             // Execute script based on language
@@ -410,7 +410,7 @@ class CommandExecutor {
                     throw new Error(`Unsupported script language: ${language}`);
             }
 
-            return await this.execute({ command, args, timeout });
+            return await this.execute({command, args, timeout});
 
         } catch (error) {
             logError(`Script execution failed (execution: ${executionId})`, error);
@@ -420,7 +420,7 @@ class CommandExecutor {
 
     async getSystemInfo() {
         try {
-            const { execSync } = await import('child_process');
+            const {execSync} = await import('child_process');
 
             const info = {
                 platform: process.platform,
@@ -435,7 +435,7 @@ class CommandExecutor {
 
             // Get additional system info
             try {
-                info.hostname = execSync('hostname', { encoding: 'utf8' }).trim();
+                info.hostname = execSync('hostname', {encoding: 'utf8'}).trim();
             } catch (error) {
                 info.hostname = require('os').hostname();
             }

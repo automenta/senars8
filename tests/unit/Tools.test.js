@@ -7,7 +7,8 @@ describe('Tools', () => {
     let errorSpy;
 
     beforeEach(() => {
-        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
+        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {
+        });
         tools = new Tools();
     });
 

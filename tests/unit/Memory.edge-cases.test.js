@@ -11,8 +11,10 @@ describe('Memory - Edge Cases', () => {
     let warnSpy;
 
     beforeEach(() => {
-        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
-        warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {
+        });
+        warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {
+        });
 
         const configManager = new ConfigManager();
         const mockEventBus = {

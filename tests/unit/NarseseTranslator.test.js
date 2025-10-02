@@ -8,7 +8,8 @@ describe('NarseseTranslator', () => {
     let errorSpy;
 
     beforeEach(() => {
-        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
+        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {
+        });
         translator = new NarseseTranslator();
     });
 

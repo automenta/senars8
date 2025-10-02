@@ -1,6 +1,5 @@
-import { spawn } from 'child_process';
+import {spawn} from 'child_process';
 import path from 'path';
-import fs from 'fs/promises';
 
 class AsciinemaRecorder {
     constructor(outputDir) {
@@ -8,7 +7,7 @@ class AsciinemaRecorder {
     }
 
     async recordSession(command, outputFile, options = {}) {
-        const { timeout = 10000, inputs = [] } = options;
+        const {timeout = 10000, inputs = []} = options;
         const castPath = path.join(this.outputDir, `${outputFile}.cast`);
 
         const child = spawn('asciinema', ['rec', castPath, '--command', command], {

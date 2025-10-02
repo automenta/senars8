@@ -3,12 +3,12 @@
  * Provides comprehensive web browser automation capabilities
  */
 
-import { debug, error as logError, info, warn } from '../utils/logger.js';
-import { createUnifiedErrorHandler } from '../utils/errorHandler.js';
-import { randomUUID } from 'crypto';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { tmpdir } from 'os';
+import {debug, error as logError, info, warn} from '../utils/logger.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
+import {randomUUID} from 'crypto';
+import {mkdir} from 'fs/promises';
+import {join} from 'path';
+import {tmpdir} from 'os';
 
 const errorHandler = createUnifiedErrorHandler('WebAutomationExecutor');
 
@@ -19,7 +19,7 @@ class WebAutomationExecutor {
             defaultTimeout: config.defaultTimeout || 30000,
             screenshotPath: config.screenshotPath || join(tmpdir(), 'senars-screenshots'),
             userDataDir: config.userDataDir || null,
-            viewport: config.viewport || { width: 1280, height: 720 },
+            viewport: config.viewport || {width: 1280, height: 720},
             userAgent: config.userAgent || 'SeNARS-Agent/1.0',
             ...config
         };
@@ -37,10 +37,10 @@ class WebAutomationExecutor {
         if (this.isInitialized) return;
 
         try {
-            const { chromium } = await import('playwright');
+            const {chromium} = await import('playwright');
 
             // Create screenshot directory
-            await mkdir(this.config.screenshotPath, { recursive: true });
+            await mkdir(this.config.screenshotPath, {recursive: true});
 
             // Launch browser
             const launchOptions = {
@@ -83,7 +83,7 @@ class WebAutomationExecutor {
     async navigate(params) {
         await this.ensureInitialized();
 
-        const { url, waitFor, timeout, takeScreenshot, extractText } = {
+        const {url, waitFor, timeout, takeScreenshot, extractText} = {
             waitFor: 'networkidle',
             timeout: this.config.defaultTimeout,
             takeScreenshot: true,
@@ -108,7 +108,7 @@ class WebAutomationExecutor {
 
             // Wait for additional element if specified
             if (params.waitForSelector) {
-                await page.waitForSelector(params.waitForSelector, { timeout });
+                await page.waitForSelector(params.waitForSelector, {timeout});
             }
 
             // Extract page information
@@ -124,7 +124,7 @@ class WebAutomationExecutor {
             let textContent = '';
             if (extractText) {
                 try {
-                    textContent = await page.innerText('body', { timeout: 5000 });
+                    textContent = await page.innerText('body', {timeout: 5000});
                     // Limit text length to prevent memory issues
                     if (textContent.length > 50000) {
                         textContent = textContent.substring(0, 50000) + '... [truncated]';
@@ -186,7 +186,8 @@ class WebAutomationExecutor {
             logError(`Navigation failed: ${url} (session: ${sessionId})`, error);
 
             // Clean up page on error
-            await page.close().catch(() => {});
+            await page.close().catch(() => {
+            });
 
             throw error;
         }
@@ -195,7 +196,7 @@ class WebAutomationExecutor {
     async click(params) {
         await this.ensureInitialized();
 
-        const { selector, waitForNavigation, timeout } = {
+        const {selector, waitForNavigation, timeout} = {
             waitForNavigation: false,
             timeout: this.config.defaultTimeout,
             ...params
@@ -216,11 +217,11 @@ class WebAutomationExecutor {
             page.setDefaultTimeout(timeout);
 
             // Click the element
-            await page.click(selector, { timeout });
+            await page.click(selector, {timeout});
 
             // Wait for navigation if requested
             if (waitForNavigation) {
-                await page.waitForLoadState('networkidle', { timeout });
+                await page.waitForLoadState('networkidle', {timeout});
             }
 
             const result = {
@@ -243,7 +244,7 @@ class WebAutomationExecutor {
     async fillForm(params) {
         await this.ensureInitialized();
 
-        const { url, fields, submitSelector, waitForNavigation } = {
+        const {url, fields, submitSelector, waitForNavigation} = {
             waitForNavigation: true,
             ...params
         };
@@ -256,7 +257,7 @@ class WebAutomationExecutor {
 
             // Navigate to URL if provided
             if (url) {
-                await page.goto(url, { waitUntil: 'networkidle' });
+                await page.goto(url, {waitUntil: 'networkidle'});
             }
 
             // Fill form fields
@@ -277,7 +278,7 @@ class WebAutomationExecutor {
                     let filled = false;
                     for (const selector of selectors) {
                         try {
-                            const element = await page.$(selector, { timeout: 1000 });
+                            const element = await page.$(selector, {timeout: 1000});
                             if (element) {
                                 await element.fill(fieldValue);
                                 filled = true;
@@ -323,7 +324,8 @@ class WebAutomationExecutor {
 
         } catch (error) {
             logError(`Form fill failed: ${url} (session: ${sessionId})`, error);
-            await page.close().catch(() => {});
+            await page.close().catch(() => {
+            });
             throw error;
         }
     }
@@ -331,7 +333,7 @@ class WebAutomationExecutor {
     async screenshot(params) {
         await this.ensureInitialized();
 
-        const { sessionId, fullPage, clip, path } = {
+        const {sessionId, fullPage, clip, path} = {
             fullPage: true,
             ...params
         };
@@ -378,7 +380,7 @@ class WebAutomationExecutor {
     async evaluate(params) {
         await this.ensureInitialized();
 
-        const { sessionId, script, args } = {
+        const {sessionId, script, args} = {
             args: [],
             ...params
         };
@@ -411,7 +413,7 @@ class WebAutomationExecutor {
     async waitForSelector(params) {
         await this.ensureInitialized();
 
-        const { sessionId, selector, state, timeout } = {
+        const {sessionId, selector, state, timeout} = {
             state: 'visible',
             timeout: this.config.defaultTimeout,
             ...params
@@ -426,7 +428,7 @@ class WebAutomationExecutor {
         try {
             debug(`Waiting for selector: ${selector} (session: ${sessionId})`);
 
-            await page.waitForSelector(selector, { state, timeout });
+            await page.waitForSelector(selector, {state, timeout});
 
             debug(`Selector found: ${selector} (session: ${sessionId})`);
             return {
@@ -446,7 +448,7 @@ class WebAutomationExecutor {
     async extractData(params) {
         await this.ensureInitialized();
 
-        const { sessionId, selectors } = params;
+        const {sessionId, selectors} = params;
 
         let page = this.pages.get(sessionId);
 
@@ -498,7 +500,7 @@ class WebAutomationExecutor {
 
     async getScreenshotBase64(screenshotPath) {
         try {
-            const { readFile } = await import('fs/promises');
+            const {readFile} = await import('fs/promises');
             const screenshot = await readFile(screenshotPath);
             return screenshot.toString('base64');
         } catch (error) {

@@ -7,7 +7,8 @@ describe('Term - Edge Cases', () => {
     let warnSpy;
 
     beforeEach(() => {
-        warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+        warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {
+        });
     });
 
     afterEach(() => {

@@ -3,11 +3,11 @@
  * Provides intelligent file operations with syntax validation, backup, and advanced editing
  */
 
-import { readFile, writeFile, mkdir, copyFile, rename, unlink, access, constants } from 'fs/promises';
-import { dirname, join, extname, basename } from 'path';
-import { createHash } from 'crypto';
-import { debug, error as logError, info, warn } from '../utils/logger.js';
-import { createUnifiedErrorHandler } from '../utils/errorHandler.js';
+import {access, constants, copyFile, mkdir, readFile, writeFile} from 'fs/promises';
+import {basename, dirname, extname, join} from 'path';
+import {createHash} from 'crypto';
+import {debug, error as logError, info, warn} from '../utils/logger.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 
 const errorHandler = createUnifiedErrorHandler('FileOperationsExecutor');
 
@@ -52,7 +52,7 @@ class FileOperationsExecutor {
     }
 
     async read(params) {
-        const { path, encoding, maxSize } = {
+        const {path, encoding, maxSize} = {
             encoding: 'utf8',
             maxSize: this.config.maxFileSize,
             ...params
@@ -100,7 +100,7 @@ class FileOperationsExecutor {
     }
 
     async write(params) {
-        const { path, content, encoding, backup, validateSyntax } = {
+        const {path, content, encoding, backup, validateSyntax} = {
             encoding: 'utf8',
             backup: this.config.backupEnabled,
             validateSyntax: this.config.validateSyntax,
@@ -129,7 +129,7 @@ class FileOperationsExecutor {
 
             // Ensure directory exists
             const dir = dirname(path);
-            await mkdir(dir, { recursive: true });
+            await mkdir(dir, {recursive: true});
 
             debug(`Writing file: ${path}`);
 
@@ -156,7 +156,7 @@ class FileOperationsExecutor {
     }
 
     async edit(params) {
-        const { path, operations, backup } = {
+        const {path, operations, backup} = {
             backup: this.config.backupEnabled,
             ...params
         };
@@ -226,7 +226,7 @@ class FileOperationsExecutor {
     }
 
     async applyOperation(content, operation) {
-        const { type, target, content: newContent, regex } = operation;
+        const {type, target, content: newContent, regex} = operation;
 
         switch (type) {
             case 'replace':
@@ -321,7 +321,7 @@ class FileOperationsExecutor {
         );
 
         // Ensure backup directory exists
-        await mkdir(dirname(backupPath), { recursive: true });
+        await mkdir(dirname(backupPath), {recursive: true});
 
         // Copy file to backup location
         await copyFile(originalPath, backupPath);
@@ -554,7 +554,7 @@ class FileOperationsExecutor {
     }
 
     async getFileStats(path) {
-        const { stat } = await import('fs/promises');
+        const {stat} = await import('fs/promises');
         return await stat(path);
     }
 

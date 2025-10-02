@@ -3,7 +3,7 @@
  * This reduces code duplication and provides consistent error handling with minimal overhead.
  */
 
-import { createUnifiedErrorHandler } from './errorHandler.js';
+import {createUnifiedErrorHandler} from './errorHandler.js';
 
 /**
  * Wraps an asynchronous function with a unified error handler.

@@ -1,9 +1,9 @@
-import { agentErrorHandler as errorHandler, createSystem } from '../core/index.js';
-import { parseTerm } from '../core/parser/parse-utils.js';
+import {agentErrorHandler as errorHandler, createSystem} from '../core/index.js';
+import {parseTerm} from '../core/parser/parse-utils.js';
 import Task from '../core/core/Task.js';
 import logger from '../core/utils/logger.js';
 import MCP from './MCP.js';
-import { parseTermToAction } from './utils/index.js';
+import {parseTermToAction} from './utils/index.js';
 
 const agentLogger = logger.create('Agent');
 
@@ -150,7 +150,7 @@ class Agent {
                 goals: memory.getGoals?.() || [],
                 questions: memory.getQuestions?.() || [],
             };
-        }, 'getAgentState', { defaultValue: {tasks: [], beliefs: [], goals: [], questions: []} });
+        }, 'getAgentState', {defaultValue: {tasks: [], beliefs: [], goals: [], questions: []}});
     }
 }
 

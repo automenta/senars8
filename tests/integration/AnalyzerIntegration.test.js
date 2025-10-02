@@ -6,7 +6,8 @@ describe('Analyzer Integration Test', () => {
     let errorSpy;
 
     beforeEach(() => {
-        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
+        errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {
+        });
     });
 
     afterEach(() => {

@@ -18,7 +18,8 @@ describe('System-level Contradiction Resolution', () => {
     let warnSpy;
 
     beforeEach(() => {
-        warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+        warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {
+        });
 
         const customConfig = {
             reasoner: {

@@ -1,4 +1,4 @@
-import { env } from '@xenova/transformers';
+import {env} from '@xenova/transformers';
 
 /**
  * Suppresses verbose warnings from the ONNX runtime.

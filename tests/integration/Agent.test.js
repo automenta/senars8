@@ -3,7 +3,7 @@ import AgentManager from '../../agent/AgentManager.js';
 import fs from 'fs';
 import {glob} from 'glob';
 import PlanProcessor from '../../core/utils/PlanProcessor.js';
-import { SystemCommands } from '../../core/system/SystemCommands.js';
+import {SystemCommands} from '../../core/system/SystemCommands.js';
 
 vi.mock('../../core/utils/PlanProcessor.js');
 

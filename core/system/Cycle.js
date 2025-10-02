@@ -1,22 +1,9 @@
-import {
-    debug,
-    info
-} from '../utils/logger.js';
-import {
-    createUnifiedErrorHandler
-} from '../utils/errorHandler.js';
-import {
-    wrapAsync
-} from '../utils/asyncWrapper.js';
-import {
-    configService
-} from '../config/index.js';
-import {
-    SystemCommands
-} from './SystemCommands.js';
-import {
-    SystemEvents
-} from './SystemEvents.js';
+import {debug, info} from '../utils/logger.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
+import {wrapAsync} from '../utils/asyncWrapper.js';
+import {configService} from '../config/index.js';
+import {SystemCommands} from './SystemCommands.js';
+import {SystemEvents} from './SystemEvents.js';
 
 const errorHandler = createUnifiedErrorHandler('Cycle');
 

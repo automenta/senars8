@@ -19,7 +19,8 @@ describe('Refactored Test Utilities - Example Usage', () => {
     let warnSpy;
 
     beforeEach(() => {
-        warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+        warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {
+        });
     });
 
     afterEach(() => {

@@ -6,7 +6,7 @@
  * return await errorHandler.execute(async () => { ... });
  */
 
-import { error as serverError } from '../../core/utils/logger.js';
+import {error as serverError} from '../../core/utils/logger.js';
 
 /**
  * Executes an async function with try-catch error handling for WebSocket communication.
@@ -24,7 +24,7 @@ export const executeAsync = async (asyncFn, ws, operationName = 'operation') => 
         serverError(errorMessage, error);
         ws.send(JSON.stringify({
             type: 'error',
-            payload: { message: errorMessage }
+            payload: {message: errorMessage}
         }));
     }
 };
@@ -38,7 +38,7 @@ export const executeAsync = async (asyncFn, ws, operationName = 'operation') => 
  * @param {Function} options.formatError - Custom function to format error response
  */
 export const executeAsyncCustom = async (asyncFn, ws, options = {}) => {
-    const { operationName = 'operation', formatError } = options;
+    const {operationName = 'operation', formatError} = options;
 
     try {
         return await asyncFn();
@@ -49,7 +49,7 @@ export const executeAsyncCustom = async (asyncFn, ws, options = {}) => {
         // Use inline formatting when no custom formatter is provided to reduce function calls
         const errorResponse = formatError
             ? formatError(error, errorMessage)
-            : { type: 'error', payload: { message: errorMessage } };
+            : {type: 'error', payload: {message: errorMessage}};
 
         ws.send(JSON.stringify(errorResponse));
     }
@@ -67,7 +67,7 @@ export const executeFileOperation = async (asyncFn, ws, operationName) => {
         serverError(errorMessage, error);
         ws.send(JSON.stringify({
             type: 'error',
-            payload: { message: errorMessage }
+            payload: {message: errorMessage}
         }));
     }
 };
@@ -84,7 +84,7 @@ export const executeCommandOperation = async (asyncFn, ws, operationName) => {
         // Direct response format for command operations to avoid function call overhead
         ws.send(JSON.stringify({
             type: 'commandOutput',
-            payload: { stdout: '', stderr: error.message }
+            payload: {stdout: '', stderr: error.message}
         }));
     }
 };
@@ -102,7 +102,7 @@ export const executeWithDefaultError = async (asyncFn, ws, errorMessage = 'Opera
         serverError(errorMessage, error);
         ws.send(JSON.stringify({
             type: 'error',
-            payload: { message: `${errorMessage}: ${error.message}` }
+            payload: {message: `${errorMessage}: ${error.message}`}
         }));
     }
 };

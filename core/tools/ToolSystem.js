@@ -4,10 +4,9 @@
  * file operations, command execution, and multi-modal processing
  */
 
-import { EventEmitter } from 'events';
-import { debug, error as logError, info, warn } from '../utils/logger.js';
-import { createUnifiedErrorHandler } from '../utils/errorHandler.js';
-import { SystemCommands } from '../system/SystemCommands.js';
+import {EventEmitter} from 'events';
+import {debug, error as logError, info} from '../utils/logger.js';
+import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 
 const errorHandler = createUnifiedErrorHandler('ToolSystem');
 
@@ -54,11 +53,11 @@ class ToolSystem extends EventEmitter {
             parameters: {
                 type: 'object',
                 properties: {
-                    url: { type: 'string', description: 'URL to navigate to' },
-                    waitFor: { type: 'string', description: 'Selector to wait for' },
-                    timeout: { type: 'number', description: 'Timeout in milliseconds', default: 30000 },
-                    takeScreenshot: { type: 'boolean', description: 'Take a screenshot', default: true },
-                    extractText: { type: 'boolean', description: 'Extract page text', default: true }
+                    url: {type: 'string', description: 'URL to navigate to'},
+                    waitFor: {type: 'string', description: 'Selector to wait for'},
+                    timeout: {type: 'number', description: 'Timeout in milliseconds', default: 30000},
+                    takeScreenshot: {type: 'boolean', description: 'Take a screenshot', default: true},
+                    extractText: {type: 'boolean', description: 'Extract page text', default: true}
                 },
                 required: ['url']
             },
@@ -72,9 +71,9 @@ class ToolSystem extends EventEmitter {
             parameters: {
                 type: 'object',
                 properties: {
-                    selector: { type: 'string', description: 'CSS selector of element to click' },
-                    waitForNavigation: { type: 'boolean', description: 'Wait for navigation', default: false },
-                    timeout: { type: 'number', description: 'Timeout in milliseconds', default: 10000 }
+                    selector: {type: 'string', description: 'CSS selector of element to click'},
+                    waitForNavigation: {type: 'boolean', description: 'Wait for navigation', default: false},
+                    timeout: {type: 'number', description: 'Timeout in milliseconds', default: 10000}
                 },
                 required: ['selector']
             },
@@ -88,14 +87,14 @@ class ToolSystem extends EventEmitter {
             parameters: {
                 type: 'object',
                 properties: {
-                    url: { type: 'string', description: 'URL of the page with the form' },
+                    url: {type: 'string', description: 'URL of the page with the form'},
                     fields: {
                         type: 'object',
                         description: 'Object with field names as keys and values to fill',
-                        additionalProperties: { type: 'string' }
+                        additionalProperties: {type: 'string'}
                     },
-                    submitSelector: { type: 'string', description: 'CSS selector for submit button' },
-                    waitForNavigation: { type: 'boolean', description: 'Wait for navigation after submit', default: true }
+                    submitSelector: {type: 'string', description: 'CSS selector for submit button'},
+                    waitForNavigation: {type: 'boolean', description: 'Wait for navigation after submit', default: true}
                 },
                 required: ['url', 'fields']
             },
@@ -110,9 +109,9 @@ class ToolSystem extends EventEmitter {
             parameters: {
                 type: 'object',
                 properties: {
-                    path: { type: 'string', description: 'File path to read' },
-                    encoding: { type: 'string', description: 'File encoding', default: 'utf8' },
-                    maxSize: { type: 'number', description: 'Maximum file size in bytes', default: 10 * 1024 * 1024 }
+                    path: {type: 'string', description: 'File path to read'},
+                    encoding: {type: 'string', description: 'File encoding', default: 'utf8'},
+                    maxSize: {type: 'number', description: 'Maximum file size in bytes', default: 10 * 1024 * 1024}
                 },
                 required: ['path']
             },
@@ -126,11 +125,11 @@ class ToolSystem extends EventEmitter {
             parameters: {
                 type: 'object',
                 properties: {
-                    path: { type: 'string', description: 'File path to write' },
-                    content: { type: 'string', description: 'Content to write' },
-                    encoding: { type: 'string', description: 'File encoding', default: 'utf8' },
-                    backup: { type: 'boolean', description: 'Create backup of existing file', default: true },
-                    validateSyntax: { type: 'boolean', description: 'Validate syntax for code files', default: true }
+                    path: {type: 'string', description: 'File path to write'},
+                    content: {type: 'string', description: 'Content to write'},
+                    encoding: {type: 'string', description: 'File encoding', default: 'utf8'},
+                    backup: {type: 'boolean', description: 'Create backup of existing file', default: true},
+                    validateSyntax: {type: 'boolean', description: 'Validate syntax for code files', default: true}
                 },
                 required: ['path', 'content']
             },
@@ -144,7 +143,7 @@ class ToolSystem extends EventEmitter {
             parameters: {
                 type: 'object',
                 properties: {
-                    path: { type: 'string', description: 'File path to edit' },
+                    path: {type: 'string', description: 'File path to edit'},
                     operations: {
                         type: 'array',
                         description: 'Array of edit operations',
@@ -156,14 +155,14 @@ class ToolSystem extends EventEmitter {
                                     enum: ['replace', 'insert', 'delete'],
                                     description: 'Type of edit operation'
                                 },
-                                target: { type: 'string', description: 'Text to find or position' },
-                                content: { type: 'string', description: 'Content for insert/replace operations' },
-                                regex: { type: 'boolean', description: 'Use regex for target matching', default: false }
+                                target: {type: 'string', description: 'Text to find or position'},
+                                content: {type: 'string', description: 'Content for insert/replace operations'},
+                                regex: {type: 'boolean', description: 'Use regex for target matching', default: false}
                             },
                             required: ['type', 'target']
                         }
                     },
-                    backup: { type: 'boolean', description: 'Create backup before editing', default: true }
+                    backup: {type: 'boolean', description: 'Create backup before editing', default: true}
                 },
                 required: ['path', 'operations']
             },
@@ -178,23 +177,23 @@ class ToolSystem extends EventEmitter {
             parameters: {
                 type: 'object',
                 properties: {
-                    command: { type: 'string', description: 'Command to execute' },
+                    command: {type: 'string', description: 'Command to execute'},
                     args: {
                         type: 'array',
-                        items: { type: 'string' },
+                        items: {type: 'string'},
                         description: 'Command arguments',
                         default: []
                     },
-                    cwd: { type: 'string', description: 'Working directory' },
-                    timeout: { type: 'number', description: 'Timeout in milliseconds', default: 30000 },
+                    cwd: {type: 'string', description: 'Working directory'},
+                    timeout: {type: 'number', description: 'Timeout in milliseconds', default: 30000},
                     env: {
                         type: 'object',
                         description: 'Environment variables',
-                        additionalProperties: { type: 'string' }
+                        additionalProperties: {type: 'string'}
                     },
                     allowedCommands: {
                         type: 'array',
-                        items: { type: 'string' },
+                        items: {type: 'string'},
                         description: 'Allowed commands (security override)'
                     }
                 },
@@ -211,14 +210,14 @@ class ToolSystem extends EventEmitter {
             parameters: {
                 type: 'object',
                 properties: {
-                    path: { type: 'string', description: 'Path to PDF file' },
-                    extractText: { type: 'boolean', description: 'Extract text content', default: true },
-                    extractImages: { type: 'boolean', description: 'Extract images', default: false },
+                    path: {type: 'string', description: 'Path to PDF file'},
+                    extractText: {type: 'boolean', description: 'Extract text content', default: true},
+                    extractImages: {type: 'boolean', description: 'Extract images', default: false},
                     pageRange: {
                         type: 'object',
                         properties: {
-                            start: { type: 'number', description: 'Start page (1-indexed)' },
-                            end: { type: 'number', description: 'End page (1-indexed)' }
+                            start: {type: 'number', description: 'Start page (1-indexed)'},
+                            end: {type: 'number', description: 'End page (1-indexed)'}
                         }
                     }
                 },
@@ -234,10 +233,10 @@ class ToolSystem extends EventEmitter {
             parameters: {
                 type: 'object',
                 properties: {
-                    path: { type: 'string', description: 'Path to image file' },
-                    performOCR: { type: 'boolean', description: 'Perform OCR text extraction', default: true },
-                    analyzeContent: { type: 'boolean', description: 'Analyze image content', default: true },
-                    detectObjects: { type: 'boolean', description: 'Detect objects in image', default: false }
+                    path: {type: 'string', description: 'Path to image file'},
+                    performOCR: {type: 'boolean', description: 'Perform OCR text extraction', default: true},
+                    analyzeContent: {type: 'boolean', description: 'Analyze image content', default: true},
+                    detectObjects: {type: 'boolean', description: 'Detect objects in image', default: false}
                 },
                 required: ['path']
             },
@@ -252,7 +251,7 @@ class ToolSystem extends EventEmitter {
             parameters: {
                 type: 'object',
                 properties: {
-                    url: { type: 'string', description: 'Request URL' },
+                    url: {type: 'string', description: 'Request URL'},
                     method: {
                         type: 'string',
                         enum: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
@@ -262,11 +261,11 @@ class ToolSystem extends EventEmitter {
                     headers: {
                         type: 'object',
                         description: 'Request headers',
-                        additionalProperties: { type: 'string' }
+                        additionalProperties: {type: 'string'}
                     },
-                    body: { type: 'string', description: 'Request body' },
-                    timeout: { type: 'number', description: 'Timeout in milliseconds', default: 30000 },
-                    maxRedirects: { type: 'number', description: 'Maximum redirects', default: 5 }
+                    body: {type: 'string', description: 'Request body'},
+                    timeout: {type: 'number', description: 'Timeout in milliseconds', default: 30000},
+                    maxRedirects: {type: 'number', description: 'Maximum redirects', default: 5}
                 },
                 required: ['url']
             },
@@ -275,7 +274,7 @@ class ToolSystem extends EventEmitter {
     }
 
     registerTool(toolConfig) {
-        const { name, category, description, parameters, handler } = toolConfig;
+        const {name, category, description, parameters, handler} = toolConfig;
 
         if (!name || !handler) {
             throw new Error('Tool must have name and handler');
@@ -285,7 +284,7 @@ class ToolSystem extends EventEmitter {
             name,
             category: category || 'general',
             description: description || '',
-            parameters: parameters || { type: 'object', properties: {} },
+            parameters: parameters || {type: 'object', properties: {}},
             handler,
             createdAt: Date.now(),
             usageCount: 0,
@@ -543,7 +542,7 @@ class ToolSystem extends EventEmitter {
         stats.mostUsedTools = Array.from(toolUsage.entries())
             .sort((a, b) => b[1] - a[1])
             .slice(0, 10)
-            .map(([toolName, count]) => ({ toolName, count }));
+            .map(([toolName, count]) => ({toolName, count}));
 
         return stats;
     }
@@ -553,7 +552,7 @@ class ToolSystem extends EventEmitter {
 
         // Cancel active executions
         for (const [executionId, execution] of this.activeExecutions) {
-            this.emit('execution:cancelled', { executionId, toolName: execution.toolName });
+            this.emit('execution:cancelled', {executionId, toolName: execution.toolName});
         }
 
         this.activeExecutions.clear();
