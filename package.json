@@ -19,9 +19,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "start": "node agent/server.js",
-    "dev": "node agent/server.js --dev",
-    "tui": "node agent/server.js --tui",
+    "start": "node agent.js",
+    "dev": "node ui.js",
+    "tui": "node tui.js",
     "test": "ORT_LOGGING_LEVEL=FATAL vitest --run --silent",
     "test:ui": "ORT_LOGGING_LEVEL=FATAL vitest --ui --silent",
     "lint": "eslint core agent tests",

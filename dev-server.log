@@ -1,0 +1,3 @@
+
+> senars@1.1.0 dev
+> node agent/server.js --dev

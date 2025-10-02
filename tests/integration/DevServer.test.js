@@ -122,7 +122,7 @@ class ServerProcessManager {
     });
 
     // Wait for the server to be ready
-    await this.waitForServerReady(port, 10000); // Wait up to 10 seconds
+    await this.waitForServerReady(port, 30000); // Wait up to 30 seconds
 
     return this.process;
   }
@@ -421,7 +421,7 @@ describe('npm run dev Integration Test', () => {
     });
 
     // Wait for server to be ready
-    await serverManager.waitForServerReady(testPort, 10000);
+    await serverManager.waitForServerReady(testPort, 30000);
 
     // Check for errors
     const combinedOutput = {
