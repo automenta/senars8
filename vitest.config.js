@@ -18,7 +18,6 @@ export default defineConfig({
         globals: true,
         testTimeout: 300000,
         teardownTimeout: 300000,
-        setupFiles: ['./tests/setup.js'], // Global setup file
         projects: [
             {
                 name: 'core',
@@ -32,7 +31,6 @@ export default defineConfig({
                         'tests/system/**/*.test.js',
                         'tests/demos/**/*.test.js',
                     ],
-                    setupFiles: ['./tests/setup.js'],
                 },
                 resolve: {
                     alias: {

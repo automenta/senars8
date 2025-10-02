@@ -1,3 +1,6 @@
+import { suppressOnnxWarnings } from './core/utils/onnxSuppression.js';
+suppressOnnxWarnings();
+
 import {Agent} from './agent/index.js';
 import TUIApplication from './tui/src/Application.js';
 import WebUI from './ui/src/WebUI.js';
