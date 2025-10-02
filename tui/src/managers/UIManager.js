@@ -11,7 +11,7 @@ import {createHelpBox} from '../components/HelpBox.js';
 import {createDetailBox} from '../components/DetailBox.js';
 import {getBeliefsBoxConfig} from '../components/BeliefsBox.js';
 import {commandDefinitions} from '../services/commandHandler.js';
-import {EMOJIS, STYLES} from '@common/constants/tui.js';
+import {EMOJIS, STYLES} from '@senars/common/constants/tui.js';
 
 export default class UIManager {
     constructor(stateManager) {

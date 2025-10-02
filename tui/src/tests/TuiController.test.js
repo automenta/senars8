@@ -1,7 +1,7 @@
 import {TuiController} from '../TuiController.js';
-import ApiService from '@common/services/ApiService.js';
+import ApiService from '@senars/common/services/ApiService.js';
 
-vi.mock('@common/services/ApiService.js', () => {
+vi.mock('@senars/common/services/ApiService.js', () => {
     const EventEmitter = require('events');
 
     class MockApiService extends EventEmitter {
