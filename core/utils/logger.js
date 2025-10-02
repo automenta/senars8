@@ -5,7 +5,11 @@ const log = (level, color, message, ...args) => {
     console.log(`${chalk.gray(timestamp)} ${color(level.padEnd(5))} ${message}`, ...args);
 };
 
-export const info = (message, ...args) => log('INFO', chalk.blue, message, ...args);
+export const info = (message, ...args) => {
+    if (process.env.NODE_ENV !== 'test') {
+        log('INFO', chalk.blue, message, ...args);
+    }
+};
 export const warn = (message, ...args) => log('WARN', chalk.yellow, message, ...args);
 export const error = (message, ...args) => log('ERROR', chalk.red, message, ...args);
 export const debug = (message, ...args) => {

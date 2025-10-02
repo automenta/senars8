@@ -24,7 +24,7 @@ async function enhancedPerceptionDemo(options = {}) {
             // Register a modality for raw text input
             system.perception.registerSensoryModality('text', async (input) => {
                 // A simple processor that creates a belief from the text content.
-                const term = parseTerm(`<${input}>.`);
+                const term = parseTerm(`"${input}"`);
                 return [new Task(term, '.', {frequency: 1.0, confidence: 0.9})];
             });
         },

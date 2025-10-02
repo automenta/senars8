@@ -31,6 +31,7 @@ export default defineConfig({
                         'tests/system/**/*.test.js',
                         'tests/demos/**/*.test.js',
                     ],
+                    setupFiles: ['./tests/setup.js'],
                 },
                 resolve: {
                     alias: {

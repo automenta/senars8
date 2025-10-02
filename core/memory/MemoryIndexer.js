@@ -174,6 +174,16 @@ class MemoryIndexer {
         }
 
         // Apply other filters sequentially using for loops for better performance
+        if (filters.term) {
+            const result = [];
+            for (let i = 0; i < filteredTasks.length; i++) {
+                if (filteredTasks[i].term.key.includes(filters.term)) {
+                    result.push(filteredTasks[i]);
+                }
+            }
+            filteredTasks = result;
+        }
+
         if (filters.termKey) {
             const result = [];
             for (let i = 0; i < filteredTasks.length; i++) {

@@ -23,20 +23,6 @@ async function nlpIntegrationDemo(options = {}) {
         "Find out why the sky is blue."
     ];
 
-    const {system, commandBus} = createTestSystem();
-
-    commandBus.request.mockImplementation(async (command, payload) => {
-        if (command === SystemCommands.LM_NLP_PARSE) {
-            // Return a mock task for the demo to process
-            return [new Task(`<${payload.replace(/\s/g, '_')}>.`)];
-        }
-        if (command === SystemCommands.MEMORY_GET_ALL_TASKS) {
-            return await system.introspection.queryTasks({});
-        }
-        return null;
-    });
-
-
     const defaultOptions = {
         cycleCount: 2,
         preCycleCallback: async (sys) => {
@@ -61,7 +47,7 @@ async function nlpIntegrationDemo(options = {}) {
     };
 
     // Merge options with defaults
-    const mergedOptions = {...defaultOptions, ...options, system};
+    const mergedOptions = {...defaultOptions, ...options};
 
     // Run the demo using the shared utility
     return await runSystem('NLP Integration Demo', [], mergedOptions);
