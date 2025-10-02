@@ -12,4 +12,9 @@ export default defineConfig({
             '@common': path.resolve(__dirname, '../common'),
         },
     },
+    test: {
+        globals: true,
+        environment: 'jsdom',
+        setupFiles: './vitest.setup.js',
+    },
 });

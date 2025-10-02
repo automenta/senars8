@@ -1,0 +1,102 @@
+[
+  {
+    "id": "advanced-hypothesis-generation",
+    "name": "Advanced Hypothesis Generation",
+    "path": "tests/demos/advanced-hypothesis-generation-demo.js"
+  },
+  {
+    "id": "advanced-lm",
+    "name": "Advanced Lm",
+    "path": "tests/demos/advanced-lm-demo.js"
+  },
+  {
+    "id": "advanced-truth-value-revision",
+    "name": "Advanced Truth Value Revision",
+    "path": "tests/demos/advanced-truth-value-revision-demo.js"
+  },
+  {
+    "id": "analyzer",
+    "name": "Analyzer",
+    "path": "tests/demos/analyzer-demo.js"
+  },
+  {
+    "id": "basic",
+    "name": "Basic",
+    "path": "tests/demos/basic-demo.js"
+  },
+  {
+    "id": "comprehensive-action",
+    "name": "Comprehensive Action",
+    "path": "tests/demos/comprehensive-action-demo.js"
+  },
+  {
+    "id": "comprehensive-contradiction",
+    "name": "Comprehensive Contradiction",
+    "path": "tests/demos/comprehensive-contradiction-demo.js"
+  },
+  {
+    "id": "comprehensive-system",
+    "name": "Comprehensive System",
+    "path": "tests/demos/comprehensive-system-demo.js"
+  },
+  {
+    "id": "debug-contradictions",
+    "name": "Debug Contradictions",
+    "path": "tests/demos/debug-contradictions-demo.js"
+  },
+  {
+    "id": "enhanced-narsese",
+    "name": "Enhanced Narsese",
+    "path": "tests/demos/enhanced-narsese-demo.js"
+  },
+  {
+    "id": "enhanced-perception",
+    "name": "Enhanced Perception",
+    "path": "tests/demos/enhanced-perception-demo.js"
+  },
+  {
+    "id": "enhanced-temporal-reasoning",
+    "name": "Enhanced Temporal Reasoning",
+    "path": "tests/demos/enhanced-temporal-reasoning-demo.js"
+  },
+  {
+    "id": "extended-inference-rules",
+    "name": "Extended Inference Rules",
+    "path": "tests/demos/extended-inference-rules-demo.js"
+  },
+  {
+    "id": "forgetting-mechanism",
+    "name": "Forgetting Mechanism",
+    "path": "tests/demos/forgetting-mechanism-demo.js"
+  },
+  {
+    "id": "library-usage",
+    "name": "Library Usage",
+    "path": "tests/demos/library-usage-demo.js"
+  },
+  {
+    "id": "math-inference",
+    "name": "Math Inference",
+    "path": "tests/demos/math-inference-demo.js"
+  },
+  {
+    "id": "nlp-integration",
+    "name": "Nlp Integration",
+    "path": "tests/demos/nlp-integration-demo.js"
+  },
+  {
+    "id": "procedural-learning",
+    "name": "Procedural Learning",
+    "path": "tests/demos/procedural-learning-demo.js"
+  },
+  {
+    "id": "showcase",
+    "name": "Showcase",
+    "path": "tests/demos/showcase-demo.js"
+  },
+  {
+    "id": "strategy-comparison",
+    "name": "Strategy Comparison",
+    "path": "tests/demos/strategy-comparison-demo.js"
+  }
+]

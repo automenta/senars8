@@ -1,0 +1,8 @@
+
+> senars@1.1.0 predev
+> node scripts/generate-demo-list.cjs
+
+Successfully generated demo list at /app/ui/src/generated/demos.json
+
+> senars@1.1.0 dev
+> concurrently "node agent/server.js" "npm run dev --prefix ui"

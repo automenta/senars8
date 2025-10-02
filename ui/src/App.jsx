@@ -4,6 +4,7 @@ import 'flexlayout-react/style/light.css';
 import panelRegistry from '@/features/panelRegistry';
 import {ErrorBoundary} from '@ui/components';
 import Header from '@ui/components/Header';
+import Sidebar from '@/components/Sidebar/Sidebar';
 import StatusBar from '@ui/components/StatusBar';
 import useAppInit from '@/hooks/useAppInit';
 import useLayoutModel from '@/hooks/useLayoutModel';
@@ -32,14 +33,17 @@ function App() {
             <SearchProvider>
                 <div className="app-container" data-theme={theme}>
                     <Header/>
-                    <main className="app-main" role="main">
-                        <Layout
-                            model={model}
-                            factory={factory}
-                            onModelChange={onModelChange}
-                            className="app-layout"
-                        />
-                    </main>
+                    <div className="app-body">
+                        <Sidebar model={model} onModelChange={onModelChange} />
+                        <main className="app-main" role="main">
+                            <Layout
+                                model={model}
+                                factory={factory}
+                                onModelChange={onModelChange}
+                                className="app-layout"
+                            />
+                        </main>
+                    </div>
                     <StatusBar/>
                 </div>
             </SearchProvider>

@@ -38,9 +38,13 @@ vi.mock('flexlayout-react', () => ({
         fromJson: vi.fn(() => ({
             visitNodes: vi.fn(),
             getId: vi.fn(),
-            getType: vi.fn(() => 'tab')
-        }))
-    }
+            getType: vi.fn(() => 'tab'),
+            doAction: vi.fn(),
+        })),
+    },
+    Actions: {
+        addNode: vi.fn(),
+    },
 }));
 
 vi.mock('react-force-graph-2d', () => ({

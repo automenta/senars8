@@ -17,6 +17,7 @@ import {
     handleSearch,
     handleTaskAction
 } from './api/agent.js';
+import { handleRunDemo } from './api/demo.js';
 
 export const createMessageHandler = (agentManager, broadcast) => {
     const agent = agentManager.getAgent();
@@ -36,6 +37,7 @@ export const createMessageHandler = (agentManager, broadcast) => {
         // Agent
         narsese: (payload, ws) => handleNarsese(payload, ws, agent, broadcast),
         agentControl: (payload, ws) => handleAgentControl(payload, ws, agentManager, broadcast),
+        runDemo: (payload, ws) => handleRunDemo(payload, ws),
         get_tasks: (payload, ws) => handleGetTasks(payload, ws, agent),
         task_action: (payload, ws) => handleTaskAction(payload, ws, agent, broadcast),
         add_task: (payload, ws) => handleAddTask(payload, ws, agent, broadcast),

@@ -19,6 +19,7 @@
   ],
   "scripts": {
     "start": "node agent/server.js",
+    "predev": "node scripts/generate-demo-list.cjs",
     "dev": "concurrently \"node agent/server.js\" \"npm run dev --prefix ui\"",
     "tui": "npm start --prefix tui",
     "test": "ORT_LOGGING_LEVEL=FATAL vitest --run --silent",
