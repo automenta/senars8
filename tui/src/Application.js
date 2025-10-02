@@ -68,8 +68,12 @@ class Application {
     }
 
     async addTask(task) {
-        // Send tasks to the agent via the API service
-        this.apiService.sendNarsese(task);
+        // Send tasks to the agent via the API service with error handling
+        try {
+            await this.apiService.sendNarsese(task);
+        } catch (error) {
+            this.logger.error('Failed to add task:', task, error.message);
+        }
         this.logger.debug('Adding task:', task);
     }
 }
