@@ -19,7 +19,7 @@ class AgentService extends ApiService {
         this.awareness = null;
 
         // Override logger namespace for UI-specific context
-        this.logger = log.createNamespace('AgentServiceUI');
+        this.logger = log.create('AgentServiceUI');
 
         // Hook into the connection status to manage collaborative editing
         this.on('status', (status) => {

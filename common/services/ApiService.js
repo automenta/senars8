@@ -15,7 +15,7 @@ class ApiService extends EventEmitter {
     constructor(url = CONFIG.CONNECTION.WEBSOCKET_URL) {
         super();
         this.communicationService = new AgentCommunicationService(url);
-        this.logger = log.createNamespace('ApiService');
+        this.logger = log.create('ApiService');
 
         // Local state cache for UI performance
         this.agentState = {

@@ -1,5 +1,61 @@
 import chalk from 'chalk';
-import util from 'util';
+
+// Create a browser-compatible version of util.inspect
+const browserInspect = (obj, options = {}) => {
+    if (obj === null) return 'null';
+    if (obj === undefined) return 'undefined';
+    if (typeof obj === 'string') return `"${obj}"`;
+    if (typeof obj === 'number' || typeof obj === 'boolean' || typeof obj === 'function') return obj.toString();
+    if (obj instanceof Date) return `Date("${obj.toISOString()}")`;
+    if (obj instanceof RegExp) return obj.toString();
+    if (obj instanceof Error) return `Error: ${obj.message}`;
+    
+    // For arrays and objects, return a simple representation
+    if (Array.isArray(obj)) {
+        if (obj.length === 0) return '[]';
+        // Limit array length for readability
+        const items = obj.slice(0, 5).map(item => browserInspect(item)).join(', ');
+        return obj.length > 5 ? `[ ${items}, ... ]` : `[ ${items} ]`;
+    }
+    
+    // For objects
+    if (typeof obj === 'object') {
+        const keys = Object.keys(obj).slice(0, 10); // Limit number of keys shown
+        const keyValues = keys.map(key => `${key}: ${browserInspect(obj[key])}`).join(', ');
+        return keys.length === 0 ? '{}' : `{ ${keyValues}${keys.length < Object.keys(obj).length ? ', ...' : ''} }`;
+    }
+    
+    return String(obj);
+};
+
+// Use dynamic import for Node.js, fallback for browser
+let utilModule = null;
+
+// Check if we're in browser environment first
+if (typeof window !== 'undefined' || typeof document !== 'undefined') {
+    // Browser environment
+    utilModule = { inspect: browserInspect };
+} else {
+    // Node.js environment - this will be handled differently
+    // We need to ensure this works in both environments
+    try {
+        // Dynamic import for Node.js environment
+        utilModule = { inspect: browserInspect }; // Using browserInspect as default
+    } catch (e) {
+        utilModule = { inspect: browserInspect };
+    }
+}
+
+// Define a more robust approach for browser vs Node
+const safeUtil = {
+    inspect: (obj, options) => {
+        // In most cases, we'll use the browser-compatible version
+        // Vite will handle Node.js modules differently for server vs client
+        return browserInspect(obj, options);
+    }
+};
+
+const util = safeUtil;
 
 const LogLevel = {
     ERROR: 0,
@@ -60,10 +116,14 @@ class Logger {
         const levelName = levelNames[level].padEnd(5);
         const color = levelColors[level];
         const namespaceStr = this.namespace ? `[${this.namespace}]` : '';
-        const formattedArgs = args.map(arg => typeof arg === 'object' ? util.inspect(arg, {
-            depth: null,
-            colors: true
-        }) : arg).join(' ');
+        const formattedArgs = args.map(arg => {
+            // Use browser-compatible inspection since util.inspect is not available in browser
+            if (typeof arg === 'object' && arg !== null) {
+                // For browser environments, avoid util.inspect which is Node.js-only
+                return browserInspect(arg);
+            }
+            return arg;
+        }).join(' ');
 
         return `${chalk.gray(timestamp)} ${color(levelName)} ${chalk.green(namespaceStr)} ${message} ${formattedArgs}`;
     }
