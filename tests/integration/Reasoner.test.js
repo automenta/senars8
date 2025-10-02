@@ -1,62 +1,66 @@
-import Reasoner from '../../src/reasoner/Reasoner.js';
-import Memory from '../../src/memory/Memory.js';
-import Task from '../../src/core/Task.js';
-import Term from '../../src/core/Term.js';
-import {parseTerm} from '../../src/parser/narseseParser.js';
-import LM from '../../src/lm/LM.js';
+import {beforeEach, describe, expect, test, vi} from 'vitest';
+import Task from '../../core/core/Task.js';
+import Term from '../../core/core/Term.js';
+import {parseTerm} from '../../core/parser/narseseParser.js';
+import {createTestConfig, setupTestEnvironment} from '../test-helpers.js';
+import {SystemCommands} from '../../core/system/SystemCommands.js';
 
-jest.mock('../../src/lm/LM.js');
-jest.mock('@xenova/transformers', () => {
-    const transformers = jest.createMockFromModule('@xenova/transformers');
-    transformers.pipeline = jest.fn(async () => {
-        return jest.fn(() => ({
+vi.mock('@xenova/transformers', () => ({
+    pipeline: vi.fn(async () =>
+        vi.fn(() => ({
             data: new Float32Array([1, 2, 3])
-        }));
+        }))
+    ),
+    env: {},
+}));
+
+const createTerm = async (commandBus, memory, termKey) => {
+    const term = await commandBus.request(SystemCommands.LM_BOOTSTRAP_TERM, {termKey});
+    await memory.addTerm(term);
+    return term;
+};
+
+// Local helper to set up command bus mock for system
+const setupCommandBusMock = (commandBus) => {
+    commandBus.request.mockImplementation(async (command, payload) => {
+        if (command === SystemCommands.LM_BOOTSTRAP_TERM) {
+            return new Term(payload.termKey, [], 1);
+        }
+        return null;
     });
-    return transformers;
-});
+};
 
 describe('Reasoner Integration Test', () => {
-    let reasoner, memory, lm;
+    let system, reasoner, memory, commandBus;
 
     beforeEach(() => {
-        // Use BruteForceStrategy for deterministic test results by passing a config override
-        reasoner = new Reasoner({}, {strategy: 'BruteForce'});
-        memory = new Memory();
-        lm = new LM();
+        const testEnv = setupTestEnvironment(createTestConfig());
+        system = testEnv.system;
+        reasoner = system.reasoner;
+        memory = testEnv.container.get('memory'); // Get memory from container
+        commandBus = testEnv.commandBus;
 
-        lm.bootstrapTerm.mockImplementation(async termKey => {
-            return new Term(termKey, [], 1);
-        });
+        setupCommandBusMock(commandBus);
     });
 
     test('should perform modus ponens', async () => {
-        const termA = await lm.bootstrapTerm('cat');
-        const termB = await lm.bootstrapTerm('mammal');
-        memory.addTerm(termA);
-        memory.addTerm(termB);
+        const termA = await createTerm(commandBus, memory, 'cat');
+        await createTerm(commandBus, memory, 'mammal');
+        const task1 = new Task(parseTerm('(cat ==> mammal)'), '.');
+        const task2 = new Task(termA, '.');
 
-        const task1 = new Task(parseTerm('(cat ==> mammal)'), '.', {}, {});
-        const task2 = new Task(termA, '.', {}, {});
-
-        const derivedTasks = reasoner.performInference([task1, task2]);
-        const derivedTask = derivedTasks.find(t => t.termKey === 'mammal');
-        expect(derivedTask).toBeDefined();
+        const derivedTasks = await reasoner.performInference([task1, task2]);
+        expect(derivedTasks.some(t => t.termKey === 'mammal')).toBe(true);
     });
 
     test('should perform inheritance chaining', async () => {
-        const termA = await lm.bootstrapTerm('cat');
-        const termB = await lm.bootstrapTerm('mammal');
-        const termC = await lm.bootstrapTerm('animal');
-        memory.addTerm(termA);
-        memory.addTerm(termB);
-        memory.addTerm(termC);
-
+        await createTerm(commandBus, memory, 'cat');
+        await createTerm(commandBus, memory, 'mammal');
+        await createTerm(commandBus, memory, 'animal');
         const task1 = new Task(parseTerm('(cat --> mammal)'), '.');
         const task2 = new Task(parseTerm('(mammal --> animal)'), '.');
 
-        const derivedTasks = reasoner.performInference([task1, task2]);
-        const derivedTask = derivedTasks.find(t => t.termKey === '(cat --> animal)');
-        expect(derivedTask).toBeDefined();
+        const derivedTasks = await reasoner.performInference([task1, task2]);
+        expect(derivedTasks.some(t => t.termKey === '(cat --> animal)')).toBe(true);
     });
 });

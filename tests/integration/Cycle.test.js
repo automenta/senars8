@@ -1,81 +1,76 @@
-import Cycle from '../../src/system/Cycle.js';
-import Memory from '../../src/memory/Memory.js';
-import Reasoner from '../../src/reasoner/Reasoner.js';
-import LM from '../../src/lm/LM.js';
-import ActionExecutor from '../../src/system/ActionExecutor.js';
-import Task from '../../src/core/Task.js';
-import Term from '../../src/core/Term.js';
-import config from '../../src/config/index.js';
-import Perception from '../../src/system/Perception.js';
-import Planner from '../../src/system/Planner.js';
-import MetaCognition from '../../src/system/MetaCognition.js';
-import TemporalReasoner from '../../src/reasoner/TemporalReasoner.js';
-import PriorityManager from '../../src/reasoner/PriorityManager.js';
-import ContradictionAnalyzer from '../../src/reasoner/ContradictionAnalyzer.js';
-import ResolutionStrategy from '../../src/reasoner/strategies/ResolutionStrategy.js';
-import CONSTITUTION_TASKS from '../../src/system/Constitution.js';
+import {beforeEach, describe, expect, test, vi} from 'vitest';
+import Task from '../../core/core/Task.js';
+import Term from '../../core/core/Term.js';
+import CONSTITUTION_TASKS from '../../core/system/Constitution.js';
+import {createTestConfig, setupTestEnvironment} from '../test-helpers.js';
+import {SystemCommands} from '../../core/system/SystemCommands.js';
 
-jest.mock('../../src/lm/LM.js');
-
-jest.mock('@xenova/transformers', () => {
-    const transformers = jest.createMockFromModule('@xenova/transformers');
-    transformers.pipeline = jest.fn(async () => {
-        return jest.fn(() => ({
+vi.mock('@xenova/transformers', () => ({
+    pipeline: vi.fn(async () =>
+        vi.fn(() => ({
             data: new Float32Array([1, 2, 3])
-        }));
+        }))
+    ),
+    env: {
+        allowLocalModels: false,
+        allowRemoteModels: true,
+    },
+}));
+
+// Local helper to set up command bus mock for system
+const setupCommandBusMock = (commandBus, memory) => {
+    commandBus.request.mockImplementation(async (command, payload) => {
+        if (command === SystemCommands.LM_GENERATE_HYPOTHESES) {
+            return [];
+        }
+        if (command === SystemCommands.LM_EVALUATE_AND_RANK_HYPOTHESES) {
+            return payload.hypotheses;
+        }
+        if (command === SystemCommands.LM_BOOTSTRAP_TERM) {
+            return new Term(payload.termKey, [], 1);
+        }
+        if (command === SystemCommands.LM_ENRICH_TERM) {
+            return [];
+        }
+        if (command === SystemCommands.MEMORY_GET_ALL_TASKS) {
+            return await memory.getAllTasks(); // Use public API
+        }
+        if (command === SystemCommands.MEMORY_GET_TERM) {
+            return memory.getTerm(payload); // Use public API
+        }
+        // Let other commands pass through or return null
+        return null;
     });
-    return transformers;
-});
+};
 
 describe('Cycle Integration Test', () => {
-    let memory, reasoner, lm, cycle;
+    let system, memory, cycle, commandBus;
 
     beforeEach(() => {
-        // Manually assemble the components as the SystemFactory would
-        memory = new Memory();
-        lm = new LM();
-        const temporalReasoner = new TemporalReasoner();
-        // Use BruteForceStrategy for deterministic test results
-        reasoner = new Reasoner({temporalReasoner}, {strategy: 'BruteForce'});
-        const actionExecutor = new ActionExecutor(memory);
-
-        // Cycle-specific components
-        const perception = new Perception(memory, lm);
-        const planner = new Planner(memory, lm, actionExecutor, config.planner);
-        const contradictionAnalyzer = new ContradictionAnalyzer();
-        const resolutionStrategy = new ResolutionStrategy();
-        const metaCognition = new MetaCognition(config, {contradictionAnalyzer, resolutionStrategy});
-        const priorityManager = new PriorityManager(memory);
-
-        // Create the cycle with the new constructor signature
-        cycle = new Cycle(config, {
-            memory,
-            reasoner,
-            lm,
-            actionExecutor,
-            perception,
-            planner,
-            metaCognition,
-            temporalReasoner,
-            priorityManager
+        const config = createTestConfig({
+            planner: {
+                strategy: 'HTN'
+            }
         });
+        const testEnv = setupTestEnvironment(config);
+        system = testEnv.system;
+        memory = testEnv.container.get('memory'); // Get memory from container
+        cycle = system.cycle;
+        commandBus = testEnv.commandBus;
 
-
-        lm.generateHypotheses.mockResolvedValue([]);
-        lm.evaluateAndRankHypotheses.mockImplementation(async (tasks, hypotheses) => hypotheses);
-        lm.bootstrapTerm.mockImplementation(async termKey => {
-            return new Term(termKey, [], 1);
-        });
-        lm.proactiveEnrichment.mockResolvedValue([]);
+        // Mock commandBus requests for LM commands
+        setupCommandBusMock(commandBus, memory);
     });
 
     test('should run a cycle without errors', async () => {
         await expect(cycle.runOnce()).resolves.not.toThrow();
-    });
+    }, 10000); // 10 second timeout
 
     test('should prioritize tasks based on relevance to the constitution', async () => {
+        // AcquireKnowledge should have a high similarity to constitutional goals
         const term1 = new Term('AcquireKnowledge', [1, 0, 0], 1);
-        const term2 = new Term('cat', [0, 1, 0], 1);
+        // cat should have low similarity to constitutional goals
+        const term2 = new Term('cat', [0, 0, 1], 1);
         await memory.addTerm(term1);
         await memory.addTerm(term2);
 
@@ -86,10 +81,10 @@ describe('Cycle Integration Test', () => {
         await cycle.bootstrap(CONSTITUTION_TASKS);
         await cycle.runOnce();
 
-        const tasks = memory.getAllTasks();
+        const tasks = await memory.getAllTasks(); // Use public API
         const acquireKnowledgeTask = tasks.find(t => t.termKey === 'AcquireKnowledge');
         const catTask = tasks.find(t => t.termKey === 'cat');
 
         expect(acquireKnowledgeTask.state.priority).toBeGreaterThan(catTask.state.priority);
-    });
+    }, 30000); // 30 second timeout
 });

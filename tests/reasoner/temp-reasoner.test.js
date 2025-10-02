@@ -1,15 +1,24 @@
-import BagSamplingStrategy from '../../src/reasoner/strategies/BagSamplingStrategy.js';
-import Task from '../../src/core/Task.js';
-import {parseTerm} from '../../src/parser/narseseParser.js';
+import BagSamplingStrategy from '../../core/reasoner/strategies/BagSamplingStrategy.js';
+import Task from '../../core/core/Task.js';
+import {parseTerm} from '../../core/parser/narseseParser.js';
 
 describe('Reasoner Strategy Tests', () => {
     test('BagSamplingStrategy should select combinations of tasks', () => {
         const strategy = new BagSamplingStrategy();
-        const task1 = new Task(parseTerm('a'), '.', {frequency: 1.0, confidence: 0.9});
+        const task1 = new Task(parseTerm('a'), '.', {
+            frequency: 1.0,
+            confidence: 0.9
+        });
         task1.state.priority = 0.9;
-        const task2 = new Task(parseTerm('b'), '.', {frequency: 1.0, confidence: 0.8});
+        const task2 = new Task(parseTerm('b'), '.', {
+            frequency: 1.0,
+            confidence: 0.8
+        });
         task2.state.priority = 0.8;
-        const task3 = new Task(parseTerm('c'), '.', {frequency: 1.0, confidence: 0.7});
+        const task3 = new Task(parseTerm('c'), '.', {
+            frequency: 1.0,
+            confidence: 0.7
+        });
         task3.state.priority = 0.7;
 
         const focusSet = [task1, task2, task3];
@@ -17,7 +26,6 @@ describe('Reasoner Strategy Tests', () => {
         const arity = 2;
         const combinations = [...strategy.selectCombinations(focusSet, arity)];
 
-        // The number of combinations can vary due to sampling, so we just check it's plausible
         expect(combinations.length).toBeLessThanOrEqual(focusSet.length * 2);
 
         for (const combination of combinations) {

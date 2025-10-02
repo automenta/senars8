@@ -1,0 +1,261 @@
+/* Settings Panel Styles */
+.settings-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 10px;
+    overflow: hidden;
+    background: var(--panel-bg);
+    gap: 15px;
+}
+
+/* Controls */
+.settings-controls {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+    flex-wrap: wrap;
+}
+
+.save-btn, .reset-btn, .export-btn, .import-btn {
+    padding: 8px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--button-bg);
+    color: var(--text-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9em;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.save-btn:hover:not(:disabled), .reset-btn:hover:not(:disabled),
+.export-btn:hover:not(:disabled), .import-btn:hover:not(:disabled) {
+    background: var(--button-bg-hover);
+    border-color: var(--accent-color);
+}
+
+.save-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.save-btn {
+    background: var(--success-color);
+    color: white;
+}
+
+.reset-btn {
+    background: var(--warning-color);
+    color: white;
+}
+
+.export-btn, .import-btn {
+    background: var(--info-color);
+    color: white;
+}
+
+/* Settings Sections */
+.settings-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--panel-bg-light);
+}
+
+.settings-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px 0;
+    color: var(--text-color);
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+/* Setting Groups */
+.setting-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Setting Items */
+.setting-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color-light);
+    flex-wrap: wrap;
+}
+
+.setting-item:last-child {
+    border-bottom: none;
+}
+
+.setting-item label {
+    min-width: 180px;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.toggle-input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-label {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--border-color);
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.toggle-label:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+.toggle-input:checked + .toggle-label {
+    background-color: var(--accent-color);
+}
+
+.toggle-input:checked + .toggle-label:before {
+    transform: translateX(26px);
+}
+
+/* Setting Inputs */
+.setting-select, .setting-input {
+    padding: 6px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--input-bg);
+    color: var(--text-color);
+    font-size: 0.9em;
+}
+
+.setting-select {
+    min-width: 120px;
+}
+
+.setting-input {
+    min-width: 100px;
+}
+
+.setting-select:focus, .setting-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+/* Settings Summary */
+.settings-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    padding: 15px;
+    border-top: 1px solid var(--border-color);
+    background: var(--panel-bg-light);
+    margin-top: auto;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+}
+
+.summary-label {
+    font-weight: 600;
+    color: var(--text-color-secondary);
+}
+
+.summary-value {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+/* Loading State */
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    gap: 10px;
+    color: var(--text-color-secondary);
+}
+
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--border-color-light);
+    border-top: 3px solid var(--accent-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .settings-panel {
+        padding: 5px;
+    }
+
+    .settings-controls {
+        flex-direction: column;
+    }
+
+    .setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .setting-item label {
+        min-width: auto;
+    }
+
+    .settings-summary {
+        grid-template-columns: 1fr;
+    }
+}

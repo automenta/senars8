@@ -14,14 +14,18 @@ export default [
                 console: 'readonly',
                 process: 'readonly',
                 setTimeout: 'readonly',
+                setInterval: 'readonly',
+                clearTimeout: 'readonly',
+                clearInterval: 'readonly',
                 require: 'readonly',
                 module: 'readonly',
                 exports: 'readonly',
                 __dirname: 'readonly',
                 __filename: 'readonly',
                 structuredClone: 'readonly',
+                URL: 'readonly',
 
-                // Jest globals
+                // Vitest globals (common testing globals that are similar to Jest)
                 describe: 'readonly',
                 test: 'readonly',
                 it: 'readonly',
@@ -30,7 +34,7 @@ export default [
                 afterEach: 'readonly',
                 beforeAll: 'readonly',
                 afterAll: 'readonly',
-                jest: 'readonly'
+                vi: 'readonly'
             }
         },
         rules: {

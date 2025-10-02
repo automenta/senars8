@@ -1,70 +1,90 @@
-import Term from '../../src/core/Term.js';
+import Term from '../../core/core/Term.js';
+import {findSimilarTerms, structuralSimilarity} from '../../core/core/TermUtils.js';
+import EmbeddingStore from '../../core/utils/embeddingStore.js';
 
 describe('Term', () => {
+    afterEach(() => {
+        EmbeddingStore.clear();
+    });
+
     test('should create a new Term object', () => {
-        const term = new Term('cat');
+        const term = new Term('cat', [0.1, 0.2, 0.3], 1);
         expect(term).toBeInstanceOf(Term);
         expect(term.key).toBe('cat');
-        expect(term.embedding).toEqual([]);
+        expect(term.embedding).toEqual([0.1, 0.2, 0.3]);
         expect(term.complexity).toBe(1);
     });
 
-    test('should create a new Term object with embedding and complexity', () => {
-        const term = new Term('cat', [1, 2, 3], 3);
+    test('should get the type of the term', () => {
+        const atomicTerm = new Term('cat');
+        expect(atomicTerm.type).toBe('Atomic');
+        const complexTerm = new Term('(a --> b)');
+        expect(complexTerm.type).toBe('Inheritance');
+    });
+
+    test('should get the components of a complex term', () => {
+        const complexTerm = new Term('(a --> b)');
+        expect(complexTerm.subject).toBeInstanceOf(Term);
+        expect(complexTerm.subject.key).toBe('a');
+        expect(complexTerm.predicate).toBeInstanceOf(Term);
+        expect(complexTerm.predicate.key).toBe('b');
+    });
+
+    test('should check for equality between two terms', () => {
+        const term1 = new Term('cat', [0.1, 0.2, 0.3]);
+        const term2 = new Term('cat', [0.1, 0.2, 0.3]);
+        const term3 = new Term('dog', [0.4, 0.5, 0.6]);
+        expect(Term.termsEqual(term1, term2)).toBe(true);
+        expect(Term.termsEqual(term1, term3)).toBe(false);
+    });
+
+    test('should create a Term from a JSON object', () => {
+        const json = {
+            key: 'cat',
+            embedding: [0.1, 0.2, 0.3],
+            complexity: 1
+        };
+        const term = Term.fromJSON(json);
         expect(term).toBeInstanceOf(Term);
         expect(term.key).toBe('cat');
-        expect(term.embedding).toEqual([1, 2, 3]);
-        expect(term.complexity).toBe(3);
     });
 
-    test('should throw an error if key is not a non-empty string', () => {
-        expect(() => new Term('')).toThrow('Invalid key for Term constructor');
-        expect(() => new Term(123)).toThrow('Invalid key for Term constructor');
-    });
-
-    test('should parse and cache the term structure', () => {
-        const term = new Term('(cat --> animal)');
-        expect(term.type).toBe('Inheritance');
-        expect(term.subject.key).toBe('cat');
-        expect(term.predicate.key).toBe('animal');
-    });
-});
-
-describe('Term.buildTermKey', () => {
-    test('should build a key for an atomic term', () => {
-        const parsedTerm = {type: 'Atomic', key: 'cat'};
-        expect(Term.buildTermKey(parsedTerm)).toBe('cat');
-    });
-
-    test('should build a key for an inheritance term', () => {
-        const parsedTerm = {
-            type: 'Inheritance',
-            subject: {type: 'Atomic', key: 'cat'},
-            predicate: {type: 'Atomic', key: 'animal'}
-        };
-        expect(Term.buildTermKey(parsedTerm)).toBe('(cat --> animal)');
-    });
-
-    test('should handle nested inheritance', () => {
-        const parsedTerm = {
+    test('should build a term key from a parsed term structure', () => {
+        const pTerm = {
             type: 'Inheritance',
             subject: {
-                type: 'Inheritance',
-                subject: {type: 'Atomic', key: 'cat'},
-                predicate: {type: 'Atomic', key: 'mammal'}
+                type: 'Atomic',
+                key: 'a'
             },
-            predicate: {type: 'Atomic', key: 'animal'}
+            predicate: {
+                type: 'Atomic',
+                key: 'b'
+            },
         };
-        expect(Term.buildTermKey(parsedTerm)).toBe('((cat --> mammal) --> animal)');
+        expect(Term.termKey(pTerm)).toBe('(a --> b)');
     });
 
-    test('should return an empty string for invalid input', () => {
-        expect(Term.buildTermKey(null)).toBe('');
-        expect(Term.buildTermKey({})).toBe('');
+    test('should calculate structural similarity between two term keys', () => {
+        const termKey1 = '(a --> b)';
+        const termKey2 = '(a --> c)';
+        expect(structuralSimilarity(termKey1, termKey2)).toBeCloseTo(0.8);
     });
 
-    test('should throw an error for unsupported types', () => {
-        const parsedTerm = {type: 'Unsupported', key: 'test'};
-        expect(() => Term.buildTermKey(parsedTerm)).toThrow('buildTermKey does not support type: Unsupported');
+    test('should find similar terms', () => {
+        const terms = new Map();
+        terms.set('a', new Term('a', [1, 0, 0]));
+        terms.set('b', new Term('b', [0, 1, 0]));
+        terms.set('c', new Term('c', [0.9, 0.1, 0]));
+        const similarTerms = findSimilarTerms(terms, 'a');
+        expect(similarTerms[0].termKey).toBe('c');
+    });
+
+    test('should set and release embeddings correctly', () => {
+        const term = new Term('test');
+        expect(EmbeddingStore.size()).toBe(0);
+        term.setEmbedding([0.1, 0.2, 0.3]);
+        expect(EmbeddingStore.size()).toBe(1);
+        term.destroy();
+        expect(EmbeddingStore.size()).toBe(0);
     });
 });

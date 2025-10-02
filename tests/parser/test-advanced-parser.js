@@ -1,49 +1,25 @@
-const {parseTerm} = require('../src/parser/narseseParser');
+const {
+    parseTerm
+} = require('../src/parser/narseseParser');
 
-// Test cases for the enhanced parser
 const testCases = [
-    // Basic atomic term
     'cat',
-
-    // Inheritance
     '(cat --> animal)',
-
-    // Implication
     '(cat ==> mammal)',
-
-    // Conjunction
     '(&, cat, dog)',
-
-    // Sequential conjunction
     '(&/, cat, dog)',
-
-    // Parallel conjunction
     '(&|, cat, dog)',
-
-    // Negation
     '(--, cat)',
-
-    // Extensional set
     '{cat, dog, bird}',
-
-    // Intensional set
     '[furry, mammal, pet]',
-
-    // Statement with punctuation
     'cat.',
     '(cat --> animal)!',
-
-    // Complex nested structure
     '(&/, (cat --> animal), (dog --> mammal))',
-
-    // Temporal operators
-    '(cat =/> dog)', // Retrospective implication
-    '(cat =\\> dog)', // Predictive implication
-    '(cat =<> dog)', // Concurrent implication
-
-    // Equivalence and similarity
-    '(cat <=> dog)', // Equivalence
-    '(cat <-> dog)' // Similarity
+    '(cat =/> dog)',
+    '(cat =\\> dog)',
+    '(cat =<> dog)',
+    '(cat <=> dog)',
+    '(cat <-> dog)',
 ];
 
 console.log('Testing enhanced Narsese parser:\n');

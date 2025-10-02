@@ -1,0 +1,33 @@
+import TruthValueManager from '../TruthValueManager.js';
+import {createRule} from './rule-factories.js';
+import {isBelief} from '../../utils/task-utils.js';
+import Term from '../../core/Term.js';
+
+export default createRule({
+    name: 'analogy',
+    arity: 3,
+    operands: [
+        task => isBelief(task),
+        task => isBelief(task),
+        task => isBelief(task)
+    ],
+    condition: (parsed1, parsed2, parsed3) =>
+        parsed1?.type === 'Inheritance' &&
+        parsed2?.type === 'Inheritance' &&
+        parsed3?.type === 'Inheritance' &&
+        Term.termKey(parsed1.subject) === Term.termKey(parsed3.subject) &&
+        Term.termKey(parsed2.subject) === Term.termKey(parsed3.predicate),
+    action: (parsed1, parsed2, parsed3, task1, task2, task3) => {
+        const newTermKey = Term.termKey({
+            type: 'Inheritance',
+            subject: parsed1.predicate,
+            predicate: parsed2.predicate
+        });
+        const newTruthValue = TruthValueManager.analogize(
+            task1.state.truthValue,
+            task2.state.truthValue,
+            task3.state.truthValue
+        );
+        return {newTermKey, newTruthValue};
+    }
+});

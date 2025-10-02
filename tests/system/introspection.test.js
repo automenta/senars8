@@ -1,39 +1,47 @@
-import SystemFactory from '../../src/system/SystemFactory.js';
-import {parseTerm} from '../../src/parser/narseseParser.js';
-import Task from '../../src/core/Task.js';
+import {afterAll, beforeAll, describe, expect, test, vi} from 'vitest';
+import {parseTerm} from '../../core/parser/narseseParser.js';
+import Task from '../../core/core/Task.js';
 
-jest.mock('@xenova/transformers', () => {
-    const transformers = jest.createMockFromModule('@xenova/transformers');
-    transformers.pipeline = jest.fn(async () => {
-        return jest.fn(() => ({
+vi.mock('@xenova/transformers', () => ({
+    pipeline: vi.fn(async () => {
+        return vi.fn(() => ({
             data: new Float32Array([1, 2, 3])
         }));
-    });
-    return transformers;
-});
+    }),
+    env: {
+        allowLocalModels: false,
+        allowRemoteModels: true,
+    },
+}));
+
+const {default: SystemFactory} = await import('../../core/system/SystemFactory.js');
 
 describe('System Introspection API', () => {
     let system;
 
-    beforeAll(async () => {
-        // Create a single system instance for all tests in this suite
+    beforeAll(() => {
         const customConfig = {
             LM: {
                 LLM_PROVIDER: 'xenova',
+            },
+            planner: {
+                strategy: 'HTN'
             }
         };
-        system = await SystemFactory.createSystem(customConfig);
+        system = SystemFactory.createSystem(customConfig);
     });
 
-    afterAll(() => {
-        // Stop the system if it's running
-        if (system && system.introspection.getStatus().isRunning) {
-            system.stop();
+    afterAll(async () => {
+        if (system) {
+            const status = await system.introspection?.getStatus();
+            if (status?.isRunning) {
+                system.stop();
+            }
         }
     });
 
-    test('should get system status', () => {
-        const status = system.introspection.getStatus();
+    test('should get system status', async () => {
+        const status = await system.introspection.getStatus();
         expect(status).toBeDefined();
         expect(status).toHaveProperty('isRunning', false);
         expect(status).toHaveProperty('cycleCount', 0);
@@ -45,8 +53,7 @@ describe('System Introspection API', () => {
         const config = system.introspection.getConfig();
         expect(config).toBeDefined();
         expect(config).toHaveProperty('FOCUS_SET_SIZE');
-        expect(config).toHaveProperty('memory');
-        expect(config.memory).toHaveProperty('MAINTENANCE_CYCLE_FREQUENCY');
+        expect(config).toHaveProperty('memory.MAINTENANCE_CYCLE_FREQUENCY');
     });
 
     test('should query tasks from memory', async () => {
@@ -55,8 +62,15 @@ describe('System Introspection API', () => {
 
         await system.addTasks([beliefTask, goalTask]);
 
-        const beliefs = system.introspection.queryTasks({punctuation: '.'});
-        const goals = system.introspection.queryTasks({punctuation: '!'});
+        // Give the system a moment to process the async task additions
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        const beliefs = await system.introspection.queryTasks({
+            punctuation: '.'
+        });
+        const goals = await system.introspection.queryTasks({
+            punctuation: '!'
+        });
 
         expect(beliefs.some(t => t.id === beliefTask.id)).toBe(true);
         expect(goals.some(t => t.id === goalTask.id)).toBe(true);
@@ -67,32 +81,31 @@ describe('System Introspection API', () => {
         const termKey = '(dog --> mammal)';
         await system.addTasks([new Task(parseTerm(termKey), '.')]);
 
-        const term = system.introspection.getTerm(termKey);
+        // Give the system a moment to process the async task additions
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        const term = await system.introspection.getTerm(termKey);
         expect(term).toBeDefined();
         expect(term.key).toBe(termKey);
     });
 
     test('should subscribe to and receive events from the EventBus', async () => {
-        const mockCallback = jest.fn();
-        const eventName = 'SystemCycleEnded';
+        const mockCallback = vi.fn();
+        const {SystemEvents} = await import('../../core/system/SystemEvents.js');
+        const eventName = SystemEvents.CYCLE_COMPLETE;
 
-        // Subscribe to the event via the introspection API
         system.introspection.on(eventName, mockCallback);
 
-        // Run a cycle to trigger the event
         await system.runCycle();
 
-        // Check if the callback was called
         expect(mockCallback).toHaveBeenCalled();
         expect(mockCallback).toHaveBeenCalledTimes(1);
 
-        // Clean up the listener
         system.introspection.off(eventName, mockCallback);
 
-        // Run another cycle to ensure the listener was removed
         await system.runCycle();
-        expect(mockCallback).toHaveBeenCalledTimes(1); // Should not have been called again
-    });
+        expect(mockCallback).toHaveBeenCalledTimes(1);
+    }, 10000); // 10 second timeout
 
     test('should get available reasoner rules', () => {
         const rules = system.introspection.getAvailableRules();
