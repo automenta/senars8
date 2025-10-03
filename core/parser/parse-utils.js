@@ -5,8 +5,8 @@ const errorHandler = createUnifiedErrorHandler('parse-utils');
 
 function parseTerm(termKey) {
     if (typeof termKey !== 'string' || !termKey.length) return null;
-    return errorHandler.executeSync(() => parseWithMoo(termKey), `parseTerm: ${termKey}`, null);
-    //return parseWithMoo(termKey);
+    //return errorHandler.executeSync(() => parseWithMoo(termKey), `parseTerm: ${termKey}`, null);
+    return parseWithMoo(termKey);
 }
 
 function parseTermInner(termKey) {
