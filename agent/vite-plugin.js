@@ -1,6 +1,6 @@
 import logger from '../core/utils/logger.js';
-import { StandaloneWebSocketServer } from './StandaloneWebSocketServer.js';
-import { createMessageHandler } from './MessageHandler.js';
+import {StandaloneWebSocketServer} from './StandaloneWebSocketServer.js';
+import {createMessageHandler} from './MessageHandler.js';
 
 const log = logger.create('vite-plugin');
 

@@ -439,7 +439,7 @@ SeNARS implements rigorous, explainable reasoning through formal inference rules
 | **Induction**    | `(M --> P), (M --> S) ⊢ (S --> P)` | Evidence-based generalization  |
 | **Abduction**    | `(P --> M), (S --> M) ⊢ (S --> P)` | Hypothesis generation          |
 | **Analogy**      | `(M --> P), (M <-> S) ⊢ (S --> P)` | Structure-preserving inference |
-| **Modus Ponens** | `(P ==> Q), P ⊢ Q`             | Conditional reasoning          |
+| **Modus Ponens** | `(P ==> Q), P ⊢ Q`                 | Conditional reasoning          |
 
 ---
 

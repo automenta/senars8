@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { AppRunner } from '../../main.js';
+import {describe, it, expect, vi, beforeEach, afterEach} from 'vitest';
+import {AppRunner} from '../../main.js';
 
 // Mock AgentManager to isolate the AppRunner logic
 vi.mock('../../agent/AgentManager.js', () => {
@@ -56,14 +56,14 @@ describe('AppRunner Logic', () => {
     });
 
     it('should call startTui when the tui flag is true', async () => {
-        await AppRunner.run({ tui: true });
+        await AppRunner.run({tui: true});
         expect(startTuiSpy).toHaveBeenCalledTimes(1);
         expect(startAgentSpy).not.toHaveBeenCalled();
         expect(startWebInterfaceSpy).not.toHaveBeenCalled();
     });
 
     it('should call startWebInterface when the web flag is true', async () => {
-        await AppRunner.run({ web: true });
+        await AppRunner.run({web: true});
         expect(startWebInterfaceSpy).toHaveBeenCalledTimes(1);
         expect(startAgentSpy).not.toHaveBeenCalled();
         expect(startTuiSpy).not.toHaveBeenCalled();

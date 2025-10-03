@@ -47,14 +47,14 @@ class AgentManager {
 
             info('Attaching event listeners to EventBus');
             const events = {
-                'status_update': (status) => ({ type: 'status_update', payload: status }),
-                'system_cycle': (cycleCount) => ({ type: 'system_cycle', payload: { cycleCount } }),
-                'add_belief': (belief) => ({ type: 'add_belief', payload: formatTaskForBroadcast(belief) }),
-                'add_goal': (goal) => ({ type: 'add_goal', payload: formatTaskForBroadcast(goal) }),
-                'add_question': (question) => ({ type: 'add_question', payload: formatTaskForBroadcast(question) }),
-                'add_task': (task) => ({ type: 'task_added', payload: formatTaskForBroadcast(task) }),
-                'reasoning_step': (step) => ({ type: 'reasoning_step', payload: step }),
-                'memory_update': (changes) => ({ type: 'memory_update', payload: changes }),
+                'status_update': (status) => ({type: 'status_update', payload: status}),
+                'system_cycle': (cycleCount) => ({type: 'system_cycle', payload: {cycleCount}}),
+                'add_belief': (belief) => ({type: 'add_belief', payload: formatTaskForBroadcast(belief)}),
+                'add_goal': (goal) => ({type: 'add_goal', payload: formatTaskForBroadcast(goal)}),
+                'add_question': (question) => ({type: 'add_question', payload: formatTaskForBroadcast(question)}),
+                'add_task': (task) => ({type: 'task_added', payload: formatTaskForBroadcast(task)}),
+                'reasoning_step': (step) => ({type: 'reasoning_step', payload: step}),
+                'memory_update': (changes) => ({type: 'memory_update', payload: changes}),
             };
 
             for (const [eventName, formatter] of Object.entries(events)) {
@@ -74,8 +74,8 @@ class AgentManager {
     async start(maxCycles) {
         return this.errorHandler.runAsync(async () => {
             if (this.system?.commandBus) {
-                this.broadcast({ type: 'log', payload: { source: 'system', message: 'Agent command received: start' } });
-                await this.system.commandBus.request(SystemCommands.SYSTEM_START_CYCLING, { maxCycles });
+                this.broadcast({type: 'log', payload: {source: 'system', message: 'Agent command received: start'}});
+                await this.system.commandBus.request(SystemCommands.SYSTEM_START_CYCLING, {maxCycles});
             }
         }, 'start');
     }
@@ -83,7 +83,7 @@ class AgentManager {
     async stop() {
         await this.errorHandler.runAsync(async () => {
             if (this.system?.commandBus) {
-                this.broadcast({ type: 'log', payload: { source: 'system', message: 'Agent command received: stop' } });
+                this.broadcast({type: 'log', payload: {source: 'system', message: 'Agent command received: stop'}});
                 await this.system.commandBus.request(SystemCommands.SYSTEM_STOP_CYCLING);
             }
         }, 'stop');
@@ -93,7 +93,7 @@ class AgentManager {
     async reset() {
         return this.errorHandler.runAsync(async () => {
             if (this.system?.commandBus) {
-                this.broadcast({ type: 'log', payload: { source: 'system', message: 'Agent command received: reset' } });
+                this.broadcast({type: 'log', payload: {source: 'system', message: 'Agent command received: reset'}});
                 await this.system.commandBus.request(SystemCommands.SYSTEM_RESET);
             }
         }, 'reset');

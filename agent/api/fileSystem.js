@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
+import {fileURLToPath} from 'url';
+import {dirname, resolve} from 'path';
 import {executeFileOperation} from '../utils/asyncWrapper.js';
 
 const __filename = fileURLToPath(import.meta.url);

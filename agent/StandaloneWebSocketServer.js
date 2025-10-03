@@ -1,4 +1,4 @@
-import { WebSocketServer as WsServer } from 'ws';
+import {WebSocketServer as WsServer} from 'ws';
 import logger from '../core/utils/logger.js';
 
 const log = logger.create('StandaloneWebSocketServer');
@@ -22,7 +22,7 @@ export class StandaloneWebSocketServer {
                 log.info(`Standalone WebSocket server listening on port ${this.port}`);
 
                 // Create WebSocket server attached to the HTTP server
-                this.wss = new WsServer({ server: this.server });
+                this.wss = new WsServer({server: this.server});
 
                 this.setupWebSocketHandlers(agentManager);
                 resolve();
@@ -38,7 +38,10 @@ export class StandaloneWebSocketServer {
     setupWebSocketHandlers(agentManager) {
         this.wss.on('connection', (ws) => {
             log.info('A new client connected to standalone WebSocket server');
-            ws.send(JSON.stringify({type: 'connection_ack', payload: {message: 'Welcome to the standalone WebSocket server!'}}));
+            ws.send(JSON.stringify({
+                type: 'connection_ack',
+                payload: {message: 'Welcome to the standalone WebSocket server!'}
+            }));
 
             ws.on('error', (err) => {
                 log.error('WebSocket error:', err);

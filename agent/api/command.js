@@ -1,8 +1,8 @@
 import {promisify} from 'util';
 import {exec as childExec} from 'child_process';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
+import {fileURLToPath} from 'url';
+import {dirname, resolve} from 'path';
 import {executeCommandOperation} from '../utils/asyncWrapper.js';
 
 const __filename = fileURLToPath(import.meta.url);

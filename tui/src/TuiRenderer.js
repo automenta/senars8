@@ -90,9 +90,9 @@ class TuiRenderer {
     updateStatus(systemState) {
         const component = UiComponents.createSystemStatus(systemState);
         const content = ` {bold}Status:{/bold} ${component.isRunning ? 'RUNNING' : 'STOPPED'}\n` +
-                        ` {bold}Cycle:{/bold} ${component.cycleCount}\n` +
-                        ` {bold}Uptime:{/bold} ${component.uptime || 'N/A'}\n` +
-                        ` {bold}Version:{/bold} ${component.version}`;
+            ` {bold}Cycle:{/bold} ${component.cycleCount}\n` +
+            ` {bold}Uptime:{/bold} ${component.uptime || 'N/A'}\n` +
+            ` {bold}Version:{/bold} ${component.version}`;
         this.components.status.setContent(content);
     }
 

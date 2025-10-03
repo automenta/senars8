@@ -10,15 +10,15 @@ const LogLevel = {
 };
 
 const levelConfig = {
-    [LogLevel.ERROR]: { name: 'ERROR', color: chalk.red, method: 'error' },
-    [LogLevel.WARN]: { name: 'WARN', color: chalk.yellow, method: 'warn' },
-    [LogLevel.INFO]: { name: 'INFO', color: chalk.blue, method: 'info' },
-    [LogLevel.DEBUG]: { name: 'DEBUG', color: chalk.magenta, method: 'debug' },
+    [LogLevel.ERROR]: {name: 'ERROR', color: chalk.red, method: 'error'},
+    [LogLevel.WARN]: {name: 'WARN', color: chalk.yellow, method: 'warn'},
+    [LogLevel.INFO]: {name: 'INFO', color: chalk.blue, method: 'info'},
+    [LogLevel.DEBUG]: {name: 'DEBUG', color: chalk.magenta, method: 'debug'},
 };
 
 class ConsoleTransport {
     log(timestamp, level, namespace, message, args) {
-        const { name, color, method } = levelConfig[level];
+        const {name, color, method} = levelConfig[level];
 
         if (IS_NODE) {
             const timeStr = chalk.gray(timestamp.toISOString());
@@ -86,10 +86,21 @@ class Logger {
         }
     }
 
-    error(message, ...args) { this.log(LogLevel.ERROR, message, ...args); }
-    warn(message, ...args) { this.log(LogLevel.WARN, message, ...args); }
-    info(message, ...args) { this.log(LogLevel.INFO, message, ...args); }
-    debug(message, ...args) { this.log(LogLevel.DEBUG, message, ...args); }
+    error(message, ...args) {
+        this.log(LogLevel.ERROR, message, ...args);
+    }
+
+    warn(message, ...args) {
+        this.log(LogLevel.WARN, message, ...args);
+    }
+
+    info(message, ...args) {
+        this.log(LogLevel.INFO, message, ...args);
+    }
+
+    debug(message, ...args) {
+        this.log(LogLevel.DEBUG, message, ...args);
+    }
 
     create(namespace) {
         return new Logger({

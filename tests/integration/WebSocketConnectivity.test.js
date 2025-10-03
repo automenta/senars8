@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { ServerProcessManager } from '../utils/ServerProcessManager.js';
-import { createWebSocketClient, awaitNextMessage, closeWebSocket } from '../utils/WebSocketTestUtils.js';
+import {describe, it, expect, beforeAll, afterAll} from 'vitest';
+import {ServerProcessManager} from '../utils/ServerProcessManager.js';
+import {createWebSocketClient, awaitNextMessage, closeWebSocket} from '../utils/WebSocketTestUtils.js';
 
 describe('WebSocket Full Lifecycle Integration Test', () => {
     const serverManager = new ServerProcessManager();
@@ -36,7 +36,7 @@ describe('WebSocket Full Lifecycle Integration Test', () => {
 
         controlClient.send(JSON.stringify({
             type: 'agentControl',
-            payload: { command: 'start' }
+            payload: {command: 'start'}
         }));
 
         const agentStateMessage = await agentStatePromise;
@@ -59,7 +59,7 @@ describe('WebSocket Full Lifecycle Integration Test', () => {
 
         controlClient.send(JSON.stringify({
             type: 'add_task',
-            payload: { taskData }
+            payload: {taskData}
         }));
 
         const taskAddedMessage = await taskAddedPromise;
@@ -77,7 +77,7 @@ describe('WebSocket Full Lifecycle Integration Test', () => {
 
         controlClient.send(JSON.stringify({
             type: 'agentControl',
-            payload: { command: 'stop' }
+            payload: {command: 'stop'}
         }));
 
         const agentStateMessage = await agentStatePromise;

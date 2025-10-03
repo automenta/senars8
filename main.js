@@ -1,11 +1,11 @@
-import { execa } from 'execa';
-import { createServer } from 'vite';
+import {execa} from 'execa';
+import {createServer} from 'vite';
 import path from 'path';
 import Agent from './agent/index.js';
 import logger from './core/utils/logger.js';
 import AgentManager from './agent/AgentManager.js';
-import { agentServerPlugin } from './agent/vite-plugin.js';
-import { pathToFileURL } from 'url';
+import {agentServerPlugin} from './agent/vite-plugin.js';
+import {pathToFileURL} from 'url';
 
 const log = logger.create('main');
 
@@ -20,7 +20,7 @@ export const AppRunner = {
         const server = await createServer({
             configFile: path.resolve(process.cwd(), 'ui/vite.config.js'),
             root: path.resolve(process.cwd(), 'ui'),
-            server: { port: 8080, clearScreen: false },
+            server: {port: 8080, clearScreen: false},
             plugins: [agentServerPlugin(agentManager)],
         });
         await server.listen();
@@ -30,7 +30,7 @@ export const AppRunner = {
 
     async startTui() {
         log.info('Starting TUI...');
-        const tuiProcess = execa('node', ['tui/src/index.js'], { stdio: 'inherit' });
+        const tuiProcess = execa('node', ['tui/src/index.js'], {stdio: 'inherit'});
         tuiProcess.on('exit', (code) => {
             log.info(`TUI process exited with code ${code}`);
             process.exit(code);
@@ -49,7 +49,8 @@ export const AppRunner = {
 
     async run(args = {}) {
         try {
-            const agentManager = new AgentManager(() => {}); // Dummy broadcast
+            const agentManager = new AgentManager(() => {
+            }); // Dummy broadcast
             await agentManager.initialize();
             log.info('AgentManager initialized.');
             this._activeAgentManager = agentManager;

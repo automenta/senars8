@@ -85,8 +85,7 @@ export const processNarseseThroughAgent = (narsese) => {
 export const safeUICall = async (operation, operationName = 'UI Operation') => {
     try {
         return await operation();
-    } catch (error)
-    {
+    } catch (error) {
         uiErrorHandler(error, {
             operation: operationName,
             error: error.message,

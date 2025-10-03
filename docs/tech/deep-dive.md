@@ -161,7 +161,7 @@ reasoning and causal analysis.
 | **Negation**                  | `(--, term)`                | `(--, (cat --> bird))`              | Represents logical NOT and contradiction handling.               |
 | **Temporal Implication**      | `(premise =/> conclusion)`  | `(see_lightning =/> hear_thunder)`  | Represents temporal sequences and cause-effect relationships.    |
 | **Retrospective Implication** | `(premise =\\> conclusion)` | `(hear_thunder =\\> see_lightning)` | Represents backward temporal reasoning and diagnostic inference. |
-| **Concurrent Implication**    | `(premise <=> conclusion)`   | `(lightning <=> thunder)`            | Represents synchronous or concurrent relationships.              |
+| **Concurrent Implication**    | `(premise <=> conclusion)`  | `(lightning <=> thunder)`           | Represents synchronous or concurrent relationships.              |
 | **Instance**                  | `(instance {-- class)`      | `(fluffy {-- cat)`                  | Represents specific instances of general concepts.               |
 | **Property**                  | `(object --} property)`     | `(cat --} furry)`                   | Represents attribute relationships and characteristics.          |
 | **Operation**                 | `(&/, action, condition)`   | `(&/, clean, dirty_room)`           | Represents conditional operations and action planning.           |
@@ -255,13 +255,13 @@ understanding of dynamic situations.
 
 ### Temporal Term Types & Operations
 
-| Type                          | Syntax               | Example                              | Cognitive Application                                  |
-|-------------------------------|----------------------|--------------------------------------|--------------------------------------------------------|
-| **Predictive Implication**    | `(task1 =/> task2)`  | `(see_lightning =/> hear_thunder)`   | Predicting future events based on current observations |
-| **Retrospective Implication** | `(task1 \\> task2)`   | `(wet_streets \\> rained_last_night)` | Diagnostic reasoning and cause identification          |
-| **Concurrent Implication**    | `(task1 <=> task2)`   | `(lightning <=> thunder)`             | Understanding simultaneous events                      |
-| **Duration Representation**   | `(event [duration])` | `(meeting [60_minutes])`             | Representing event durations and temporal extents      |
-| **Temporal Ordering**         | `(event1 < event2)`  | `(breakfast < lunch)`                | Representing sequence relationships                    |
+| Type                          | Syntax               | Example                               | Cognitive Application                                  |
+|-------------------------------|----------------------|---------------------------------------|--------------------------------------------------------|
+| **Predictive Implication**    | `(task1 =/> task2)`  | `(see_lightning =/> hear_thunder)`    | Predicting future events based on current observations |
+| **Retrospective Implication** | `(task1 \\> task2)`  | `(wet_streets \\> rained_last_night)` | Diagnostic reasoning and cause identification          |
+| **Concurrent Implication**    | `(task1 <=> task2)`  | `(lightning <=> thunder)`             | Understanding simultaneous events                      |
+| **Duration Representation**   | `(event [duration])` | `(meeting [60_minutes])`              | Representing event durations and temporal extents      |
+| **Temporal Ordering**         | `(event1 < event2)`  | `(breakfast < lunch)`                 | Representing sequence relationships                    |
 
 ### Planning Architecture
 
