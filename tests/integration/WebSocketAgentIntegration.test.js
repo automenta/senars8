@@ -22,7 +22,8 @@ vi.mock('../../core/system/System.js', () => {
                 eventBus.emit('status_update', 'stopped');
             }
             if (command === SystemCommands.SYSTEM_ADD_TASKS) {
-                args.forEach(task => eventBus.emit('add_task', task));
+                // Call the addTasks method which should emit the event
+                addTasks(args);
             }
         }),
         handle: vi.fn(),
@@ -150,7 +151,7 @@ describe('WebSocketAgentIntegration', () => {
         const taskAddedMessage = await taskAddedPromise;
 
         expect(taskAddedMessage.type).toBe('task_added');
-        expect(taskAddedMessage.payload.statement).toBe(taskData.statement);
+        expect(taskAddedMessage.payload.termKey).toBe(taskData.statement);
         expect(mockSystem.addTasks).toHaveBeenCalled();
     });
 

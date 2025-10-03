@@ -68,6 +68,6 @@ describe('TUI WebSocket Service Integration', () => {
         // 4. Wait for the broadcast and verify its content
         const taskAddedMessage = await taskAddedPromise;
         expect(taskAddedMessage.type).toBe('task_added');
-        expect(taskAddedMessage.payload.statement).toBe(taskData.statement);
+        expect(taskAddedMessage.payload.termKey).toBe(taskData.statement);
     });
 });
