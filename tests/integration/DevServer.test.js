@@ -75,9 +75,8 @@ class ServerProcessManager {
 
     const env = this.setupEnvironment(port);
 
-    // Spawn the npm run dev command - we'll run the agent server separately for now
-    // since the UI part may not be working yet
-    this.process = spawn('node', ['agent/server.js', '--dev'], {
+    // Spawn the main entry point with the --web flag
+    this.process = spawn('node', ['main.js', '--web'], {
       env,
       cwd: process.cwd(),
       stdio: ['pipe', 'pipe', 'pipe']
@@ -391,8 +390,8 @@ describe('npm run dev Integration Test', () => {
 
     const env = { ...process.env, PORT: testPort.toString() };
 
-    // Start the agent server directly (this is what npm run dev would do in part)
-    const childProcess = spawn('node', ['agent/server.js', '--dev'], {
+    // Start the main entry point with the --web flag
+    const childProcess = spawn('node', ['main.js', '--web'], {
       env,
       cwd: process.cwd(),
       stdio: ['pipe', 'pipe', 'pipe']
