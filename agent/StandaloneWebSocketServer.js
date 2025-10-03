@@ -122,7 +122,7 @@ export class StandaloneWebSocketServer {
                         return value.toString();
                     }
                     if (value instanceof Error) {
-                        return { message: value.message, stack: value.stack };
+                        return {message: value.message, stack: value.stack};
                     }
                     if (typeof value === 'function') {
                         return undefined;
@@ -137,10 +137,10 @@ export class StandaloneWebSocketServer {
                 }));
                 message = JSON.stringify(safeData);
             }
-            
+
             // Only log if not too verbose
             console.log('Broadcasting message from StandaloneWebSocketServer:', message.substring(0, 500) + (message.length > 500 ? '...' : ''));
-            
+
             this.wss.clients.forEach(client => {
                 if (client.readyState === client.OPEN) {
                     client.send(message);

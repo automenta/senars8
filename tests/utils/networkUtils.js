@@ -1,4 +1,4 @@
-import { createConnection } from 'net';
+import {createConnection} from 'net';
 
 /**
  * Checks if a port is available for use.
@@ -7,7 +7,7 @@ import { createConnection } from 'net';
  */
 async function isPortAvailable(port) {
     return new Promise((resolve) => {
-        const tester = createConnection({ port });
+        const tester = createConnection({port});
 
         tester.on('connect', () => {
             tester.end();

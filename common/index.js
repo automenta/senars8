@@ -1,6 +1,7 @@
 // Common module exports for both UI and TUI
 import AgentCommunicationService from './services/AgentCommunicationService.js';
 import logger from '@senars/core/utils/logger.js';
+import log from '@senars/core/utils/logger.js';
 import configProvider from './services/ConfigProvider.js';
 import eventManager from './services/EventManager.js';
 import sharedAPI from './services/SharedAPI.js';
@@ -8,7 +9,6 @@ import uiComponents from './services/UiComponents.js';
 import {CONNECTION_STATUS, MESSAGE_TYPES, NOTIFICATION_TYPES} from './constants/communication.js';
 import {CONFIG} from './constants/config.js';
 import {validateNarseseStatement} from '@senars/core/utils/task-utils.js';
-import log from '@senars/core/utils/logger.js';
 
 export {
     // Services

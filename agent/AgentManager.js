@@ -8,7 +8,8 @@ import {createUnifiedErrorHandler} from '../core/utils/errorHandler.js';
 class AgentManager {
     constructor() {
         this.agent = new Agent();
-        this.broadcast = () => {}; // No-op broadcast function by default
+        this.broadcast = () => {
+        }; // No-op broadcast function by default
         this.system = null;
         this.fileMonitor = null;
         this.errorHandler = createUnifiedErrorHandler('AgentManager');

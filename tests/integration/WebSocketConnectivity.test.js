@@ -1,7 +1,7 @@
-import {describe, it, expect, beforeAll, afterAll, vi} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import AgentManager from '../../agent/AgentManager.js';
 import {StandaloneWebSocketServer} from '../../agent/StandaloneWebSocketServer.js';
-import {createWebSocketClient, awaitNextMessage, closeWebSocket} from '../utils/WebSocketTestUtils.js';
+import {awaitNextMessage, closeWebSocket, createWebSocketClient} from '../utils/WebSocketTestUtils.js';
 import {findAvailablePort} from '../utils/networkUtils.js';
 import {createMessageHandler} from '../../agent/MessageHandler.js';
 import {SystemCommands} from '../../core/system/SystemCommands.js';
@@ -9,10 +9,10 @@ import {SystemCommands} from '../../core/system/SystemCommands.js';
 vi.mock('../../core/system/System.js', () => {
     const EventEmitter = require('events');
     const {SystemCommands} = require('../../core/system/SystemCommands.js');
-    
+
     // Create a real EventEmitter instance for proper event handling
     const eventBus = new EventEmitter();
-    
+
     const commandBus = {
         handle: vi.fn(),
         request: vi.fn(async (command, args) => {
@@ -70,7 +70,7 @@ describe('WebSocket Full Lifecycle Integration Test', () => {
         wsServer.setMessageHandler(messageHandler);
 
         await agentManager.initialize();
-        
+
         // Ensure event listeners are properly set up after initialization
         agentManager.setupEventListeners();
 
@@ -104,7 +104,7 @@ describe('WebSocket Full Lifecycle Integration Test', () => {
         clientsToClose.push(listenerClient);
         await awaitNextMessage(listenerClient, (msg) => msg.type === 'connection_ack');
 
-        const agentStatePromise = awaitNextMessage(listenerClient, ({ type }) => type === 'status_update');
+        const agentStatePromise = awaitNextMessage(listenerClient, ({type}) => type === 'status_update');
 
         controlClient.send(JSON.stringify({
             type: 'agentControl',

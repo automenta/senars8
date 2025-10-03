@@ -1,7 +1,7 @@
-import {describe, it, expect, beforeAll, afterAll} from 'vitest';
+import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import AgentManager from '../../agent/AgentManager.js';
 import {StandaloneWebSocketServer} from '../../agent/StandaloneWebSocketServer.js';
-import {createWebSocketClient, awaitNextMessage, closeWebSocket} from '../utils/WebSocketTestUtils.js';
+import {awaitNextMessage, closeWebSocket, createWebSocketClient} from '../utils/WebSocketTestUtils.js';
 import {findAvailablePort} from '../utils/networkUtils.js';
 import {createMessageHandler} from '../../agent/MessageHandler.js';
 

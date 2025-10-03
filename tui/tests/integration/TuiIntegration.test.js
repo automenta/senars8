@@ -1,6 +1,5 @@
-import {beforeEach, describe, expect, it, vi, afterEach} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import Application from '../../src/Application.js';
-import ApiService from '@senars/common/services/ApiService.js';
 
 // Mock the terminal UI components
 vi.mock('blessed', () => ({

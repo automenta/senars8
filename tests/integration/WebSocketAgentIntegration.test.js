@@ -1,8 +1,7 @@
-import {describe, it, expect, beforeAll, afterAll, vi, beforeEach, afterEach} from 'vitest';
-import EventEmitter from 'events';
+import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi} from 'vitest';
 import AgentManager from '../../agent/AgentManager.js';
 import {StandaloneWebSocketServer} from '../../agent/StandaloneWebSocketServer.js';
-import {createWebSocketClient, awaitNextMessage, closeWebSocket} from '../utils/WebSocketTestUtils.js';
+import {awaitNextMessage, closeWebSocket, createWebSocketClient} from '../utils/WebSocketTestUtils.js';
 import {findAvailablePort} from '../utils/networkUtils.js';
 import {createMessageHandler} from '../../agent/MessageHandler.js';
 import {SystemCommands} from '../../core/system/SystemCommands.js';
@@ -11,7 +10,7 @@ import {SystemCommands} from '../../core/system/SystemCommands.js';
 vi.mock('../../core/system/System.js', () => {
     const EventEmitter = require('events');
     const {SystemCommands} = require('../../core/system/SystemCommands.js');
-    
+
     const eventBus = new EventEmitter();
 
     const commandBus = {
@@ -140,7 +139,7 @@ describe('WebSocketAgentIntegration', () => {
 
         const taskData = {
             // Corrected Narsese syntax
-            statement: `<test_task --> relation>.`,
+            statement: `(test_task --> relation).`,
         };
 
         controlClient.send(JSON.stringify({
