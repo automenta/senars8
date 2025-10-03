@@ -20,7 +20,7 @@ export const AppRunner = {
         const server = await createServer({
             configFile: path.resolve(process.cwd(), 'ui/vite.config.js'),
             root: path.resolve(process.cwd(), 'ui'),
-            server: {port: 8080, clearScreen: false},
+            server: {port: process.env.PORT || 8080, clearScreen: false},
             plugins: [agentServerPlugin(agentManager)],
         });
         await server.listen();

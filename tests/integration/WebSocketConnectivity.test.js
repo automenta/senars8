@@ -1,14 +1,14 @@
-import {describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, vi, beforeEach, afterEach} from 'vitest';
 import AgentManager from '../../agent/AgentManager.js';
-import {StandaloneWebSocketServer} from '../../agent/StandaloneWebSocketServer.js';
+import {WebSocketManager} from '../../agent/WebSocketManager.js';
 import {awaitNextMessage, closeWebSocket, createWebSocketClient} from '../utils/WebSocketTestUtils.js';
 import {findAvailablePort} from '../utils/networkUtils.js';
 import {createMessageHandler} from '../../agent/MessageHandler.js';
 import {SystemCommands} from '../../core/system/SystemCommands.js';
+import {SystemEvents} from '../../core/system/SystemEvents.js';
 
 vi.mock('../../core/system/System.js', () => {
     const EventEmitter = require('events');
-    const {SystemCommands} = require('../../core/system/SystemCommands.js');
 
     // Create a real EventEmitter instance for proper event handling
     const eventBus = new EventEmitter();
@@ -24,7 +24,7 @@ vi.mock('../../core/system/System.js', () => {
                 eventBus.emit('status_update', 'stopped');
             }
             if (command === SystemCommands.SYSTEM_ADD_TASKS) {
-                args.forEach(task => eventBus.emit('add_task', task));
+                eventBus.emit(SystemEvents.TASKS_ADD, args);
             }
         }),
     };
@@ -36,14 +36,13 @@ vi.mock('../../core/system/System.js', () => {
             initialize: vi.fn().mockResolvedValue(undefined),
             start: vi.fn(),
             stop: vi.fn(),
-            addTasks: vi.fn(),
         })),
     };
 });
 
 describe('WebSocket Full Lifecycle Integration Test', () => {
     let agentManager;
-    let wsServer;
+    let wsManager;
     let wsUrl;
     let controlClient;
     let mockSystem;
@@ -60,14 +59,14 @@ describe('WebSocket Full Lifecycle Integration Test', () => {
         // Manually inject the mocked system since AgentManager creates its own by default
         agentManager.system = mockSystem;
         agentManager.agent.system = mockSystem;
-        wsServer = new StandaloneWebSocketServer(wsPort);
+        wsManager = new WebSocketManager({port: wsPort});
 
-        await wsServer.start();
+        await wsManager.start();
 
-        agentManager.setBroadcast(wsServer.broadcast.bind(wsServer));
+        agentManager.setBroadcast(wsManager.broadcast.bind(wsManager));
 
         const messageHandler = createMessageHandler(agentManager);
-        wsServer.setMessageHandler(messageHandler);
+        wsManager.setMessageHandler(messageHandler);
 
         await agentManager.initialize();
 
@@ -86,8 +85,8 @@ describe('WebSocket Full Lifecycle Integration Test', () => {
             await closeWebSocket(client);
         }
         clientsToClose.length = 0; // Clear the array
-        if (wsServer) {
-            await wsServer.stop();
+        if (wsManager) {
+            await wsManager.stop();
         }
         if (agentManager) {
             await agentManager.stop();

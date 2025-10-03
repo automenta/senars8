@@ -38,7 +38,7 @@ export const createMessageHandler = (agentManager, broadcast) => {
         agentControl: (payload, ws) => handleAgentControl(payload, ws, agentManager, broadcast),
         get_tasks: (payload, ws) => handleGetTasks(payload, ws, agent),
         task_action: (payload, ws) => handleTaskAction(payload, ws, agent, broadcast),
-        add_task: (payload, ws) => handleAddTask(payload, ws, agent),
+        add_task: (payload, ws) => handleAddTask(payload, ws, agent, broadcast),
         search: (payload, ws) => handleSearch(payload, ws, agent),
     };
 
