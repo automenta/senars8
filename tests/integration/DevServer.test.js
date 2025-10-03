@@ -128,7 +128,7 @@ class ServerProcessManager {
 
   /**
    * Waits for the server to become ready by testing connections
-   * @param {number} port - The port to test
+   * @param {number} port - The port to test (for Vite dev server)
    * @param {number} timeoutMs - Maximum time to wait in milliseconds
    * @returns {Promise<void>} Resolves when server is ready
    */
@@ -137,15 +137,25 @@ class ServerProcessManager {
 
     while (Date.now() - startTime < timeoutMs) {
       try {
+        // Check if the main server port (Vite) is available
         if (await this.isPortAvailable(port)) {
           // Port is still not in use, wait a bit more
           await new Promise(resolve => setTimeout(resolve, 100));
           continue;
         }
 
-        // If port is not available, it means the server should be listening
-        // Let's try to connect to the WebSocket to confirm
-        const ws = new WebSocket(`ws://localhost:${port}`);
+        // Check if the WebSocket server is available on port 8081
+        const wsPort = 8081;
+        const wsAvailable = !(await this.isPortAvailable(wsPort));
+        
+        if (!wsAvailable) {
+          // WebSocket port not yet available, wait a bit more
+          await new Promise(resolve => setTimeout(resolve, 100));
+          continue;
+        }
+
+        // Both servers should now be ready, test WebSocket connection
+        const ws = new WebSocket(`ws://localhost:${wsPort}`);
 
         await new Promise((resolve, reject) => {
           const timeout = setTimeout(() => {
@@ -165,7 +175,7 @@ class ServerProcessManager {
           });
         });
 
-        // If we get here, the server is working
+        // If we get here, both servers are working
         return;
       } catch (err) {
         // Server might not be ready yet, wait a bit more
@@ -183,20 +193,31 @@ class ServerProcessManager {
   async stopServer() {
     if (this.process && !this.process.killed) {
       try {
-        // Try graceful shutdown first
-        this.process.kill('SIGTERM');
-
-        // Wait a bit for graceful shutdown
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // If still running, force kill
-        if (!this.process.killed) {
-          this.process.kill('SIGKILL');
-        }
+        // Kill the entire process group to ensure all child processes are terminated
+        process.kill(-this.process.pid, 'SIGTERM');
       } catch (err) {
-        // Process might already be killed
-      } finally {
-        this.process = null;
+        // If group kill fails, try individual process kill
+        try {
+          this.process.kill('SIGTERM');
+        } catch (e) {
+          // Process might already be killed
+        }
+      }
+
+      // Wait a bit for graceful shutdown
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Force kill if still running
+      try {
+        process.kill(-this.process.pid, 'SIGKILL');
+      } catch (err) {
+        try {
+          if (!this.process.killed) {
+            this.process.kill('SIGKILL');
+          }
+        } catch (e) {
+          // Process already killed
+        }
       }
     }
 
@@ -209,6 +230,9 @@ class ServerProcessManager {
       }
     }
     this.cleanupFunctions = [];
+    
+    // Clear the process reference
+    this.process = null;
   }
 
   /**
@@ -261,8 +285,9 @@ describe('Development Server Integration Test', () => {
 
     expect(hasImportError).toBe(false);
 
-    // Verify the server is responding to WebSocket connections
-    const ws = new WebSocket(`ws://localhost:${testPort}`);
+    // Verify the WebSocket server is responding (on its separate port)
+    const wsPort = 8081; // Standalone WebSocket server port
+    const ws = new WebSocket(`ws://localhost:${wsPort}`);
 
     await new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
@@ -288,7 +313,7 @@ describe('Development Server Integration Test', () => {
     await serverManager.startServer(testPort);
 
     // Test WebSocket communication - now on port 8081 for standalone server
-    const wsPort = 8081; // Default WebSocket port for standalone server
+    const wsPort = 8081; // Default WebSocket port for standalone server (as configured in vite-plugin)
     const ws = new WebSocket(`ws://localhost:${wsPort}`);
 
     await new Promise((resolve, reject) => {
@@ -298,8 +323,8 @@ describe('Development Server Integration Test', () => {
       }, 5000);
 
       ws.on('open', () => {
-        // Send a simple ping message
-        ws.send(JSON.stringify({ type: 'ping', payload: {} }));
+        // Send a simple test message
+        ws.send(JSON.stringify({ type: 'test', payload: {} }));
       });
 
       ws.on('message', (data) => {
@@ -504,7 +529,7 @@ describe('npm run dev Integration Test', () => {
       }
     });
 
-    // Wait for server to be ready
+    // Wait for server to be ready (both Vite and WebSocket servers)
     await serverManager.waitForServerReady(testPort, 30000);
 
     // Check for errors

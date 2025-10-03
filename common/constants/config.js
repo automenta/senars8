@@ -5,12 +5,8 @@
 export const CONFIG = {
     // --- Connection Settings ---
     CONNECTION: {
-        WEBSOCKET_URL: process.env.ACTUAL_WS_PORT 
-            ? `ws://localhost:${process.env.ACTUAL_WS_PORT}` 
-            : 'ws://localhost:8081',
-        CRDT_WEBSOCKET_URL: process.env.ACTUAL_WS_PORT 
-            ? `ws://localhost:${process.env.ACTUAL_WS_PORT}/crdt` 
-            : 'ws://localhost:8081/crdt',
+        WEBSOCKET_URL: 'ws://localhost:8081',
+        CRDT_WEBSOCKET_URL: 'ws://localhost:8081/crdt',
         RECONNECT_DELAY: 3000,
         MAX_RECONNECT_ATTEMPTS: 10,
         MAX_RECONNECT_DELAY: 30000,

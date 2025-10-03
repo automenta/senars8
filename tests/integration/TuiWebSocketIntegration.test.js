@@ -197,20 +197,31 @@ class ServerProcessManager {
   async stopServer() {
     if (this.process && !this.process.killed) {
       try {
-        // Try graceful shutdown first
-        this.process.kill('SIGTERM');
-
-        // Wait a bit for graceful shutdown
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // If still running, force kill
-        if (!this.process.killed) {
-          this.process.kill('SIGKILL');
-        }
+        // Kill the entire process group to ensure all child processes are terminated
+        process.kill(-this.process.pid, 'SIGTERM');
       } catch (err) {
-        // Process might already be killed
-      } finally {
-        this.process = null;
+        // If group kill fails, try individual process kill
+        try {
+          this.process.kill('SIGTERM');
+        } catch (e) {
+          // Process might already be killed
+        }
+      }
+
+      // Wait a bit for graceful shutdown
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Force kill if still running
+      try {
+        process.kill(-this.process.pid, 'SIGKILL');
+      } catch (err) {
+        try {
+          if (!this.process.killed) {
+            this.process.kill('SIGKILL');
+          }
+        } catch (e) {
+          // Process already killed
+        }
       }
     }
 
@@ -223,6 +234,9 @@ class ServerProcessManager {
       }
     }
     this.cleanupFunctions = [];
+    
+    // Clear the process reference
+    this.process = null;
   }
 
   /**

@@ -12,11 +12,11 @@ export class StandaloneWebSocketServer {
     }
 
     async start(agentManager) {
-        return new Promise((resolve, reject) => {
-            // Create a simple HTTP server for the WebSocket to attach to
-            const http = await import('http');
-            this.server = http.createServer();
+        // Import http module first, then create and start server
+        const httpModule = await import('http');
+        this.server = httpModule.createServer();
 
+        return new Promise((resolve, reject) => {
             // Listen on the specified port
             this.server.listen(this.port, () => {
                 log.info(`Standalone WebSocket server listening on port ${this.port}`);
@@ -65,17 +65,42 @@ export class StandaloneWebSocketServer {
     }
 
     async stop() {
-        if (this.wss) {
-            this.wss.close();
-        }
-        if (this.server) {
-            return new Promise((resolve) => {
+        return new Promise((resolve) => {
+            // Close all WebSocket connections first
+            if (this.wss) {
+                // Close all client connections
+                if (this.wss.clients) {
+                    for (const client of this.wss.clients) {
+                        if (client.readyState === client.OPEN) {
+                            client.terminate(); // Force close
+                        }
+                    }
+                }
+                
+                // Close the WebSocket server
+                this.wss.close(() => {
+                    log.info('WebSocket server closed');
+                    
+                    // Now close the HTTP server
+                    if (this.server) {
+                        this.server.close(() => {
+                            log.info('Standalone WebSocket server closed');
+                            resolve();
+                        });
+                    } else {
+                        resolve();
+                    }
+                });
+            } else if (this.server) {
+                // If no WSS but HTTP server exists, close it directly
                 this.server.close(() => {
-                    log.info('Standalone WebSocket server closed');
+                    log.info('Standalone HTTP server closed');
                     resolve();
                 });
-            });
-        }
+            } else {
+                resolve();
+            }
+        });
     }
 
     broadcast(data) {
