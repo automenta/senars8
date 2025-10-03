@@ -40,7 +40,7 @@ class AgentCommunicationService extends EventEmitter {
     /**
      * Establishes a connection to the WebSocket server.
      */
-    connect() {
+    async connect() {
         if (this.isConnecting || this.isConnected) {
             log.warn('Connection attempt ignored: already connecting or connected.');
             return;
@@ -52,7 +52,7 @@ class AgentCommunicationService extends EventEmitter {
         log.info('Connecting to agent service...');
 
         try {
-            this.ws = createWebSocket(this.url);
+            this.ws = await createWebSocket(this.url);
             this.ws.onopen = this.onOpen.bind(this);
             this.ws.onclose = this.onClose.bind(this);
             this.ws.onmessage = this.onMessage.bind(this);
@@ -138,7 +138,7 @@ class AgentCommunicationService extends EventEmitter {
      * Handles WebSocket errors.
      */
     onError(error) {
-        log.error('WebSocket error:', error.message);
+        log.error('WebSocket error:', error);
         this.isConnecting = false;
         if (!this.isConnected) {
             this.handleConnectionFailure();

@@ -92,8 +92,8 @@ class ApiService extends EventEmitter {
     /**
      * Connects to the agent service.
      */
-    connect() {
-        this.communicationService.connect();
+    async connect() {
+        return this.communicationService.connect();
     }
 
     /**

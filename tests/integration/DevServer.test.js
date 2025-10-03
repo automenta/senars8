@@ -287,8 +287,9 @@ describe('Development Server Integration Test', () => {
     // Start the server
     await serverManager.startServer(testPort);
 
-    // Test WebSocket communication
-    const ws = new WebSocket(`ws://localhost:${testPort}`);
+    // Test WebSocket communication - now on port 8081 for standalone server
+    const wsPort = 8081; // Default WebSocket port for standalone server
+    const ws = new WebSocket(`ws://localhost:${wsPort}`);
 
     await new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
@@ -310,6 +311,90 @@ describe('Development Server Integration Test', () => {
       ws.on('error', (err) => {
         clearTimeout(timeout);
         reject(new Error(`WebSocket communication error: ${err.message}`));
+      });
+    });
+  });
+
+  it('should allow multiple WebSocket clients to connect simultaneously', async () => {
+    // Start the server
+    await serverManager.startServer(testPort);
+
+    // Test multiple WebSocket connections
+    const wsPort = 8081; // Default WebSocket port for standalone server
+    const client1 = new WebSocket(`ws://localhost:${wsPort}`);
+    const client2 = new WebSocket(`ws://localhost:${wsPort}`);
+    const client3 = new WebSocket(`ws://localhost:${wsPort}`);
+
+    // Promise for each client connection
+    const connectPromises = [
+      new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Client 1 connection timeout')), 3000);
+        client1.on('open', () => { clearTimeout(timeout); resolve(); });
+        client1.on('error', (err) => { clearTimeout(timeout); reject(new Error(`Client 1 error: ${err.message}`)); });
+      }),
+      new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Client 2 connection timeout')), 3000);
+        client2.on('open', () => { clearTimeout(timeout); resolve(); });
+        client2.on('error', (err) => { clearTimeout(timeout); reject(new Error(`Client 2 error: ${err.message}`)); });
+      }),
+      new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Client 3 connection timeout')), 3000);
+        client3.on('open', () => { clearTimeout(timeout); resolve(); });
+        client3.on('error', (err) => { clearTimeout(timeout); reject(new Error(`Client 3 error: ${err.message}`)); });
+      })
+    ];
+
+    // Wait for all clients to connect
+    await Promise.all(connectPromises);
+
+    // Close all connections
+    client1.close();
+    client2.close();
+    client3.close();
+
+    expect(true).toBe(true); // Test passes if all clients could connect
+  });
+
+  it('should handle WebSocket disconnection and reconnection', async () => {
+    // Start the server
+    await serverManager.startServer(testPort);
+
+    const wsPort = 8081; // Default WebSocket port for standalone server
+    const ws = new WebSocket(`ws://localhost:${wsPort}`);
+
+    await new Promise((resolve, reject) => {
+      let connectedOnce = false;
+      
+      const timeout = setTimeout(() => {
+        ws.close();
+        reject(new Error('WebSocket reconnection test timeout'));
+      }, 8000); // Longer timeout for reconnection test
+
+      ws.on('open', () => {
+        connectedOnce = true;
+        // Close connection to test reconnection logic
+        ws.close(1000, 'Test disconnection');
+      });
+
+      ws.on('close', () => {
+        // Create a new connection after a short delay
+        setTimeout(() => {
+          const ws2 = new WebSocket(`ws://localhost:${wsPort}`);
+          ws2.on('open', () => {
+            clearTimeout(timeout);
+            ws2.close();
+            resolve();
+          });
+          ws2.on('error', (err) => {
+            clearTimeout(timeout);
+            reject(new Error(`Reconnection failed: ${err.message}`));
+          });
+        }, 1000);
+      });
+
+      ws.on('error', (err) => {
+        clearTimeout(timeout);
+        reject(new Error(`WebSocket connection error: ${err.message}`));
       });
     });
   });

@@ -16,7 +16,7 @@ export const AppRunner = {
     _activeAgentManager: null,
 
     async startWebInterface(agentManager) {
-        log.info('Starting web UI and agent server...');
+        log.info('Starting web UI...');
         const server = await createServer({
             configFile: path.resolve(process.cwd(), 'ui/vite.config.js'),
             root: path.resolve(process.cwd(), 'ui'),
@@ -88,6 +88,7 @@ export const AppRunner = {
             this._activeProcess = null;
         }
         if (this._activeServer) {
+            // The Vite dev server will handle closing the standalone WebSocket server through the plugin's closeBundle hook
             await this._activeServer.close();
             this._activeServer = null;
         }
