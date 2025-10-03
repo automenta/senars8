@@ -130,6 +130,13 @@ class NarseseParser {
             [TOKEN.QUERY_VAR]: () => this.parseVariable(TOKEN.QUERY_VAR, OP.QUERY_VARIABLE),
             [TOKEN.QUESTION]: () => this.parseVariable(TOKEN.QUESTION, OP.QUERY_VARIABLE),
             [TOKEN.NUMBER]: () => this.parseNumber(),
+            // Handle temporal operators as atomic terms when they appear in term contexts
+            [TOKEN.NEXT]: () => this.parseAtomicTermFromToken(),
+            [TOKEN.PREVIOUS]: () => this.parseAtomicTermFromToken(),
+            [TOKEN.ALWAYS]: () => this.parseAtomicTermFromToken(),
+            [TOKEN.EVENTUALLY]: () => this.parseAtomicTermFromToken(),
+            [TOKEN.UNTIL]: () => this.parseAtomicTermFromToken(),
+            [TOKEN.SINCE]: () => this.parseAtomicTermFromToken(),
         };
         const parser = this.current ? parsers[this.current.type] : null;
         if (parser) {
@@ -287,6 +294,15 @@ class NarseseParser {
         return {
             type: variableType,
             name: this.consume(tokenType)
+        };
+    }
+
+    parseAtomicTermFromToken() {
+        const token = this.current;
+        this.next();
+        return {
+            type: OP.ATOMIC,
+            key: token.value
         };
     }
 
