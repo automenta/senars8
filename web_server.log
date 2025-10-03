@@ -1,3 +1,2319 @@
 
-> senars@1.1.0 web
+> senars@1.1.0 dev
 > node main.js --web
+
+2025-10-03T09:06:37.024Z INFO   SystemFactory: Creating new system...
+2025-10-03T09:06:37.028Z INFO   SystemFactory: Registering components...
+2025-10-03T09:06:37.029Z INFO   SystemFactory: Registering strategies...
+2025-10-03T09:06:37.030Z INFO   StrategyRegistry initialized
+2025-10-03T09:06:37.030Z INFO   Registered combination strategy: BagSampling
+2025-10-03T09:06:37.031Z INFO   Registered combination strategy: BruteForce
+2025-10-03T09:06:37.031Z INFO   SystemFactory: Getting system instance...
+2025-10-03T09:06:37.033Z INFO   TemporalReasoner initialized with 9 inference modules
+2025-10-03T09:06:37.034Z INFO   Reasoner initialized with combination strategy: BagSampling
+ActionExecutor: Registered resource: cpu
+ActionExecutor: Registered resource: memory
+ActionExecutor: Registered resource: network
+2025-10-03T09:06:37.037Z INFO   LM initialized
+Planner initialized with strategy: HTN
+2025-10-03T09:06:37.040Z INFO   MetaCognition initialized
+ActionExecutor: Registered action handler: print_*
+ActionExecutor: Registered action handler: log
+ActionExecutor: Registered action handler: achieve
+ActionExecutor: Registered action handler: create_*
+ActionExecutor: Registered action handler: update_*
+ActionExecutor: Registered action handler: delete_*
+ActionExecutor: Registered action handler: query_*
+ActionExecutor: Registered action handler: analyze
+ActionExecutor: Registered action handler: plan
+ActionExecutor: Registered action handler: execute_*
+ActionExecutor: Registered action handler: learn_*
+ActionExecutor: Registered action handler: adapt
+ActionExecutor: Registered action handler: optimize
+ActionExecutor: Registered action handler: navigate_*
+ActionExecutor: Registered action handler: communicate_*
+ActionExecutor: Registered action handler: coordinate_*
+ActionExecutor: Registered action handler: register_action
+2025-10-03T09:06:37.041Z INFO   System components created and initialized.
+2025-10-03T09:06:37.041Z INFO   SystemFactory: Initializing system...
+2025-10-03T09:06:37.041Z INFO   SystemFactory: Initializing system with constitution...
+2025-10-03T09:06:37.041Z INFO   System: Initializing with constitution...
+2025-10-03T09:06:37.042Z INFO   SystemFactory: System initialized.
+2025-10-03T09:06:37.042Z INFO   SystemFactory: System creation complete.
+2025-10-03T09:06:37.045Z INFO   Initializing PlanProcessor...
+2025-10-03T09:06:37.045Z INFO   PlanProcessor initialized
+2025-10-03T09:06:37.046Z INFO   Agent initialized
+2025-10-03T09:06:37.046Z INFO   Attaching event listeners to EventBus
+2025-10-03T09:06:37.046Z INFO   Starting file monitoring with patterns: docs/**/*.md, PLAN.*.md, TODO.md, ROADMAP.md
+2025-10-03T09:06:37.076Z INFO   Processed 321 goals from /app/docs/TODO.md
+2025-10-03T09:06:37.078Z WARN   Skipping invalid task: object with 3 properties
+2025-10-03T09:06:37.079Z INFO   Successfully added 321 tasks.
+2025-10-03T09:06:37.080Z INFO   Added 321 tasks from /app/docs/TODO.md
+2025-10-03T09:06:37.081Z INFO   Processed 14 goals from /app/docs/tech/ui.md
+2025-10-03T09:06:37.081Z INFO   Successfully added 14 tasks.
+2025-10-03T09:06:37.082Z INFO   Added 14 tasks from /app/docs/tech/ui.md
+2025-10-03T09:06:37.082Z INFO   Processed 44 goals from /app/docs/tech/reasoning.md
+2025-10-03T09:06:37.083Z INFO   Successfully bootstrapped 4 terms.
+2025-10-03T09:06:37.083Z INFO   Successfully added 44 tasks.
+2025-10-03T09:06:37.084Z INFO   Added 44 tasks from /app/docs/tech/reasoning.md
+2025-10-03T09:06:37.085Z INFO   Processed 57 goals from /app/docs/tech/neuro-symbolic.md
+2025-10-03T09:06:37.085Z INFO   Successfully added 4 tasks.
+2025-10-03T09:06:37.085Z INFO   Cycle: Bootstrap completed
+2025-10-03T09:06:37.085Z INFO   System: Initialized successfully.
+2025-10-03T09:06:37.085Z INFO   Successfully added 57 tasks.
+2025-10-03T09:06:37.085Z INFO   Added 57 tasks from /app/docs/tech/neuro-symbolic.md
+2025-10-03T09:06:37.085Z INFO   Processed 5 goals from /app/docs/tech/functionality.md
+2025-10-03T09:06:37.086Z INFO   Successfully added 5 tasks.
+2025-10-03T09:06:37.086Z INFO   Added 5 tasks from /app/docs/tech/functionality.md
+2025-10-03T09:06:37.087Z INFO   Processed 54 goals from /app/docs/tech/deep-dive.md
+2025-10-03T09:06:37.087Z INFO   Successfully added 54 tasks.
+2025-10-03T09:06:37.087Z INFO   Added 54 tasks from /app/docs/tech/deep-dive.md
+2025-10-03T09:06:37.087Z INFO   Processed 10 goals from /app/docs/tech/api-reference.md
+2025-10-03T09:06:37.087Z INFO   Successfully added 10 tasks.
+2025-10-03T09:06:37.087Z INFO   Added 10 tasks from /app/docs/tech/api-reference.md
+2025-10-03T09:06:37.088Z INFO   Processed 51 goals from /app/docs/self/PLAN.md
+2025-10-03T09:06:37.088Z INFO   Successfully added 51 tasks.
+2025-10-03T09:06:37.088Z INFO   Added 51 tasks from /app/docs/self/PLAN.md
+2025-10-03T09:06:37.090Z INFO   Processed 130 goals from /app/docs/self/PLAN.USER.md
+2025-10-03T09:06:37.091Z INFO   Successfully added 130 tasks.
+2025-10-03T09:06:37.091Z INFO   Added 130 tasks from /app/docs/self/PLAN.USER.md
+2025-10-03T09:06:37.092Z INFO   Processed 101 goals from /app/docs/self/PLAN.USER.COOPERATION.md
+2025-10-03T09:06:37.092Z INFO   Successfully added 101 tasks.
+2025-10-03T09:06:37.092Z INFO   Added 101 tasks from /app/docs/self/PLAN.USER.COOPERATION.md
+2025-10-03T09:06:37.093Z INFO   Processed 67 goals from /app/docs/self/PLAN.USER-GUIDE.md
+2025-10-03T09:06:37.094Z INFO   Successfully added 67 tasks.
+2025-10-03T09:06:37.094Z INFO   Added 67 tasks from /app/docs/self/PLAN.USER-GUIDE.md
+2025-10-03T09:06:37.095Z INFO   Processed 111 goals from /app/docs/self/PLAN.SELF.md
+2025-10-03T09:06:37.095Z INFO   Successfully added 111 tasks.
+2025-10-03T09:06:37.095Z INFO   Added 111 tasks from /app/docs/self/PLAN.SELF.md
+2025-10-03T09:06:37.096Z INFO   Processed 120 goals from /app/docs/self/PLAN.SELF.MANAGE.md
+2025-10-03T09:06:37.096Z INFO   Successfully added 120 tasks.
+2025-10-03T09:06:37.097Z INFO   Added 120 tasks from /app/docs/self/PLAN.SELF.MANAGE.md
+2025-10-03T09:06:37.097Z INFO   Processed 105 goals from /app/docs/self/PLAN.SEED.md
+2025-10-03T09:06:37.098Z INFO   Successfully added 105 tasks.
+2025-10-03T09:06:37.098Z INFO   Added 105 tasks from /app/docs/self/PLAN.SEED.md
+2025-10-03T09:06:37.099Z INFO   Processed 142 goals from /app/docs/self/PLAN.ROADMAP.md
+2025-10-03T09:06:37.099Z INFO   Successfully added 142 tasks.
+2025-10-03T09:06:37.099Z INFO   Added 142 tasks from /app/docs/self/PLAN.ROADMAP.md
+2025-10-03T09:06:37.101Z INFO   Processed 143 goals from /app/docs/self/PLAN.INFRASTRUCTURE.md
+2025-10-03T09:06:37.101Z INFO   Successfully added 143 tasks.
+2025-10-03T09:06:37.101Z INFO   Added 143 tasks from /app/docs/self/PLAN.INFRASTRUCTURE.md
+2025-10-03T09:06:37.102Z INFO   Processed 67 goals from /app/docs/self/PLAN.DEV.md
+2025-10-03T09:06:37.102Z INFO   Successfully added 67 tasks.
+2025-10-03T09:06:37.102Z INFO   Added 67 tasks from /app/docs/self/PLAN.DEV.md
+2025-10-03T09:06:37.103Z INFO   Processed 21 goals from /app/docs/self/PLAN.CORE.md
+2025-10-03T09:06:37.103Z INFO   Successfully added 21 tasks.
+2025-10-03T09:06:37.103Z INFO   Added 21 tasks from /app/docs/self/PLAN.CORE.md
+2025-10-03T09:06:37.104Z INFO   Processed 148 goals from /app/docs/self/PLAN.BOOTSTRAP.md
+2025-10-03T09:06:37.104Z INFO   Successfully added 148 tasks.
+2025-10-03T09:06:37.105Z INFO   Added 148 tasks from /app/docs/self/PLAN.BOOTSTRAP.md
+2025-10-03T09:06:37.105Z INFO   Processed 77 goals from /app/docs/self/PLAN.ARCHITECTURE.md
+2025-10-03T09:06:37.106Z INFO   Successfully added 77 tasks.
+2025-10-03T09:06:37.106Z INFO   Added 77 tasks from /app/docs/self/PLAN.ARCHITECTURE.md
+2025-10-03T09:06:37.106Z INFO   Processed 4 goals from /app/docs/presentations/slides.md
+2025-10-03T09:06:37.220Z INFO   Successfully added 4 tasks.
+2025-10-03T09:06:37.221Z INFO   Added 4 tasks from /app/docs/presentations/slides.md
+2025-10-03T09:06:37.222Z INFO   Processed 46 goals from /app/docs/presentations/slides-old.md
+2025-10-03T09:06:37.222Z INFO   Successfully added 46 tasks.
+2025-10-03T09:06:37.222Z INFO   Added 46 tasks from /app/docs/presentations/slides-old.md
+2025-10-03T09:06:37.222Z INFO   Processed 31 goals from /app/docs/presentations/slides-howto.md
+2025-10-03T09:06:37.223Z INFO   Successfully added 31 tasks.
+2025-10-03T09:06:37.223Z INFO   Added 31 tasks from /app/docs/presentations/slides-howto.md
+2025-10-03T09:06:37.223Z INFO   Processed 22 goals from /app/docs/intro/use-cases.md
+2025-10-03T09:06:37.223Z INFO   Successfully added 22 tasks.
+2025-10-03T09:06:37.223Z INFO   Added 22 tasks from /app/docs/intro/use-cases.md
+2025-10-03T09:06:37.224Z INFO   Processed 4 goals from /app/docs/intro/introduction.md
+2025-10-03T09:06:37.224Z INFO   Successfully added 4 tasks.
+2025-10-03T09:06:37.224Z INFO   Added 4 tasks from /app/docs/intro/introduction.md
+2025-10-03T09:06:37.224Z INFO   Processed 52 goals from /app/docs/intro/getting-started.md
+2025-10-03T09:06:37.224Z INFO   Successfully added 52 tasks.
+2025-10-03T09:06:37.224Z INFO   Added 52 tasks from /app/docs/intro/getting-started.md
+2025-10-03T09:06:37.225Z INFO   Processed 7 goals from /app/docs/intro/conceptual-overview.md
+2025-10-03T09:06:37.225Z INFO   Successfully added 7 tasks.
+2025-10-03T09:06:37.225Z INFO   Added 7 tasks from /app/docs/intro/conceptual-overview.md
+2025-10-03T09:06:37.225Z INFO   Processed 15 goals from /app/docs/biz/overview.md
+2025-10-03T09:06:37.225Z INFO   Successfully added 15 tasks.
+2025-10-03T09:06:37.226Z INFO   Added 15 tasks from /app/docs/biz/overview.md
+2025-10-03T09:06:37.240Z INFO   File monitoring started successfully.
+2025-10-03T09:06:37.240Z INFO  [main] AgentManager initialized.
+2025-10-03T09:06:37.241Z INFO  [main] Starting web UI and agent server...
+2025-10-03T09:06:37.252Z INFO   File monitoring is ready and watching for changes.
+2025-10-03T09:06:37.504Z INFO  [vite-plugin] WebSocket server started and attached to Vite server.
+2025-10-03T09:06:37.505Z INFO  [vite-plugin] MessageHandler set.
+  ➜  Local:   http://localhost:8080/
+  ➜  Network: use --host to expose
+2025-10-03T09:06:38.293Z INFO   Processed 321 goals from docs/TODO.md
+2025-10-03T09:06:38.294Z INFO   Successfully added 321 tasks.
+2025-10-03T09:06:38.294Z INFO   Added 321 tasks from docs/TODO.md
+2025-10-03T09:06:38.323Z INFO   Processed 15 goals from docs/biz/overview.md
+2025-10-03T09:06:38.324Z INFO   Successfully added 15 tasks.
+2025-10-03T09:06:38.324Z INFO   Added 15 tasks from docs/biz/overview.md
+2025-10-03T09:06:38.324Z INFO   Processed 7 goals from docs/intro/conceptual-overview.md
+2025-10-03T09:06:38.324Z INFO   Successfully added 7 tasks.
+2025-10-03T09:06:38.325Z INFO   Added 7 tasks from docs/intro/conceptual-overview.md
+2025-10-03T09:06:38.325Z INFO   Processed 52 goals from docs/intro/getting-started.md
+2025-10-03T09:06:38.326Z INFO   Successfully added 52 tasks.
+2025-10-03T09:06:38.326Z INFO   Added 52 tasks from docs/intro/getting-started.md
+2025-10-03T09:06:38.326Z INFO   Processed 4 goals from docs/intro/introduction.md
+2025-10-03T09:06:38.326Z INFO   Successfully added 4 tasks.
+2025-10-03T09:06:38.326Z INFO   Added 4 tasks from docs/intro/introduction.md
+2025-10-03T09:06:38.327Z INFO   Processed 22 goals from docs/intro/use-cases.md
+2025-10-03T09:06:38.327Z INFO   Successfully added 22 tasks.
+2025-10-03T09:06:38.327Z INFO   Added 22 tasks from docs/intro/use-cases.md
+2025-10-03T09:06:38.327Z INFO   Processed 31 goals from docs/presentations/slides-howto.md
+2025-10-03T09:06:38.327Z INFO   Successfully added 31 tasks.
+2025-10-03T09:06:38.327Z INFO   Added 31 tasks from docs/presentations/slides-howto.md
+2025-10-03T09:06:38.329Z INFO   Processed 46 goals from docs/presentations/slides-old.md
+2025-10-03T09:06:38.329Z INFO   Successfully added 46 tasks.
+2025-10-03T09:06:38.329Z INFO   Added 46 tasks from docs/presentations/slides-old.md
+2025-10-03T09:06:38.329Z INFO   Processed 4 goals from docs/presentations/slides.md
+2025-10-03T09:06:38.329Z INFO   Successfully added 4 tasks.
+2025-10-03T09:06:38.329Z INFO   Added 4 tasks from docs/presentations/slides.md
+2025-10-03T09:06:38.330Z INFO   Processed 77 goals from docs/self/PLAN.ARCHITECTURE.md
+2025-10-03T09:06:38.330Z INFO   Successfully added 77 tasks.
+2025-10-03T09:06:38.331Z INFO   Added 77 tasks from docs/self/PLAN.ARCHITECTURE.md
+2025-10-03T09:06:38.332Z INFO   Processed 148 goals from docs/self/PLAN.BOOTSTRAP.md
+2025-10-03T09:06:38.332Z INFO   Successfully added 148 tasks.
+2025-10-03T09:06:38.332Z INFO   Added 148 tasks from docs/self/PLAN.BOOTSTRAP.md
+2025-10-03T09:06:38.333Z INFO   Processed 21 goals from docs/self/PLAN.CORE.md
+2025-10-03T09:06:38.333Z INFO   Successfully added 21 tasks.
+2025-10-03T09:06:38.333Z INFO   Added 21 tasks from docs/self/PLAN.CORE.md
+2025-10-03T09:06:38.334Z INFO   Processed 67 goals from docs/self/PLAN.DEV.md
+2025-10-03T09:06:38.334Z INFO   Successfully added 67 tasks.
+2025-10-03T09:06:38.334Z INFO   Added 67 tasks from docs/self/PLAN.DEV.md
+2025-10-03T09:06:38.335Z INFO   Processed 143 goals from docs/self/PLAN.INFRASTRUCTURE.md
+2025-10-03T09:06:38.336Z INFO   Successfully added 143 tasks.
+2025-10-03T09:06:38.336Z INFO   Added 143 tasks from docs/self/PLAN.INFRASTRUCTURE.md
+2025-10-03T09:06:38.338Z INFO   Processed 142 goals from docs/self/PLAN.ROADMAP.md
+2025-10-03T09:06:38.338Z INFO   Successfully added 142 tasks.
+2025-10-03T09:06:38.338Z INFO   Added 142 tasks from docs/self/PLAN.ROADMAP.md
+2025-10-03T09:06:38.339Z INFO   Processed 105 goals from docs/self/PLAN.SEED.md
+2025-10-03T09:06:38.340Z INFO   Successfully added 105 tasks.
+2025-10-03T09:06:38.340Z INFO   Added 105 tasks from docs/self/PLAN.SEED.md
+2025-10-03T09:06:38.341Z INFO   Processed 120 goals from docs/self/PLAN.SELF.MANAGE.md
+2025-10-03T09:06:38.341Z INFO   Successfully added 120 tasks.
+2025-10-03T09:06:38.341Z INFO   Added 120 tasks from docs/self/PLAN.SELF.MANAGE.md
+2025-10-03T09:06:38.342Z INFO   Processed 111 goals from docs/self/PLAN.SELF.md
+2025-10-03T09:06:38.342Z INFO   Successfully added 111 tasks.
+2025-10-03T09:06:38.343Z INFO   Added 111 tasks from docs/self/PLAN.SELF.md
+2025-10-03T09:06:38.343Z INFO   Processed 67 goals from docs/self/PLAN.USER-GUIDE.md
+2025-10-03T09:06:38.343Z INFO   Successfully added 67 tasks.
+2025-10-03T09:06:38.344Z INFO   Added 67 tasks from docs/self/PLAN.USER-GUIDE.md
+2025-10-03T09:06:38.344Z INFO   Processed 101 goals from docs/self/PLAN.USER.COOPERATION.md
+2025-10-03T09:06:38.345Z INFO   Successfully added 101 tasks.
+2025-10-03T09:06:38.345Z INFO   Added 101 tasks from docs/self/PLAN.USER.COOPERATION.md
+2025-10-03T09:06:38.346Z INFO   Processed 130 goals from docs/self/PLAN.USER.md
+2025-10-03T09:06:38.346Z INFO   Successfully added 130 tasks.
+2025-10-03T09:06:38.346Z INFO   Added 130 tasks from docs/self/PLAN.USER.md
+2025-10-03T09:06:38.346Z INFO   Processed 51 goals from docs/self/PLAN.md
+2025-10-03T09:06:38.347Z INFO   Successfully added 51 tasks.
+2025-10-03T09:06:38.347Z INFO   Added 51 tasks from docs/self/PLAN.md
+2025-10-03T09:06:38.347Z INFO   Processed 10 goals from docs/tech/api-reference.md
+2025-10-03T09:06:38.347Z INFO   Successfully added 10 tasks.
+2025-10-03T09:06:38.347Z INFO   Added 10 tasks from docs/tech/api-reference.md
+2025-10-03T09:06:38.348Z INFO   Processed 54 goals from docs/tech/deep-dive.md
+2025-10-03T09:06:38.348Z INFO   Successfully added 54 tasks.
+2025-10-03T09:06:38.348Z INFO   Added 54 tasks from docs/tech/deep-dive.md
+2025-10-03T09:06:38.348Z INFO   Processed 5 goals from docs/tech/functionality.md
+2025-10-03T09:06:38.348Z INFO   Successfully added 5 tasks.
+2025-10-03T09:06:38.348Z INFO   Added 5 tasks from docs/tech/functionality.md
+2025-10-03T09:06:38.349Z INFO   Processed 57 goals from docs/tech/neuro-symbolic.md
+2025-10-03T09:06:38.355Z INFO   Successfully added 57 tasks.
+2025-10-03T09:06:38.355Z INFO   Added 57 tasks from docs/tech/neuro-symbolic.md
+2025-10-03T09:06:38.356Z INFO   Processed 44 goals from docs/tech/reasoning.md
+2025-10-03T09:06:38.356Z INFO   Successfully added 44 tasks.
+2025-10-03T09:06:38.356Z INFO   Added 44 tasks from docs/tech/reasoning.md
+2025-10-03T09:06:38.356Z INFO   Processed 14 goals from docs/tech/ui.md
+2025-10-03T09:06:38.356Z INFO   Successfully added 14 tasks.
+2025-10-03T09:06:38.356Z INFO   Added 14 tasks from docs/tech/ui.md
+2025-10-03T09:06:46.258Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:46.260Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:47.089Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:47.091Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:47.143Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:47.143Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:47.263Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:47.263Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:47.806Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:47.806Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:47.817Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:47.817Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:47.850Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:47.851Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:47.862Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:47.863Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:47.921Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:47.921Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:47.938Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:47.938Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:47.959Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:47.960Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:47.963Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:47.963Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:48.053Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:48.057Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:48.067Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:48.070Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:48.103Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:48.104Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:48.112Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:48.114Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:48.184Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:48.184Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:48.190Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:48.191Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:48.232Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:48.233Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:48.236Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:48.239Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:48.323Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:48.324Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:48.331Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:48.332Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:48.363Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:48.363Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:48.417Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:48.418Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:48.482Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:48.482Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:48.498Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:48.498Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:48.530Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:48.530Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:48.532Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:48.534Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:48.630Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:48.630Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:48.644Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:48.649Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:48.717Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:48.718Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:48.722Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:48.723Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:48.774Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:48.774Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:48.781Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:48.783Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:48.813Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:48.813Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:48.825Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:48.829Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:48.879Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:48.879Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:48.884Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:48.885Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:48.911Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:48.911Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:48.921Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:48.921Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:48.975Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:48.976Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:48.985Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:48.985Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:49.010Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:49.011Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:49.019Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:49.025Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:49.079Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:49.079Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:49.088Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:49.089Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:49.119Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:49.120Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:49.127Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:49.127Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:49.189Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:49.189Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:49.195Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:49.195Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:49.243Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:49.243Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:49.247Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:49.248Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:49.319Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:49.319Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:49.332Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:49.332Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:49.356Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:49.357Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:49.363Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:49.367Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:49.418Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:49.418Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:49.437Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:49.437Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:49.558Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:49.559Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:49.567Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:49.567Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:49.612Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:49.613Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:49.621Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:49.621Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:49.642Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:49.642Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:49.653Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:49.654Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:49.696Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:49.697Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:49.700Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:49.700Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:49.728Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:49.729Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:49.734Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:49.736Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:49.829Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:49.829Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:49.836Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:49.838Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:49.870Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:49.871Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:49.880Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_UTF8"}
+2025-10-03T09:06:49.880Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:49.929Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:49.929Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:49.931Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:49.935Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:49.956Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:49.956Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:49.963Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:49.964Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:50.019Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:50.019Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:50.023Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:50.024Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:50.051Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:50.052Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:50.062Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:50.062Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:50.125Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:50.126Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:50.129Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:50.137Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:50.157Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:50.157Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:50.164Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:50.169Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:50.213Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:50.213Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:50.219Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:50.220Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:50.246Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:50.246Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:50.251Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:50.252Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:50.366Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:50.367Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:50.375Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:50.377Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:50.416Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:50.417Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:50.426Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:50.426Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:50.504Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:50.504Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:50.514Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:50.514Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:50.544Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:50.544Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:50.551Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:50.551Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:50.649Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:50.650Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:50.657Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:50.657Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:50.702Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:50.702Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:50.704Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:50.707Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:50.766Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:50.766Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:50.775Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:50.775Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:50.815Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:50.816Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:50.820Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:50.820Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:50.872Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:50.873Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:50.887Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:50.888Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:50.919Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:50.920Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:50.929Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:50.930Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:50.992Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:50.992Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:51.004Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:51.004Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:51.030Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:51.031Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:51.036Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:51.039Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:51.084Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:51.086Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:51.093Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:51.094Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:51.155Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:51.155Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:51.159Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:51.159Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:51.213Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:51.214Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:51.220Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:51.221Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:51.245Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:51.245Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:51.249Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:51.250Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:51.306Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:51.306Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:51.310Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_UTF8"}
+2025-10-03T09:06:51.310Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:51.345Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:51.345Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:51.351Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:51.352Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:51.424Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:51.424Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:51.432Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:51.434Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:51.483Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:51.484Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:51.492Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:51.493Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:51.548Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:51.549Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:51.554Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:51.554Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:51.581Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:51.581Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:51.587Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:51.591Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:51.649Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:51.650Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:51.726Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:51.726Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:51.759Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:51.759Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:51.769Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:51.770Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:51.819Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:51.819Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:51.835Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:51.835Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:51.871Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:51.871Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:51.883Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:51.885Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:51.946Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:51.946Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:51.950Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:51.953Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:51.975Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:51.975Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:51.981Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:51.983Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:52.038Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:52.038Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:52.052Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:52.053Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:52.074Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:52.075Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:52.080Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:52.080Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:52.157Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:52.157Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:52.159Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:52.163Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:52.188Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:52.188Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:52.196Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:52.196Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:52.243Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:52.243Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:52.247Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:52.247Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:52.272Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:52.272Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:52.280Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:52.281Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:52.340Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:52.340Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:52.345Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:52.345Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:52.381Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:52.381Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:52.391Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:52.391Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:52.444Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:52.445Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:52.446Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:52.448Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:52.477Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:52.477Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:52.489Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:52.490Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:52.533Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:52.533Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:52.540Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:52.541Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:52.566Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:52.568Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:52.575Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:52.576Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:52.621Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:52.621Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:52.628Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:52.628Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:52.662Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:52.663Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:52.670Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:52.672Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:52.724Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:52.724Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:52.733Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:52.735Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:52.758Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:52.758Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:52.761Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:52.762Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:52.815Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:52.815Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:52.823Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:52.870Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:52.909Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:52.909Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:52.922Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:52.923Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:52.974Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:52.975Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:52.982Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:52.982Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:53.012Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:53.013Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:53.016Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:53.017Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:53.078Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:53.079Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:53.092Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:53.092Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:53.113Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:53.114Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:53.123Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:53.124Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:53.195Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:53.195Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:53.203Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:53.203Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:53.234Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:53.234Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:53.245Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:53.245Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:53.313Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:53.313Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:53.320Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:53.320Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:53.342Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:53.342Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:53.349Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:53.349Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:53.403Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:53.403Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:53.409Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:53.409Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:53.443Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:53.444Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:53.449Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:53.449Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:53.523Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:53.523Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:53.530Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:53.530Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:53.584Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:53.585Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:53.592Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:53.598Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:53.670Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:53.670Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:53.675Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:53.676Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:53.700Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:53.701Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:53.708Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:53.710Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:53.754Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:53.755Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:53.759Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:53.760Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:53.788Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:53.788Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:53.796Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:53.800Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:53.850Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:53.850Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:53.856Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:53.858Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:53.880Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:53.880Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:53.888Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:53.889Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:53.937Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:53.937Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:53.943Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:53.943Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:53.981Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:53.981Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:53.986Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:53.988Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:54.057Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:54.057Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:54.066Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:54.067Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:54.093Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:54.094Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:54.098Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:54.098Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:54.155Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:54.156Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:54.163Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:54.164Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:54.244Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:54.244Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:54.247Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:54.247Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:54.315Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:54.316Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:54.318Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:54.319Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:54.348Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:54.349Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:54.369Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:54.369Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:54.454Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:54.455Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:54.469Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:54.478Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:54.512Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:54.512Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:54.520Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:54.522Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:54.596Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:54.597Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:54.599Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:54.600Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:54.637Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:54.637Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:54.643Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:54.649Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:54.714Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:54.714Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:54.718Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:54.718Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:54.782Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:54.782Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:54.790Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:54.791Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:54.850Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:54.850Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:54.857Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:54.858Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:54.881Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:54.882Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:54.886Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:54.890Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:54.935Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:54.935Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:54.943Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:54.944Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:54.970Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:54.970Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:54.979Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:54.981Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:55.025Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:55.026Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:55.032Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:55.032Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:55.066Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:55.067Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:55.072Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:55.072Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:55.140Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:55.140Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:55.150Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:55.151Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:55.179Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:55.179Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:55.181Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:55.184Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:55.233Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:55.234Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:55.242Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:55.242Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:55.268Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:55.268Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:55.272Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:55.276Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:55.331Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:55.331Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:55.338Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:55.339Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:55.361Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:55.363Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:55.366Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:55.366Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:55.444Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:55.445Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:55.450Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:55.450Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:55.482Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:55.482Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:55.490Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:55.491Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:55.540Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:55.540Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:55.545Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:55.546Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:55.569Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:55.569Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:55.573Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:55.573Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:55.622Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:55.623Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:55.630Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:55.630Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:55.656Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:55.657Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:55.662Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:55.664Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:55.718Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:55.718Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:55.727Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:55.727Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:55.758Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:55.758Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:55.775Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:55.777Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:55.822Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:55.822Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:55.837Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:55.837Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:55.868Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:55.869Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:55.875Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:55.875Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:55.931Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:55.931Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:55.941Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:55.942Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:55.960Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:55.960Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:55.975Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:55.976Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:56.034Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:56.035Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:56.046Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:56.046Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:56.074Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:56.074Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:56.089Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:56.089Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:56.150Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:56.151Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:56.156Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:56.156Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:56.182Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:56.182Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:56.192Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:56.192Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:56.253Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:56.253Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:56.258Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:56.258Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:56.300Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:56.302Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:56.303Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:56.304Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:56.379Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:56.379Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:56.383Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:56.384Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:56.411Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:56.411Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:56.416Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:56.418Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:56.465Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:56.465Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:56.469Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:56.470Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:56.499Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:56.499Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:56.506Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:56.506Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:56.573Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:56.573Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:56.590Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:56.590Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:56.617Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:56.617Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:56.620Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:56.622Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:56.681Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:56.681Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:56.686Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:56.687Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:56.706Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:56.706Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:56.712Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:56.715Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:56.774Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:56.775Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:56.781Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:56.781Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:56.803Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:56.803Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:56.814Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:56.816Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:56.857Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:56.857Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:56.861Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:56.862Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:56.889Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:56.890Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:56.895Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:56.895Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:56.938Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:56.938Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:56.946Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:56.946Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:56.975Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:56.976Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:56.980Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:56.980Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:57.049Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:57.049Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:57.054Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:57.054Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:57.096Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:57.096Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:57.109Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:57.110Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:57.164Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:57.164Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:57.173Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:57.173Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:57.202Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:57.202Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:57.210Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:57.211Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:57.272Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:57.272Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:57.281Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:57.282Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:57.307Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:57.308Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:57.316Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:57.316Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:57.364Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:57.364Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:57.370Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:57.371Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:57.391Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:57.392Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:57.398Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:57.403Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:57.444Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:57.444Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:57.452Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:57.453Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:57.478Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:57.479Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:57.483Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:57.490Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:57.554Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:57.554Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:57.558Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:57.559Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:57.591Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:57.591Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:57.599Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:57.599Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:57.646Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:57.647Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:57.653Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:57.653Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:57.683Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:57.684Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:57.691Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:57.691Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:57.733Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:57.733Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:57.738Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_UTF8"}
+2025-10-03T09:06:57.738Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:57.759Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:57.760Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:57.766Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:57.767Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:57.832Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:57.832Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:57.836Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:57.836Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:57.859Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:57.859Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:57.862Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:57.862Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:57.921Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:57.921Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:57.936Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:57.936Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:57.967Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:57.967Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:57.980Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:57.980Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:58.032Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:58.032Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:58.038Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:58.039Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:58.060Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:58.060Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:58.067Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:58.069Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:58.121Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:58.121Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:58.128Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:58.129Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:58.152Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:58.152Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:58.161Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:58.162Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:58.282Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:58.282Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:58.291Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:58.291Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:58.313Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:58.314Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:58.321Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:58.322Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:58.381Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:58.381Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:58.387Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:58.388Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:58.412Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:58.412Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:58.415Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:58.416Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:58.462Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:58.463Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:58.469Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:58.469Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:58.515Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:58.515Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:58.519Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:58.520Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:58.591Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:58.592Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:58.598Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:58.598Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:58.622Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:58.623Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:58.626Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:58.628Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:58.683Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:58.683Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:58.690Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:58.691Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:58.727Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:58.728Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:58.734Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:58.734Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:58.792Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:58.793Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:58.800Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:58.800Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:58.840Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:58.840Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:58.841Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:58.844Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:58.917Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:58.918Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:58.923Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:58.923Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:58.948Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:58.948Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:58.956Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:58.956Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:59.009Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:59.009Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:59.014Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:59.015Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:59.038Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:59.039Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:59.044Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:59.044Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:59.115Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:59.115Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:59.122Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:59.123Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:59.151Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:59.152Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:59.153Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:59.153Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:59.210Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:59.211Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:59.215Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:59.215Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:59.251Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:59.251Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:59.258Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:59.259Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:59.312Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:59.312Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:59.319Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:59.319Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:59.343Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:59.344Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:59.351Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:59.351Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:59.410Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:59.410Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:59.414Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:59.415Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:59.440Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:59.440Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:59.445Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:59.446Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:59.548Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:59.548Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:59.552Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:59.552Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:59.594Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:59.594Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:59.600Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:59.601Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:59.672Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:59.672Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:59.678Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:59.679Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:59.704Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:59.704Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:59.711Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_UTF8"}
+2025-10-03T09:06:59.712Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:59.766Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:59.767Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:59.770Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:59.770Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:59.810Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:59.810Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:59.817Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:59.817Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:59.861Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:59.862Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:59.867Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:59.867Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:59.891Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:59.893Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:59.895Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:59.896Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:06:59.966Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:06:59.966Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:06:59.975Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:06:59.976Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:00.003Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:00.004Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:00.008Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:00.009Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:00.048Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:00.048Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:00.059Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:00.060Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:00.118Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:00.118Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:00.163Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:00.163Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:00.211Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:00.216Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:00.222Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:00.222Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:00.250Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:00.250Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:00.258Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:00.262Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:00.299Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:00.299Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:00.306Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:00.306Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:00.343Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:00.344Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:00.350Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:00.354Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:00.416Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:00.416Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:00.437Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:00.440Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:00.479Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:00.479Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:00.487Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:00.489Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:00.539Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:00.539Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:00.546Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:00.546Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:00.577Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:00.578Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:00.583Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:00.585Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:00.635Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:00.635Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:00.650Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:00.651Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:00.675Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:00.676Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:00.687Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:00.688Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:00.748Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:00.748Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:00.755Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_UTF8"}
+2025-10-03T09:07:00.755Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:00.778Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:00.778Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:00.788Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:00.789Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:00.843Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:00.843Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:00.855Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:00.855Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:00.876Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:00.876Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:00.882Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:00.883Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:00.943Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:00.943Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:00.947Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:00.947Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:00.971Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:00.972Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:00.980Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:00.981Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:01.025Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:01.025Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:01.031Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:01.032Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:01.057Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:01.058Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:01.064Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:01.068Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:01.122Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:01.122Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:01.128Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:01.128Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:01.155Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:01.155Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:01.161Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:01.164Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:01.214Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:01.214Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:01.223Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:01.223Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:01.282Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:01.282Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:01.287Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:01.289Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:01.337Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:01.337Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:01.346Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:01.346Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:01.374Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:01.374Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:01.382Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:01.384Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:01.438Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:01.440Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:01.446Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_UTF8"}
+2025-10-03T09:07:01.446Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:01.467Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:01.467Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:01.473Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:01.475Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:01.523Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:01.524Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:01.529Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:01.529Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:01.557Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:01.558Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:01.569Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:01.570Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:01.618Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:01.619Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:01.620Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:01.620Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:01.651Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:01.651Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:01.655Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:01.656Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:01.767Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:01.767Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:01.776Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:01.776Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:01.812Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:01.813Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:01.817Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:01.821Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:01.871Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:01.871Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:01.875Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:01.875Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:01.904Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:01.904Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:01.908Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:01.908Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:01.977Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:01.980Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:01.984Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:01.984Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:02.022Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:02.022Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:02.025Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:02.025Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:02.091Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:02.091Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:02.099Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:02.100Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:02.124Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:02.124Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:02.130Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:02.130Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:02.192Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:02.192Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:02.201Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:02.202Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:02.219Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:02.219Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:02.224Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:02.224Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:02.273Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:02.273Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:02.283Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:02.283Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:02.329Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:02.329Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:02.334Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:02.336Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:02.387Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:02.388Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:02.394Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:02.395Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:02.425Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:02.425Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:02.429Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:02.429Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:02.483Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:02.483Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:02.492Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:02.494Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:02.519Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:02.519Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:02.525Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:02.525Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:02.578Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:02.578Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:02.586Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:02.586Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:02.611Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:02.611Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:02.615Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:02.615Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:02.698Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:02.699Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:02.704Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:02.705Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:02.743Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:02.743Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:02.757Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:02.758Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:02.818Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:02.818Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:02.834Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:02.835Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:02.863Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:02.863Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:02.871Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:02.871Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:02.922Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:02.922Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:02.928Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:02.928Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:02.972Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:02.972Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:02.986Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:02.986Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:03.032Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:03.032Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:03.037Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:03.038Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:03.065Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:03.065Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:03.070Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:03.073Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:03.124Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:03.124Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:03.129Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:03.130Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:03.157Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:03.157Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:03.161Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:03.162Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:03.229Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:03.229Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:03.237Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:03.237Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:03.272Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:03.272Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:03.279Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:03.279Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:03.345Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:03.345Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:03.353Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:03.353Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:03.381Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:03.382Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:03.388Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:03.389Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:03.446Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:03.447Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:03.453Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:03.453Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:03.482Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:03.482Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:03.489Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:03.490Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:03.544Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:03.544Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:03.550Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:03.551Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:03.574Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:03.574Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:03.582Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:03.582Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:03.625Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:03.625Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:03.632Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:03.633Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:03.656Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:03.657Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:03.672Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:03.673Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:03.712Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:03.713Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:03.718Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:03.719Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:03.743Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:03.743Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:03.751Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:03.752Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:03.794Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:03.795Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:03.799Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:03.800Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:03.837Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:03.838Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:03.842Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_UTF8"}
+2025-10-03T09:07:03.843Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:03.888Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:03.890Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:03.897Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:03.897Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:03.925Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:03.925Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:03.929Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:03.929Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:04.006Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:04.006Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:04.008Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:04.008Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:04.035Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:04.035Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:04.039Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:04.039Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:04.105Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:04.107Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:04.112Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:04.112Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:04.138Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:04.139Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:04.142Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:04.142Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:04.195Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:04.195Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:04.199Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:04.200Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:04.222Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:04.223Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:04.231Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:04.231Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:04.291Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:04.291Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:04.296Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:04.297Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:04.318Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:04.319Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:04.323Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:04.323Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:04.379Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:04.379Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:04.384Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:04.384Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:04.408Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:04.409Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:04.414Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:04.414Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:04.487Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:04.487Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:04.492Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:04.493Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:04.533Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:04.535Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:04.535Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:04.536Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:04.607Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:04.607Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:04.613Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:04.614Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:04.640Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:04.640Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:04.647Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:04.648Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:04.702Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:04.702Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:04.715Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:04.716Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:04.735Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:04.735Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:04.747Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:04.747Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:04.801Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:04.801Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:04.817Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:04.818Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:04.836Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:04.836Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:04.843Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:04.844Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:04.888Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:04.889Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:04.909Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:04.912Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:04.941Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:04.942Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:04.948Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:04.948Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:05.015Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:05.016Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:05.020Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:05.020Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:05.043Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:05.045Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:05.048Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:05.048Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:05.105Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:05.105Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:05.114Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:05.114Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:05.140Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:05.141Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:05.149Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:05.149Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:05.200Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:05.201Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:05.207Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:05.207Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:05.232Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:05.232Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:05.239Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:05.239Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:05.292Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:05.293Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:05.296Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:05.299Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:05.332Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:05.333Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:05.338Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:05.343Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:05.410Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:05.411Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:05.418Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:05.419Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:05.443Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:05.443Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:05.450Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:05.450Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:05.515Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:05.517Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:05.529Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:05.529Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:05.548Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:05.548Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:05.554Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:05.554Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:05.614Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:05.614Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:05.620Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:05.621Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:05.644Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:05.645Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:05.650Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:05.650Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:05.716Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:05.716Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:05.721Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:05.721Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:05.751Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:05.752Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:05.760Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:05.760Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:05.824Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:05.824Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:05.830Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:05.830Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:05.859Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:05.859Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:05.862Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:05.864Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:05.923Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:05.923Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:05.928Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:05.928Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:05.962Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:05.962Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:05.976Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:05.976Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:06.045Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:06.046Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:06.049Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:06.049Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:06.079Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:06.079Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:06.087Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:06.087Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:06.131Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:06.131Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:06.137Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:06.137Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:06.165Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:06.165Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:06.179Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:06.180Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:06.234Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:06.234Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:06.244Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:06.244Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:06.267Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:06.268Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:06.276Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:06.277Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:06.338Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:06.338Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:06.348Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:06.348Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:06.374Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:06.374Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:06.380Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:06.381Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:06.437Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:06.437Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:06.449Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:06.449Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:06.472Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:06.473Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:06.479Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:06.481Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:06.538Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:06.541Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:06.551Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:06.551Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:06.589Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:06.590Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:06.591Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:06.593Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:06.655Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:06.655Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:06.662Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:06.689Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:06.692Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:06.700Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:06.704Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:06.752Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:06.753Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:06.763Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:06.763Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:06.779Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:06.780Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:06.785Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:06.786Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:06.851Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:06.851Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:06.858Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:06.858Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:06.891Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:06.891Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:06.903Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:06.904Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:06.944Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:06.945Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:06.952Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:06.952Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:06.979Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:06.979Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:06.990Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:06.991Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:07.056Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:07.057Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:07.062Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:07.063Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:07.084Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:07.085Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:07.089Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:07.091Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:07.149Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:07.150Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:07.153Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:07.158Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:07.178Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:07.178Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:07.182Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:07.184Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:07.221Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:07.221Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:07.227Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:07.227Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:07.279Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:07.279Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:07.283Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:07.289Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:07.335Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:07.336Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:07.344Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:07.344Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:07.392Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:07.393Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:07.401Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:07.402Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:07.448Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:07.453Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:07.454Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:07.456Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:07.483Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:07.483Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:07.491Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:07.491Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:07.558Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:07.559Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:07.563Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:07.563Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:07.590Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:07.590Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:07.595Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:07.595Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:07.636Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:07.636Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:07.644Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:07.645Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:07.677Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:07.678Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:07.688Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:07.688Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:07.737Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:07.738Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:07.744Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:07.745Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:07.770Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:07.770Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:07.772Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:07.773Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:07.827Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:07.829Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:07.832Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:07.832Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:07.855Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:07.855Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:07.863Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:07.864Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:07.914Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:07.914Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:07.922Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:07.922Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:07.947Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:07.947Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:07.955Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:07.958Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:08.008Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:08.009Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:08.017Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:08.017Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:08.035Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:08.035Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:08.041Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:08.044Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:08.112Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:08.112Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:08.114Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:08.119Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:08.139Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:08.139Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:08.145Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:08.150Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:08.211Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:08.211Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:08.226Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:08.227Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:08.247Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:08.247Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:08.255Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:08.256Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:08.319Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:08.319Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:08.322Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:08.323Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:08.352Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:08.352Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:08.359Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:08.359Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:08.412Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:08.412Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:08.416Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:08.417Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:08.440Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:08.440Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:08.447Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:08.450Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:08.511Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:08.512Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:08.516Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:08.516Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:08.540Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:08.540Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:08.572Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:08.572Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:08.625Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:08.626Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:08.639Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:08.639Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:08.660Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:08.660Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:08.661Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:08.666Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:08.730Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:08.732Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:08.733Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:08.733Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:08.772Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:08.772Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:08.778Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:08.778Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:08.851Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:08.851Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:08.853Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:08.854Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:08.887Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:08.889Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:08.903Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:08.903Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:08.945Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:08.945Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:08.953Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:08.953Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:08.982Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:08.982Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:08.989Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:08.990Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:09.046Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:09.047Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:09.054Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:09.054Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:09.076Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:09.076Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:09.082Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:09.082Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:09.139Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:09.139Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:09.148Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:09.148Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:09.168Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:09.168Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:09.171Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:09.171Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:09.257Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:09.257Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:09.264Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:09.265Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:09.309Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:09.309Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:09.322Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:09.326Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:09.362Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:09.362Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:09.383Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:09.383Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:09.423Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:09.423Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:09.425Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:09.427Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:09.475Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:09.475Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:09.479Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:09.480Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:09.512Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:09.512Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:09.521Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_UTF8"}
+2025-10-03T09:07:09.521Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:09.585Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:09.585Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:09.589Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:09.591Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:09.612Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:09.612Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:09.619Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:09.619Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:09.665Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:09.665Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:09.670Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:09.671Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:09.687Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:09.688Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:09.695Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:09.697Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:09.743Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:09.743Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:09.746Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:09.747Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:09.772Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:09.772Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:09.777Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:09.777Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:09.840Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:09.840Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:09.853Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:09.853Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:09.878Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:09.878Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:09.889Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:09.890Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:09.933Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:09.933Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:09.941Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:09.942Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:09.964Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:09.964Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:09.969Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:09.972Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:10.026Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:10.026Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:10.040Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:10.040Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:10.074Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:10.075Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:10.079Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:10.080Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:10.129Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:10.129Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:10.131Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:10.132Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:10.155Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:10.155Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:10.167Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:10.167Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:10.223Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:10.223Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:10.230Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:10.231Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:10.264Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:10.264Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:10.271Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:10.272Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:10.328Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:10.328Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:10.341Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:10.341Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:10.371Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:10.371Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:10.381Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:10.381Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:10.454Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:10.454Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:10.464Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:10.466Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:10.491Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:10.492Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:10.496Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:10.496Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:10.556Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:10.557Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:10.560Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:10.560Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:10.588Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:10.588Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:10.599Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:10.599Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:10.655Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:10.655Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:10.659Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:10.659Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:10.684Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:10.684Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:10.691Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:10.691Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:10.743Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:10.744Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:10.747Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:10.750Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:10.784Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:10.785Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:10.792Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:10.792Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:10.851Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:10.853Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:10.860Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_UTF8"}
+2025-10-03T09:07:10.860Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:10.888Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:10.888Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:10.894Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:10.894Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:10.955Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:10.956Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:10.959Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:10.960Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:10.996Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:10.997Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:11.007Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:11.007Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:11.063Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:11.063Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:11.085Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:11.085Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:11.105Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:11.106Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:11.113Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:11.113Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:11.178Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:11.178Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:11.184Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:11.184Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:11.207Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:11.207Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:11.213Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:11.213Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:11.298Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:11.298Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:11.313Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:11.313Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:11.364Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:11.364Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:11.370Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:11.370Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:11.444Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:11.445Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:11.449Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:11.450Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:11.483Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:11.484Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:11.490Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:11.491Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:11.543Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:11.543Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:11.548Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:11.549Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:11.579Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:11.579Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:11.586Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:11.586Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:11.638Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:11.638Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:11.643Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:11.643Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:11.676Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:11.676Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:11.683Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:11.687Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:11.757Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:11.757Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:11.759Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:11.759Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:11.780Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:11.780Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:11.783Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:11.787Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:11.841Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:11.841Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:11.844Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:11.844Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:11.865Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:11.865Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:11.877Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:11.878Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:11.920Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:11.920Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:11.929Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:11.931Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:11.957Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:11.957Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:11.960Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:11.967Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:12.012Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:12.012Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:12.018Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:12.019Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:12.042Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:12.042Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:12.050Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:12.050Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:12.120Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:12.121Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:12.123Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:12.123Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:12.149Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:12.149Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:12.151Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:12.152Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:12.206Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:12.206Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:12.217Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_UTF8"}
+2025-10-03T09:07:12.217Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:12.238Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:12.241Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:12.242Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:12.242Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:12.302Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:12.302Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:12.308Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:12.308Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:12.334Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:12.334Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:12.339Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:12.343Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:12.405Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:12.405Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:12.414Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:12.415Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:12.442Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:12.442Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:12.445Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:12.445Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:12.519Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:12.520Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:12.552Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:12.552Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:12.581Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:12.581Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:12.589Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:12.591Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:12.650Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:12.650Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:12.658Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:12.658Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:12.692Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:12.692Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:12.699Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:12.702Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:12.760Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:12.760Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:12.761Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:12.763Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:12.789Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:12.792Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:12.795Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:12.795Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:12.844Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:12.844Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:12.849Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:12.850Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:12.874Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:12.874Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:12.882Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:12.884Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:12.944Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:12.944Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:12.951Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:12.951Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:12.977Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:12.977Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:12.982Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:12.986Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:13.034Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:13.034Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:13.042Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:13.042Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:13.061Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:13.061Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:13.067Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:13.071Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:13.129Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:13.129Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:13.136Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:13.137Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:13.159Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:13.160Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:13.166Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:13.166Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:13.221Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:13.221Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:13.228Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:13.229Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:13.254Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:13.256Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:13.267Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:13.267Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:13.341Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:13.342Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:13.345Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:13.346Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:13.377Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:13.378Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:13.380Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:13.381Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:13.431Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:13.432Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:13.441Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:13.441Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:13.464Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:13.464Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:13.470Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:13.470Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:13.538Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:13.539Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:13.549Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:13.550Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:13.568Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:13.568Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:13.571Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:13.572Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:13.631Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:13.632Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:13.642Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:13.643Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:13.672Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:13.672Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:13.680Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:13.680Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:13.759Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:13.759Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:13.763Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:13.763Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:13.790Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:13.791Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:13.798Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:13.798Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:13.861Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:13.861Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:13.870Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:13.870Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:13.892Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:13.893Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:13.900Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:13.900Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:13.959Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:13.960Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:13.965Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:13.966Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:13.990Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:13.991Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:13.997Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:13.997Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:14.080Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:14.080Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:14.091Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:14.091Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:14.119Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:14.120Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:14.124Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:14.124Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:14.192Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:14.192Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:14.205Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:14.206Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:14.238Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:14.239Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:14.240Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:14.246Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:14.290Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:14.290Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:14.292Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_UTF8"}
+2025-10-03T09:07:14.298Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:14.315Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:14.316Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:14.323Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:14.326Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:14.368Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:14.369Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:14.370Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:14.371Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:14.395Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:14.395Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:14.401Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:14.402Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:14.453Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:14.453Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:14.458Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:14.459Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:14.483Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:14.483Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:14.495Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:14.498Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:14.557Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:14.557Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:14.569Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:14.569Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:14.585Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:14.586Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:14.589Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:14.590Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:14.640Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:14.640Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:14.645Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:14.646Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:14.675Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:14.675Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:14.681Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:14.681Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:14.745Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:14.745Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:14.752Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:14.753Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:14.776Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:14.776Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:14.787Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:14.788Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:14.838Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:14.838Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:14.839Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:14.843Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:14.868Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:14.869Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:14.876Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:14.878Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:14.936Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:14.937Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:14.943Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:14.944Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:14.966Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:14.966Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:14.971Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:14.971Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:15.028Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:15.029Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:15.048Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:15.048Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:15.168Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:15.168Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:15.177Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:15.179Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:15.236Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:15.236Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:15.243Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:15.243Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:15.278Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:15.278Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:15.283Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:15.289Z INFO   Client disconnected from main WebSocket.
+2025-10-03T09:07:15.395Z INFO  [WebSocketServer] Received upgrade request for path: /
+2025-10-03T09:07:15.396Z INFO   A new client connected to main WebSocket.
+2025-10-03T09:07:15.400Z ERROR  WebSocket error: {"code":"WS_ERR_INVALID_CLOSE_CODE"}
+2025-10-03T09:07:15.400Z INFO   Client disconnected from main WebSocket.

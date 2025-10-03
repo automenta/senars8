@@ -1,6 +1,6 @@
 import {EventEmitter} from 'events';
 import AgentCommunicationService from './AgentCommunicationService.js';
-import log from '@senars/core/utils/logger.js';
+import log from '../../core/utils/logger.js';
 import {CONFIG} from '../constants/config.js';
 
 /**
