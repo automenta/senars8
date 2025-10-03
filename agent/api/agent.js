@@ -118,7 +118,7 @@ export const handleTaskAction = async (payload, ws, agent, broadcast) => {
     }, ws, 'execute task action');
 };
 
-export const handleAddTask = async (payload, ws, agent, broadcast) => {
+export const handleAddTask = async (payload, ws, agent) => {
     return executeAsync(async () => {
         const {taskData} = payload;
         if (!agent.system || !agent.system.commandBus) {
@@ -134,11 +134,8 @@ export const handleAddTask = async (payload, ws, agent, broadcast) => {
             }
         );
 
+        // The AgentManager's event listener will handle the broadcast
         await agent.system.commandBus.request(SystemCommands.SYSTEM_ADD_TASKS, [task]);
-        broadcast({
-            type: 'task_added',
-            payload: {task: task.toString(), id: task.id}
-        });
     }, ws, 'add task');
 };
 

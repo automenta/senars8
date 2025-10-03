@@ -11,7 +11,7 @@ export class StandaloneWebSocketServer {
         this.messageHandler = null;
     }
 
-    async start(agentManager) {
+    async start() {
         // Import http module first, then create and start server
         const httpModule = await import('http');
         this.server = httpModule.createServer();
@@ -24,7 +24,7 @@ export class StandaloneWebSocketServer {
                 // Create WebSocket server attached to the HTTP server
                 this.wss = new WsServer({server: this.server});
 
-                this.setupWebSocketHandlers(agentManager);
+                this.setupWebSocketHandlers();
                 resolve();
             });
 
@@ -35,7 +35,7 @@ export class StandaloneWebSocketServer {
         });
     }
 
-    setupWebSocketHandlers(agentManager) {
+    setupWebSocketHandlers() {
         this.wss.on('connection', (ws) => {
             log.info('A new client connected to standalone WebSocket server');
             ws.send(JSON.stringify({
@@ -107,10 +107,14 @@ export class StandaloneWebSocketServer {
     }
 
     broadcast(data) {
+        console.log('Broadcasting message from StandaloneWebSocketServer:', JSON.stringify(data, null, 2));
         if (this.wss && this.wss.clients) {
+            const message = JSON.stringify(data, (key, value) =>
+                typeof value === 'bigint' ? value.toString() : value
+            );
             this.wss.clients.forEach(client => {
                 if (client.readyState === client.OPEN) {
-                    client.send(JSON.stringify(data));
+                    client.send(message);
                 }
             });
         }

@@ -43,9 +43,10 @@ describe('AppRunner Logic', () => {
         await AppRunner.shutdown();
     });
 
-    it('should initialize AgentManager on any startup', async () => {
+    it('should NOT initialize AgentManager on basic startup', async () => {
         await AppRunner.run({});
-        expect(mockInitialize).toHaveBeenCalledTimes(1);
+        // Initialization is now deferred to the component that uses the agent (e.g., web interface)
+        expect(mockInitialize).not.toHaveBeenCalled();
     });
 
     it('should call startAgent by default when no args are provided', async () => {

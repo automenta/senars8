@@ -22,8 +22,8 @@
     "start": "node main.js",
     "dev": "node main.js --web",
     "tui": "node main.js --tui",
-    "test": "ORT_LOGGING_LEVEL=FATAL vitest --run --silent",
-    "test:ui": "ORT_LOGGING_LEVEL=FATAL vitest --ui --silent",
+    "test": "ORT_LOGGING_LEVEL=FATAL vitest --run",
+    "test:ui": "ORT_LOGGING_LEVEL=FATAL vitest --ui",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "slides": "slidev docs/slides.md"

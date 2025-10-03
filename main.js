@@ -49,10 +49,8 @@ export const AppRunner = {
 
     async run(args = {}) {
         try {
-            const agentManager = new AgentManager(() => {
-            }); // Dummy broadcast
-            await agentManager.initialize();
-            log.info('AgentManager initialized.');
+            const agentManager = new AgentManager();
+            // Initialization is now handled by the component that uses it (e.g., Vite plugin)
             this._activeAgentManager = agentManager;
 
             if (args.web) {

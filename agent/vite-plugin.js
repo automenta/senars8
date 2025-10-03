@@ -10,20 +10,21 @@ export const agentServerPlugin = (agentManager) => {
     return {
         name: 'agent-server-plugin',
         async configureServer(server) {
-            // Use a separate port for WebSocket communication to avoid conflicts with Vite
             const wsPort = process.env.WS_PORT ? parseInt(process.env.WS_PORT) : 8081;
 
             try {
+                // 1. Create and start the WebSocket server
                 standaloneWsServer = new StandaloneWebSocketServer(wsPort);
+                await standaloneWsServer.start();
 
-                // Start the standalone WebSocket server
-                await standaloneWsServer.start(agentManager);
+                // 2. Link the server to the AgentManager
+                agentManager.setBroadcast(standaloneWsServer.broadcast.bind(standaloneWsServer));
 
-                // Set up message handler
-                const messageHandler = createMessageHandler(agentManager, (data) => {
-                    standaloneWsServer.broadcast(data);
-                });
+                // 3. Initialize the AgentManager
+                await agentManager.initialize();
 
+                // 4. Set up the message handler, which now connects the server back to the agent
+                const messageHandler = createMessageHandler(agentManager, standaloneWsServer.broadcast.bind(standaloneWsServer));
                 standaloneWsServer.setMessageHandler(messageHandler);
 
                 log.info(`WebSocket server started on port ${wsPort} (standalone). UI should connect to ws://localhost:${wsPort}`);

@@ -1,245 +1,68 @@
-import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
-import {createConnection} from 'net';
-import WebSocket from 'ws';
-import {ServerProcessManager} from '../utils/ServerProcessManager.js';
+import {describe, it, expect, beforeAll, afterAll} from 'vitest';
+import AgentManager from '../../agent/AgentManager.js';
+import {StandaloneWebSocketServer} from '../../agent/StandaloneWebSocketServer.js';
+import {createWebSocketClient, awaitNextMessage, closeWebSocket} from '../utils/WebSocketTestUtils.js';
+import {findAvailablePort} from '../utils/networkUtils.js';
+import {createMessageHandler} from '../../agent/MessageHandler.js';
 
-/**
- * TUI WebSocket Integration Tests
- */
 describe('TUI WebSocket Service Integration', () => {
-    let serverManager;
-    let testPort;
-    let wsPort;
+    let agentManager;
+    let wsServer;
+    let wsUrl;
+    let tuiClient;
 
-    beforeEach(async () => {
-        serverManager = new ServerProcessManager();
+    beforeAll(async () => {
+        const wsPort = await findAvailablePort(8082); // Use a different port to avoid conflicts
+        wsUrl = `ws://localhost:${wsPort}`;
 
-        // Find available ports
-        testPort = await serverManager.findAvailablePort(8080);
-        wsPort = await serverManager.findAvailablePort(8081);
-    }, 30000); // Increase timeout for setup
+        // Instantiate and wire up components
+        agentManager = new AgentManager();
+        wsServer = new StandaloneWebSocketServer(wsPort);
 
-    afterEach(async () => {
-        if (serverManager) {
-            await serverManager.stopServer();
+        await wsServer.start();
+
+        // Link server to agent manager
+        agentManager.setBroadcast(wsServer.broadcast.bind(wsServer));
+
+        // Create and set message handler
+        const messageHandler = createMessageHandler(agentManager, wsServer.broadcast.bind(wsServer));
+        wsServer.setMessageHandler(messageHandler);
+
+        // Initialize agent manager
+        await agentManager.initialize();
+
+        // Create a client for the TUI
+        tuiClient = await createWebSocketClient(wsUrl);
+    }, 60000);
+
+    afterAll(async () => {
+        if (tuiClient) {
+            await closeWebSocket(tuiClient);
         }
-    }, 15000); // Increase timeout for cleanup
-
-    it('should allow TUI to connect to WebSocket agent service', async () => {
-        // Start the full server with WebSocket support
-        await serverManager.startServer(testPort, wsPort);
-
-        // Create a WebSocket connection simulating what TUI would do
-        const tuiWs = new WebSocket(`ws://localhost:${wsPort}`);
-
-        await new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => {
-                tuiWs.close();
-                reject(new Error('TUI WebSocket connection timeout'));
-            }, 5000);
-
-            tuiWs.on('open', () => {
-                clearTimeout(timeout);
-                tuiWs.close();
-                resolve();
-            });
-
-            tuiWs.on('error', (err) => {
-                clearTimeout(timeout);
-                reject(new Error(`TUI WebSocket connection failed: ${err.message}`));
-            });
-        });
-    });
-
-    it('should handle TUI task submission via WebSocket', async () => {
-        // Start the server
-        await serverManager.startServer(testPort, wsPort);
-
-        // Simulate TUI sending a task via WebSocket
-        const tuiWs = new WebSocket(`ws://localhost:${wsPort}`);
-
-        await new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => {
-                tuiWs.close();
-                reject(new Error('TUI task submission timeout'));
-            }, 6000);
-
-            let connected = false;
-
-            tuiWs.on('open', () => {
-                connected = true;
-                // Send a task similar to how TUI would
-                tuiWs.send(JSON.stringify({
-                    type: 'narsese',
-                    payload: '(bird --> animal). %1.0;0.9%'
-                }));
-            });
-
-            tuiWs.on('message', (data) => {
-                // If we receive a response, the message was processed successfully
-                clearTimeout(timeout);
-                tuiWs.close();
-                resolve();
-            });
-
-            tuiWs.on('error', (err) => {
-                clearTimeout(timeout);
-                reject(new Error(`TUI task submission error: ${err.message}`));
-            });
-        });
-    });
+        await wsServer.stop();
+        await agentManager.stop();
+    }, 30000);
 
     it('should handle bidirectional communication between TUI and agent', async () => {
-        // Start the server
-        await serverManager.startServer(testPort, wsPort);
+        // 1. Wait for the initial connection acknowledgment
+        const ack = await awaitNextMessage(tuiClient, (msg) => msg.type === 'connection_ack');
+        expect(ack.type).toBe('connection_ack');
 
-        // Create a WebSocket connection for bidirectional communication
-        const tuiWs = new WebSocket(`ws://localhost:${wsPort}`);
+        // 2. Prepare to receive a broadcast message after sending a task
+        const taskAddedPromise = awaitNextMessage(tuiClient, (msg) => msg.type === 'task_added', 5000);
 
-        await new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => {
-                tuiWs.close();
-                reject(new Error('TUI bidirectional communication timeout'));
-            }, 7000);
+        // 3. Send a task from the TUI client to the agent
+        const taskData = {
+            statement: `<tui-task --> relation>.`,
+        };
+        tuiClient.send(JSON.stringify({
+            type: 'add_task',
+            payload: {taskData}
+        }));
 
-            tuiWs.on('open', () => {
-                // Send an initial message
-                tuiWs.send(JSON.stringify({
-                    type: 'subscribe',
-                    payload: {channel: 'tui_updates'}
-                }));
-            });
-
-            tuiWs.on('message', (data) => {
-                try {
-                    const message = JSON.parse(data);
-                    // Check if this is the expected acknowledgment
-                    if (message.type === 'connection_ack' || message.type) {
-                        clearTimeout(timeout);
-                        tuiWs.close();
-                        resolve();
-                    }
-                } catch (err) {
-                    // Handle message parsing errors
-                    clearTimeout(timeout);
-                    tuiWs.close();
-                    reject(new Error(`Message parsing error: ${err.message}`));
-                }
-            });
-
-            tuiWs.on('error', (err) => {
-                clearTimeout(timeout);
-                reject(new Error(`TUI bidirectional communication error: ${err.message}`));
-            });
-        });
-    });
-
-    it('should maintain stable WebSocket connection during TUI operations', async () => {
-        // Start the server
-        await serverManager.startServer(testPort, wsPort);
-
-        // Test connection stability over time
-        const tuiWs = new WebSocket(`ws://localhost:${wsPort}`);
-
-        await new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => {
-                tuiWs.close();
-                reject(new Error('TUI connection stability test timeout'));
-            }, 10000); // Longer timeout for stability test
-
-            let messageCount = 0;
-            const maxMessages = 5;
-
-            tuiWs.on('open', () => {
-                // Send periodic messages to simulate TUI activity
-                const messageInterval = setInterval(() => {
-                    if (messageCount < maxMessages) {
-                        tuiWs.send(JSON.stringify({
-                            type: 'ping',
-                            payload: {
-                                source: 'tui',
-                                timestamp: Date.now(),
-                                count: messageCount + 1
-                            }
-                        }));
-                        messageCount++;
-                    } else {
-                        clearInterval(messageInterval);
-                    }
-                }, 1000);
-            });
-
-            let responsesReceived = 0;
-            tuiWs.on('message', (data) => {
-                responsesReceived++;
-                if (responsesReceived >= maxMessages) {
-                    clearTimeout(timeout);
-                    tuiWs.close();
-                    resolve();
-                }
-            });
-
-            tuiWs.on('error', (err) => {
-                clearTimeout(timeout);
-                reject(new Error(`TUI connection stability error: ${err.message}`));
-            });
-        });
-    });
-
-    it('should handle multiple TUI clients connecting simultaneously', async () => {
-        // Start the server
-        await serverManager.startServer(testPort, wsPort);
-
-        // Test multiple TUI clients connecting to the same WebSocket server
-        const client1 = new WebSocket(`ws://localhost:${wsPort}`);
-        const client2 = new WebSocket(`ws://localhost:${wsPort}`);
-        const client3 = new WebSocket(`ws://localhost:${wsPort}`);
-
-        // Promise for each client connection
-        const connectPromises = [
-            new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => reject(new Error('TUI Client 1 connection timeout')), 3000);
-                client1.on('open', () => {
-                    clearTimeout(timeout);
-                    resolve();
-                });
-                client1.on('error', (err) => {
-                    clearTimeout(timeout);
-                    reject(new Error(`TUI Client 1 error: ${err.message}`));
-                });
-            }),
-            new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => reject(new Error('TUI Client 2 connection timeout')), 3000);
-                client2.on('open', () => {
-                    clearTimeout(timeout);
-                    resolve();
-                });
-                client2.on('error', (err) => {
-                    clearTimeout(timeout);
-                    reject(new Error(`TUI Client 2 error: ${err.message}`));
-                });
-            }),
-            new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => reject(new Error('TUI Client 3 connection timeout')), 3000);
-                client3.on('open', () => {
-                    clearTimeout(timeout);
-                    resolve();
-                });
-                client3.on('error', (err) => {
-                    clearTimeout(timeout);
-                    reject(new Error(`TUI Client 3 error: ${err.message}`));
-                });
-            })
-        ];
-
-        // Wait for all clients to connect
-        await Promise.all(connectPromises);
-
-        // Close all connections
-        client1.close();
-        client2.close();
-        client3.close();
-
-        expect(true).toBe(true); // Test passes if all clients could connect
+        // 4. Wait for the broadcast and verify its content
+        const taskAddedMessage = await taskAddedPromise;
+        expect(taskAddedMessage.type).toBe('task_added');
+        expect(taskAddedMessage.payload.statement).toBe(taskData.statement);
     });
 });

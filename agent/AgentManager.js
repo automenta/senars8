@@ -6,12 +6,16 @@ import FileMonitor from './FileMonitor.js';
 import {createUnifiedErrorHandler} from '../core/utils/errorHandler.js';
 
 class AgentManager {
-    constructor(broadcast) {
+    constructor() {
         this.agent = new Agent();
-        this.broadcast = broadcast;
+        this.broadcast = () => {}; // No-op broadcast function by default
         this.system = null;
         this.fileMonitor = null;
         this.errorHandler = createUnifiedErrorHandler('AgentManager');
+    }
+
+    setBroadcast(broadcast) {
+        this.broadcast = broadcast;
     }
 
     async initialize() {
@@ -59,6 +63,7 @@ class AgentManager {
 
             for (const [eventName, formatter] of Object.entries(events)) {
                 eventBus.on(eventName, (data) => {
+                    console.log(`AgentManager: Event received: ${eventName}`, data);
                     this.errorHandler.runSync(() => {
                         this.broadcast(formatter(data));
                     }, `broadcast:${eventName}`);
