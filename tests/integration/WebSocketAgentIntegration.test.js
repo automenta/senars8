@@ -9,6 +9,9 @@ import {SystemCommands} from '../../core/system/SystemCommands.js';
 
 // Mock the core System to isolate AgentManager and WebSocket communication
 vi.mock('../../core/system/System.js', () => {
+    const EventEmitter = require('events');
+    const {SystemCommands} = require('../../core/system/SystemCommands.js');
+    
     const eventBus = new EventEmitter();
 
     const commandBus = {
@@ -18,6 +21,9 @@ vi.mock('../../core/system/System.js', () => {
             }
             if (command === SystemCommands.SYSTEM_STOP_CYCLING) {
                 eventBus.emit('status_update', 'stopped');
+            }
+            if (command === SystemCommands.SYSTEM_ADD_TASKS) {
+                args.forEach(task => eventBus.emit('add_task', task));
             }
         }),
         handle: vi.fn(),
@@ -47,8 +53,10 @@ describe('WebSocketAgentIntegration', () => {
     let mockSystem;
     const clientsToClose = [];
 
+    let wsPort;
+
     beforeAll(async () => {
-        const wsPort = await findAvailablePort(8081);
+        wsPort = await findAvailablePort(8081);
         wsUrl = `ws://localhost:${wsPort}`;
 
         const System = (await import('../../core/system/System.js')).default;
@@ -72,8 +80,12 @@ describe('WebSocketAgentIntegration', () => {
     }, 60000);
 
     afterAll(async () => {
-        await wsServer.stop();
-        await agentManager.stop();
+        if (wsServer) {
+            await wsServer.stop();
+        }
+        if (agentManager) {
+            await agentManager.stop();
+        }
     }, 30000);
 
     beforeEach(async () => {

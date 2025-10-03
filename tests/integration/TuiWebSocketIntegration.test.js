@@ -10,9 +10,10 @@ describe('TUI WebSocket Service Integration', () => {
     let wsServer;
     let wsUrl;
     let tuiClient;
+    let wsPort;
 
     beforeAll(async () => {
-        const wsPort = await findAvailablePort(8082); // Use a different port to avoid conflicts
+        wsPort = await findAvailablePort(8082); // Use a different port to avoid conflicts
         wsUrl = `ws://localhost:${wsPort}`;
 
         // Instantiate and wire up components
@@ -39,8 +40,12 @@ describe('TUI WebSocket Service Integration', () => {
         if (tuiClient) {
             await closeWebSocket(tuiClient);
         }
-        await wsServer.stop();
-        await agentManager.stop();
+        if (wsServer) {
+            await wsServer.stop();
+        }
+        if (agentManager) {
+            await agentManager.stop();
+        }
     }, 30000);
 
     it('should handle bidirectional communication between TUI and agent', async () => {
@@ -53,7 +58,7 @@ describe('TUI WebSocket Service Integration', () => {
 
         // 3. Send a task from the TUI client to the agent
         const taskData = {
-            statement: `<tui-task --> relation>.`,
+            statement: `<tui_task --> relation>.`,
         };
         tuiClient.send(JSON.stringify({
             type: 'add_task',

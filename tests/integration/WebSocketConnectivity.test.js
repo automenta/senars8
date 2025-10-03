@@ -4,22 +4,35 @@ import {StandaloneWebSocketServer} from '../../agent/StandaloneWebSocketServer.j
 import {createWebSocketClient, awaitNextMessage, closeWebSocket} from '../utils/WebSocketTestUtils.js';
 import {findAvailablePort} from '../utils/networkUtils.js';
 import {createMessageHandler} from '../../agent/MessageHandler.js';
+import {SystemCommands} from '../../core/system/SystemCommands.js';
 
 vi.mock('../../core/system/System.js', () => {
-    const EventEmitter = vi.fn(() => ({
-        emit: vi.fn(),
-        on: vi.fn(),
-        off: vi.fn(),
-    }));
-    const CommandBus = vi.fn(() => ({
+    const EventEmitter = require('events');
+    const {SystemCommands} = require('../../core/system/SystemCommands.js');
+    
+    // Create a real EventEmitter instance for proper event handling
+    const eventBus = new EventEmitter();
+    
+    const commandBus = {
         handle: vi.fn(),
-        request: vi.fn(),
-    }));
+        request: vi.fn(async (command, args) => {
+            if (command === SystemCommands.SYSTEM_START_CYCLING) {
+                // Emit the status update event to be caught by agent manager's listeners
+                eventBus.emit('status_update', 'running');
+            }
+            if (command === SystemCommands.SYSTEM_STOP_CYCLING) {
+                eventBus.emit('status_update', 'stopped');
+            }
+            if (command === SystemCommands.SYSTEM_ADD_TASKS) {
+                args.forEach(task => eventBus.emit('add_task', task));
+            }
+        }),
+    };
 
     return {
         default: vi.fn(() => ({
-            eventBus: new EventEmitter(),
-            commandBus: new CommandBus(),
+            eventBus,
+            commandBus,
             initialize: vi.fn().mockResolvedValue(undefined),
             start: vi.fn(),
             stop: vi.fn(),
@@ -34,15 +47,19 @@ describe('WebSocket Full Lifecycle Integration Test', () => {
     let wsUrl;
     let controlClient;
     let mockSystem;
+    let wsPort;
     const clientsToClose = [];
 
     beforeEach(async () => {
-        const wsPort = await findAvailablePort(8081);
+        wsPort = await findAvailablePort(8083); // Use a different port to avoid conflicts with other tests
         wsUrl = `ws://localhost:${wsPort}`;
 
         const System = (await import('../../core/system/System.js')).default;
         mockSystem = new System();
-        agentManager = new AgentManager(mockSystem);
+        agentManager = new AgentManager();
+        // Manually inject the mocked system since AgentManager creates its own by default
+        agentManager.system = mockSystem;
+        agentManager.agent.system = mockSystem;
         wsServer = new StandaloneWebSocketServer(wsPort);
 
         await wsServer.start();
@@ -53,6 +70,9 @@ describe('WebSocket Full Lifecycle Integration Test', () => {
         wsServer.setMessageHandler(messageHandler);
 
         await agentManager.initialize();
+        
+        // Ensure event listeners are properly set up after initialization
+        agentManager.setupEventListeners();
 
         controlClient = await createWebSocketClient(wsUrl);
         clientsToClose.push(controlClient);
@@ -66,8 +86,12 @@ describe('WebSocket Full Lifecycle Integration Test', () => {
             await closeWebSocket(client);
         }
         clientsToClose.length = 0; // Clear the array
-        await wsServer.stop();
-        await agentManager.stop();
+        if (wsServer) {
+            await wsServer.stop();
+        }
+        if (agentManager) {
+            await agentManager.stop();
+        }
     });
 
     it('should connect and receive a welcome message', async () => {
@@ -91,7 +115,7 @@ describe('WebSocket Full Lifecycle Integration Test', () => {
 
         expect(agentStateMessage.type).toBe('status_update');
         expect(agentStateMessage.payload).toBe('running');
-        expect(mockSystem.start).toHaveBeenCalled();
+        expect(mockSystem.commandBus.request).toHaveBeenCalledWith(SystemCommands.SYSTEM_START_CYCLING, expect.anything());
     });
 
     it('should add a task and receive a task_added broadcast', async () => {
@@ -102,7 +126,7 @@ describe('WebSocket Full Lifecycle Integration Test', () => {
         const taskAddedPromise = awaitNextMessage(listenerClient, (msg) => msg.type === 'task_added');
 
         const taskData = {
-            statement: `<test-task-${Date.now()} --> relation>.`,
+            statement: '(test_task --> relation).',
         };
 
         controlClient.send(JSON.stringify({
@@ -113,8 +137,8 @@ describe('WebSocket Full Lifecycle Integration Test', () => {
         const taskAddedMessage = await taskAddedPromise;
 
         expect(taskAddedMessage.type).toBe('task_added');
-        expect(taskAddedMessage.payload.statement).toBe(taskData.statement);
-        expect(mockSystem.addTasks).toHaveBeenCalled();
+        expect(taskAddedMessage.payload.termKey).toBe(taskData.statement);
+        expect(mockSystem.commandBus.request).toHaveBeenCalledWith(SystemCommands.SYSTEM_ADD_TASKS, expect.any(Array));
     });
 
     it('should stop the agent and receive a status_update broadcast', async () => {
@@ -133,6 +157,6 @@ describe('WebSocket Full Lifecycle Integration Test', () => {
 
         expect(agentStateMessage.type).toBe('status_update');
         expect(agentStateMessage.payload).toBe('stopped');
-        expect(mockSystem.stop).toHaveBeenCalled();
+        expect(mockSystem.commandBus.request).toHaveBeenCalledWith(SystemCommands.SYSTEM_STOP_CYCLING);
     });
 });

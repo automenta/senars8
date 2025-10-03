@@ -107,11 +107,40 @@ export class StandaloneWebSocketServer {
     }
 
     broadcast(data) {
-        console.log('Broadcasting message from StandaloneWebSocketServer:', JSON.stringify(data, null, 2));
         if (this.wss && this.wss.clients) {
-            const message = JSON.stringify(data, (key, value) =>
-                typeof value === 'bigint' ? value.toString() : value
-            );
+            let message;
+            try {
+                message = JSON.stringify(data, (key, value) =>
+                    typeof value === 'bigint' ? value.toString() : value
+                );
+            } catch (error) {
+                console.error('Error serializing broadcast data:', error);
+                // Fallback to a safe serialization that handles circular refs and other issues
+                const seen = new WeakSet();
+                const safeData = JSON.parse(JSON.stringify(data, (key, value) => {
+                    if (typeof value === 'bigint') {
+                        return value.toString();
+                    }
+                    if (value instanceof Error) {
+                        return { message: value.message, stack: value.stack };
+                    }
+                    if (typeof value === 'function') {
+                        return undefined;
+                    }
+                    if (value !== null && typeof value === 'object') {
+                        if (seen.has(value)) {
+                            return '[Circular]';
+                        }
+                        seen.add(value);
+                    }
+                    return value;
+                }));
+                message = JSON.stringify(safeData);
+            }
+            
+            // Only log if not too verbose
+            console.log('Broadcasting message from StandaloneWebSocketServer:', message.substring(0, 500) + (message.length > 500 ? '...' : ''));
+            
             this.wss.clients.forEach(client => {
                 if (client.readyState === client.OPEN) {
                     client.send(message);
