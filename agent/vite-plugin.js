@@ -30,6 +30,26 @@ export const agentServerPlugin = (agentManager) => {
                 
                 // Update config to reflect the actual WebSocket port being used
                 process.env.ACTUAL_WS_PORT = wsPort.toString();
+                
+                // Add cleanup handler for dev server specifically
+                server.httpServer.on('close', async () => {
+                    if (standaloneWsServer) {
+                        await standaloneWsServer.stop();
+                    }
+                });
+                
+                // Also handle process exit for proper cleanup
+                const cleanup = async () => {
+                    if (standaloneWsServer) {
+                        await standaloneWsServer.stop();
+                        standaloneWsServer = null;
+                    }
+                };
+                
+                process.on('SIGINT', cleanup);
+                process.on('SIGTERM', cleanup);
+                process.on('exit', cleanup);
+                
             } catch (error) {
                 log.error('Failed to start standalone WebSocket server:', error);
             }
@@ -39,6 +59,7 @@ export const agentServerPlugin = (agentManager) => {
             // Clean up the standalone WebSocket server when Vite server closes
             if (standaloneWsServer) {
                 await standaloneWsServer.stop();
+                standaloneWsServer = null;
             }
         }
     };

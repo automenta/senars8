@@ -74,7 +74,7 @@ export const commandDefinitions = {
         description: 'Connects to the agent WebSocket server.',
         usage: '!connect [url]',
         handler: (args, {agentService, uiManager}) => {
-            const url = args[0] || 'ws://localhost:8080';
+            const url = args[0] || 'ws://localhost:8081'; // Correct WebSocket port
             agentService.connect(url);
             uiManager.log(`Connecting to: ${url}`);
         },
