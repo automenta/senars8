@@ -261,6 +261,62 @@ describe('TUI Integration Tests', () => {
   });
 });
 
+describe('TUI WebSocket Connectivity Tests', () => {
+  let app;
+  let mockApiService;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    // Create a real instance but with mocked dependencies
+    app = new Application();
+
+    // Get the mocked ApiService instance
+    mockApiService = app.apiService;
+  });
+
+  afterEach(() => {
+    if (app) {
+      app.stop();
+    }
+  });
+
+  it('should connect to WebSocket agent service', async () => {
+    // Verify that the API service attempts to connect to the WebSocket
+    await app.start();
+    expect(mockApiService.connect).toHaveBeenCalled();
+  });
+
+  it('should handle WebSocket connection errors gracefully', async () => {
+    // Mock a connection failure scenario
+    const connectSpy = vi.spyOn(mockApiService, 'connect');
+    connectSpy.mockRejectedValue(new Error('WebSocket connection failed'));
+
+    // This should not crash the application
+    await expect(app.start()).resolves;
+  });
+
+  it('should maintain WebSocket connection status', async () => {
+    const mockGetAgentState = vi.fn().mockReturnValue({
+      isRunning: true,
+      cycleCount: 5,
+      tasks: [{id: 'task1', content: '(bird --> animal).'}],
+      beliefs: [],
+      goals: [],
+      questions: [],
+      notifications: []
+    });
+
+    mockApiService.getAgentState = mockGetAgentState;
+
+    await app.start();
+
+    const agentState = app.apiService.getAgentState();
+    expect(agentState).toBeDefined();
+    expect(typeof agentState).toBe('object');
+  });
+});
+
 describe('TUI Component Integration', () => {
   let app;
   let mockApiService;

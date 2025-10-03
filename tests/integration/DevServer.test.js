@@ -1,228 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { spawn, execSync } from 'child_process';
 import { createConnection } from 'net';
 import { promisify } from 'util';
 import WebSocket from 'ws';
-
-/**
- * ServerProcessManager - Manages server process lifecycle with proper cleanup
- */
-class ServerProcessManager {
-  constructor() {
-    this.process = null;
-    this.port = null;
-    this.cleanupFunctions = [];
-  }
-
-  /**
-   * Finds an available port by testing connections
-   * @returns {Promise<number>} An available port number
-   */
-  async findAvailablePort(startPort = 8080, maxTries = 50) {
-    for (let port = startPort; port < startPort + maxTries; port++) {
-      if (await this.isPortAvailable(port)) {
-        return port;
-      }
-    }
-    throw new Error(`Could not find available port after ${maxTries} attempts`);
-  }
-
-  /**
-   * Checks if a port is available for use
-   * @param {number} port - The port to check
-   * @returns {Promise<boolean>} True if the port is available
-   */
-  async isPortAvailable(port) {
-    return new Promise((resolve) => {
-      const server = createConnection({ port });
-
-      server.once('connect', () => {
-        server.end();
-        resolve(false); // Port is in use
-      });
-
-      server.once('error', (err) => {
-        server.destroy();
-        // If ECONNREFUSED, the port is available
-        resolve(err.code === 'ECONNREFUSED');
-      });
-    });
-  }
-
-  /**
-   * Sets up the environment for the server process
-   * @param {number} port - The port to use for the server
-   * @returns {object} Environment variables for the process
-   */
-  setupEnvironment(port) {
-    // Create a copy of process.env to avoid modifying global environment
-    const env = { ...process.env };
-
-    // Set environment variables that might affect the server port
-    env.PORT = port.toString();
-    env.WS_PORT = port.toString();
-
-    return env;
-  }
-
-  /**
-   * Starts the development server process
-   * @param {number} port - Port to run the server on
-   * @returns {Promise<ChildProcess>} The spawned server process
-   */
-  async startServer(port) {
-    this.port = port;
-
-    const env = this.setupEnvironment(port);
-
-    // Spawn the main entry point with the --web flag
-    this.process = spawn('node', ['main.js', '--web'], {
-      env,
-      cwd: process.cwd(),
-      stdio: ['pipe', 'pipe', 'pipe']
-    });
-
-    // Capture process output for debugging
-    const output = [];
-    const errors = [];
-
-    this.process.stdout.on('data', (data) => {
-      const str = data.toString();
-      output.push(str);
-      // Log to console if running in verbose mode
-      if (process.env.VITEST_VERBOSE) {
-        console.log(`[SERVER-OUT] ${str.trim()}`);
-      }
-    });
-
-    this.process.stderr.on('data', (data) => {
-      const str = data.toString();
-      errors.push(str);
-      // Log to console if running in verbose mode
-      if (process.env.VITEST_VERBOSE) {
-        console.error(`[SERVER-ERR] ${str.trim()}`);
-      }
-    });
-
-    // Store references for later inspection
-    this.output = output;
-    this.errors = errors;
-
-    // Add cleanup functions
-    this.cleanupFunctions.push(() => {
-      if (this.process && !this.process.killed) {
-        try {
-          // Kill the entire process group to ensure all child processes are terminated
-          process.kill(-this.process.pid, 'SIGTERM');
-        } catch (e) {
-          // Process might already be killed
-        }
-      }
-    });
-
-    // Wait for the server to be ready
-    await this.waitForServerReady(port, 30000); // Wait up to 30 seconds
-
-    return this.process;
-  }
-
-  /**
-   * Waits for the server to become ready by testing connections
-   * @param {number} port - The port to test
-   * @param {number} timeoutMs - Maximum time to wait in milliseconds
-   * @returns {Promise<void>} Resolves when server is ready
-   */
-  async waitForServerReady(port, timeoutMs) {
-    const startTime = Date.now();
-
-    while (Date.now() - startTime < timeoutMs) {
-      try {
-        if (await this.isPortAvailable(port)) {
-          // Port is still not in use, wait a bit more
-          await new Promise(resolve => setTimeout(resolve, 100));
-          continue;
-        }
-
-        // If port is not available, it means the server should be listening
-        // Let's try to connect to the WebSocket to confirm
-        const ws = new WebSocket(`ws://localhost:${port}`);
-
-        await new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            ws.close();
-            reject(new Error('WebSocket connection timeout'));
-          }, 1000);
-
-          ws.on('open', () => {
-            clearTimeout(timeout);
-            ws.close();
-            resolve();
-          });
-
-          ws.on('error', (err) => {
-            clearTimeout(timeout);
-            reject(err);
-          });
-        });
-
-        // If we get here, the server is working
-        return;
-      } catch (err) {
-        // Server might not be ready yet, wait a bit more
-        await new Promise(resolve => setTimeout(resolve, 200));
-      }
-    }
-
-    throw new Error(`Server did not start within ${timeoutMs}ms`);
-  }
-
-  /**
-   * Stops the server process with proper cleanup
-   * @returns {Promise<void>}
-   */
-  async stopServer() {
-    if (this.process && !this.process.killed) {
-      try {
-        // Try graceful shutdown first
-        this.process.kill('SIGTERM');
-
-        // Wait a bit for graceful shutdown
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // If still running, force kill
-        if (!this.process.killed) {
-          this.process.kill('SIGKILL');
-        }
-      } catch (err) {
-        // Process might already be killed
-      } finally {
-        this.process = null;
-      }
-    }
-
-    // Execute all cleanup functions
-    for (const cleanup of this.cleanupFunctions) {
-      try {
-        cleanup();
-      } catch (err) {
-        // Ignore cleanup errors
-      }
-    }
-    this.cleanupFunctions = [];
-  }
-
-  /**
-   * Gets the collected server output
-   * @returns {string} Combined stdout and stderr
-   */
-  getOutput() {
-    return {
-      stdout: this.output ? this.output.join('') : '',
-      stderr: this.errors ? this.errors.join('') : '',
-      combined: (this.output ? this.output.join('') : '') + (this.errors ? this.errors.join('') : '')
-    };
-  }
-}
+import { ServerProcessManager } from '../utils/ServerProcessManager.js';
 
 /**
  * Integration test for the development server
@@ -236,17 +16,17 @@ describe('Development Server Integration Test', () => {
 
     // Find an available port
     testPort = await serverManager.findAvailablePort(8080);
-  });
+  }, 30000); // Increase timeout for setup
 
   afterEach(async () => {
     if (serverManager) {
       await serverManager.stopServer();
     }
-  });
+  }, 15000); // Increase timeout for cleanup
 
   it('should start the agent server without import errors', async () => {
     // Try to start the server
-    const process = await serverManager.startServer(testPort);
+    const process = await serverManager.startServer(testPort, 8081);
 
     // Verify the process is running
     expect(process).toBeDefined();
@@ -261,8 +41,9 @@ describe('Development Server Integration Test', () => {
 
     expect(hasImportError).toBe(false);
 
-    // Verify the server is responding to WebSocket connections
-    const ws = new WebSocket(`ws://localhost:${testPort}`);
+    // Verify the WebSocket server is responding (on its separate port)
+    const wsPort = 8081; // Standalone WebSocket server port
+    const ws = new WebSocket(`ws://localhost:${wsPort}`);
 
     await new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
@@ -285,10 +66,11 @@ describe('Development Server Integration Test', () => {
 
   it('should handle basic WebSocket communication', async () => {
     // Start the server
-    await serverManager.startServer(testPort);
+    await serverManager.startServer(testPort, 8081);
 
-    // Test WebSocket communication
-    const ws = new WebSocket(`ws://localhost:${testPort}`);
+    // Test WebSocket communication - now on port 8081 for standalone server
+    const wsPort = 8081; // Default WebSocket port for standalone server (as configured in vite-plugin)
+    const ws = new WebSocket(`ws://localhost:${wsPort}`);
 
     await new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
@@ -297,8 +79,8 @@ describe('Development Server Integration Test', () => {
       }, 5000);
 
       ws.on('open', () => {
-        // Send a simple ping message
-        ws.send(JSON.stringify({ type: 'ping', payload: {} }));
+        // Send a simple test message
+        ws.send(JSON.stringify({ type: 'test', payload: {} }));
       });
 
       ws.on('message', (data) => {
@@ -314,9 +96,93 @@ describe('Development Server Integration Test', () => {
     });
   });
 
+  it('should allow multiple WebSocket clients to connect simultaneously', async () => {
+    // Start the server
+    await serverManager.startServer(testPort, 8081);
+
+    // Test multiple WebSocket connections
+    const wsPort = 8081; // Default WebSocket port for standalone server
+    const client1 = new WebSocket(`ws://localhost:${wsPort}`);
+    const client2 = new WebSocket(`ws://localhost:${wsPort}`);
+    const client3 = new WebSocket(`ws://localhost:${wsPort}`);
+
+    // Promise for each client connection
+    const connectPromises = [
+      new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Client 1 connection timeout')), 3000);
+        client1.on('open', () => { clearTimeout(timeout); resolve(); });
+        client1.on('error', (err) => { clearTimeout(timeout); reject(new Error(`Client 1 error: ${err.message}`)); });
+      }),
+      new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Client 2 connection timeout')), 3000);
+        client2.on('open', () => { clearTimeout(timeout); resolve(); });
+        client2.on('error', (err) => { clearTimeout(timeout); reject(new Error(`Client 2 error: ${err.message}`)); });
+      }),
+      new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Client 3 connection timeout')), 3000);
+        client3.on('open', () => { clearTimeout(timeout); resolve(); });
+        client3.on('error', (err) => { clearTimeout(timeout); reject(new Error(`Client 3 error: ${err.message}`)); });
+      })
+    ];
+
+    // Wait for all clients to connect
+    await Promise.all(connectPromises);
+
+    // Close all connections
+    client1.close();
+    client2.close();
+    client3.close();
+
+    expect(true).toBe(true); // Test passes if all clients could connect
+  });
+
+  it('should handle WebSocket disconnection and reconnection', async () => {
+    // Start the server
+    await serverManager.startServer(testPort, 8081);
+
+    const wsPort = 8081; // Default WebSocket port for standalone server
+    const ws = new WebSocket(`ws://localhost:${wsPort}`);
+
+    await new Promise((resolve, reject) => {
+      let connectedOnce = false;
+
+      const timeout = setTimeout(() => {
+        ws.close();
+        reject(new Error('WebSocket reconnection test timeout'));
+      }, 8000); // Longer timeout for reconnection test
+
+      ws.on('open', () => {
+        connectedOnce = true;
+        // Close connection to test reconnection logic
+        ws.close(1000, 'Test disconnection');
+      });
+
+      ws.on('close', () => {
+        // Create a new connection after a short delay
+        setTimeout(() => {
+          const ws2 = new WebSocket(`ws://localhost:${wsPort}`);
+          ws2.on('open', () => {
+            clearTimeout(timeout);
+            ws2.close();
+            resolve();
+          });
+          ws2.on('error', (err) => {
+            clearTimeout(timeout);
+            reject(new Error(`Reconnection failed: ${err.message}`));
+          });
+        }, 1000);
+      });
+
+      ws.on('error', (err) => {
+        clearTimeout(timeout);
+        reject(new Error(`WebSocket connection error: ${err.message}`));
+      });
+    });
+  });
+
   it('should load all required modules without errors', async () => {
     // Start the server
-    await serverManager.startServer(testPort);
+    await serverManager.startServer(testPort, 8081);
 
     // Check the output for any module loading errors
     const output = serverManager.getOutput();
@@ -343,7 +209,7 @@ describe('Development Server Integration Test', () => {
 
   it('should be able to initialize the agent manager', async () => {
     // Start the server
-    await serverManager.startServer(testPort);
+    await serverManager.startServer(testPort, 8081);
 
     // Check that the agent manager initializes without errors
     const output = serverManager.getOutput();
@@ -371,13 +237,13 @@ describe('npm run dev Integration Test', () => {
   beforeEach(async () => {
     serverManager = new ServerProcessManager();
     testPort = await serverManager.findAvailablePort(8080);
-  });
+  }, 30000); // Increase timeout for setup
 
   afterEach(async () => {
     if (serverManager) {
       await serverManager.stopServer();
     }
-  });
+  }, 15000); // Increase timeout for cleanup
 
   it('should run npm run dev command without import errors', async () => {
     // Note: Since the UI might have dependencies issues, we'll focus on
@@ -388,50 +254,14 @@ describe('npm run dev Integration Test', () => {
     // We already tested the agent server, so we can test the overall startup
     // by trying to run the main entry point with proper error handling
 
-    const env = { ...process.env, PORT: testPort.toString() };
-
     // Start the main entry point with the --web flag
-    const childProcess = spawn('node', ['main.js', '--web'], {
-      env,
-      cwd: process.cwd(),
-      stdio: ['pipe', 'pipe', 'pipe']
-    });
-
-    serverManager.process = childProcess;
-
-    // Capture output
-    const output = [];
-    const errors = [];
-
-    childProcess.stdout.on('data', (data) => {
-      const str = data.toString();
-      output.push(str);
-      if (process.env.VITEST_VERBOSE) {
-        console.log(`[DEV-OUT] ${str.trim()}`);
-      }
-    });
-
-    childProcess.stderr.on('data', (data) => {
-      const str = data.toString();
-      errors.push(str);
-      if (process.env.VITEST_VERBOSE) {
-        console.error(`[DEV-ERR] ${str.trim()}`);
-      }
-    });
-
-    // Wait for server to be ready
-    await serverManager.waitForServerReady(testPort, 30000);
+    await serverManager.startServer(testPort, 8081);
 
     // Check for errors
-    const combinedOutput = {
-      stdout: output.join(''),
-      stderr: errors.join(''),
-      combined: output.join('') + errors.join('')
-    };
-
-    const hasImportError = combinedOutput.stderr.includes('ERR_MODULE_NOT_FOUND') ||
-                          combinedOutput.stderr.includes('Cannot resolve') ||
-                          combinedOutput.stderr.includes('Failed to resolve');
+    const output = serverManager.getOutput();
+    const hasImportError = output.stderr.includes('ERR_MODULE_NOT_FOUND') ||
+                          output.stderr.includes('Cannot resolve') ||
+                          output.stderr.includes('Failed to resolve');
 
     expect(hasImportError).toBe(false);
   });

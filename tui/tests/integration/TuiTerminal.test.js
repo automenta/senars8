@@ -60,8 +60,8 @@ describe('TUI Terminal Integration Tests', () => {
         NODE_ENV: 'test',
         TERM: 'xterm-256color'  // Set terminal type
       },
-      stdio: ['pipe', 'pipe', 'pipe'],
-      detached: true
+      stdio: ['pipe', 'pipe', 'pipe']
+      // Note: removed detached: true to ensure proper process cleanup
     });
 
     // Collect output
@@ -89,14 +89,7 @@ describe('TUI Terminal Integration Tests', () => {
 
     expect(hasCriticalError).toBe(false);
 
-    // Send a termination command if needed
-    try {
-      if (childProcess && !childProcess.killed) {
-        process.kill(-childProcess.pid, 'SIGTERM');
-      }
-    } catch (e) {
-      // Process may already be dead
-    }
+    // Process should be properly cleaned up in afterEach
   }, 10000);
 });
 

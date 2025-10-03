@@ -5,8 +5,8 @@
 export const CONFIG = {
     // --- Connection Settings ---
     CONNECTION: {
-        WEBSOCKET_URL: 'ws://localhost:8080',
-        CRDT_WEBSOCKET_URL: 'ws://localhost:8080/crdt',
+        WEBSOCKET_URL: 'ws://localhost:8081',
+        CRDT_WEBSOCKET_URL: 'ws://localhost:8081/crdt',
         RECONNECT_DELAY: 3000,
         MAX_RECONNECT_ATTEMPTS: 10,
         MAX_RECONNECT_DELAY: 30000,
