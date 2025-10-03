@@ -3,7 +3,8 @@ import {LLM} from '@langchain/core/language_models/llms';
 class XenovaLLM extends LLM {
     constructor(pipeline, options = {}) {
         super(options);
-        this.pipeline = pipeline;
+        // Ensure pipeline is a function
+        this.pipeline = typeof pipeline === 'function' ? pipeline : (prompt, opts) => pipeline(prompt, opts);
         this.options = options;
     }
 

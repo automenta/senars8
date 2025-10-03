@@ -51,8 +51,6 @@ describe('System-level Contradiction Resolution', () => {
 
         await system.addTasks([task1, task2]);
 
-        console.log(system);
-
         await system.runCycle();
 
         // Basic check that the cycle completed
