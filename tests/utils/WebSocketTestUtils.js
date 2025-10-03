@@ -93,3 +93,27 @@ export function closeWebSocket(ws) {
         ws.close();
     }
 }
+
+/**
+ * Waits for a WebSocket instance to reach a specific readyState.
+ * @param {WebSocket} socket - The WebSocket instance.
+ * @param {number} state - The target readyState (e.g., WebSocket.OPEN, WebSocket.CLOSED).
+ * @param {number} [timeout=1000] - Timeout in milliseconds.
+ * @returns {Promise<void>} A promise that resolves when the state is reached or rejects on timeout.
+ */
+export function waitForSocketState(socket, state, timeout = 1000) {
+    return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+            clearInterval(interval);
+            reject(new Error(`Socket did not reach state ${state} within ${timeout}ms`));
+        }, timeout);
+
+        const interval = setInterval(() => {
+            if (socket.readyState === state) {
+                clearInterval(interval);
+                clearTimeout(timer);
+                resolve();
+            }
+        }, 10);
+    });
+}
