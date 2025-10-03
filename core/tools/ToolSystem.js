@@ -4,7 +4,7 @@
  * file operations, command execution, and multi-modal processing
  */
 
-import {EventEmitter} from 'events';
+import { EventBus } from '@senars/common/utils/eventBus.js';
 import {debug, error as logError, info} from '../utils/logger.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import WebAutomationExecutor from './executors/WebAutomationExecutor.js';
@@ -15,7 +15,7 @@ import ApiExecutor from './executors/ApiExecutor.js';
 
 const errorHandler = createUnifiedErrorHandler('ToolSystem');
 
-class ToolSystem extends EventEmitter {
+class ToolSystem extends EventBus {
     constructor(config = {}) {
         super();
         this.config = config;

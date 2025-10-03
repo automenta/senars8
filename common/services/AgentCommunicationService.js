@@ -1,4 +1,4 @@
-import {EventEmitter} from 'events';
+import { EventBus } from '@senars/common/utils/eventBus.js';
 import {CONFIG} from '@senars/common/constants/config.js';
 import log from '@senars/core/utils/logger.js';
 import {createWebSocket} from '@senars/common/network.js';
@@ -13,7 +13,7 @@ import {createWebSocket} from '@senars/common/network.js';
  * - Centralized event-driven API for status and data
  * - Detailed connection statistics
  */
-class AgentCommunicationService extends EventEmitter {
+class AgentCommunicationService extends EventBus {
     constructor(url = CONFIG.CONNECTION.WEBSOCKET_URL) {
         super();
         this.url = url;

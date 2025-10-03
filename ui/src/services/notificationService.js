@@ -1,8 +1,8 @@
-import {EventEmitter} from 'events';
+import { EventBus } from '@senars/common/utils/eventBus.js';
 import log from '@core/utils/logger.js';
 import {NOTIFICATION_TYPES, UI_CONSTANTS} from '@/constants/ui';
 
-class NotificationService extends EventEmitter {
+class NotificationService extends EventBus {
     constructor() {
         super();
         this.notifications = [];

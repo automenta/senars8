@@ -1,4 +1,4 @@
-import {EventEmitter} from 'events';
+import { EventBus } from '@senars/common/utils/eventBus.js';
 import AgentCommunicationService from './AgentCommunicationService.js';
 import log from '../../core/utils/logger.js';
 import {CONFIG} from '../constants/config.js';
@@ -8,7 +8,7 @@ import {CONFIG} from '../constants/config.js';
  * and a local cache of the agent's state for performance. This is the primary
  * interface for UI components to interact with the agent.
  */
-class ApiService extends EventEmitter {
+class ApiService extends EventBus {
     /**
      * @param {string} [url] - The WebSocket URL to connect to. Defaults to the config URL.
      */
