@@ -7,6 +7,11 @@
 import {EventEmitter} from 'events';
 import {debug, error as logError, info} from '../utils/logger.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
+import WebAutomationExecutor from './executors/WebAutomationExecutor.js';
+import FileOperationsExecutor from './executors/FileOperationsExecutor.js';
+import CommandExecutor from './executors/CommandExecutor.js';
+import MediaProcessorExecutor from './executors/MediaProcessorExecutor.js';
+import ApiExecutor from './executors/ApiExecutor.js';
 
 const errorHandler = createUnifiedErrorHandler('ToolSystem');
 
@@ -563,6 +568,9 @@ class ToolSystem extends EventEmitter {
                 await executor.shutdown();
             }
         }
+        
+        // Remove all event listeners to prevent memory leaks
+        this.removeAllListeners();
 
         info('ToolSystem shutdown complete');
     }
