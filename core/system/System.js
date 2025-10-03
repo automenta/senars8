@@ -167,6 +167,8 @@ class System {
             this.isRunning = true;
             this.cycleCount = 0;
             this.eventBus.emit(SystemEvents.SYSTEM_START);
+            // Emit status update to notify UI that agent is running
+            this.eventBus.emit('status_update', 'running');
 
             while (this.isRunning && (maxCycles === 0 || this.cycleCount < maxCycles)) {
                 const result = await errorHandler.execute(async () => {
@@ -193,6 +195,8 @@ class System {
             if (!this.isRunning) return;
             this.isRunning = false;
             this.eventBus.emit(SystemEvents.SYSTEM_STOP);
+            // Emit status update to notify UI that agent is stopped
+            this.eventBus.emit('status_update', 'stopped');
             info(`System stopped after ${this.cycleCount} cycles.`);
         }, 'stop');
     }

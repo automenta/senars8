@@ -7,11 +7,20 @@ import {createUnifiedErrorHandler} from '../core/utils/errorHandler.js';
 
 class AgentManager {
     constructor(broadcast) {
+        // Use a wrapper so the broadcast function can be replaced later
+        this._broadcastWrapper = {broadcast};
         this.agent = new Agent();
-        this.broadcast = broadcast;
         this.system = null;
         this.fileMonitor = null;
         this.errorHandler = createUnifiedErrorHandler('AgentManager');
+    }
+
+    get broadcast() {
+        return this._broadcastWrapper.broadcast;
+    }
+
+    setBroadcast(broadcast) {
+        this._broadcastWrapper.broadcast = broadcast;
     }
 
     async initialize() {

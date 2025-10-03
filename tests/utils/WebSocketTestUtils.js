@@ -7,15 +7,16 @@ import WebSocket from 'ws';
  * @returns {Promise<WebSocket>} A promise that resolves with the WebSocket instance.
  */
 export function createWebSocketClient(url, timeout = 2000) {
-    const ws = new WebSocket(url);
-
     return new Promise((resolve, reject) => {
+        const ws = new WebSocket(url);
         const timer = setTimeout(() => {
             ws.close();
             reject(new Error(`WebSocket connection to ${url} timed out after ${timeout}ms`));
         }, timeout);
 
         ws.on('open', () => {
+            // The connection is open, but we need to handle any immediate messages
+            // that might be sent by the server right after connection
             clearTimeout(timer);
             resolve(ws);
         });

@@ -1,5 +1,4 @@
-import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
-import {createConnection} from 'net';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import WebSocket from 'ws';
 import {ServerProcessManager} from '../utils/ServerProcessManager.js';
 
@@ -7,9 +6,11 @@ describe('WebUI End-to-End Test', () => {
     let serverManager;
     let testPort;
     let wsPort;
+    let activeWebSockets = [];
 
     beforeEach(async () => {
         serverManager = new ServerProcessManager();
+        activeWebSockets = [];
 
         // Find available ports
         testPort = await serverManager.findAvailablePort(8080);
@@ -20,6 +21,14 @@ describe('WebUI End-to-End Test', () => {
     }, 40000); // Increase timeout for setup since we're starting a full process
 
     afterEach(async () => {
+        // Close any remaining WebSocket connections
+        activeWebSockets.forEach(ws => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            }
+        });
+        activeWebSockets = [];
+
         if (serverManager) {
             await serverManager.stopServer();
         }
@@ -28,21 +37,44 @@ describe('WebUI End-to-End Test', () => {
     it('should establish WebSocket connection without errors', async () => {
         // Verify WebSocket connection to the agent service
         const ws = new WebSocket(`ws://localhost:${wsPort}`);
+        activeWebSockets.push(ws);
 
         await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
-                ws.close();
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(ws);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
                 reject(new Error('WebSocket connection timeout'));
             }, 5000);
 
             ws.on('open', () => {
                 clearTimeout(timeout);
-                ws.close();
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(ws);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
                 resolve();
             });
 
             ws.on('error', (err) => {
                 clearTimeout(timeout);
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(ws);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
                 reject(new Error(`WebSocket connection failed: ${err.message}`));
             });
         });
@@ -51,10 +83,18 @@ describe('WebUI End-to-End Test', () => {
     it('should handle basic WebSocket messages without crashing', async () => {
         // Test message exchange
         const ws = new WebSocket(`ws://localhost:${wsPort}`);
+        activeWebSockets.push(ws);
 
         await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
-                ws.close();
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(ws);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
                 reject(new Error('WebSocket message exchange timeout'));
             }, 5000);
 
@@ -68,12 +108,27 @@ describe('WebUI End-to-End Test', () => {
 
             ws.on('message', (data) => {
                 clearTimeout(timeout);
-                ws.close();
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(ws);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
                 resolve();
             });
 
             ws.on('error', (err) => {
                 clearTimeout(timeout);
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(ws);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
                 reject(new Error(`WebSocket message error: ${err.message}`));
             });
         });

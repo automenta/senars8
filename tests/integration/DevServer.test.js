@@ -1,6 +1,4 @@
-import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
-import {createConnection} from 'net';
-import {promisify} from 'util';
+import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import WebSocket from 'ws';
 import {ServerProcessManager} from '../utils/ServerProcessManager.js';
 
@@ -10,15 +8,25 @@ import {ServerProcessManager} from '../utils/ServerProcessManager.js';
 describe('Development Server Integration Test', () => {
     let serverManager;
     let testPort;
+    let activeWebSockets = [];
 
     beforeEach(async () => {
         serverManager = new ServerProcessManager();
+        activeWebSockets = [];
 
         // Find an available port
         testPort = await serverManager.findAvailablePort(8080);
     }, 30000); // Increase timeout for setup
 
     afterEach(async () => {
+        // Close any remaining WebSocket connections
+        activeWebSockets.forEach(ws => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            }
+        });
+        activeWebSockets = [];
+
         if (serverManager) {
             await serverManager.stopServer();
         }
@@ -44,21 +52,44 @@ describe('Development Server Integration Test', () => {
         // Verify the WebSocket server is responding (on its separate port)
         const wsPort = 8081; // Standalone WebSocket server port
         const ws = new WebSocket(`ws://localhost:${wsPort}`);
+        activeWebSockets.push(ws);
 
         await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
-                ws.close();
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(ws);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
                 reject(new Error('WebSocket connection timeout'));
             }, 5000);
 
             ws.on('open', () => {
                 clearTimeout(timeout);
-                ws.close();
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(ws);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
                 resolve();
             });
 
             ws.on('error', (err) => {
                 clearTimeout(timeout);
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(ws);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
                 reject(new Error(`WebSocket connection failed: ${err.message}`));
             });
         });
@@ -71,10 +102,18 @@ describe('Development Server Integration Test', () => {
         // Test WebSocket communication - now on port 8081 for standalone server
         const wsPort = 8081; // Default WebSocket port for standalone server (as configured in vite-plugin)
         const ws = new WebSocket(`ws://localhost:${wsPort}`);
+        activeWebSockets.push(ws);
 
         await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
-                ws.close();
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(ws);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
                 reject(new Error('WebSocket communication timeout'));
             }, 5000);
 
@@ -85,12 +124,27 @@ describe('Development Server Integration Test', () => {
 
             ws.on('message', (data) => {
                 clearTimeout(timeout);
-                ws.close();
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(ws);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
                 resolve();
             });
 
             ws.on('error', (err) => {
                 clearTimeout(timeout);
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(ws);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
                 reject(new Error(`WebSocket communication error: ${err.message}`));
             });
         });
@@ -105,11 +159,17 @@ describe('Development Server Integration Test', () => {
         const client1 = new WebSocket(`ws://localhost:${wsPort}`);
         const client2 = new WebSocket(`ws://localhost:${wsPort}`);
         const client3 = new WebSocket(`ws://localhost:${wsPort}`);
+        
+        // Add to activeWebSockets for cleanup
+        activeWebSockets.push(client1, client2, client3);
 
         // Promise for each client connection
         const connectPromises = [
             new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => reject(new Error('Client 1 connection timeout')), 3000);
+                const timeout = setTimeout(() => {
+                    client1.close();
+                    reject(new Error('Client 1 connection timeout'));
+                }, 3000);
                 client1.on('open', () => {
                     clearTimeout(timeout);
                     resolve();
@@ -120,7 +180,10 @@ describe('Development Server Integration Test', () => {
                 });
             }),
             new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => reject(new Error('Client 2 connection timeout')), 3000);
+                const timeout = setTimeout(() => {
+                    client2.close();
+                    reject(new Error('Client 2 connection timeout'));
+                }, 3000);
                 client2.on('open', () => {
                     clearTimeout(timeout);
                     resolve();
@@ -131,7 +194,10 @@ describe('Development Server Integration Test', () => {
                 });
             }),
             new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => reject(new Error('Client 3 connection timeout')), 3000);
+                const timeout = setTimeout(() => {
+                    client3.close();
+                    reject(new Error('Client 3 connection timeout'));
+                }, 3000);
                 client3.on('open', () => {
                     clearTimeout(timeout);
                     resolve();
@@ -146,10 +212,16 @@ describe('Development Server Integration Test', () => {
         // Wait for all clients to connect
         await Promise.all(connectPromises);
 
-        // Close all connections
-        client1.close();
-        client2.close();
-        client3.close();
+        // Close all connections and remove from activeWebSockets
+        [client1, client2, client3].forEach(ws => {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            }
+            const index = activeWebSockets.indexOf(ws);
+            if (index > -1) {
+                activeWebSockets.splice(index, 1);
+            }
+        });
 
         expect(true).toBe(true); // Test passes if all clients could connect
     });
@@ -160,12 +232,20 @@ describe('Development Server Integration Test', () => {
 
         const wsPort = 8081; // Default WebSocket port for standalone server
         const ws = new WebSocket(`ws://localhost:${wsPort}`);
+        activeWebSockets.push(ws);
 
         await new Promise((resolve, reject) => {
             let connectedOnce = false;
 
             const timeout = setTimeout(() => {
-                ws.close();
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(ws);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
                 reject(new Error('WebSocket reconnection test timeout'));
             }, 8000); // Longer timeout for reconnection test
 
@@ -173,18 +253,41 @@ describe('Development Server Integration Test', () => {
                 connectedOnce = true;
                 // Close connection to test reconnection logic
                 ws.close(1000, 'Test disconnection');
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(ws);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
             });
 
             ws.on('close', () => {
                 // Create a new connection after a short delay
                 setTimeout(() => {
                     const ws2 = new WebSocket(`ws://localhost:${wsPort}`);
+                    activeWebSockets.push(ws2); // Add new connection to tracking
+                    
                     ws2.on('open', () => {
+                        if (ws2.readyState === WebSocket.OPEN) {
+                            ws2.close();
+                        }
+                        // Remove from activeWebSockets
+                        const index = activeWebSockets.indexOf(ws2);
+                        if (index > -1) {
+                            activeWebSockets.splice(index, 1);
+                        }
                         clearTimeout(timeout);
-                        ws2.close();
                         resolve();
                     });
                     ws2.on('error', (err) => {
+                        // Clean up the new connection if there's an error
+                        if (ws2.readyState === WebSocket.OPEN) {
+                            ws2.close();
+                        }
+                        // Remove from activeWebSockets
+                        const index = activeWebSockets.indexOf(ws2);
+                        if (index > -1) {
+                            activeWebSockets.splice(index, 1);
+                        }
                         clearTimeout(timeout);
                         reject(new Error(`Reconnection failed: ${err.message}`));
                     });
@@ -193,6 +296,14 @@ describe('Development Server Integration Test', () => {
 
             ws.on('error', (err) => {
                 clearTimeout(timeout);
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(ws);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
                 reject(new Error(`WebSocket connection error: ${err.message}`));
             });
         });
@@ -235,7 +346,7 @@ describe('Development Server Integration Test', () => {
         // Look for successful initialization indicators
         const hasInitializationSuccess = output.stdout.includes('AgentManager') ||
             output.stdout.includes('initialized') ||
-            output.stdout.includes('WebSocket server running');
+            output.stdout.includes('WebSocket server started on port');
 
         expect(hasInitializationSuccess).toBe(true);
 

@@ -19,6 +19,11 @@ export const agentServerPlugin = (agentManager) => {
                 // Start the standalone WebSocket server
                 await standaloneWsServer.start(agentManager);
 
+                // Update agent manager's broadcast function to use WebSocket broadcasting
+                agentManager.setBroadcast((data) => {
+                    standaloneWsServer.broadcast(data);
+                });
+
                 // Set up message handler
                 const messageHandler = createMessageHandler(agentManager, (data) => {
                     standaloneWsServer.broadcast(data);

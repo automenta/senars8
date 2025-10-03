@@ -1,5 +1,4 @@
-import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
-import {createConnection} from 'net';
+import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import WebSocket from 'ws';
 import {ServerProcessManager} from '../utils/ServerProcessManager.js';
 
@@ -10,9 +9,11 @@ describe('TUI WebSocket Service Integration', () => {
     let serverManager;
     let testPort;
     let wsPort;
+    let activeWebSockets = [];
 
     beforeEach(async () => {
         serverManager = new ServerProcessManager();
+        activeWebSockets = [];
 
         // Find available ports
         testPort = await serverManager.findAvailablePort(8080);
@@ -20,6 +21,14 @@ describe('TUI WebSocket Service Integration', () => {
     }, 30000); // Increase timeout for setup
 
     afterEach(async () => {
+        // Close any remaining WebSocket connections
+        activeWebSockets.forEach(ws => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            }
+        });
+        activeWebSockets = [];
+
         if (serverManager) {
             await serverManager.stopServer();
         }
@@ -31,21 +40,39 @@ describe('TUI WebSocket Service Integration', () => {
 
         // Create a WebSocket connection simulating what TUI would do
         const tuiWs = new WebSocket(`ws://localhost:${wsPort}`);
+        activeWebSockets.push(tuiWs);
 
         await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
-                tuiWs.close();
+                if (tuiWs.readyState === WebSocket.OPEN) {
+                    tuiWs.close();
+                }
                 reject(new Error('TUI WebSocket connection timeout'));
             }, 5000);
 
             tuiWs.on('open', () => {
                 clearTimeout(timeout);
-                tuiWs.close();
+                if (tuiWs.readyState === WebSocket.OPEN) {
+                    tuiWs.close();
+                }
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(tuiWs);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
                 resolve();
             });
 
             tuiWs.on('error', (err) => {
                 clearTimeout(timeout);
+                if (tuiWs.readyState === WebSocket.OPEN) {
+                    tuiWs.close();
+                }
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(tuiWs);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
                 reject(new Error(`TUI WebSocket connection failed: ${err.message}`));
             });
         });
@@ -57,10 +84,13 @@ describe('TUI WebSocket Service Integration', () => {
 
         // Simulate TUI sending a task via WebSocket
         const tuiWs = new WebSocket(`ws://localhost:${wsPort}`);
+        activeWebSockets.push(tuiWs);
 
         await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
-                tuiWs.close();
+                if (tuiWs.readyState === WebSocket.OPEN) {
+                    tuiWs.close();
+                }
                 reject(new Error('TUI task submission timeout'));
             }, 6000);
 
@@ -78,12 +108,27 @@ describe('TUI WebSocket Service Integration', () => {
             tuiWs.on('message', (data) => {
                 // If we receive a response, the message was processed successfully
                 clearTimeout(timeout);
-                tuiWs.close();
+                if (tuiWs.readyState === WebSocket.OPEN) {
+                    tuiWs.close();
+                }
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(tuiWs);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
                 resolve();
             });
 
             tuiWs.on('error', (err) => {
                 clearTimeout(timeout);
+                if (tuiWs.readyState === WebSocket.OPEN) {
+                    tuiWs.close();
+                }
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(tuiWs);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
                 reject(new Error(`TUI task submission error: ${err.message}`));
             });
         });
@@ -95,10 +140,13 @@ describe('TUI WebSocket Service Integration', () => {
 
         // Create a WebSocket connection for bidirectional communication
         const tuiWs = new WebSocket(`ws://localhost:${wsPort}`);
+        activeWebSockets.push(tuiWs);
 
         await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
-                tuiWs.close();
+                if (tuiWs.readyState === WebSocket.OPEN) {
+                    tuiWs.close();
+                }
                 reject(new Error('TUI bidirectional communication timeout'));
             }, 7000);
 
@@ -116,19 +164,41 @@ describe('TUI WebSocket Service Integration', () => {
                     // Check if this is the expected acknowledgment
                     if (message.type === 'connection_ack' || message.type) {
                         clearTimeout(timeout);
-                        tuiWs.close();
+                        if (tuiWs.readyState === WebSocket.OPEN) {
+                            tuiWs.close();
+                        }
+                        // Remove from activeWebSockets
+                        const index = activeWebSockets.indexOf(tuiWs);
+                        if (index > -1) {
+                            activeWebSockets.splice(index, 1);
+                        }
                         resolve();
                     }
                 } catch (err) {
                     // Handle message parsing errors
                     clearTimeout(timeout);
-                    tuiWs.close();
+                    if (tuiWs.readyState === WebSocket.OPEN) {
+                        tuiWs.close();
+                    }
+                    // Remove from activeWebSockets
+                    const index = activeWebSockets.indexOf(tuiWs);
+                    if (index > -1) {
+                        activeWebSockets.splice(index, 1);
+                    }
                     reject(new Error(`Message parsing error: ${err.message}`));
                 }
             });
 
             tuiWs.on('error', (err) => {
                 clearTimeout(timeout);
+                if (tuiWs.readyState === WebSocket.OPEN) {
+                    tuiWs.close();
+                }
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(tuiWs);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
                 reject(new Error(`TUI bidirectional communication error: ${err.message}`));
             });
         });
@@ -140,10 +210,13 @@ describe('TUI WebSocket Service Integration', () => {
 
         // Test connection stability over time
         const tuiWs = new WebSocket(`ws://localhost:${wsPort}`);
+        activeWebSockets.push(tuiWs);
 
         await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
-                tuiWs.close();
+                if (tuiWs.readyState === WebSocket.OPEN) {
+                    tuiWs.close();
+                }
                 reject(new Error('TUI connection stability test timeout'));
             }, 10000); // Longer timeout for stability test
 
@@ -174,13 +247,30 @@ describe('TUI WebSocket Service Integration', () => {
                 responsesReceived++;
                 if (responsesReceived >= maxMessages) {
                     clearTimeout(timeout);
-                    tuiWs.close();
+                    if (tuiWs.readyState === WebSocket.OPEN) {
+                        tuiWs.close();
+                    }
+                    // Remove from activeWebSockets
+                    const index = activeWebSockets.indexOf(tuiWs);
+                    if (index > -1) {
+                        activeWebSockets.splice(index, 1);
+                    }
+                    clearInterval(messageInterval); // Make sure to clear interval
                     resolve();
                 }
             });
 
             tuiWs.on('error', (err) => {
                 clearTimeout(timeout);
+                clearInterval(messageInterval); // Make sure to clear interval on error too
+                if (tuiWs.readyState === WebSocket.OPEN) {
+                    tuiWs.close();
+                }
+                // Remove from activeWebSockets
+                const index = activeWebSockets.indexOf(tuiWs);
+                if (index > -1) {
+                    activeWebSockets.splice(index, 1);
+                }
                 reject(new Error(`TUI connection stability error: ${err.message}`));
             });
         });
@@ -194,11 +284,17 @@ describe('TUI WebSocket Service Integration', () => {
         const client1 = new WebSocket(`ws://localhost:${wsPort}`);
         const client2 = new WebSocket(`ws://localhost:${wsPort}`);
         const client3 = new WebSocket(`ws://localhost:${wsPort}`);
+        
+        // Add all clients to activeWebSockets array for cleanup
+        activeWebSockets.push(client1, client2, client3);
 
         // Promise for each client connection
         const connectPromises = [
             new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => reject(new Error('TUI Client 1 connection timeout')), 3000);
+                const timeout = setTimeout(() => {
+                    client1.close();
+                    reject(new Error('TUI Client 1 connection timeout'));
+                }, 3000);
                 client1.on('open', () => {
                     clearTimeout(timeout);
                     resolve();
@@ -209,7 +305,10 @@ describe('TUI WebSocket Service Integration', () => {
                 });
             }),
             new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => reject(new Error('TUI Client 2 connection timeout')), 3000);
+                const timeout = setTimeout(() => {
+                    client2.close();
+                    reject(new Error('TUI Client 2 connection timeout'));
+                }, 3000);
                 client2.on('open', () => {
                     clearTimeout(timeout);
                     resolve();
@@ -220,7 +319,10 @@ describe('TUI WebSocket Service Integration', () => {
                 });
             }),
             new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => reject(new Error('TUI Client 3 connection timeout')), 3000);
+                const timeout = setTimeout(() => {
+                    client3.close();
+                    reject(new Error('TUI Client 3 connection timeout'));
+                }, 3000);
                 client3.on('open', () => {
                     clearTimeout(timeout);
                     resolve();
@@ -235,10 +337,16 @@ describe('TUI WebSocket Service Integration', () => {
         // Wait for all clients to connect
         await Promise.all(connectPromises);
 
-        // Close all connections
-        client1.close();
-        client2.close();
-        client3.close();
+        // Close all connections and remove from activeWebSockets
+        [client1, client2, client3].forEach(ws => {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            }
+            const index = activeWebSockets.indexOf(ws);
+            if (index > -1) {
+                activeWebSockets.splice(index, 1);
+            }
+        });
 
         expect(true).toBe(true); // Test passes if all clients could connect
     });
