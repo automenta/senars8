@@ -77,20 +77,16 @@ class InstanceManager {
      */
     get(key) {
         const value = this.#cache.get(key);
-        if (value !== undefined) {
-            this.#stats.hits++;
-            // Move to end to mark as most recently used (LRU)
-            // Only move if there are multiple items to avoid unnecessary operations
-            // Skip if cache is at max size since eviction will happen anyway
-            if (this.#cache.size > 1 && this.#cache.size < this.#maxSize) {
-                this.#cache.delete(key);
-                this.#cache.set(key, value);
-            }
-            return value;
+        if (value === undefined) {
+            this.#stats.misses++;
+            return undefined;
         }
 
-        this.#stats.misses++;
-        return undefined;
+        this.#stats.hits++;
+        // Move to the end to mark as most recently used (LRU)
+        this.#cache.delete(key);
+        this.#cache.set(key, value);
+        return value;
     }
 
     /**

@@ -20,12 +20,12 @@
   ],
   "scripts": {
     "start": "node main.js",
-    "web": "node main.js --web",
+    "dev": "node main.js --web",
     "tui": "node main.js --tui",
     "test": "ORT_LOGGING_LEVEL=FATAL vitest --run --silent",
     "test:ui": "ORT_LOGGING_LEVEL=FATAL vitest --ui --silent",
-    "lint": "eslint core agent tests",
-    "lint:fix": "eslint core agent tests --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "slides": "slidev docs/slides.md"
   },
   "repository": {
@@ -55,8 +55,6 @@
     "@langchain/community": "^0.3.56",
     "@langchain/core": "^0.3.77",
     "@xenova/transformers": "^2.17.2",
-    "@xterm/addon-fit": "^0.10.0",
-    "@xterm/xterm": "^5.5.0",
     "chalk": "^5.6.2",
     "chokidar": "^3.6.0",
     "execa": "^9.6.0",
@@ -72,7 +70,6 @@
     "react-xtermjs": "^1.0.10",
     "uuid": "^13.0.0",
     "ws": "^8.18.3",
-    "xterm": "^5.3.0",
     "yaml": "^2.8.1",
     "zod": "^3.25.76"
   },

@@ -1,61 +1,6 @@
 import chalk from 'chalk';
 
-// Create a browser-compatible version of util.inspect
-const browserInspect = (obj, options = {}) => {
-    if (obj === null) return 'null';
-    if (obj === undefined) return 'undefined';
-    if (typeof obj === 'string') return `"${obj}"`;
-    if (typeof obj === 'number' || typeof obj === 'boolean' || typeof obj === 'function') return obj.toString();
-    if (obj instanceof Date) return `Date("${obj.toISOString()}")`;
-    if (obj instanceof RegExp) return obj.toString();
-    if (obj instanceof Error) return `Error: ${obj.message}`;
-
-    // For arrays and objects, return a simple representation
-    if (Array.isArray(obj)) {
-        if (obj.length === 0) return '[]';
-        // Limit array length for readability
-        const items = obj.slice(0, 5).map(item => browserInspect(item)).join(', ');
-        return obj.length > 5 ? `[ ${items}, ... ]` : `[ ${items} ]`;
-    }
-
-    // For objects
-    if (typeof obj === 'object') {
-        const keys = Object.keys(obj).slice(0, 10); // Limit number of keys shown
-        const keyValues = keys.map(key => `${key}: ${browserInspect(obj[key])}`).join(', ');
-        return keys.length === 0 ? '{}' : `{ ${keyValues}${keys.length < Object.keys(obj).length ? ', ...' : ''} }`;
-    }
-
-    return String(obj);
-};
-
-// Use dynamic import for Node.js, fallback for browser
-let utilModule = null;
-
-// Check if we're in browser environment first
-if (typeof window !== 'undefined' || typeof document !== 'undefined') {
-    // Browser environment
-    utilModule = { inspect: browserInspect };
-} else {
-    // Node.js environment - this will be handled differently
-    // We need to ensure this works in both environments
-    try {
-        // Dynamic import for Node.js environment
-        utilModule = { inspect: browserInspect }; // Using browserInspect as default
-    } catch (e) {
-        utilModule = { inspect: browserInspect };
-    }
-}
-
-// Define a more robust approach for browser vs Node
-const safeUtil = {
-    inspect: (obj, options) => {
-        // In most cases, we'll use the browser-compatible version
-        // Vite will handle Node.js modules differently for server vs client
-        return browserInspect(obj, options);
-    }
-};
-
-const util = safeUtil;
+const IS_NODE = typeof window === 'undefined';
 
 const LogLevel = {
     ERROR: 0,
@@ -64,85 +9,87 @@ const LogLevel = {
     DEBUG: 3,
 };
 
-const levelColors = {
-    [LogLevel.ERROR]: chalk.red,
-    [LogLevel.WARN]: chalk.yellow,
-    [LogLevel.INFO]: chalk.blue,
-    [LogLevel.DEBUG]: chalk.magenta,
+const levelConfig = {
+    [LogLevel.ERROR]: { name: 'ERROR', color: chalk.red, method: 'error' },
+    [LogLevel.WARN]: { name: 'WARN', color: chalk.yellow, method: 'warn' },
+    [LogLevel.INFO]: { name: 'INFO', color: chalk.blue, method: 'info' },
+    [LogLevel.DEBUG]: { name: 'DEBUG', color: chalk.magenta, method: 'debug' },
 };
 
-const levelNames = {
-    [LogLevel.ERROR]: 'ERROR',
-    [LogLevel.WARN]: 'WARN',
-    [LogLevel.INFO]: 'INFO',
-    [LogLevel.DEBUG]: 'DEBUG',
-};
+class ConsoleTransport {
+    log(timestamp, level, namespace, message, args) {
+        const { name, color, method } = levelConfig[level];
+
+        if (IS_NODE) {
+            const timeStr = chalk.gray(timestamp.toISOString());
+            const levelStr = color(name.padEnd(5));
+            const nsStr = namespace ? chalk.green(`[${namespace}]`) : '';
+            // In Node, we can use util.inspect for better object formatting, but this is a simple fallback.
+            const formattedArgs = args.map(arg => (typeof arg === 'object' && arg !== null) ? JSON.stringify(arg) : arg).join(' ');
+            console[method](`${timeStr} ${levelStr} ${nsStr} ${message} ${formattedArgs}`);
+        } else {
+            // In the browser, use the console's native object inspection and grouping.
+            const nsPrefix = namespace ? `[${namespace}]` : '';
+            const groupTitle = `%c${name}%c ${nsPrefix} ${message}`;
+            const styles = `color: ${color.hex()}; font-weight: bold;`;
+
+            console.groupCollapsed(groupTitle, styles, 'color: inherit;');
+            args.forEach(arg => console[method](arg));
+            console.groupEnd();
+        }
+    }
+}
 
 class Logger {
     constructor(options = {}) {
-        this.level = this.getLogLevel(options.level);
+        this.level = this._getLogLevel(options.level);
         this.namespace = options.namespace || '';
         this.transports = options.transports || [new ConsoleTransport()];
     }
 
-    getLogLevel(levelStr) {
-        // Check if we're in a Node.js environment before accessing process
-        if (typeof process !== 'undefined' && process.env) {
-            if (process.env.NODE_ENV === 'test') return LogLevel.ERROR;
-            const envLevel = (process.env.LOG_LEVEL || 'info').toUpperCase();
-            const debugFlag = process.env.DEBUG === 'true' || process.env.DEBUG === '*';
-            if (debugFlag) return LogLevel.DEBUG;
-            const levelToCheck = (levelStr && typeof levelStr === 'string') ? levelStr.toUpperCase() : envLevel;
-            return LogLevel[levelToCheck] ?? LogLevel.INFO;
-        } else {
-            // Browser environment - use a safe fallback
+    _getLogLevel(level) {
+        // If a valid level number is passed, use it directly.
+        if (typeof level === 'number' && level >= LogLevel.ERROR && level <= LogLevel.DEBUG) {
+            return level;
+        }
+
+        if (IS_NODE) {
+            if (process.env.DEBUG === 'true' || process.env.DEBUG === '*') {
+                return LogLevel.DEBUG;
+            }
+
+            // If a level string is passed, it takes precedence.
+            const levelStr = (typeof level === 'string' ? level.toUpperCase() : '');
+            const envLevel = (process.env.LOG_LEVEL || '').toUpperCase();
+            const levelToParse = levelStr || envLevel;
+
+            if (levelToParse && LogLevel[levelToParse] !== undefined) {
+                return LogLevel[levelToParse];
+            }
+
+            if (process.env.NODE_ENV === 'test') {
+                return LogLevel.ERROR;
+            }
+
             return LogLevel.INFO;
         }
+        // In browser, default to INFO.
+        return LogLevel.INFO;
     }
 
     log(level, message, ...args) {
-        if (level > this.level) {
-            return;
-        }
+        if (level > this.level) return;
 
-        const formattedMessage = this.formatMessage(level, message, ...args);
+        const timestamp = new Date();
         for (const transport of this.transports) {
-            transport.log(formattedMessage);
+            transport.log(timestamp, level, this.namespace, message, args);
         }
     }
 
-    formatMessage(level, message, ...args) {
-        const timestamp = new Date().toISOString();
-        const levelName = levelNames[level].padEnd(5);
-        const color = levelColors[level];
-        const namespaceStr = this.namespace ? `[${this.namespace}]` : '';
-        const formattedArgs = args.map(arg => {
-            // Use browser-compatible inspection since util.inspect is not available in browser
-            if (typeof arg === 'object' && arg !== null) {
-                // For browser environments, avoid util.inspect which is Node.js-only
-                return browserInspect(arg);
-            }
-            return arg;
-        }).join(' ');
-
-        return `${chalk.gray(timestamp)} ${color(levelName)} ${chalk.green(namespaceStr)} ${message} ${formattedArgs}`;
-    }
-
-    error(message, ...args) {
-        this.log(LogLevel.ERROR, message, ...args);
-    }
-
-    warn(message, ...args) {
-        this.log(LogLevel.WARN, message, ...args);
-    }
-
-    info(message, ...args) {
-        this.log(LogLevel.INFO, message, ...args);
-    }
-
-    debug(message, ...args) {
-        this.log(LogLevel.DEBUG, message, ...args);
-    }
+    error(message, ...args) { this.log(LogLevel.ERROR, message, ...args); }
+    warn(message, ...args) { this.log(LogLevel.WARN, message, ...args); }
+    info(message, ...args) { this.log(LogLevel.INFO, message, ...args); }
+    debug(message, ...args) { this.log(LogLevel.DEBUG, message, ...args); }
 
     create(namespace) {
         return new Logger({
@@ -153,13 +100,6 @@ class Logger {
     }
 }
 
-class ConsoleTransport {
-    log(message) {
-        console.log(message);
-    }
-}
-
-// Export a singleton instance for global use
 const logger = new Logger();
 
 export const info = logger.info.bind(logger);
