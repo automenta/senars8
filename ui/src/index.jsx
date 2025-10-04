@@ -1,31 +1,18 @@
-import {StrictMode} from 'react';
-import {createRoot} from 'react-dom/client';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import { ThemeProvider } from './context/ThemeProvider';
+import { AgentProvider } from './context/AgentProvider';
 import './index.css';
-import App from './App.jsx';
-import {ConnectionProvider} from './context/ConnectionProvider.jsx';
-import {SettingsProvider} from './context/SettingsProvider.jsx';
-import {SharedStateProvider} from "./context/SharedStateProvider.jsx";
-import {ThemeProvider} from "./context/ThemeProvider.jsx";
-import {SearchProvider} from "./context/SearchContext.jsx";
-import {TaskProvider} from "./context/TaskContext.jsx";
-import {SessionProvider} from "./context/SessionContext.jsx";
 
-createRoot(document.getElementById('root')).render(
-    <StrictMode>
+const root = ReactDOM.createRoot(document.getElementById('root'));
+
+root.render(
+    <React.StrictMode>
         <ThemeProvider>
-            <SettingsProvider>
-                <ConnectionProvider>
-                    <SharedStateProvider>
-                        <SearchProvider>
-                            <TaskProvider>
-                                <SessionProvider>
-                                    <App/>
-                                </SessionProvider>
-                            </TaskProvider>
-                        </SearchProvider>
-                    </SharedStateProvider>
-                </ConnectionProvider>
-            </SettingsProvider>
+            <AgentProvider>
+                <App />
+            </AgentProvider>
         </ThemeProvider>
-    </StrictMode>,
+    </React.StrictMode>
 );

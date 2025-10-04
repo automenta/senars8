@@ -1,7 +1,6 @@
 import {EventBus} from '@senars/common/utils/eventBus.js';
-import AgentCommunicationService from './AgentCommunicationService.js';
+import { connectionManager } from './connection.js';
 import log from '../../core/utils/logger.js';
-import {CONFIG} from '../constants/config.js';
 
 /**
  * A base service for UIs (TUI, WebUI) that manages agent communication
@@ -10,11 +9,11 @@ import {CONFIG} from '../constants/config.js';
  */
 class ApiService extends EventBus {
     /**
-     * @param {string} [url] - The WebSocket URL to connect to. Defaults to the config URL.
+     * @param {string} [url] - The WebSocket URL to connect to.
      */
-    constructor(url = CONFIG.CONNECTION.WEBSOCKET_URL) {
+    constructor(url) {
         super();
-        this.communicationService = new AgentCommunicationService(url);
+        this.url = url; // The specific agent URL this service instance will talk to
         this.logger = log.create('ApiService');
 
         // Local state cache for UI performance
@@ -33,35 +32,43 @@ class ApiService extends EventBus {
     }
 
     /**
-     * Forwards events from the communication service and handles message processing.
+     * Forwards events from the connection manager and handles message processing.
      * @private
      */
     _setupEventForwarding() {
-        this.communicationService.on('status', (status) => {
-            this.agentState.connectionStatus = status;
-            this.emit('status', status);
-            if (status === 'connected') {
-                this.logger.info('Connection established. Requesting initial state.');
-                // Request initial state from agent upon connection
-                this.sendMessage('get_system_stats');
-                this.sendMessage('get_tasks');
-                this.sendMessage('get_beliefs');
-                this.sendMessage('get_goals');
+        connectionManager.on('connection', ({ url, status }) => {
+            if (url === this.url) {
+                this.agentState.connectionStatus = status;
+                this.emit('status', status);
+                if (status === 'connected') {
+                    this.logger.info(`Connection established to ${this.url}. Requesting initial state.`);
+                    // Request initial state from agent upon connection
+                    this.sendMessage('get_system_stats');
+                    this.sendMessage('get_tasks');
+                    this.sendMessage('get_beliefs');
+                    this.sendMessage('get_goals');
+                }
             }
         });
 
-        this.communicationService.on('reconnect_attempt', (attempt, maxAttempts) => {
-            this.agentState.connectionStatus = 'reconnecting';
-            this.emit('reconnect_attempt', attempt, maxAttempts);
+        connectionManager.on('disconnection', ({url, status}) => {
+            if (url === this.url) {
+                this.agentState.connectionStatus = status;
+                this.emit('status', status);
+            }
         });
 
-        this.communicationService.on('message', (message) => {
-            this._handleIncomingMessage(message);
+        connectionManager.on('message', ({ url, data }) => {
+            if (url === this.url) {
+                this._handleIncomingMessage(JSON.parse(data));
+            }
         });
 
-        this.communicationService.on('error', (error) => {
-            this.logger.error('Communication error:', error);
-            this.emit('error', error);
+        connectionManager.on('error', ({ url, error }) => {
+            if (url === this.url) {
+                this.logger.error(`Communication error for ${url}:`, error);
+                this.emit('error', error);
+            }
         });
     }
 
@@ -100,31 +107,34 @@ class ApiService extends EventBus {
      * Connects to the agent service.
      */
     connect() {
-        this.communicationService.connect();
+        if (!this.url) {
+            this.logger.error("No URL specified for ApiService connection.");
+            return;
+        }
+        connectionManager.connect(this.url);
     }
 
     /**
      * Disconnects from the agent service.
      */
     disconnect() {
-        this.communicationService.disconnect();
+        if (!this.url) return;
+        connectionManager.disconnect(this.url);
     }
 
     /**
      * Sends a message to the agent.
      * @param {string} type - The message type.
      * @param {object} [payload={}] - The message payload.
-     * @param {object} [options={}] - Additional options.
-     * @returns {Promise<any>} A promise that resolves with the response.
      */
-    sendMessage(type, payload = {}, options = {}) {
-        return this.communicationService.sendMessage(type, payload, options);
+    sendMessage(type, payload = {}) {
+        if (!this.url) return;
+        connectionManager.send(this.url, {type, payload});
     }
 
     /**
      * Sends a Narsese string to the agent for processing.
      * @param {string} narsese - The Narsese content.
-     * @returns {Promise<any>}
      */
     sendNarsese(narsese) {
         return this.sendMessage('narsese', narsese);
@@ -134,7 +144,6 @@ class ApiService extends EventBus {
      * Sends a natural language string to the agent for processing.
      * @param {string} text - The natural language text.
      * @param {string} [intent] - The intended processing for the text.
-     * @returns {Promise<any>}
      */
     sendNaturalLanguage(text, intent) {
         return this.sendMessage('natural_language', {text, intent});
@@ -143,7 +152,6 @@ class ApiService extends EventBus {
     /**
      * Sends a command to control the agent's lifecycle (e.g., 'start', 'stop').
      * @param {string} action - The control command.
-     * @returns {Promise<any>}
      */
     sendAgentControl(action) {
         return this.sendMessage('agentControl', {command: action});
@@ -153,7 +161,6 @@ class ApiService extends EventBus {
      * Performs a search query within the agent's knowledge base.
      * @param {string} query - The search query.
      * @param {object} [options] - Search options.
-     * @returns {Promise<any>}
      */
     search(query, options) {
         return this.sendMessage('search', {query, ...options});
@@ -161,7 +168,6 @@ class ApiService extends EventBus {
 
     /**
      * Requests the current list of tasks from the agent.
-     * @returns {Promise<any>}
      */
     getTasks() {
         return this.sendMessage('get_tasks');
@@ -185,10 +191,10 @@ class ApiService extends EventBus {
 
     /**
      * Gets the connection statistics.
-     * @returns {object}
+     * @returns {Array<object>}
      */
     getConnectionStats() {
-        return this.communicationService.getConnectionStats();
+        return connectionManager.getConnections();
     }
 }
 

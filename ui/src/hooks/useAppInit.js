@@ -1,61 +1,44 @@
-import {useEffect, useState} from 'react';
-import agentService from '@/services/agentService';
-import sonificationService from '@/services/sonificationService';
-import {CONNECTION_STATUS, MESSAGE_TYPES} from '@/constants/ui';
+import { useEffect } from 'react';
+import { useAgent } from '../context/AgentProvider';
+import { useNotification } from '../context/NotificationContext';
 
+/**
+ * A custom hook to handle application initialization logic,
+ * including connecting to the agent service and setting up notifications.
+ */
 const useAppInit = () => {
-    const [connectionStatus, setConnectionStatus] = useState(CONNECTION_STATUS.DISCONNECTED);
-    const [isInitialized, setIsInitialized] = useState(false);
+    const agentService = useAgent();
+    const { addNotification } = useNotification();
 
     useEffect(() => {
-        // Set up connection status listener
-        const statusHandler = (status) => {
-            setConnectionStatus(status);
+        if (!agentService) return;
+
+        const handleStatusChange = (status) => {
+            addNotification({
+                message: `Agent connection status: ${status}`,
+                type: status === 'connected' ? 'success' : 'info',
+            });
         };
 
-        agentService.on(MESSAGE_TYPES.STATUS, statusHandler);
-
-        // Store reference to event handler for cleanup
-        let handleFirstInteraction = null;
-
-        // Attempt to connect to the agent service
-        const initializeServices = async () => {
-            try {
-                await agentService.connect();
-
-                // Define the interaction handler
-                handleFirstInteraction = () => {
-                    sonificationService.initialize();
-                    window.removeEventListener('click', handleFirstInteraction);
-                    window.removeEventListener('keydown', handleFirstInteraction);
-                };
-
-                // Set up first interaction handler for sonification
-                window.addEventListener('click', handleFirstInteraction);
-                window.addEventListener('keydown', handleFirstInteraction);
-
-                setIsInitialized(true);
-            } catch (error) {
-                console.error('Failed to initialize services:', error);
-            }
+        const handleError = (error) => {
+            addNotification({
+                message: `Agent error: ${error.message}`,
+                type: 'error',
+            });
         };
 
-        initializeServices();
+        agentService.on('status', handleStatusChange);
+        agentService.on('error', handleError);
 
-        // Cleanup function
+        // Initiate the connection
+        agentService.connect();
+
         return () => {
-            agentService.off(MESSAGE_TYPES.STATUS, statusHandler);
+            agentService.off('status', handleStatusChange);
+            agentService.off('error', handleError);
             agentService.disconnect();
-
-            // Clean up event listeners if the handler was created
-            if (handleFirstInteraction) {
-                window.removeEventListener('click', handleFirstInteraction);
-                window.removeEventListener('keydown', handleFirstInteraction);
-            }
         };
-    }, []);
-
-    return {connectionStatus, isInitialized};
+    }, [agentService, addNotification]);
 };
 
 export default useAppInit;

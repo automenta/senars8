@@ -1,16 +1,16 @@
 import * as Y from 'yjs';
-import {WebsocketProvider} from 'y-websocket';
-import ApiService from '@common/services/ApiService.js';
-import {CONFIG} from '@common/constants/config.js';
-import log from '@core/utils/logger.js';
+import { WebsocketProvider } from 'y-websocket';
+import ApiService from '@senars/common/services/ApiService.js';
+import { CONFIG } from '@senars/common/constants/config.js';
+import { logger } from '@senars/common';
 
 /**
  * A high-level service for the UI that extends the base ApiService
  * with UI-specific features like collaborative editing (Y.js).
  */
 class AgentService extends ApiService {
-    constructor() {
-        super(CONFIG.CONNECTION.WEBSOCKET_URL);
+    constructor(url) {
+        super(url);
         this.crdtUrl = CONFIG.CONNECTION.CRDT_WEBSOCKET_URL;
 
         // Y.js for collaborative editing
@@ -19,7 +19,7 @@ class AgentService extends ApiService {
         this.awareness = null;
 
         // Override logger namespace for UI-specific context
-        this.logger = log.create('AgentServiceUI');
+        this.logger = logger.create('AgentServiceUI');
 
         // Hook into the connection status to manage collaborative editing
         this.on('status', (status) => {
@@ -60,6 +60,4 @@ class AgentService extends ApiService {
     }
 }
 
-// Export a singleton instance for the UI
-const agentService = new AgentService();
-export default agentService;
+export default AgentService;

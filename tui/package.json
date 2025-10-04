@@ -14,10 +14,7 @@
   },
   "dependencies": {
     "@senars/common": "*",
-    "@senars/core": "*",
-    "ink": "^3.2.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "@senars/core": "*"
   },
   "devDependencies": {
     "tsx": "^4.19.2",
