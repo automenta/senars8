@@ -1,10 +1,12 @@
 # TUI Session Capture
 
-This directory contains utilities for capturing and documenting TUI (Text User Interface) sessions as asciinema recordings or screenshots for documentation and educational purposes.
+This directory contains utilities for capturing and documenting TUI (Text User Interface) sessions as asciinema
+recordings or screenshots for documentation and educational purposes.
 
 ## Capture Utility
 
-The main capture utility is located at `capture-tui.js` and allows you to record terminal sessions showing the TUI in action.
+The main capture utility is located at `capture-tui.js` and allows you to record terminal sessions showing the TUI in
+action.
 
 ### Usage
 
@@ -26,6 +28,7 @@ Recordings are saved to the `captures/` directory with timestamps in the filenam
 ## Integration with Documentation
 
 These captures can be used for:
+
 - User documentation
 - Educational materials
 - Feature demonstrations

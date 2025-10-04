@@ -5,12 +5,12 @@
  * Captures screenshots and generates documentation for the Web UI
  */
 
-import { spawn, exec } from 'child_process';
-import { createWriteStream, existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
-import { setTimeout } from 'timers/promises';
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
+import {spawn, exec} from 'child_process';
+import {createWriteStream, existsSync, mkdirSync} from 'fs';
+import {join} from 'path';
+import {setTimeout} from 'timers/promises';
+import {fileURLToPath} from 'url';
+import {dirname, resolve} from 'path';
 import puppeteer from 'puppeteer';
 
 // Get the directory of the current module
@@ -26,15 +26,15 @@ const capturesDir = resolve(__dirname, '../captures');
  */
 async function captureWebUIScreenshots(title, port = 5173) {
     console.log(`Starting Web UI capture: ${title}`);
-    
+
     // Create captures directory if it doesn't exist
     if (!existsSync(capturesDir)) {
-        mkdirSync(capturesDir, { recursive: true });
+        mkdirSync(capturesDir, {recursive: true});
     }
-    
+
     let browser;
     let uiProcess;
-    
+
     try {
         // Start the UI server
         console.log('Starting Web UI server...');
@@ -76,41 +76,41 @@ async function captureWebUIScreenshots(title, port = 5173) {
         });
 
         const page = await browser.newPage();
-        
+
         // Set viewport size for consistent screenshots
-        await page.setViewport({ width: 1200, height: 800 });
-        
+        await page.setViewport({width: 1200, height: 800});
+
         // Navigate to the Web UI
         console.log('Navigating to Web UI...');
-        await page.goto(`http://localhost:${port}`, { waitUntil: 'networkidle2' });
-        
+        await page.goto(`http://localhost:${port}`, {waitUntil: 'networkidle2'});
+
         // Wait for the UI to fully load
         await setTimeout(2000);
-        
+
         // Take the main screenshot
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const filename = `${title.replace(/\s+/g, '_')}_${timestamp}.png`;
         const filepath = join(capturesDir, filename);
-        
-        await page.screenshot({ path: filepath, fullPage: true });
+
+        await page.screenshot({path: filepath, fullPage: true});
         console.log(`Screenshot saved: ${filepath}`);
-        
+
         // Take additional screenshots of different panels if they exist
         const panelSelectors = [
-            { name: 'status', selector: '.status-bar' },
-            { name: 'chat', selector: '.chat-panel' },
-            { name: 'memory', selector: '.memory-panel' },
-            { name: 'reasoning', selector: '.reasoning-panel' }
+            {name: 'status', selector: '.status-bar'},
+            {name: 'chat', selector: '.chat-panel'},
+            {name: 'memory', selector: '.memory-panel'},
+            {name: 'reasoning', selector: '.reasoning-panel'}
         ];
-        
+
         for (const panel of panelSelectors) {
             try {
                 const element = await page.$(panel.selector);
                 if (element) {
                     const panelFilename = `${title.replace(/\s+/g, '_')}_${panel.name}_${timestamp}.png`;
                     const panelFilepath = join(capturesDir, panelFilename);
-                    
-                    await element.screenshot({ path: panelFilepath });
+
+                    await element.screenshot({path: panelFilepath});
                     console.log(`Panel screenshot saved: ${panelFilepath}`);
                 }
             } catch (e) {
@@ -118,10 +118,10 @@ async function captureWebUIScreenshots(title, port = 5173) {
                 console.log(`Panel ${panel.name} not found, skipping...`);
             }
         }
-        
+
         console.log('Capture completed successfully!');
         return filepath;
-        
+
     } catch (error) {
         console.error('Error during Web UI capture:', error);
         throw error;
@@ -130,7 +130,7 @@ async function captureWebUIScreenshots(title, port = 5173) {
         if (browser) {
             await browser.close();
         }
-        
+
         if (uiProcess) {
             uiProcess.kill();
         }
@@ -145,9 +145,9 @@ async function simulateAsciinemaCapture(title) {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = `${title.replace(/\s+/g, '_')}_${timestamp}.cast`;
     const filepath = join(capturesDir, filename);
-    
+
     const writeStream = createWriteStream(filepath);
-    
+
     // Write asciinema header
     writeStream.write(JSON.stringify({
         version: 2,
@@ -155,9 +155,9 @@ async function simulateAsciinemaCapture(title) {
         height: 30,
         timestamp: Math.floor(Date.now() / 1000),
         title: title,
-        env: { SHELL: '/bin/bash', TERM: 'xterm-256color' }
+        env: {SHELL: '/bin/bash', TERM: 'xterm-256color'}
     }) + '\n');
-    
+
     // Simulate some terminal interactions
     const events = [
         [0.0, "o", "Starting Web UI Documentation Capture\\r\\n"],
@@ -169,11 +169,11 @@ async function simulateAsciinemaCapture(title) {
         [4.0, "o", "Capturing memory visualization...\\r\\n"],
         [4.8, "o", "Capture completed!\\r\\n"]
     ];
-    
+
     events.forEach(event => {
         writeStream.write(JSON.stringify(event) + '\n');
     });
-    
+
     writeStream.end();
     console.log(`Simulated asciinema capture saved: ${filepath}`);
     return filepath;
@@ -184,7 +184,7 @@ async function simulateAsciinemaCapture(title) {
  */
 async function main() {
     const args = process.argv.slice(2);
-    
+
     if (args.includes('--help') || args.includes('-h')) {
         console.log(`
 Web UI Capture Utility
@@ -203,12 +203,12 @@ Examples:
         `);
         return;
     }
-    
+
     // Parse arguments
     let title = 'webui-capture';
     let port = 5173;
     let captureType = 'screenshot';
-    
+
     for (let i = 0; i < args.length; i++) {
         if (args[i] === '--title' || args[i] === '-t') {
             title = args[i + 1];
@@ -221,20 +221,20 @@ Examples:
             i++;
         }
     }
-    
+
     try {
         if (captureType === 'screenshot' || captureType === 'both') {
             console.log('Starting screenshot capture...');
             const screenshotPath = await captureWebUIScreenshots(title, port);
             console.log(`Screenshot capture completed: ${screenshotPath}`);
         }
-        
+
         if (captureType === 'asciinema' || captureType === 'both') {
             console.log('Starting asciinema-style capture...');
             const asciinemaPath = await simulateAsciinemaCapture(title);
             console.log(`Asciinema capture completed: ${asciinemaPath}`);
         }
-        
+
         if (!['screenshot', 'asciinema', 'both'].includes(captureType)) {
             console.error(`Invalid capture type: ${captureType}. Use 'screenshot', 'asciinema', or 'both'.`);
             process.exit(1);
@@ -250,4 +250,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     main().catch(console.error);
 }
 
-export { captureWebUIScreenshots, simulateAsciinemaCapture };
+export {captureWebUIScreenshots, simulateAsciinemaCapture};

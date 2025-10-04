@@ -3,12 +3,12 @@
  * Common test utilities that can be used across both UI implementations
  */
 
-import { spawn } from 'child_process';
-import { setTimeout } from 'timers/promises';
+import {spawn} from 'child_process';
+import {setTimeout} from 'timers/promises';
 import AgentManager from '../../agent/AgentManager.js';
-import { WebSocketManager } from '../../agent/WebSocketManager.js';
-import { findAvailablePort } from '../../tests/utils/networkUtils.js';
-import { createMessageHandler } from '../../agent/MessageHandler.js';
+import {WebSocketManager} from '../../agent/WebSocketManager.js';
+import {findAvailablePort} from '../../tests/utils/networkUtils.js';
+import {createMessageHandler} from '../../agent/MessageHandler.js';
 
 /**
  * Starts a test agent for use in UI tests
@@ -20,7 +20,7 @@ async function startTestAgent(port) {
     const wsManager = new WebSocketManager({port});
 
     await wsManager.start();
-    
+
     // Link server to agent manager
     agentManager.setBroadcast(wsManager.broadcast.bind(wsManager));
 
@@ -30,8 +30,8 @@ async function startTestAgent(port) {
 
     // Initialize agent manager
     await agentManager.initialize();
-    
-    return { agentManager, wsManager };
+
+    return {agentManager, wsManager};
 }
 
 /**
@@ -165,10 +165,14 @@ function createMockApiService() {
             connectionStatus: 'connected',
             timestamp: new Date().toISOString()
         }),
-        on: () => {},
-        off: () => {},
-        connect: () => {},
-        disconnect: () => {}
+        on: () => {
+        },
+        off: () => {
+        },
+        connect: () => {
+        },
+        disconnect: () => {
+        }
     };
 }
 

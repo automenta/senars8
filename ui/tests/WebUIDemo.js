@@ -23,15 +23,15 @@ class WebUIDemo {
      */
     async run() {
         console.log('Starting Web UI Demo...');
-        
+
         try {
             // Find an available port
             this.wsPort = await findAvailablePort(8095);
             console.log(`Using WebSocket port: ${this.wsPort}`);
-            
+
             // Start the agent WebSocket server
             await this.startAgentServer();
-            
+
             // Provide instructions to the user
             console.log('\n===============================================');
             console.log('Web UI Demo Instructions:');
@@ -39,17 +39,17 @@ class WebUIDemo {
             console.log('- Open browser to http://localhost:5173');
             console.log('- The UI will auto-connect to ws://localhost:' + this.wsPort);
             console.log('===============================================\n');
-            
+
             // Simulate some agent activity to show in the UI
             this.demoInterval = setInterval(() => {
                 this.simulateAgentActivity();
             }, 5000);
-            
+
             console.log('Demo server running. Press Ctrl+C to stop.');
-            
+
             // Keep the process alive
             await this.waitForInterrupt();
-            
+
         } catch (error) {
             console.error('Error in Web UI demo:', error);
         } finally {
@@ -66,7 +66,7 @@ class WebUIDemo {
         this.wsManager = new WebSocketManager({port: this.wsPort});
 
         await this.wsManager.start();
-        
+
         // Link server to agent manager
         this.agentManager.setBroadcast(this.wsManager.broadcast.bind(this.wsManager));
 
@@ -84,17 +84,17 @@ class WebUIDemo {
      */
     async simulateAgentActivity() {
         console.log('Simulating agent activity...');
-        
+
         // Simulate a few different types of agent events
         const activities = [
-            { type: 'task_added', data: { termKey: '(bird --> animal)', priority: 0.9 } },
-            { type: 'belief_added', data: { termKey: '(animal --> living)', confidence: 0.85 } },
-            { type: 'inference_made', data: { statement: '(bird --> living)', confidence: 0.78 } },
-            { type: 'cycle_completed', data: { cycle: Math.floor(Math.random() * 1000) + 1 } }
+            {type: 'task_added', data: {termKey: '(bird --> animal)', priority: 0.9}},
+            {type: 'belief_added', data: {termKey: '(animal --> living)', confidence: 0.85}},
+            {type: 'inference_made', data: {statement: '(bird --> living)', confidence: 0.78}},
+            {type: 'cycle_completed', data: {cycle: Math.floor(Math.random() * 1000) + 1}}
         ];
-        
+
         const randomActivity = activities[Math.floor(Math.random() * activities.length)];
-        
+
         if (this.agentManager && this.wsManager) {
             // Broadcast the simulated activity
             this.wsManager.broadcast({
@@ -102,7 +102,7 @@ class WebUIDemo {
                 payload: randomActivity.data,
                 timestamp: new Date().toISOString()
             });
-            
+
             console.log(`  - ${randomActivity.type}:`, randomActivity.data);
         }
     }
@@ -116,7 +116,7 @@ class WebUIDemo {
                 console.log('\nReceived interrupt signal. Shutting down...');
                 resolve();
             });
-            
+
             process.on('SIGTERM', () => {
                 console.log('\nReceived termination signal. Shutting down...');
                 resolve();
@@ -129,19 +129,19 @@ class WebUIDemo {
      */
     async cleanup() {
         console.log('Shutting down demo...');
-        
+
         if (this.demoInterval) {
             clearInterval(this.demoInterval);
         }
-        
+
         if (this.wsManager) {
             await this.wsManager.stop();
         }
-        
+
         if (this.agentManager) {
             await this.agentManager.stop();
         }
-        
+
         console.log('Demo shutdown complete');
     }
 }

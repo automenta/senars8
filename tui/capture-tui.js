@@ -5,11 +5,11 @@
  * This script helps document and demonstrate TUI functionality
  */
 
-import { spawn } from 'child_process';
-import { createWriteStream } from 'fs';
-import { join } from 'path';
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
+import {spawn} from 'child_process';
+import {createWriteStream} from 'fs';
+import {join} from 'path';
+import {fileURLToPath} from 'url';
+import {dirname, resolve} from 'path';
 
 // Get the directory of the current module
 const __filename = fileURLToPath(import.meta.url);
@@ -25,26 +25,26 @@ const capturesDir = resolve(__dirname, 'captures');
  */
 async function captureTuiSession(title, port = 8085, duration = 30) {
     console.log(`Starting TUI session capture: ${title}`);
-    
+
     // Create a temporary asciicast file
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = `${title.replace(/\s+/g, '_')}_${timestamp}.cast`;
     const filepath = join(capturesDir, filename);
-    
+
     console.log(`Recording to: ${filepath}`);
-    
+
     return new Promise((resolve, reject) => {
         // For asciinema capture, we'd typically use the asciinema command
         // Since asciinema might not be available, we'll simulate the capture
         // with a simple log of the TUI output
-        
+
         console.log(`\n--- TUI Session Capture Started ---`);
         console.log(`Title: ${title}`);
         console.log(`Port: ${port}`);
         console.log(`Duration: ${duration}s`);
         console.log(`Press Ctrl+C to stop early`);
         console.log(`----------------------------------\n`);
-        
+
         // Start a fake TUI session for demo purposes
         const fakeTuiOutput = [
             "Available Agent Connections:",
@@ -84,9 +84,9 @@ async function captureTuiSession(title, port = 8085, duration = 30) {
             "[LOG] panel displayed",
             "Session continuing...",
         ];
-        
+
         let outputIndex = 0;
-        
+
         const interval = setInterval(() => {
             if (outputIndex < fakeTuiOutput.length) {
                 console.log(fakeTuiOutput[outputIndex]);
@@ -97,7 +97,7 @@ async function captureTuiSession(title, port = 8085, duration = 30) {
                 resolve(filepath);
             }
         }, 1500);  // Output a line every 1.5 seconds
-        
+
         // Stop after the specified duration
         setTimeout(() => {
             clearInterval(interval);
@@ -114,7 +114,7 @@ async function captureTuiSession(title, port = 8085, duration = 30) {
  */
 async function main() {
     const args = process.argv.slice(2);
-    
+
     if (args.includes('--help') || args.includes('-h')) {
         console.log(`
 TUI Session Capture Utility
@@ -133,12 +133,12 @@ Examples:
         `);
         return;
     }
-    
+
     // Parse arguments
     let title = 'tui-session';
     let port = 8085;
     let duration = 30;
-    
+
     for (let i = 0; i < args.length; i++) {
         if (args[i] === '--title' || args[i] === '-t') {
             title = args[i + 1];
@@ -151,7 +151,7 @@ Examples:
             i++;
         }
     }
-    
+
     try {
         const filepath = await captureTuiSession(title, port, duration);
         console.log(`\nSession capture completed: ${filepath}`);
@@ -166,4 +166,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     main().catch(console.error);
 }
 
-export { captureTuiSession };
+export {captureTuiSession};

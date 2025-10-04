@@ -9,21 +9,21 @@ const StatusPanel = ({agentService}) => {
 
     return (
         <Box flexDirection="column" padding={1} borderStyle="single">
-            <StatusView agentState={agentState} />
+            <StatusView agentState={agentState}/>
             <Box marginTop={1}>
-                <StatsView agentState={agentState} />
+                <StatsView agentState={agentState}/>
             </Box>
             <Box marginTop={1}>
-                <MemoryView agentState={agentState} />
+                <MemoryView agentState={agentState}/>
             </Box>
             <Box marginTop={1}>
-                <TasksView tasks={agentState.tasks} />
+                <TasksView tasks={agentState.tasks}/>
             </Box>
             <Box marginTop={1}>
-                <BeliefsView beliefs={agentState.memory?.beliefs} />
+                <BeliefsView beliefs={agentState.memory?.beliefs}/>
             </Box>
             <Box marginTop={1}>
-                <GoalsView goals={agentState.memory?.goals} />
+                <GoalsView goals={agentState.memory?.goals}/>
             </Box>
         </Box>
     );

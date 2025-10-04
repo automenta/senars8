@@ -54,50 +54,50 @@ class AgentManager {
             this.cleanupEventListeners();
 
             info('Attaching event listeners to EventBus');
-            
+
             // Store the listener functions so we can remove them later
             this._statusUpdateListener = (status) => {
                 this.errorHandler.runSync(() => {
                     this.broadcast({type: 'status_update', payload: status});
                 }, 'broadcast:status_update');
             };
-            
+
             this._systemCycleListener = (cycleCount) => {
                 this.errorHandler.runSync(() => {
                     this.broadcast({type: 'system_cycle', payload: {cycleCount}});
                 }, 'broadcast:system_cycle');
             };
-            
+
             this._addBeliefListener = (belief) => {
                 this.errorHandler.runSync(() => {
                     this.broadcast({type: 'add_belief', payload: formatTaskForBroadcast(belief)});
                 }, 'broadcast:add_belief');
             };
-            
+
             this._addGoalListener = (goal) => {
                 this.errorHandler.runSync(() => {
                     this.broadcast({type: 'add_goal', payload: formatTaskForBroadcast(goal)});
                 }, 'broadcast:add_goal');
             };
-            
+
             this._addQuestionListener = (question) => {
                 this.errorHandler.runSync(() => {
                     this.broadcast({type: 'add_question', payload: formatTaskForBroadcast(question)});
                 }, 'broadcast:add_question');
             };
-            
+
             this._reasoningStepListener = (step) => {
                 this.errorHandler.runSync(() => {
                     this.broadcast({type: 'reasoning_step', payload: step});
                 }, 'broadcast:reasoning_step');
             };
-            
+
             this._memoryUpdateListener = (changes) => {
                 this.errorHandler.runSync(() => {
                     this.broadcast({type: 'memory_update', payload: changes});
                 }, 'broadcast:memory_update');
             };
-            
+
             this._tasksAddListener = (tasks) => {
                 this.errorHandler.runSync(() => {
                     for (const task of tasks) {
@@ -117,11 +117,11 @@ class AgentManager {
             eventBus.on('tasks:add', this._tasksAddListener);
         }, 'setupEventListeners');
     }
-    
+
     cleanupEventListeners() {
         const eventBus = this.system?.eventBus;
         if (!eventBus) return;
-        
+
         // Remove all previously registered listeners if they exist
         if (this._statusUpdateListener) eventBus.off('status_update', this._statusUpdateListener);
         if (this._systemCycleListener) eventBus.off('system_cycle', this._systemCycleListener);
@@ -131,7 +131,7 @@ class AgentManager {
         if (this._reasoningStepListener) eventBus.off('reasoning_step', this._reasoningStepListener);
         if (this._memoryUpdateListener) eventBus.off('memory_update', this._memoryUpdateListener);
         if (this._tasksAddListener) eventBus.off('tasks:add', this._tasksAddListener);
-        
+
         // Clear the references
         this._statusUpdateListener = null;
         this._systemCycleListener = null;
@@ -170,7 +170,7 @@ class AgentManager {
     async reset() {
         // Clean up existing listeners before reset
         this.cleanupEventListeners();
-        
+
         return this.errorHandler.runAsync(async () => {
             if (this.system?.commandBus) {
                 this.broadcast({type: 'log', payload: {source: 'system', message: 'Agent command received: reset'}});

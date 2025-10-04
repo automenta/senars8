@@ -51,7 +51,10 @@ describe('TUI End-to-End Integration Tests', async () => {
             const execFileAsync = util.promisify(execFile);
 
             // Execute TUI in a child process
-            const {stdout, stderr} = await execFileAsync('timeout', ['5s', 'bash', '-c', `WS_PORT=${wsPort} npx tsx tui/src/index.jsx || true`], {
+            const {
+                stdout,
+                stderr
+            } = await execFileAsync('timeout', ['5s', 'bash', '-c', `WS_PORT=${wsPort} npx tsx tui/src/index.jsx || true`], {
                 env: {...process.env, WS_PORT: wsPort.toString()},
                 timeout: 8000
             });
@@ -78,8 +81,8 @@ describe('TUI End-to-End Integration Tests', async () => {
                 // Re-throw if it's a real error
                 console.log('TUI error details:', error);
                 if (error.stderr) {
-                    if (error.stderr.includes('Error: ') || 
-                        error.stderr.includes('FATAL') || 
+                    if (error.stderr.includes('Error: ') ||
+                        error.stderr.includes('FATAL') ||
                         error.stderr.includes('UnhandledPromiseRejection') ||
                         error.stderr.includes('ReferenceError') ||
                         error.stderr.includes('TypeError')) {
@@ -98,7 +101,7 @@ describe('TUI End-to-End Integration Tests', async () => {
         wsManager = new WebSocketManager({port: wsPort});
 
         await wsManager.start();
-        
+
         // Link server to agent manager
         agentManager.setBroadcast(wsManager.broadcast.bind(wsManager));
 
@@ -120,7 +123,10 @@ describe('TUI End-to-End Integration Tests', async () => {
             const util = await import('util');
             const execFileAsync = util.promisify(execFile);
 
-            const {stdout, stderr} = await execFileAsync('timeout', ['5s', 'bash', '-c', `WS_PORT=${wsPort} npx tsx tui/src/index.jsx || true`], {
+            const {
+                stdout,
+                stderr
+            } = await execFileAsync('timeout', ['5s', 'bash', '-c', `WS_PORT=${wsPort} npx tsx tui/src/index.jsx || true`], {
                 env: {...process.env, WS_PORT: wsPort.toString()},
                 timeout: 8000
             });
@@ -146,8 +152,8 @@ describe('TUI End-to-End Integration Tests', async () => {
             } else {
                 // Re-throw if it's a real error
                 if (error.stderr) {
-                    if (error.stderr.includes('Error: ') || 
-                        error.stderr.includes('FATAL') || 
+                    if (error.stderr.includes('Error: ') ||
+                        error.stderr.includes('FATAL') ||
                         error.stderr.includes('UnhandledPromiseRejection') ||
                         error.stderr.includes('ReferenceError') ||
                         error.stderr.includes('TypeError')) {
@@ -212,16 +218,16 @@ describe('TUI End-to-End Integration Tests', async () => {
         const statsResult = view.executeCommand('stats');
         expect(statsResult).toHaveProperty('connectionStatus');
         expect(statsResult).toHaveProperty('isRunning');
-        
+
         const memoryResult = view.executeCommand('memory');
         expect(memoryResult).toHaveProperty('beliefsCount');
-        
+
         const beliefsResult = view.executeCommand('beliefs');
         expect(Array.isArray(beliefsResult)).toBe(true);
-        
+
         const goalsResult = view.executeCommand('goals');
         expect(Array.isArray(goalsResult)).toBe(true);
-        
+
         const tasksResult = view.executeCommand('tasks');
         expect(Array.isArray(tasksResult)).toBe(true);
 

@@ -9,7 +9,7 @@ const LogPanel = ({agentService}) => {
 
     return (
         <Box flexDirection="column" borderStyle="single" padding={1}>
-            <LogView logs={logs} />
+            <LogView logs={logs}/>
         </Box>
     );
 };

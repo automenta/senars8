@@ -106,7 +106,7 @@ describe('AgentManager Integration Test', () => {
         await agentManager.initialize();
         await new Promise(resolve => setTimeout(resolve, 50)); // Wait a bit longer to allow file processing
         const agent = agentManager.getAgent();
-        
+
         // Verify that SYSTEM_ADD_TASKS command was called with the expected tasks
         expect(mockSystem.commandBus.request).toHaveBeenCalledWith('system:addTasks', [{goal: 'task'}]);
     });

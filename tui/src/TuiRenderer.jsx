@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 /**
  * Functional component for rendering agent status in the TUI
  */
-export const StatusView = ({ agentState }) => (
+export const StatusView = ({agentState}) => (
     <Box flexDirection="column">
         <Text bold>Agent Status</Text>
         <Text>Connection: {agentState.connectionStatus}</Text>
@@ -22,7 +22,7 @@ StatusView.propTypes = {
 /**
  * Functional component for rendering agent statistics in the TUI
  */
-export const StatsView = ({ agentState }) => (
+export const StatsView = ({agentState}) => (
     <Box flexDirection="column">
         <Text bold>Statistics</Text>
         {agentState.stats && (
@@ -43,7 +43,7 @@ StatsView.propTypes = {
 /**
  * Functional component for rendering agent memory in the TUI
  */
-export const MemoryView = ({ agentState }) => (
+export const MemoryView = ({agentState}) => (
     <Box flexDirection="column">
         <Text bold>Memory</Text>
         {agentState.memory && (
@@ -63,7 +63,7 @@ MemoryView.propTypes = {
 /**
  * Functional component for rendering tasks in the TUI
  */
-export const TasksView = ({ tasks = [] }) => (
+export const TasksView = ({tasks = []}) => (
     <Box flexDirection="column">
         <Text bold>Tasks</Text>
         <Static items={tasks.slice(0, 5)}>
@@ -81,7 +81,7 @@ TasksView.propTypes = {
 /**
  * Functional component for rendering beliefs in the TUI
  */
-export const BeliefsView = ({ beliefs = [] }) => (
+export const BeliefsView = ({beliefs = []}) => (
     <Box flexDirection="column">
         <Text bold>Beliefs</Text>
         <Static items={beliefs.slice(0, 5)}>
@@ -99,7 +99,7 @@ BeliefsView.propTypes = {
 /**
  * Functional component for rendering goals in the TUI
  */
-export const GoalsView = ({ goals = [] }) => (
+export const GoalsView = ({goals = []}) => (
     <Box flexDirection="column">
         <Text bold>Goals</Text>
         <Static items={goals.slice(0, 5)}>
@@ -117,7 +117,7 @@ GoalsView.propTypes = {
 /**
  * Functional component for rendering logs in the TUI
  */
-export const LogView = ({ logs = [] }) => (
+export const LogView = ({logs = []}) => (
     <Box flexDirection="column">
         <Text bold>Recent Logs</Text>
         <Static items={logs.slice(-5)}>

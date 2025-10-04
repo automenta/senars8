@@ -3,8 +3,8 @@
  * Common functions for generating documentation for both TUI and Web UI
  */
 
-import { writeFileSync, existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
+import {writeFileSync, existsSync, mkdirSync} from 'fs';
+import {join} from 'path';
 
 /**
  * Creates a documentation entry for a UI feature
@@ -33,9 +33,9 @@ function createFeatureDoc(title, description, usage, screenshots = []) {
  */
 function saveDocumentation(doc, filename, outputDir = './docs') {
     if (!existsSync(outputDir)) {
-        mkdirSync(outputDir, { recursive: true });
+        mkdirSync(outputDir, {recursive: true});
     }
-    
+
     const filepath = join(outputDir, filename);
     writeFileSync(filepath, JSON.stringify(doc, null, 2));
     console.log(`Documentation saved: ${filepath}`);
@@ -48,12 +48,12 @@ function saveDocumentation(doc, filename, outputDir = './docs') {
  */
 function generateFeaturesReadme(features) {
     let markdown = '# UI Features Documentation\n\n';
-    
+
     features.forEach((feature, index) => {
         markdown += `## ${index + 1}. ${feature.title}\n\n`;
         markdown += `${feature.description}\n\n`;
         markdown += `### Usage\n\`${feature.usage}\`\n\n`;
-        
+
         if (feature.screenshots && feature.screenshots.length > 0) {
             markdown += '### Screenshots\n';
             feature.screenshots.forEach(screenshot => {
@@ -62,7 +62,7 @@ function generateFeaturesReadme(features) {
             markdown += '\n';
         }
     });
-    
+
     return markdown;
 }
 

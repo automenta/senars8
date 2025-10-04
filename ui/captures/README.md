@@ -4,7 +4,8 @@ This directory contains utilities and captured materials for documenting the Web
 
 ## Capture Utilities
 
-The main capture utility is located at `capture-webui.js` in the parent directory and allows you to capture screenshots and generate documentation.
+The main capture utility is located at `capture-webui.js` in the parent directory and allows you to capture screenshots
+and generate documentation.
 
 ### Usage
 

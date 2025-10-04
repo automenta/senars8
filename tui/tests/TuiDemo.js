@@ -21,25 +21,25 @@ class TuiDemo {
      */
     async run() {
         console.log('Starting TUI Demo...');
-        
+
         try {
             // Find an available port
             this.wsPort = await findAvailablePort(8090);
             console.log(`Using port: ${this.wsPort}`);
-            
+
             // Start the agent WebSocket server
             await this.startAgentServer();
-            
+
             // Start the TUI
             await this.startTui();
-            
+
             // Send some demo commands to the system
             await this.runDemoCommands();
-            
+
             // Allow user interaction for 30 seconds
             console.log('TUI running. Allowing interaction for 30 seconds...');
             await setTimeout(30000);
-            
+
         } catch (error) {
             console.error('Error in TUI demo:', error);
         } finally {
@@ -56,7 +56,7 @@ class TuiDemo {
         this.wsManager = new WebSocketManager({port: this.wsPort});
 
         await this.wsManager.start();
-        
+
         // Link server to agent manager
         this.agentManager.setBroadcast(this.wsManager.broadcast.bind(this.wsManager));
 
@@ -97,20 +97,20 @@ class TuiDemo {
      */
     async runDemoCommands() {
         console.log('Running demo commands...');
-        
+
         // In a real scenario, we would send commands through the WebSocket
         // For now, we'll just log what would happen
         console.log('Demo: Adding sample tasks and observing the system...');
-        
+
         // Simulate some agent activity to show in the TUI
         setTimeout(() => {
             console.log('Simulated: Agent processed a task');
         }, 5000);
-        
+
         setTimeout(() => {
             console.log('Simulated: New belief formed');
         }, 10000);
-        
+
         setTimeout(() => {
             console.log('Simulated: Inference completed');
         }, 15000);
@@ -121,19 +121,19 @@ class TuiDemo {
      */
     async cleanup() {
         console.log('Cleaning up...');
-        
+
         if (this.tuiProcess) {
             this.tuiProcess.kill();
         }
-        
+
         if (this.wsManager) {
             await this.wsManager.stop();
         }
-        
+
         if (this.agentManager) {
             await this.agentManager.stop();
         }
-        
+
         console.log('Cleanup completed');
     }
 }
