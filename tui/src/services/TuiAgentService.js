@@ -1,19 +1,15 @@
-import ApiService from '@senars/common/services/ApiService.js';
-import {logger} from '@senars/common';
+import BaseUiAgentService from '@senars/common/services/BaseUiAgentService.js';
 
 /**
- * A lightweight service for the TUI that extends the base ApiService
- * with TUI-specific logging and context.
+ * A lightweight service for the TUI that extends the base UI agent service
+ * with TUI-specific functionality.
  */
-class TuiAgentService extends ApiService {
+class TuiAgentService extends BaseUiAgentService {
     /**
      * @param {string} url - The WebSocket URL for the agent connection.
      */
     constructor(url) {
-        super(url);
-        // Override the default logger to use a TUI-specific namespace
-        this.logger = logger.create('TuiAgentService');
-        this.logger.info(`TUI Agent Service initialized for ${url}`);
+        super(url, 'TuiAgentService');
     }
 
     /**
@@ -23,9 +19,8 @@ class TuiAgentService extends ApiService {
     getTuiStatus() {
         const state = this.getAgentState();
         return {
-            ...state,
+            ...this.formatStateForUi(state),
             agentUrl: this.url,
-            connectionStatus: state.connectionStatus,
         };
     }
 }

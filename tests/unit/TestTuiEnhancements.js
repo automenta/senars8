@@ -1,4 +1,3 @@
-import {TuiRenderer} from '../../tui/src/TuiRenderer.js';
 import {TuiView} from '../../tui/src/TuiView.js';
 
 // Mock ApiService for testing the TUI rendering enhancements
@@ -86,43 +85,10 @@ async function testEnhancedTui() {
     console.log('Testing enhanced TUI functionality...');
 
     const mockApiService = new MockApiService();
-    const renderer = new TuiRenderer();
-    const view = new TuiView(mockApiService, renderer);
-
-    // Initialize the renderer
-    renderer.initialize();
-
-    // Render with mock state to test new components
-    const mockState = mockApiService.getAgentState();
-    renderer.render(mockState);
-
-    // Check that new components exist
-    console.log('✓ Renderer initialized successfully');
-    console.log('✓ Components created:', Object.keys(renderer.components));
-
-    // Verify all expected components exist
-    const expectedComponents = ['log', 'status', 'performance', 'beliefs', 'goals', 'tasks', 'stats', 'input'];
-    const missingComponents = expectedComponents.filter(comp => !renderer.components[comp]);
-
-    if (missingComponents.length === 0) {
-        console.log('✓ All expected components present:', expectedComponents.join(', '));
-    } else {
-        console.log('✗ Missing components:', missingComponents.join(', '));
-        return false;
-    }
-
-    // Test rendering methods
-    renderer.updateStatus(mockState);
-    renderer.updatePerformance(mockState);
-    renderer.updateStats(mockState);
-    renderer.updateBeliefs(mockState.memory.beliefs);
-    renderer.updateGoals(mockState.memory.goals);
-    renderer.updateTasks(mockState.tasks);
-
-    console.log('✓ All rendering methods executed successfully');
+    const view = new TuiView(mockApiService);
 
     // Test new commands exist
-    const expectedCommands = ['stats', 'memory', 'reset', 'pause', 'resume'];
+    const expectedCommands = ['stats', 'memory', 'reset', 'pause', 'resume', 'beliefs', 'goals', 'tasks'];
     const missingCommands = expectedCommands.filter(cmd => !view.commandMap[cmd]);
 
     if (missingCommands.length === 0) {
@@ -132,8 +98,54 @@ async function testEnhancedTui() {
         return false;
     }
 
-    console.log('✓ TUI enhancements working properly!');
-    return true;
+    // Test command execution
+    try {
+        // Test stats command
+        const stats = view.executeCommand('stats');
+        if (!stats || !stats.connectionStatus) {
+            console.log('✗ Stats command failed');
+            return false;
+        }
+        console.log('✓ Stats command executed successfully');
+
+        // Test memory command
+        const memory = view.executeCommand('memory');
+        if (typeof memory.beliefsCount !== 'number') {
+            console.log('✗ Memory command failed');
+            return false;
+        }
+        console.log('✓ Memory command executed successfully');
+
+        // Test beliefs command
+        const beliefs = view.executeCommand('beliefs');
+        if (!Array.isArray(beliefs)) {
+            console.log('✗ Beliefs command failed');
+            return false;
+        }
+        console.log('✓ Beliefs command executed successfully');
+
+        // Test goals command
+        const goals = view.executeCommand('goals');
+        if (!Array.isArray(goals)) {
+            console.log('✗ Goals command failed');
+            return false;
+        }
+        console.log('✓ Goals command executed successfully');
+
+        // Test tasks command
+        const tasks = view.executeCommand('tasks');
+        if (!Array.isArray(tasks)) {
+            console.log('✗ Tasks command failed');
+            return false;
+        }
+        console.log('✓ Tasks command executed successfully');
+
+        console.log('✓ All TUI commands working properly!');
+        return true;
+    } catch (error) {
+        console.log('✗ Error testing TUI commands:', error.message);
+        return false;
+    }
 }
 
 // Run the test

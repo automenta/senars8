@@ -1,25 +1,21 @@
 import * as Y from 'yjs';
 import {WebsocketProvider} from 'y-websocket';
-import ApiService from '@senars/common/services/ApiService.js';
+import BaseUiAgentService from '@senars/common/services/BaseUiAgentService.js';
 import {CONFIG} from '@senars/common/constants/config.js';
-import {logger} from '@senars/common';
 
 /**
- * A high-level service for the UI that extends the base ApiService
- * with UI-specific features like collaborative editing (Y.js).
+ * A high-level service for the Web UI that extends the base UI agent service
+ * with Web UI-specific features like collaborative editing (Y.js).
  */
-class AgentService extends ApiService {
+class AgentService extends BaseUiAgentService {
     constructor(url) {
-        super(url);
+        super(url, 'AgentServiceUI');
         this.crdtUrl = CONFIG.CONNECTION.CRDT_WEBSOCKET_URL;
 
         // Y.js for collaborative editing
         this.yDoc = new Y.Doc();
         this.yProvider = null;
         this.awareness = null;
-
-        // Override logger namespace for UI-specific context
-        this.logger = logger.create('AgentServiceUI');
 
         // Hook into the connection status to manage collaborative editing
         this.on('status', (status) => {

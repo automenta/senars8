@@ -160,9 +160,8 @@ describe('TUI End-to-End Integration Tests', async () => {
         }
     });
 
-    it('should render TUI components without errors', async () => {
-        // Test the TUI components that were created for the tests
-        const {TuiRenderer} = await import('../src/TuiRenderer.js');
+    it('should have functional TUI View commands', async () => {
+        // Test the TUI View functionality only (renderer is now components)
         const {TuiView} = await import('../src/TuiView.js');
 
         // Mock API service
@@ -172,6 +171,7 @@ describe('TUI End-to-End Integration Tests', async () => {
                 cycleCount: 1250,
                 uptime: '00:12:34',
                 version: '1.1.0',
+                connectionStatus: 'connected',
                 stats: {
                     cyclesPerSecond: 10.5,
                     memoryUsedMB: 45.2,
@@ -195,32 +195,8 @@ describe('TUI End-to-End Integration Tests', async () => {
             sendAgentControl: () => Promise.resolve(),
         };
 
-        // Test renderer
-        const renderer = new TuiRenderer();
-        renderer.initialize();
-
-        // Test that all components exist
-        expect(renderer.components).toHaveProperty('log');
-        expect(renderer.components).toHaveProperty('status');
-        expect(renderer.components).toHaveProperty('performance');
-        expect(renderer.components).toHaveProperty('beliefs');
-        expect(renderer.components).toHaveProperty('goals');
-        expect(renderer.components).toHaveProperty('tasks');
-        expect(renderer.components).toHaveProperty('stats');
-        expect(renderer.components).toHaveProperty('input');
-
-        // Test rendering methods
-        const mockState = mockApiService.getAgentState();
-        renderer.render(mockState);
-        renderer.updateStatus(mockState);
-        renderer.updatePerformance(mockState);
-        renderer.updateStats(mockState);
-        renderer.updateBeliefs(mockState.memory.beliefs);
-        renderer.updateGoals(mockState.memory.goals);
-        renderer.updateTasks(mockState.tasks);
-
         // Test TUI View
-        const view = new TuiView(mockApiService, renderer);
+        const view = new TuiView(mockApiService);
 
         // Test all expected commands exist
         expect(view.commandMap).toHaveProperty('stats');
@@ -228,7 +204,27 @@ describe('TUI End-to-End Integration Tests', async () => {
         expect(view.commandMap).toHaveProperty('reset');
         expect(view.commandMap).toHaveProperty('pause');
         expect(view.commandMap).toHaveProperty('resume');
+        expect(view.commandMap).toHaveProperty('beliefs');
+        expect(view.commandMap).toHaveProperty('goals');
+        expect(view.commandMap).toHaveProperty('tasks');
 
-        console.log('TUI components rendered successfully');
+        // Test command execution
+        const statsResult = view.executeCommand('stats');
+        expect(statsResult).toHaveProperty('connectionStatus');
+        expect(statsResult).toHaveProperty('isRunning');
+        
+        const memoryResult = view.executeCommand('memory');
+        expect(memoryResult).toHaveProperty('beliefsCount');
+        
+        const beliefsResult = view.executeCommand('beliefs');
+        expect(Array.isArray(beliefsResult)).toBe(true);
+        
+        const goalsResult = view.executeCommand('goals');
+        expect(Array.isArray(goalsResult)).toBe(true);
+        
+        const tasksResult = view.executeCommand('tasks');
+        expect(Array.isArray(tasksResult)).toBe(true);
+
+        console.log('TUI View functionality tested successfully');
     });
 });
