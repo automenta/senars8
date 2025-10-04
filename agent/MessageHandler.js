@@ -12,6 +12,10 @@ import {handleRunCommand} from './api/command.js';
 import {
     handleAddTask,
     handleAgentControl,
+    handleGetBeliefs,
+    handleGetGoals,
+    handleGetQuestions,
+    handleGetSystemStats,
     handleGetTasks,
     handleNarsese,
     handleSearch,
@@ -36,7 +40,11 @@ export const createMessageHandler = (agentManager, broadcast) => {
         // Agent
         narsese: (payload, ws) => handleNarsese(payload, ws, agent, broadcast),
         agentControl: (payload, ws) => handleAgentControl(payload, ws, agentManager, broadcast),
+        get_system_stats: (payload, ws) => handleGetSystemStats(payload, ws, agent),
         get_tasks: (payload, ws) => handleGetTasks(payload, ws, agent),
+        get_beliefs: (payload, ws) => handleGetBeliefs(payload, ws, agent),
+        get_goals: (payload, ws) => handleGetGoals(payload, ws, agent),
+        get_questions: (payload, ws) => handleGetQuestions(payload, ws, agent),
         task_action: (payload, ws) => handleTaskAction(payload, ws, agent, broadcast),
         add_task: (payload, ws) => handleAddTask(payload, ws, agent, broadcast),
         search: (payload, ws) => handleSearch(payload, ws, agent),
@@ -50,7 +58,14 @@ export const createMessageHandler = (agentManager, broadcast) => {
         if (handler) {
             await handler(payload, ws);
         } else {
-            ws.send(JSON.stringify({type: 'error', payload: {message: `Unknown message type: ${type}`}}));
+            // Use custom JSON serialization to handle BigInt values
+            const errorMessage = JSON.stringify({type: 'error', payload: {message: `Unknown message type: ${type}`}}, (key, value) => {
+                if (typeof value === 'bigint') {
+                    return value.toString();
+                }
+                return value;
+            });
+            ws.send(errorMessage);
         }
     };
 };

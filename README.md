@@ -34,17 +34,29 @@ npm install
 
 ### Running the Application
 
-To start the full application (agent + Web UI + TUI):
+To start the web UI with WebSocket server for TUI compatibility:
 
 ```bash
-npm run dev
+npm run dev:ws
 ```
 
-To start just the agent service:
+To start just the agent service with WebSocket server for UIs:
 
 ```bash
-npm start
+npm run agent:ws
 ```
+
+To start just the terminal UI:
+
+```bash
+npm run tui:ws
+```
+
+For individual components:
+
+- `npm run dev` - Start the web UI only (without standalone WebSocket)
+- `npm run tui` - Start the terminal UI only (requires standalone WebSocket)
+- `npm run start` - Start the core agent only (without UI)
 
 ### Running Tests
 

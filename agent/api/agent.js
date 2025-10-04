@@ -50,7 +50,14 @@ const commandMap = {
 export const handleGetTasks = async (payload, ws, agent) => {
     return executeAsync(async () => {
         if (!agent.system || !agent.system.commandBus) {
-            return ws.send(JSON.stringify({type: 'error', payload: {message: 'CommandBus not available.'}}));
+            // Use custom JSON serialization to handle BigInt values
+            const errorMessage = JSON.stringify({type: 'error', payload: {message: 'CommandBus not available.'}}, (key, value) => {
+                if (typeof value === 'bigint') {
+                    return value.toString();
+                }
+                return value;
+            });
+            return ws.send(errorMessage);
         }
 
         const allTasks = await agent.system.commandBus.request(SystemCommands.MEMORY_GET_ALL_TASKS);
@@ -72,13 +79,20 @@ export const handleGetTasks = async (payload, ws, agent) => {
             filteredTasks = filteredTasks.filter(combinedFilter);
         }
 
-        ws.send(JSON.stringify({
+        // Use custom JSON serialization to handle BigInt values in nested task objects
+        const message = JSON.stringify({
             type: 'tasks_response',
             payload: {
                 tasks: filteredTasks,
                 total: filteredTasks.length
             }
-        }));
+        }, (key, value) => {
+            if (typeof value === 'bigint') {
+                return value.toString();
+            }
+            return value;
+        });
+        ws.send(message);
     }, ws, 'get tasks');
 };
 
@@ -89,10 +103,17 @@ export const handleTaskAction = async (payload, ws, agent, broadcast) => {
         switch (action) {
             case 'execute':
                 if (!agent.system || !agent.system.commandBus) {
-                    return ws.send(JSON.stringify({
+                    // Use custom JSON serialization to handle BigInt values
+                    const errorMessage = JSON.stringify({
                         type: 'error',
                         payload: {message: 'CommandBus not available.'}
-                    }));
+                    }, (key, value) => {
+                        if (typeof value === 'bigint') {
+                            return value.toString();
+                        }
+                        return value;
+                    });
+                    return ws.send(errorMessage);
                 }
                 await agent.system.commandBus.request(SystemCommands.EXECUTE_ACTION, task);
                 broadcast({
@@ -122,7 +143,14 @@ export const handleAddTask = async (payload, ws, agent, _broadcast) => {
     return executeAsync(async () => {
         const {taskData} = payload;
         if (!agent.system || !agent.system.commandBus) {
-            return ws.send(JSON.stringify({type: 'error', payload: {message: 'CommandBus not available.'}}));
+            // Use custom JSON serialization to handle BigInt values
+            const errorMessage = JSON.stringify({type: 'error', payload: {message: 'CommandBus not available.'}}, (key, value) => {
+                if (typeof value === 'bigint') {
+                    return value.toString();
+                }
+                return value;
+            });
+            return ws.send(errorMessage);
         }
 
         const task = new Task(
@@ -178,4 +206,164 @@ export const handleSearch = async (payload, ws, agent) => {
             payload: {results, query, total: results.length}
         }));
     }, ws, 'search');
+};
+
+export const handleGetSystemStats = async (payload, ws, agent) => {
+    return executeAsync(async () => {
+        if (!agent.system || !agent.system.commandBus) {
+            return ws.send(JSON.stringify({type: 'error', payload: {message: 'CommandBus not available.'}}));
+        }
+
+        try {
+            const stats = await agent.system.commandBus.request(SystemCommands.SYSTEM_GET_STATS);
+            const cycleCount = await agent.system.commandBus.request(SystemCommands.SYSTEM_GET_CYCLE_COUNT);
+            
+            // Prepare system stats response
+            const systemStats = {
+                isRunning: agent.system.isRunning || false,
+                cycleCount: cycleCount || 0,
+                memoryUsage: stats?.memoryUsage || {},
+                taskCount: stats?.taskCount || 0,
+                beliefsCount: stats?.beliefsCount || 0,
+                goalsCount: stats?.goalsCount || 0,
+                questionsCount: stats?.questionsCount || 0,
+                timestamp: Date.now()
+            };
+
+            // Use custom JSON serialization to handle BigInt values
+            const message = JSON.stringify({
+                type: 'system_stats',
+                payload: systemStats
+            }, (key, value) => {
+                if (typeof value === 'bigint') {
+                    return value.toString();
+                }
+                return value;
+            });
+            ws.send(message);
+        } catch (error) {
+            // Use custom JSON serialization for error messages too
+            const errorMessage = JSON.stringify({
+                type: 'error',
+                payload: {message: `Failed to get system stats: ${error.message}`}
+            }, (key, value) => {
+                if (typeof value === 'bigint') {
+                    return value.toString();
+                }
+                return value;
+            });
+            ws.send(errorMessage);
+        }
+    }, ws, 'get system stats');
+};
+
+export const handleGetBeliefs = async (payload, ws, agent) => {
+    return executeAsync(async () => {
+        if (!agent.system || !agent.system.commandBus) {
+            return ws.send(JSON.stringify({type: 'error', payload: {message: 'CommandBus not available.'}}));
+        }
+
+        try {
+            const allTasks = await agent.system.commandBus.request(SystemCommands.MEMORY_GET_ALL_TASKS);
+            const beliefs = allTasks.filter(task => task.punctuation === '.');
+            
+            // Use custom JSON serialization to handle BigInt values
+            const message = JSON.stringify({
+                type: 'beliefs_response',
+                payload: {beliefs}
+            }, (key, value) => {
+                if (typeof value === 'bigint') {
+                    return value.toString();
+                }
+                return value;
+            });
+            ws.send(message);
+        } catch (error) {
+            // Use custom JSON serialization for error messages too
+            const errorMessage = JSON.stringify({
+                type: 'error',
+                payload: {message: `Failed to get beliefs: ${error.message}`}
+            }, (key, value) => {
+                if (typeof value === 'bigint') {
+                    return value.toString();
+                }
+                return value;
+            });
+            ws.send(errorMessage);
+        }
+    }, ws, 'get beliefs');
+};
+
+export const handleGetGoals = async (payload, ws, agent) => {
+    return executeAsync(async () => {
+        if (!agent.system || !agent.system.commandBus) {
+            return ws.send(JSON.stringify({type: 'error', payload: {message: 'CommandBus not available.'}}));
+        }
+
+        try {
+            const allTasks = await agent.system.commandBus.request(SystemCommands.MEMORY_GET_ALL_TASKS);
+            const goals = allTasks.filter(task => task.punctuation === '!');
+            
+            // Use custom JSON serialization to handle BigInt values
+            const message = JSON.stringify({
+                type: 'goals_response',
+                payload: {goals}
+            }, (key, value) => {
+                if (typeof value === 'bigint') {
+                    return value.toString();
+                }
+                return value;
+            });
+            ws.send(message);
+        } catch (error) {
+            // Use custom JSON serialization for error messages too
+            const errorMessage = JSON.stringify({
+                type: 'error',
+                payload: {message: `Failed to get goals: ${error.message}`}
+            }, (key, value) => {
+                if (typeof value === 'bigint') {
+                    return value.toString();
+                }
+                return value;
+            });
+            ws.send(errorMessage);
+        }
+    }, ws, 'get goals');
+};
+
+export const handleGetQuestions = async (payload, ws, agent) => {
+    return executeAsync(async () => {
+        if (!agent.system || !agent.system.commandBus) {
+            return ws.send(JSON.stringify({type: 'error', payload: {message: 'CommandBus not available.'}}));
+        }
+
+        try {
+            const allTasks = await agent.system.commandBus.request(SystemCommands.MEMORY_GET_ALL_TASKS);
+            const questions = allTasks.filter(task => task.punctuation === '?');
+            
+            // Use custom JSON serialization to handle BigInt values
+            const message = JSON.stringify({
+                type: 'questions_response',
+                payload: {questions}
+            }, (key, value) => {
+                if (typeof value === 'bigint') {
+                    return value.toString();
+                }
+                return value;
+            });
+            ws.send(message);
+        } catch (error) {
+            // Use custom JSON serialization for error messages too
+            const errorMessage = JSON.stringify({
+                type: 'error',
+                payload: {message: `Failed to get questions: ${error.message}`}
+            }, (key, value) => {
+                if (typeof value === 'bigint') {
+                    return value.toString();
+                }
+                return value;
+            });
+            ws.send(errorMessage);
+        }
+    }, ws, 'get questions');
 };

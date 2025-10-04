@@ -213,7 +213,14 @@ class AgentCommunicationService extends EventBus {
 
         try {
             log.debug(`Sending message: ${type}`, payload);
-            this.ws.send(JSON.stringify({type, payload}));
+            // Use custom JSON serialization to handle BigInt values
+            const message = JSON.stringify({type, payload}, (key, value) => {
+                if (typeof value === 'bigint') {
+                    return value.toString();
+                }
+                return value;
+            });
+            this.ws.send(message);
             return true;
         } catch (error) {
             log.error('Failed to send message:', error);

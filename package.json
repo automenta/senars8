@@ -21,7 +21,10 @@
   "scripts": {
     "start": "node main.js",
     "dev": "node main.js --web",
+    "dev:ws": "WS_PORT=8081 node main.js --web",
     "tui": "node main.js --tui",
+    "tui:ws": "WS_PORT=8081 node main.js --tui",
+    "agent:ws": "WS_PORT=8081 node main.js",
     "test": "ORT_LOGGING_LEVEL=FATAL vitest --run",
     "test:ui": "ORT_LOGGING_LEVEL=FATAL vitest --ui",
     "lint": "eslint .",
