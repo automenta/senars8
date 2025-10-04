@@ -9,7 +9,7 @@ vi.mock('../../core/utils/PlanProcessor.js');
 
 const {mockSystem} = vi.hoisted(() => ({
     mockSystem: {
-        eventBus: {on: vi.fn(), emit: vi.fn()},
+        eventBus: {on: vi.fn(), off: vi.fn(), emit: vi.fn()},
         memory: {
             getAllTasks: vi.fn().mockReturnValue([]),
             getBeliefs: vi.fn().mockReturnValue([]),

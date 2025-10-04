@@ -222,12 +222,11 @@ export const handleGetSystemStats = async (payload, ws, agent) => {
 
         try {
             const stats = await agent.system.commandBus.request(SystemCommands.SYSTEM_GET_STATS);
-            const cycleCount = await agent.system.commandBus.request(SystemCommands.SYSTEM_GET_CYCLE_COUNT);
 
             // Prepare system stats response
             const systemStats = {
                 isRunning: agent.system.isRunning || false,
-                cycleCount: cycleCount || 0,
+                cycleCount: agent.system.cycleCount || 0,
                 memoryUsage: stats?.memoryUsage || {},
                 taskCount: stats?.taskCount || 0,
                 beliefsCount: stats?.beliefsCount || 0,

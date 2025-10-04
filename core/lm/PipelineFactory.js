@@ -11,7 +11,14 @@ class PipelineFactory {
     async get(type, model, options = {}) {
         const key = `${type}|${model}`;
         if (this._pipelines.has(key)) {
-            return this._pipelines.get(key);
+            const cachedPipeline = this._pipelines.get(key);
+            // Check if the cached pipeline is valid (is a function or has expected methods)
+            if (cachedPipeline && (typeof cachedPipeline === 'function' || typeof cachedPipeline.call === 'function')) {
+                return cachedPipeline;
+            } else {
+                // Remove invalid cached pipeline
+                this._pipelines.delete(key);
+            }
         }
 
         const {pipeline} = await import('@xenova/transformers');
@@ -22,7 +29,8 @@ class PipelineFactory {
             `create-pipeline-${key}`
         );
 
-        if (newPipeline) {
+        // Only cache if the pipeline is valid (is a function or has expected call method)
+        if (newPipeline && (typeof newPipeline === 'function' || typeof newPipeline.call === 'function')) {
             this._pipelines.set(key, newPipeline);
         }
         return newPipeline;

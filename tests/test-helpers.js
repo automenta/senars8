@@ -39,6 +39,15 @@ export const createMockEventBus = () => ({
         }
         this.listeners.get(eventType).push(listener);
     }),
+    off: vi.fn(function (eventType, listener) {
+        if (this.listeners.has(eventType)) {
+            const listeners = this.listeners.get(eventType);
+            const index = listeners.indexOf(listener);
+            if (index > -1) {
+                listeners.splice(index, 1);
+            }
+        }
+    }),
     emit: vi.fn(function (eventType, data) {
         if (this.listeners.has(eventType)) {
             this.listeners.get(eventType).forEach(listener => listener(data));

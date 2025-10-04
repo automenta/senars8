@@ -83,10 +83,10 @@ class NarseseParser {
 
     parseStatement() {
         const term = this.parseTerm();
+        const truthValue = this.match(TOKEN.LPAREN) ? this.parseTruthValue() : null;
         const punctuation = this.match(TOKEN.BELIEF) ? this.consume(TOKEN.BELIEF) :
             this.match(TOKEN.GOAL) ? this.consume(TOKEN.GOAL) :
                 this.match(TOKEN.QUESTION) ? this.consume(TOKEN.QUESTION) : null;
-        const truthValue = this.match(TOKEN.LPAREN) ? this.parseTruthValue() : null;
 
         return (punctuation || truthValue) ? {
             type: OP.STATEMENT,
