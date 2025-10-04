@@ -2,7 +2,7 @@ import React, {useSyncExternalStore} from 'react';
 import PropTypes from 'prop-types';
 import notificationService from '@/services/notificationService';
 import {Trash2, X} from 'lucide-react';
-import './NotificationCenter.css';
+import './style.css';
 
 const subscribe = (callback) => {
     notificationService.on('change', callback);

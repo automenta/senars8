@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {AlertTriangle, ArrowRight, Clock, Zap} from 'lucide-react';
-import './VisualReasoningPanel.css';
+import './style.css';
 
 function ReasoningFlow({steps}) {
     const [flowSteps, setFlowSteps] = useState([]);

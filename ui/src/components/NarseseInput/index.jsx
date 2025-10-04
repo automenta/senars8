@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
-import './NarseseInput.css';
+import './style.css';
 
 function NarseseInput({value, onChange, onSend, history, disabled = false, onKeyDown}) {
     const [historyIndex, setHistoryIndex] = useState(-1);

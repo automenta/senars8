@@ -1,8 +1,8 @@
 import * as Y from 'yjs';
-import { WebsocketProvider } from 'y-websocket';
+import {WebsocketProvider} from 'y-websocket';
 import ApiService from '@senars/common/services/ApiService.js';
-import { CONFIG } from '@senars/common/constants/config.js';
-import { logger } from '@senars/common';
+import {CONFIG} from '@senars/common/constants/config.js';
+import {logger} from '@senars/common';
 
 /**
  * A high-level service for the UI that extends the base ApiService

@@ -1,9 +1,9 @@
 import React from 'react';
-import { Box, Text } from 'ink';
+import {Box, Text} from 'ink';
 import PropTypes from 'prop-types';
-import { useLogs } from '@senars/common';
+import {useLogs} from '@senars/common';
 
-const LogPanel = ({ agentService }) => {
+const LogPanel = ({agentService}) => {
     const logs = useLogs(agentService);
 
     return (

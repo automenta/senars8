@@ -1,14 +1,14 @@
 import React from 'react';
-import { Box, Text } from 'ink';
+import {Box, Text} from 'ink';
 import PropTypes from 'prop-types';
 
-const ConnectionDiscovery = ({ connections, error, onSelectConnection }) => {
+const ConnectionDiscovery = ({connections, error = null, onSelectConnection}) => {
     return (
         <Box flexDirection="column">
             <Text>Available Agent Connections:</Text>
             {error && <Text color="red">{error}</Text>}
             {connections.length === 0 && !error && <Text>No agents found. Searching...</Text>}
-            {connections.map(({ url, status }) => (
+            {connections.map(({url, status}) => (
                 <Box key={url} borderStyle="single" padding={1} marginY={1}>
                     <Text>
                         Agent: {url} (Status: {status})
@@ -33,10 +33,6 @@ ConnectionDiscovery.propTypes = {
     ).isRequired,
     error: PropTypes.string,
     onSelectConnection: PropTypes.func.isRequired,
-};
-
-ConnectionDiscovery.defaultProps = {
-    error: null,
 };
 
 export default ConnectionDiscovery;

@@ -1,9 +1,9 @@
 import React from 'react';
-import { Box, Text } from 'ink';
+import {Box, Text} from 'ink';
 import PropTypes from 'prop-types';
-import { useAgentState } from '@senars/common';
+import {useAgentState} from '@senars/common';
 
-const StatusPanel = ({ agentService }) => {
+const StatusPanel = ({agentService}) => {
     const agentState = useAgentState(agentService);
 
     return (

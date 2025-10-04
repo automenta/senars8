@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { Box, Text } from 'ink';
+import React, {useState} from 'react';
+import {Box, Text} from 'ink';
 import PropTypes from 'prop-types';
 import StatusPanel from './StatusPanel.jsx';
 import LogPanel from './LogPanel.jsx';
 
-const AgentView = ({ agentService }) => {
+const AgentView = ({agentService}) => {
     const [activeTab, setActiveTab] = useState('status');
 
     return (
@@ -31,8 +31,8 @@ const AgentView = ({ agentService }) => {
             </Box>
 
             <Box marginTop={1}>
-                {activeTab === 'status' && <StatusPanel agentService={agentService} />}
-                {activeTab === 'log' && <LogPanel agentService={agentService} />}
+                {activeTab === 'status' && <StatusPanel agentService={agentService}/>}
+                {activeTab === 'log' && <LogPanel agentService={agentService}/>}
             </Box>
         </Box>
     );

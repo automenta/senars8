@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import ReactForceGraph2D from 'react-force-graph-2d';
-import './VisualReasoningPanel.css';
+import './style.css';
 
 // Helper function to convert knowledge items to nodes and edges for concept maps
 const convertToConceptMapData = (beliefs, goals, inferences) => {

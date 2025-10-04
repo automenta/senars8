@@ -59,5 +59,5 @@ export default defineConfig({
             reuseExistingServer: !process.env.CI,
         },
     ],
-    testMatch: /.*\.spec\.js/,
+    testMatch: ['**/*.spec.js', '**/e2e/**/*.test.js'],
 });

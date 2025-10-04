@@ -1,5 +1,5 @@
 import {EventBus} from '@senars/common/utils/eventBus.js';
-import { connectionManager } from './connection.js';
+import {connectionManager} from './connection.js';
 import log from '../../core/utils/logger.js';
 
 /**
@@ -36,7 +36,7 @@ class ApiService extends EventBus {
      * @private
      */
     _setupEventForwarding() {
-        connectionManager.on('connection', ({ url, status }) => {
+        connectionManager.on('connection', ({url, status}) => {
             if (url === this.url) {
                 this.agentState.connectionStatus = status;
                 this.emit('status', status);
@@ -58,13 +58,13 @@ class ApiService extends EventBus {
             }
         });
 
-        connectionManager.on('message', ({ url, data }) => {
+        connectionManager.on('message', ({url, data}) => {
             if (url === this.url) {
                 this._handleIncomingMessage(JSON.parse(data));
             }
         });
 
-        connectionManager.on('error', ({ url, error }) => {
+        connectionManager.on('error', ({url, error}) => {
             if (url === this.url) {
                 this.logger.error(`Communication error for ${url}:`, error);
                 this.emit('error', error);

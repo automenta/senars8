@@ -1,5 +1,5 @@
 import ApiService from '@senars/common/services/ApiService.js';
-import { logger } from '@senars/common';
+import {logger} from '@senars/common';
 
 /**
  * A lightweight service for the TUI that extends the base ApiService

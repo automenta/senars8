@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useSearch} from '@/context/SearchContext';
 import {Brain, FileText, Globe, Search as SearchIcon, X, Zap} from 'lucide-react';
-import './GlobalSearch.css';
+import './style.css';
 
 const SCOPE_OPTIONS = [
     {id: 'all', label: 'All', Icon: Globe},

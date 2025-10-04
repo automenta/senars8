@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Text } from 'ink';
-import { connectionManager } from '@senars/common';
+import React, {useEffect, useState} from 'react';
+import {Box, Text} from 'ink';
+import {connectionManager} from '@senars/common';
 import TuiAgentService from './services/TuiAgentService.js';
 import AgentView from './components/AgentView.jsx';
 import ConnectionDiscovery from './components/ConnectionDiscovery.jsx';
@@ -16,7 +16,7 @@ const App = () => {
             setConnectionError(null);
         };
 
-        const handleError = ({ url, error }) => {
+        const handleError = ({url, error}) => {
             setConnectionError(`Failed to connect to ${url}: ${error.message}`);
         };
 
@@ -34,7 +34,7 @@ const App = () => {
     const handleSelectConnection = (url) => {
         const service = new TuiAgentService(url);
         service.connect();
-        setSelectedConnection({ url, service });
+        setSelectedConnection({url, service});
     };
 
     const handleDisconnect = () => {
@@ -48,7 +48,7 @@ const App = () => {
         return (
             <Box flexDirection="column" width="100%">
                 <Text>Connected to: {selectedConnection.url}</Text>
-                <AgentView agentService={selectedConnection.service} />
+                <AgentView agentService={selectedConnection.service}/>
                 <Box marginTop={1}>
                     <Text onPress={handleDisconnect} color="red">Disconnect</Text>
                 </Box>

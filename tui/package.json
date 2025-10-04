@@ -10,11 +10,18 @@
   "scripts": {
     "start": "tsx src/index.jsx",
     "dev": "tsx --watch src/index.jsx",
-    "test": "vitest --run"
+    "test": "vitest --run",
+    "test:e2e": "vitest --run tests/e2e.tui.test.js",
+    "capture": "node capture-tui.js",
+    "demo": "node tests/TuiDemo.js"
   },
   "dependencies": {
     "@senars/common": "*",
-    "@senars/core": "*"
+    "@senars/core": "*",
+    "ink": "^4.4.1",
+    "react": "^18.3.1",
+    "prop-types": "^15.8.1",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "tsx": "^4.19.2",

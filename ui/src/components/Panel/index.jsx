@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import './Panel.css';
+import './style.css';
 
 // Helper function to extract text from a React node for the aria-label
 const extractTextFromNode = (node) => {

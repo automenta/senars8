@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import './Tooltip.css';
+import './style.css';
 
 const Tooltip = ({children, content, position = 'top', delay = 500}) => {
     const [isVisible, setIsVisible] = useState(false);

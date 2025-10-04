@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
-import { useAgentService } from '../context/AgentProvider';
-import { useNotification } from '../context/NotificationContext';
+import {useEffect} from 'react';
+import {useAgentService} from '../context/AgentProvider';
+import {useNotifications} from '../context/NotificationContext';
+import notificationService from '../services/notificationService';
 
 /**
  * A custom hook to handle application initialization logic,
@@ -8,23 +9,21 @@ import { useNotification } from '../context/NotificationContext';
  */
 const useAppInit = () => {
     const agentService = useAgentService();
-    const { addNotification } = useNotification();
+    const {notifications} = useNotifications();
 
     useEffect(() => {
         if (!agentService) return;
 
         const handleStatusChange = (status) => {
-            addNotification({
-                message: `Agent connection status: ${status}`,
-                type: status === 'connected' ? 'success' : 'info',
-            });
+            if (status === 'connected') {
+                notificationService.addSuccess('Connected', `Agent connected successfully`);
+            } else {
+                notificationService.addInfo('Connection Status', `Agent status: ${status}`);
+            }
         };
 
         const handleError = (error) => {
-            addNotification({
-                message: `Agent error: ${error.message}`,
-                type: 'error',
-            });
+            notificationService.addError('Connection Error', `Agent error: ${error.message || error}`);
         };
 
         agentService.on('status', handleStatusChange);

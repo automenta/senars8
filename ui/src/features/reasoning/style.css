@@ -1,0 +1,125 @@
+.reasoning-flow-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.reasoning-flow {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.flow-step {
+    margin-bottom: 15px;
+    padding: 12px;
+    background-color: var(--card-bg);
+    border-radius: 6px;
+    border-left: 4px solid var(--primary-color);
+    position: relative;
+}
+
+.step-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+.step-icon {
+    margin-right: 10px;
+    color: var(--text-secondary);
+}
+
+.step-info {
+    flex: 1;
+}
+
+.step-type {
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.step-timestamp {
+    font-size: 0.8em;
+    color: var(--text-secondary);
+}
+
+.step-confidence {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 10px;
+}
+
+.confidence-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.confidence-value {
+    font-size: 0.8em;
+    min-width: 40px;
+    text-align: right;
+}
+
+.step-content {
+    padding-left: 32px;
+}
+
+.step-content-text {
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+.step-conclusion {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border-color-light);
+    color: var(--success-color);
+}
+
+.step-connector {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0;
+    color: var(--text-secondary);
+}
+
+.reasoning-flow-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.loading-state {
+    text-align: center;
+}
+
+.loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border-color);
+    border-top: 2px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.flow-step.info {
+    background-color: var(--info-bg);
+    color: var(--info-text);
+}

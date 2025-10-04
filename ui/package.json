@@ -5,12 +5,21 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "start": "node src/index.js",
+    "start": "vite",
     "dev": "vite",
-    "test": "vitest"
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest --run",
+    "e2e": "playwright test",
+    "demo": "node tests/WebUIDemo.js",
+    "capture": "node capture-webui.js"
   },
   "dependencies": {
     "@pablo-lion/xterm-react": "^1.0.0",
+    "@senars/common": "*",
+    "@senars/core": "*",
     "diff-match-patch": "^1.0.5",
     "flexlayout-react": "^0.7.1",
     "lucide-react": "^0.408.0",
@@ -29,6 +38,7 @@
     "@vitejs/plugin-react": "^5.0.3",
     "@vitest/ui": "^2.1.9",
     "jsdom": "^25.0.1",
+    "puppeteer": "^23.11.1",
     "vite": "^7.1.7",
     "vitest": "^2.1.9"
   },

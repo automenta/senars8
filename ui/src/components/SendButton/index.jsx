@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Loader, Send} from 'lucide-react';
-import './SendButton.css';
+import './style.css';
 
 const SendButton = ({onClick, disabled}) => (
     <button
