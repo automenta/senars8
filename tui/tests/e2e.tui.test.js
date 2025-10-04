@@ -130,77 +130,47 @@ describe('TUI End-to-End Integration Tests', async () => {
 
     describe('TUI Connection Management', () => {
         it('should discover and connect to agents automatically', async () => {
-            // Test connection manager discovery functionality
             const testPort = 8086;
-
-            // Mock a WebSocket server for testing
             const mockWsServer = new WebSocketServer({port: testPort});
 
             mockWsServer.on('connection', (ws) => {
                 ws.on('message', (data) => {
                     const message = JSON.parse(data.toString());
                     if (message.type === 'get_system_stats') {
-                        ws.send(JSON.stringify({
-                            type: 'system_stats',
-                            payload: {
-                                isRunning: true,
-                                cycleCount: 100,
-                                connectionStatus: 'connected'
-                            }
-                        }));
+                        ws.send(JSON.stringify({type: 'system_stats', payload: {isRunning: true}}));
                     }
                 });
             });
 
-            // Wait for server to start
             await promiseTimeout(500);
-
-            // Test connection discovery with specific port
             await connectionManager.discover(testPort);
-
-            // Wait a bit more for connection to be established
             await promiseTimeout(1000);
 
-            // Check that connection was established
             const connections = connectionManager.getConnections();
             expect(connections.length).toBeGreaterThan(0);
 
-            // Cleanup
             mockWsServer.close();
             connectionManager.disconnectAll();
         });
 
         it('should handle connection errors gracefully', async () => {
-            // Test with a port that has no server
             const invalidPort = 9999;
 
-            // Set up error event listener to handle expected connection errors
             let errorHandled = false;
             const errorHandler = (error) => {
-                if (error.url && error.url.includes(invalidPort.toString())) {
-                    errorHandled = true;
-                }
+                if (error.url && error.url.includes(invalidPort.toString())) errorHandled = true;
             };
             connectionManager.on('error', errorHandler);
 
             try {
-                // This should not throw an error, just emit error events
                 await expect(connectionManager.discover(invalidPort)).resolves.not.toThrow();
-
-                // Wait for error handling and cleanup
                 await promiseTimeout(3000);
 
-                // Should have no active connections (disconnect all to be sure)
                 connectionManager.disconnectAll();
-                await promiseTimeout(500);
-
                 const connections = connectionManager.getConnections();
                 expect(connections.length).toBe(0);
-
-                // Verify that the error was handled
                 expect(errorHandled).toBe(true);
             } finally {
-                // Clean up the error handler
                 connectionManager.off('error', errorHandler);
             }
         });
