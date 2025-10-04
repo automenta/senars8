@@ -2,14 +2,14 @@
   "name": "@senars/tui",
   "version": "0.2.0",
   "description": "Multi-agent Terminal User Interface for SENARS using Ink",
-  "main": "src/index.js",
+  "main": "src/index.jsx",
   "type": "module",
   "bin": {
-    "senars-tui": "./src/index.js"
+    "senars-tui": "./src/index.jsx"
   },
   "scripts": {
-    "start": "tsx src/index.js",
-    "dev": "tsx --watch src/index.js",
+    "start": "tsx src/index.jsx",
+    "dev": "tsx --watch src/index.jsx",
     "test": "vitest --run"
   },
   "dependencies": {

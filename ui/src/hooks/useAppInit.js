@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useAgent } from '../context/AgentProvider';
+import { useAgentService } from '../context/AgentProvider';
 import { useNotification } from '../context/NotificationContext';
 
 /**
@@ -7,7 +7,7 @@ import { useNotification } from '../context/NotificationContext';
  * including connecting to the agent service and setting up notifications.
  */
 const useAppInit = () => {
-    const agentService = useAgent();
+    const agentService = useAgentService();
     const { addNotification } = useNotification();
 
     useEffect(() => {

@@ -2,23 +2,31 @@ import React, { useState, useEffect } from 'react';
 import { Box, Text } from 'ink';
 import { connectionManager } from '@senars/common';
 import TuiAgentService from './services/TuiAgentService.js';
-import AgentView from './components/AgentView.js';
-import ConnectionDiscovery from './components/ConnectionDiscovery.js';
+import AgentView from './components/AgentView.jsx';
+import ConnectionDiscovery from './components/ConnectionDiscovery.jsx';
 
 const App = () => {
     const [connections, setConnections] = useState([]);
     const [selectedConnection, setSelectedConnection] = useState(null);
+    const [connectionError, setConnectionError] = useState(null);
 
     useEffect(() => {
         const handleUpdate = () => {
             setConnections(connectionManager.getConnections());
+            setConnectionError(null);
+        };
+
+        const handleError = ({ url, error }) => {
+            setConnectionError(`Failed to connect to ${url}: ${error.message}`);
         };
 
         connectionManager.on('update', handleUpdate);
+        connectionManager.on('error', handleError);
         connectionManager.discover();
 
         return () => {
             connectionManager.off('update', handleUpdate);
+            connectionManager.off('error', handleError);
             connectionManager.disconnectAll();
         };
     }, []);
@@ -51,6 +59,7 @@ const App = () => {
     return (
         <ConnectionDiscovery
             connections={connections}
+            error={connectionError}
             onSelectConnection={handleSelectConnection}
         />
     );

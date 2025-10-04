@@ -1,24 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Box, Text } from 'ink';
 import PropTypes from 'prop-types';
+import { useAgentState } from '@senars/common';
 
-const AgentView = ({ agentService }) => {
-    const [agentState, setAgentState] = useState(agentService.getAgentState());
-
-    useEffect(() => {
-        const handleStateUpdate = (newState) => {
-            setAgentState(newState);
-        };
-
-        agentService.on('state_update', handleStateUpdate);
-
-        return () => {
-            agentService.off('state_update', handleStateUpdate);
-        };
-    }, [agentService]);
+const StatusPanel = ({ agentService }) => {
+    const agentState = useAgentState(agentService);
 
     return (
-        <Box flexDirection="column" borderStyle="single" padding={1}>
+        <Box flexDirection="column" padding={1}>
             <Text>Status: {agentState.connectionStatus}</Text>
             <Text>Cycle: {agentState.cycleCount}</Text>
             <Box flexDirection="column" marginTop={1}>
@@ -37,8 +26,8 @@ const AgentView = ({ agentService }) => {
     );
 };
 
-AgentView.propTypes = {
+StatusPanel.propTypes = {
     agentService: PropTypes.object.isRequired,
 };
 
-export default AgentView;
+export default StatusPanel;

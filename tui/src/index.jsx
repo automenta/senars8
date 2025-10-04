@@ -2,7 +2,7 @@
 
 import {render} from 'ink';
 import {default as React} from 'react';
-import App from './App.js';
+import App from './App.jsx';
 
 // Start the Ink application
 render(React.createElement(App));

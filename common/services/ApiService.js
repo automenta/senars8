@@ -81,6 +81,12 @@ class ApiService extends EventBus {
         const {type, payload} = message;
         this.logger.debug(`Handling incoming message: ${type}`);
 
+        // Handle log messages separately as they are streamed and not part of the main state object.
+        if (type === 'log') {
+            this.emit('log', payload);
+            return;
+        }
+
         const messageHandlers = {
             system_stats: (p) => ({...this.agentState, ...p}),
             agent_state_update: (p) => ({...this.agentState, ...p}),

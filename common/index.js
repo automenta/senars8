@@ -9,6 +9,8 @@ import { connectionManager } from './services/connection.js';
 import {CONNECTION_STATUS, MESSAGE_TYPES, NOTIFICATION_TYPES} from './constants/communication.js';
 import {CONFIG} from './constants/config.js';
 import {validateNarseseStatement} from '@senars/core/utils/task-utils.js';
+import useAgentState from './hooks/useAgentState.js';
+import useLogs from './hooks/useLogs.js';
 
 export {
     // Services
@@ -27,5 +29,9 @@ export {
 
     // Utilities
     validateNarseseStatement,
-    log
+    log,
+
+    // Hooks
+    useAgentState,
+    useLogs,
 };

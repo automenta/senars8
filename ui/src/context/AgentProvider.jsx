@@ -1,27 +1,36 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { connectionManager } from '@senars/common';
+import { connectionManager, useAgentState } from '@senars/common';
 import AgentService from '../services/agentService';
 
-const AgentContext = createContext(null);
+const AgentServiceContext = createContext(null);
+const AgentStateContext = createContext(null);
+
+export const useAgentService = () => {
+    return useContext(AgentServiceContext);
+};
 
 export const useAgent = () => {
-    return useContext(AgentContext);
+    return useContext(AgentStateContext);
 };
 
 export const AgentProvider = ({ children }) => {
     const agentService = useMemo(() => {
         // For now, we'll connect to a default URL.
         // This can be extended to use the connection discovery mechanism.
-        const defaultUrl = 'ws://localhost:8080';
+        const defaultUrl = `ws://localhost:${process.env.WS_PORT || 8080}`;
         connectionManager.connect(defaultUrl);
         return new AgentService(defaultUrl);
     }, []);
 
+    const agentState = useAgentState(agentService);
+
     return (
-        <AgentContext.Provider value={agentService}>
-            {children}
-        </AgentContext.Provider>
+        <AgentServiceContext.Provider value={agentService}>
+            <AgentStateContext.Provider value={agentState}>
+                {children}
+            </AgentStateContext.Provider>
+        </AgentServiceContext.Provider>
     );
 };
 
