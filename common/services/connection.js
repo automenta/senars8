@@ -6,6 +6,9 @@
 
 import WebSocket from 'ws';
 import {EventEmitter} from 'events';
+import logger from '../../core/utils/logger.js';
+
+const log = logger.create('ConnectionManager');
 
 class ConnectionManager extends EventEmitter {
     constructor() {
@@ -15,14 +18,55 @@ class ConnectionManager extends EventEmitter {
 
     /**
      * Discovers and connects to available agent WebSocket servers.
-     * For now, this will be a placeholder. In the future, this could involve scanning ports
-     * or reading from a service discovery mechanism.
+     * Uses retry logic to handle cases where the agent isn't immediately available.
      */
     async discover() {
-        // Placeholder for discovery logic
-        // For now, we'll assume a single agent running on a known port
-        const defaultPort = process.env.WS_PORT || 8080;
-        this.connect(`ws://localhost:${defaultPort}`);
+        const defaultPort = process.env.WS_PORT || 8081; // Default to 8081 to match scripts
+        const maxRetries = 10;
+        const baseDelay = 1000; // Start with 1 second delay
+
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                const wsUrl = `ws://localhost:${defaultPort}`;
+                log.info(`Attempting to connect to agent at ${wsUrl} (attempt ${attempt}/${maxRetries})`);
+
+                const ws = this.connect(wsUrl);
+
+                // Wait for connection to be established or fail
+                await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        reject(new Error('Connection timeout'));
+                    }, 5000);
+
+                    ws.on('open', () => {
+                        clearTimeout(timeout);
+                        resolve();
+                    });
+
+                    ws.on('error', (error) => {
+                        clearTimeout(timeout);
+                        reject(error);
+                    });
+                });
+
+                log.info(`Successfully connected to agent at ${wsUrl}`);
+                return; // Success, exit the retry loop
+
+            } catch (error) {
+                log.warn(`Connection attempt ${attempt} failed:`, error.message);
+
+                if (attempt === maxRetries) {
+                    log.error(`Failed to connect after ${maxRetries} attempts`);
+                    this.emit('error', {url: `ws://localhost:${defaultPort}`, error: new Error('Max retries exceeded')});
+                    return;
+                }
+
+                // Exponential backoff delay
+                const delay = baseDelay * Math.pow(2, attempt - 1);
+                log.info(`Retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
     }
 
     /**

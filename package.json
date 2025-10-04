@@ -26,6 +26,8 @@
     "agent:ws": "WS_PORT=8081 node agent/start-agent.js",
     "test": "ORT_LOGGING_LEVEL=FATAL vitest --run",
     "test:ui": "ORT_LOGGING_LEVEL=FATAL vitest --ui",
+    "test:tui": "ORT_LOGGING_LEVEL=FATAL vitest --run tui/tests/",
+    "test:tui:integration": "node tui/tests/run-integration-tests.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "slides": "slidev docs/slides.md"

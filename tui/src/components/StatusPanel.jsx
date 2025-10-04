@@ -7,6 +7,16 @@ import {StatusView, StatsView, MemoryView, TasksView, BeliefsView, GoalsView} fr
 const StatusPanel = ({agentService}) => {
     const agentState = useAgentState(agentService);
 
+    // Show loading state if no data yet
+    if (!agentState || Object.keys(agentState).length === 0) {
+        return (
+            <Box flexDirection="column" padding={1} borderStyle="single">
+                <Text color="yellow">Loading agent status...</Text>
+                <Text color="gray">Waiting for agent to respond with system information.</Text>
+            </Box>
+        );
+    }
+
     return (
         <Box flexDirection="column" padding={1} borderStyle="single">
             <StatusView agentState={agentState}/>
@@ -17,13 +27,13 @@ const StatusPanel = ({agentService}) => {
                 <MemoryView agentState={agentState}/>
             </Box>
             <Box marginTop={1}>
-                <TasksView tasks={agentState.tasks}/>
+                <TasksView tasks={agentState.tasks || []}/>
             </Box>
             <Box marginTop={1}>
-                <BeliefsView beliefs={agentState.memory?.beliefs}/>
+                <BeliefsView beliefs={agentState.beliefs || []}/>
             </Box>
             <Box marginTop={1}>
-                <GoalsView goals={agentState.memory?.goals}/>
+                <GoalsView goals={agentState.goals || []}/>
             </Box>
         </Box>
     );
