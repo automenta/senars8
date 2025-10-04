@@ -1,4 +1,4 @@
-import { EventBus } from '@senars/common/utils/eventBus.js';
+import {EventBus} from '@senars/common/utils/eventBus.js';
 import {CONFIG} from '@senars/common/constants/config.js';
 import log from '@senars/core/utils/logger.js';
 import {createWebSocket} from '@senars/common/network.js';

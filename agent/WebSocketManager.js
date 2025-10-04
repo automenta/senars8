@@ -70,7 +70,7 @@ export class WebSocketManager {
         };
 
         const stop = async () => {
-             return new Promise((resolve) => {
+            return new Promise((resolve) => {
                 if (wss) {
                     if (wss.clients) {
                         for (const client of wss.clients) {

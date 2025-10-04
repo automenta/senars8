@@ -7,7 +7,7 @@ export default createBinaryInheritanceRule(
     (parsed1, parsed2) => {
         // Ensure both subjects exist before creating the disjunction
         if (!parsed1.subject || !parsed2.subject) return '';
-        
+
         return Term.termKey({
             type: 'Inheritance',
             subject: {

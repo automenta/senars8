@@ -4,7 +4,7 @@
  * file operations, command execution, and multi-modal processing
  */
 
-import { EventBus } from '@senars/common/utils/eventBus.js';
+import {EventBus} from '@senars/common/utils/eventBus.js';
 import {debug, error as logError, info} from '../utils/logger.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import WebAutomationExecutor from './executors/WebAutomationExecutor.js';
@@ -568,7 +568,7 @@ class ToolSystem extends EventBus {
                 await executor.shutdown();
             }
         }
-        
+
         // Remove all event listeners to prevent memory leaks
         this.removeAllListeners();
 

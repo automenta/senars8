@@ -23,14 +23,14 @@ class CommandExecutor extends EventEmitter {
             env = {},
             allowedCommands
         } = params;
-        
+
         try {
             // Security check: validate command is allowed
             const commandsToCheck = allowedCommands || Array.from(this.allowedCommands);
             if (!commandsToCheck.includes(command.split(' ')[0])) {
                 throw new Error(`Command '${command}' is not allowed`);
             }
-            
+
             // Execute command
             const result = await execa(command, args, {
                 cwd,
@@ -38,7 +38,7 @@ class CommandExecutor extends EventEmitter {
                 env: {...process.env, ...env},
                 reject: false // Don't throw on non-zero exit code
             });
-            
+
             return {
                 command: `${command} ${args.join(' ')}`,
                 exitCode: result.exitCode,

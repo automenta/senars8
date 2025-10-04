@@ -1,4 +1,4 @@
-import { EventBus } from '@senars/common/utils/eventBus.js';
+import {EventBus} from '@senars/common/utils/eventBus.js';
 import AgentCommunicationService from './AgentCommunicationService.js';
 import log from '../../core/utils/logger.js';
 import {CONFIG} from '../constants/config.js';

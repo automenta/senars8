@@ -1,4 +1,4 @@
-import { EventBus } from '@senars/common/utils/eventBus.js';
+import {EventBus} from '@senars/common/utils/eventBus.js';
 import log from '@core/utils/logger.js';
 import {NOTIFICATION_TYPES, UI_CONSTANTS} from '@/constants/ui';
 

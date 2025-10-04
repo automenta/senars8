@@ -13,12 +13,12 @@ class WebAutomationExecutor extends EventEmitter {
     }
 
     async navigate(params = {}) {
-        const { url, waitFor, timeout = 30000, takeScreenshot = true, extractText = true } = params;
-        
+        const {url, waitFor, timeout = 30000, takeScreenshot = true, extractText = true} = params;
+
         try {
             // Placeholder for actual web automation implementation
             debug(`Web automation: navigating to ${url}`);
-            
+
             // Simulate navigation result
             const result = {
                 url,
@@ -27,11 +27,11 @@ class WebAutomationExecutor extends EventEmitter {
                 tookScreenshot: takeScreenshot,
                 extractedText: extractText ? `Text from ${url}` : null
             };
-            
+
             if (waitFor) {
                 result.waitedFor = waitFor;
             }
-            
+
             return result;
         } catch (error) {
             logError('Web automation navigation error:', error);
@@ -40,11 +40,11 @@ class WebAutomationExecutor extends EventEmitter {
     }
 
     async click(params = {}) {
-        const { selector, waitForNavigation = false, timeout = 10000 } = params;
-        
+        const {selector, waitForNavigation = false, timeout = 10000} = params;
+
         try {
             debug(`Web automation: clicking selector ${selector}`);
-            
+
             return {
                 selector,
                 status: 'clicked',
@@ -57,11 +57,11 @@ class WebAutomationExecutor extends EventEmitter {
     }
 
     async fillForm(params = {}) {
-        const { url, fields, submitSelector, waitForNavigation = true } = params;
-        
+        const {url, fields, submitSelector, waitForNavigation = true} = params;
+
         try {
             debug(`Web automation: filling form at ${url}`);
-            
+
             return {
                 url,
                 fieldsProcessed: Object.keys(fields),

@@ -16,7 +16,7 @@ export const agentServerPlugin = (agentManager) => {
                 if (process.env.WS_PORT) {
                     const wsPort = parseInt(process.env.WS_PORT, 10);
                     log.info(`Starting standalone WebSocket server on port ${wsPort}`);
-                    wsManager = new WebSocketManager({ port: wsPort });
+                    wsManager = new WebSocketManager({port: wsPort});
                 } else {
                     log.info('Attaching WebSocketManager to Vite dev server.');
                     wsManager = new WebSocketManager({server: server.httpServer});

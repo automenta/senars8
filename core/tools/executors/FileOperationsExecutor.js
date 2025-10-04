@@ -4,7 +4,6 @@
 import {EventEmitter} from 'events';
 import {debug, error as logError} from '../../utils/logger.js';
 import fs from 'fs/promises';
-import path from 'path';
 
 class FileOperationsExecutor extends EventEmitter {
     constructor(config = {}) {
@@ -13,17 +12,17 @@ class FileOperationsExecutor extends EventEmitter {
     }
 
     async read(params = {}) {
-        const { path: filePath, encoding = 'utf8', maxSize = 10 * 1024 * 1024 } = params;
-        
+        const {path: filePath, encoding = 'utf8', maxSize = 10 * 1024 * 1024} = params;
+
         try {
             // Check if file exists and get stats
             const stats = await fs.stat(filePath);
             if (stats.size > maxSize) {
                 throw new Error(`File exceeds max size of ${maxSize} bytes`);
             }
-            
+
             const content = await fs.readFile(filePath, encoding);
-            
+
             return {
                 path: filePath,
                 content,
@@ -38,8 +37,8 @@ class FileOperationsExecutor extends EventEmitter {
     }
 
     async write(params = {}) {
-        const { path: filePath, content, encoding = 'utf8', backup = true, validateSyntax = true } = params;
-        
+        const {path: filePath, content, encoding = 'utf8', backup = true, validateSyntax = true} = params;
+
         try {
             // Create backup if requested
             if (backup) {
@@ -51,10 +50,10 @@ class FileOperationsExecutor extends EventEmitter {
                     // File doesn't exist, no backup needed
                 }
             }
-            
+
             // Write content to file
             await fs.writeFile(filePath, content, encoding);
-            
+
             return {
                 path: filePath,
                 status: 'written',
@@ -68,20 +67,20 @@ class FileOperationsExecutor extends EventEmitter {
     }
 
     async edit(params = {}) {
-        const { path: filePath, operations, backup = true } = params;
-        
+        const {path: filePath, operations, backup = true} = params;
+
         try {
             if (backup) {
                 const content = await fs.readFile(filePath, 'utf8');
                 const backupPath = `${filePath}.backup.${Date.now()}`;
                 await fs.writeFile(backupPath, content, 'utf8');
             }
-            
+
             let content = await fs.readFile(filePath, 'utf8');
-            
+
             for (const operation of operations) {
-                const { type, target, content: editContent, regex = false } = operation;
-                
+                const {type, target, content: editContent, regex = false} = operation;
+
                 switch (type) {
                     case 'replace':
                         if (regex) {
@@ -104,9 +103,9 @@ class FileOperationsExecutor extends EventEmitter {
                         break;
                 }
             }
-            
+
             await fs.writeFile(filePath, content, 'utf8');
-            
+
             return {
                 path: filePath,
                 status: 'edited',

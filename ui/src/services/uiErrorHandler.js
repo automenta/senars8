@@ -1,5 +1,5 @@
 // Enhanced Error Handling for UI Components
-import { EventBus } from '@senars/common/utils/eventBus.js';
+import {EventBus} from '@senars/common/utils/eventBus.js';
 import log from '@core/utils/logger.js';
 import notificationService from '@/services/notificationService';
 
