@@ -60,7 +60,15 @@ class ApiService extends EventBus {
 
         connectionManager.on('message', ({url, data}) => {
             if (url === this.url) {
-                this._handleIncomingMessage(JSON.parse(data));
+                try {
+                    const message = JSON.parse(data);
+                    this._handleIncomingMessage(message);
+                } catch (error) {
+                    this.logger.error(`Failed to parse incoming message as JSON: ${error.message}`);
+                    this.logger.debug(`Raw message data: ${data}`);
+                    // Emit error event for the UI to handle
+                    this.emit('error', {type: 'json_parse_error', message: error.message, data});
+                }
             }
         });
 

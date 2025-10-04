@@ -3,8 +3,8 @@
  * Common functions for generating documentation for both TUI and Web UI
  */
 
-import {writeFileSync, existsSync, mkdirSync} from 'fs';
-import {join} from 'path';
+import { writeFileSync, existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
 
 /**
  * Creates a documentation entry for a UI feature
@@ -33,7 +33,7 @@ function createFeatureDoc(title, description, usage, screenshots = []) {
  */
 function saveDocumentation(doc, filename, outputDir = './docs') {
     if (!existsSync(outputDir)) {
-        mkdirSync(outputDir, {recursive: true});
+        mkdirSync(outputDir, { recursive: true });
     }
 
     const filepath = join(outputDir, filename);

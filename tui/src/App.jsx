@@ -34,9 +34,22 @@ const App = () => {
         connectionManager.on('error', handleError);
         connectionManager.on('connection', handleConnection);
 
-        // Start discovery
+        // Start discovery with timeout
         setIsDiscovering(true);
+
+        // Set a timeout for discovery to prevent hanging
+        const discoveryTimeout = setTimeout(() => {
+            if (connections.length === 0) {
+                setConnectionError('No agents found after timeout. Please ensure an agent is running.');
+                setIsDiscovering(false);
+            }
+        }, 10000); // 10 second timeout
+
         connectionManager.discover();
+
+        return () => {
+            clearTimeout(discoveryTimeout);
+        };
 
         return () => {
             connectionManager.off('update', handleUpdate);
