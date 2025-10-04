@@ -21,7 +21,23 @@ export const handleNarsese = async (payload, ws, agent, broadcast) => {
 };
 
 export const handleAgentControl = async (payload, ws, agentManager, broadcast) => {
-    const {command, maxCycles} = payload;
+    let {command, maxCycles} = payload;
+
+    // Handle potential BigInt values by converting them to safe numbers
+    if (typeof maxCycles === 'bigint') {
+        // Convert BigInt to a safe JavaScript number, clamping if necessary
+        try {
+            // If the BigInt is too large for a JS number, use MAX_SAFE_INTEGER
+            if (maxCycles > BigInt(Number.MAX_SAFE_INTEGER)) {
+                maxCycles = Number.MAX_SAFE_INTEGER;
+            } else {
+                maxCycles = Number(maxCycles);
+            }
+        } catch (e) {
+            // If conversion fails, use a safe default
+            maxCycles = 1000; // default safe value
+        }
+    }
 
     return executeAsync(async () => {
         switch (command) {

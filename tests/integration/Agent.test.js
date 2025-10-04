@@ -104,9 +104,11 @@ describe('AgentManager Integration Test', () => {
 
     it('should process an existing file on startup', async () => {
         await agentManager.initialize();
-        await new Promise(resolve => setTimeout(resolve, 20));
+        await new Promise(resolve => setTimeout(resolve, 50)); // Wait a bit longer to allow file processing
         const agent = agentManager.getAgent();
-        expect(agent.system.addTasks).toHaveBeenCalledWith([{goal: 'task'}]);
+        
+        // Verify that SYSTEM_ADD_TASKS command was called with the expected tasks
+        expect(mockSystem.commandBus.request).toHaveBeenCalledWith('system:addTasks', [{goal: 'task'}]);
     });
 
     it('should get agent state from the agent', async () => {
