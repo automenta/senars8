@@ -7,7 +7,7 @@ import {Database, LayoutList, Network, RotateCcw, Search} from 'lucide-react';
 import {MESSAGE_TYPES, UI_CONSTANTS} from '@/constants/ui';
 import ReactFlow, {addEdge, Background, Controls, MarkerType, MiniMap, useEdgesState, useNodesState} from 'reactflow';
 import 'reactflow/dist/style.css';
-import './KnowledgeGraphPanel.css';
+import './style.css';
 
 // Helper function to convert knowledge items to nodes and edges
 const convertToGraphData = (knowledgeItems) => {

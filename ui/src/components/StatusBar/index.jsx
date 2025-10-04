@@ -1,8 +1,8 @@
 import React, {useEffect, useState, useSyncExternalStore} from 'react';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
-import Toast from './Toast';
-import './StatusBar.css';
+import Toast from '../Toast';
+import './style.css';
 
 const subscribeNotifications = (callback) => {
     notificationService.on('change', callback);

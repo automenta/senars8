@@ -1,5 +1,5 @@
 import {useCallback, useContext, useState} from 'react';
-import {SharedStateContext} from '../context/SharedStateContext';
+import {SharedStateContext} from '@/context/SharedStateContext';
 import {useYText} from './useYText';
 
 const useInputHistory = () => {

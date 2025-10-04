@@ -6,7 +6,7 @@ import {useUIErrorHandler} from '@/services/uiErrorHandler';
 import {formatCoreDataForUI} from '@/utils/coreIntegration';
 import {useConnection} from '@/context/useConnection';
 import {Eye, List, Pause, Play, RotateCcw, Search, Zap} from 'lucide-react';
-import './TaskInspectorPanel.css';
+import './style.css';
 
 function TaskInspectorPanel() {
     const {handleError} = useUIErrorHandler('TaskInspectorPanel');

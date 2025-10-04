@@ -3,7 +3,7 @@ import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import {Code, FileText, RotateCcw, Save, Settings} from 'lucide-react';
-import './ConfigurationEditorPanel.css';
+import './style.css';
 
 const ConfigurationEditorPanel = () => {
     const [config, setConfig] = useState({});

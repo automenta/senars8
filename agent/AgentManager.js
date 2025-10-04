@@ -57,19 +57,26 @@ class AgentManager {
                 'add_belief': (belief) => ({type: 'add_belief', payload: formatTaskForBroadcast(belief)}),
                 'add_goal': (goal) => ({type: 'add_goal', payload: formatTaskForBroadcast(goal)}),
                 'add_question': (question) => ({type: 'add_question', payload: formatTaskForBroadcast(question)}),
-                'add_task': (task) => ({type: 'task_added', payload: formatTaskForBroadcast(task)}),
                 'reasoning_step': (step) => ({type: 'reasoning_step', payload: step}),
                 'memory_update': (changes) => ({type: 'memory_update', payload: changes}),
             };
 
             for (const [eventName, formatter] of Object.entries(events)) {
                 eventBus.on(eventName, (data) => {
-                    console.log(`AgentManager: Event received: ${eventName}`, data);
                     this.errorHandler.runSync(() => {
                         this.broadcast(formatter(data));
                     }, `broadcast:${eventName}`);
                 });
             }
+
+            // Special handling for events that don't fit the simple formatter pattern
+            eventBus.on('tasks:add', (tasks) => {
+                this.errorHandler.runSync(() => {
+                    for (const task of tasks) {
+                        this.broadcast({type: 'task_added', payload: formatTaskForBroadcast(task)});
+                    }
+                }, 'broadcast:tasks:add');
+            });
         }, 'setupEventListeners');
     }
 

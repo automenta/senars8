@@ -1,7 +1,7 @@
 import {useEffect, useMemo, useRef} from 'react';
-import agentService from '../services/agentService';
-import sonificationService from '../services/sonificationService';
-import {useSettings} from '../context/useSettings';
+import agentService from '@/services/agentService';
+import sonificationService from '@/services/sonificationService';
+import {useSettings} from '@/context/useSettings';
 import Bag from '@core/utils/bag';
 import log from '@core/utils/logger.js';
 

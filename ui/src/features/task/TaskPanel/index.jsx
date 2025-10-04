@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {Panel} from '@ui/components';
 import {useTasks} from '@/context/TaskContext';
 import {CheckCircle, Circle, Clock, ListTodo, Play, Plus, RotateCcw, Square, Trash2} from 'lucide-react';
-import './TaskPanel.css';
+import './style.css';
 
 const TaskPanel = () => {
     const {tasks, isLoading, addTask, updateTask, deleteTask, completeTask, getTaskCountByStatus} = useTasks();

@@ -18,7 +18,7 @@ import {
     Users,
     Zap
 } from 'lucide-react';
-import './SidebarPanel.css';
+import './style.css';
 
 const SidebarPanel = ({onPanelSelect, currentPanel = 'dashboard'}) => {
     const [searchTerm, setSearchTerm] = useState('');

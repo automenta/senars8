@@ -1,15 +1,15 @@
 import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi} from 'vitest';
 import AgentManager from '../../agent/AgentManager.js';
-import {StandaloneWebSocketServer} from '../../agent/StandaloneWebSocketServer.js';
+import {WebSocketManager} from '../../agent/WebSocketManager.js';
 import {awaitNextMessage, closeWebSocket, createWebSocketClient} from '../utils/WebSocketTestUtils.js';
 import {findAvailablePort} from '../utils/networkUtils.js';
 import {createMessageHandler} from '../../agent/MessageHandler.js';
 import {SystemCommands} from '../../core/system/SystemCommands.js';
+import {SystemEvents} from '../../core/system/SystemEvents.js';
 
 // Mock the core System to isolate AgentManager and WebSocket communication
 vi.mock('../../core/system/System.js', () => {
     const EventEmitter = require('events');
-    const {SystemCommands} = require('../../core/system/SystemCommands.js');
 
     const eventBus = new EventEmitter();
 
@@ -22,22 +22,17 @@ vi.mock('../../core/system/System.js', () => {
                 eventBus.emit('status_update', 'stopped');
             }
             if (command === SystemCommands.SYSTEM_ADD_TASKS) {
-                // Call the addTasks method which should emit the event
-                addTasks(args);
+                // The real system emits 'tasks:add' with an array of tasks.
+                eventBus.emit(SystemEvents.TASKS_ADD, args);
             }
         }),
         handle: vi.fn(),
     };
 
-    const addTasks = vi.fn((tasks) => {
-        tasks.forEach(task => eventBus.emit('add_task', task));
-    });
-
     return {
         default: vi.fn(() => ({
             eventBus,
             commandBus,
-            addTasks,
             initialize: vi.fn().mockResolvedValue(undefined),
             start: vi.fn(),
             stop: vi.fn(),
@@ -47,7 +42,7 @@ vi.mock('../../core/system/System.js', () => {
 
 describe('WebSocketAgentIntegration', () => {
     let agentManager;
-    let wsServer;
+    let wsManager;
     let wsUrl;
     let controlClient;
     let mockSystem;
@@ -67,21 +62,21 @@ describe('WebSocketAgentIntegration', () => {
         agentManager.agent.system = mockSystem;
         agentManager.system = mockSystem;
 
-        wsServer = new StandaloneWebSocketServer(wsPort);
-        await wsServer.start();
+        wsManager = new WebSocketManager({port: wsPort});
+        await wsManager.start();
 
-        agentManager.setBroadcast(wsServer.broadcast.bind(wsServer));
+        agentManager.setBroadcast(wsManager.broadcast.bind(wsManager));
 
         const messageHandler = createMessageHandler(agentManager);
-        wsServer.setMessageHandler(messageHandler);
+        wsManager.setMessageHandler(messageHandler);
 
         // Initialize agent manager to setup event listeners on the mock system
         await agentManager.initialize();
     }, 60000);
 
     afterAll(async () => {
-        if (wsServer) {
-            await wsServer.stop();
+        if (wsManager) {
+            await wsManager.stop();
         }
         if (agentManager) {
             await agentManager.stop();
@@ -152,7 +147,7 @@ describe('WebSocketAgentIntegration', () => {
 
         expect(taskAddedMessage.type).toBe('task_added');
         expect(taskAddedMessage.payload.termKey).toBe(taskData.statement);
-        expect(mockSystem.addTasks).toHaveBeenCalled();
+        expect(mockSystem.commandBus.request).toHaveBeenCalledWith(SystemCommands.SYSTEM_ADD_TASKS, expect.any(Array));
     });
 
     it('should stop the agent and receive a status_update broadcast', async () => {

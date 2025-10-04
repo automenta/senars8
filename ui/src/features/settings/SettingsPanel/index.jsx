@@ -16,7 +16,7 @@ import {
     Volume2,
     Zap
 } from 'lucide-react';
-import './SettingsPanel.css';
+import './style.css';
 
 const SettingsPanel = () => {
     const {handleError} = useUIErrorHandler('SettingsPanel');

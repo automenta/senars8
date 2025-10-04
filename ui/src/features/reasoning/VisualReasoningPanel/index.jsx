@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from 'react';
 import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
-import ConceptMap from './ConceptMap';
-import ReasoningFlow from './ReasoningFlow';
+import ConceptMap from '../ConceptMap';
+import ReasoningFlow from '../ReasoningFlow';
 import {Filter, Network, RotateCcw, Zap} from 'lucide-react';
-import './VisualReasoningPanel.css';
+import './style.css';
 
 function VisualReasoningPanel() {
     const [activeTab, setActiveTab] = useState('concept-map'); // 'concept-map' or 'reasoning-flow'

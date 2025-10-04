@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
 import {Activity, BarChart, Brain, Clock, TrendingUp} from 'lucide-react';
-import './StatisticsPanel.css';
+import './style.css';
 
 function StatisticsPanel() {
     const [stats, setStats] = useState({

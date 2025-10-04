@@ -7,7 +7,7 @@ import {parseTerm} from '@core/parser/parse-utils.js';
 import {useConnection} from '@/context/useConnection';
 import useReasoningDebugger from '@/hooks/useReasoningDebugger';
 import {CheckCircle, Code, Play, RotateCcw, XCircle, Zap} from 'lucide-react';
-import './ReasoningDebuggerPanel.css';
+import './style.css';
 
 function ReasoningDebuggerPanel() {
     const {isConnected} = useConnection();

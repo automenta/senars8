@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
 import {Activity, BarChart3, Brain, Clock, Database, Lightbulb, Thermometer, Users, Zap} from 'lucide-react';
-import './DashboardPanel.css';
+import './style.css';
 
 const DashboardPanel = () => {
     const [systemStats, setSystemStats] = useState({

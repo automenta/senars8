@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {AlertCircle, RotateCcw} from 'lucide-react';
-import notificationService from '../services/notificationService';
-import './ErrorBoundary.css';
+import notificationService from '@/services/notificationService';
+import './style.css';
 
 class ErrorBoundary extends React.Component {
     constructor(props) {

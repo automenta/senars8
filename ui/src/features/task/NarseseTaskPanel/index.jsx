@@ -3,7 +3,7 @@ import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
 import {formatCoreDataForUI} from '@/utils/coreIntegration';
 import {Eye, ListTodo, MessageSquare, Plus, Zap} from 'lucide-react';
-import './TaskPanel.css';
+import './style.css';
 
 const NarseseTaskPanel = () => {
     const [tasks, setTasks] = useState([]);

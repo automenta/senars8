@@ -8,7 +8,7 @@ import {useTasks} from '@/context/TaskContext';
 import {useSession} from '@/context/SessionContext';
 import {Activity, Bug, Cpu, Database, HardDrive, Trash2, Zap} from 'lucide-react';
 import agentService from '@/services/agentService';
-import './DebugPanel.css';
+import './style.css';
 
 const DebugPanel = () => {
     const {isConnected, connectionStatus, connectionError, connectionStats, lastMessage} = useConnection();

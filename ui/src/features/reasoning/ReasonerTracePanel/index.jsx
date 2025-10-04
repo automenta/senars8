@@ -3,7 +3,7 @@ import {Panel} from '@ui/components';
 import agentService from '@/services/agentService';
 import {Footprints, Search} from 'lucide-react';
 import {MESSAGE_TYPES} from '@/constants/ui';
-import './ReasonerTracePanel.css';
+import './style.css';
 
 function ReasonerTracePanel() {
     const [trace, setTrace] = useState([]);

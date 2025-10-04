@@ -1,8 +1,8 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import {Code, MessageSquare, Mic, MicOff} from 'lucide-react';
-import NarseseInput from './NarseseInput';
-import './NarseseInput.css'; // Reuse existing input styles
+import NarseseInput from '../NarseseInput';
+import '../NarseseInput/style.css'; // Reuse existing input styles
 
 function EnhancedInput({value, onChange, onSend, history, inputMode = 'narsese', setMode, disabled = false}) {
     const [historyIndex, setHistoryIndex] = useState(-1);

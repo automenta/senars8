@@ -1,59 +1,59 @@
+import Chat from './Chat/Chat';
+import CodeEditorPanel from './editor/CodeEditorPanel';
+import ConfigurationEditorPanel from './configuration/ConfigurationEditorPanel';
 import ControlPanel from './system/ControlPanel';
-import StatusPanel from './system/StatusPanel';
+import ConversationHistoryPanel from './interaction/ConversationHistoryPanel';
+import DashboardPanel from './dashboard/DashboardPanel';
+import DebugPanel from './debug/DebugPanel';
+import FileExplorerPanel from './file-system/FileExplorerPanel';
+import HelpPanel from './help/HelpPanel';
 import InputPanel from './interaction/InputPanel';
+import InternalStatePanel from './system/InternalStatePanel';
+import KnowledgeGraphPanel from './memory/KnowledgeGraphPanel';
+import LayoutManagerPanel from './LayoutManagerPanel';
 import LogPanel from './system/LogPanel';
 import MemoryViewPanel from './memory/MemoryViewPanel';
-import KnowledgeGraphPanel from './memory/KnowledgeGraphPanel';
+import NarseseTaskPanel from './task/NarseseTaskPanel';
+import NotificationCenterPanel from './system/NotificationCenterPanel';
 import ReasonerTracePanel from './reasoning/ReasonerTracePanel';
 import ReasoningDebuggerPanel from './reasoning/ReasoningDebuggerPanel';
-import VisualReasoningPanel from './reasoning/VisualReasoningPanel';
-import InternalStatePanel from './system/InternalStatePanel';
-import NotificationCenterPanel from './system/NotificationCenterPanel';
-import FileExplorerPanel from './file-system/FileExplorerPanel';
-import CodeEditorPanel from './editor/CodeEditorPanel';
-import TerminalPanel from './terminal/TerminalPanel';
-import LayoutManagerPanel from './LayoutManagerPanel';
-import HelpPanel from './help/HelpPanel';
-import ConversationHistoryPanel from './interaction/ConversationHistoryPanel';
-import SettingsPanel from './settings/SettingsPanel';
-import TaskPanel from './task/TaskPanel';
-import TaskInspectorPanel from './task/TaskInspectorPanel';
-import NarseseTaskPanel from './task/NarseseTaskPanel';
 import SessionPanel from './system/SessionPanel';
-import DebugPanel from './debug/DebugPanel';
-import Chat from './Chat/Chat';
-import DashboardPanel from './dashboard/DashboardPanel';
-import ConfigurationEditorPanel from './configuration/ConfigurationEditorPanel';
+import SettingsPanel from './settings/SettingsPanel';
 import SidebarPanel from './navigation/SidebarPanel';
+import StatusPanel from './system/StatusPanel';
+import TaskInspectorPanel from './task/TaskInspectorPanel';
+import TaskPanel from './task/TaskPanel';
+import TerminalPanel from './terminal/TerminalPanel';
+import VisualReasoningPanel from './reasoning/VisualReasoningPanel';
 
 const panelRegistry = {
     'chat': Chat,
+    'code-editor': CodeEditorPanel,
+    'configuration': ConfigurationEditorPanel,
     'control': ControlPanel,
-    'status': StatusPanel,
+    'conversation-history': ConversationHistoryPanel,
+    'dashboard': DashboardPanel,
+    'debug': DebugPanel,
+    'file-explorer': FileExplorerPanel,
+    'help': HelpPanel,
     'input': InputPanel,
+    'internal-state': InternalStatePanel,
+    'knowledge-graph': KnowledgeGraphPanel,
+    'layout-manager': LayoutManagerPanel,
     'log': LogPanel,
     'memory': MemoryViewPanel,
-    'knowledge-graph': KnowledgeGraphPanel,
+    'narsese-tasks': NarseseTaskPanel,
+    'notifications': NotificationCenterPanel,
     'reasoner-trace': ReasonerTracePanel,
     'reasoning-debugger': ReasoningDebuggerPanel,
-    'visual-reasoning': VisualReasoningPanel,
-    'internal-state': InternalStatePanel,
-    'notifications': NotificationCenterPanel,
-    'file-explorer': FileExplorerPanel,
-    'code-editor': CodeEditorPanel,
-    'terminal': TerminalPanel,
-    'layout-manager': LayoutManagerPanel,
-    'help': HelpPanel,
-    'conversation-history': ConversationHistoryPanel,
-    'settings': SettingsPanel,
-    'tasks': TaskPanel,
-    'task-inspector': TaskInspectorPanel,
-    'narsese-tasks': NarseseTaskPanel,
-    'dashboard': DashboardPanel,
-    'configuration': ConfigurationEditorPanel,
-    'sidebar': SidebarPanel,
     'sessions': SessionPanel,
-    'debug': DebugPanel,
+    'settings': SettingsPanel,
+    'sidebar': SidebarPanel,
+    'status': StatusPanel,
+    'task-inspector': TaskInspectorPanel,
+    'tasks': TaskPanel,
+    'terminal': TerminalPanel,
+    'visual-reasoning': VisualReasoningPanel,
 };
 
 export default panelRegistry;

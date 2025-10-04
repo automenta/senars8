@@ -4,7 +4,7 @@ import agentService from '@/services/agentService';
 import notificationService from '@/services/notificationService';
 import log from '@core/utils/logger.js';
 import {AlertCircle, BrainCircuit, Filter, RotateCcw, Search} from 'lucide-react';
-import './MemoryViewPanel.css';
+import './style.css';
 
 function MemoryViewPanel() {
     const [workingMemory, setWorkingMemory] = useState([]);
