@@ -57,7 +57,7 @@ describe('WebSocket Missing Message Types Integration', () => {
 
         // Wait for the response
         const response = await awaitNextMessage(client, (msg) => msg.type === 'system_stats', 10000);
-        
+
         expect(response.type).toBe('system_stats');
         expect(response.payload).toHaveProperty('isRunning');
         expect(response.payload).toHaveProperty('cycleCount');
@@ -76,7 +76,7 @@ describe('WebSocket Missing Message Types Integration', () => {
 
         // Wait for the response
         const response = await awaitNextMessage(client, (msg) => msg.type === 'beliefs_response', 10000);
-        
+
         expect(response.type).toBe('beliefs_response');
         expect(response.payload).toHaveProperty('beliefs');
         expect(Array.isArray(response.payload.beliefs)).toBe(true);
@@ -91,7 +91,7 @@ describe('WebSocket Missing Message Types Integration', () => {
 
         // Wait for the response
         const response = await awaitNextMessage(client, (msg) => msg.type === 'goals_response', 10000);
-        
+
         expect(response.type).toBe('goals_response');
         expect(response.payload).toHaveProperty('goals');
         expect(Array.isArray(response.payload.goals)).toBe(true);
@@ -106,7 +106,7 @@ describe('WebSocket Missing Message Types Integration', () => {
 
         // Wait for the response
         const response = await awaitNextMessage(client, (msg) => msg.type === 'questions_response', 10000);
-        
+
         expect(response.type).toBe('questions_response');
         expect(response.payload).toHaveProperty('questions');
         expect(Array.isArray(response.payload.questions)).toBe(true);
@@ -121,7 +121,7 @@ describe('WebSocket Missing Message Types Integration', () => {
 
         // Wait for the error response
         const response = await awaitNextMessage(client, (msg) => msg.type === 'error', 10000);
-        
+
         expect(response.type).toBe('error');
         expect(response.payload.message).toContain('Unknown message type');
     });

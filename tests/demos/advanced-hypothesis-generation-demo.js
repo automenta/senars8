@@ -26,7 +26,7 @@ async function advancedHypothesisGenerationDemo(options = {}) {
     ];
 
     const system = SystemFactory.createSystem();
-    
+
     // Override the commandBus to simulate hypothesis generation
     const originalRequest = system.commandBus.request.bind(system.commandBus);
     system.commandBus.request = async (command, payload) => {

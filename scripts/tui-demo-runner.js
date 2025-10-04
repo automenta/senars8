@@ -11,17 +11,17 @@ import path from 'path';
 
 async function runTuiDemo() {
     console.log("Starting TUI demo demonstration...");
-    
+
     // Start the agent with WebSocket support in background
     console.log("Starting agent with WebSocket support on port 8081...");
     const agentProcess = execa('node', ['main.js', '--web'], {
-        env: { WS_PORT: '8081' },
+        env: {WS_PORT: '8081'},
         reject: false
     });
-    
+
     // Wait for agent to start
     await new Promise(resolve => setTimeout(resolve, 5000));
-    
+
     // Create a temporary script file to feed commands to the TUI
     const tuiCommands = `
 # TUI Demo - Basic Reasoning
@@ -43,7 +43,7 @@ help
 # Exit
 quit
 `;
-    
+
     const tempScriptFile = path.join(process.cwd(), 'temp_tui_demo.sh');
     fs.writeFileSync(tempScriptFile, `#!/bin/bash\ncat << 'EOF'\n${tuiCommands}\nEOF`);
 
@@ -53,7 +53,7 @@ quit
         const tuiProcess = execa('node', ['main.js', '--tui'], {
             timeout: 15000, // 15 seconds timeout
         });
-        
+
         // Wait for TUI to finish
         const result = await tuiProcess;
         console.log("TUI demo completed.");
@@ -68,7 +68,7 @@ quit
         if (fs.existsSync(tempScriptFile)) {
             fs.unlinkSync(tempScriptFile);
         }
-        
+
         // Kill the agent process
         agentProcess.kill();
     }

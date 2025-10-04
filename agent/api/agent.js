@@ -51,7 +51,10 @@ export const handleGetTasks = async (payload, ws, agent) => {
     return executeAsync(async () => {
         if (!agent.system || !agent.system.commandBus) {
             // Use custom JSON serialization to handle BigInt values
-            const errorMessage = JSON.stringify({type: 'error', payload: {message: 'CommandBus not available.'}}, (key, value) => {
+            const errorMessage = JSON.stringify({
+                type: 'error',
+                payload: {message: 'CommandBus not available.'}
+            }, (key, value) => {
                 if (typeof value === 'bigint') {
                     return value.toString();
                 }
@@ -144,7 +147,10 @@ export const handleAddTask = async (payload, ws, agent, _broadcast) => {
         const {taskData} = payload;
         if (!agent.system || !agent.system.commandBus) {
             // Use custom JSON serialization to handle BigInt values
-            const errorMessage = JSON.stringify({type: 'error', payload: {message: 'CommandBus not available.'}}, (key, value) => {
+            const errorMessage = JSON.stringify({
+                type: 'error',
+                payload: {message: 'CommandBus not available.'}
+            }, (key, value) => {
                 if (typeof value === 'bigint') {
                     return value.toString();
                 }
@@ -217,7 +223,7 @@ export const handleGetSystemStats = async (payload, ws, agent) => {
         try {
             const stats = await agent.system.commandBus.request(SystemCommands.SYSTEM_GET_STATS);
             const cycleCount = await agent.system.commandBus.request(SystemCommands.SYSTEM_GET_CYCLE_COUNT);
-            
+
             // Prepare system stats response
             const systemStats = {
                 isRunning: agent.system.isRunning || false,
@@ -266,7 +272,7 @@ export const handleGetBeliefs = async (payload, ws, agent) => {
         try {
             const allTasks = await agent.system.commandBus.request(SystemCommands.MEMORY_GET_ALL_TASKS);
             const beliefs = allTasks.filter(task => task.punctuation === '.');
-            
+
             // Use custom JSON serialization to handle BigInt values
             const message = JSON.stringify({
                 type: 'beliefs_response',
@@ -303,7 +309,7 @@ export const handleGetGoals = async (payload, ws, agent) => {
         try {
             const allTasks = await agent.system.commandBus.request(SystemCommands.MEMORY_GET_ALL_TASKS);
             const goals = allTasks.filter(task => task.punctuation === '!');
-            
+
             // Use custom JSON serialization to handle BigInt values
             const message = JSON.stringify({
                 type: 'goals_response',
@@ -340,7 +346,7 @@ export const handleGetQuestions = async (payload, ws, agent) => {
         try {
             const allTasks = await agent.system.commandBus.request(SystemCommands.MEMORY_GET_ALL_TASKS);
             const questions = allTasks.filter(task => task.punctuation === '?');
-            
+
             // Use custom JSON serialization to handle BigInt values
             const message = JSON.stringify({
                 type: 'questions_response',

@@ -59,7 +59,10 @@ export const createMessageHandler = (agentManager, broadcast) => {
             await handler(payload, ws);
         } else {
             // Use custom JSON serialization to handle BigInt values
-            const errorMessage = JSON.stringify({type: 'error', payload: {message: `Unknown message type: ${type}`}}, (key, value) => {
+            const errorMessage = JSON.stringify({
+                type: 'error',
+                payload: {message: `Unknown message type: ${type}`}
+            }, (key, value) => {
                 if (typeof value === 'bigint') {
                     return value.toString();
                 }

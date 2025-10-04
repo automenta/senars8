@@ -30,16 +30,16 @@ async function reasoningChainDemo(options = {}) {
             info("Step 2: animal + (animal --> living) => living");
             info("Step 3: living + (living --> mortal) => mortal");
             info("\\nResult: Through multi-step reasoning, the system deduces that 'bird' is 'mortal'.");
-            
+
             // Show what's in the memory
             const beliefs = await system.introspection.queryTasks({punctuation: '.'});
             const goals = await system.introspection.queryTasks({punctuation: '!'});
             const questions = await system.introspection.queryTasks({punctuation: '?'});
-            
+
             info(`\\nCurrent beliefs in memory: ${beliefs.length}`);
             info(`Current goals in memory: ${goals.length}`);
             info(`Current questions in memory: ${questions.length}`);
-            
+
             // Show the reasoning chain
             beliefs.filter(b => b.termKey.includes('mortal')).forEach(b => {
                 info(`Inferred: ${b.termKey} with confidence: ${b.state.truthValue.confidence.toFixed(2)}`);

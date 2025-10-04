@@ -2,8 +2,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { execa } from 'execa';
-import readline from 'readline';
+import {execa} from 'execa';
 
 const DEMO_DIR = './tests/demos';
 const RECORDINGS_DIR = './docs/screenshots/demos';
@@ -11,38 +10,38 @@ const TEST_RECORDINGS_DIR = './docs/screenshots/unit_tests';
 
 // Create recording directories if they don't exist
 if (!fs.existsSync(RECORDINGS_DIR)) {
-    fs.mkdirSync(RECORDINGS_DIR, { recursive: true });
+    fs.mkdirSync(RECORDINGS_DIR, {recursive: true});
 }
 
 if (!fs.existsSync(TEST_RECORDINGS_DIR)) {
-    fs.mkdirSync(TEST_RECORDINGS_DIR, { recursive: true });
+    fs.mkdirSync(TEST_RECORDINGS_DIR, {recursive: true});
 }
 
 async function runAndRecordDemo(demoName, demoPath, outputDir) {
     console.log(`Recording demo: ${demoName}`);
-    
+
     try {
         // If asciinema is available, record the demo
-        const { stdout } = await execa('which', ['asciinema']);
+        const {stdout} = await execa('which', ['asciinema']);
         const hasAsciinema = stdout.trim();
-        
+
         if (hasAsciinema) {
             const outputFile = path.join(outputDir, `${demoName}.cast`);
             console.log(`Recording to: ${outputFile}`);
-            
+
             // Record the demo execution
             await execa('asciinema', [
-                'rec', 
-                outputFile, 
-                '-c', 
+                'rec',
+                outputFile,
+                '-c',
                 `node ${demoPath}`,
                 '--overwrite'  // Overwrite if file exists
-            ], { stdio: 'inherit' });
-            
+            ], {stdio: 'inherit'});
+
             console.log(`✅ Recorded: ${demoName}`);
         } else {
             console.log("asciinema not found. Running demo without recording...");
-            await execa('node', [demoPath], { stdio: 'inherit' });
+            await execa('node', [demoPath], {stdio: 'inherit'});
             console.log(`✅ Ran (unrecorded): ${demoName}`);
         }
     } catch (error) {
@@ -53,29 +52,29 @@ async function runAndRecordDemo(demoName, demoPath, outputDir) {
 
 async function runAndRecordTest(testFile, outputDir) {
     console.log(`Recording test: ${testFile}`);
-    
+
     try {
-        const { stdout } = await execa('which', ['asciinema']);
+        const {stdout} = await execa('which', ['asciinema']);
         const hasAsciinema = stdout.trim();
-        
+
         if (hasAsciinema) {
             const testName = path.basename(testFile, '.test.js');
             const outputFile = path.join(outputDir, `${testName}.cast`);
             console.log(`Recording test to: ${outputFile}`);
-            
+
             // Record the test execution
             await execa('asciinema', [
-                'rec', 
-                outputFile, 
-                '-c', 
+                'rec',
+                outputFile,
+                '-c',
                 `npx vitest run ${testFile} --reporter=verbose`,
                 '--overwrite'  // Overwrite if file exists
-            ], { stdio: 'inherit' });
-            
+            ], {stdio: 'inherit'});
+
             console.log(`✅ Recorded test: ${testFile}`);
         } else {
             console.log("asciinema not found. Running test without recording...");
-            await execa('npx', ['vitest', 'run', testFile, '--reporter=verbose'], { stdio: 'inherit' });
+            await execa('npx', ['vitest', 'run', testFile, '--reporter=verbose'], {stdio: 'inherit'});
             console.log(`✅ Ran (unrecorded) test: ${testFile}`);
         }
     } catch (error) {
@@ -97,7 +96,7 @@ async function collectDemos() {
 async function collectIntegrationTests() {
     const testDir = './tests/integration';
     if (!fs.existsSync(testDir)) return [];
-    
+
     const files = fs.readdirSync(testDir);
     return files
         .filter(file => file.endsWith('.test.js'))
@@ -107,7 +106,7 @@ async function collectIntegrationTests() {
 async function recordAllDemos() {
     const demos = await collectDemos();
     console.log(`Found ${demos.length} demos to record...\n`);
-    
+
     for (const demo of demos) {
         try {
             await runAndRecordDemo(demo.name, demo.path, RECORDINGS_DIR);
@@ -116,14 +115,14 @@ async function recordAllDemos() {
             process.exit(1);
         }
     }
-    
+
     console.log('\n🎉 All demos recorded successfully!');
 }
 
 async function recordAllTests() {
     const tests = await collectIntegrationTests();
     console.log(`Found ${tests.length} integration tests to record...\n`);
-    
+
     for (const test of tests) {
         try {
             await runAndRecordTest(test, TEST_RECORDINGS_DIR);
@@ -132,20 +131,20 @@ async function recordAllTests() {
             process.exit(1);
         }
     }
-    
+
     console.log('\n🎉 All tests recorded successfully!');
 }
 
 async function recordSpecificDemo(demoName) {
     const demos = await collectDemos();
     const demo = demos.find(d => d.name === demoName);
-    
+
     if (!demo) {
         console.error(`Demo ${demoName} not found!`);
         console.log('Available demos:', demos.map(d => d.name).join(', '));
         return;
     }
-    
+
     try {
         await runAndRecordDemo(demo.name, demo.path, RECORDINGS_DIR);
         console.log(`\n🎉 Demo ${demoName} recorded successfully!`);
@@ -160,7 +159,7 @@ async function recordSpecificTest(testPath) {
         console.error(`Test file ${testPath} not found!`);
         return;
     }
-    
+
     try {
         await runAndRecordTest(testPath, TEST_RECORDINGS_DIR);
         console.log(`\n🎉 Test ${testPath} recorded successfully!`);
@@ -194,14 +193,14 @@ Examples:
 
 async function checkTools() {
     try {
-        const { stdout: asciinemaPath } = await execa('which', ['asciinema']).catch(() => ({ stdout: '' }));
+        const {stdout: asciinemaPath} = await execa('which', ['asciinema']).catch(() => ({stdout: ''}));
         const hasAsciinema = !!asciinemaPath.trim();
-        
+
         console.log('Recording tools check:');
         console.log(`- asciinema: ${hasAsciinema ? '✅ Available' : '❌ Not found (sudo apt install asciinema or brew install asciinema)'}`);
         console.log(`- node: ✅ Available`);
         console.log(`- npx: ✅ Available`);
-        
+
         return hasAsciinema;
     } catch (error) {
         console.log('- asciinema: ❌ Not found');
@@ -211,17 +210,17 @@ async function checkTools() {
 
 async function main() {
     const args = process.argv.slice(2);
-    
+
     if (args.length === 0 || args.includes('help') || args.includes('--help')) {
         await showHelp();
         return;
     }
-    
+
     if (args.includes('check')) {
         await checkTools();
         return;
     }
-    
+
     if (args[0] === 'all-demos') {
         await recordAllDemos();
     } else if (args[0] === 'all-tests') {

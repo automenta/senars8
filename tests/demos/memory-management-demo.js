@@ -3,7 +3,6 @@
 
 import {runSystem} from '../../utils/runner.js';
 import {info} from '../../core/utils/logger.js';
-import ConfigManager from '../../core/config/ConfigManager.js';
 
 async function memoryManagementDemo(options = {}) {
     // Configuration for memory management
@@ -26,7 +25,7 @@ async function memoryManagementDemo(options = {}) {
         // High priority beliefs
         {sentence: '(important --> fact).', truth: [0.9, 0.9]},     // High frequency, high confidence
         {sentence: '(crucial --> knowledge).', truth: [0.8, 0.9]},  // High confidence, good frequency
-        
+
         // Create many lower-priority items to trigger forgetting
         {sentence: '(item1 --> concept).', truth: [0.1, 0.2]},      // Low priority
         {sentence: '(item2 --> concept).', truth: [0.1, 0.2]},
@@ -48,7 +47,7 @@ async function memoryManagementDemo(options = {}) {
         {sentence: '(item18 --> concept).', truth: [0.1, 0.2]},
         {sentence: '(item19 --> concept).', truth: [0.1, 0.2]},
         {sentence: '(item20 --> concept).', truth: [0.1, 0.2]},
-        
+
         // Query to process and generate new knowledge
         {sentence: '(fact --> ?)?'}
     ];
@@ -63,38 +62,38 @@ async function memoryManagementDemo(options = {}) {
             info("- Forgetting of low-priority items");
             info("- Dynamic allocation based on task importance");
             info("- Concept formation from similar tasks");
-            
+
             // Show initial memory state
             const allTasks = await system.introspection.queryTasks({});
             const beliefs = await system.introspection.queryTasks({punctuation: '.'});
             const highPriorityBeliefs = beliefs.filter(b => b.state.truthValue.confidence > 0.5 && b.state.truthValue.frequency > 0.5);
-            
+
             info(`\\nTotal tasks in memory: ${allTasks.length}`);
             info(`High priority beliefs: ${highPriorityBeliefs.length}`);
-            
+
             info("\\nHigh Priority Items (should remain in memory):");
             highPriorityBeliefs.forEach(b => {
                 if (b.termKey.includes('important') || b.termKey.includes('crucial')) {
                     info(`- ${b.termKey} (conf: ${b.state.truthValue.confidence.toFixed(2)}, freq: ${b.state.truthValue.frequency.toFixed(2)})`);
                 }
             });
-            
+
             // Show evidence of forgetting by looking for low-priority items
-            const lowPriorityItems = beliefs.filter(b => 
-                b.termKey.startsWith('item') && 
-                b.state.truthValue.confidence <= 0.2 && 
+            const lowPriorityItems = beliefs.filter(b =>
+                b.termKey.startsWith('item') &&
+                b.state.truthValue.confidence <= 0.2 &&
                 b.state.truthValue.frequency <= 0.2
             );
-            
+
             info(`\\nLow priority items remaining: ${lowPriorityItems.length} (out of 20 added)`);
             info("This demonstrates the forgetting mechanism - lower priority items are removed as memory fills.");
-            
+
             // Show memory statistics
             info("\\nMemory Management Strategies:");
             info("- Priority forgetting: Low-priority items are forgotten first");
             info("- Activation-based retrieval: Recently used items are more accessible");
             info("- Concept consolidation: Similar tasks are merged into higher-level concepts");
-            
+
             info("\\nMemory utilization:");
             // Note: Different system versions may have different memory store structure
             try {

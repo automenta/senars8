@@ -33,38 +33,38 @@ async function complexInferenceDemo(options = {}) {
             info("5. (person --> agent) - People are agents");
             info("6. (agent --> goal_directed) - Agents have goals");
             info("7. john_student - John is a student");
-            
+
             info("\\nMultiple Inference Paths:");
             info("Path 1: john_student -> student -> person -> mortal");
             info("Path 2: john_student -> student -> learner -> knowledgeable");
             info("Path 3: john_student -> student -> person -> agent -> goal_directed");
-            
+
             // Show what's in the memory
             const allTasks = await system.introspection.queryTasks({});
             const derivedBeliefs = allTasks.filter(t => t.termKey.includes('john') && t.punctuation === '.');
-            
+
             info(`\\nTotal tasks in system: ${allTasks.length}`);
             info(`Derived beliefs about John: ${derivedBeliefs.length}`);
-            
+
             info("\\nDerived conclusions about John:");
             derivedBeliefs.forEach(b => {
                 if (b.termKey !== 'john_student') {
                     info(`- ${b.termKey} (confidence: ${b.state.truthValue.confidence.toFixed(2)}, frequency: ${b.state.truthValue.frequency.toFixed(2)})`);
                 }
             });
-            
+
             // Show different types of inferences
-            const backwardChains = allTasks.filter(t => 
-                t.termKey.includes('mortal') || 
-                t.termKey.includes('knowledgeable') || 
+            const backwardChains = allTasks.filter(t =>
+                t.termKey.includes('mortal') ||
+                t.termKey.includes('knowledgeable') ||
                 t.termKey.includes('goal_directed')
             );
-            
+
             info(`\\nBackward chain inferences: ${backwardChains.length}`);
-            
+
             info("\\nInference Rules Applied:");
             info("- Deduction: (A --> B), A |= B");
-            info("- Induction: (A --> C), (B --> C) |= (A --> B) or (B --> A)"); 
+            info("- Induction: (A --> C), (B --> C) |= (A --> B) or (B --> A)");
             info("- Abduction: (A --> C), (B --> C) |= (A --> B) with different meaning");
             info("- Comparison: (A --> C), (B --> C) |= (A <-> B)");
         }

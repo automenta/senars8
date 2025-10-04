@@ -57,7 +57,7 @@ describe('WebSocket BigInt Serialization Integration', () => {
 
         // Wait for the response (should not error due to BigInt serialization)
         const response = await awaitNextMessage(client, (msg) => msg.type === 'system_stats', 10000);
-        
+
         expect(response.type).toBe('system_stats');
         // The response should have been successfully sent without BigInt serialization errors
     });
@@ -72,7 +72,7 @@ describe('WebSocket BigInt Serialization Integration', () => {
 
         // Wait for the response (should not error due to BigInt serialization)
         const response = await awaitNextMessage(client, (msg) => msg.type === 'tasks_response', 10000);
-        
+
         expect(response.type).toBe('tasks_response');
         // The response should have been successfully sent without BigInt serialization errors
     });

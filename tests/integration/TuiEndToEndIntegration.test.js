@@ -1,7 +1,6 @@
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import AgentManager from '../../agent/AgentManager.js';
 import {WebSocketManager} from '../../agent/WebSocketManager.js';
-import {awaitNextMessage, closeWebSocket, createWebSocketClient} from '../utils/WebSocketTestUtils.js';
 import {findAvailablePort} from '../utils/networkUtils.js';
 import {createMessageHandler} from '../../agent/MessageHandler.js';
 import ApiService from '../../common/services/ApiService.js';
@@ -52,7 +51,7 @@ describe('TUI End-to-End Integration Test', () => {
     it('should connect and perform full TUI workflow', async () => {
         // Connect to the agent
         apiService.connect();
-        
+
         // Wait for connection
         await new Promise(resolve => {
             apiService.on('status', (status) => {
@@ -66,11 +65,11 @@ describe('TUI End-to-End Integration Test', () => {
         const initialStatsPromise = new Promise(resolve => {
             apiService.on('system_stats', resolve);
         });
-        
+
         const initialBeliefsPromise = new Promise(resolve => {
             apiService.on('beliefs_response', resolve);
         });
-        
+
         const initialGoalsPromise = new Promise(resolve => {
             apiService.on('goals_response', resolve);
         });
@@ -103,7 +102,7 @@ describe('TUI End-to-End Integration Test', () => {
 
         await apiService.sendNarsese('<test --> concept>.');
         const narseseResponse = await narsesePromise;
-        
+
         expect(narseseResponse).toBeDefined();
 
         // Test sending agent control command
@@ -117,7 +116,7 @@ describe('TUI End-to-End Integration Test', () => {
 
         await apiService.sendAgentControl('start');
         const controlResponse = await controlPromise;
-        
+
         expect(controlResponse).toBeDefined();
     });
 });
