@@ -34,25 +34,43 @@ npm install
 
 ### Running the Application
 
+#### Agent Service (Required for UIs)
+
+To start the agent service with WebSocket server (required for TUI and Web UI):
+
+```bash
+npm run agent:ws
+```
+
+#### Web UI
+
 To start the web UI with WebSocket server for TUI compatibility:
 
 ```bash
 npm run dev:ws
 ```
 
-To start just the agent service with WebSocket server for UIs:
+#### Terminal UI (TUI)
 
-```bash
-npm run agent:ws
-```
+**Important:** The TUI requires the agent service to be running with WebSocket support. Follow these steps:
 
-To start just the terminal UI:
+1. **Start the agent service with WebSocket server:**
+   ```bash
+   npm run agent:ws
+   ```
+
+2. **In a separate terminal, start the TUI:**
+   ```bash
+   npm run tui:ws
+   ```
+
+**Alternative:** You can also start the TUI directly, which will attempt to connect to an already running agent:
 
 ```bash
 npm run tui:ws
 ```
 
-For individual components:
+#### For individual components:
 
 - `npm run dev` - Start the web UI only (without standalone WebSocket)
 - `npm run tui` - Start the terminal UI only (requires standalone WebSocket)

@@ -1,96 +1,79 @@
-# SeNARS TUI (Text User Interface)
+# SeNARS Multi-Agent TUI (Text User Interface)
 
-The SeNARS TUI is a terminal-based interface for SeNARS. It provides a
-lightweight, efficient way to interact with NARS agents directly from the command line.
+The SeNARS Multi-Agent TUI is a modern terminal-based interface built with Ink (React for terminals). It provides
+autonomous connection management to multiple agents simultaneously, solving the orchestration issues of the previous
+TUI.
 
 ## Features
 
-- **Real-time Agent Interaction**: Connect to and control NARS agents
-- **Task Management**: View and manage beliefs, goals, and questions
-- **System Monitoring**: Monitor agent statistics and performance
-- **Narsese Input**: Direct input of Narsese statements and queries
-- **Command Interface**: Simple command-based interface with help system
+- **Multi-Agent Support**: Connect to multiple agents simultaneously from a single interface
+- **Auto-Discovery**: Automatically scans common ports for available agents
+- **Connection Management**: Connect/disconnect agents without restarting the interface
+- **Real-time Status**: Monitor multiple agents with live updating statistics
+- **Shared Codebase**: Leverages the same services and logic as the Web UI
+- **React-based Components**: Uses React paradigms for familiar development experience
 
 ## Architecture
 
-The TUI uses:
+The new TUI uses:
 
-- `blessed` for terminal UI rendering
-- A shared `AgentCommunicationService` for WebSocket communication with the agent service
-- The same communication protocol as the Web UI for consistent behavior
+- `ink` for React-based terminal UI rendering
+- Shared `ApiService` for WebSocket communication with agents
+- Custom `TuiAgentService` extending the base service with TUI-specific features
+- `AgentManager` for multi-agent connection orchestration
+- Auto-discovery mechanism to find agents on common ports
 
 ## Installation
 
+The TUI is installed as part of the workspace:
+
 ```bash
-cd tui
 npm install
 ```
 
 ## Usage
 
 ```bash
-npm start
+npm run tui
 ```
 
-Once started, the TUI will attempt to connect to the agent service at `ws://localhost:8080`.
+The TUI will automatically scan for available agents and display connection options.
 
-## Commands
+### Connection Features
 
-| Command         | Description             |
-|-----------------|-------------------------|
-| `!start`        | Start the agent cycling |
-| `!stop`         | Stop the agent cycling  |
-| `!reset`        | Reset the agent         |
-| `!add <task>`   | Add a new task          |
-| `!query <text>` | Query the agent         |
-| `!stats`        | Get system statistics   |
-| `!help`         | Show help information   |
+- The TUI automatically discovers agents on ports 8080, 8081, 8082, and 8083
+- Connect to agents using the CONNECT button
+- Disconnect using the DISCONNECT button
+- View real-time status of connected agents
+- Switch between active agents
 
-## Examples
+### Commands
 
-```
-!add (cat --> animal).
-!query (cat --> animal)?
-(bird --> animal).
-```
+The TUI is currently in connection management mode. Future versions will include:
 
-## Integration with Core Components
+- Narsese input for connected agents
+- Task management across multiple agents
+- Memory browsing for connected agents
 
-The TUI connects to the agent service via WebSocket and integrates with:
+## Benefits Over Previous TUI
 
-- Core reasoning engine through the agent service
-- Memory systems for task management
-- Event system for real-time updates
-- Configuration system for agent parameters
-
-## Shared Communication Service
-
-The TUI uses a shared communication service that's also used by the Web UI, ensuring consistent behavior across
-interfaces. The service handles:
-
-- Connection management and reconnection logic
-- Message queuing when disconnected
-- Event emission for UI updates
-- Error handling and logging
+1. **No Orchestration Required**: The TUI can discover and connect to agents without requiring them to be started in a
+   specific order
+2. **Multi-Agent Support**: Manage multiple agents from a single interface
+3. **Resilient Connections**: Individual agent disconnections don't affect the TUI
+4. **Auto-Discovery**: Automatically finds available agents without manual configuration
+5. **Shared Codebase**: Leverages the same communication services as the Web UI
 
 ## Development
 
 To run in development mode with auto-reload:
 
 ```bash
-npm run dev
-```
-
-## Testing
-
-Run integration tests:
-
-```bash
-npm run test:jest
+npm run tui
 ```
 
 ## Troubleshooting
 
-- If the TUI fails to connect, ensure the agent service is running on port 8080
-- Check that the agent service WebSocket endpoint is accessible
-- Verify network connectivity between the TUI and agent service
+- If no agents are discovered, ensure agent services are running on common ports (8080-8083)
+- The TUI will show "available" status for discoverable agents and "connected/disconnected" for active connections
+- Agent services must have WebSocket support enabled

@@ -164,6 +164,8 @@ class AgentCommunicationService extends EventBus {
     attemptReconnect() {
         if (this.reconnectAttempts >= this.maxReconnectAttempts) {
             log.warn(`Maximum reconnect attempts (${this.maxReconnectAttempts}) reached.`);
+            // Emit an event that all attempts have been exhausted
+            this.emit('reconnect_exhausted', this.maxReconnectAttempts);
             return;
         }
 
@@ -176,6 +178,9 @@ class AgentCommunicationService extends EventBus {
         this.connectionStats.reconnectAttempts = this.reconnectAttempts;
 
         log.info(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+
+        // Emit reconnection attempt event
+        this.emit('reconnect_attempt', this.reconnectAttempts, this.maxReconnectAttempts);
 
         this.reconnectTimer = setTimeout(() => {
             if (!this.isConnected && !this.isConnecting) {

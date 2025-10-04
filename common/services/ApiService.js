@@ -26,6 +26,7 @@ class ApiService extends EventBus {
             goals: [],
             questions: [],
             notifications: [],
+            connectionStatus: 'disconnected',
         };
 
         this._setupEventForwarding();
@@ -37,6 +38,7 @@ class ApiService extends EventBus {
      */
     _setupEventForwarding() {
         this.communicationService.on('status', (status) => {
+            this.agentState.connectionStatus = status;
             this.emit('status', status);
             if (status === 'connected') {
                 this.logger.info('Connection established. Requesting initial state.');
@@ -46,6 +48,11 @@ class ApiService extends EventBus {
                 this.sendMessage('get_beliefs');
                 this.sendMessage('get_goals');
             }
+        });
+
+        this.communicationService.on('reconnect_attempt', (attempt, maxAttempts) => {
+            this.agentState.connectionStatus = 'reconnecting';
+            this.emit('reconnect_attempt', attempt, maxAttempts);
         });
 
         this.communicationService.on('message', (message) => {
