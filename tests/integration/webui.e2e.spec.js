@@ -71,10 +71,10 @@ describe('Web UI End-to-End Integration Tests', () => {
         expect(responseStatus).toBeLessThan(400);
 
         // Mock checking for elements
-        const header = {exists: true};  // Mock element exists
+        const header = { exists: true };  // Mock element exists
         expect(header.exists).toBe(true);
 
-        const appContainer = {exists: true}; // Mock element exists
+        const appContainer = { exists: true }; // Mock element exists
         expect(appContainer.exists).toBe(true);
 
         // The UI should be connected to the agent

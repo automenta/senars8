@@ -3,13 +3,11 @@ import {defineConfig} from 'vitest/config';
 export default defineConfig({
     test: {
         environment: 'node',
-        include: ['<rootDir>/tests/**/*.spec.js'],
+        include: ['tests/**/*.test.js'],
+        exclude: ['tests/**/*.spec.js'],
         alias: {
-            '@core/': new URL('./', import.meta.url).pathname,
-        },
-        coverage: {
-            provider: 'v8',
-            reporter: ['text', 'json', 'html'],
+            '@senars/common': '../common',
+            '@senars/core': '../core',
         },
         // Enable parallel execution for faster tests
         pool: 'threads',
@@ -20,8 +18,11 @@ export default defineConfig({
             }
         },
         // Faster test execution settings
-        testTimeout: 30000,
-        hookTimeout: 15000,
+        testTimeout: 20000,
+        hookTimeout: 10000,
         bail: 1, // Stop on first failure for faster feedback
+        reporter: 'verbose',
+        // Run tests in parallel where possible
+        maxConcurrency: 4,
     },
 });

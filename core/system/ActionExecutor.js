@@ -48,25 +48,25 @@ class ActionExecutor {
     registerActionHandler(actionPattern, handler) {
         this.actionHandlers.set(actionPattern, handler);
         // Simple logging instead of using debug method
-        console.debug && console.debug(`ActionExecutor: Registered action handler: ${actionPattern}`);
+        //console.debug && console.debug(`ActionExecutor: Registered action handler: ${actionPattern}`);
     }
 
     registerTool(name, handler, metadata = {}) {
         this.tools.registerTool(name, handler, metadata);
         // Simple logging instead of using debug method
-        console.debug && console.debug(`ActionExecutor: Registered tool: ${name}`);
+        //console.debug && console.debug(`ActionExecutor: Registered tool: ${name}`);
     }
 
     registerMcpTool(name, mcpConfig) {
         this.tools.registerMcpTool(name, mcpConfig);
         // Simple logging instead of using debug method
-        console.debug && console.debug(`ActionExecutor: Registered MCP tool: ${name}`);
+        //console.debug && console.debug(`ActionExecutor: Registered MCP tool: ${name}`);
     }
 
     registerExternalTool(name, toolInstance) {
         this.tools.registerExternalTool(name, toolInstance);
         // Simple logging instead of using debug method
-        console.debug && console.debug(`ActionExecutor: Registered external tool: ${name}`);
+        //console.debug && console.debug(`ActionExecutor: Registered external tool: ${name}`);
     }
 
     registerResource(name, resource) {
@@ -76,7 +76,7 @@ class ActionExecutor {
 
         this.resources.set(name, resource);
         // Simple logging instead of using debug method
-        console.debug && console.debug(`ActionExecutor: Registered resource: ${name}`);
+        //console.debug && console.debug(`ActionExecutor: Registered resource: ${name}`);
     }
 
     setConstraint(constraintName, constraintFunction) {

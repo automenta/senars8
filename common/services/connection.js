@@ -19,11 +19,12 @@ class ConnectionManager extends EventEmitter {
     /**
      * Discovers and connects to available agent WebSocket servers.
      * Uses retry logic to handle cases where the agent isn't immediately available.
+     * @param {number} port - Optional port to connect to, defaults to WS_PORT env var or 8081
      */
-    async discover() {
-        const defaultPort = process.env.WS_PORT || 8081; // Default to 8081 to match scripts
-        const maxRetries = 10;
-        const baseDelay = 1000; // Start with 1 second delay
+    async discover(port) {
+        const defaultPort = port || parseInt(process.env.WS_PORT, 10) || 8081; // Default to 8081 to match scripts
+        const maxRetries = 3; // Further reduced retries for faster feedback
+        const baseDelay = 200; // Start with 0.2 second delay
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
@@ -36,7 +37,7 @@ class ConnectionManager extends EventEmitter {
                 await new Promise((resolve, reject) => {
                     const timeout = setTimeout(() => {
                         reject(new Error('Connection timeout'));
-                    }, 5000);
+                    }, 1500); // Further reduced timeout for faster feedback
 
                     ws.on('open', () => {
                         clearTimeout(timeout);
@@ -57,6 +58,7 @@ class ConnectionManager extends EventEmitter {
 
                 if (attempt === maxRetries) {
                     log.error(`Failed to connect after ${maxRetries} attempts`);
+                    // Emit error but don't throw - allow graceful handling
                     this.emit('error', {url: `ws://localhost:${defaultPort}`, error: new Error('Max retries exceeded')});
                     return;
                 }

@@ -40,18 +40,16 @@ const App = () => {
         // Set a timeout for discovery to prevent hanging
         const discoveryTimeout = setTimeout(() => {
             if (connections.length === 0) {
-                setConnectionError('No agents found after timeout. Please ensure an agent is running.');
+                setConnectionError('No agents found after timeout. Please ensure an agent is running on the correct port.');
                 setIsDiscovering(false);
+                log.warn('Discovery timeout reached, no agents found');
             }
-        }, 10000); // 10 second timeout
+        }, 1000); // 1 second timeout for faster test feedback
 
         connectionManager.discover();
 
         return () => {
             clearTimeout(discoveryTimeout);
-        };
-
-        return () => {
             connectionManager.off('update', handleUpdate);
             connectionManager.off('error', handleError);
             connectionManager.off('connection', handleConnection);

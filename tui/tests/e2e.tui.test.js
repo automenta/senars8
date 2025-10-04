@@ -1,4 +1,4 @@
-import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
+import {describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, vi} from 'vitest';
 import {spawn} from 'child_process';
 import {promisify} from 'util';
 import {setTimeout as promiseTimeout} from 'timers/promises';
@@ -15,7 +15,8 @@ import {
     cleanupTuiTestEnvironment,
     runTuiWithTimeout,
     validateTuiOutput,
-    shouldIgnoreError
+    shouldIgnoreError,
+    startTestAgent
 } from './test-utils.js';
 
 // Mock React Ink for testing
@@ -34,40 +35,38 @@ vi.mock('ink', () => ({
 const exec = promisify(require('child_process').exec);
 
 describe('TUI End-to-End Integration Tests', async () => {
-    let testEnv;
+    let sharedAgent;
     let wsPort;
-    let agentProcess;
 
-    beforeEach(async () => {
-        // Find an available port for the test
+    beforeAll(async () => {
+        // Find an available port for all tests
         wsPort = await findTuiTestPort(8085);
 
-        // Setup test environment
-        testEnv = await setupTuiTestEnvironment(wsPort);
-    });
+        console.log(`Starting shared agent on port ${wsPort}`);
 
-    afterEach(async () => {
-        if (agentProcess) {
-            agentProcess.kill();
+        // Start one agent for all tests
+        sharedAgent = await startTestAgent(wsPort);
+
+        console.log(`Shared agent started on port ${wsPort}`);
+    }, 10000); // Shorter timeout for beforeAll
+
+    afterAll(async () => {
+        console.log(`Stopping shared agent on port ${wsPort}`);
+
+        if (sharedAgent && sharedAgent.process) {
+            sharedAgent.process.kill('SIGTERM');
+            // Give it time to shut down gracefully
+            await new Promise(resolve => setTimeout(resolve, 500));
         }
 
-        // Cleanup test environment
-        if (testEnv) {
-            await cleanupTuiTestEnvironment(testEnv);
-        }
+        console.log(`Shared agent stopped`);
     });
 
     it('should run TUI without fatal errors', async () => {
-        // Start an agent in the background using the test environment
-        agentProcess = spawn('node', ['agent/start-agent.js'], {
-            env: {...process.env, WS_PORT: wsPort.toString()}
-        });
-
-        // Wait for agent to start
-        await promiseTimeout(2000);
+        // Shared agent is already started in beforeAll
 
         // Run TUI with timeout using utility function
-        const result = await runTuiWithTimeout(wsPort, 5000);
+        const result = await runTuiWithTimeout(wsPort, 3000);
 
         // Validate that TUI ran without fatal errors
         if (result.timedOut) {
@@ -95,12 +94,12 @@ describe('TUI End-to-End Integration Tests', async () => {
     });
 
     it('should be able to connect to agent and display status', async () => {
-        // Test environment is already set up in beforeEach
+        // Shared agent is already running
         // Wait for agent to be ready
-        await promiseTimeout(1000);
+        await promiseTimeout(500);
 
         // Run TUI with timeout to test connection
-        const result = await runTuiWithTimeout(wsPort, 5000);
+        const result = await runTuiWithTimeout(wsPort, 3000);
 
         // Validate the connection test
         if (result.timedOut) {
@@ -127,72 +126,6 @@ describe('TUI End-to-End Integration Tests', async () => {
         }
     });
 
-    it('should have functional TUI View commands', async () => {
-        // Test the TUI View functionality only (renderer is now components)
-        const {TuiView} = await import('../src/TuiView.js');
-
-        // Mock API service
-        const mockApiService = {
-            getAgentState: () => ({
-                isRunning: true,
-                cycleCount: 1250,
-                uptime: '00:12:34',
-                version: '1.1.0',
-                connectionStatus: 'connected',
-                stats: {
-                    cyclesPerSecond: 10.5,
-                    memoryUsedMB: 45.2,
-                    cpuUsage: 23.7,
-                    tasksPerSecond: 2.1
-                },
-                memory: {
-                    beliefs: [
-                        {termKey: '(bird --> animal)', state: {truthValue: {confidence: 0.89}}},
-                        {termKey: '(animal --> living)', state: {truthValue: {confidence: 0.95}}}
-                    ],
-                    goals: [
-                        {termKey: 'food!', state: {truthValue: {confidence: 0.85}}}
-                    ],
-                    concepts: [{id: 'concept_1'}]
-                },
-                tasks: [
-                    {termKey: '(bird --> mortal)', punctuation: '.', state: {truthValue: {confidence: 0.65}}}
-                ]
-            }),
-            sendAgentControl: () => Promise.resolve(),
-        };
-
-        // Test TUI View
-        const view = new TuiView(mockApiService);
-
-        // Test all expected commands exist
-        expect(view.commandMap).toHaveProperty('stats');
-        expect(view.commandMap).toHaveProperty('memory');
-        expect(view.commandMap).toHaveProperty('reset');
-        expect(view.commandMap).toHaveProperty('pause');
-        expect(view.commandMap).toHaveProperty('resume');
-        expect(view.commandMap).toHaveProperty('beliefs');
-        expect(view.commandMap).toHaveProperty('goals');
-        expect(view.commandMap).toHaveProperty('tasks');
-
-        // Test command execution
-        const statsResult = view.executeCommand('stats');
-        expect(statsResult).toHaveProperty('connectionStatus');
-        expect(statsResult).toHaveProperty('isRunning');
-
-        const memoryResult = view.executeCommand('memory');
-        expect(memoryResult).toHaveProperty('beliefsCount');
-
-        const beliefsResult = view.executeCommand('beliefs');
-        expect(Array.isArray(beliefsResult)).toBe(true);
-
-        const goalsResult = view.executeCommand('goals');
-        expect(Array.isArray(goalsResult)).toBe(true);
-
-        const tasksResult = view.executeCommand('tasks');
-        expect(Array.isArray(tasksResult)).toBe(true);
-
-        console.log('TUI View functionality tested successfully');
     });
 
     describe('TUI Connection Management', () => {
@@ -222,8 +155,10 @@ describe('TUI End-to-End Integration Tests', async () => {
             // Wait for server to start
             await promiseTimeout(500);
 
-            // Test connection discovery
-            const discoveryPromise = connectionManager.discover(testPort);
+            // Test connection discovery with specific port
+            await connectionManager.discover(testPort);
+
+            // Wait a bit more for connection to be established
             await promiseTimeout(1000);
 
             // Check that connection was established
@@ -239,18 +174,35 @@ describe('TUI End-to-End Integration Tests', async () => {
             // Test with a port that has no server
             const invalidPort = 9999;
 
-            // This should not throw an error, just emit error events
-            await expect(connectionManager.discover(invalidPort)).resolves.not.toThrow();
+            // Set up error event listener to handle expected connection errors
+            let errorHandled = false;
+            const errorHandler = (error) => {
+                if (error.url && error.url.includes(invalidPort.toString())) {
+                    errorHandled = true;
+                }
+            };
+            connectionManager.on('error', errorHandler);
 
-            // Wait for error handling and cleanup
-            await promiseTimeout(3000);
+            try {
+                // This should not throw an error, just emit error events
+                await expect(connectionManager.discover(invalidPort)).resolves.not.toThrow();
 
-            // Should have no active connections (disconnect all to be sure)
-            connectionManager.disconnectAll();
-            await promiseTimeout(500);
+                // Wait for error handling and cleanup
+                await promiseTimeout(3000);
 
-            const connections = connectionManager.getConnections();
-            expect(connections.length).toBe(0);
+                // Should have no active connections (disconnect all to be sure)
+                connectionManager.disconnectAll();
+                await promiseTimeout(500);
+
+                const connections = connectionManager.getConnections();
+                expect(connections.length).toBe(0);
+
+                // Verify that the error was handled
+                expect(errorHandled).toBe(true);
+            } finally {
+                // Clean up the error handler
+                connectionManager.off('error', errorHandler);
+            }
         });
     });
 
@@ -355,7 +307,75 @@ describe('TUI End-to-End Integration Tests', async () => {
 
             service.disconnect();
         });
-
+    
+        describe('TUI View Unit Tests', () => {
+            it('should have functional TUI View commands', async () => {
+                // Test the TUI View functionality only (renderer is now components)
+                const {TuiView} = await import('../src/TuiView.js');
+    
+                // Mock API service
+                const mockApiService = {
+                    getAgentState: () => ({
+                        isRunning: true,
+                        cycleCount: 1250,
+                        uptime: '00:12:34',
+                        version: '1.1.0',
+                        connectionStatus: 'connected',
+                        stats: {
+                            cyclesPerSecond: 10.5,
+                            memoryUsedMB: 45.2,
+                            cpuUsage: 23.7,
+                            tasksPerSecond: 2.1
+                        },
+                        memory: {
+                            beliefs: [
+                                {termKey: '(bird --> animal)', state: {truthValue: {confidence: 0.89}}},
+                                {termKey: '(animal --> living)', state: {truthValue: {confidence: 0.95}}}
+                            ],
+                            goals: [
+                                {termKey: 'food!', state: {truthValue: {confidence: 0.85}}}
+                            ],
+                            concepts: [{id: 'concept_1'}]
+                        },
+                        tasks: [
+                            {termKey: '(bird --> mortal)', punctuation: '.', state: {truthValue: {confidence: 0.65}}}
+                        ]
+                    }),
+                    sendAgentControl: () => Promise.resolve(),
+                };
+    
+                // Test TUI View
+                const view = new TuiView(mockApiService);
+    
+                // Test all expected commands exist
+                expect(view.commandMap).toHaveProperty('stats');
+                expect(view.commandMap).toHaveProperty('memory');
+                expect(view.commandMap).toHaveProperty('reset');
+                expect(view.commandMap).toHaveProperty('pause');
+                expect(view.commandMap).toHaveProperty('resume');
+                expect(view.commandMap).toHaveProperty('beliefs');
+                expect(view.commandMap).toHaveProperty('goals');
+                expect(view.commandMap).toHaveProperty('tasks');
+    
+                // Test command execution
+                const statsResult = view.executeCommand('stats');
+                expect(statsResult).toHaveProperty('connectionStatus');
+                expect(statsResult).toHaveProperty('isRunning');
+    
+                const memoryResult = view.executeCommand('memory');
+                expect(memoryResult).toHaveProperty('beliefsCount');
+    
+                const beliefsResult = view.executeCommand('beliefs');
+                expect(Array.isArray(beliefsResult)).toBe(true);
+    
+                const goalsResult = view.executeCommand('goals');
+                expect(Array.isArray(goalsResult)).toBe(true);
+    
+                const tasksResult = view.executeCommand('tasks');
+                expect(Array.isArray(tasksResult)).toBe(true);
+    
+                console.log('TUI View functionality tested successfully');
+            });
         it('should handle agent state updates', async () => {
             const TuiAgentService = (await import('../src/services/TuiAgentService.js')).default;
 
