@@ -1,10 +1,10 @@
 /**
  * Unified Test Setup Utilities
  * Consolidated setup patterns to reduce duplication across test files
- * Combines functionality from test-helpers.js and test-setup-utils.js
  */
 
 import {expect, vi} from 'vitest';
+import {env} from '@xenova/transformers';
 import {DIContainer} from '../core/system/DIContainer.js';
 import registerComponents from '../core/system/register-components.js';
 import ConfigManager from '../core/config/ConfigManager.js';
@@ -12,15 +12,15 @@ import {configService} from '../core/config/index.js';
 import BagSamplingStrategy from '../core/reasoner/strategies/BagSamplingStrategy.js';
 import BruteForceStrategy from '../core/reasoner/strategies/BruteForceStrategy.js';
 import {createTask} from './test-data-factory.js';
-
-// Import mock creation functions from mock-builders.js
 import {createMockCommandBus, createMockEventBus} from './mock-builders.js';
 
+// Suppress ONNX runtime warnings
+env.logLevel = 'fatal';
 
 /**
- * Creates a complete system with mock buses for testing.
- * @param {object} userConfig - Optional user configuration.
- * @returns {object} An object containing the system instance and mock buses.
+ * Creates a complete system with mock buses for testing
+ * @param {object} userConfig - Optional user configuration
+ * @returns {object} System instance with mock buses
  */
 export const createTestSystem = (userConfig = {}) => {
     const container = new DIContainer();
@@ -37,15 +37,10 @@ export const createTestSystem = (userConfig = {}) => {
     registerComponents(container, configManager);
 
     const strategyRegistry = container.get('strategyRegistry');
-    strategyRegistry.registerStrategies([
-        BagSamplingStrategy,
-        BruteForceStrategy,
-    ]);
-
-    const system = container.get('system');
+    strategyRegistry.registerStrategies([BagSamplingStrategy, BruteForceStrategy]);
 
     return {
-        system,
+        system: container.get('system'),
         commandBus: mockCommandBus,
         eventBus: mockEventBus,
         container,

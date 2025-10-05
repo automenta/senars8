@@ -1,59 +1,22 @@
 /**
  * Unified Test Configuration System
- * Consolidates all test configuration patterns into a single, coherent system
+ * Streamlined configuration patterns for consistent testing
  */
 
 // Default configurations for test data
 export const DEFAULT_CONFIGS = {
-    TASK: {
-        punctuation: '.',
-        truth: [1.0, 0.9],
-        priority: 0
-    },
-    TERM: {
-        complexity: 1,
-        embedding: [0.1, 0.2, 0.3]
-    },
-    SYSTEM: {
-        reasoner: {
-            strategy: 'BruteForce'
-        }
-    }
+    TASK: {punctuation: '.', truth: [1.0, 0.9], priority: 0},
+    TERM: {complexity: 1, embedding: [0.1, 0.2, 0.3]},
+    SYSTEM: {reasoner: {strategy: 'BruteForce'}}
 };
 
 /**
  * Base test configuration templates
  */
 export const TEST_CONFIG_TEMPLATES = {
-    UNIT: {
-        timeout: 5000,
-        setup: 'unit',
-        mockLevel: 'full',
-        validation: {
-            errorHandling: true,
-            edgeCases: true
-        }
-    },
-    INTEGRATION: {
-        timeout: 10000,
-        setup: 'integration',
-        mockLevel: 'partial',
-        validation: {
-            componentInteraction: true,
-            dataFlow: true,
-            performance: true
-        }
-    },
-    SYSTEM: {
-        timeout: 30000,
-        setup: 'system',
-        mockLevel: 'minimal',
-        validation: {
-            endToEnd: true,
-            performance: true,
-            errorRecovery: true
-        }
-    }
+    UNIT: {timeout: 5000, setup: 'unit', mockLevel: 'full', validation: {errorHandling: true, edgeCases: true}},
+    INTEGRATION: {timeout: 10000, setup: 'integration', mockLevel: 'partial', validation: {componentInteraction: true, dataFlow: true, performance: true}},
+    SYSTEM: {timeout: 30000, setup: 'system', mockLevel: 'minimal', validation: {endToEnd: true, performance: true, errorRecovery: true}}
 };
 
 /**
@@ -108,82 +71,38 @@ export class TestMatrix {
         this.filters = [];
     }
 
-    /**
-     * Adds a dimension to the test matrix
-     * @param {string} name - Dimension name
-     * @param {Array} values - Possible values for this dimension
-     * @returns {TestMatrix} Current instance for chaining
-     */
     addDimension(name, values) {
-        this.dimensions[name] = values;
-        return this;
+        return this.dimensions[name] = values, this;
     }
 
-    /**
-     * Adds a filter function to exclude certain combinations
-     * @param {Function} filter - Filter function that returns false for excluded combinations
-     * @returns {TestMatrix} Current instance for chaining
-     */
     addFilter(filter) {
-        this.filters.push(filter);
-        return this;
+        return this.filters.push(filter), this;
     }
 
-    /**
-     * Generates all valid combinations based on dimensions and filters
-     * @returns {Array} Array of combination objects
-     */
     generateCombinations() {
-        // Get dimension names and values
         const dimensionNames = Object.keys(this.dimensions);
         const dimensionValues = Object.values(this.dimensions);
 
-        // Generate cartesian product
-        const combinations = this.cartesianProduct(dimensionValues)
+        return this.cartesianProduct(dimensionValues)
             .map(values => {
                 const combination = {};
-                dimensionNames.forEach((name, index) => {
-                    combination[name] = values[index];
-                });
+                dimensionNames.forEach((name, index) => combination[name] = values[index]);
                 return combination;
             })
-            .filter(combination =>
-                this.filters.every(filter => filter(combination))
-            );
-
-        return combinations;
+            .filter(combination => this.filters.every(filter => filter(combination)));
     }
 
-    /**
-     * Computes cartesian product of arrays
-     * @param {Array} arrays - Array of arrays to compute cartesian product for
-     * @returns {Array} Cartesian product
-     */
     cartesianProduct(arrays) {
-        return arrays.reduce((acc, curr) => {
-            return acc.flatMap(d => {
-                return curr.map(e => {
-                    return [...d, e];
-                });
-            });
-        }, [[]]);
+        return arrays.reduce((acc, curr) =>
+            acc.flatMap(d => curr.map(e => [...d, e])), [[]]);
     }
 
-    /**
-     * Creates parameterized tests based on the matrix
-     * @param {string} suiteName - Name of the test suite
-     * @param {Function} testFunction - Function to test each combination
-     */
     createTests(suiteName, testFunction) {
         const combinations = this.generateCombinations();
-
-        describe(suiteName, () => {
-            combinations.forEach((combination, index) => {
-                test(`Combination ${index + 1}: ${JSON.stringify(combination)}`, async () => {
-                    await testFunction(combination, index);
-                });
-            });
-        });
+        describe(suiteName, () =>
+            combinations.forEach((combination, index) =>
+                test(`Combination ${index + 1}: ${JSON.stringify(combination)}`, async () =>
+                    await testFunction(combination, index))));
     }
 }
 
@@ -193,13 +112,10 @@ export class TestMatrix {
  * @param {object} overrides - Configuration overrides
  * @returns {object} Test configuration object
  */
-export const createTestConfig = (templateName, overrides = {}) => {
-    const template = TEST_CONFIG_TEMPLATES[templateName] || TEST_CONFIG_TEMPLATES.UNIT;
-    return {
-        ...template,
-        ...overrides
-    };
-};
+export const createTestConfig = (templateName, overrides = {}) => ({
+    ...(TEST_CONFIG_TEMPLATES[templateName] || TEST_CONFIG_TEMPLATES.UNIT),
+    ...overrides
+});
 
 /**
  * Creates a context based on predefined configuration
@@ -207,14 +123,10 @@ export const createTestConfig = (templateName, overrides = {}) => {
  * @param {object} overrides - Configuration overrides
  * @returns {object} Test context configuration
  */
-export const createContextConfig = (configName, overrides = {}) => {
-    const config = {
-        ...TEST_CONTEXT_CONFIGS[configName] || TEST_CONTEXT_CONFIGS.BASIC,
-        ...overrides
-    };
-
-    return config;
-};
+export const createContextConfig = (configName, overrides = {}) => ({
+    ...(TEST_CONTEXT_CONFIGS[configName] || TEST_CONTEXT_CONFIGS.BASIC),
+    ...overrides
+});
 
 
 // ============================================================================

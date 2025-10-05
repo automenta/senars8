@@ -1,31 +1,20 @@
 /**
- * Unified Validation System
- * Consolidated validation utilities combining assertion helpers and common validators
+ * Core Validation System
+ * Streamlined validation utilities for test assertions
  */
 
 import {expect} from 'vitest';
 
-/**
- * Validates that an object has required properties with expected values
- * @param {any} obj - Object to validate
- * @param {object} requirements - Object with property requirements
- * @param {string} context - Context for error reporting
- */
+// Core validation functions
 export const validateObject = (obj, requirements, context = 'object') => {
-    if (!obj) {
-        throw new Error(`${context} is null or undefined`);
-    }
+    if (!obj) throw new Error(`${context} is null or undefined`);
 
     for (const [key, expectedValue] of Object.entries(requirements)) {
-        if (typeof expectedValue === 'object' && expectedValue !== null && !Array.isArray(expectedValue)) {
-            // If the expected value is an object, validate its properties too
-            validateObject(obj[key], expectedValue, `${context}.${key}`);
-        } else {
-            expect(obj[key]).toBeDefined(`${context} should have property ${key}`);
-            if (expectedValue !== null && typeof expectedValue !== 'undefined') {
-                expect(obj[key]).toEqual(expectedValue, `${context}.${key} should equal expected value`);
-            }
-        }
+        typeof expectedValue === 'object' && expectedValue !== null && !Array.isArray(expectedValue)
+            ? validateObject(obj[key], expectedValue, `${context}.${key}`)
+            : (expect(obj[key]).toBeDefined(`${context} should have property ${key}`),
+               expectedValue !== null && typeof expectedValue !== 'undefined' &&
+               expect(obj[key]).toEqual(expectedValue, `${context}.${key} should equal expected value`));
     }
 };
 
@@ -36,21 +25,14 @@ export const validateObject = (obj, requirements, context = 'object') => {
  * @param {string} context - Context for error reporting
  */
 export const validateObjectWithValidators = (obj, validators, context = 'object') => {
-    if (!obj) {
-        throw new Error(`${context} is null or undefined`);
-    }
+    if (!obj) throw new Error(`${context} is null or undefined`);
 
     for (const [key, validator] of Object.entries(validators)) {
-        if (typeof validator === 'function') {
-            // Custom validation function
-            validator(obj[key], `${context}.${key}`);
-        } else if (typeof validator === 'object' && validator.hasOwnProperty('validator')) {
-            // Validator object with specific options
-            validator.validator(obj[key], `${context}.${key}`, validator.options);
-        } else {
-            // Direct value comparison
-            expect(obj[key]).toEqual(validator, `${context}.${key} validation failed`);
-        }
+        typeof validator === 'function'
+            ? validator(obj[key], `${context}.${key}`)
+            : validator?.hasOwnProperty('validator')
+                ? validator.validator(obj[key], `${context}.${key}`, validator.options)
+                : expect(obj[key]).toEqual(validator, `${context}.${key} validation failed`);
     }
 };
 
@@ -61,38 +43,26 @@ export const validateObjectWithValidators = (obj, validators, context = 'object'
  * @param {string} context - Context for error reporting
  */
 export const assertObjectSpec = (obj, specs, context = 'object') => {
-    if (!obj) {
-        throw new Error(`${context} is null or undefined`);
-    }
+    if (!obj) throw new Error(`${context} is null or undefined`);
 
     // Check required properties exist
-    if (specs.required) {
-        for (const prop of specs.required) {
-            expect(obj).toHaveProperty(prop, `${context} should have required property: ${prop}`);
-        }
-    }
+    specs.required?.forEach(prop =>
+        expect(obj).toHaveProperty(prop, `${context} should have required property: ${prop}`));
 
     // Check property values match expected values
-    if (specs.properties) {
-        for (const [prop, expected] of Object.entries(specs.properties)) {
-            if (expected === null) {
-                expect(obj[prop]).toBeDefined(`${context}.${prop} should be defined`);
-            } else if (typeof expected === 'function') {
-                // Custom validation function
-                expected(obj[prop]);
-            } else {
-                expect(obj[prop]).toEqual(expected, `${context}.${prop} should match expected value`);
-            }
-        }
-    }
+    specs.properties && Object.entries(specs.properties).forEach(([prop, expected]) => {
+        expected === null
+            ? expect(obj[prop]).toBeDefined(`${context}.${prop} should be defined`)
+            : typeof expected === 'function'
+                ? expected(obj[prop])
+                : expect(obj[prop]).toEqual(expected, `${context}.${prop} should match expected value`);
+    });
 
     // Check property types
-    if (specs.types) {
-        for (const [prop, expectedType] of Object.entries(specs.types)) {
-            const actualType = typeof obj[prop];
-            expect(actualType).toBe(expectedType, `${context}.${prop} should be of type ${expectedType}, got ${actualType}`);
-        }
-    }
+    specs.types && Object.entries(specs.types).forEach(([prop, expectedType]) => {
+        const actualType = typeof obj[prop];
+        expect(actualType).toBe(expectedType, `${context}.${prop} should be of type ${expectedType}, got ${actualType}`);
+    });
 };
 
 /**
@@ -105,9 +75,7 @@ export const validateObjectCollection = (objects, spec, context = 'collection') 
     expect(objects).toBeDefined(`${context} should be defined`);
     expect(Array.isArray(objects)).toBe(true, `${context} should be an array`);
 
-    for (let i = 0; i < objects.length; i++) {
-        assertObjectSpec(objects[i], spec, `${context}[${i}]`);
-    }
+    objects.forEach((obj, i) => assertObjectSpec(obj, spec, `${context}[${i}]`));
 };
 
 /**
@@ -151,51 +119,30 @@ export const validateTimedAsyncFunction = async (asyncFn, expectedResult, maxTim
  * @param {object} options - Validation options
  * @returns {Function} Validation function
  */
-export const createValidator = (options = {}) => {
-    return (value, propertyContext = 'value') => {
-        if (options.notNull && value === null) {
-            throw new Error(`${propertyContext} should not be null`);
-        }
-        if (options.defined && typeof value === 'undefined') {
-            throw new Error(`${propertyContext} should be defined`);
-        }
-        if (options.type && typeof value !== options.type) {
-            throw new Error(`${propertyContext} should be of type ${options.type}, got ${typeof value}`);
-        }
-        if (options.min !== undefined && value < options.min) {
-            throw new Error(`${propertyContext} should be >= ${options.min}, got ${value}`);
-        }
-        if (options.max !== undefined && value > options.max) {
-            throw new Error(`${propertyContext} should be <= ${options.max}, got ${value}`);
-        }
-        if (options.inArray && Array.isArray(options.inArray) && !options.inArray.includes(value)) {
-            throw new Error(`${propertyContext} should be one of [${options.inArray.join(', ')}], got ${value}`);
-        }
-    };
+export const createValidator = (options = {}) => (value, propertyContext = 'value') => {
+    options.notNull && value === null && (() => { throw new Error(`${propertyContext} should not be null`); })();
+    options.defined && typeof value === 'undefined' && (() => { throw new Error(`${propertyContext} should be defined`); })();
+    options.type && typeof value !== options.type && (() => { throw new Error(`${propertyContext} should be of type ${options.type}, got ${typeof value}`); })();
+    options.min !== undefined && value < options.min && (() => { throw new Error(`${propertyContext} should be >= ${options.min}, got ${value}`); })();
+    options.max !== undefined && value > options.max && (() => { throw new Error(`${propertyContext} should be <= ${options.max}, got ${value}`); })();
+    options.inArray && Array.isArray(options.inArray) && !options.inArray.includes(value) && (() => { throw new Error(`${propertyContext} should be one of [${options.inArray.join(', ')}], got ${value}`); })();
 };
 
 // Common validators that can be reused
 export const commonValidators = {
-    // Truth value validator
     truthValue: (freq, conf) => (value, context = 'truthValue') => {
         expect(value).toBeDefined(`${context} should be defined`);
         expect(value.frequency).toBeCloseTo(freq, 3, `${context}.frequency should be close to ${freq}`);
         expect(value.confidence).toBeCloseTo(conf, 3, `${context}.confidence should be close to ${conf}`);
     },
-
-    // Term key validator
     termKey: (expectedKey) => (value, context = 'termKey') => {
         expect(value).toBeDefined(`${context} should be defined`);
         expect(value).toBe(expectedKey, `${context} should equal ${expectedKey}`);
     },
-
-    // Punctuation validator
     punctuation: (expectedPunct) => (value, context = 'punctuation') => {
         expect(value).toBeDefined(`${context} should be defined`);
         expect(value).toBe(expectedPunct, `${context} should equal ${expectedPunct}`);
     },
-
-    // Priority validator
     priority: (expectedPriority) => (value, context = 'priority') => {
         expect(value).toBeDefined(`${context} should be defined`);
         expect(value).toBe(expectedPriority, `${context} should equal ${expectedPriority}`);
@@ -229,9 +176,7 @@ export const assertTask = (task, expectedTermKey, expectedPunctuation, expectedT
     expect(task).toBeDefined();
     expect(task.termKey).toBe(expectedTermKey);
     expect(task.punctuation).toBe(expectedPunctuation);
-    if (expectedTruth) {
-        expectTruthValue(task.state.truthValue, expectedTruth.frequency, expectedTruth.confidence);
-    }
+    expectedTruth && expectTruthValue(task.state.truthValue, expectedTruth.frequency, expectedTruth.confidence);
 };
 
 /**
@@ -242,11 +187,10 @@ export const assertTask = (task, expectedTermKey, expectedPunctuation, expectedT
 export const assertTaskWithSpec = (task, validationSpec) => {
     const {termKey, punctuation, truth} = validationSpec;
 
-    if (termKey !== undefined) commonValidators.termKey(termKey)(task.termKey, 'task.termKey');
-    if (punctuation !== undefined) commonValidators.punctuation(punctuation)(task.punctuation, 'task.punctuation');
-    if (truth && truth.frequency !== undefined && truth.confidence !== undefined) {
+    termKey !== undefined && commonValidators.termKey(termKey)(task.termKey, 'task.termKey');
+    punctuation !== undefined && commonValidators.punctuation(punctuation)(task.punctuation, 'task.punctuation');
+    truth?.frequency !== undefined && truth?.confidence !== undefined &&
         commonValidators.truthValue(truth.frequency, truth.confidence)(task.state.truthValue, 'task.state.truthValue');
-    }
 };
 
 /**
@@ -257,21 +201,16 @@ export const assertTaskWithSpec = (task, validationSpec) => {
  */
 export const expectToThrowError = async (fnOrPromise, expectedError, context = '') => {
     try {
-        // Handle both sync and async cases
         const result = fnOrPromise && typeof fnOrPromise.then === 'function' ? await fnOrPromise : fnOrPromise();
-
-        // If we reach this point, no error was thrown
         throw new Error(`Expected function/promise to throw/reject but it resolved instead. Context: ${context}`);
     } catch (error) {
-        if (typeof expectedError === 'string') {
-            expect(error.message).toContain(expectedError);
-        } else if (expectedError instanceof RegExp) {
-            expect(error.message).toMatch(expectedError);
-        } else if (typeof expectedError === 'function') {
-            expect(error).toBeInstanceOf(expectedError);
-        } else {
-            expect(error.message).toContain(String(expectedError));
-        }
+        typeof expectedError === 'string'
+            ? expect(error.message).toContain(expectedError)
+            : expectedError instanceof RegExp
+                ? expect(error.message).toMatch(expectedError)
+                : typeof expectedError === 'function'
+                    ? expect(error).toBeInstanceOf(expectedError)
+                    : expect(error.message).toContain(String(expectedError));
     }
 };
 
@@ -333,28 +272,18 @@ export const expectObject = (obj, options = {}, context = 'object') => {
     const {properties = {}, requiredKeys = [], optionalKeys = [], types = {}} = options;
 
     // Check required keys are present
-    requiredKeys.forEach(key => {
-        expect(obj).toHaveProperty(key);
-    });
+    requiredKeys.forEach(key => expect(obj).toHaveProperty(key));
 
     // Check properties match expected values
-    Object.keys(properties).forEach(key => {
-        expect(obj[key]).toEqual(properties[key]);
-    });
+    Object.keys(properties).forEach(key => expect(obj[key]).toEqual(properties[key]));
 
     // Check types if specified
-    Object.keys(types).forEach(key => {
-        if (obj[key] !== undefined) {
-            expect(typeof obj[key]).toBe(types[key]);
-        }
-    });
+    Object.keys(types).forEach(key =>
+        obj[key] !== undefined && expect(typeof obj[key]).toBe(types[key]));
 
     // Check optional keys are present if specified
-    optionalKeys.forEach(key => {
-        if (options.checkOptional !== false) {
-            expect(obj).toHaveProperty(key);
-        }
-    });
+    optionalKeys.forEach(key =>
+        options.checkOptional !== false && expect(obj).toHaveProperty(key));
 };
 
 
@@ -399,27 +328,17 @@ export const expectToCompleteWithinTime = async (fn, maxTimeMs, description = 'f
     const startTime = Date.now();
 
     try {
-        // Check if it's an async function
         const result = fn();
         if (result && typeof result.then === 'function') {
-            // It's a Promise
             const asyncResult = await result;
-            const endTime = Date.now();
-            const executionTime = endTime - startTime;
-            expect(executionTime).toBeLessThanOrEqual(maxTimeMs);
+            expect(Date.now() - startTime).toBeLessThanOrEqual(maxTimeMs);
             return asyncResult;
-        } else {
-            // It's synchronous
-            const endTime = Date.now();
-            const executionTime = endTime - startTime;
-            expect(executionTime).toBeLessThanOrEqual(maxTimeMs);
-            return result;
         }
+        expect(Date.now() - startTime).toBeLessThanOrEqual(maxTimeMs);
+        return result;
     } catch (error) {
-        const endTime = Date.now();
-        const executionTime = endTime - startTime;
-        expect(executionTime).toBeLessThanOrEqual(maxTimeMs);
-        throw error; // Re-throw the error after timing check
+        expect(Date.now() - startTime).toBeLessThanOrEqual(maxTimeMs);
+        throw error;
     }
 };
 
@@ -444,23 +363,9 @@ export const assertTerm = (term, expectedKey, expectedComplexity = null) => {
  * @param {Object} validationRules - Object with validation rules
  */
 export const validateTask = (task, validationRules) => {
-    if (validationRules.hasOwnProperty('termKey')) {
-        expect(task.termKey).toBe(validationRules.termKey);
-    }
-    if (validationRules.hasOwnProperty('punctuation')) {
-        expect(task.punctuation).toBe(validationRules.punctuation);
-    }
-    if (validationRules.truth) {
-        expectTruthValue(
-            task.state.truthValue,
-            validationRules.truth.frequency,
-            validationRules.truth.confidence
-        );
-    }
-    if (validationRules.priority !== undefined) {
-        expect(task.state.priority).toBe(validationRules.priority);
-    }
-    if (validationRules.hasOwnProperty('type')) {
-        expect(task.type).toBe(validationRules.type);
-    }
+    validationRules.hasOwnProperty('termKey') && expect(task.termKey).toBe(validationRules.termKey);
+    validationRules.hasOwnProperty('punctuation') && expect(task.punctuation).toBe(validationRules.punctuation);
+    validationRules.truth && expectTruthValue(task.state.truthValue, validationRules.truth.frequency, validationRules.truth.confidence);
+    validationRules.priority !== undefined && expect(task.state.priority).toBe(validationRules.priority);
+    validationRules.hasOwnProperty('type') && expect(task.type).toBe(validationRules.type);
 };

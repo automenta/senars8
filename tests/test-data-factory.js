@@ -8,20 +8,9 @@ import Task from '../core/core/Task.js';
 
 // Default configurations for test data
 const DEFAULT_CONFIGS = {
-    TASK: {
-        punctuation: '.',
-        truth: [1.0, 0.9],
-        priority: 0
-    },
-    TERM: {
-        complexity: 1,
-        embedding: [0.1, 0.2, 0.3]
-    },
-    SYSTEM: {
-        reasoner: {
-            strategy: 'BruteForce'
-        }
-    }
+    TASK: {punctuation: '.', truth: [1.0, 0.9], priority: 0},
+    TERM: {complexity: 1, embedding: [0.1, 0.2, 0.3]},
+    SYSTEM: {reasoner: {strategy: 'BruteForce'}}
 };
 
 /**
@@ -32,14 +21,9 @@ const DEFAULT_CONFIGS = {
  * @param {object} options - Additional options for the task
  * @returns {object} Task definition object
  */
-export const createTaskDef = (sentence, punctuation = DEFAULT_CONFIGS.TASK.punctuation, truth = DEFAULT_CONFIGS.TASK.truth, options = {}) => {
-    return {
-        sentence,
-        punctuation,
-        truth,
-        ...options
-    };
-};
+export const createTaskDef = (sentence, punctuation = DEFAULT_CONFIGS.TASK.punctuation, truth = DEFAULT_CONFIGS.TASK.truth, options = {}) => ({
+    sentence, punctuation, truth, ...options
+});
 
 /**
  * Creates a term definition object for testing
@@ -49,26 +33,19 @@ export const createTaskDef = (sentence, punctuation = DEFAULT_CONFIGS.TASK.punct
  * @param {object} options - Additional options for the term
  * @returns {object} Term definition object
  */
-export const createTermDef = (key, embedding = DEFAULT_CONFIGS.TERM.embedding, complexity = DEFAULT_CONFIGS.TERM.complexity, options = {}) => {
-    return {
-        key,
-        embedding,
-        complexity,
-        ...options
-    };
-};
+export const createTermDef = (key, embedding = DEFAULT_CONFIGS.TERM.embedding, complexity = DEFAULT_CONFIGS.TERM.complexity, options = {}) => ({
+    key, embedding, complexity, ...options
+});
 
 /**
  * Creates a system configuration object for testing
  * @param {object} overrides - Configuration overrides
  * @returns {object} System configuration object
  */
-export const createSystemConfig = (overrides = {}) => {
-    return {
-        ...DEFAULT_CONFIGS.SYSTEM,
-        ...overrides
-    };
-};
+export const createSystemConfig = (overrides = {}) => ({
+    ...DEFAULT_CONFIGS.SYSTEM,
+    ...overrides
+});
 
 /**
  * Creates a Task instance for testing
@@ -97,9 +74,8 @@ export const createTask = (termOrKey, punctuation = DEFAULT_CONFIGS.TASK.punctua
  * @param {object} options - Additional options for the term
  * @returns {Term} Term instance
  */
-export const createTerm = (key, embedding = DEFAULT_CONFIGS.TERM.embedding, complexity = DEFAULT_CONFIGS.TERM.complexity, options = {}) => {
-    return new Term(key, embedding, complexity, options);
-};
+export const createTerm = (key, embedding = DEFAULT_CONFIGS.TERM.embedding, complexity = DEFAULT_CONFIGS.TERM.complexity, options = {}) =>
+    new Term(key, embedding, complexity, options);
 
 /**
  * Creates a complex term structure for testing inheritance relationships
@@ -108,14 +84,12 @@ export const createTerm = (key, embedding = DEFAULT_CONFIGS.TERM.embedding, comp
  * @param {string} relation - The relation type (default: '-->')
  * @returns {object} Complex term structure
  */
-export const createComplexTerm = (subjectKey, predicateKey, relation = '-->') => {
-    return {
-        type: 'Inheritance',
-        subject: createTermDef(subjectKey),
-        predicate: createTermDef(predicateKey),
-        relation
-    };
-};
+export const createComplexTerm = (subjectKey, predicateKey, relation = '-->') => ({
+    type: 'Inheritance',
+    subject: createTermDef(subjectKey),
+    predicate: createTermDef(predicateKey),
+    relation
+});
 
 /**
  * Creates a test scenario template with predefined data
@@ -123,15 +97,9 @@ export const createComplexTerm = (subjectKey, predicateKey, relation = '-->') =>
  * @param {object} config - Scenario configuration
  * @returns {object} Scenario template
  */
-export const createScenario = (name, config) => {
-    return {
-        name,
-        config,
-        tasks: [],
-        terms: [],
-        ...config
-    };
-};
+export const createScenario = (name, config) => ({
+    name, config, tasks: [], terms: [], ...config
+});
 
 /**
  * Predefined test scenarios for common patterns

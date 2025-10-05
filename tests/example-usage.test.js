@@ -6,7 +6,7 @@ import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest';
 import {createTaskDef, createTermDef} from './test-data-factory.js';
 import {assertTask, expectTruthValue} from './common-validation-utils.js';
 import {createTestConfig} from './test-config.js';
-import {BaseReasonerTest, TaskProcessingScenario} from './test-base-classes.js';
+import {BaseReasonerTest, TaskProcessingScenario, ErrorTesting, PerformanceTesting} from './test-base-classes.js';
 import {EdgeCaseTester} from './coverage-quality-checks.js';
 import * as logger from '../core/utils/logger.js';
 import {createConsistentMock, MockValidator} from './mock-builders.js';
@@ -99,17 +99,13 @@ describe('Refactored Test Utilities - Example Usage', () => {
         const tester = new EdgeCaseTester();
         tester
             .addBoundaryTests(processValue, [0, 1, 10], (result, input) => {
-                if (input < 0) {
-                    expect(result).toBe(0); // Changed to expect 0 instead of error
-                } else {
-                    expect(result).toBe(input * 2);
-                }
+                input < 0
+                    ? expect(result).toBe(0)
+                    : expect(result).toBe(input * 2);
             })
             .addNullUndefinedTests(processValue, (result, input) => {
                 // Verify error handling for null/undefined
-                if (input === null || input === undefined) {
-                    expect(result.error).toBeDefined();
-                }
+                (input === null || input === undefined) && expect(result.error).toBeDefined();
             });
 
         await tester.runAll();
@@ -167,6 +163,31 @@ class ExampleReasonerTest extends BaseReasonerTest {
         return result;
     }
 }
+
+// Example of using the new utility objects
+describe('New Utility Objects Example', () => {
+    test('should demonstrate error testing utilities', () => {
+        const failingFunction = () => {
+            throw new Error('Test error');
+        };
+
+        // Using the new utility object instead of mixin
+        expect(() => ErrorTesting.testErrorHandling(failingFunction, 'Test error')).not.toThrow();
+    });
+
+    test('should demonstrate performance testing utilities', async () => {
+        const quickOperation = () => 'result';
+
+        // Using the new utility object instead of mixin
+        const {result, executionTime} = await PerformanceTesting.measurePerformance(
+            () => quickOperation(),
+            100 // max 100ms
+        );
+
+        expect(result).toBe('result');
+        expect(executionTime).toBeLessThan(100);
+    });
+});
 
 // Example of using the mock builders
 describe('Mock Builders Example', () => {
