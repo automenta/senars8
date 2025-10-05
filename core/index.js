@@ -23,9 +23,9 @@ export {
 
 // System components
 export {
- System, SystemFactory, Cycle, ActionExecutor, Perception, Planner,
- MetaCognition, Introspection, EventBus
-} from './utils/system.js';
+  System, SystemFactory, Cycle, ActionExecutor, Perception, Planner,
+  MetaCognition, Introspection, EventBus
+} from './system/index.js';
 
 // Error handling
 export {createUnifiedErrorHandler, agentErrorHandler} from './utils/errorHandler.js';

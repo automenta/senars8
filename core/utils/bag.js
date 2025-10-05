@@ -8,8 +8,10 @@ class Bag {
     }
 
     put(item, priority) {
-        // Early return for invalid priorities
-        if (typeof priority !== 'number' || priority <= 0) return;
+        // Handle invalid or zero priorities by assigning a default minimum priority
+        if (typeof priority !== 'number' || priority <= 0) {
+            priority = 0.001; // Small default priority to ensure tasks are included
+        }
 
         this.items.push({item, priority});
         this.isDirty = true;

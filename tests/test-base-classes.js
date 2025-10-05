@@ -1,279 +1,393 @@
 /**
- * Streamlined Test Base Classes
- * Simplified base classes for common test patterns
+ * High-Performance Test Framework
+ * Optimized composition-based test utilities with shared caching
  */
 
 import {expect, test} from 'vitest';
 import {createTask, createTerm} from './test-data-factory.js';
 import {expectToThrowError} from './common-validation-utils.js';
-import {
-    cleanupTestContext,
-    createMemoryContext,
-    createTaskProcessingContext,
-    createTestContext,
-    createTestSystem
-} from './test-setup.js';
+import {createContext, cleanupContext, createTestSystem} from './test-setup.js';
 
-/**
- * Base test class for all test categories
- */
-export class BaseTestClass {
-    constructor() {
-        this.context = {};
+// High-performance cache with size limits and LRU eviction
+class OptimizedCache {
+    constructor(maxSize = 1000) {
+        this.maxSize = maxSize;
+        this.cache = new Map();
+        this.accessOrder = [];
     }
 
-    async setup() {}
-    async teardown() {}
-
-    createTestContext(config = {}) {
-        return {
-            ...this.context,
-            config,
-            helpers: {createTask, createTerm}
-        };
+    get(key) {
+        if (this.cache.has(key)) {
+            // Update access order for LRU
+            this.accessOrder = this.accessOrder.filter(k => k !== key);
+            this.accessOrder.push(key);
+            return this.cache.get(key);
+        }
+        return undefined;
     }
+
+    set(key, value) {
+        if (this.cache.has(key)) {
+            this.accessOrder = this.accessOrder.filter(k => k !== key);
+        } else if (this.cache.size >= this.maxSize) {
+            // Evict least recently used
+            const lruKey = this.accessOrder.shift();
+            if (lruKey) this.cache.delete(lruKey);
+        }
+
+        this.cache.set(key, value);
+        this.accessOrder.push(key);
+    }
+
+    clear() {
+        this.cache.clear();
+        this.accessOrder = [];
+    }
+
+    get size() { return this.cache.size; }
+    get hitRate() { return this.hits / (this.hits + this.misses) || 0; }
 }
 
-/**
- * Test base class for reasoner-related tests
- */
-export class ReasonerTestBase extends BaseTestClass {
-    async setup(config = {}) {
-        const context = await createTaskProcessingContext({testData: {config}, ...config});
-        this.systemData = context.systemData;
-        this.context = context;
-    }
+// Global performance cache instance
+const globalCache = new OptimizedCache();
 
-    async teardown() {
-        await cleanupTestContext(this.context);
-    }
+// Optimized test context manager with shared caching
+const TestContextManager = {
+    cache: globalCache,
+    active: new Map(),
+    metrics: {creations: 0, cacheHits: 0},
 
-    async processTask(termOrKey, punctuation = '.', truthValue = null) {
-        const task = createTask(termOrKey, punctuation, truthValue);
-        return await this.context.processTask(task);
-    }
+    // Batch context creation for improved performance
+    createBatch: async (contexts) => {
+        const results = [];
+        const uncachedContexts = [];
 
-    assertInferenceResults(inputTasks, expectedOutput) {
-        expect(inputTasks).toBeDefined();
-        expect(expectedOutput).toBeDefined();
-    }
-}
+        // Check cache for all contexts first
+        for (let i = 0; i < contexts.length; i++) {
+            const {type, config = {}} = contexts[i];
+            const cacheKey = `context:${type}:${JSON.stringify(config)}`;
 
-/**
- * Test base class for memory-related tests
- */
-export class MemoryTestBase extends BaseTestClass {
-    async setup(config = {}) {
-        const context = await createMemoryContext({testData: {config}, ...config});
-        this.systemData = context.systemData;
-        this.context = context;
-    }
+            if (TestContextManager.cache.has && TestContextManager.cache.has(cacheKey)) {
+                TestContextManager.metrics.cacheHits++;
+                results[i] = TestContextManager.cache.get(cacheKey);
+            } else {
+                uncachedContexts.push({type, config, index: i, cacheKey});
+            }
+        }
 
-    async teardown() {
-        await cleanupTestContext(this.context);
-    }
+        // Create only uncached contexts
+        if (uncachedContexts.length > 0) {
+            for (const {type, config, index, cacheKey} of uncachedContexts) {
+                TestContextManager.metrics.creations++;
+                const context = await TestContextManager._createSingle(type, config);
+                if (TestContextManager.cache.set) TestContextManager.cache.set(cacheKey, context);
+                results[index] = context;
+            }
+        }
 
-    async addTasksToMemory(tasksData) {
-        return await this.context.addMultipleTasks(tasksData);
-    }
+        return results;
+    },
 
-    assertMemoryState(expectedState) {
-        this.context.assertMemoryState(expectedState);
-    }
-}
+    // Single context creation with caching
+    create: async (type, config = {}) => {
+        TestContextManager.metrics.creations++;
+        const cacheKey = `context:${type}:${JSON.stringify(config)}`;
 
-/**
- * Test base class for system-level tests
- */
-export class SystemTestBase extends BaseTestClass {
-    async setup(config = {}) {
-        const context = await createTestContext({testData: {config}, ...config});
-        this.systemData = context.systemData;
-        this.context = context;
-    }
+        if (TestContextManager.cache.has && TestContextManager.cache.has(cacheKey)) {
+            TestContextManager.metrics.cacheHits++;
+            return TestContextManager.cache.get(cacheKey);
+        }
 
-    async teardown() {
-        await cleanupTestContext(this.context);
-    }
+        const context = await TestContextManager._createSingle(type, config);
+        if (TestContextManager.cache.set) TestContextManager.cache.set(cacheKey, context);
+        return context;
+    },
 
-    verifyComponents(componentNames) {
-        componentNames.forEach(name => {
-            const component = this.context.container.get(name);
-            expect(component).toBeDefined();
-            expect(component).not.toBeNull();
-        });
-    }
-
-    async captureSystemEvents(action, expectedEvents) {
-        const capturedEvents = [];
-
-        expectedEvents.forEach(eventType =>
-            this.context.eventBus.on(eventType, (data) =>
-                capturedEvents.push({type: eventType, data})));
-
-        const result = await action();
-        expect(capturedEvents.length).toBeGreaterThanOrEqual(expectedEvents.length);
-
-        return {result, capturedEvents};
-    }
-}
-
-/**
- * Test base class for configuration-related tests
- */
-export class ConfigTestBase extends BaseTestClass {
-    async setup(config = {}) {
-        const context = await createTestContext({testData: {config}, ...config});
-        this.systemData = context.systemData;
-        this.configManager = context.container?.get('configManager') || null;
-        this.context = {...context, configManager: this.configManager, config};
-    }
-
-    testConfigValidation(testConfig, shouldPass = true) {
-        if (!this.configManager) throw new Error('ConfigManager not available in context');
-
-        shouldPass
-            ? (() => { try { this.configManager.validate(testConfig); } catch (error) { throw new Error(`Expected config validation to pass but failed with: ${error.message}`); } })()
-            : expect(() => this.configManager.validate(testConfig)).toThrow();
-    }
-
-    testConfigType(key, value, expectedType) {
-        if (!this.configManager) throw new Error('ConfigManager not available in context');
-
-        const testConfig = {[key]: value};
-
-        switch (expectedType.toLowerCase()) {
-            case 'string':
-                typeof value !== 'string'
-                    ? expect(() => this.configManager.validate(testConfig)).toThrow()
-                    : expect(() => this.configManager.validate(testConfig)).not.toThrow();
+    // Internal context creation method
+    _createSingle: async (type, config = {}) => {
+        let context;
+        switch (type) {
+            case 'reasoner':
+                context = await createContext({
+                    withSystem: true, withMemory: true, withReasoner: true, ...config
+                });
                 break;
-            case 'number':
-                typeof value !== 'number'
-                    ? expect(() => this.configManager.validate(testConfig)).toThrow()
-                    : expect(() => this.configManager.validate(testConfig)).not.toThrow();
+            case 'memory':
+                context = await createContext({
+                    withSystem: true, withMemory: true, ...config
+                });
                 break;
-            case 'boolean':
-                typeof value !== 'boolean'
-                    ? expect(() => this.configManager.validate(testConfig)).toThrow()
-                    : expect(() => this.configManager.validate(testConfig)).not.toThrow();
+            case 'system':
+                context = await createContext({
+                    withSystem: true, ...config
+                });
                 break;
-            case 'object':
-                typeof value !== 'object'
-                    ? expect(() => this.configManager.validate(testConfig)).toThrow()
-                    : expect(() => this.configManager.validate(testConfig)).not.toThrow();
+            case 'config':
+                context = await createContext({
+                    withSystem: true, ...config
+                });
+                context.configManager = context.container?.get('configManager');
                 break;
             default:
-                throw new Error(`Unknown expected type: ${expectedType}`);
+                context = await createContext(config);
         }
-    }
-}
+        return context;
+    },
 
-/**
- * Test base class for utility function tests
- */
-export class UtilsTestBase extends BaseTestClass {
-    async setup(config = {}) {
-        this.context = {config};
-    }
+    register: (name, context) => TestContextManager.active.set(name, context),
 
-    testPureFunction(fn, testCases) {
-        testCases.forEach(({input, expected, description}) => {
-            const testName = description || `with input ${JSON.stringify(input)}`;
-            test(testName, () => {
-                const result = Array.isArray(input) ? fn(...input) : fn(input);
-                expect(result).toEqual(expected);
+    get: (name) => TestContextManager.active.get(name),
+
+    cleanup: async (name) => {
+        const context = TestContextManager.active.get(name);
+        if (context) {
+            await cleanupContext(context);
+            TestContextManager.active.delete(name);
+        }
+    },
+
+    // Batch cleanup for better performance
+    cleanupBatch: async (names) => {
+        const cleanupPromises = names.map(name => TestContextManager.cleanup(name));
+        await Promise.all(cleanupPromises);
+    },
+
+    reset: async () => {
+        const activeNames = Array.from(TestContextManager.active.keys());
+        await TestContextManager.cleanupBatch(activeNames);
+        TestContextManager.active.clear();
+        TestContextManager.metrics = {creations: 0, cacheHits: 0};
+    },
+
+    getStats: () => ({
+        ...TestContextManager.metrics,
+        activeContexts: TestContextManager.active.size,
+        hitRate: TestContextManager.metrics.creations > 0 ?
+            (TestContextManager.metrics.cacheHits / TestContextManager.metrics.creations) * 100 : 0,
+        cacheSize: TestContextManager.cache.size || 0
+    })
+};
+
+// Unified test framework using composition
+export const TestFramework = {
+    // Test lifecycle management
+    lifecycle: {
+        async setup(type, config = {}) {
+            const context = await TestContextManager.create(type, config);
+            const contextName = `test_${Date.now()}_${Math.random()}`;
+            TestContextManager.register(contextName, context);
+            return {context, contextName};
+        },
+
+        async teardown(contextName) {
+            await TestContextManager.cleanup(contextName);
+        }
+    },
+
+    // Test execution helpers
+    execution: {
+        async withContext(type, config, testFn) {
+            const {context, contextName} = await TestFramework.lifecycle.setup(type, config);
+            try {
+                return await testFn(context);
+            } finally {
+                await TestFramework.lifecycle.teardown(contextName);
+            }
+        },
+
+        async withReasoner(config, testFn) {
+            return TestFramework.execution.withContext('reasoner', config, testFn);
+        },
+
+        async withMemory(config, testFn) {
+            return TestFramework.execution.withContext('memory', config, testFn);
+        },
+
+        async withSystem(config, testFn) {
+            return TestFramework.execution.withContext('system', config, testFn);
+        }
+    },
+
+    // Assertion helpers
+    assertions: {
+        expectTask: (task, expectedTermKey, expectedPunctuation, expectedTruth = null) => {
+            expect(task).toBeDefined('Task is required');
+            expect(task.termKey).toBe(expectedTermKey, 'Task termKey mismatch');
+            expect(task.punctuation).toBe(expectedPunctuation, 'Task punctuation mismatch');
+            expectedTruth && expect(task.state.truthValue).toEqual(expectedTruth, 'Task truth value mismatch');
+        },
+
+        expectTerm: (term, expectedKey, expectedComplexity = null) => {
+            expect(term).toBeDefined('Term is required');
+            expect(term.key).toBe(expectedKey, 'Term key mismatch');
+            expectedComplexity !== null && expect(term.complexity).toBe(expectedComplexity, 'Term complexity mismatch');
+        },
+
+        expectInferenceResults: (inputTasks, expectedOutput) => {
+            expect(inputTasks).toBeDefined('Input tasks are required');
+            expect(expectedOutput).toBeDefined('Expected output is required');
+        },
+
+        expectMemoryState: (memory, expectedState) => {
+            if (expectedState.size !== undefined) {
+                expect(memory.size).toBe(expectedState.size, 'Memory size mismatch');
+            }
+            if (expectedState.contains) {
+                expectedState.contains.forEach(termKey =>
+                    expect(memory.has(termKey)).toBe(true, `Memory should contain: ${termKey}`));
+            }
+        },
+
+        expectComponents: (container, componentNames) => {
+            componentNames.forEach(name => {
+                const component = container.get(name);
+                expect(component).toBeDefined(`${name} component is required`);
+                expect(component).not.toBeNull(`${name} component should not be null`);
             });
+        }
+    },
+
+    // Error testing
+    errors: {
+        testErrorHandling: (operation, expectedError) => expectToThrowError(operation, expectedError),
+
+        async testAsyncErrorHandling(asyncOperation, expectedError) {
+            try {
+                await asyncOperation();
+                expect(false).toBe(true, 'Expected operation to throw');
+            } catch (error) {
+                typeof expectedError === 'string'
+                    ? expect(error.message).toContain(expectedError)
+                    : expectedError instanceof RegExp && expect(error.message).toMatch(expectedError);
+            }
+        }
+    },
+
+    // Performance testing
+    performance: {
+        async measurePerformance(operation, maxTimeMs) {
+            const startTime = performance.now();
+            const result = await operation();
+            const executionTime = performance.now() - startTime;
+            expect(executionTime).toBeLessThanOrEqual(maxTimeMs, `Operation exceeded ${maxTimeMs}ms`);
+            return {result, executionTime};
+        },
+
+        async measurePerformanceMultiple(operation, iterations, maxAverageTimeMs) {
+            const times = [];
+            for (let i = 0; i < iterations; i++) {
+                const startTime = performance.now();
+                await operation();
+                times.push(performance.now() - startTime);
+            }
+            const averageTime = times.reduce((a, b) => a + b, 0) / times.length;
+            expect(averageTime).toBeLessThanOrEqual(maxAverageTimeMs, `Average time exceeded ${maxAverageTimeMs}ms`);
+            return {times, averageTime};
+        }
+    },
+
+    // Data-driven testing
+    dataDriven: {
+        runDataDrivenTest: (testName, dataSets, testFn) => {
+            dataSets.forEach((dataSet, index) =>
+                test(`${testName} - data set ${index + 1}`, async () => await testFn(dataSet, index)));
+        },
+
+        runParameterizedTest: (baseName, parameters, testFn) => {
+            parameters.forEach((params, index) =>
+                test(`${baseName} with parameters ${index + 1}`, async () => await testFn(params, index)));
+        }
+    },
+
+    // Configuration testing
+    config: {
+        async testConfigValidation(configManager, testConfig, shouldPass = true) {
+            if (!configManager) throw new Error('ConfigManager not available');
+
+            if (shouldPass) {
+                expect(() => configManager.validate(testConfig)).not.toThrow();
+            } else {
+                expect(() => configManager.validate(testConfig)).toThrow();
+            }
+        },
+
+        testConfigType(configManager, key, value, expectedType) {
+            if (!configManager) throw new Error('ConfigManager not available');
+
+            const testConfig = {[key]: value};
+
+            switch (expectedType.toLowerCase()) {
+                case 'string':
+                    expect(typeof value).toBe('string', `Expected string for ${key}`);
+                    break;
+                case 'number':
+                    expect(typeof value).toBe('number', `Expected number for ${key}`);
+                    break;
+                case 'boolean':
+                    expect(typeof value).toBe('boolean', `Expected boolean for ${key}`);
+                    break;
+                case 'object':
+                    expect(typeof value).toBe('object', `Expected object for ${key}`);
+                    break;
+                default:
+                    throw new Error(`Unknown expected type: ${expectedType}`);
+            }
+        }
+    }
+};
+
+// Utility functions for common test patterns
+export const createTestContext = (type, config = {}) =>
+    TestContextManager.create(type, config);
+
+export const withTestContext = (type, config, testFn) =>
+    TestFramework.execution.withContext(type, config, testFn);
+
+export const withReasoner = (config, testFn) =>
+    TestFramework.execution.withReasoner(config, testFn);
+
+export const withMemory = (config, testFn) =>
+    TestFramework.execution.withMemory(config, testFn);
+
+export const withSystem = (config, testFn) =>
+    TestFramework.execution.withSystem(config, testFn);
+
+// Pure function testing utility
+export const testPureFunction = (fn, testCases) => {
+    testCases.forEach(({input, expected, description}) => {
+        const testName = description || `with input ${JSON.stringify(input)}`;
+        test(testName, () => {
+            const result = Array.isArray(input) ? fn(...input) : fn(input);
+            expect(result).toEqual(expected);
         });
-    }
+    });
+};
 
-    async testFunctionWithSideEffects(fn, input, validator) {
-        const result = Array.isArray(input) ? await fn(...input) : await fn(input);
-        await validator(result);
-        return result;
-    }
-}
+// Function with side effects testing utility
+export const testFunctionWithSideEffects = async (fn, input, validator) => {
+    const result = Array.isArray(input) ? await fn(...input) : await fn(input);
+    await validator(result);
+    return result;
+};
 
-/**
- * Error testing utilities
- */
-export const ErrorTestingUtils = {
-    testErrorHandling: (operation, expectedError) => expectToThrowError(operation, expectedError),
-
-    testAsyncErrorHandling: async (asyncOperation, expectedError) => {
-        try {
-            await asyncOperation();
-            expect(false).toBe(true);
-        } catch (error) {
-            typeof expectedError === 'string'
-                ? expect(error.message).toContain(expectedError)
-                : expectedError instanceof RegExp && expect(error.message).toMatch(expectedError);
-        }
+// Comprehensive test runner
+export const runComprehensiveTest = async (testFn, config = {}) => {
+    const startTime = performance.now();
+    try {
+        const result = await testFn();
+        const duration = performance.now() - startTime;
+        console.log(`Test completed in ${duration.toFixed(2)}ms`);
+        return {result, duration};
+    } catch (error) {
+        const duration = performance.now() - startTime;
+        console.log(`Test failed after ${duration.toFixed(2)}ms: ${error.message}`);
+        throw error;
     }
 };
 
-/**
- * Performance testing utilities
- */
-export const PerformanceTestingUtils = {
-    measurePerformance: async (operation, maxTimeMs) => {
-        const startTime = Date.now();
-        const result = await operation();
-        const executionTime = Date.now() - startTime;
-        expect(executionTime).toBeLessThanOrEqual(maxTimeMs);
-        return {result, executionTime};
-    },
-
-    measurePerformanceMultiple: async (operation, iterations, maxAverageTimeMs) => {
-        const times = [];
-        for (let i = 0; i < iterations; i++) {
-            const startTime = Date.now();
-            await operation();
-            times.push(Date.now() - startTime);
-        }
-        const averageTime = times.reduce((a, b) => a + b, 0) / times.length;
-        expect(averageTime).toBeLessThanOrEqual(maxAverageTimeMs);
-        return {times, averageTime};
-    }
-};
-
-/**
- * Data-driven testing utilities
- */
-export const DataDrivenTestingUtils = {
-    runDataDrivenTest: (testName, dataSets, testFn) => {
-        dataSets.forEach((dataSet, index) =>
-            test(`${testName} - data set ${index + 1}`, async () => await testFn(dataSet, index)));
-    },
-
-    runParameterizedTest: (baseName, parameters, testFn) => {
-        parameters.forEach((params, index) =>
-            test(`${baseName} with parameters ${index + 1}`, async () => await testFn(params, index)));
-    }
-};
-
-/**
- * Comprehensive test utilities combining all testing capabilities
- */
-export const ComprehensiveTestUtils = {
-    ...ErrorTestingUtils,
-    ...PerformanceTestingUtils,
-    ...DataDrivenTestingUtils,
-
-    async runComprehensiveTest(testFn, config = {}) {
-        const startTime = Date.now();
-        try {
-            const result = await testFn();
-            const duration = Date.now() - startTime;
-            console.log(`Test completed in ${duration}ms`);
-            return {result, duration};
-        } catch (error) {
-            const duration = Date.now() - startTime;
-            console.log(`Test failed after ${duration}ms: ${error.message}`);
-            throw error;
-        }
-    }
-};
+// Performance monitoring
+export const getTestStats = () => TestContextManager.getStats();
+export const resetTestCache = async () => await TestContextManager.reset();
 
 // ============================================================================
 // SCENARIO-BASED TESTING - Consolidated from reusable-test-scenarios.js
@@ -602,14 +716,137 @@ export const InferenceScenario = SCENARIO_BUILDERS.inference;
 export const ErrorHandlingScenario = SCENARIO_BUILDERS.errorHandling;
 export const PerformanceScenario = SCENARIO_BUILDERS.performance;
 
-// Export commonly used base classes as shortcuts
-export const BaseReasonerTest = ReasonerTestBase;
-export const BaseMemoryTest = MemoryTestBase;
-export const BaseSystemTest = SystemTestBase;
-export const BaseConfigTest = ConfigTestBase;
-export const BaseUtilsTest = UtilsTestBase;
+// Legacy class-based interface for backward compatibility
+export class LegacyBaseTestClass {
+    constructor() {
+        this.context = {};
+    }
+
+    async setup(config = {}) {
+        const {context} = await TestFramework.lifecycle.setup('basic', config);
+        this.context = context;
+        return context;
+    }
+
+    async teardown() {
+        if (this.contextName) {
+            await TestFramework.lifecycle.teardown(this.contextName);
+        }
+    }
+
+    createTestContext(config = {}) {
+        return {
+            ...this.context,
+            config,
+            helpers: {createTask, createTerm}
+        };
+    }
+}
+
+export class LegacyReasonerTestBase extends LegacyBaseTestClass {
+    async setup(config = {}) {
+        const {context, contextName} = await TestFramework.lifecycle.setup('reasoner', config);
+        this.context = context;
+        this.contextName = contextName;
+        return context;
+    }
+
+    async processTask(termOrKey, punctuation = '.', truthValue = null) {
+        const task = createTask(termOrKey, punctuation, truthValue);
+        return await this.context.processTask(task);
+    }
+
+    assertInferenceResults(inputTasks, expectedOutput) {
+        TestFramework.assertions.expectInferenceResults(inputTasks, expectedOutput);
+    }
+}
+
+export class LegacyMemoryTestBase extends LegacyBaseTestClass {
+    async setup(config = {}) {
+        const {context, contextName} = await TestFramework.lifecycle.setup('memory', config);
+        this.context = context;
+        this.contextName = contextName;
+        return context;
+    }
+
+    async addTasksToMemory(tasksData) {
+        return await this.context.addMultipleTasks(tasksData);
+    }
+
+    assertMemoryState(expectedState) {
+        TestFramework.assertions.expectMemoryState(this.context.memory, expectedState);
+    }
+}
+
+export class LegacySystemTestBase extends LegacyBaseTestClass {
+    async setup(config = {}) {
+        const {context, contextName} = await TestFramework.lifecycle.setup('system', config);
+        this.context = context;
+        this.contextName = contextName;
+        return context;
+    }
+
+    verifyComponents(componentNames) {
+        TestFramework.assertions.expectComponents(this.context.container, componentNames);
+    }
+
+    async captureSystemEvents(action, expectedEvents) {
+        const capturedEvents = [];
+
+        expectedEvents.forEach(eventType =>
+            this.context.eventBus.on(eventType, (data) =>
+                capturedEvents.push({type: eventType, data})));
+
+        const result = await action();
+        expect(capturedEvents.length).toBeGreaterThanOrEqual(expectedEvents.length);
+
+        return {result, capturedEvents};
+    }
+}
+
+export class LegacyConfigTestBase extends LegacyBaseTestClass {
+    async setup(config = {}) {
+        const {context, contextName} = await TestFramework.lifecycle.setup('config', config);
+        this.context = context;
+        this.contextName = contextName;
+        this.configManager = context.configManager;
+        return context;
+    }
+
+    testConfigValidation(testConfig, shouldPass = true) {
+        return TestFramework.config.testConfigValidation(this.configManager, testConfig, shouldPass);
+    }
+
+    testConfigType(key, value, expectedType) {
+        return TestFramework.config.testConfigType(this.configManager, key, value, expectedType);
+    }
+}
+
+export class LegacyUtilsTestBase extends LegacyBaseTestClass {
+    async setup(config = {}) {
+        const {context, contextName} = await TestFramework.lifecycle.setup('basic', config);
+        this.context = context;
+        this.contextName = contextName;
+        return context;
+    }
+
+    testPureFunction(fn, testCases) {
+        testPureFunction(fn, testCases);
+    }
+
+    async testFunctionWithSideEffects(fn, input, validator) {
+        return await testFunctionWithSideEffects(fn, input, validator);
+    }
+}
+
+// Update exports to use legacy classes for backward compatibility
+export const BaseReasonerTest = LegacyReasonerTestBase;
+export const BaseMemoryTest = LegacyMemoryTestBase;
+export const BaseSystemTest = LegacySystemTestBase;
+export const BaseConfigTest = LegacyConfigTestBase;
+export const BaseUtilsTest = LegacyUtilsTestBase;
 
 // Export utility objects for mixins
-export const ErrorTesting = ErrorTestingUtils;
-export const PerformanceTesting = PerformanceTestingUtils;
-export const DataDrivenTesting = DataDrivenTestingUtils;
+export const ErrorTesting = TestFramework.errors;
+export const PerformanceTesting = TestFramework.performance;
+export const DataDrivenTesting = TestFramework.dataDriven;

@@ -1,177 +1,312 @@
 /**
- * Core Validation System
- * Streamlined validation utilities for test assertions
+ * High-Performance Validation System
+ * Consolidated validation utilities with optimized caching and batch operations
  */
 
 import {expect} from 'vitest';
 
-// Core validation functions
-export const validateObject = (obj, requirements, context = 'object') => {
-    if (!obj) throw new Error(`${context} is null or undefined`);
-
-    for (const [key, expectedValue] of Object.entries(requirements)) {
-        typeof expectedValue === 'object' && expectedValue !== null && !Array.isArray(expectedValue)
-            ? validateObject(obj[key], expectedValue, `${context}.${key}`)
-            : (expect(obj[key]).toBeDefined(`${context} should have property ${key}`),
-               expectedValue !== null && typeof expectedValue !== 'undefined' &&
-               expect(obj[key]).toEqual(expectedValue, `${context}.${key} should equal expected value`));
+// High-performance cache with size limits and LRU eviction
+class OptimizedCache {
+    constructor(maxSize = 1000) {
+        this.maxSize = maxSize;
+        this.cache = new Map();
+        this.accessOrder = [];
     }
+
+    get(key) {
+        if (this.cache.has(key)) {
+            // Update access order for LRU
+            this.accessOrder = this.accessOrder.filter(k => k !== key);
+            this.accessOrder.push(key);
+            return this.cache.get(key);
+        }
+        return undefined;
+    }
+
+    set(key, value) {
+        if (this.cache.has(key)) {
+            this.accessOrder = this.accessOrder.filter(k => k !== key);
+        } else if (this.cache.size >= this.maxSize) {
+            // Evict least recently used
+            const lruKey = this.accessOrder.shift();
+            if (lruKey) this.cache.delete(lruKey);
+        }
+
+        this.cache.set(key, value);
+        this.accessOrder.push(key);
+    }
+
+    clear() {
+        this.cache.clear();
+        this.accessOrder = [];
+    }
+
+    get size() { return this.cache.size; }
+    get hitRate() { return this.hits / (this.hits + this.misses) || 0; }
+}
+
+// Global performance cache instance
+const globalCache = new OptimizedCache();
+
+// Optimized validation engine with batch processing
+const ValidationEngine = {
+    cache: globalCache,
+    rules: new Map(),
+    metrics: {validations: 0, cacheHits: 0, batches: 0},
+
+    register: (name, rule) => ValidationEngine.rules.set(name, rule),
+
+    // Batch validation for improved performance
+    validateBatch: (targets, ruleName, context = 'validation') => {
+        ValidationEngine.metrics.batches++;
+        const results = [];
+        const uncachedTargets = [];
+
+        // Check cache for all targets first
+        for (let i = 0; i < targets.length; i++) {
+            const target = targets[i];
+            const cacheKey = `${ruleName}:${JSON.stringify(target)}`;
+
+            if (ValidationEngine.cache.has(cacheKey)) {
+                ValidationEngine.metrics.cacheHits++;
+                results[i] = ValidationEngine.cache.get(cacheKey);
+            } else {
+                uncachedTargets.push({target, index: i, cacheKey});
+            }
+        }
+
+        // Process only uncached targets
+        if (uncachedTargets.length > 0) {
+            const rule = ValidationEngine.rules.get(ruleName);
+            if (!rule) throw new Error(`Unknown validation rule: ${ruleName}`);
+
+            for (const {target, index, cacheKey} of uncachedTargets) {
+                ValidationEngine.metrics.validations++;
+                const result = rule(target, `${context}[${index}]`);
+                ValidationEngine.cache.set(cacheKey, result);
+                results[index] = result;
+            }
+        }
+
+        return results;
+    },
+
+    // Single validation with caching
+    validate: (target, ruleName, context = 'validation') => {
+        const cacheKey = `${ruleName}:${JSON.stringify(target)}`;
+        ValidationEngine.metrics.validations++;
+
+        if (ValidationEngine.cache.has(cacheKey)) {
+            ValidationEngine.metrics.cacheHits++;
+            return ValidationEngine.cache.get(cacheKey);
+        }
+
+        const rule = ValidationEngine.rules.get(ruleName);
+        if (!rule) throw new Error(`Unknown validation rule: ${ruleName}`);
+
+        const result = rule(target, context);
+        ValidationEngine.cache.set(cacheKey, result);
+        return result;
+    },
+
+    reset: () => {
+        ValidationEngine.cache.clear();
+        ValidationEngine.metrics = {validations: 0, cacheHits: 0, batches: 0};
+    },
+
+    getStats: () => ({
+        ...ValidationEngine.metrics,
+        hitRate: ValidationEngine.metrics.validations > 0 ?
+            ValidationEngine.metrics.cacheHits / ValidationEngine.metrics.validations : 0,
+        cacheSize: ValidationEngine.cache.size
+    })
 };
 
-/**
- * Validates object properties with flexible comparison
- * @param {any} obj - Object to validate
- * @param {object} validators - Object with validation functions
- * @param {string} context - Context for error reporting
- */
-export const validateObjectWithValidators = (obj, validators, context = 'object') => {
+// Optimized validation rules with batch processing
+ValidationEngine.register('object', (obj, context) => {
+    if (!obj) throw new Error(`${context} is null or undefined`);
+    return obj;
+});
+
+ValidationEngine.register('objectSpec', (obj, context, spec) => {
     if (!obj) throw new Error(`${context} is null or undefined`);
 
-    for (const [key, validator] of Object.entries(validators)) {
-        typeof validator === 'function'
-            ? validator(obj[key], `${context}.${key}`)
-            : validator?.hasOwnProperty('validator')
-                ? validator.validator(obj[key], `${context}.${key}`, validator.options)
-                : expect(obj[key]).toEqual(validator, `${context}.${key} validation failed`);
-    }
-};
+    // Batch property validations for performance
+    const validations = [];
 
-/**
- * Generic assertion for object properties with common patterns
- * @param {any} obj - Object to validate
- * @param {object} specs - Specification object with property expectations
- * @param {string} context - Context for error reporting
- */
-export const assertObjectSpec = (obj, specs, context = 'object') => {
-    if (!obj) throw new Error(`${context} is null or undefined`);
+    // Required properties - batch check
+    spec.required?.forEach(prop =>
+        validations.push(() => expect(obj).toHaveProperty(prop, `${context} missing required property: ${prop}`)));
 
-    // Check required properties exist
-    specs.required?.forEach(prop =>
-        expect(obj).toHaveProperty(prop, `${context} should have required property: ${prop}`));
-
-    // Check property values match expected values
-    specs.properties && Object.entries(specs.properties).forEach(([prop, expected]) => {
-        expected === null
-            ? expect(obj[prop]).toBeDefined(`${context}.${prop} should be defined`)
-            : typeof expected === 'function'
-                ? expected(obj[prop])
-                : expect(obj[prop]).toEqual(expected, `${context}.${prop} should match expected value`);
+    // Property values - optimized batch processing
+    spec.properties && Object.entries(spec.properties).forEach(([prop, expected]) => {
+        validations.push(() => {
+            if (expected === null) {
+                expect(obj[prop]).toBeDefined(`${context}.${prop} should be defined`);
+            } else if (typeof expected === 'function') {
+                expected(obj[prop]);
+            } else {
+                expect(obj[prop]).toEqual(expected, `${context}.${prop} mismatch`);
+            }
+        });
     });
 
-    // Check property types
-    specs.types && Object.entries(specs.types).forEach(([prop, expectedType]) => {
-        const actualType = typeof obj[prop];
-        expect(actualType).toBe(expectedType, `${context}.${prop} should be of type ${expectedType}, got ${actualType}`);
+    // Property types - batch check
+    spec.types && Object.entries(spec.types).forEach(([prop, expectedType]) => {
+        obj[prop] !== undefined && validations.push(() =>
+            expect(typeof obj[prop]).toBe(expectedType, `${context}.${prop} type mismatch`));
     });
-};
 
-/**
- * Validates a collection of objects against a specification
- * @param {Array} objects - Array of objects to validate
- * @param {object} spec - Specification to validate against
- * @param {string} context - Context for error reporting
- */
-export const validateObjectCollection = (objects, spec, context = 'collection') => {
+    // Execute all validations
+    validations.forEach(validate => validate());
+
+    return obj;
+});
+
+ValidationEngine.register('collection', (objects, context, spec) => {
     expect(objects).toBeDefined(`${context} should be defined`);
     expect(Array.isArray(objects)).toBe(true, `${context} should be an array`);
 
-    objects.forEach((obj, i) => assertObjectSpec(obj, spec, `${context}[${i}]`));
-};
+    // Use batch validation for collections
+    return ValidationEngine.validateBatch(objects, 'objectSpec', `${context}[i]`, spec);
+});
 
-/**
- * Validates that a function returns expected result within timing constraints
- * @param {Function} fn - Function to validate
- * @param {any} expectedResult - Expected result
- * @param {number} maxTimeMs - Maximum allowed execution time
- * @param {string} context - Context for error reporting
- */
-export const validateTimedFunction = (fn, expectedResult, maxTimeMs, context = 'function') => {
-    const startTime = Date.now();
-    const result = fn();
-    const executionTime = Date.now() - startTime;
+ValidationEngine.register('timed', async (fn, context, maxTimeMs, expectedResult) => {
+    const startTime = performance.now();
+    const result = await (typeof fn === 'function' ? fn() : fn);
+    const executionTime = performance.now() - startTime;
 
-    expect(executionTime).toBeLessThanOrEqual(maxTimeMs, `${context} should execute within ${maxTimeMs}ms, took ${executionTime}ms`);
-    expect(result).toEqual(expectedResult, `${context} should return expected result`);
+    expect(executionTime).toBeLessThanOrEqual(maxTimeMs, `${context} exceeded ${maxTimeMs}ms: ${executionTime}ms`);
+    expectedResult !== undefined && expect(result).toEqual(expectedResult, `${context} result mismatch`);
 
     return {result, executionTime};
+});
+
+// Unified validation API with performance optimizations
+export const validate = (target, rule, context = 'validation', ...args) =>
+    ValidationEngine.validate(target, rule, context, ...args);
+
+// Optimized batch validation functions
+export const validateBatch = (targets, rule, context = 'validation', ...args) =>
+    ValidationEngine.validateBatch(targets, rule, context, ...args);
+
+// High-performance validators using batch processing where possible
+export const validateObject = (obj, requirements, context = 'object') => {
+    validate(obj, 'object', context);
+
+    // Batch all validations for better performance
+    const validations = Object.entries(requirements).flatMap(([key, expected]) => {
+        if (typeof expected === 'object' && expected !== null && !Array.isArray(expected)) {
+            return [
+                () => validate(obj[key], 'object', `${context}.${key}`),
+                ...Object.entries(expected).map(([subKey, subExpected]) =>
+                    () => expect(obj[key][subKey]).toEqual(subExpected, `${context}.${key}.${subKey} mismatch`))
+            ];
+        }
+        return () => expect(obj[key]).toEqual(expected, `${context}.${key} mismatch`);
+    });
+
+    validations.forEach(validate => validate());
+    return true;
 };
 
-/**
- * Validates that an async function returns expected result within timing constraints
- * @param {Function} asyncFn - Async function to validate
- * @param {any} expectedResult - Expected result
- * @param {number} maxTimeMs - Maximum allowed execution time
- * @param {string} context - Context for error reporting
- */
-export const validateTimedAsyncFunction = async (asyncFn, expectedResult, maxTimeMs, context = 'async function') => {
-    const startTime = Date.now();
-    const result = await asyncFn();
-    const executionTime = Date.now() - startTime;
+export const validateObjectSpec = (obj, spec, context = 'object') =>
+    validate(obj, 'objectSpec', context, spec);
 
-    expect(executionTime).toBeLessThanOrEqual(maxTimeMs, `${context} should execute within ${maxTimeMs}ms, took ${executionTime}ms`);
-    expect(result).toEqual(expectedResult, `${context} should return expected result`);
+export const validateCollection = (objects, spec, context = 'collection') =>
+    validate(objects, 'collection', context, spec);
 
-    return {result, executionTime};
+export const validateTimed = (fn, maxTimeMs, context = 'function', expectedResult) =>
+    ValidationEngine.validate(fn, 'timed', context, maxTimeMs, expectedResult);
+
+// Optimized assertion helpers with batch processing
+export const expectObject = (obj, options = {}, context = 'object') => {
+    const {properties = {}, requiredKeys = [], optionalKeys = [], types = {}} = options;
+
+    expect(obj).toBeDefined(`${context} is required`);
+
+    // Batch all property checks for performance
+    const allKeys = [...new Set([...requiredKeys, ...Object.keys(properties), ...Object.keys(types), ...optionalKeys])];
+    const validations = allKeys.map(key => () => {
+        expect(obj).toHaveProperty(key, `${context} missing property: ${key}`);
+        if (properties[key] !== undefined) expect(obj[key]).toEqual(properties[key], `${context}.${key} value mismatch`);
+        if (types[key]) expect(typeof obj[key]).toBe(types[key], `${context}.${key} type mismatch`);
+    });
+
+    validations.forEach(validate => validate());
 };
 
-/**
- * Creates a validator function with predefined options
- * @param {object} options - Validation options
- * @returns {Function} Validation function
- */
-export const createValidator = (options = {}) => (value, propertyContext = 'value') => {
-    options.notNull && value === null && (() => { throw new Error(`${propertyContext} should not be null`); })();
-    options.defined && typeof value === 'undefined' && (() => { throw new Error(`${propertyContext} should be defined`); })();
-    options.type && typeof value !== options.type && (() => { throw new Error(`${propertyContext} should be of type ${options.type}, got ${typeof value}`); })();
-    options.min !== undefined && value < options.min && (() => { throw new Error(`${propertyContext} should be >= ${options.min}, got ${value}`); })();
-    options.max !== undefined && value > options.max && (() => { throw new Error(`${propertyContext} should be <= ${options.max}, got ${value}`); })();
-    options.inArray && Array.isArray(options.inArray) && !options.inArray.includes(value) && (() => { throw new Error(`${propertyContext} should be one of [${options.inArray.join(', ')}], got ${value}`); })();
+export const expectArrayLength = (arr, expectedLength) =>
+    expect(arr).toHaveLength(expectedLength);
+
+export const expectArrayContains = (arr, expectedItems) => {
+    // Batch containment checks for better performance
+    const validations = expectedItems.map(item => () => expect(arr).toContainEqual(item));
+    validations.forEach(validate => validate());
 };
 
-// Common validators that can be reused
-export const commonValidators = {
-    truthValue: (freq, conf) => (value, context = 'truthValue') => {
-        expect(value).toBeDefined(`${context} should be defined`);
-        expect(value.frequency).toBeCloseTo(freq, 3, `${context}.frequency should be close to ${freq}`);
-        expect(value.confidence).toBeCloseTo(conf, 3, `${context}.confidence should be close to ${conf}`);
-    },
-    termKey: (expectedKey) => (value, context = 'termKey') => {
-        expect(value).toBeDefined(`${context} should be defined`);
-        expect(value).toBe(expectedKey, `${context} should equal ${expectedKey}`);
-    },
-    punctuation: (expectedPunct) => (value, context = 'punctuation') => {
-        expect(value).toBeDefined(`${context} should be defined`);
-        expect(value).toBe(expectedPunct, `${context} should equal ${expectedPunct}`);
-    },
-    priority: (expectedPriority) => (value, context = 'priority') => {
-        expect(value).toBeDefined(`${context} should be defined`);
-        expect(value).toBe(expectedPriority, `${context} should equal ${expectedPriority}`);
+export const expectCloseTo = (actual, expected, tolerance = 0.001) =>
+    expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance);
+
+export const expectToCompleteWithinTime = async (fn, maxTimeMs, description = 'function execution') => {
+    const startTime = performance.now();
+    try {
+        const result = fn();
+        const executionTime = performance.now() - startTime;
+
+        if (result?.then) {
+            const asyncResult = await result;
+            expect(executionTime).toBeLessThanOrEqual(maxTimeMs, `${description} exceeded ${maxTimeMs}ms`);
+            return asyncResult;
+        }
+
+        expect(executionTime).toBeLessThanOrEqual(maxTimeMs, `${description} exceeded ${maxTimeMs}ms`);
+        return result;
+    } catch (error) {
+        expect(performance.now() - startTime).toBeLessThanOrEqual(maxTimeMs, `${description} threw before timeout`);
+        throw error;
     }
 };
 
-// ============================================================================
-// ASSERTION HELPERS - Consolidated from assertion-helpers.js
-// ============================================================================
+// Specialized validators for common patterns - consolidated and optimized
+export const expectTask = (task, expectedTermKey, expectedPunctuation, expectedTruth = null) => {
+    expect(task).toBeDefined('Task is required');
+    expect(task.termKey).toBe(expectedTermKey, 'Task termKey mismatch');
+    expect(task.punctuation).toBe(expectedPunctuation, 'Task punctuation mismatch');
+    expectedTruth && expect(task.state.truthValue).toEqual(expectedTruth, 'Task truth value mismatch');
+};
 
-/**
- * Common truth value validation helper with configurable precision
- * @param {Object} actual - Actual truth value object
- * @param {number} expectedFreq - Expected frequency
- * @param {number} expectedConf - Expected confidence
- * @param {number} precision - Number of decimal places precision (default: 3)
- */
+export const expectTerm = (term, expectedKey, expectedComplexity = null) => {
+    expect(term).toBeDefined('Term is required');
+    expect(term.key).toBe(expectedKey, 'Term key mismatch');
+    expectedComplexity !== null && expect(term.complexity).toBe(expectedComplexity, 'Term complexity mismatch');
+};
+
+// Optimized error validation
+export const expectToThrowError = async (fnOrPromise, expectedError, context = '') => {
+    try {
+        const result = fnOrPromise?.then ? await fnOrPromise : fnOrPromise();
+        throw new Error(`Expected function/promise to throw/reject but resolved. Context: ${context}`);
+    } catch (error) {
+        const message = error.message;
+        if (typeof expectedError === 'string') {
+            expect(message).toContain(expectedError);
+        } else if (expectedError instanceof RegExp) {
+            expect(message).toMatch(expectedError);
+        } else if (typeof expectedError === 'function') {
+            expect(error).toBeInstanceOf(expectedError);
+        } else {
+            expect(message).toContain(String(expectedError));
+        }
+    }
+};
+
+// Consolidated assertion helpers
 export const expectTruthValue = (actual, expectedFreq, expectedConf, precision = 3) => {
     expect(actual.frequency).toBeCloseTo(expectedFreq, precision);
     expect(actual.confidence).toBeCloseTo(expectedConf, precision);
 };
 
-/**
- * Common assertion for testing if an object is a valid task
- * @param {Object} task - The task to validate
- * @param {string} expectedTermKey - Expected term key
- * @param {string} expectedPunctuation - Expected punctuation
- * @param {Object} expectedTruth - Expected truth values
- */
 export const assertTask = (task, expectedTermKey, expectedPunctuation, expectedTruth = null) => {
     expect(task).toBeDefined();
     expect(task.termKey).toBe(expectedTermKey);
@@ -179,193 +314,12 @@ export const assertTask = (task, expectedTermKey, expectedPunctuation, expectedT
     expectedTruth && expectTruthValue(task.state.truthValue, expectedTruth.frequency, expectedTruth.confidence);
 };
 
-/**
- * Enhanced task assertion using common validators
- * @param {Object} task - The task to validate
- * @param {Object} validationSpec - Specification with expected values
- */
-export const assertTaskWithSpec = (task, validationSpec) => {
-    const {termKey, punctuation, truth} = validationSpec;
-
-    termKey !== undefined && commonValidators.termKey(termKey)(task.termKey, 'task.termKey');
-    punctuation !== undefined && commonValidators.punctuation(punctuation)(task.punctuation, 'task.punctuation');
-    truth?.frequency !== undefined && truth?.confidence !== undefined &&
-        commonValidators.truthValue(truth.frequency, truth.confidence)(task.state.truthValue, 'task.state.truthValue');
-};
-
-/**
- * Generic error assertion that handles both sync and async functions
- * @param {Function|Promise} fnOrPromise - Function to execute or Promise to await
- * @param {string|RegExp|Function} expectedError - Expected error message, pattern, or constructor
- * @param {string} context - Context for the assertion (for better error messages)
- */
-export const expectToThrowError = async (fnOrPromise, expectedError, context = '') => {
-    try {
-        const result = fnOrPromise && typeof fnOrPromise.then === 'function' ? await fnOrPromise : fnOrPromise();
-        throw new Error(`Expected function/promise to throw/reject but it resolved instead. Context: ${context}`);
-    } catch (error) {
-        typeof expectedError === 'string'
-            ? expect(error.message).toContain(expectedError)
-            : expectedError instanceof RegExp
-                ? expect(error.message).toMatch(expectedError)
-                : typeof expectedError === 'function'
-                    ? expect(error).toBeInstanceOf(expectedError)
-                    : expect(error.message).toContain(String(expectedError));
-    }
-};
-
-
-/**
- * Creates a reusable error validation function for specific error types
- * @param {string|RegExp} expectedMessage - Expected error message or pattern
- * @param {Function} errorConstructor - Expected error constructor (optional)
- * @returns {Function} Validation function
- */
-export const createErrorValidator = (expectedMessage, errorConstructor = null) => {
-    return (fn) => {
-        if (errorConstructor) {
-            const error = expect(fn).toThrow();
-            expect(error).toBeInstanceOf(errorConstructor);
-        } else {
-            expectToThrowError(fn, expectedMessage);
-        }
-    };
-};
-
-/**
- * Validates that a function throws an error with the expected message containing specific text
- * @param {Function} fn - Function to test
- * @param {string} expectedText - Text that should be contained in the error message
- */
-export const expectErrorToContain = (fn, expectedText) => {
-    const error = expect(() => fn()).toThrow();
-    expect(error.message).toContain(expectedText);
-};
-
-/**
- * Validates that an async function rejects with an error containing specific text
- * @param {Promise} promise - Promise to test
- * @param {string} expectedText - Text that should be contained in the error message
- */
-export const expectRejectionToContain = async (promise, expectedText) => {
-    try {
-        await promise;
-        throw new Error('Expected promise to reject but it resolved instead.');
-    } catch (error) {
-        expect(error.message).toContain(expectedText);
-    }
-};
-
-/**
- * Unified object validation helper with flexible options
- * @param {Object} obj - Object to validate
- * @param {Object} options - Validation options
- * @param {Object} options.properties - Object with expected property values
- * @param {string[]} options.requiredKeys - Array of required keys that must be present
- * @param {string[]} options.optionalKeys - Array of optional keys that may be present
- * @param {Object} options.types - Object mapping keys to expected types
- * @param {string} context - Context for error messages
- */
-export const expectObject = (obj, options = {}, context = 'object') => {
-    expect(obj).toBeDefined();
-
-    const {properties = {}, requiredKeys = [], optionalKeys = [], types = {}} = options;
-
-    // Check required keys are present
-    requiredKeys.forEach(key => expect(obj).toHaveProperty(key));
-
-    // Check properties match expected values
-    Object.keys(properties).forEach(key => expect(obj[key]).toEqual(properties[key]));
-
-    // Check types if specified
-    Object.keys(types).forEach(key =>
-        obj[key] !== undefined && expect(typeof obj[key]).toBe(types[key]));
-
-    // Check optional keys are present if specified
-    optionalKeys.forEach(key =>
-        options.checkOptional !== false && expect(obj).toHaveProperty(key));
-};
-
-
-/**
- * Assertion helper for validating array length
- * @param {Array} arr - Array to validate
- * @param {number} expectedLength - Expected length
- */
-export const expectArrayLength = (arr, expectedLength) => {
-    expect(arr).toHaveLength(expectedLength);
-};
-
-/**
- * Assertion helper for validating array contains specific items
- * @param {Array} arr - Array to validate
- * @param {any[]} expectedItems - Array of expected items
- */
-export const expectArrayContains = (arr, expectedItems) => {
-    expectedItems.forEach(item => {
-        expect(arr).toContainEqual(item);
-    });
-};
-
-/**
- * Assertion helper for validating that a value is close to expected value within tolerance
- * @param {number} actual - Actual value
- * @param {number} expected - Expected value
- * @param {number} tolerance - Tolerance level (default: 0.001)
- */
-export const expectCloseTo = (actual, expected, tolerance = 0.001) => {
-    expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance);
-};
-
-/**
- * Validates that a function completes within a specified time
- * @param {Function} fn - Function to execute (sync or async)
- * @param {number} maxTimeMs - Maximum allowed time in milliseconds
- * @param {string} description - Description of the test for error reporting
- * @returns {Promise|any} Function result
- */
-export const expectToCompleteWithinTime = async (fn, maxTimeMs, description = 'function execution') => {
-    const startTime = Date.now();
-
-    try {
-        const result = fn();
-        if (result && typeof result.then === 'function') {
-            const asyncResult = await result;
-            expect(Date.now() - startTime).toBeLessThanOrEqual(maxTimeMs);
-            return asyncResult;
-        }
-        expect(Date.now() - startTime).toBeLessThanOrEqual(maxTimeMs);
-        return result;
-    } catch (error) {
-        expect(Date.now() - startTime).toBeLessThanOrEqual(maxTimeMs);
-        throw error;
-    }
-};
-
-
-/**
- * Common assertion for testing term properties
- * @param {Object} term - The term to validate
- * @param {string} expectedKey - Expected term key
- * @param {number} expectedComplexity - Expected complexity (optional)
- */
 export const assertTerm = (term, expectedKey, expectedComplexity = null) => {
     expect(term).toBeDefined();
     expect(term.key).toBe(expectedKey);
-    if (expectedComplexity !== null) {
-        expect(term.complexity).toBe(expectedComplexity);
-    }
+    expectedComplexity !== null && expect(term.complexity).toBe(expectedComplexity);
 };
 
-/**
- * Creates a comprehensive validation helper for task objects
- * @param {Object} task - Task object to validate
- * @param {Object} validationRules - Object with validation rules
- */
-export const validateTask = (task, validationRules) => {
-    validationRules.hasOwnProperty('termKey') && expect(task.termKey).toBe(validationRules.termKey);
-    validationRules.hasOwnProperty('punctuation') && expect(task.punctuation).toBe(validationRules.punctuation);
-    validationRules.truth && expectTruthValue(task.state.truthValue, validationRules.truth.frequency, validationRules.truth.confidence);
-    validationRules.priority !== undefined && expect(task.state.priority).toBe(validationRules.priority);
-    validationRules.hasOwnProperty('type') && expect(task.type).toBe(validationRules.type);
-};
+// Performance monitoring
+export const getValidationStats = () => ValidationEngine.getStats();
+export const resetValidationCache = () => ValidationEngine.reset();

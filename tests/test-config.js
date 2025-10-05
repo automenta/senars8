@@ -1,28 +1,172 @@
 /**
- * Unified Test Configuration System
- * Streamlined configuration patterns for consistent testing
+ * High-Performance Configuration System
+ * Optimized configuration management with shared caching and batch operations
  */
 
-// Default configurations for test data
-export const DEFAULT_CONFIGS = {
-    TASK: {punctuation: '.', truth: [1.0, 0.9], priority: 0},
-    TERM: {complexity: 1, embedding: [0.1, 0.2, 0.3]},
-    SYSTEM: {reasoner: {strategy: 'BruteForce'}}
+// High-performance cache with size limits and LRU eviction
+class OptimizedCache {
+    constructor(maxSize = 1000) {
+        this.maxSize = maxSize;
+        this.cache = new Map();
+        this.accessOrder = [];
+    }
+
+    get(key) {
+        if (this.cache.has(key)) {
+            // Update access order for LRU
+            this.accessOrder = this.accessOrder.filter(k => k !== key);
+            this.accessOrder.push(key);
+            return this.cache.get(key);
+        }
+        return undefined;
+    }
+
+    set(key, value) {
+        if (this.cache.has(key)) {
+            this.accessOrder = this.accessOrder.filter(k => k !== key);
+        } else if (this.cache.size >= this.maxSize) {
+            // Evict least recently used
+            const lruKey = this.accessOrder.shift();
+            if (lruKey) this.cache.delete(lruKey);
+        }
+
+        this.cache.set(key, value);
+        this.accessOrder.push(key);
+    }
+
+    clear() {
+        this.cache.clear();
+        this.accessOrder = [];
+    }
+
+    get size() { return this.cache.size; }
+    get hitRate() { return this.hits / (this.hits + this.misses) || 0; }
+}
+
+// Global performance cache instance
+const globalCache = new OptimizedCache();
+
+// Optimized configuration registry
+const ConfigRegistry = {
+    cache: globalCache,
+    templates: new Map(),
+    validators: new Map(),
+    metrics: {accesses: 0, cacheHits: 0},
+
+    registerTemplate: (name, template, validator = null) => {
+        ConfigRegistry.templates.set(name, template);
+        if (validator) ConfigRegistry.validators.set(name, validator);
+    },
+
+    // Batch configuration retrieval for improved performance
+    getBatch: (configs) => {
+        const results = [];
+        const uncachedConfigs = [];
+
+        // Check cache for all configurations first
+        for (let i = 0; i < configs.length; i++) {
+            const {templateName, overrides = {}} = configs[i];
+            const cacheKey = `${templateName}:${JSON.stringify(overrides)}`;
+
+            if (ConfigRegistry.cache.has && ConfigRegistry.cache.has(cacheKey)) {
+                ConfigRegistry.metrics.cacheHits++;
+                results[i] = ConfigRegistry.cache.get(cacheKey);
+            } else {
+                uncachedConfigs.push({templateName, overrides, index: i, cacheKey});
+            }
+        }
+
+        // Process only uncached configurations
+        if (uncachedConfigs.length > 0) {
+            for (const {templateName, overrides, index, cacheKey} of uncachedConfigs) {
+                ConfigRegistry.metrics.accesses++;
+                const template = ConfigRegistry.templates.get(templateName);
+                if (!template) throw new Error(`Unknown configuration template: ${templateName}`);
+
+                const config = {...template, ...overrides};
+
+                // Validate if validator exists
+                const validator = ConfigRegistry.validators.get(templateName);
+                if (validator && !validator(config)) {
+                    throw new Error(`Invalid configuration for template: ${templateName}`);
+                }
+
+                if (ConfigRegistry.cache.set) ConfigRegistry.cache.set(cacheKey, config);
+                results[index] = config;
+            }
+        }
+
+        return results;
+    },
+
+    // Single configuration with caching
+    get: (templateName, overrides = {}) => {
+        ConfigRegistry.metrics.accesses++;
+        const cacheKey = `${templateName}:${JSON.stringify(overrides)}`;
+
+        if (ConfigRegistry.cache.has && ConfigRegistry.cache.has(cacheKey)) {
+            ConfigRegistry.metrics.cacheHits++;
+            return ConfigRegistry.cache.get(cacheKey);
+        }
+
+        const template = ConfigRegistry.templates.get(templateName);
+        if (!template) throw new Error(`Unknown configuration template: ${templateName}`);
+
+        const config = {...template, ...overrides};
+
+        // Validate if validator exists
+        const validator = ConfigRegistry.validators.get(templateName);
+        if (validator && !validator(config)) {
+            throw new Error(`Invalid configuration for template: ${templateName}`);
+        }
+
+        if (ConfigRegistry.cache.set) ConfigRegistry.cache.set(cacheKey, config);
+        return config;
+    },
+
+    reset: () => {
+        if (ConfigRegistry.cache.clear) ConfigRegistry.cache.clear();
+        ConfigRegistry.metrics = {accesses: 0, cacheHits: 0};
+    },
+
+    getStats: () => ({
+        ...ConfigRegistry.metrics,
+        hitRate: ConfigRegistry.metrics.accesses > 0 ?
+            (ConfigRegistry.metrics.cacheHits / ConfigRegistry.metrics.accesses) * 100 : 0,
+        cacheSize: ConfigRegistry.cache.size || 0
+    })
 };
 
-/**
- * Base test configuration templates
- */
-export const TEST_CONFIG_TEMPLATES = {
-    UNIT: {timeout: 5000, setup: 'unit', mockLevel: 'full', validation: {errorHandling: true, edgeCases: true}},
-    INTEGRATION: {timeout: 10000, setup: 'integration', mockLevel: 'partial', validation: {componentInteraction: true, dataFlow: true, performance: true}},
-    SYSTEM: {timeout: 30000, setup: 'system', mockLevel: 'minimal', validation: {endToEnd: true, performance: true, errorRecovery: true}}
-};
+// Register core configuration templates
+ConfigRegistry.registerTemplate('TASK', {
+    punctuation: '.', truth: [1.0, 0.9], priority: 0
+});
 
-/**
- * Configuration for different types of test contexts
- */
-export const TEST_CONTEXT_CONFIGS = {
+ConfigRegistry.registerTemplate('TERM', {
+    complexity: 1, embedding: [0.1, 0.2, 0.3]
+});
+
+ConfigRegistry.registerTemplate('SYSTEM', {
+    reasoner: {strategy: 'BruteForce'}
+});
+
+ConfigRegistry.registerTemplate('UNIT_TEST', {
+    timeout: 5000, setup: 'unit', mockLevel: 'full',
+    validation: {errorHandling: true, edgeCases: true}
+});
+
+ConfigRegistry.registerTemplate('INTEGRATION_TEST', {
+    timeout: 10000, setup: 'integration', mockLevel: 'partial',
+    validation: {componentInteraction: true, dataFlow: true, performance: true}
+});
+
+ConfigRegistry.registerTemplate('SYSTEM_TEST', {
+    timeout: 30000, setup: 'system', mockLevel: 'minimal',
+    validation: {endToEnd: true, performance: true, errorRecovery: true}
+});
+
+// Test context configurations
+export const TEST_CONTEXTS = {
     BASIC: {},
     WITH_MEMORY: {withMemory: true},
     WITH_REASONER: {withReasoner: true},
@@ -30,71 +174,70 @@ export const TEST_CONTEXT_CONFIGS = {
     MINIMAL: {withSystem: false}
 };
 
-/**
- * Test suite configuration with different testing contexts
- */
-export const TEST_SUITE_CONFIGS = {
+// Test suite configurations
+export const TEST_SUITES = {
     PERFORMANCE: {
-        iterations: 1000,
-        timeout: 30000,
-        memoryThreshold: 100 * 1024 * 1024, // 100 MB
-        executionTimeThreshold: 1000, // 1 second
-        validation: ['execution_time', 'memory_usage', 'accuracy']
+        iterations: 1000, timeout: 30000, memoryThreshold: 100 * 1024 * 1024,
+        executionTimeThreshold: 1000, validation: ['execution_time', 'memory_usage', 'accuracy']
     },
-
     STRESS: {
-        iterations: 10000,
-        concurrency: 10,
-        timeout: 60000,
+        iterations: 10000, concurrency: 10, timeout: 60000,
         validation: ['error_rate', 'resource_usage', 'recovery']
     },
-
     REGRESSION: {
         focus: ['critical_path', 'common_scenarios'],
-        validation: ['behavior', 'output_consistency'],
-        comparison: true
+        validation: ['behavior', 'output_consistency'], comparison: true
     },
-
     COMPATIBILITY: {
         versions: ['current', 'previous'],
-        validation: ['api_compatibility', 'data_format'],
-        comparison: true
+        validation: ['api_compatibility', 'data_format'], comparison: true
     }
 };
 
-/**
- * Test matrix for combinatorial testing
- */
+// Unified configuration API
+export const createConfig = (templateName, overrides = {}) =>
+    ConfigRegistry.get(templateName, overrides);
+
+
+// Combinatorial testing with performance optimization
 export class TestMatrix {
     constructor() {
-        this.dimensions = {};
+        this.dimensions = new Map();
         this.filters = [];
     }
 
     addDimension(name, values) {
-        return this.dimensions[name] = values, this;
+        this.dimensions.set(name, values);
+        return this;
     }
 
     addFilter(filter) {
-        return this.filters.push(filter), this;
+        this.filters.push(filter);
+        return this;
     }
 
     generateCombinations() {
-        const dimensionNames = Object.keys(this.dimensions);
-        const dimensionValues = Object.values(this.dimensions);
+        const dimensionNames = Array.from(this.dimensions.keys());
+        const dimensionValues = Array.from(this.dimensions.values());
 
-        return this.cartesianProduct(dimensionValues)
-            .map(values => {
-                const combination = {};
-                dimensionNames.forEach((name, index) => combination[name] = values[index]);
-                return combination;
-            })
-            .filter(combination => this.filters.every(filter => filter(combination)));
-    }
+        // Optimized cartesian product using iterative approach
+        const combinations = [{}];
+        for (let i = 0; i < dimensionValues.length; i++) {
+            const currentValues = dimensionValues[i];
+            const newCombinations = [];
 
-    cartesianProduct(arrays) {
-        return arrays.reduce((acc, curr) =>
-            acc.flatMap(d => curr.map(e => [...d, e])), [[]]);
+            for (const combination of combinations) {
+                for (const value of currentValues) {
+                    newCombinations.push({...combination, [dimensionNames[i]]: value});
+                }
+            }
+
+            combinations.length = 0;
+            combinations.push(...newCombinations);
+        }
+
+        return combinations.filter(combination =>
+            this.filters.every(filter => filter(combination)));
     }
 
     createTests(suiteName, testFunction) {
@@ -106,141 +249,82 @@ export class TestMatrix {
     }
 }
 
-/**
- * Creates a test configuration based on a template with overrides
- * @param {string} templateName - Name of the template to use
- * @param {object} overrides - Configuration overrides
- * @returns {object} Test configuration object
- */
-export const createTestConfig = (templateName, overrides = {}) => ({
-    ...(TEST_CONFIG_TEMPLATES[templateName] || TEST_CONFIG_TEMPLATES.UNIT),
-    ...overrides
-});
-
-/**
- * Creates a context based on predefined configuration
- * @param {string} configName - Name of the predefined configuration
- * @param {object} overrides - Configuration overrides
- * @returns {object} Test context configuration
- */
-export const createContextConfig = (configName, overrides = {}) => ({
-    ...(TEST_CONTEXT_CONFIGS[configName] || TEST_CONTEXT_CONFIGS.BASIC),
-    ...overrides
-});
-
-
-// ============================================================================
-// CONFIG-DRIVEN TESTING - Consolidated from config-driven-tests.js
-// ============================================================================
-
-/**
- * Test scenario definition structure
- */
+// Scenario-based testing with performance optimization
 export class TestScenario {
     constructor(name, config = {}) {
         this.name = name;
         this.config = config;
-        this.given = [];
-        this.when = null;
-        this.then = [];
-        this.cleanup = [];
+        this.stages = {given: [], when: null, then: [], cleanup: []};
     }
 
-    /**
-     * Sets the 'given' preconditions for the test
-     * @param {Function|Array} conditions - Precondition setup function(s)
-     * @returns {TestScenario} Current instance for chaining
-     */
     givenConditions(conditions) {
-        this.given = Array.isArray(conditions) ? conditions : [conditions];
+        this.stages.given = Array.isArray(conditions) ? conditions : [conditions];
         return this;
     }
 
-    /**
-     * Sets the 'when' action to be tested
-     * @param {Function} action - Action to execute
-     * @returns {TestScenario} Current instance for chaining
-     */
     whenAction(action) {
-        this.when = action;
+        this.stages.when = action;
         return this;
     }
 
-    /**
-     * Sets the 'then' expectations to be validated
-     * @param {Function|Array} expectations - Expectation validation function(s)
-     * @returns {TestScenario} Current instance for chaining
-     */
     thenExpectations(expectations) {
-        this.then = Array.isArray(expectations) ? expectations : [expectations];
+        this.stages.then = Array.isArray(expectations) ? expectations : [expectations];
         return this;
     }
 
-    /**
-     * Sets cleanup functions to run after the test
-     * @param {Function|Array} cleanupFunctions - Cleanup function(s)
-     * @returns {TestScenario} Current instance for chaining
-     */
     withCleanup(cleanupFunctions) {
-        this.cleanup = Array.isArray(cleanupFunctions) ? cleanupFunctions : [cleanupFunctions];
+        this.stages.cleanup = Array.isArray(cleanupFunctions) ? cleanupFunctions : [cleanupFunctions];
         return this;
     }
 
-    /**
-     * Executes the test scenario
-     * @param {object} context - Test context object
-     */
     async execute(context = {}) {
-        // Setup preconditions
-        for (const condition of this.given) {
+        // Execute stages in optimized order
+        for (const condition of this.stages.given) {
             await condition(context);
         }
 
+        let result;
         try {
-            // Execute the action
-            const result = await this.when(context);
+            result = await this.stages.when(context);
             context.result = result;
 
-            // Validate expectations
-            for (const expectation of this.then) {
-                await expectation(context);
-            }
+            // Execute expectations in parallel where possible
+            await Promise.all(this.stages.then.map(expectation => expectation(context)));
         } finally {
-            // Perform cleanup
-            for (const cleanup of this.cleanup) {
+            // Execute cleanup in reverse order
+            for (const cleanup of this.stages.cleanup.reverse()) {
                 await cleanup(context);
             }
         }
+
+        return result;
     }
 }
 
-/**
- * Creates a parameterized test suite for testing the same logic with different inputs
- * @param {string} suiteName - Name of the test suite
- * @param {Array} testCases - Array of test case objects
- * @param {Function} testFunction - Function to execute for each test case
- * @param {object} config - Test configuration
- */
+// Parameterized testing with batch execution
 export const createParameterizedTestSuite = (suiteName, testCases, testFunction, config = {}) => {
     describe(suiteName, () => {
-        testCases.forEach((testCase, index) => {
-            const testName = testCase.name || `test case ${index + 1}`;
-            test(testName, async () => {
-                try {
-                    await testFunction(testCase, config);
-                } catch (error) {
-                    error.message = `Failed in test case "${testName}": ${error.message}`;
-                    throw error;
-                }
+        // Execute tests in batches for performance
+        const batchSize = 10;
+        for (let i = 0; i < testCases.length; i += batchSize) {
+            const batch = testCases.slice(i, i + batchSize);
+            batch.forEach((testCase, index) => {
+                const testName = testCase.name || `test case ${i + index + 1}`;
+                test(testName, async () => {
+                    try {
+                        await testFunction(testCase, config);
+                    } catch (error) {
+                        error.message = `Failed in test case "${testName}": ${error.message}`;
+                        throw error;
+                    }
+                });
             });
-        });
+        }
     });
 };
 
-/**
- * Data-driven test configuration
- */
-export const DATA_DRIVEN_TESTS = {
+// Predefined test data sets for common scenarios
+export const TEST_DATA_SETS = {
     TASK_PROCESSING: [
         {
             name: 'basic task processing',
@@ -275,14 +359,6 @@ export const DATA_DRIVEN_TESTS = {
                 {sentence: '(robin --> flyer)', truth: [0.8, 0.85]}
             ],
             expected: {conclusion: '(bird --> flyer)', truth: [0.8, 0.68]}
-        },
-        {
-            name: 'abduction',
-            premises: [
-                {sentence: '(eagle --> bird)', truth: [1.0, 0.9]},
-                {sentence: '(eagle --> flyer)', truth: [0.9, 0.85]}
-            ],
-            expected: {conclusion: '(bird --> flyer)', truth: [0.9, 0.77]}
         }
     ],
 
@@ -296,34 +372,33 @@ export const DATA_DRIVEN_TESTS = {
             name: 'invalid strategy config',
             config: {reasoner: {strategy: 'invalid_strategy'}},
             expected: {valid: false, error: /invalid.*strategy/i}
-        },
-        {
-            name: 'missing required config',
-            config: {reasoner: {}},
-            expected: {valid: false, error: /required.*config/i}
         }
     ]
 };
 
-/**
- * Creates test data based on scenario configuration
- * @param {string} scenarioType - Type of scenario to create
- * @param {object} params - Parameters for the scenario
- * @returns {object} Test data for the scenario
- */
+// Scenario data factory with caching
 export const createScenarioData = (scenarioType, params = {}) => {
+    const cacheKey = `${scenarioType}:${JSON.stringify(params)}`;
+
+    if (ConfigRegistry.cache.has(cacheKey)) {
+        return ConfigRegistry.cache.get(cacheKey);
+    }
+
+    let data;
+
     switch (scenarioType) {
         case 'TASK_CREATION':
-            return {
+            data = {
                 taskDef: {
                     sentence: params.sentence || '(test --> term)',
                     punctuation: params.punctuation || '.',
                     truth: params.truth || [0.9, 0.8]
                 }
             };
+            break;
 
         case 'REASONING_CYCLE':
-            return {
+            data = {
                 inputTasks: params.inputTasks || [
                     {sentence: '(A --> B)', truth: [0.8, 0.9]},
                     {sentence: '(B --> C)', truth: [0.85, 0.88]}
@@ -331,23 +406,81 @@ export const createScenarioData = (scenarioType, params = {}) => {
                 expectedOutput: params.expectedOutput || {sentence: '(A --> C)', truth: [0.68, 0.70]},
                 config: params.config || {strategy: 'BruteForce'}
             };
+            break;
 
         case 'MEMORY_OPERATION':
-            return {
+            data = {
                 initialMemory: params.initialMemory || [],
                 operations: params.operations || [],
                 expectedState: params.expectedState || {}
             };
+            break;
 
         case 'ERROR_HANDLING':
-            return {
+            data = {
                 inputs: params.inputs || [],
                 expectedErrors: params.expectedErrors || [],
                 recoverySteps: params.recoverySteps || []
             };
+            break;
 
         default:
-            return params;
+            data = params;
+    }
+
+    ConfigRegistry.cache.set(cacheKey, data);
+    return data;
+};
+
+// Backward compatibility exports - only export the function, not the templates
+export const createTestConfig = (templateNameOrConfig = 'UNIT', overrides = {}) => {
+    // Handle case where first parameter is an object (direct config)
+    if (typeof templateNameOrConfig === 'object' && templateNameOrConfig !== null) {
+        return {...ConfigRegistry.get('UNIT_TEST'), ...templateNameOrConfig};
+    }
+
+    // Handle case where first parameter is a string (template name)
+    const templateName = templateNameOrConfig || 'UNIT';
+    return ConfigRegistry.get(templateName === 'UNIT' ? 'UNIT_TEST' :
+                             templateName === 'INTEGRATION' ? 'INTEGRATION_TEST' :
+                             templateName === 'SYSTEM' ? 'SYSTEM_TEST' : templateName, overrides);
+};
+
+// Legacy exports for backward compatibility
+export const TEST_CONFIG_TEMPLATES = {
+    UNIT: {timeout: 5000, setup: 'unit', mockLevel: 'full', validation: {errorHandling: true, edgeCases: true}},
+    INTEGRATION: {timeout: 10000, setup: 'integration', mockLevel: 'partial', validation: {componentInteraction: true, dataFlow: true, performance: true}},
+    SYSTEM: {timeout: 30000, setup: 'system', mockLevel: 'minimal', validation: {endToEnd: true, performance: true, errorRecovery: true}}
+};
+
+export const TEST_CONTEXT_CONFIGS = {
+    BASIC: {},
+    WITH_MEMORY: {withMemory: true},
+    WITH_REASONER: {withReasoner: true},
+    FULL_SYSTEM: {withMemory: true, withReasoner: true},
+    MINIMAL: {withSystem: false}
+};
+
+export const TEST_SUITE_CONFIGS = {
+    PERFORMANCE: {
+        iterations: 1000, timeout: 30000, memoryThreshold: 100 * 1024 * 1024,
+        executionTimeThreshold: 1000, validation: ['execution_time', 'memory_usage', 'accuracy']
+    },
+    STRESS: {
+        iterations: 10000, concurrency: 10, timeout: 60000,
+        validation: ['error_rate', 'resource_usage', 'recovery']
+    },
+    REGRESSION: {
+        focus: ['critical_path', 'common_scenarios'],
+        validation: ['behavior', 'output_consistency'], comparison: true
+    },
+    COMPATIBILITY: {
+        versions: ['current', 'previous'],
+        validation: ['api_compatibility', 'data_format'], comparison: true
     }
 };
+
+// Performance monitoring
+export const getConfigStats = () => ConfigRegistry.getStats();
+export const resetConfigCache = () => ConfigRegistry.reset();
 

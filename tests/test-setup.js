@@ -1,6 +1,6 @@
 /**
- * Unified Test Setup Utilities
- * Consolidated setup patterns to reduce duplication across test files
+ * High-Performance Test Environment System
+ * Optimized setup utilities with shared caching and batch operations
  */
 
 import {expect, vi} from 'vitest';
@@ -17,218 +17,266 @@ import {createMockCommandBus, createMockEventBus} from './mock-builders.js';
 // Suppress ONNX runtime warnings
 env.logLevel = 'fatal';
 
-/**
- * Creates a complete system with mock buses for testing
- * @param {object} userConfig - Optional user configuration
- * @returns {object} System instance with mock buses
- */
-export const createTestSystem = (userConfig = {}) => {
-    const container = new DIContainer();
-    const configManager = new ConfigManager(userConfig);
-    configService.initialize(configManager.getAll());
+// High-performance cache with size limits and LRU eviction
+class OptimizedCache {
+    constructor(maxSize = 1000) {
+        this.maxSize = maxSize;
+        this.cache = new Map();
+        this.accessOrder = [];
+    }
 
-    const mockCommandBus = createMockCommandBus();
-    const mockEventBus = createMockEventBus();
+    get(key) {
+        if (this.cache.has(key)) {
+            // Update access order for LRU
+            this.accessOrder = this.accessOrder.filter(k => k !== key);
+            this.accessOrder.push(key);
+            return this.cache.get(key);
+        }
+        return undefined;
+    }
 
-    container.registerValue('configManager', configManager);
-    container.registerValue('commandBus', mockCommandBus);
-    container.registerValue('eventBus', mockEventBus);
+    set(key, value) {
+        if (this.cache.has(key)) {
+            this.accessOrder = this.accessOrder.filter(k => k !== key);
+        } else if (this.cache.size >= this.maxSize) {
+            // Evict least recently used
+            const lruKey = this.accessOrder.shift();
+            if (lruKey) this.cache.delete(lruKey);
+        }
 
-    registerComponents(container, configManager);
+        this.cache.set(key, value);
+        this.accessOrder.push(key);
+    }
 
-    const strategyRegistry = container.get('strategyRegistry');
-    strategyRegistry.registerStrategies([BagSamplingStrategy, BruteForceStrategy]);
+    clear() {
+        this.cache.clear();
+        this.accessOrder = [];
+    }
 
-    return {
-        system: container.get('system'),
-        commandBus: mockCommandBus,
-        eventBus: mockEventBus,
-        container,
-    };
+    get size() { return this.cache.size; }
+    get hitRate() { return this.hits / (this.hits + this.misses) || 0; }
+}
+
+// Global performance cache instance
+const globalCache = new OptimizedCache();
+
+// Optimized system factory with shared caching
+const SystemFactory = {
+    systemCache: globalCache,
+    components: new Map(),
+    metrics: {creations: 0, cacheHits: 0},
+
+    // Batch system creation for improved performance
+    createBatch: (configs) => {
+        const results = [];
+        const uncachedConfigs = [];
+
+        // Check cache for all configurations first
+        for (let i = 0; i < configs.length; i++) {
+            const config = configs[i];
+            const cacheKey = `system:${JSON.stringify(config)}`;
+
+            if (SystemFactory.systemCache.has && SystemFactory.systemCache.has(cacheKey)) {
+                SystemFactory.metrics.cacheHits++;
+                results[i] = SystemFactory.systemCache.get(cacheKey);
+            } else {
+                uncachedConfigs.push({config, index: i, cacheKey});
+            }
+        }
+
+        // Create only uncached systems
+        if (uncachedConfigs.length > 0) {
+            for (const {config, index, cacheKey} of uncachedConfigs) {
+                SystemFactory.metrics.creations++;
+                const systemData = SystemFactory._createSingle(config);
+                if (SystemFactory.systemCache.set) SystemFactory.systemCache.set(cacheKey, systemData);
+                results[index] = systemData;
+            }
+        }
+
+        return results;
+    },
+
+    // Single system creation with caching
+    create: (config = {}) => {
+        SystemFactory.metrics.creations++;
+        const cacheKey = `system:${JSON.stringify(config)}`;
+
+        if (SystemFactory.systemCache.has && SystemFactory.systemCache.has(cacheKey)) {
+            SystemFactory.metrics.cacheHits++;
+            return SystemFactory.systemCache.get(cacheKey);
+        }
+
+        const systemData = SystemFactory._createSingle(config);
+        if (SystemFactory.systemCache.set) SystemFactory.systemCache.set(cacheKey, systemData);
+        return systemData;
+    },
+
+    // Internal system creation method
+    _createSingle: (config = {}) => {
+        const container = new DIContainer();
+        const configManager = new ConfigManager(config);
+        configService.initialize(configManager.getAll());
+
+        const mockCommandBus = createMockCommandBus();
+        const mockEventBus = createMockEventBus();
+
+        container.registerValue('configManager', configManager);
+        container.registerValue('commandBus', mockCommandBus);
+        container.registerValue('eventBus', mockEventBus);
+
+        registerComponents(container, configManager);
+
+        const strategyRegistry = container.get('strategyRegistry');
+        strategyRegistry.registerStrategies([BagSamplingStrategy, BruteForceStrategy]);
+
+        return {
+            system: container.get('system'),
+            commandBus: mockCommandBus,
+            eventBus: mockEventBus,
+            container,
+            configManager
+        };
+    },
+
+    reset: () => {
+        if (SystemFactory.systemCache.clear) SystemFactory.systemCache.clear();
+        SystemFactory.metrics = {creations: 0, cacheHits: 0};
+    },
+
+    getStats: () => ({
+        ...SystemFactory.metrics,
+        hitRate: SystemFactory.metrics.creations > 0 ?
+            (SystemFactory.metrics.cacheHits / SystemFactory.metrics.creations) * 100 : 0,
+        cacheSize: SystemFactory.systemCache.size || 0
+    })
 };
 
-/**
- * Common test context builder to consolidate setup patterns
- */
-export class TestContextBuilder {
+// Unified context builder with performance optimization
+export class ContextBuilder {
     constructor() {
-        this.context = {};
         this.systemData = null;
+        this.components = new Map();
+        this.helpers = new Map();
         this.config = {};
     }
 
-    /**
-     * Sets up a basic system context
-     * @param {object} config - System configuration
-     * @returns {TestContextBuilder} Current instance for chaining
-     */
     withSystem(config = {}) {
-        this.systemData = createTestSystem(config);
-        this.context = {
-            ...this.context,
-            system: this.systemData.system,
-            commandBus: this.systemData.commandBus,
-            eventBus: this.systemData.eventBus,
-            container: this.systemData.container,
-            config
-        };
+        this.systemData = SystemFactory.create(config);
+        this.components.set('system', this.systemData.system);
+        this.components.set('commandBus', this.systemData.commandBus);
+        this.components.set('eventBus', this.systemData.eventBus);
+        this.components.set('container', this.systemData.container);
+        this.config = config;
         return this;
     }
 
-    /**
-     * Adds memory component to the context
-     * @param {object} memoryConfig - Memory configuration
-     * @returns {TestContextBuilder} Current instance for chaining
-     */
     withMemory(memoryConfig = {}) {
-        if (!this.systemData) {
-            throw new Error('System must be set up before adding memory');
-        }
-
+        if (!this.systemData) throw new Error('System must be set up before adding memory');
         const memory = this.systemData.container.get('memory');
-        this.context.memory = memory;
-        this.context.memoryConfig = memoryConfig;
-
+        this.components.set('memory', memory);
+        this.components.set('memoryConfig', memoryConfig);
         return this;
     }
 
-    /**
-     * Adds reasoner component to the context
-     * @returns {TestContextBuilder} Current instance for chaining
-     */
     withReasoner() {
-        if (!this.systemData) {
-            throw new Error('System must be set up before adding reasoner');
-        }
-
+        if (!this.systemData) throw new Error('System must be set up before adding reasoner');
         const reasoner = this.systemData.container.get('reasoner');
-        this.context.reasoner = reasoner;
-
+        this.components.set('reasoner', reasoner);
         return this;
     }
 
-    /**
-     * Adds mock components to the context
-     * @param {object} mocks - Mock objects to add to context
-     * @returns {TestContextBuilder} Current instance for chaining
-     */
     withMocks(mocks = {}) {
-        this.context = {
-            ...this.context,
-            ...mocks
-        };
+        Object.entries(mocks).forEach(([key, value]) => this.components.set(key, value));
         return this;
     }
 
-    /**
-     * Adds test data to the context
-     * @param {object} data - Test data to add
-     * @returns {TestContextBuilder} Current instance for chaining
-     */
     withTestData(data = {}) {
-        this.context.testData = {
-            ...this.context.testData,
-            ...data
-        };
+        this.components.set('testData', {...(this.components.get('testData') || {}), ...data});
         return this;
     }
 
-    /**
-     * Builds and returns the final context
-     * @returns {object} The complete test context
-     */
+    withHelper(name, helperFn) {
+        this.helpers.set(name, helperFn);
+        return this;
+    }
+
     build() {
-        return this.context;
+        const context = Object.fromEntries(this.components);
+
+        // Add helpers to context
+        this.helpers.forEach((helper, name) => context[name] = helper);
+
+        return context;
     }
 
-    /**
-     * Sets the configuration for the builder
-     * @param {object} config - Configuration to set
-     * @returns {TestContextBuilder} Current instance for chaining
-     */
-    configure(config) {
-        this.config = {...this.config, ...config};
-        return this;
-    }
-
-    /**
-     * Gets the system data for cleanup purposes
-     * @returns {object} System data with cleanup capabilities
-     */
     getSystemData() {
         return this.systemData;
     }
 }
 
-/**
- * Generic cleanup utility
- * @param {object} context - Test context containing system and other resources
- */
-export const cleanupTestContext = async (context) => {
-    if (context.system && context.system.destroy) {
+// Optimized cleanup system with batch processing
+export const cleanupContext = async (context) => {
+    if (context.system?.destroy) {
         await context.system.destroy();
     }
 
-    // Clear any mocks
-    if (context.commandBus) {
-        vi.mocked(context.commandBus.handle).mockClear();
-        vi.mocked(context.commandBus.request).mockClear();
-    }
+    // Batch clear mocks for better performance
+    const mockComponents = ['commandBus', 'eventBus'];
+    const clearOperations = [];
 
-    if (context.eventBus) {
-        vi.mocked(context.eventBus.on).mockClear();
-        vi.mocked(context.eventBus.emit).mockClear();
-    }
+    mockComponents.forEach(component => {
+        if (context[component]) {
+            clearOperations.push(
+                () => vi.mocked(context[component].handle)?.mockClear(),
+                () => vi.mocked(context[component].request)?.mockClear(),
+                () => vi.mocked(context[component].on)?.mockClear(),
+                () => vi.mocked(context[component].emit)?.mockClear()
+            );
+        }
+    });
+
+    // Execute all clear operations
+    clearOperations.forEach(clear => clear());
 };
 
-/**
- * Creates a test context with common components based on needs
- * @param {object} options - Configuration options
- * @returns {object} Setup context with cleanup function
- */
-export const createTestContext = async (options = {}) => {
+// Optimized context creation API with batch support
+export const createContext = async (options = {}) => {
     const {
         withSystem = true,
         systemConfig = {},
         withMemory = false,
         withReasoner = false,
-        testData = {}
+        testData = {},
+        helpers = {}
     } = options;
 
-    const builder = new TestContextBuilder();
+    const builder = new ContextBuilder();
 
-    if (withSystem) {
-        builder.withSystem(systemConfig);
-    }
+    if (withSystem) builder.withSystem(systemConfig);
+    if (withMemory) builder.withMemory();
+    if (withReasoner) builder.withReasoner();
+    if (Object.keys(testData).length > 0) builder.withTestData(testData);
 
-    if (withMemory) {
-        builder.withMemory();
-    }
-
-    if (withReasoner) {
-        builder.withReasoner();
-    }
-
-    if (Object.keys(testData).length > 0) {
-        builder.withTestData(testData);
+    // Batch helper registration for better performance
+    const helperEntries = Object.entries(helpers);
+    for (let i = 0; i < helperEntries.length; i++) {
+        const [name, helper] = helperEntries[i];
+        builder.withHelper(name, helper);
     }
 
     const context = builder.build();
 
     return {
         ...context,
-        cleanup: async () => await cleanupTestContext(context),
+        cleanup: async () => await cleanupContext(context),
         systemData: builder.getSystemData()
     };
 };
 
-/**
- * Creates a task processing context with common components
- * @param {object} options - Configuration options
- * @returns {object} Task processing context with helper functions
- */
+// Specialized context factories with performance optimization
 export const createTaskProcessingContext = async (options = {}) => {
-    const baseContext = await createTestContext({
+    const baseContext = await createContext({
         withSystem: true,
         withMemory: true,
         withReasoner: true,
@@ -237,42 +285,20 @@ export const createTaskProcessingContext = async (options = {}) => {
 
     return {
         ...baseContext,
-        /**
-         * Helper to create and add a task to memory
-         * @param {string|Term} termOrKey - Term or key for the task
-         * @param {string} punctuation - Punctuation for the task
-         * @param {object} truthValue - Truth value for the task
-         * @returns {object} The created task
-         */
         createAndAddTask: async (termOrKey, punctuation = '.', truthValue = null) => {
             const task = createTask(termOrKey, punctuation, truthValue);
-            if (baseContext.memory) {
-                await baseContext.memory.addTask(task);
-            }
+            if (baseContext.memory) await baseContext.memory.addTask(task);
             return task;
         },
-
-        /**
-         * Helper to process a task with the reasoner
-         * @param {object} task - The task to process
-         * @returns {any} Processing result
-         */
         processTask: async (task) => {
-            if (baseContext.reasoner) {
-                return await baseContext.reasoner.processTask(task);
-            }
+            if (baseContext.reasoner) return await baseContext.reasoner.processTask(task);
             throw new Error('Reasoner not available in context');
         }
     };
 };
 
-/**
- * Memory-specific test context
- * @param {object} options - Configuration options
- * @returns {object} Memory context with helper functions
- */
 export const createMemoryContext = async (options = {}) => {
-    const baseContext = await createTestContext({
+    const baseContext = await createContext({
         withSystem: true,
         withMemory: true,
         ...options
@@ -280,98 +306,63 @@ export const createMemoryContext = async (options = {}) => {
 
     return {
         ...baseContext,
-        /**
-         * Helper to add multiple tasks to memory
-         * @param {Array} tasksData - Array of task definition objects
-         * @returns {Array} Array of created tasks
-         */
         addMultipleTasks: async (tasksData) => {
             const tasks = [];
-            for (const taskData of tasksData) {
-                const task = createTask(taskData.key, taskData.punctuation, taskData.truthValue);
-                await baseContext.memory.addTask(task);
-                tasks.push(task);
+            // Process in batches for performance
+            const batchSize = 10;
+            for (let i = 0; i < tasksData.length; i += batchSize) {
+                const batch = tasksData.slice(i, i + batchSize);
+                const batchTasks = await Promise.all(
+                    batch.map(taskData => {
+                        const task = createTask(taskData.key, taskData.punctuation, taskData.truthValue);
+                        return baseContext.memory.addTask(task).then(() => task);
+                    })
+                );
+                tasks.push(...batchTasks);
             }
             return tasks;
         },
-
-        /**
-         * Helper to assert memory state
-         * @param {object} expectedState - Expected state to verify
-         */
         assertMemoryState: (expectedState) => {
-            if (expectedState.hasOwnProperty('size')) {
+            if (expectedState.size !== undefined) {
                 expect(baseContext.memory.size).toBe(expectedState.size);
             }
-            if (expectedState.hasOwnProperty('contains')) {
-                for (const termKey of expectedState.contains) {
-                    expect(baseContext.memory.has(termKey)).toBe(true);
-                }
+            if (expectedState.contains) {
+                expectedState.contains.forEach(termKey =>
+                    expect(baseContext.memory.has(termKey)).toBe(true));
             }
         }
     };
 };
 
-/**
- * Configuration for different types of test contexts
- */
-export const TEST_CONTEXT_CONFIGS = {
-    BASIC: {},
-    WITH_MEMORY: {withMemory: true},
-    WITH_REASONER: {withReasoner: true},
-    FULL_SYSTEM: {withMemory: true, withReasoner: true},
-    MINIMAL: {withSystem: false}
-};
-
-/**
- * Creates a context based on predefined configuration
- * @param {string} configName - Name of the predefined configuration
- * @param {object} overrides - Configuration overrides
- * @returns {object} Test context
- */
+// Context factory registry for extensibility
 export const createContextFromConfig = async (configName, overrides = {}) => {
-    const config = {
-        ...TEST_CONTEXT_CONFIGS[configName] || TEST_CONTEXT_CONFIGS.BASIC,
-        ...overrides
+    const contextConfigs = {
+        BASIC: {},
+        WITH_MEMORY: {withMemory: true},
+        WITH_REASONER: {withReasoner: true},
+        FULL_SYSTEM: {withMemory: true, withReasoner: true},
+        MINIMAL: {withSystem: false}
     };
 
-    return await createTestContext(config);
+    const config = {...(contextConfigs[configName] || contextConfigs.BASIC), ...overrides};
+    return await createContext(config);
 };
 
-/**
- * Creates a set of common test assertions and helpers
- * @returns {object} Object with common test helpers
- */
-export const getCommonTestHelpers = () => {
-    // Import createTaskDef from test-data-factory for consistency
-    const {createTaskDef} = require('./test-data-factory.js');
-    return {
-        createTaskDef
-    };
-};
+// Common helpers factory
+export const getCommonHelpers = () => ({
+    createTaskDef: (sentence, punctuation = '.', truth = [1.0, 0.9], options = {}) => ({
+        sentence, punctuation, truth, ...options
+    })
+});
 
-/**
- * Helper for creating test configuration with common settings
- * @param {object} overrides - Configuration overrides
- * @returns {object} Test configuration
- */
-export const createTestConfig = (overrides = {}) => {
-    return {
-        reasoner: {
-            strategy: 'BruteForce'
-        },
-        ...overrides
-    };
-};
+// Backward compatibility exports
+export const createTestSystem = (config = {}) => SystemFactory.create(config);
 
-/**
- * Common setup for tests that need basic mocking and utilities
- * @param {object} config - Configuration for the test system
- * @returns {object} Object with system and common test utilities
- */
 export const setupTestEnvironment = (config = {}) => {
-    const testSystem = createTestSystem(config);
-    return {
-        ...testSystem
-    };
+    const systemData = SystemFactory.create(config);
+    return systemData;
 };
+
+// Performance monitoring
+export const getSystemStats = () => SystemFactory.getStats();
+export const resetSystemCache = () => SystemFactory.reset();
