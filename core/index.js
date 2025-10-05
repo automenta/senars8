@@ -27,6 +27,9 @@ export {
   MetaCognition, Introspection, EventBus
 } from './system/index.js';
 
+// System factory function
+export {createSystem} from './system/SystemFactory.js';
+
 // Error handling
 export {createUnifiedErrorHandler, agentErrorHandler} from './utils/errorHandler.js';
 
