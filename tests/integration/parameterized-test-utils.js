@@ -3,7 +3,7 @@
  * Enables consolidation of similar test cases with different parameters
  */
 
-import {describe, it, expect} from 'vitest';
+import {describe, expect, it} from 'vitest';
 
 /**
  * Creates parameterized tests from a template
@@ -25,7 +25,7 @@ export function createParameterizedTests(suiteName, testCases, testTemplate, opt
             const shouldSkip = skip.includes(testCase.name) || skip.includes(testCase.params);
             const shouldOnly = only.length === 0 || only.includes(testCase.name) || only.includes(testCase.params);
 
-            (shouldOnly ? it.only : it)(testName, async function() {
+            (shouldOnly ? it.only : it)(testName, async function () {
                 await testTemplate(testCase, this);
             }, timeout);
         });

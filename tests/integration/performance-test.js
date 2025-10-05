@@ -84,7 +84,7 @@ async function runPerformanceTest() {
         console.log(`   Average Cleanup Time: ${Math.average(results.cleanupTimes)}ms`);
 
         const totalTime = results.setupTimes[0] + results.clientCreationTimes[0] +
-                         results.messageRoundtripTimes[0] + results.cleanupTimes[0];
+            results.messageRoundtripTimes[0] + results.cleanupTimes[0];
         console.log(`   Total Test Time: ${totalTime}ms`);
 
         // Performance Assessment

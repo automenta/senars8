@@ -10,9 +10,9 @@ import {
     cleanupTestContext,
     createMemoryContext,
     createTaskProcessingContext,
-    createTestContext
+    createTestContext,
+    createTestSystem
 } from './test-setup.js';
-import {createTestSystem} from './test-setup.js';
 
 /**
  * Base test class for all test categories

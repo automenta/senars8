@@ -1,6 +1,5 @@
 import {afterAll, beforeAll, describe, expect, it, vi} from 'vitest';
 import {createWebSocketTestFixture} from '../utils/WebSocketTestUtils.js';
-import {findAvailablePort} from '../utils/networkUtils.js';
 import {createMessageHandler} from '../../agent/MessageHandler.js';
 import {SystemCommands} from '../../core/system/SystemCommands.js';
 import {SystemEvents} from '../../core/system/SystemEvents.js';

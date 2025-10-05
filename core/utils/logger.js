@@ -139,5 +139,5 @@ export const info = logger.info.bind(logger);
 export const warn = logger.warn.bind(logger);
 export const error = logger.error.bind(logger);
 export const debug = logger.debug.bind(logger);
-export { TuiTransport };
+export {TuiTransport};
 export default logger;

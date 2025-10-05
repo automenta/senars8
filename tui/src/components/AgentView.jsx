@@ -1,22 +1,22 @@
 // Define tabs outside component to prevent recreation
 const TABS = [
-    { id: 'status', label: '📊 Status', badge: 'live' },
-    { id: 'tasks', label: '⚡ Tasks', badge: null },
-    { id: 'log', label: '📝 Logs', badge: null },
-    { id: 'input', label: '💬 Input', badge: null }
+    {id: 'status', label: '📊 Status', badge: 'live'},
+    {id: 'tasks', label: '⚡ Tasks', badge: null},
+    {id: 'log', label: '📝 Logs', badge: null},
+    {id: 'input', label: '💬 Input', badge: null}
 ];
 
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
-import {Box, Text, useInput} from 'ink';
+import React, {useCallback, useMemo, useState} from 'react';
+import {Box, Text} from 'ink';
 import PropTypes from 'prop-types';
 import StatusPanel from './StatusPanel.jsx';
 import LogPanel from './LogPanel.jsx';
 import MessageInput from './MessageInput.jsx';
 import TasksPanel from './TasksPanel.jsx';
-import { theme } from '../theme.js';
-import { Container, Panel, Flex } from './Layout.jsx';
-import { TabBar, Button, Badge, Card } from './Interactive.jsx';
-import { useTabNavigation } from '../hooks/useMouseInteraction.js';
+import {theme} from '../theme.js';
+import {Container, Flex, Panel} from './Layout.jsx';
+import {Button, Card, TabBar} from './Interactive.jsx';
+import {useTabNavigation} from '../hooks/useMouseInteraction.js';
 
 const AgentView = ({agentService, globalFocusManager}) => {
     const [messageHistory, setMessageHistory] = useState([]);
@@ -24,7 +24,7 @@ const AgentView = ({agentService, globalFocusManager}) => {
     // Memoize tabs to prevent recreation
     const tabs = useMemo(() => TABS, []);
 
-    const { activeTab, focusedTab, selectTab, nextTab, prevTab, focusNext, focusPrev } = useTabNavigation(tabs, 0);
+    const {activeTab, focusedTab, selectTab, nextTab, prevTab, focusNext, focusPrev} = useTabNavigation(tabs, 0);
 
     // Create stable tab selection handlers
     const handleTabSelect = useCallback((index) => {

@@ -36,6 +36,8 @@ export const TUI_CONSTANTS = {
             MESSAGE_FLOW: 8089,
         },
         COMMON_SCAN: [8080, 8081, 8082, 8083],
+        // Use common agent port as fallback
+        DEFAULT_AGENT: 8080,
     },
 
     // UI Layout defaults

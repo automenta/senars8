@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { TUI_CONSTANTS, getTimeout, getMessage } from './constants.js';
+import {getMessage, getTimeout, TUI_CONSTANTS} from './constants.js';
 
 // Enhanced error handling with graceful degradation
 const handleError = (error, context) => {
@@ -21,7 +21,7 @@ const startTui = async () => {
         console.log('🚀 Starting SeNARS TUI...');
 
         // Import dependencies
-        const { render } = await import('ink');
+        const {render} = await import('ink');
         const React = await import('react');
         const App = await import('./App.jsx');
 

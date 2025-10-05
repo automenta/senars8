@@ -3,7 +3,7 @@
  * Consolidates common setup patterns and optimizes performance
  */
 
-import {beforeAll, afterAll, beforeEach, afterEach, vi} from 'vitest';
+import {afterAll, beforeAll, beforeEach, vi} from 'vitest';
 import {createWebSocketTestFixture} from '../utils/WebSocketTestUtils.js';
 import {findAvailablePort} from '../utils/networkUtils.js';
 import {createMessageHandler} from '../../agent/MessageHandler.js';
@@ -144,7 +144,7 @@ export function createWebSocketTestSuite(name, options = {}, tests) {
 
     // Call the tests function with the fixture directly
     if (typeof tests === 'function') {
-        tests({ fixture, port });
+        tests({fixture, port});
     }
 }
 

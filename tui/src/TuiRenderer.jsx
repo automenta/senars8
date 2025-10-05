@@ -1,9 +1,9 @@
 import React from 'react';
-import {Box, Text, Static} from 'ink';
+import {Box, Static, Text} from 'ink';
 import PropTypes from 'prop-types';
-import { theme } from './theme.js';
-import { Badge, ProgressBar } from './components/Interactive.jsx';
-import { Flex, Grid } from './components/Layout.jsx';
+import {theme} from './theme.js';
+import {Badge, ProgressBar} from './components/Interactive.jsx';
+import {Flex, Grid} from './components/Layout.jsx';
 
 /**
  * Modern component for rendering agent status in the TUI

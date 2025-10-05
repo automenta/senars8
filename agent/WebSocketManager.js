@@ -1,6 +1,7 @@
 import {WebSocketServer as WsServer} from 'ws';
 import logger from '../core/utils/logger.js';
 import {StandaloneWebSocketServer} from './StandaloneWebSocketServer.js';
+import {WebSocketMessageHandler} from './WebSocketMessageHandler.js';
 
 const log = logger.create('WebSocketManager');
 
@@ -11,7 +12,7 @@ export class WebSocketManager {
         }
         this.options = options;
         this.wsServerInstance = null;
-        this.messageHandler = null;
+        this.messageHandler = new WebSocketMessageHandler();
     }
 
     async start() {
@@ -28,58 +29,20 @@ export class WebSocketManager {
 
     createAttachedServer(server) {
         const wss = new WsServer({server});
+        const messageHandler = new WebSocketMessageHandler();
 
-        const setupWebSocketHandlers = (handler) => {
-            wss.on('connection', (ws) => {
-                log.info('A new client connected.');
-                ws.send(JSON.stringify({type: 'connection_ack', payload: {message: 'Welcome!'}}));
+        wss.on('connection', (ws) => {
+            log.info('A new client connected.');
+            ws.send(JSON.stringify({type: 'connection_ack', payload: {message: 'Welcome!'}}));
 
-                ws.on('error', (err) => log.error('WebSocket error:', err));
+            ws.on('error', (err) => log.error('WebSocket error:', err));
 
-                ws.on('message', async (data) => {
-                    if (handler) {
-                        const {executeAsync} = await import('./utils/asyncWrapper.js');
-                        await executeAsync(async () => {
-                            let message;
-                            try {
-                                message = JSON.parse(data, (key, value) => {
-                                    // Convert string representations of large numbers back to numbers
-                                    if (typeof value === 'string' && /^\d+$/.test(value) && value.length > 15) {
-                                        // This might be a large number that was converted to string to preserve precision
-                                        // Check if it fits in a safe integer, otherwise potentially convert to BigInt
-                                        const numValue = Number(value);
-                                        if (Number.isSafeInteger(numValue)) {
-                                            return numValue;
-                                        } else {
-                                            // For unsafe integers, we can preserve as BigInt for internal processing
-                                            try {
-                                                return BigInt(value);
-                                            } catch (e) {
-                                                return value; // Keep as string if BigInt conversion fails
-                                            }
-                                        }
-                                    }
-                                    return value;
-                                });
-                            } catch (parseError) {
-                                console.error('Error parsing WebSocket message:', parseError);
-                                // Send error response to client
-                                ws.send(JSON.stringify({
-                                    type: 'error',
-                                    payload: {message: 'Invalid JSON received: ' + parseError.message}
-                                }));
-                                return;
-                            }
-                            await handler(message, ws);
-                        }, ws, 'handle message');
-                    }
-                });
-
-                ws.on('close', () => log.info('Client disconnected.'));
+            ws.on('message', async (data) => {
+                await messageHandler.handleMessage(data, ws);
             });
-        };
 
-        let messageHandler = null;
+            ws.on('close', () => log.info('Client disconnected.'));
+        });
 
         const broadcast = (data) => {
             if (wss && wss.clients) {
@@ -98,9 +61,7 @@ export class WebSocketManager {
         }
 
         const setMessageHandler = (handler) => {
-            messageHandler = handler;
-            // Since this is called after instantiation, we need to ensure the handlers are set up
-            setupWebSocketHandlers(messageHandler);
+            messageHandler.setHandler(handler);
         };
 
         const stop = async () => {

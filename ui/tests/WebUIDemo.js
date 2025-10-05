@@ -7,8 +7,6 @@ import AgentManager from '../../agent/AgentManager.js';
 import {WebSocketManager} from '../../agent/WebSocketManager.js';
 import {findAvailablePort} from '../../tests/utils/networkUtils.js';
 import {createMessageHandler} from '../../agent/MessageHandler.js';
-import {spawn} from 'child_process';
-import {setTimeout} from 'timers/promises';
 
 class WebUIDemo {
     constructor() {

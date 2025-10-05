@@ -1,11 +1,11 @@
 import React from 'react';
-import {Box, Text} from 'ink';
+import {Text} from 'ink';
 import PropTypes from 'prop-types';
 import {useAgentState} from '@senars/common';
-import {StatusView, StatsView, MemoryView, TasksView, BeliefsView, GoalsView} from '../TuiRenderer.jsx';
-import { theme } from '../theme.js';
-import { Card, Badge, ProgressBar } from './Interactive.jsx';
-import { Flex, Grid } from './Layout.jsx';
+import {BeliefsView, GoalsView, MemoryView, StatsView, StatusView, TasksView} from '../TuiRenderer.jsx';
+import {theme} from '../theme.js';
+import {Card} from './Interactive.jsx';
+import {Flex, Grid} from './Layout.jsx';
 
 const StatusPanel = ({agentService}) => {
     const agentState = useAgentState(agentService);

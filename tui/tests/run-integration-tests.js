@@ -6,13 +6,7 @@
  */
 
 import {setTimeout as asyncSetTimeout} from 'timers/promises';
-import {
-    TEST_CONFIG,
-    MOCK_RESPONSES,
-    createMockTuiServer,
-    createTestAgentEnvironment,
-    findTuiTestPort
-} from './test-utils.js';
+import {createMockTuiServer, createTestAgentEnvironment, MOCK_RESPONSES, TEST_CONFIG} from './test-utils.js';
 
 const TEST_TIMEOUT = TEST_CONFIG.TIMEOUTS.INTEGRATION_TEST;
 
@@ -133,13 +127,20 @@ class TuiIntegrationTester {
             const mockService = {
                 url: `ws://localhost:${TEST_PORT + 1}`,
                 getAgentState: () => ({}),
-                sendNaturalLanguage: () => {},
-                sendNarsese: () => {},
-                sendMessage: () => {},
-                connect: () => {},
-                disconnect: () => {},
-                on: () => {},
-                off: () => {}
+                sendNaturalLanguage: () => {
+                },
+                sendNarsese: () => {
+                },
+                sendMessage: () => {
+                },
+                connect: () => {
+                },
+                disconnect: () => {
+                },
+                on: () => {
+                },
+                off: () => {
+                }
             };
 
             if (mockService.url !== `ws://localhost:${TEST_PORT + 1}`) {

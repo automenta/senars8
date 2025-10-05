@@ -1,6 +1,5 @@
 import {afterAll, beforeAll, describe, expect, it, vi} from 'vitest';
 import {createWebSocketTestFixture} from '../utils/WebSocketTestUtils.js';
-import {findAvailablePort} from '../utils/networkUtils.js';
 import {createMessageHandler} from '../../agent/MessageHandler.js';
 
 describe('WebSocket BigInt Serialization Integration', () => {

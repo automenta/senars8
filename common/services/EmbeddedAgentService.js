@@ -175,7 +175,10 @@ class EmbeddedAgentService extends EventEmitter {
                     agent.system.commandBus.request('process_narsese', {content: payload});
                     break;
                 case 'natural_language':
-                    agent.system.commandBus.request('process_natural_language', {text: payload.text, intent: payload.intent});
+                    agent.system.commandBus.request('process_natural_language', {
+                        text: payload.text,
+                        intent: payload.intent
+                    });
                     break;
                 case 'agentControl':
                     this._handleAgentControl(payload.command);

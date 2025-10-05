@@ -96,8 +96,14 @@ class ConnectionManager extends EventEmitter {
     _waitForConnection(ws, wsUrl) {
         return new Promise((resolve, reject) => {
             const timeout = setTimeout(() => reject(new Error('Connection timeout')), this.config.connectionTimeout);
-            ws.on('open', () => { clearTimeout(timeout); resolve(); });
-            ws.on('error', (error) => { clearTimeout(timeout); reject(error); });
+            ws.on('open', () => {
+                clearTimeout(timeout);
+                resolve();
+            });
+            ws.on('error', (error) => {
+                clearTimeout(timeout);
+                reject(error);
+            });
         });
     }
 
@@ -238,7 +244,12 @@ class ConnectionManager extends EventEmitter {
     }
 
     _getConnectionStatus(readyState) {
-        const states = {[WebSocket.CONNECTING]: 'connecting', [WebSocket.OPEN]: 'connected', [WebSocket.CLOSING]: 'closing', [WebSocket.CLOSED]: 'closed'};
+        const states = {
+            [WebSocket.CONNECTING]: 'connecting',
+            [WebSocket.OPEN]: 'connected',
+            [WebSocket.CLOSING]: 'closing',
+            [WebSocket.CLOSED]: 'closed'
+        };
         return states[readyState] || 'unknown';
     }
 
@@ -265,4 +276,4 @@ export function createConnectionManager(config = {}) {
     return new ConnectionManager(config);
 }
 
-export { ConnectionManager };
+export {ConnectionManager};

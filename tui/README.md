@@ -22,6 +22,8 @@ The new TUI uses:
 - Custom `TuiAgentService` extending the base service with TUI-specific features
 - `AgentManager` for multi-agent connection orchestration
 - Auto-discovery mechanism to find agents on common ports
+- Consolidated WebSocket management with unified message handling
+- Optimized component structure with shared utilities and constants
 
 ## Installation
 
@@ -63,6 +65,17 @@ The TUI is currently in connection management mode. Future versions will include
 3. **Resilient Connections**: Individual agent disconnections don't affect the TUI
 4. **Auto-Discovery**: Automatically finds available agents without manual configuration
 5. **Shared Codebase**: Leverages the same communication services as the Web UI
+
+## Recent Improvements
+
+The TUI has been significantly refactored for better maintainability and performance:
+
+- **Consolidated WebSocket Management**: Unified message handling logic eliminates duplication between server
+  implementations
+- **Enhanced Error Handling**: Improved error handling patterns with graceful degradation
+- **Optimized Component Structure**: Better organization of React components with shared utilities
+- **Consolidated Constants**: Centralized configuration management across the application
+- **Improved Import/Export Patterns**: Cleaner module organization and reduced coupling
 
 ## Development
 

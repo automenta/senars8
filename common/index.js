@@ -1,6 +1,5 @@
 // Common module exports for both UI and TUI
 import logger from '@senars/core/utils/logger.js';
-import log from '@senars/core/utils/logger.js';
 import configProvider from './services/ConfigProvider.js';
 import eventManager from './services/EventManager.js';
 import sharedAPI from './services/SharedAPI.js';
@@ -14,6 +13,9 @@ import useAgentState from './hooks/useAgentState.js';
 import useLogs from './hooks/useLogs.js';
 import * as DocumentationUtils from './utils/DocumentationUtils.js';
 import * as TestUtils from './utils/TestUtils.js';
+
+// Re-export logger as log for backward compatibility
+const log = logger;
 
 export {
     // Services

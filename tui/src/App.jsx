@@ -1,17 +1,17 @@
-import React, {useEffect, useState, useCallback, useMemo} from 'react';
-import {Box, Text, Static, useInput, useApp} from 'ink';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {Box, Static, Text, useApp, useInput} from 'ink';
 import {connectionManager} from '@senars/common';
-import logger, { TuiTransport } from '../../core/utils/logger.js';
+import logger, {TuiTransport} from '../../core/utils/logger.js';
 import TuiAgentService from './services/TuiAgentService.js';
 import AgentView from './components/AgentView.jsx';
 import ConnectionDiscovery from './components/ConnectionDiscovery.jsx';
-import { ErrorBoundary } from './components/ErrorBoundary.jsx';
-import { LoadingProgress, ConnectionStatus } from './components/LoadingStates.jsx';
-import { theme } from './theme.js';
-import { Container, Panel, Flex, MainLayout, SplitPane } from './components/Layout.jsx';
-import { Card, Badge, ProgressBar, Button } from './components/Interactive.jsx';
-import { formatDuration, debounce, LOG_LEVELS, LOG_LEVEL_CONFIG } from './utils/uiHelpers.js';
-import { useFocusManager } from './hooks/useMouseInteraction.js';
+import {ErrorBoundary} from './components/ErrorBoundary.jsx';
+import {ConnectionStatus} from './components/LoadingStates.jsx';
+import {theme} from './theme.js';
+import {Container, Flex, MainLayout, Panel} from './components/Layout.jsx';
+import {Badge, Button, Card} from './components/Interactive.jsx';
+import {LOG_LEVEL_CONFIG, LOG_LEVELS} from './utils/uiHelpers.js';
+import {useFocusManager} from './hooks/useMouseInteraction.js';
 
 // Modern Transcript Panel Component for displaying captured logs
 const TranscriptPanel = ({logs = [], title = "System Transcript", maxHeight = 12}) => {
@@ -29,7 +29,9 @@ const TranscriptPanel = ({logs = [], title = "System Transcript", maxHeight = 12
                         return (
                             <Box key={index} marginBottom={0}>
                                 <Box width={4} marginRight={1}>
-                                    <Badge variant={log.level <= LOG_LEVELS.WARN ? 'error' : log.level === LOG_LEVELS.INFO ? 'info' : 'primary'} size="sm">
+                                    <Badge
+                                        variant={log.level <= LOG_LEVELS.WARN ? 'error' : log.level === LOG_LEVELS.INFO ? 'info' : 'primary'}
+                                        size="sm">
                                         {level}
                                     </Badge>
                                 </Box>

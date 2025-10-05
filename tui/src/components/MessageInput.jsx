@@ -1,9 +1,8 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import {Box, Text, useInput} from 'ink';
 import PropTypes from 'prop-types';
-import { theme } from '../theme.js';
-import { Card, Button, Badge } from './Interactive.jsx';
-import { useMouseInteraction } from '../hooks/useMouseInteraction.js';
+import {theme} from '../theme.js';
+import {Card} from './Interactive.jsx';
 
 const MessageInput = ({agentService, onMessageSent, history = [], disabled = false}) => {
     const [input, setInput] = useState('');
@@ -67,7 +66,6 @@ const MessageInput = ({agentService, onMessageSent, history = [], disabled = fal
             setIsSubmitting(false);
         }
     };
-
 
 
     const displayText = input || (isSubmitting ? '📤 Sending message...' : '💬 Type your message... (Enter to send, ↑↓ for history, Esc to clear)');

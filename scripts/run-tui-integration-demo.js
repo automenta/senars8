@@ -18,11 +18,11 @@
  * 4. Provide a consistent user experience
  */
 
-import { execa } from 'execa';
-import { createServer } from 'vite';
+import {execa} from 'execa';
+import {createServer} from 'vite';
 import path from 'path';
 import AgentManager from '../agent/AgentManager.js';
-import { agentServerPlugin } from '../agent/vite-plugin.js';
+import {agentServerPlugin} from '../agent/vite-plugin.js';
 import logger from '../core/utils/logger.js';
 
 const log = logger.create('tui-integration-demo');
@@ -47,7 +47,7 @@ class TuiIntegrationDemo {
             this.server = await createServer({
                 configFile: path.resolve(process.cwd(), 'ui/vite.config.js'),
                 root: path.resolve(process.cwd(), 'ui'),
-                server: { port: this.wsPort, clearScreen: false },
+                server: {port: this.wsPort, clearScreen: false},
                 plugins: [agentServerPlugin(this.agentManager)],
             });
 
@@ -72,7 +72,7 @@ class TuiIntegrationDemo {
             // Start TUI process
             this.tuiProcess = execa('tsx', ['tui/src/index.jsx'], {
                 stdio: 'inherit',
-                env: { ...process.env, WS_PORT: this.wsPort.toString() }
+                env: {...process.env, WS_PORT: this.wsPort.toString()}
             });
 
             this.tuiProcess.on('exit', (code) => {
@@ -143,7 +143,7 @@ class TuiIntegrationDemo {
         try {
             // Stop TUI process
             if (this.tuiProcess) {
-                this.tuiProcess.kill('SIGTERM', { forceKillAfterTimeout: 5000 });
+                this.tuiProcess.kill('SIGTERM', {forceKillAfterTimeout: 5000});
                 this.tuiProcess = null;
             }
 

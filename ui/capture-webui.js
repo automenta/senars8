@@ -5,12 +5,11 @@
  * Captures screenshots and generates documentation for the Web UI
  */
 
-import {spawn, exec} from 'child_process';
+import {spawn} from 'child_process';
 import {createWriteStream, existsSync, mkdirSync} from 'fs';
-import {join} from 'path';
+import {dirname, join, resolve} from 'path';
 import {setTimeout} from 'timers/promises';
 import {fileURLToPath} from 'url';
-import {dirname, resolve} from 'path';
 import puppeteer from 'puppeteer';
 
 // Get the directory of the current module

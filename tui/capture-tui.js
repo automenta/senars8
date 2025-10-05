@@ -5,11 +5,8 @@
  * This script helps document and demonstrate TUI functionality
  */
 
-import {spawn} from 'child_process';
-import {createWriteStream} from 'fs';
-import {join} from 'path';
+import {dirname, join, resolve} from 'path';
 import {fileURLToPath} from 'url';
-import {dirname, resolve} from 'path';
 
 // Get the directory of the current module
 const __filename = fileURLToPath(import.meta.url);

@@ -518,9 +518,11 @@ export const MOCK_SETS = {
  * @returns {Function} Mock function
  */
 export const createMockFunction = (returnValue = undefined, error = null, implementation = null) =>
-    error ? vi.fn(() => { throw error; }) :
-    implementation ? vi.fn(implementation) :
-    vi.fn(() => returnValue);
+    error ? vi.fn(() => {
+            throw error;
+        }) :
+        implementation ? vi.fn(implementation) :
+            vi.fn(() => returnValue);
 
 /**
  * Creates a mock object with predefined properties and methods
