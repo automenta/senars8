@@ -2,29 +2,9 @@
  * A collection of shared data formatting and normalization utilities.
  */
 
-/**
- * Formats a numeric value to a fixed decimal precision.
- * @param {number} value - The number to format
- * @param {number} precision - Decimal places (default: 2)
- * @returns {string} Formatted number as string
- */
 export const formatNumber = (value, precision = 2) => (value || 0).toFixed(precision);
-
-/**
- * Formats a truth value object for display.
- * @param {object} truthValue - Truth value with frequency and confidence
- * @returns {string} Formatted truth value string
- */
-export const formatTruthValue = (truthValue) => {
-    if (!truthValue) return '';
-    return `TV(${formatNumber(truthValue.frequency)}, ${formatNumber(truthValue.confidence)})`;
-};
-
-/**
- * Formats a confidence score for display.
- * @param {number} confidence - Confidence value between 0-1
- * @returns {string} Formatted confidence percentage
- */
+export const formatTruthValue = (truthValue) => truthValue ?
+  `TV(${formatNumber(truthValue.frequency)}, ${formatNumber(truthValue.confidence)})` : '';
 export const formatConfidence = (confidence) => `${formatNumber(confidence * 100)}%`;
 
 /**

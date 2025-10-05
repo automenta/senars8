@@ -1,11 +1,9 @@
-import {agentErrorHandler as errorHandler, createSystem} from '../core/index.js';
+import {createSystem} from '../core/index.js';
 import {parseTerm} from '../core/parser/parse-utils.js';
 import Task from '../core/core/Task.js';
-import logger from '../core/utils/logger.js';
 import MCP from './MCP.js';
 import {parseTermToAction} from './utils/index.js';
-
-const agentLogger = logger.create('Agent');
+import {agentHandler} from './utils/errorHandler.js';
 
 class Agent {
     constructor(config = {}) {
@@ -18,64 +16,53 @@ class Agent {
 
     async initialize() {
         if (this.isInitialized) return;
-        return errorHandler.execute(async () => {
+        return agentHandler.execute(async () => {
             this.system = await createSystem(this.config);
             this.isInitialized = true;
 
             // Set up event listeners for real-time UI updates
             if (this.system.eventBus) {
-                const eventTypes = ['task', 'belief', 'goal', 'question'];
-                for (const eventType of eventTypes) {
-                    this.system.eventBus.on(`add_${eventType}`, (task) => {
+                ['task', 'belief', 'goal', 'question'].forEach(eventType => {
+                    this.system.eventBus.on(`add_${eventType}`, task =>
                         this.mcp.log({
                             type: `${eventType}_added`,
                             content: task,
                             timestamp: new Date().toISOString()
-                        });
-                    });
-                }
+                        })
+                    );
+                });
             }
-
-            agentLogger.debug('Agent initialized successfully.');
         }, 'initialize');
     }
 
     addTool(tool) {
-        if (!this.isInitialized) throw new Error('Agent must be initialized before adding tools.');
-        if (!tool || !tool.name || typeof tool.handler !== 'function') {
-            throw new Error('Tool must be an object with a name and a handler function.');
-        }
+        agentHandler.requireInitialized(this);
+        agentHandler.validate(tool?.name && typeof tool.handler === 'function',
+                            'Tool must have name and handler function');
+
         this.tools[tool.name] = tool;
         this.system.actionExecutor.registerActionHandler(tool.name, tool.handler);
-        agentLogger.debug(`Tool registered: ${tool.name}`);
     }
 
     async decideNextAction(goalString) {
-        if (!this.isInitialized) throw new Error('Agent not initialized.');
-        agentLogger.debug('Deciding next action for goal:', goalString);
+        agentHandler.requireInitialized(this);
 
         const plan = await this.createPlan(goalString);
-        if (!plan?.steps.length) {
-            agentLogger.debug('No actionable plan found.');
-            return null;
-        }
+        if (!plan?.steps?.length) return null;
 
-        const action = this._parseTermToAction(plan.steps[0]);
-        agentLogger.debug('Next action determined:', action);
-        return action;
+        return this._parseTermToAction(plan.steps[0]);
     }
 
     async executeAction(action) {
         const tool = this.tools[action.tool];
-        if (!tool) throw new Error(`Tool not found: ${action.tool}`);
+        agentHandler.validate(tool, `Tool not found: ${action.tool}`);
 
         const params = this._buildToolParameters(tool, action.parameters);
         return tool.handler(params);
     }
 
     _buildToolParameters(tool, actionParams) {
-        const toolParamsDef = tool.parameters;
-        const paramNames = Object.keys(toolParamsDef?.properties || {});
+        const paramNames = Object.keys(tool.parameters?.properties || {});
         return Object.fromEntries(
             paramNames.map((paramName, i) => [paramName, actionParams[i]])
         );
@@ -86,44 +73,25 @@ class Agent {
     }
 
     async createPlan(goalString) {
-        return errorHandler.execute(async () => {
+        return agentHandler.execute(async () => {
             const goalTerm = parseTerm(goalString);
-            if (!goalTerm) {
-                agentLogger.warn(`Could not parse goal string: ${goalString}`);
-                return null;
-            }
+            if (!goalTerm) return null;
 
             const goalTask = new Task(goalTerm, '!');
             const plan = await this.system.reasoner.planner.createPlan(goalTask);
 
-            if (!plan || plan.steps.length === 0) {
-                agentLogger.warn(`No plan could be created for goal: ${goalString}`);
-                return null;
-            }
-            return plan;
-        }, `createPlan for goal: ${goalString}`, null);
+            return plan?.steps?.length ? plan : null;
+        }, `createPlan: ${goalString}`);
     }
 
     start() {
-        if (!this.isInitialized) {
-            throw new Error('Agent must be initialized before starting.');
-        }
+        agentHandler.requireInitialized(this);
         this.system?.start?.();
-        if (!this.system?.start) {
-            agentLogger.debug('System does not have a start method.');
-        }
     }
 
     stop() {
-        if (!this.isInitialized) {
-            throw new Error('Agent must be initialized before stopping.');
-        }
-
-        // Then stop the main system
+        agentHandler.requireInitialized(this);
         this.system?.stop?.();
-        if (!this.system?.stop) {
-            agentLogger.debug('System does not have a stop method.');
-        }
     }
 
     async reset() {
@@ -131,19 +99,13 @@ class Agent {
         await this.initialize();
     }
 
-    /**
-     * Get the current state of the agent's memory for UI integration.
-     * This provides a single, efficient entry point for accessing agent state.
-     * @returns {Object} An object containing tasks, beliefs, goals, and questions.
-     */
     getAgentState() {
         if (!this.isInitialized || !this.system?.memory) {
-            agentLogger.debug('Cannot access agent state: Agent not initialized or no system memory.');
             return {tasks: [], beliefs: [], goals: [], questions: []};
         }
 
-        return errorHandler.runSync(() => {
-            const memory = this.system.memory;
+        return agentHandler.runSync(() => {
+            const {memory} = this.system;
             return {
                 tasks: memory.getAllTasks?.() || [],
                 beliefs: memory.getBeliefs?.() || [],

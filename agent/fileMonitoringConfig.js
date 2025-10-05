@@ -1,8 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import _ from 'lodash';
-
-const {merge} = _;
 
 const defaultConfig = {
     patterns: ['docs/TODO.md'],
@@ -21,7 +18,7 @@ const defaultConfig = {
 // Terse config manager - single class with static methods
 export default class FileMonitoringConfig {
     constructor(options = {}) {
-        this.config = merge({}, defaultConfig, options);
+        this.config = {...defaultConfig, ...options};
     }
 
     static loadFromFile(filePath) {
@@ -44,6 +41,6 @@ export default class FileMonitoringConfig {
     }
 
     updateConfig(newConfig) {
-        this.config = merge(this.config, newConfig);
+        this.config = {...this.config, ...newConfig};
     }
 }

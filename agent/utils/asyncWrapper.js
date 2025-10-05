@@ -32,31 +32,18 @@ const executeAsyncCore = async (fn, ws, op, config = {}) => {
     }
 };
 
-// Main execution wrapper - terse and flexible
-export const executeAsync = (fn, ws, op = 'operation') =>
-    executeAsyncCore(fn, ws, op);
-
-// File operations - optimized path
-export const executeFileOperation = (fn, ws, op) =>
-    executeAsyncCore(fn, ws, op);
-
-// Command operations - specific response format
-export const executeCommandOperation = (fn, ws, op) =>
-    executeAsyncCore(fn, ws, op, {
-        type: 'commandOutput',
-        formatError: () => ({type: 'commandOutput', payload: {stdout: '', stderr: error.message}})
-    });
-
-// Custom execution with options
+// Execution wrappers - consolidated and terse
+export const executeAsync = (fn, ws, op = 'operation') => executeAsyncCore(fn, ws, op);
+export const executeFileOperation = (fn, ws, op) => executeAsyncCore(fn, ws, op);
+export const executeCommandOperation = (fn, ws, op) => executeAsyncCore(fn, ws, op, {
+  type: 'commandOutput',
+  formatError: () => ({type: 'commandOutput', payload: {stdout: '', stderr: error.message}})
+});
 export const executeAsyncCustom = (fn, ws, options = {}) =>
-    executeAsyncCore(fn, ws, options.operationName || 'operation', options);
-
-// Default error wrapper
+  executeAsyncCore(fn, ws, options.operationName || 'operation', options);
 export const executeWithDefaultError = (fn, ws, msg = 'Operation failed') =>
-    executeAsyncCore(fn, ws, msg.split(' ')[0].toLowerCase(), {
-        formatError: (error) => ({type: 'error', payload: {message: `${msg}: ${error.message}`}})
-    });
-
-// Core error handler compatibility
+  executeAsyncCore(fn, ws, msg.split(' ')[0].toLowerCase(), {
+    formatError: (error) => ({type: 'error', payload: {message: `${msg}: ${error.message}`}})
+  });
 export const withCoreErrorHandler = (fn, context, defaultValue = null) =>
-    executeAsyncCore(fn, null, context, {defaultValue});
+  executeAsyncCore(fn, null, context, {defaultValue});

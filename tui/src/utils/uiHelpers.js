@@ -133,10 +133,6 @@ export const throttle = (func, limit) => {
     };
 };
 
-// Generate unique IDs
-export const generateId = (prefix = 'tui') => {
-    return `${prefix}_${Math.random().toString(36).substr(2, 9)}`;
-};
 
 // Deep clone objects (simple implementation)
 export const deepClone = (obj) => {
