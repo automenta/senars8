@@ -44,7 +44,9 @@ export class UnifiedWebSocketServer {
       ws.on('message', async (data) => {
         if (this.messageHandler) await this.messageHandler(data, ws);
       });
-      ws.on('close', () => log.info('Client disconnected.'));
+      ws.on('close', (code, reason) => {
+        log.info(`Client disconnected with code ${code}: ${reason || 'No reason provided'}`);
+      });
     });
   }
 
@@ -57,7 +59,7 @@ export class UnifiedWebSocketServer {
       if (this.wss) {
         if (this.wss.clients) {
           for (const client of this.wss.clients) {
-            if (client.readyState === client.OPEN) client.terminate();
+            if (client.readyState === client.OPEN) client.close(1000, 'Server shutting down');
           }
         }
         this.wss.close(() => {

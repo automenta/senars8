@@ -22,6 +22,7 @@
     "start": "node main.js",
     "dev": "node main.js --web",
     "dev:ws": "WS_PORT=8081 node main.js --web",
+    "web": "node integrated-web-runner.js",
     "tui": "tsx tui/src/index.jsx",
     "agent:ws": "WS_PORT=8081 node agent/start-agent.js",
     "test": "ORT_LOGGING_LEVEL=FATAL vitest --run",
@@ -30,6 +31,7 @@
     "test:tui:integration": "node tui/tests/run-integration-tests.js",
     "test:core": "CI=true ORT_LOGGING_LEVEL=FATAL vitest run --project core",
     "test:watch": "ORT_LOGGING_LEVEL=FATAL vitest --watch --reporter=verbose",
+    "test:integrated": "ORT_LOGGING_LEVEL=FATAL npx playwright test ui/tests/integrated-web-fixed.e2e.test.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "slides": "slidev docs/slides.md"

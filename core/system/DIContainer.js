@@ -98,7 +98,7 @@ class DIContainer {
                     await this.load(fullPath, {lifetime});
                 } else if (file.endsWith('.js')) {
                     const {name: moduleName} = parse(file);
-                    const module = await import(fullPath);
+                    const module = await import(/* @vite-ignore */ fullPath);
                     if (module.default && typeof module.default === 'function') {
                         // A simple way to infer dependencies from constructor parameter names.
                         // This is not very robust and has limitations (e.g., doesn't work with minified code).

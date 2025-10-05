@@ -16,11 +16,14 @@ export const useAgent = () => {
 
 export const AgentProvider = ({children}) => {
     const agentService = useMemo(() => {
-        // For now, we'll connect to a default URL.
-        // This can be extended to use the connection discovery mechanism.
-        const defaultUrl = `ws://localhost:${process.env.WS_PORT || 8080}`;
-        connectionManager.connect(defaultUrl);
-        return new AgentService(defaultUrl);
+        // Use environment variables set by the integrated runner
+        // VITE_WS_URL is set by the integrated web runner
+        // WS_PORT is the fallback for direct connections
+        const wsUrl = import.meta.env.VITE_WS_URL || `ws://localhost:${process.env.WS_PORT || 8081}`;
+
+        console.log('Connecting to WebSocket:', wsUrl);
+        connectionManager.connect(wsUrl);
+        return new AgentService(wsUrl);
     }, []);
 
     const agentState = useAgentState(agentService);

@@ -1,0 +1,175 @@
+import {createServer} from 'vite';
+import {execa} from 'execa';
+import path from 'path';
+import {fileURLToPath} from 'url';
+import Agent from './agent/index.js';
+import logger from './core/utils/logger.js';
+import AgentManager from './agent/AgentManager.js';
+import {UnifiedWebSocketServer} from './agent/StandaloneWebSocketServer.js';
+import {createMessageHandler} from './agent/MessageHandler.js';
+import {findAvailablePort} from './tests/utils/networkUtils.js';
+
+const log = logger.create('integrated-web-runner');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+export class IntegratedWebRunner {
+    constructor() {
+        this.viteServer = null;
+        this.agentManager = null;
+        this.wsServer = null;
+        this.port = null;
+        this.wsPort = null;
+    }
+
+    async start() {
+        try {
+            log.info('Starting integrated Web UI with embedded Agent...');
+
+            // Find available ports
+            this.port = await findAvailablePort(3000);
+            this.wsPort = await findAvailablePort(8081);
+
+            log.info(`Using HTTP port: ${this.port}`);
+            log.info(`Using WebSocket port: ${this.wsPort}`);
+
+            // Start the agent manager first
+            await this.startAgent();
+
+            // Start the Vite dev server with the agent plugin
+            await this.startViteServer();
+
+            // Set up graceful shutdown
+            this.setupGracefulShutdown();
+
+            log.info('Integrated Web UI started successfully!');
+            log.info(`Web UI available at: http://localhost:${this.port}`);
+            log.info(`WebSocket server running on port: ${this.wsPort}`);
+
+            return {
+                port: this.port,
+                wsPort: this.wsPort,
+                server: this.viteServer,
+                agentManager: this.agentManager,
+                wsServer: this.wsServer
+            };
+
+        } catch (error) {
+            log.error('Failed to start integrated Web UI:', error);
+            await this.cleanup();
+            throw error;
+        }
+    }
+
+    async startAgent() {
+        log.info('Starting embedded agent...');
+
+        this.agentManager = new AgentManager();
+
+        // Create WebSocket server for the agent
+        this.wsServer = new UnifiedWebSocketServer({port: this.wsPort});
+        await this.wsServer.start();
+
+        // Set up message handling
+        const messageHandler = createMessageHandler(this.agentManager, this.wsServer.broadcast.bind(this.wsServer));
+        this.wsServer.setMessageHandler(messageHandler);
+
+        // Link WebSocket server to agent manager
+        this.agentManager.setBroadcast(this.wsServer.broadcast.bind(this.wsServer));
+
+        // Initialize the agent manager
+        await this.agentManager.initialize();
+
+        log.info('Embedded agent started successfully');
+    }
+
+    async startViteServer() {
+        log.info('Starting Vite dev server...');
+
+        // Set environment variables for the Web UI to connect to our WebSocket server
+        process.env.WS_PORT = this.wsPort.toString();
+        process.env.VITE_WS_URL = `ws://localhost:${this.wsPort}`;
+
+        this.viteServer = await createServer({
+            configFile: path.resolve(__dirname, 'ui/vite.config.js'),
+            root: path.resolve(__dirname, 'ui'),
+            server: {
+                port: this.port,
+                host: 'localhost',
+                clearScreen: false
+            },
+            define: {
+                __WS_PORT__: this.wsPort,
+                __DEV_MODE__: true
+            }
+        });
+
+        await this.viteServer.listen();
+        this.viteServer.printUrls();
+
+        log.info(`Vite dev server started on port ${this.port}`);
+    }
+
+    setupGracefulShutdown() {
+        const shutdown = async (signal) => {
+            log.info(`Received ${signal}. Shutting down gracefully...`);
+            await this.cleanup();
+            process.exit(0);
+        };
+
+        process.on('SIGINT', () => shutdown('SIGINT'));
+        process.on('SIGTERM', () => shutdown('SIGTERM'));
+    }
+
+    async cleanup() {
+        log.info('Cleaning up integrated Web UI...');
+
+        if (this.agentManager) {
+            try {
+                await this.agentManager.stop();
+                log.info('Agent manager stopped');
+            } catch (error) {
+                log.error('Error stopping agent manager:', error);
+            }
+        }
+
+        if (this.wsServer) {
+            try {
+                await this.wsServer.stop();
+                log.info('WebSocket server stopped');
+            } catch (error) {
+                log.error('Error stopping WebSocket server:', error);
+            }
+        }
+
+        if (this.viteServer) {
+            try {
+                await this.viteServer.close();
+                log.info('Vite dev server stopped');
+            } catch (error) {
+                log.error('Error stopping Vite dev server:', error);
+            }
+        }
+    }
+}
+
+// Main execution
+const main = async () => {
+    const runner = new IntegratedWebRunner();
+    await runner.start();
+
+    // Keep the process alive
+    return new Promise(() => {
+        // Process will be terminated by graceful shutdown handlers
+    });
+};
+
+// Run if called directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+    main().catch(error => {
+        log.error('Unhandled error in integrated web runner:', error);
+        process.exit(1);
+    });
+}
+
+export default IntegratedWebRunner;
