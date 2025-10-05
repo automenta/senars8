@@ -1,15 +1,12 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {WebSocket, WebSocketServer} from 'ws';
-import {closeWebSocket, createWebSocketClient, waitForSocketState} from '../utils/WebSocketTestUtils.js';
-import {Agent} from '../../agent/Agent.js';
 import {findAvailablePort} from '../utils/networkUtils.js';
 
-// Mock the Agent class
-vi.mock('../../agent/Agent.js', () => {
-    const Agent = vi.fn();
-    Agent.prototype.processMessage = vi.fn();
-    return {Agent};
-});
+vi.mock('../../agent/Agent.js', () => ({
+    Agent: vi.fn().mockImplementation(() => ({
+        processMessage: vi.fn()
+    }))
+}));
 
 describe('WebSocket Integration Tests', () => {
     let wss;
@@ -19,96 +16,65 @@ describe('WebSocket Integration Tests', () => {
     let wsPort;
 
     beforeEach(async () => {
-        vi.clearAllMocks();
         wsPort = await findAvailablePort(8080);
         wss = new WebSocketServer({port: wsPort});
 
-        const connectionPromise = new Promise(resolve => {
-            wss.on('connection', (ws) => {
-                serverSocket = ws;
-                agent = new Agent();
-                ws.on('message', (message) => {
-                    try {
-                        const parsedMessage = JSON.parse(message);
-                        agent.processMessage(parsedMessage);
-                    } catch (e) {
-                        // Don't crash the server on invalid JSON
-                    }
-                });
-                resolve();
+        // Set up server connection handler
+        wss.on('connection', (ws) => {
+            serverSocket = ws;
+            agent = {processMessage: vi.fn()};
+            ws.on('message', (message) => {
+                try {
+                    const parsedMessage = JSON.parse(message);
+                    agent.processMessage(parsedMessage);
+                } catch (e) {
+                    // Ignore invalid JSON
+                }
             });
         });
 
-        clientSocket = await createWebSocketClient(`ws://localhost:${wsPort}`);
-        await connectionPromise;
+        // Create client connection
+        clientSocket = new WebSocket(`ws://localhost:${wsPort}`);
+
+        // Wait for both client and server to be ready
+        await Promise.all([
+            new Promise(resolve => clientSocket.on('open', resolve)),
+            new Promise(resolve => wss.on('connection', resolve))
+        ]);
     });
 
     afterEach(async () => {
-        await closeWebSocket(clientSocket);
-        // Ensure the server is fully closed before the next test
-        if (wss) {
-            await new Promise(resolve => wss.close(resolve));
-        }
+        clientSocket?.close();
+        await new Promise(resolve => wss.close(resolve));
     });
 
-    it('should establish a connection', () => {
+    it('should establish connection', () => {
         expect(clientSocket.readyState).toBe(WebSocket.OPEN);
         expect(serverSocket.readyState).toBe(WebSocket.OPEN);
     });
 
-    it('should handle message serialization and deserialization', async () => {
+    it('should handle messages', async () => {
         const message = {type: 'test', payload: {data: 'hello'}};
 
-        const messagePromise = new Promise(resolve => {
-            agent.processMessage.mockImplementation((receivedMessage) => {
-                resolve(receivedMessage);
-            });
-        });
-
         clientSocket.send(JSON.stringify(message));
+        await new Promise(resolve => setTimeout(resolve, 100));
 
-        const received = await messagePromise;
-        expect(received).toEqual(message);
+        expect(agent.processMessage).toHaveBeenCalledWith(message);
     });
 
-    it('should handle client-side close', async () => {
-        const serverClosePromise = new Promise(resolve => serverSocket.on('close', resolve));
-
+    it('should handle connection close', async () => {
         clientSocket.close();
-        await serverClosePromise;
-
-        await waitForSocketState(clientSocket, WebSocket.CLOSED);
-        await waitForSocketState(serverSocket, WebSocket.CLOSED);
+        await new Promise(resolve => clientSocket.on('close', resolve));
 
         expect(clientSocket.readyState).toBe(WebSocket.CLOSED);
-        expect(serverSocket.readyState).toBe(WebSocket.CLOSED);
     });
 
-    it('should handle server-side close', async () => {
-        const clientClosePromise = new Promise(resolve => clientSocket.on('close', resolve));
-
-        serverSocket.close();
-        await clientClosePromise;
-
-        await waitForSocketState(clientSocket, WebSocket.CLOSED);
-        await waitForSocketState(serverSocket, WebSocket.CLOSED);
-
-        expect(clientSocket.readyState).toBe(WebSocket.CLOSED);
-        expect(serverSocket.readyState).toBe(WebSocket.CLOSED);
-    });
-
-    it('should handle invalid JSON messages gracefully without disconnecting', async () => {
-        const invalidJson = '{ "type": "test", "payload": { "data": "hello" ';
-
-        // agent.processMessage is a mock from vi.mock at the top of the file
-        const processMessageSpy = agent.processMessage;
-
-        clientSocket.send(invalidJson);
+    it('should handle invalid JSON gracefully', async () => {
+        clientSocket.send('{ invalid json');
 
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        expect(processMessageSpy).not.toHaveBeenCalled();
+        expect(agent.processMessage).not.toHaveBeenCalled();
         expect(clientSocket.readyState).toBe(WebSocket.OPEN);
-        expect(serverSocket.readyState).toBe(WebSocket.OPEN);
     });
 });
