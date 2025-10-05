@@ -1,43 +1,47 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback, useMemo} from 'react';
 import {Box, Text, Static, useInput, useApp} from 'ink';
 import {connectionManager} from '@senars/common';
 import logger, { TuiTransport } from '../../core/utils/logger.js';
 import TuiAgentService from './services/TuiAgentService.js';
 import AgentView from './components/AgentView.jsx';
 import ConnectionDiscovery from './components/ConnectionDiscovery.jsx';
+import { ErrorBoundary } from './components/ErrorBoundary.jsx';
+import { LoadingProgress, ConnectionStatus } from './components/LoadingStates.jsx';
+import { theme } from './theme.js';
+import { Container, Panel, Flex, MainLayout, SplitPane } from './components/Layout.jsx';
+import { Card, Badge, ProgressBar, Button } from './components/Interactive.jsx';
+import { formatDuration, debounce, LOG_LEVELS, LOG_LEVEL_CONFIG } from './utils/uiHelpers.js';
+import { useFocusManager } from './hooks/useMouseInteraction.js';
 
-// Transcript Panel Component for displaying captured logs
-const TranscriptPanel = ({logs = [], title = "Transcript", maxHeight = 10}) => {
+// Modern Transcript Panel Component for displaying captured logs
+const TranscriptPanel = ({logs = [], title = "System Transcript", maxHeight = 12}) => {
+
     return (
-        <Box flexDirection="column" borderStyle="single" height={maxHeight}>
-            <Box padding={1} borderStyle="single" borderBottom={false}>
-                <Text bold>{title}</Text>
-                <Text color="gray" marginLeft={1}>({logs.length} entries)</Text>
-            </Box>
-            <Box flexDirection="column" flexGrow={1} padding={1}>
-                {logs.length === 0 ? (
-                    <Text color="gray">No logs yet...</Text>
-                ) : (
-                    <Static items={logs.slice(-50)}>
-                        {(log, index) => {
-                            const levelColors = {
-                                0: 'red',     // ERROR
-                                1: 'yellow',  // WARN
-                                2: 'blue',    // INFO
-                                3: 'magenta'  // DEBUG
-                            };
-                            const color = levelColors[log.level] || 'white';
+        <Panel title={`${title} (${logs.length} entries)`} height={maxHeight} variant="primary">
+            {logs.length === 0 ? (
+                <Text color={theme.colors.textMuted}>No logs yet...</Text>
+            ) : (
+                <Static items={logs.slice(-50)}>
+                    {(log, index) => {
+                        const color = LOG_LEVEL_CONFIG.COLORS[log.level] || theme.colors.text;
+                        const level = LOG_LEVEL_CONFIG.NAMES[log.level] || 'UNK';
 
-                            return (
-                                <Text key={index} color={color} wrap="wrap">
+                        return (
+                            <Box key={index} marginBottom={0}>
+                                <Box width={4} marginRight={1}>
+                                    <Badge variant={log.level <= LOG_LEVELS.WARN ? 'error' : log.level === LOG_LEVELS.INFO ? 'info' : 'primary'} size="sm">
+                                        {level}
+                                    </Badge>
+                                </Box>
+                                <Text color={color} wrap="wrap">
                                     {log.message}
                                 </Text>
-                            );
-                        }}
-                    </Static>
-                )}
-            </Box>
-        </Box>
+                            </Box>
+                        );
+                    }}
+                </Static>
+            )}
+        </Panel>
     );
 };
 
@@ -53,9 +57,18 @@ const App = ({onExit}) => {
     const [transcriptLogs, setTranscriptLogs] = useState([]);
     const [tuiLogger, setTuiLogger] = useState(null);
     const {exit} = useApp();
+    const globalFocusManager = useFocusManager();
 
-    // Global keyboard shortcuts (except Ctrl+C which is handled by SIGINT)
+    // Global keyboard shortcuts with enhanced focus management
     useInput((input, key) => {
+        // Tab navigation (when not in input fields)
+        if (key.tab) {
+            globalFocusManager.focusNext();
+        } else if (key.shift && key.tab) {
+            globalFocusManager.focusPrev();
+        } else if (key.escape) {
+            globalFocusManager.clearFocus();
+        }
         // Other global shortcuts can be added here if needed
         // Ctrl+C is handled by the SIGINT handler in index.jsx
     });
@@ -100,53 +113,78 @@ const App = ({onExit}) => {
         };
     }, []);
 
-    const handleSelectConnection = (url) => {
+    const handleSelectConnection = useCallback((url) => {
         // Use embedded mode if no URL provided or if explicitly 'embedded'
         const connectionUrl = url || 'embedded';
         const service = new TuiAgentService(connectionUrl);
         service.connect();
         setSelectedConnection({url: connectionUrl, service});
-    };
+    }, []);
 
-    const handleDisconnect = () => {
+    const handleDisconnect = useCallback(() => {
         if (selectedConnection) {
             selectedConnection.service.disconnect();
             setSelectedConnection(null);
         }
-    };
+    }, [selectedConnection]);
+
+    // Memoize transcript panel to prevent unnecessary re-renders
+    const transcriptPanel = useMemo(() => (
+        <TranscriptPanel logs={transcriptLogs} title="System Transcript"/>
+    ), [transcriptLogs]);
 
     if (selectedConnection) {
         return (
-            <Box flexDirection="column" width="100%">
-                {/* Header */}
-                <Box borderStyle="single" padding={1} marginBottom={1}>
-                    <Box flexDirection="column">
-                        <Text bold>SENARS - Text User Interface</Text>
-                        <Text color="gray">
-                            {process.stdin.isTTY && process.stdin.setRawMode ?
-                                "Keyboard: Ctrl+C to exit | Tab navigation: 1-4 or ←/→ arrows | Enter to select" :
-                                "Limited input mode: Type 'quit' to exit | Mouse/click navigation"}
-                        </Text>
-                    </Box>
-                    <Box marginLeft="auto" flexDirection="column" alignItems="flex-end">
-                        <Text>Connected: {selectedConnection.url}</Text>
-                        <Text color="red" onPress={handleDisconnect}>[Disconnect]</Text>
-                    </Box>
-                </Box>
+            <ErrorBoundary>
+                <Container flexDirection="column" width="100%">
+                    {/* Modern Header */}
+                    <Card variant="primary" padding={theme.spacing.md} marginBottom={theme.spacing.sm}>
+                        <Flex justifyContent="space-between" alignItems="center">
+                            <Box flexDirection="column">
+                                <Flex alignItems="center" gap={theme.spacing.sm}>
+                                    <Text bold color={theme.colors.primary}>SENARS</Text>
+                                    <Badge variant="success">v0.2.0</Badge>
+                                </Flex>
+                                <Text color={theme.colors.textMuted}>
+                                    {process.stdin.isTTY && process.stdin.setRawMode ?
+                                        "🎹 Keyboard: Ctrl+C exit • 🔢 Tabs: 1-4 • 🖱️ Mouse: Click • Tab: Navigate • Enter: Select" :
+                                        "🖱️ Mouse/click navigation • Type 'quit' to exit"}
+                                </Text>
+                            </Box>
+                            <Box flexDirection="column" alignItems="flex-end">
+                                <Flex alignItems="center" gap={theme.spacing.sm}>
+                                    <ConnectionStatus
+                                        isConnected={true}
+                                        connectionUrl={selectedConnection.url}
+                                    />
+                                    <Button variant="error" size="sm" onClick={handleDisconnect}>
+                                        Disconnect
+                                    </Button>
+                                </Flex>
+                                <Text color={theme.colors.textMuted}>
+                                    {new Date().toLocaleTimeString()}
+                                </Text>
+                            </Box>
+                        </Flex>
+                    </Card>
 
-                {/* Main Content Area */}
-                <Box flexDirection="row" flexGrow={1}>
-                    {/* Left Panel - Main Interface */}
-                    <Box flexDirection="column" width="75%">
-                        <AgentView agentService={selectedConnection.service}/>
-                    </Box>
+                    {/* Main Content Area with Responsive Layout */}
+                    <MainLayout showSidebar={true} sidebarWidth={35} flexGrow={1}>
+                        {/* Main Interface */}
+                        <ErrorBoundary>
+                            <AgentView
+                                agentService={selectedConnection.service}
+                                globalFocusManager={globalFocusManager}
+                            />
+                        </ErrorBoundary>
 
-                    {/* Right Panel - Transcript/Logs */}
-                    <Box flexDirection="column" width="25%" marginLeft={1}>
-                        <TranscriptPanel logs={transcriptLogs} title="System Transcript"/>
-                    </Box>
-                </Box>
-            </Box>
+                        {/* System Transcript Sidebar */}
+                        <ErrorBoundary>
+                            {transcriptPanel}
+                        </ErrorBoundary>
+                    </MainLayout>
+                </Container>
+            </ErrorBoundary>
         );
     }
 

@@ -3,6 +3,9 @@ import {Box, Text} from 'ink';
 import PropTypes from 'prop-types';
 import {useAgentState} from '@senars/common';
 import {StatusView, StatsView, MemoryView, TasksView, BeliefsView, GoalsView} from '../TuiRenderer.jsx';
+import { theme } from '../theme.js';
+import { Card, Badge, ProgressBar } from './Interactive.jsx';
+import { Flex, Grid } from './Layout.jsx';
 
 const StatusPanel = ({agentService}) => {
     const agentState = useAgentState(agentService);
@@ -10,32 +13,47 @@ const StatusPanel = ({agentService}) => {
     // Show loading state if no data yet
     if (!agentState || Object.keys(agentState).length === 0) {
         return (
-            <Box flexDirection="column" padding={1} borderStyle="single">
-                <Text color="yellow">Loading agent status...</Text>
-                <Text color="gray">Waiting for agent to respond with system information.</Text>
-            </Box>
+            <Card variant="warning" padding={theme.spacing.md}>
+                <Flex flexDirection="column" alignItems="center">
+                    <Text color={theme.colors.warning}>⏳ Loading agent status...</Text>
+                    <Text color={theme.colors.textMuted}>Waiting for agent to respond with system information.</Text>
+                </Flex>
+            </Card>
         );
     }
 
     return (
-        <Box flexDirection="column" padding={1} borderStyle="single">
-            <StatusView agentState={agentState}/>
-            <Box marginTop={1}>
-                <StatsView agentState={agentState}/>
-            </Box>
-            <Box marginTop={1}>
+        <Flex flexDirection="column" gap={theme.spacing.sm}>
+            {/* Status Overview Cards */}
+            <Grid columns={2} gap={theme.spacing.sm}>
+                <Card variant="primary" padding={theme.spacing.sm}>
+                    <StatusView agentState={agentState}/>
+                </Card>
+                <Card variant="success" padding={theme.spacing.sm}>
+                    <StatsView agentState={agentState}/>
+                </Card>
+            </Grid>
+
+            {/* Memory and Knowledge */}
+            <Card variant="info" padding={theme.spacing.sm}>
                 <MemoryView agentState={agentState}/>
-            </Box>
-            <Box marginTop={1}>
-                <TasksView tasks={agentState.tasks || []}/>
-            </Box>
-            <Box marginTop={1}>
+            </Card>
+
+            {/* Tasks and Goals */}
+            <Grid columns={2} gap={theme.spacing.sm}>
+                <Card variant="warning" padding={theme.spacing.sm}>
+                    <TasksView tasks={agentState.tasks || []}/>
+                </Card>
+                <Card variant="secondary" padding={theme.spacing.sm}>
+                    <GoalsView goals={agentState.goals || []}/>
+                </Card>
+            </Grid>
+
+            {/* Beliefs */}
+            <Card variant="primary" padding={theme.spacing.sm}>
                 <BeliefsView beliefs={agentState.beliefs || []}/>
-            </Box>
-            <Box marginTop={1}>
-                <GoalsView goals={agentState.goals || []}/>
-            </Box>
-        </Box>
+            </Card>
+        </Flex>
     );
 };
 

@@ -1,120 +1,115 @@
 #!/usr/bin/env node
 
-// Error handling for TUI startup
-process.on('uncaughtException', (error) => {
-    console.error('TUI failed to start:', error.message);
-    process.exit(1);
-});
+import { TUI_CONSTANTS, getTimeout, getMessage } from './constants.js';
 
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled promise rejection in TUI:', reason);
-    process.exit(1);
-});
-
-try {
-    console.log('Starting TUI...');
-
-    // Import dependencies with error handling
-    const {render} = await import('ink');
-    const React = await import('react');
-    const App = await import('./App.jsx');
-
-    console.log('TUI dependencies loaded successfully');
-
-    // Check if raw mode is supported
-    const isRawModeSupported = process.stdin.isTTY && process.stdin.setRawMode;
-
-    if (!isRawModeSupported) {
-        console.log('⚠️  Raw mode not supported in this environment');
-        console.log('🔧 Falling back to basic mode...');
+// Enhanced error handling with graceful degradation
+const handleError = (error, context) => {
+    console.error(`❌ ${context}:`, error.message);
+    if (process.env.NODE_ENV === 'development') {
+        console.error('Stack:', error.stack);
     }
+    process.exit(TUI_CONSTANTS.EXIT_CODES.ERROR);
+};
 
-    // Start the Ink application with proper keyboard handling
-    const app = render(React.default.createElement(App.default, {
-        onExit: () => {
-            console.log('TUI exited gracefully');
-        }
-    }), {
-        exitOnCtrlC: true,
-        patchConsole: false,
-        stdin: isRawModeSupported ? process.stdin : undefined,
-        stdout: process.stdout,
-        stderr: process.stderr
-    });
+// Global error handlers
+process.on('uncaughtException', (error) => handleError(error, 'TUI startup failed'));
+process.on('unhandledRejection', (reason) => handleError(reason, 'Unhandled promise rejection'));
 
-    // Handle graceful exit - simplified and more reliable
-    const handleExit = () => {
-        console.log('\n🛑 Shutting down TUI...');
+// Main TUI startup function
+const startTui = async () => {
+    try {
+        console.log('🚀 Starting SeNARS TUI...');
 
-        try {
-            if (app) {
-                app.unmount();
-            }
-        } catch (error) {
-            console.error('❌ Error during shutdown:', error);
+        // Import dependencies
+        const { render } = await import('ink');
+        const React = await import('react');
+        const App = await import('./App.jsx');
+
+        // Environment detection
+        const isRawModeSupported = process.stdin.isTTY && process.stdin.setRawMode;
+        const isDevelopment = process.env.NODE_ENV === 'development';
+
+        if (!isRawModeSupported) {
+            console.log(getMessage('LIMITED_INPUT'));
         }
 
-        console.log('✅ TUI shutdown complete');
-        process.exit(0);
-    };
-
-    // Register signal handlers BEFORE starting the app
-    console.log('📋 Setting up signal handlers...');
-    process.on('SIGINT', () => {
-        console.log('🔄 SIGINT received');
-        handleExit();
-    });
-    process.on('SIGTERM', () => {
-        console.log('🔄 SIGTERM received');
-        handleExit();
-    });
-
-    // Handle input based on environment capabilities
-    if (isRawModeSupported) {
-        console.log('⌨️  Raw mode supported - full keyboard input available');
-        process.stdin.setRawMode(true);
-        process.stdin.resume();
-        process.stdin.on('data', (key) => {
-            if (key[0] === 3) { // Ctrl+C
-                console.log('\n⌨️  Ctrl+C detected via stdin, exiting...');
-                handleExit();
-            }
+        // Initialize application
+        const app = render(React.default.createElement(App.default, {
+            onExit: () => isDevelopment && console.log('✅ TUI exited gracefully')
+        }), {
+            exitOnCtrlC: true,
+            patchConsole: false,
+            stdin: isRawModeSupported ? process.stdin : undefined,
+            stdout: process.stdout,
+            stderr: process.stderr
         });
-    } else {
-        console.log('⚠️  Raw mode not supported - limited input available');
-        console.log('💡 Use Ctrl+C in terminal or kill process manually');
-        // Still allow line input as fallback
-        process.stdin.on('data', (data) => {
-            const input = data.toString().trim();
-            if (input.toLowerCase() === 'quit' || input.toLowerCase() === 'exit') {
-                console.log('👋 Exiting via text command...');
-                handleExit();
+
+        // Graceful shutdown handler
+        const shutdown = (signal) => {
+            if (isDevelopment) {
+                console.log(`\n🛑 Shutting down TUI (${signal})...`);
             }
-        });
+
+            try {
+                app?.unmount();
+            } catch (error) {
+                handleError(error, 'Shutdown error');
+            }
+
+            process.exit(TUI_CONSTANTS.EXIT_CODES.SUCCESS);
+        };
+
+        // Register signal handlers
+        process.on('SIGINT', () => shutdown('SIGINT'));
+        process.on('SIGTERM', () => shutdown('SIGTERM'));
+
+        // Enhanced input handling for raw mode
+        if (isRawModeSupported) {
+            process.stdin.setRawMode(true);
+            process.stdin.resume();
+            process.stdin.on('data', (key) => {
+                if (key[0] === 3) { // Ctrl+C
+                    shutdown('Ctrl+C');
+                }
+            });
+        } else {
+            // Fallback for non-raw mode
+            process.stdin.on('data', (data) => {
+                const input = data.toString().trim().toLowerCase();
+                if (['quit', 'exit'].includes(input)) {
+                    shutdown('quit command');
+                }
+            });
+        }
+
+        // Development diagnostics
+        if (isDevelopment) {
+            setTimeout(() => {
+                console.log(`${getMessage('SIGNAL_TEST')} ${process.listeners('SIGINT').length}`);
+            }, getTimeout('SIGNAL_TEST'));
+        }
+
+        // Startup timeout protection
+        const startupTimeout = setTimeout(() => {
+            console.log(getMessage('STARTUP_TIMEOUT'));
+            shutdown('timeout');
+        }, getTimeout('STARTUP'));
+
+        // Clear timeout after successful startup
+        setTimeout(() => {
+            clearTimeout(startupTimeout);
+            console.log(getMessage('STARTED'));
+            if (isRawModeSupported) {
+                console.log(getMessage('PRESS_CTRL_C'));
+            } else {
+                console.log(getMessage('TYPE_QUIT'));
+            }
+        }, getTimeout('CLEANUP_DELAY'));
+
+    } catch (error) {
+        handleError(error, 'Failed to start TUI');
     }
+};
 
-    // Test signal handling after a short delay
-    setTimeout(() => {
-        console.log('🔍 Signal handler test - SIGINT listeners:', process.listeners('SIGINT').length);
-        console.log('🔍 Process PID:', process.pid);
-    }, 1000);
-
-    // Set up a timeout to ensure the app doesn't hang
-    const timeout = setTimeout(() => {
-        console.log('\nTUI startup timeout reached, exiting...');
-        process.exit(0);
-    }, 30000); // 30 second timeout
-
-    // Clear timeout once app is successfully started
-    setTimeout(() => {
-        clearTimeout(timeout);
-    }, 5000);
-
-    console.log('✅ TUI started successfully');
-    console.log('🎯 Press Ctrl+C to exit');
-    console.log('🔧 Signal handlers registered:', !!process.listeners('SIGINT').length, 'SIGINT listeners');
-} catch (error) {
-    console.error('Failed to start TUI:', error.message);
-    console.error('Stack trace:', error.stack);
-    process.exit(1);
-}
+// Start the application
+startTui().catch(handleError);

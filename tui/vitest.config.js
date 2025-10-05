@@ -1,14 +1,17 @@
 import {defineConfig} from 'vitest/config';
+import path from 'path';
 
 export default defineConfig({
+    resolve: {
+        alias: {
+            '@senars/common': path.resolve(__dirname, '../common'),
+            '@senars/core': path.resolve(__dirname, '../core'),
+        },
+    },
     test: {
         environment: 'node',
         include: ['tests/**/*.test.js'],
         exclude: ['tests/**/*.spec.js'],
-        alias: {
-            '@senars/common': '../common',
-            '@senars/core': '../core',
-        },
         // Enable parallel execution for faster tests
         pool: 'threads',
         poolOptions: {

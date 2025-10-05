@@ -1,13 +1,16 @@
 import React, {useState, useEffect} from 'react';
 import {Box, Text, useInput} from 'ink';
 import PropTypes from 'prop-types';
+import { theme } from '../theme.js';
+import { Card, Button, Badge } from './Interactive.jsx';
+import { useMouseInteraction } from '../hooks/useMouseInteraction.js';
 
 const MessageInput = ({agentService, onMessageSent, history = [], disabled = false}) => {
     const [input, setInput] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [historyIndex, setHistoryIndex] = useState(-1);
 
-(    // Handle keyboard input for text entry
+    // Handle keyboard input for text entry
     useInput((inputChar, key) => {
         if (disabled || isSubmitting) return;
 
@@ -37,7 +40,7 @@ const MessageInput = ({agentService, onMessageSent, history = [], disabled = fal
             // Printable ASCII characters
             setInput(prev => prev + inputChar);
         }
-    }));
+    });
 
     const handleSubmit = async () => {
         if (!input.trim() || isSubmitting || disabled) return;
@@ -67,23 +70,22 @@ const MessageInput = ({agentService, onMessageSent, history = [], disabled = fal
 
 
 
-    const displayText = input || (isSubmitting ? 'Sending...' : 'Type your message... (Enter to send, ↑↓ for history, Esc to clear)');
-    const color = disabled ? "gray" : (isSubmitting ? "yellow" : "white");
+    const displayText = input || (isSubmitting ? '📤 Sending message...' : '💬 Type your message... (Enter to send, ↑↓ for history, Esc to clear)');
+    const color = disabled ? theme.colors.textMuted : (isSubmitting ? theme.colors.warning : theme.colors.text);
 
     return (
-        <Box borderStyle="single" padding={1}>
-            <Box marginRight={1}>
-                <Text color="cyan" bold>Input:</Text>
-            </Box>
-            <Box flexGrow={1}>
-                <Text
-                    color={color}
-                    wrap="wrap"
-                >
-                    {displayText}
+        <Card variant="secondary" padding={theme.spacing.md}>
+            <Box flexDirection="column">
+                <Text color={theme.colors.primary} bold>
+                    💬 Message Input
                 </Text>
+                <Box marginTop={theme.spacing.sm}>
+                    <Text color={color} wrap="wrap">
+                        {displayText}
+                    </Text>
+                </Box>
             </Box>
-        </Box>
+        </Card>
     );
 };
 

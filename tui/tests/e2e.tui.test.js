@@ -19,9 +19,28 @@ import {
 
 // Mock React Ink for testing
 vi.mock('react', () => ({
+    default: {
+        useState: vi.fn((initial) => [initial, vi.fn()]),
+        useEffect: vi.fn((fn) => fn()),
+        createElement: vi.fn(),
+        memo: vi.fn((component) => component),
+        Component: class MockComponent {
+            constructor(props) {
+                this.props = props;
+                this.state = {};
+            }
+        },
+    },
     useState: vi.fn((initial) => [initial, vi.fn()]),
     useEffect: vi.fn((fn) => fn()),
     createElement: vi.fn(),
+    memo: vi.fn((component) => component),
+    Component: class MockComponent {
+        constructor(props) {
+            this.props = props;
+            this.state = {};
+        }
+    },
 }));
 
 vi.mock('ink', () => ({
