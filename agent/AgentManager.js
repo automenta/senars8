@@ -35,15 +35,14 @@ class AgentManager {
 
     setupEventListeners() {
         managerHandler.runSync(() => {
-            const eventBus = this.system.eventBus;
-            if (!eventBus) {
+            if (!this.system?.eventBus) {
                 warn('Agent event bus not available. UI will not receive real-time updates.');
                 return;
             }
 
             this.cleanupEventListeners();
 
-            // Event listener configuration
+            // Event listener configuration - DRY approach
             const eventConfig = {
                 status_update: status => ({type: 'status_update', payload: status}),
                 system_cycle: cycleCount => ({type: 'system_cycle', payload: {cycleCount}}),
@@ -55,22 +54,22 @@ class AgentManager {
                 'tasks:add': tasks => tasks.map(task => ({type: 'task_added', payload: formatTaskForBroadcast(task)}))
             };
 
-            // Create and store listeners
+            // Create and store listeners - more elegant approach
             Object.entries(eventConfig).forEach(([event, formatter]) => {
-                this[`_${event.replace(':', '_')}Listener`] = (...args) => {
+                const listenerName = `_${event.replace(':', '_')}Listener`;
+                this[listenerName] = (...args) => {
                     const messages = Array.isArray(formatter(...args)) ? formatter(...args) : [formatter(...args)];
                     messages.forEach(msg => this.broadcast(msg));
                 };
-                eventBus.on(event, this[`_${event.replace(':', '_')}Listener`]);
+                this.system.eventBus.on(event, this[listenerName]);
             });
         }, 'setupEventListeners');
     }
 
     cleanupEventListeners() {
-        const eventBus = this.system?.eventBus;
-        if (!eventBus) return;
+        if (!this.system?.eventBus) return;
 
-        // Event listener configuration for cleanup
+        // Event listener cleanup - DRY approach
         const eventConfig = [
             'status_update', 'system_cycle', 'add_belief', 'add_goal',
             'add_question', 'reasoning_step', 'memory_update', 'tasks:add'
@@ -80,7 +79,7 @@ class AgentManager {
         eventConfig.forEach(event => {
             const listenerName = `_${event.replace(':', '_')}Listener`;
             if (this[listenerName]) {
-                eventBus.off(event, this[listenerName]);
+                this.system.eventBus.off(event, this[listenerName]);
                 this[listenerName] = null;
             }
         });

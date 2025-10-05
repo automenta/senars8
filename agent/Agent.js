@@ -4,6 +4,9 @@ import Task from '../core/core/Task.js';
 import MCP from './MCP.js';
 import {parseTermToAction} from './utils/index.js';
 import {agentHandler} from './utils/errorHandler.js';
+import logger from '../core/utils/logger.js';
+
+const agentLogger = logger.create('Agent');
 
 class Agent {
     constructor(config = {}) {
@@ -48,9 +51,7 @@ class Agent {
         agentHandler.requireInitialized(this);
 
         const plan = await this.createPlan(goalString);
-        if (!plan?.steps?.length) return null;
-
-        return this._parseTermToAction(plan.steps[0]);
+        return plan?.steps?.length ? this._parseTermToAction(plan.steps[0]) : null;
     }
 
     async executeAction(action) {

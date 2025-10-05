@@ -120,27 +120,23 @@ class FileMonitor {
             const tasks = this.planProcessor.convertGoalsToTasks(goals);
             if (tasks.length > 0) {
                 // Use command bus to add tasks to ensure proper system handling
+                const fileProcessedData = {
+                    filePath,
+                    goalsCount: goals.length,
+                    tasksCount: tasks.length,
+                    goals: goals,
+                    initial: options.initial || false
+                };
+
                 try {
                     await this.system.commandBus.request(SystemCommands.SYSTEM_ADD_TASKS, tasks);
-                    this.system.eventBus.emit('file-processed', {
-                        filePath,
-                        goalsCount: goals.length,
-                        tasksCount: tasks.length,
-                        goals: goals,
-                        initial: options.initial || false
-                    });
+                    this.system.eventBus.emit('file-processed', fileProcessedData);
                     info(`Added ${tasks.length} tasks from ${filePath}`);
                 } catch (error) {
                     // Fallback: try direct method if command bus fails
                     if (typeof this.system.addTasks === 'function') {
                         await this.system.addTasks(tasks);
-                        this.system.eventBus.emit('file-processed', {
-                            filePath,
-                            goalsCount: goals.length,
-                            tasksCount: tasks.length,
-                            goals: goals,
-                            initial: options.initial || false
-                        });
+                        this.system.eventBus.emit('file-processed', fileProcessedData);
                         info(`Added ${tasks.length} tasks from ${filePath} using direct method`);
                     } else {
                         warn(`Could not add ${tasks.length} tasks from ${filePath}: neither commandBus nor addTasks method available`);
