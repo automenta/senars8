@@ -16,7 +16,8 @@ const App = () => {
 
     useEffect(() => {
         const handleUpdate = () => {
-            setConnections(connectionManager.getConnections());
+            const allConnections = connectionManager.getConnections();
+            setConnections(allConnections);
             setConnectionError(null);
             setIsDiscovering(false);
         };
@@ -38,11 +39,19 @@ const App = () => {
         setIsDiscovering(true);
 
         // Set a timeout for discovery to prevent hanging
-        const discoveryTimeout = setTimeout(() => {
+        const discoveryTimeout = setTimeout(async () => {
             if (connections.length === 0) {
-                setConnectionError('No agents found after timeout. Please ensure an agent is running on the correct port.');
+                log.info('No WebSocket agents found, creating embedded agent...');
+                try {
+                    await connectionManager.createEmbedded();
+                    setIsDiscovering(false);
+                } catch (error) {
+                    setConnectionError(`Failed to create embedded agent: ${error.message}`);
+                    setIsDiscovering(false);
+                    log.error('Failed to create embedded agent:', error);
+                }
+            } else {
                 setIsDiscovering(false);
-                log.warn('Discovery timeout reached, no agents found');
             }
         }, 1000); // 1 second timeout for faster test feedback
 
@@ -58,9 +67,11 @@ const App = () => {
     }, []);
 
     const handleSelectConnection = (url) => {
-        const service = new TuiAgentService(url);
+        // Use embedded mode if no URL provided or if explicitly 'embedded'
+        const connectionUrl = url || 'embedded';
+        const service = new TuiAgentService(connectionUrl);
         service.connect();
-        setSelectedConnection({url, service});
+        setSelectedConnection({url: connectionUrl, service});
     };
 
     const handleDisconnect = () => {

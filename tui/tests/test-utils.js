@@ -4,7 +4,6 @@
  */
 
 import {setTimeout as promiseTimeout} from 'timers/promises';
-import {findAvailablePort} from '../../tests/utils/networkUtils.js';
 
 // Test configuration constants
 export const TEST_CONFIG = {
@@ -99,6 +98,7 @@ export const MOCK_RESPONSES = {
  * @returns {Promise<number>} Available port number
  */
 export async function findTuiTestPort(startPort = TEST_CONFIG.PORTS.START) {
+    const {findAvailablePort} = await import('../../tests/utils/networkUtils.js');
     return await findAvailablePort(startPort, TEST_CONFIG.PORTS.MAX_RETRIES);
 }
 
@@ -128,161 +128,47 @@ export async function waitForCondition(conditionFn, timeoutMs = TEST_CONFIG.TIME
 }
 
 /**
- * Creates a standardized mock WebSocket server for testing
- * Handles common message types with consistent responses
+ * Creates a mock WebSocket server for testing TUI connections
  * @param {number} port - Port to listen on
- * @param {Object} customHandlers - Optional custom message handlers to extend/override defaults
- * @returns {Promise<Object>} WebSocket server instance with connection tracking
+ * @param {Function} messageHandler - Function to handle incoming messages
+ * @returns {Promise<Object>} WebSocket server instance
  */
-export async function createMockTuiServer(port, customHandlers = {}) {
-    try {
-        const WebSocket = await import('ws');
-        const server = new WebSocket.WebSocketServer({port});
+export async function createMockTuiServer(port, messageHandler) {
+    const WebSocket = await import('ws');
+    const server = new WebSocket.WebSocketServer({port});
 
-        const connections = new Set();
-        let connectionHandler = null;
-        let isClosing = false;
-
-        const messageHandler = (data, ws) => {
-            if (isClosing) return;
-
-            try {
-                const message = JSON.parse(data.toString());
-                handleMessage(message, ws, customHandlers);
-            } catch (error) {
-                console.error('Error parsing WebSocket message:', error);
+    return new Promise((resolve) => {
+        server.on('connection', (ws) => {
+            ws.on('message', (data) => {
                 try {
-                    ws.send(JSON.stringify(MOCK_RESPONSES.ERROR_RESPONSE(error)));
-                } catch (sendError) {
-                    console.error('Error sending error response:', sendError);
-                }
-            }
-        };
-
-        return new Promise((resolve, reject) => {
-            server.on('connection', (ws) => {
-                if (isClosing) return;
-
-                connections.add(ws);
-
-                ws.on('message', (data) => messageHandler(data, ws));
-
-                ws.on('close', () => {
-                    connections.delete(ws);
-                });
-
-                ws.on('error', (error) => {
-                    console.error('Mock WebSocket client error:', error);
-                    connections.delete(ws);
-                });
-
-                try {
-                    if (connectionHandler) {
-                        connectionHandler(ws);
-                    }
+                    const message = JSON.parse(data.toString());
+                    messageHandler(message, ws);
                 } catch (error) {
-                    console.error('Error in connection handler:', error);
+                    // Send error response for malformed JSON
+                    ws.send(JSON.stringify({
+                        type: 'error',
+                        payload: {message: `Invalid JSON: ${error.message}`}
+                    }));
                 }
-            });
-
-            server.on('error', (error) => {
-                console.error('Mock WebSocket server error:', error);
-                reject(error);
-            });
-
-            // Wait for server to start with timeout
-            const startTimeout = setTimeout(() => {
-                if (!isClosing) {
-                    resolve({
-                        server,
-                        connections,
-                        onConnection: (handler) => { connectionHandler = handler; },
-                        close: async () => {
-                            if (isClosing) return;
-                            isClosing = true;
-
-                            // Close all client connections first
-                            const closePromises = Array.from(connections).map(ws => {
-                                return new Promise(resolve => {
-                                    ws.close();
-                                    resolve();
-                                });
-                            });
-
-                            await Promise.all(closePromises);
-
-                            // Then close the server
-                            return new Promise(resolve => {
-                                server.close((error) => {
-                                    if (error) {
-                                        console.error('Error closing mock server:', error);
-                                    }
-                                    resolve();
-                                });
-                            });
-                        }
-                    });
-                }
-            }, TEST_CONFIG.RETRY_INTERVALS.FAST);
-
-            // Handle server start errors
-            server.on('listening', () => {
-                clearTimeout(startTimeout);
             });
         });
-    } catch (error) {
-        console.error('Failed to create mock WebSocket server:', error);
-        throw error;
-    }
+
+        // Wait a bit for server to start
+        setTimeout(() => resolve(server), 100);
+    });
 }
 
 /**
- * Handles incoming WebSocket messages with standard responses
- * @param {Object} message - Parsed message object
- * @param {WebSocket} ws - WebSocket connection
- * @param {Object} customHandlers - Custom message handlers
+ * Common TUI test setup that can be reused across tests
+ * @param {number} port - Port for the test
+ * @returns {Promise<Object>} Test setup with agent manager, ws manager, etc.
  */
-function handleMessage(message, ws, customHandlers) {
-    const {type, payload} = message;
-
-    switch (type) {
-        case 'get_system_stats':
-            ws.send(JSON.stringify(MOCK_RESPONSES.SYSTEM_STATS));
-            break;
-        case 'get_tasks':
-            ws.send(JSON.stringify(MOCK_RESPONSES.TASKS_RESPONSE));
-            break;
-        case 'get_beliefs':
-            ws.send(JSON.stringify(MOCK_RESPONSES.BELIEFS_RESPONSE));
-            break;
-        case 'get_goals':
-            ws.send(JSON.stringify(MOCK_RESPONSES.GOALS_RESPONSE));
-            break;
-        case 'narsese':
-        case 'natural_language':
-            ws.send(JSON.stringify(MOCK_RESPONSES.LOG_RESPONSE(payload.text || payload)));
-            break;
-        default:
-            // Handle custom message types if provided
-            if (customHandlers[type]) {
-                customHandlers[type](message, ws);
-            } else {
-                console.log(`Unhandled message type: ${type}`);
-            }
-    }
-}
-
-/**
- * Creates a test agent manager and WebSocket manager pair
- * Consolidates common setup logic used across test files
- * @param {number} port - Port for WebSocket server
- * @returns {Promise<Object>} Configured agent and WebSocket managers
- */
-export async function createTestAgentEnvironment(port) {
+export async function setupTuiTestEnvironment(port) {
     const AgentManager = (await import('../../agent/AgentManager.js')).default;
     const {WebSocketManager} = await import('../../agent/WebSocketManager.js');
     const {createMessageHandler} = await import('../../agent/MessageHandler.js');
 
+    // Setup agent manager and WebSocket manager
     const agentManager = new AgentManager();
     const wsManager = new WebSocketManager({port});
 
@@ -298,31 +184,7 @@ export async function createTestAgentEnvironment(port) {
         agentManager,
         wsManager,
         messageHandler,
-        port,
-        cleanup: async () => {
-            if (wsManager) {
-                await wsManager.stop();
-            }
-            if (agentManager) {
-                await agentManager.stop();
-            }
-        }
-    };
-}
-
-/**
- * Common TUI test setup that can be reused across tests
- * @param {number} port - Port for the test
- * @returns {Promise<Object>} Test setup with agent manager, ws manager, etc.
- */
-export async function setupTuiTestEnvironment(port) {
-    const env = await createTestAgentEnvironment(port);
-    return {
-        agentManager: env.agentManager,
-        wsManager: env.wsManager,
-        messageHandler: env.messageHandler,
-        port: env.port,
-        cleanup: env.cleanup
+        port
     };
 }
 
@@ -398,42 +260,6 @@ export async function startTestAgent(port) {
 }
 
 /**
- * Common cleanup function for TUI tests
- * @param {Object} testEnv - Test environment object from setupTuiTestEnvironment
- * @returns {Promise<void>}
- */
-export async function cleanupTuiTestEnvironment(testEnv) {
-    if (!testEnv) return;
-
-    const cleanupPromises = [];
-
-    // Stop WebSocket manager
-    if (testEnv.wsManager) {
-        cleanupPromises.push(
-            testEnv.wsManager.stop().catch(error => {
-                console.error('Error stopping WebSocket manager:', error);
-            })
-        );
-    }
-
-    // Stop agent manager
-    if (testEnv.agentManager) {
-        cleanupPromises.push(
-            testEnv.agentManager.stop().catch(error => {
-                console.error('Error stopping agent manager:', error);
-            })
-        );
-    }
-
-    // Wait for all cleanup operations to complete
-    if (cleanupPromises.length > 0) {
-        await Promise.all(cleanupPromises);
-    }
-
-    console.log('Test environment cleanup completed');
-}
-
-/**
  * Runs a TUI process with timeout and captures output
  * @param {number} port - WebSocket port
  * @param {number} timeoutMs - Timeout in milliseconds (default: TEST_CONFIG.TIMEOUTS.TUI_RUN)
@@ -489,6 +315,27 @@ export async function runTuiWithTimeout(port, timeoutMs = TEST_CONFIG.TIMEOUTS.T
             error: error.message
         };
     }
+}
+
+/**
+ * Common cleanup function for TUI tests
+ * @param {Object} testEnv - Test environment object from setupTuiTestEnvironment
+ * @returns {Promise<void>}
+ */
+export async function cleanupTuiTestEnvironment(testEnv) {
+    if (!testEnv) return;
+
+    // Stop WebSocket manager
+    if (testEnv.wsManager) {
+        await testEnv.wsManager.stop();
+    }
+
+    // Stop agent manager
+    if (testEnv.agentManager) {
+        await testEnv.agentManager.stop();
+    }
+
+    console.log('Test environment cleanup completed');
 }
 
 /**
