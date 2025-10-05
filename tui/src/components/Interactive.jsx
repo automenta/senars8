@@ -134,7 +134,7 @@ export const Tab = memo(({
       </Text>
     </Box>
   );
-};
+});
 
 export const TabBar = memo(({
   tabs,
@@ -156,7 +156,7 @@ export const TabBar = memo(({
       </Tab>
     ))}
   </Box>
-)));
+));
 
 export const Card = memo(({
   children,
@@ -214,7 +214,7 @@ export const Card = memo(({
       {children}
     </Box>
   );
-};
+});
 
 export const Badge = memo(({
   children,
@@ -248,7 +248,7 @@ export const Badge = memo(({
       </Text>
     </Box>
   );
-};
+});
 
 export const ProgressBar = memo(({
   progress,
@@ -279,7 +279,7 @@ export const ProgressBar = memo(({
       </Text>
     </Box>
   );
-};
+});
 
 export const Tooltip = memo(({
   children,
@@ -305,4 +305,4 @@ export const Tooltip = memo(({
       )}
     </Box>
   );
-};
+});
