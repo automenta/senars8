@@ -41,32 +41,23 @@ class ActionExecutor {
     }
 
     _initializeConstraints() {
-        // Initialize default constraints if needed
-        // This method can be extended to add default constraints
+        // Method reserved for default constraints
     }
 
     registerActionHandler(actionPattern, handler) {
         this.actionHandlers.set(actionPattern, handler);
-        // Simple logging instead of using debug method
-        //console.debug && console.debug(`ActionExecutor: Registered action handler: ${actionPattern}`);
     }
 
     registerTool(name, handler, metadata = {}) {
         this.tools.registerTool(name, handler, metadata);
-        // Simple logging instead of using debug method
-        //console.debug && console.debug(`ActionExecutor: Registered tool: ${name}`);
     }
 
     registerMcpTool(name, mcpConfig) {
         this.tools.registerMcpTool(name, mcpConfig);
-        // Simple logging instead of using debug method
-        //console.debug && console.debug(`ActionExecutor: Registered MCP tool: ${name}`);
     }
 
     registerExternalTool(name, toolInstance) {
         this.tools.registerExternalTool(name, toolInstance);
-        // Simple logging instead of using debug method
-        //console.debug && console.debug(`ActionExecutor: Registered external tool: ${name}`);
     }
 
     registerResource(name, resource) {
@@ -87,328 +78,183 @@ class ActionExecutor {
         return this.resources.get(resourceName);
     }
 
-    /**
-     * Execute an action, with special handling for operation terms
-     */
     async executeAction(action) {
-        const validationResult = this._validateAction(action);
-        if (!validationResult) {
-            // Action failed validation, log and return a default result
-            const actionId = generateId('action-invalid');
-            const startTime = Date.now();
-            const endTime = Date.now();
-
-            this.actionHistory.push({
-                id: actionId,
-                action: 'invalid',
-                parameters: action || {},
-                error: 'Action failed validation',
-                startTime,
-                endTime,
-                duration: endTime - startTime,
-                status: 'error'
-            });
-
-            this.eventBus.emit('ActionFailed', {
-                id: actionId,
-                action: 'invalid',
-                error: 'Action failed validation',
-                duration: endTime - startTime
-            });
-
-            return {success: false, error: 'Action failed validation'};
+        if (!this._validateAction(action)) {
+            return this._handleInvalidAction(action);
         }
 
         return await errorHandler.execute(async () => {
-            // Check if this is an operation term that should be handled by tools
-            if (action.operationTerm) {
-                return await this._executeOperation(action.operationTerm);
-            }
-
-            // Safely extract action name for error messages
-            const actionName = action?.name || 'unknown';
-
-            const handler = this._findHandler(actionName);
-            if (!handler) {
-                // Instead of throwing an error, log a warning and return a default result
-                logger.warn(`No handler found for action: ${actionName}`);
-
-                // Add to action history as failed
-                const actionId = generateId(`action-${actionName}`);
-                const startTime = Date.now();
-                const endTime = Date.now();
-
-                this.actionHistory.push({
-                    id: actionId,
-                    action: actionName,
-                    parameters: action?.parameters || {},
-                    error: `No handler found for action: ${actionName}`,
-                    startTime,
-                    endTime,
-                    duration: endTime - startTime,
-                    status: 'error'
-                });
-
-                this.eventBus.emit('ActionFailed', {
-                    id: actionId,
-                    action: actionName,
-                    error: `No handler found for action: ${actionName}`,
-                    duration: endTime - startTime
-                });
-
-                // Return a default response instead of throwing an error
-                return {success: false, error: `No handler found for action: ${actionName}`};
-            }
-
-            const actionId = generateId(`action-${actionName}`);
-            const startTime = Date.now();
-
-            try {
-                const result = await handler(action);
-                const endTime = Date.now();
-
-                this.actionHistory.push({
-                    id: actionId,
-                    action: actionName,
-                    parameters: action.parameters,
-                    result,
-                    startTime,
-                    endTime,
-                    duration: endTime - startTime,
-                    status: 'success'
-                });
-
-                this.eventBus.emit('ActionExecuted', {
-                    id: actionId,
-                    action: actionName,
-                    result,
-                    duration: endTime - startTime
-                });
-
-                return result;
-            } catch (error) {
-                const endTime = Date.now();
-                this.actionHistory.push({
-                    id: actionId,
-                    action: actionName,
-                    parameters: action.parameters,
-                    error: error.message,
-                    startTime,
-                    endTime,
-                    duration: endTime - startTime,
-                    status: 'error'
-                });
-
-                this.eventBus.emit('ActionFailed', {
-                    id: actionId,
-                    action: actionName,
-                    error: error.message,
-                    duration: endTime - startTime
-                });
-
-                throw error;
-            }
+            return action.operationTerm
+                ? await this._executeOperationAction(action)
+                : await this._executeRegularAction(action);
         }, `executeAction: ${action?.name || 'undefined'}`);
     }
 
-    /**
-     * Execute an operation term using the tools system
-     */
-    async _executeOperation(operationTerm) {
-        if (!operationTerm) {
-            throw new Error('Operation term cannot be null or undefined');
+    _handleInvalidAction(action) {
+        const record = this._createExecutionRecord('invalid', action || {});
+        this._finalizeExecutionRecord(record, null, new Error('Action failed validation'));
+
+        this._emitExecutionEvent('ActionFailed', record, {
+            error: 'Action failed validation'
+        });
+
+        return {success: false, error: 'Action failed validation'};
+    }
+
+    async _executeOperationAction(action) {
+        return await this._executeOperation(action.operationTerm);
+    }
+
+    async _executeRegularAction(action) {
+        const actionName = action?.name || 'unknown';
+        const handler = this._findHandler(actionName);
+
+        if (!handler) {
+            return this._handleUnknownAction(actionName, action);
         }
 
+        const record = this._createExecutionRecord(actionName, action.parameters);
+
         try {
-            // Extract operation name and arguments from the Narsese operation term
-            const extracted = this.narseseTranslator.extractArgumentsFromGoal({
-                term: operationTerm
-            });
+            const result = await handler(action);
+            this._finalizeExecutionRecord(record, result);
 
-            if (!extracted.operationName) {
-                throw new Error(`Could not extract operation name from term: ${JSON.stringify(operationTerm)}`);
-            }
+            this._emitExecutionEvent('ActionExecuted', record, {result});
 
-            // Validate extracted arguments
-            const validatedArgs = Array.isArray(extracted.args) ? extracted.args : [];
-
-            const startTime = Date.now();
-            const result = await this.tools.executeTool(extracted.operationName, validatedArgs);
-            const endTime = Date.now();
-
-            // Convert the result back to a Narsese belief for learning
-            const belief = this.narseseTranslator.resultToNarseseBelief(
-                result,
-                extracted.operationName,
-                {
-                    frequency: 0.9,
-                    confidence: 0.9
-                }
-            );
-
-            // Add to history
-            const executionId = generateId(`operation-${extracted.operationName}`);
-            this.actionHistory.push({
-                id: executionId,
-                action: extracted.operationName,
-                parameters: validatedArgs,
-                result,
-                startTime,
-                endTime,
-                duration: endTime - startTime,
-                status: 'success',
-                type: 'operation'
-            });
-
-            this.eventBus.emit('OperationExecuted', {
-                id: executionId,
-                operation: extracted.operationName,
-                result,
-                duration: endTime - startTime,
-                narseseBelief: belief
-            });
-
-            return {result, narseseBelief: belief};
+            return result;
         } catch (error) {
-            const endTime = Date.now();
-            const executionId = generateId(`operation-error-${Date.now()}`);
+            this._finalizeExecutionRecord(record, null, error);
 
-            this.actionHistory.push({
-                id: executionId,
-                action: operationTerm?.subject?.key || operationTerm?.name || 'unknown',
-                parameters: operationTerm?.predicate?.terms || [],
-                error: error.message,
-                startTime: Date.now(), // Use current time as fallback
-                endTime: endTime,
-                duration: endTime - Date.now(),
-                status: 'error',
-                type: 'operation'
-            });
-
-            this.eventBus.emit('OperationFailed', {
-                id: executionId,
-                operation: operationTerm?.subject?.key || operationTerm?.name || 'unknown',
-                error: error.message,
-                duration: endTime - Date.now()
+            this._emitExecutionEvent('ActionFailed', record, {
+                error: error.message
             });
 
             throw error;
         }
     }
 
-    async _processQueue() {
-        if (this.processing) return;
-        this.processing = true;
+    _handleUnknownAction(actionName, action) {
+        logger.warn(`No handler found for action: ${actionName}`);
 
-        const stillQueued = [];
-        for (const item of this.actionQueue) {
-            if (this._isActionRunnable(item)) {
-                await this._processActionItem(item);
-            } else {
-                stillQueued.push(item);
-            }
-        }
-        this.actionQueue = stillQueued;
-        this.processing = false;
-    }
+        const record = this._createExecutionRecord(actionName, action?.parameters || {});
+        this._finalizeExecutionRecord(record, null,
+            new Error(`No handler found for action: ${actionName}`));
 
-    _isActionRunnable(item) {
-        return errorHandler.executeSync(() => {
-            if (!item?.action) {
-                throw new Error('Action cannot be null or undefined in queue item');
-            }
-            this._validateAction(item.action);
-            return this._checkResourceAvailability(item.action);
-        }, 'isActionRunnable', (validationError) => {
-            this._rejectActionWithError(item, validationError);
-            return false;
+        this._emitExecutionEvent('ActionFailed', record, {
+            error: `No handler found for action: ${actionName}`
         });
+
+        return {success: false, error: `No handler found for action: ${actionName}`};
     }
 
-    _rejectActionWithError(item, error) {
-        const actionRecord = this._createActionRecord(item.action, item.actionId);
-        item.reject(this._recordFailure(actionRecord, error));
+    async _executeOperation(operationTerm) {
+        if (!operationTerm) {
+            throw new Error('Operation term cannot be null or undefined');
+        }
+
+        const extracted = this.narseseTranslator.extractArgumentsFromGoal({term: operationTerm});
+        if (!extracted.operationName) {
+            throw new Error(`Could not extract operation name from term: ${JSON.stringify(operationTerm)}`);
+        }
+
+        const record = this._createExecutionRecord(extracted.operationName, extracted.args, 'operation');
+
+        try {
+            const result = await this.tools.executeTool(extracted.operationName, extracted.args);
+            const belief = this.narseseTranslator.resultToNarseseBelief(result, extracted.operationName, {
+                frequency: 0.9,
+                confidence: 0.9
+            });
+
+            this._finalizeExecutionRecord(record, result);
+
+            this._emitExecutionEvent('OperationExecuted', record, {
+                operation: extracted.operationName,
+                result,
+                narseseBelief: belief
+            });
+
+            return {result, narseseBelief: belief};
+        } catch (error) {
+            this._finalizeExecutionRecord(record, null, error);
+
+            this._emitExecutionEvent('OperationFailed', record, {
+                operation: operationTerm?.subject?.key || operationTerm?.name || 'unknown',
+                error: error.message
+            });
+
+            throw error;
+        }
     }
+
 
     async _processActionItem(item) {
-        const {
-            action,
-            actionId,
-            resolve,
-            reject
-        } = item;
+        const {action, resolve, reject} = item;
 
-        // Validate action before processing
-        this._validateAction(action);
+        if (!this._validateAction(action)) {
+            const record = this._createExecutionRecord('invalid', action || {});
+            this._finalizeExecutionRecord(record, null, new Error('Action failed validation'));
 
-        const actionRecord = this._createActionRecord(action, actionId);
+            this._emitExecutionEvent('ActionFailed', record, {
+                error: 'Action failed validation'
+            });
 
-        this._acquireResources(action);
-        const validationResult = this._validateAction(action);
-        if (!validationResult) {
-            // Action failed validation, resolve with a default result
-            const defaultResult = {success: false, error: 'Action failed validation'};
-            resolve(this._recordSuccess(actionRecord, defaultResult));
-            this._releaseResources(action);
+            resolve({success: false, error: 'Action failed validation'});
             return;
         }
 
+        const actionName = action?.name || 'unknown';
+        const record = this._createExecutionRecord(actionName, action.parameters);
+
+        this._acquireResources(action);
+
         await errorHandler.execute(async () => {
-            // Check if this is an operation term
-            if (action.operationTerm) {
-                const result = await this._executeOperation(action.operationTerm);
-                resolve(this._recordSuccess(actionRecord, result));
-            } else {
-                const actionName = action?.name || 'unknown';
-                const handler = this._findHandler(actionName);
-                if (!handler) {
-                    // Handle unknown actions gracefully instead of throwing an error
-                    logger.warn(`No handler found for action: ${actionName}`);
-                    const defaultResult = {success: false, error: `No handler found for action: ${actionName}`};
-                    resolve(this._recordSuccess(actionRecord, defaultResult));
-                    return;
-                }
-                const result = await handler(action);
-                resolve(this._recordSuccess(actionRecord, result));
-            }
+            const result = action.operationTerm
+                ? await this._executeOperation(action.operationTerm)
+                : await this._executeRegularActionForQueue(action);
+
+            this._finalizeExecutionRecord(record, result);
+            this._emitExecutionEvent('ActionExecuted', record, {result});
+
+            resolve({success: true, result});
         }, 'processActionItem', (executionError) => {
-            reject(this._recordFailure(actionRecord, executionError));
+            this._finalizeExecutionRecord(record, null, executionError);
+            this._emitExecutionEvent('ActionFailed', record, {error: executionError.message});
+
+            reject({success: false, error: executionError.message});
         });
+
         this._releaseResources(action);
-        this.eventBus.emit('ActionExecuted', actionRecord);
     }
 
-    _checkResourceAvailability(action) {
-        return action.resources?.every(resourceName => !this.resources.get(resourceName)?.locked) ?? true;
+    async _executeRegularActionForQueue(action) {
+        const actionName = action?.name || 'unknown';
+        const handler = this._findHandler(actionName);
+
+        if (!handler) {
+            logger.warn(`No handler found for action: ${actionName}`);
+            throw new Error(`No handler found for action: ${actionName}`);
+        }
+
+        return await handler(action);
     }
 
-    _createActionRecord(action, actionId) {
-        const record = {
-            id: actionId,
-            action,
-            timestamp: new Date(),
-            status: 'pending'
-        };
-        this.actionHistory.push(record);
-        return record;
-    }
+
 
     _validateAction(action) {
         return errorHandler.executeSync(() => {
-            if (!action) {
+            if (!action || (!action?.name && !action?.operationTerm)) {
                 return false;
             }
-            if (!action?.name && !action?.operationTerm) {
-                return false;
-            }
+
             if (this.constraints.size === 0) return true;
 
             for (const [name, constraint] of this.constraints) {
-                if (typeof constraint === 'function' && !constraint(action)) {
-                    logger.warn(`Action failed constraint: ${name}`);
-                    return false;
-                }
+                if (constraint(action)) continue;
+                logger.warn(`Action failed constraint: ${name}`);
+                return false;
             }
+
             return true;
         }, '_validateAction');
     }
@@ -416,42 +262,79 @@ class ActionExecutor {
     _recordSuccess(actionRecord, result) {
         actionRecord.status = 'completed';
         actionRecord.result = result;
-        return {
-            success: true,
-            result
-        };
+        return {success: true, result};
     }
 
     _recordFailure(actionRecord, error) {
         actionRecord.status = 'failed';
         actionRecord.error = error.message;
-        return {
-            success: false,
-            error: error.message
+        return {success: false, error: error.message};
+    }
+
+    _createExecutionRecord(actionName, parameters = {}, type = 'action') {
+        const executionId = generateId(`${type}-${actionName}`);
+        const startTime = Date.now();
+        return {id: executionId, action: actionName, parameters, startTime, type};
+    }
+
+    _finalizeExecutionRecord(record, result = null, error = null) {
+        const endTime = Date.now();
+        const duration = endTime - record.startTime;
+
+        const historyEntry = {
+            id: record.id,
+            action: record.action,
+            parameters: record.parameters,
+            startTime: record.startTime,
+            endTime,
+            duration,
+            status: error ? 'error' : 'success',
+            type: record.type,
+            ...(result && {result}),
+            ...(error && {error: error.message})
         };
+
+        this.actionHistory.push(historyEntry);
+        return {endTime, duration, historyEntry};
+    }
+
+    _emitExecutionEvent(eventType, record, additionalData = {}) {
+        const {duration} = record;
+
+        this.eventBus.emit(eventType, {
+            id: record.id,
+            action: record.action,
+            duration,
+            ...additionalData
+        });
     }
 
     _acquireResources(action) {
-        action.resources?.forEach(resourceName => {
-            const resource = this.resources.get(resourceName);
-            if (resource) resource.locked = true;
+        action.resources?.forEach(name => {
+            this.resources.get(name).locked = true;
         });
     }
 
     _releaseResources(action) {
-        action.resources?.forEach(resourceName => {
-            const resource = this.resources.get(resourceName);
-            if (resource) resource.locked = false;
+        action.resources?.forEach(name => {
+            this.resources.get(name).locked = false;
         });
     }
 
-    _findHandler(actionName) {
-        for (const [pattern, handler] of this.actionHandlers) {
-            if (errorHandler.executeSync(() => new RegExp(pattern).test(actionName), `_findHandler RegExp test for pattern: ${pattern}`, false)) {
-                return handler;
-            }
+    _withResources(action, operation) {
+        this._acquireResources(action);
+        try {
+            return operation();
+        } finally {
+            this._releaseResources(action);
         }
-        return null;
+    }
+
+    _findHandler(actionName) {
+        return [...this.actionHandlers.entries()].find(([pattern]) =>
+            errorHandler.executeSync(() => new RegExp(pattern).test(actionName),
+                `_findHandler RegExp test for pattern: ${pattern}`, false)
+        )?.[1] || null;
     }
 
     getActionHistory() {
