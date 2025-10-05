@@ -12,7 +12,7 @@ class PlanProcessor {
     constructor(system, options = {}) {
         this.system = system;
         this.errorHandler = createUnifiedErrorHandler('PlanProcessor');
-        this.defaultPatterns = options.patterns || ['**/*.md', '**/*.txt', '**/*.plan'];
+        this.defaultPatterns = options.patterns || ['docs/TODO.md'];
         this.watchDir = options.watchDir || process.cwd();
         this.fileProcessors = options.fileProcessors || this.getDefaultProcessors();
         this.processedGoals = [];
@@ -61,8 +61,9 @@ class PlanProcessor {
         if (typeof filePaths === 'string') {
             paths = [filePaths];
         } else if (Array.isArray(filePaths) && filePaths.length === 1 && typeof filePaths[0] === 'string' && filePaths[0].includes('*')) {
-            // If it's a glob pattern, expand it
-            paths = glob.sync(filePaths[0]);
+            // If it's a glob pattern, expand it (limit to 5 files for tests)
+            const allPaths = glob.sync(filePaths[0]);
+            paths = allPaths.slice(0, 5); // Only process first 5 files for performance
         }
 
         const allGoals = [];

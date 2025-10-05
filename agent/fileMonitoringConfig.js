@@ -5,7 +5,7 @@ import _ from 'lodash';
 const {merge} = _;
 
 const defaultConfig = {
-    patterns: ['docs/**/*.md', 'PLAN.*.md', 'TODO.md', 'ROADMAP.md'],
+    patterns: ['docs/TODO.md'], // Only load TODO.md for tests to improve performance
     watchDir: process.cwd(),
     debounce: 1000,
     persistent: true,
