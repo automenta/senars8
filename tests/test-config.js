@@ -304,9 +304,13 @@ export const createTestConfig = (templateNameOrConfig = 'UNIT', overrides = {}) 
 
     // Handle case where first parameter is a string (template name)
     const templateName = templateNameOrConfig || 'UNIT';
-    return ConfigRegistry.get(templateName === 'UNIT' ? 'UNIT_TEST' :
-                             templateName === 'INTEGRATION' ? 'INTEGRATION_TEST' :
-                             templateName === 'SYSTEM' ? 'SYSTEM_TEST' : templateName, overrides);
+    const resolvedTemplateName = templateName === 'UNIT' ? 'UNIT_TEST' :
+                                 templateName === 'INTEGRATION' ? 'INTEGRATION_TEST' :
+                                 templateName === 'SYSTEM' ? 'SYSTEM_TEST' : templateName;
+
+    // Get the base template and merge with overrides
+    const baseConfig = ConfigRegistry.get(resolvedTemplateName);
+    return {...baseConfig, ...overrides};
 };
 
 // Legacy exports for backward compatibility
