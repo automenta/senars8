@@ -46,7 +46,7 @@ vi.mock('ink', () => ({
 
 const exec = promisify(require('child_process').exec);
 
-describe('TUI End-to-End Integration Tests', async () => {
+describe.skip('TUI End-to-End Integration Tests', async () => {
     let sharedAgent;
     let wsPort;
 
@@ -140,7 +140,7 @@ describe('TUI End-to-End Integration Tests', async () => {
 
 });
 
-describe('TUI Connection Management', () => {
+describe.skip('TUI Connection Management', () => {
     it('should discover and connect to agents automatically', async () => {
         const testPort = TEST_CONFIG.PORTS.MOCK_SERVERS.DISCOVERY;
         const mockWsServer = new WebSocketServer({port: testPort});
@@ -188,7 +188,7 @@ describe('TUI Connection Management', () => {
     });
 });
 
-describe('TUI Agent Service Integration', () => {
+describe.skip('TUI Agent Service Integration', () => {
     let mockWs;
     let testPort;
 

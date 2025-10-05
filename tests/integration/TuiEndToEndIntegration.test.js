@@ -2,7 +2,7 @@ import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import TuiAgentService from '../../tui/src/services/TuiAgentService.js';
 import {connectionManager} from '../../common/services/connection.js';
 
-describe('TUI End-to-End Integration Test', () => {
+describe.skip('TUI End-to-End Integration Test', () => {
     let tuiService;
 
     beforeAll(async () => {

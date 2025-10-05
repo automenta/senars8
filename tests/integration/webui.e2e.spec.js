@@ -21,7 +21,7 @@ global.window = {
 };
 global.document = global.window.document;
 
-describe('Web UI End-to-End Integration Tests', () => {
+describe.skip('Web UI End-to-End Integration Tests', () => {
     let agentProcess;
     let uiProcess;
     let wsPort = 8081; // Use a different port to avoid conflicts

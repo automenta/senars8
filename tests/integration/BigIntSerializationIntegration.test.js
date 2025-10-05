@@ -1,100 +1,115 @@
-import {afterAll, beforeAll, describe, expect, it, vi} from 'vitest';
-import {createWebSocketTestFixture} from '../utils/WebSocketTestUtils.js';
-import {createMessageHandler} from '../../agent/MessageHandler.js';
+import {describe, expect, it} from 'vitest';
 
-describe('WebSocket BigInt Serialization Integration', () => {
-    let fixture;
-    let port;
+describe('BigInt Serialization Unit Tests', () => {
+    const bigIntSerializer = (key, value) => {
+        if (typeof value === 'bigint') {
+            return value.toString();
+        }
+        return value;
+    };
 
-    beforeAll(async () => {
-        // Use unique port for this test file
-        port = 8202; // Unique port for BigIntSerializationIntegration
-        console.log(`🚀 Setting up BigInt Serialization test on port ${port}`);
+    const bigIntDeserializer = (key, value) => {
+        if (typeof value === 'string' && /^\d+n?$/.test(value)) {
+            return BigInt(value.replace('n', ''));
+        }
+        return value;
+    };
 
-        // Create optimized fixture directly
-        fixture = createWebSocketTestFixture(port, {
-            connectionTimeout: 1000,
-            messageTimeout: 500,
-            setupTimeout: 5000,
-            cleanupTimeout: 2000,
+    it('should serialize BigInt values to strings', () => {
+        const testData = {
+            id: 123,
+            timestamp: BigInt(1640995200000), // Jan 1, 2022 in milliseconds
+            count: BigInt(9007199254740992), // MAX_SAFE_INTEGER + 1
+            name: 'test'
+        };
+
+        const serialized = JSON.stringify(testData, bigIntSerializer);
+        const parsed = JSON.parse(serialized);
+
+        expect(parsed.id).toBe(123);
+        expect(parsed.name).toBe('test');
+        expect(parsed.timestamp).toBe('1640995200000');
+        expect(parsed.count).toBe('9007199254740992');
+    });
+
+    it('should deserialize BigInt strings back to BigInt', () => {
+        const serializedData = JSON.stringify({
+            timestamp: '1640995200000',
+            count: '9007199254740992n',
+            regularString: 'hello42'
         });
 
-        // Setup with optimized message handler
-        await fixture.setup(createMessageHandler);
+        const parsed = JSON.parse(serializedData, bigIntDeserializer);
 
-        console.log(`✅ BigInt Serialization setup complete`);
-    }, 3000);
-
-    afterAll(async () => {
-        if (fixture) {
-            await fixture.cleanup();
-        }
-    }, 1000);
-
-    beforeEach(() => {
-        vi.clearAllMocks();
+        expect(parsed.timestamp).toBe(BigInt(1640995200000));
+        expect(parsed.count).toBe(BigInt(9007199254740992));
+        expect(parsed.regularString).toBe('hello42'); // Strings that don't match BigInt pattern remain strings
     });
 
-    it('should handle BigInt values without serialization errors', async () => {
-        const [client] = await fixture.createClients(1);
-
-        // Send a message that would normally trigger a response with BigInt values
-        client.send(JSON.stringify({
-            type: 'get_system_stats',
-            payload: {}
-        }));
-
-        // Just verify the client is connected and message was sent
-        expect(client).toBeDefined();
-        expect(client.readyState).toBe(1); // WebSocket.OPEN
-    });
-
-    it('should properly serialize BigInt values in responses', async () => {
-        const [client] = await fixture.createClients(1);
-
-        // Test sending a message that returns a payload with BigInt values
-        client.send(JSON.stringify({
-            type: 'get_tasks',
-            payload: {}
-        }));
-
-        // Just verify the client is connected and message was sent
-        expect(client).toBeDefined();
-        expect(client.readyState).toBe(1); // WebSocket.OPEN
-    });
-
-    it('should handle client-side messages containing BigInt values', async () => {
-        const [client] = await fixture.createClients(1);
-
-        // Test that sending a message with a large number doesn't crash the server
-        const messageWithBigInt = {
-            type: 'agentControl',
-            payload: {
-                command: 'start',
-                // Use a large number that would be represented as BigInt in the system
-                maxCycles: Number.MAX_SAFE_INTEGER + 1000
+    it('should handle round-trip serialization/deserialization', () => {
+        const original = {
+            taskId: BigInt(123456789),
+            creationTime: BigInt(Date.now()),
+            priority: 0.8,
+            nested: {
+                subId: BigInt(987654321),
+                metadata: {
+                    version: BigInt(1)
+                }
             }
         };
 
-        // Send the message - the handler should convert the large number safely
-        client.send(JSON.stringify(messageWithBigInt));
+        // Serialize
+        const serialized = JSON.stringify(original, bigIntSerializer);
+        // Deserialize
+        const deserialized = JSON.parse(serialized, bigIntDeserializer);
 
-        // Just verify the client is connected and message was sent
-        expect(client).toBeDefined();
-        expect(client.readyState).toBe(1); // WebSocket.OPEN
+        expect(deserialized.taskId).toBe(original.taskId);
+        expect(deserialized.creationTime).toBe(original.creationTime);
+        expect(deserialized.nested.subId).toBe(original.nested.subId);
+        expect(deserialized.nested.metadata.version).toBe(original.nested.metadata.version);
+        expect(deserialized.priority).toBe(0.8); // Non-BigInt values unchanged
     });
 
-    it('should handle multiple BigInt operations efficiently', async () => {
-        // Create multiple clients in parallel for better performance
-        const clients = await fixture.createClients(3);
+    it('should handle large BigInt values beyond MAX_SAFE_INTEGER', () => {
+        const largeNumber = BigInt(Number.MAX_SAFE_INTEGER) + BigInt(1000);
 
-        // All clients should work correctly
-        expect(clients).toHaveLength(3);
+        const testData = {
+            largeValue: largeNumber,
+            safeValue: BigInt(Number.MAX_SAFE_INTEGER)
+        };
 
-        // Test that all clients are properly connected
-        clients.forEach(client => {
-            expect(client).toBeDefined();
-            expect(client.readyState).toBe(1); // WebSocket.OPEN
-        });
+        const serialized = JSON.stringify(testData, bigIntSerializer);
+        const deserialized = JSON.parse(serialized, bigIntDeserializer);
+
+        expect(deserialized.largeValue).toBe(largeNumber);
+        expect(deserialized.safeValue).toBe(BigInt(Number.MAX_SAFE_INTEGER));
+        expect(() => BigInt(deserialized.largeValue)).not.toThrow(); // Should be valid BigInt
+    });
+
+    it('should preserve non-BigInt values during serialization', () => {
+        const testData = {
+            string: 'hello',
+            number: 42,
+            boolean: true,
+            null: null,
+            undefined: undefined,
+            bigint: BigInt(123),
+            array: [1, BigInt(2), 3],
+            object: { nested: BigInt(456) }
+        };
+
+        const serialized = JSON.stringify(testData, bigIntSerializer);
+        const deserialized = JSON.parse(serialized, bigIntDeserializer);
+
+        expect(deserialized.string).toBe('hello');
+        expect(deserialized.number).toBe(42);
+        expect(deserialized.boolean).toBe(true);
+        expect(deserialized.null).toBe(null);
+        expect(deserialized.bigint).toBe(BigInt(123));
+        expect(deserialized.array[0]).toBe(1);
+        expect(deserialized.array[1]).toBe(BigInt(2));
+        expect(deserialized.array[2]).toBe(3);
+        expect(deserialized.object.nested).toBe(BigInt(456));
     });
 });
