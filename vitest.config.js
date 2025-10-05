@@ -16,8 +16,16 @@ export default defineConfig({
     },
     test: {
         globals: true,
-        testTimeout: 300000,
-        teardownTimeout: 300000,
+        testTimeout: process.env.CI ? 60000 : 30000, // Faster in CI, reasonable locally
+        teardownTimeout: 10000, // Faster cleanup
+        pool: 'threads', // Enable parallel execution
+        poolOptions: {
+            threads: {
+                singleThread: false,
+                useAtomics: true
+            }
+        },
+        bail: process.env.CI ? 1 : 0, // Stop on first failure in CI for faster feedback
         projects: [
             {
                 name: 'core',
@@ -32,6 +40,15 @@ export default defineConfig({
                         'tests/demos/**/*.test.js',
                     ],
                     setupFiles: ['./tests/setup.js'],
+                    // Optimize for faster execution
+                    pool: 'threads',
+                    poolOptions: {
+                        threads: {
+                            singleThread: false,
+                            useAtomics: true
+                        }
+                    },
+                    testTimeout: process.env.CI ? 30000 : 15000, // Faster timeouts
                 },
                 resolve: {
                     alias: {

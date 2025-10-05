@@ -147,6 +147,10 @@ class AgentManager {
         return this.agent;
     }
 
+    isAgentInitialized() {
+        return this.agent?.isInitialized || false;
+    }
+
     async start(maxCycles) {
         return this.errorHandler.runAsync(async () => {
             if (this.system?.commandBus) {
@@ -163,6 +167,7 @@ class AgentManager {
                 await this.system.commandBus.request(SystemCommands.SYSTEM_STOP_CYCLING);
             }
         }, 'stop');
+
         await this.fileMonitor?.stop();
         this.cleanupEventListeners();
     }

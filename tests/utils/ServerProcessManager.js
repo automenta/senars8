@@ -124,8 +124,8 @@ export class ServerProcessManager {
             }
         });
 
-        // Wait for the server to be ready - check WebSocket
-        await this.waitForServerReady(port, wsPort, 20000); // Reduced timeout to 20 seconds
+        // Wait for the server to be ready - check WebSocket with optimized timeout
+        await this.waitForServerReady(port, wsPort, process.env.CI ? 10000 : 15000); // Faster in CI
 
         return this.process;
     }
@@ -151,21 +151,20 @@ export class ServerProcessManager {
 
             while (Date.now() - startTime < timeoutMs) {
                 try {
-                    // Check if the WebSocket port is available (should NOT be available if server is running)
+                    // Quick port check first
                     if (await this.isPortAvailable(wsPort)) {
-                        // WebSocket port is not in use yet, wait a bit more
-                        await new Promise(resolve => setTimeout(resolve, 200));
+                        await new Promise(resolve => setTimeout(resolve, 100)); // Faster polling
                         continue;
                     }
 
-                    // Try to connect to the WebSocket server to confirm it's working
+                    // Try to connect to the WebSocket server with faster timeout
                     const ws = new WebSocket(`ws://localhost:${wsPort}`);
 
                     await new Promise((resolve, reject) => {
                         const connectionTimeout = setTimeout(() => {
                             ws.close();
                             reject(new Error('WebSocket connection timeout'));
-                        }, 2000); // 2 second timeout for WebSocket connection
+                        }, 1000); // Reduced timeout for faster feedback
 
                         ws.on('open', () => {
                             clearTimeout(connectionTimeout);
@@ -179,11 +178,9 @@ export class ServerProcessManager {
                         });
                     });
 
-                    // If we get here, the WebSocket server is working
-                    return;
+                    return; // Server is ready
                 } catch (err) {
-                    // Server might not be ready yet, wait a bit more
-                    await new Promise(resolve => setTimeout(resolve, 200));
+                    await new Promise(resolve => setTimeout(resolve, 100)); // Faster retry
                 }
             }
 

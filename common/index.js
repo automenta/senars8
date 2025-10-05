@@ -35,11 +35,13 @@ export {
 
     // Utilities
     validateNarseseStatement,
-    log,
     DocumentationUtils,
     TestUtils,
 
     // Hooks
     useAgentState,
     useLogs,
+
+    // Backward compatibility
+    log,
 };

@@ -28,6 +28,8 @@
     "test:ui": "ORT_LOGGING_LEVEL=FATAL vitest --ui",
     "test:tui": "ORT_LOGGING_LEVEL=FATAL vitest --run tui/tests/",
     "test:tui:integration": "node tui/tests/run-integration-tests.js",
+    "test:core": "CI=true ORT_LOGGING_LEVEL=FATAL vitest run --project core",
+    "test:watch": "ORT_LOGGING_LEVEL=FATAL vitest --watch --reporter=verbose",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "slides": "slidev docs/slides.md"

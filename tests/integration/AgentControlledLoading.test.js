@@ -59,6 +59,10 @@ vi.mock('../../core/index.js', async (importOriginal) => {
     return {
         ...original,
         createSystem: vi.fn().mockResolvedValue(mockSystem),
+        agentErrorHandler: {
+            execute: vi.fn((fn) => fn()),
+            runSync: vi.fn((fn) => fn()),
+        },
     };
 });
 
@@ -99,8 +103,8 @@ describe('Agent Controlled Document Loading Test', () => {
     it('should initialize agent manager correctly', async () => {
         await agentManager.initialize();
 
-        const agent = agentManager.getAgent();
-        expect(agent.isInitialized).toBe(true);
+        const isInitialized = agentManager.isAgentInitialized();
+        expect(isInitialized).toBe(true);
 
         // Verify basic initialization worked
         expect(mockSystem.eventBus.on).toHaveBeenCalled();
@@ -115,6 +119,9 @@ describe('Agent Controlled Document Loading Test', () => {
             SystemCommands.SYSTEM_START_CYCLING,
             {maxCycles: 10}
         );
+
+        // Verify the agent manager's system is properly set
+        expect(agentManager.system).toBe(mockSystem);
 
         // Reset mocks
         mockSystem.commandBus.request.mockClear();

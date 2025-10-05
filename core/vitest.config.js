@@ -19,9 +19,9 @@ export default defineConfig({
                 useAtomics: true
             }
         },
-        // Faster test execution settings
-        testTimeout: 30000,
-        hookTimeout: 15000,
-        bail: 1, // Stop on first failure for faster feedback
+        // Faster test execution settings with CI optimization
+        testTimeout: process.env.CI ? 15000 : 30000,
+        hookTimeout: process.env.CI ? 5000 : 15000,
+        bail: process.env.CI ? 3 : 1, // Stop on first few failures in CI for faster feedback
     },
 });

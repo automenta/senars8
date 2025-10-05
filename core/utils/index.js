@@ -20,7 +20,7 @@ import {
     isTask
 } from './task-utils.js';
 import {parseTerm, validateTermKey} from '../parser/parse-utils.js';
-import {createUnifiedErrorHandler} from './core.js';
+import {createUnifiedErrorHandler} from './errorHandler.js';
 import {debug, error, info, warn} from './logger.js';
 import Validator from './Validator.js';
 import EventBus from '../system/EventBus.js';
@@ -77,6 +77,4 @@ export {
 
     // Instance sharing utilities
     createSharedInstance,
-
-    // Error handling utilities
 };

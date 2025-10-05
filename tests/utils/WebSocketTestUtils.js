@@ -53,7 +53,7 @@ export function createWebSocketClient(url, timeout = 2000) {
  * @param {number} [timeout=2000] - Timeout in milliseconds.
  * @returns {Promise<any>} A promise that resolves with the parsed message data.
  */
-export function awaitNextMessage(ws, filter = () => true, timeout = 2000) {
+export function awaitNextMessage(ws, filter = () => true, timeout = 1000) {
     // First, check the buffer for a matching message
     const bufferedIndex = ws.messageBuffer.findIndex(filter);
     if (bufferedIndex > -1) {
@@ -127,10 +127,10 @@ export class WebSocketTestFixture {
         this.port = port;
         this.wsUrl = `ws://localhost:${port}`;
         this.options = {
-            connectionTimeout: 2000,
-            messageTimeout: 1000, // Reduced from 2000ms
-            setupTimeout: 10000, // Reduced from 60000ms
-            cleanupTimeout: 5000, // Reduced from 30000ms
+            connectionTimeout: 1000, // Reduced for faster tests
+            messageTimeout: 500, // Reduced for faster tests
+            setupTimeout: 5000, // Reduced for faster tests
+            cleanupTimeout: 2000, // Reduced for faster tests
             ...options
         };
         this.wsManager = null;

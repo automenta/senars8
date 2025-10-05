@@ -1,15 +1,11 @@
-class MCP {
+// Terse MCP implementation - minimal, focused interface
+export default class MCP {
     constructor(agent, options = {}) {
-        this.agent = agent;
-        this.options = options;
-        this.history = [];
-        this.isTerminated = false;
+        Object.assign(this, {agent, options, history: [], isTerminated: false});
     }
 
     async start(goal) {
-        if (!this.agent.isInitialized) {
-            await this.agent.initialize();
-        }
+        if (!this.agent.isInitialized) await this.agent.initialize();
         this.goal = goal;
         this.log({type: 'start', goal});
     }
@@ -23,9 +19,7 @@ class MCP {
     async getAction() {
         this._checkTerminated();
         const action = await this.agent.decideNextAction(this.goal);
-        if (action) {
-            this.log({type: 'action', content: action});
-        }
+        if (action) this.log({type: 'action', content: action});
         return action;
     }
 
@@ -40,10 +34,6 @@ class MCP {
     }
 
     _checkTerminated() {
-        if (this.isTerminated) {
-            throw new Error('Interaction has already terminated.');
-        }
+        if (this.isTerminated) throw new Error('Interaction has already terminated.');
     }
 }
-
-export default MCP;

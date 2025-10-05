@@ -1,30 +1,49 @@
 import {WebSocketServer as WsServer} from 'ws';
 import logger from '../core/utils/logger.js';
-import {WebSocketMessageHandler} from './WebSocketMessageHandler.js';
 
-const log = logger.create('StandaloneWebSocketServer');
+const log = logger.create('UnifiedWebSocketServer');
 
-export class StandaloneWebSocketServer {
-    constructor(port) {
-        if (!port) {
-            throw new Error('A port is required to start the standalone WebSocket server.');
+/**
+ * Unified WebSocket server that handles both standalone and attached server modes.
+ * Consolidates common WebSocket functionality to eliminate duplication.
+ */
+export class UnifiedWebSocketServer {
+    constructor(options) {
+        if (!options || (!options.server && !options.port)) {
+            throw new Error('Either a server instance or a port is required.');
         }
-        this.port = port;
+        this.options = options;
         this.wss = null;
-        this.messageHandler = new WebSocketMessageHandler();
+        this.messageHandler = null;
+        this.isStandalone = !!options.port;
     }
 
     async start() {
+        if (this.isStandalone) {
+            return this._startStandalone();
+        } else {
+            return this._startAttached();
+        }
+    }
+
+    async _startStandalone() {
         return new Promise((resolve) => {
-            this.wss = new WsServer({port: this.port}, () => {
-                log.info(`Standalone WebSocket server started on port ${this.port}`);
+            this.wss = new WsServer({port: this.options.port}, () => {
+                log.info(`Standalone WebSocket server started on port ${this.options.port}`);
                 resolve();
             });
-            this.setupWebSocketHandlers();
+            this._setupWebSocketHandlers();
         });
     }
 
-    setupWebSocketHandlers() {
+    async _startAttached() {
+        this.wss = new WsServer({server: this.options.server});
+        this._setupWebSocketHandlers();
+        log.info('WebSocket server attached to HTTP server');
+        return Promise.resolve();
+    }
+
+    _setupWebSocketHandlers() {
         this.wss.on('connection', (ws) => {
             log.info('A new client connected.');
             ws.send(JSON.stringify({type: 'connection_ack', payload: {message: 'Welcome!'}}));
@@ -34,7 +53,9 @@ export class StandaloneWebSocketServer {
             });
 
             ws.on('message', async (data) => {
-                await this.messageHandler.handleMessage(data, ws);
+                if (this.messageHandler) {
+                    await this.messageHandler(data, ws);
+                }
             });
 
             ws.on('close', () => {
@@ -44,7 +65,7 @@ export class StandaloneWebSocketServer {
     }
 
     setMessageHandler(handler) {
-        this.messageHandler.setHandler(handler);
+        this.messageHandler = handler;
     }
 
     async stop() {

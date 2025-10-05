@@ -5,7 +5,7 @@
 
 import {setTimeout} from 'timers/promises';
 import AgentManager from '../../agent/AgentManager.js';
-import {WebSocketManager} from '../../agent/WebSocketManager.js';
+import {UnifiedWebSocketServer} from '../../agent/StandaloneWebSocketServer.js';
 import {createMessageHandler} from '../../agent/MessageHandler.js';
 
 /**
@@ -15,7 +15,7 @@ import {createMessageHandler} from '../../agent/MessageHandler.js';
  */
 async function startTestAgent(port) {
     const agentManager = new AgentManager();
-    const wsManager = new WebSocketManager({port});
+    const wsManager = new UnifiedWebSocketServer({port});
 
     await wsManager.start();
 

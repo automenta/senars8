@@ -1,3 +1,5 @@
+// Terse task utilities - optimized for performance and readability
+
 /**
  * Formats a task object for broadcasting to clients.
  * @param {object} task - The task object to format.
@@ -18,17 +20,13 @@ export const formatTaskForBroadcast = (task) => ({
  * @param {string} filter - The filter type ('belief', 'goal', 'question', or 'all').
  * @returns {Function} A filter function.
  */
-export const createTaskFilter = (filter) => (task) => {
-    switch (filter) {
-        case 'belief':
-            return task.punctuation === '.';
-        case 'goal':
-            return task.punctuation === '!';
-        case 'question':
-            return task.punctuation === '?';
-        default:
-            return true;
-    }
+export const createTaskFilter = (filter) => {
+    const filters = {
+        belief: task => task.punctuation === '.',
+        goal: task => task.punctuation === '!',
+        question: task => task.punctuation === '?'
+    };
+    return filters[filter] || (() => true);
 };
 
 /**
@@ -36,18 +34,14 @@ export const createTaskFilter = (filter) => (task) => {
  * @param {string} priority - The priority level ('high', 'medium', 'low', or 'all').
  * @returns {Function} A filter function.
  */
-export const createPriorityFilter = (priority) => (task) => {
-    const taskPriority = task.state?.priority || task.priority || 0;
-    switch (priority) {
-        case 'high':
-            return taskPriority >= 0.7;
-        case 'medium':
-            return taskPriority >= 0.3 && taskPriority < 0.7;
-        case 'low':
-            return taskPriority < 0.3;
-        default:
-            return true;
-    }
+export const createPriorityFilter = (priority) => {
+    const taskPriority = task => task.state?.priority || task.priority || 0;
+    const filters = {
+        high: task => taskPriority(task) >= 0.7,
+        medium: task => taskPriority(task) >= 0.3 && taskPriority(task) < 0.7,
+        low: task => taskPriority(task) < 0.3
+    };
+    return filters[priority] || (() => true);
 };
 
 /**
@@ -55,11 +49,5 @@ export const createPriorityFilter = (priority) => (task) => {
  * @param {...Function} filters - Filter functions to combine.
  * @returns {Function} A function that returns true if all filters pass.
  */
-export const createCompositeFilter = (...filters) => (task) => {
-    for (const filter of filters) {
-        if (!filter(task)) {
-            return false;
-        }
-    }
-    return true;
-};
+export const createCompositeFilter = (...filters) => (task) =>
+    filters.every(filter => filter(task));

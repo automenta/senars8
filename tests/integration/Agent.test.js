@@ -13,10 +13,15 @@ vi.mock('../../core/index.js', async (importOriginal) => {
                 getAllTasks: vi.fn().mockReturnValue([{id: 'task1'}]),
                 getBeliefs: vi.fn().mockReturnValue([{id: 'belief1'}]),
                 getGoals: vi.fn().mockReturnValue([{id: 'goal1'}]),
+                getQuestions: vi.fn().mockReturnValue([]),
             },
             commandBus: {request: vi.fn()},
             stop: vi.fn(),
         }),
+        agentErrorHandler: {
+            execute: vi.fn((fn) => fn()),
+            runSync: vi.fn((fn) => fn()),
+        },
     };
 });
 
@@ -55,12 +60,12 @@ describe('AgentManager Integration Test', () => {
     it('should stop agent', async () => {
         await agentManager.initialize();
         await agentManager.stop();
-        expect(agentManager.getAgent().system.commandBus.request).toHaveBeenCalled();
+        expect(agentManager.system.commandBus.request).toHaveBeenCalled();
     });
 
     it('should reset agent', async () => {
         await agentManager.initialize();
         await agentManager.reset();
-        expect(agentManager.getAgent().system.commandBus.request).toHaveBeenCalled();
+        expect(agentManager.system.commandBus.request).toHaveBeenCalled();
     });
 });

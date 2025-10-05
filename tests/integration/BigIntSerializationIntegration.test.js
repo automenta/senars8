@@ -8,7 +8,7 @@ describe('WebSocket BigInt Serialization Integration', () => {
 
     beforeAll(async () => {
         // Use unique port for this test file
-        port = 8201; // Unique port for BigIntSerializationIntegration
+        port = 8202; // Unique port for BigIntSerializationIntegration
         console.log(`🚀 Setting up BigInt Serialization test on port ${port}`);
 
         // Create optimized fixture directly
@@ -23,13 +23,13 @@ describe('WebSocket BigInt Serialization Integration', () => {
         await fixture.setup(createMessageHandler);
 
         console.log(`✅ BigInt Serialization setup complete`);
-    }, 8000);
+    }, 3000);
 
     afterAll(async () => {
         if (fixture) {
             await fixture.cleanup();
         }
-    }, 3000);
+    }, 1000);
 
     beforeEach(() => {
         vi.clearAllMocks();

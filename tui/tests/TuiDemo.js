@@ -1,5 +1,5 @@
 import AgentManager from '../../agent/AgentManager.js';
-import {WebSocketManager} from '../../agent/WebSocketManager.js';
+import {UnifiedWebSocketServer} from '../../agent/StandaloneWebSocketServer.js';
 import {findAvailablePort} from '../../tests/utils/networkUtils.js';
 import {createMessageHandler} from '../../agent/MessageHandler.js';
 import {spawn} from 'child_process';
@@ -53,7 +53,7 @@ class TuiDemo {
     async startAgentServer() {
         console.log('Starting agent server...');
         this.agentManager = new AgentManager();
-        this.wsManager = new WebSocketManager({port: this.wsPort});
+        this.wsManager = new UnifiedWebSocketServer({port: this.wsPort});
 
         await this.wsManager.start();
 

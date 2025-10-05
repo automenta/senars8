@@ -54,6 +54,11 @@ class FileMonitor {
     }
 
     setupWatcherEventHandlers() {
+        if (!this.watcher) {
+            warn('Watcher not initialized, skipping event handler setup');
+            return;
+        }
+
         this.watcher
             .on('add', (filePath) => this.handleFileChange(filePath))
             .on('change', (filePath) => this.handleFileChange(filePath))

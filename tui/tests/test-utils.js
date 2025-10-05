@@ -165,12 +165,12 @@ export async function createMockTuiServer(port, messageHandler) {
  */
 export async function setupTuiTestEnvironment(port) {
     const AgentManager = (await import('../../agent/AgentManager.js')).default;
-    const {WebSocketManager} = await import('../../agent/WebSocketManager.js');
+    const {UnifiedWebSocketServer} = await import('../../agent/StandaloneWebSocketServer.js');
     const {createMessageHandler} = await import('../../agent/MessageHandler.js');
 
     // Setup agent manager and WebSocket manager
     const agentManager = new AgentManager();
-    const wsManager = new WebSocketManager({port});
+    const wsManager = new UnifiedWebSocketServer({port});
 
     await wsManager.start();
     agentManager.setBroadcast(wsManager.broadcast.bind(wsManager));

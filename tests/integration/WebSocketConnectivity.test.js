@@ -4,6 +4,29 @@ import {WebSocketManager} from '../../agent/WebSocketManager.js';
 import {findAvailablePort} from '../utils/networkUtils.js';
 import {createMessageHandler} from '../../agent/MessageHandler.js';
 
+// Mock the core module to provide agentErrorHandler and createSystem
+vi.mock('../../core/index.js', async (importOriginal) => {
+    const original = await importOriginal();
+    return {
+        ...original,
+        createSystem: vi.fn().mockResolvedValue({
+            eventBus: {on: vi.fn(), off: vi.fn(), emit: vi.fn()},
+            memory: {
+                getAllTasks: vi.fn().mockReturnValue([]),
+                getBeliefs: vi.fn().mockReturnValue([]),
+                getGoals: vi.fn().mockReturnValue([]),
+                getQuestions: vi.fn().mockReturnValue([]),
+            },
+            commandBus: {request: vi.fn().mockResolvedValue({success: true})},
+            stop: vi.fn(),
+        }),
+        agentErrorHandler: {
+            execute: vi.fn((fn) => fn()),
+            runSync: vi.fn((fn) => fn()),
+        },
+    };
+});
+
 vi.mock('../../core/system/System.js', () => ({
     default: vi.fn(() => ({
         eventBus: {on: vi.fn(), off: vi.fn(), emit: vi.fn()},
@@ -51,8 +74,7 @@ describe('WebSocket Connectivity Integration Test', () => {
     });
 
     it('should handle agent commands', async () => {
-        const agent = agentManager.getAgent();
-        const result = await agent.system.commandBus.request('test:command');
+        const result = await agentManager.system.commandBus.request('test:command');
         expect(result).toBeDefined();
     });
 });
