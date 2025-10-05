@@ -63,41 +63,52 @@ describe('Operation Operator (^) Integration', () => {
     });
 
     it('should execute operations through ActionExecutor', async () => {
+        // Use a unique tool name to avoid interference from other tests
+        const uniqueToolName = `test_action_${Date.now()}`;
+
         // Register a test tool with the ActionExecutor
-        actionExecutor.registerTool('test_action', async (param1, param2) => {
+        actionExecutor.registerTool(uniqueToolName, async (param1, param2) => {
             return {
                 success: true,
-                action: 'test_action',
+                action: uniqueToolName,
                 params: [param1, param2],
                 result: `executed with ${param1} and ${param2}`
             };
         });
 
         // Execute a Narsese operation directly
-        const result = await actionExecutor.executeNarseseOperation('test_action(hello, world)');
+        const result = await actionExecutor.executeNarseseOperation(`${uniqueToolName}(hello, world)`);
 
+        expect(result).toBeDefined();
+        expect(result.result).toBeDefined();
         expect(result.result.success).toBe(true);
-        expect(result.result.action).toBe('test_action');
+        expect(result.result.action).toBe(uniqueToolName);
         expect(result.result.params).toEqual(['hello', 'world']);
         expect(result.result.result).toContain('executed with hello and world');
     });
 
     it('should handle operation execution via operationTerm in executeAction', async () => {
+        // Use a unique tool name to avoid interference from other tests
+        const uniqueToolName = `move_${Date.now()}`;
+
         // Register a test tool
-        actionExecutor.registerTool('move', async (direction) => {
-            return {action: 'move', direction, success: true};
+        actionExecutor.registerTool(uniqueToolName, async (direction) => {
+            return {action: uniqueToolName, direction, success: true};
         });
 
-        // Execute with operationTerm
+        // Execute with operationTerm using the unique name
+        const operationTermString = `${uniqueToolName}(north)`;
         const action = {
-            operationTerm: parseTerm('move(north)')
+            operationTerm: parseTerm(operationTermString)
         };
 
         const result = await actionExecutor.executeAction(action);
 
         // The result should be an object with result and narseseBelief properties
         // (from _executeOperation return value)
-        expect(result.result.action).toBe('move');
+        expect(result).toBeDefined();
+        expect(result.result).toBeDefined();
+        expect(result.result.action).toBe(uniqueToolName);
         expect(result.result.direction).toBe('north');
         expect(result.result.success).toBe(true);
     });

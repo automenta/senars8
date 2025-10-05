@@ -4,122 +4,7 @@
  */
 
 import {vi} from 'vitest';
-
-// High-performance cache with size limits and LRU eviction
-class OptimizedCache {
-    constructor(maxSize = 1000) {
-        this.maxSize = maxSize;
-        this.cache = new Map();
-        this.accessOrder = [];
-    }
-
-    get(key) {
-        if (this.cache.has(key)) {
-            // Update access order for LRU
-            this.accessOrder = this.accessOrder.filter(k => k !== key);
-            this.accessOrder.push(key);
-            return this.cache.get(key);
-        }
-        return undefined;
-    }
-
-    set(key, value) {
-        if (this.cache.has(key)) {
-            this.accessOrder = this.accessOrder.filter(k => k !== key);
-        } else if (this.cache.size >= this.maxSize) {
-            // Evict least recently used
-            const lruKey = this.accessOrder.shift();
-            if (lruKey) this.cache.delete(lruKey);
-        }
-
-        this.cache.set(key, value);
-        this.accessOrder.push(key);
-    }
-
-    clear() {
-        this.cache.clear();
-        this.accessOrder = [];
-    }
-
-    get size() { return this.cache.size; }
-    get hitRate() { return this.hits / (this.hits + this.misses) || 0; }
-}
-
-// Global performance cache instance
-const globalCache = new OptimizedCache();
-
-// High-performance mock registry using shared cache
-const MockRegistry = {
-    cache: globalCache,
-    templates: new Map(),
-    metrics: {creations: 0, cacheHits: 0},
-
-    register: (name, template) => MockRegistry.templates.set(name, template),
-
-    // Batch mock creation for improved performance
-    createBatch: (items) => {
-        const results = [];
-        const uncachedItems = [];
-
-        // Check cache for all items first
-        for (let i = 0; i < items.length; i++) {
-            const {templateName, args = []} = items[i];
-            const cacheKey = `${templateName}:${JSON.stringify(args)}`;
-
-            if (MockRegistry.cache.has && MockRegistry.cache.has(cacheKey)) {
-                MockRegistry.metrics.cacheHits++;
-                results[i] = MockRegistry.cache.get(cacheKey);
-            } else {
-                uncachedItems.push({templateName, args, index: i, cacheKey});
-            }
-        }
-
-        // Create only uncached mocks
-        if (uncachedItems.length > 0) {
-            for (const {templateName, args, index, cacheKey} of uncachedItems) {
-                MockRegistry.metrics.creations++;
-                const template = MockRegistry.templates.get(templateName);
-                if (!template) throw new Error(`Unknown mock template: ${templateName}`);
-
-                const mock = template(...args);
-                if (MockRegistry.cache.set) MockRegistry.cache.set(cacheKey, mock);
-                results[index] = mock;
-            }
-        }
-
-        return results;
-    },
-
-    // Single mock creation with caching
-    create: (templateName, ...args) => {
-        MockRegistry.metrics.creations++;
-        const cacheKey = `${templateName}:${JSON.stringify(args)}`;
-
-        if (MockRegistry.cache.has && MockRegistry.cache.has(cacheKey)) {
-            MockRegistry.metrics.cacheHits++;
-            return MockRegistry.cache.get(cacheKey);
-        }
-
-        const template = MockRegistry.templates.get(templateName);
-        if (!template) throw new Error(`Unknown mock template: ${templateName}`);
-
-        const mock = template(...args);
-        if (MockRegistry.cache.set) MockRegistry.cache.set(cacheKey, mock);
-        return mock;
-    },
-
-    reset: () => {
-        if (MockRegistry.cache.clear) MockRegistry.cache.clear();
-        MockRegistry.metrics = {creations: 0, cacheHits: 0};
-    },
-
-    getStats: () => ({
-        ...MockRegistry.metrics,
-        hitRate: MockRegistry.metrics.creations > 0 ?
-            (MockRegistry.metrics.cacheHits / MockRegistry.metrics.creations) * 100 : 0,
-        cacheSize: MockRegistry.cache.size || 0
-    })
-};
+import {MockRegistry, createMock} from './shared/test-utils.js';
 
 // Optimized mock templates with shared patterns
 const createBaseComponentMock = () => ({
@@ -184,10 +69,38 @@ MockRegistry.register('task', (termKey = 'test-term', punctuation = '.') => ({
 }));
 
 // Unified mock creation API with batch support
-export const createMock = (type, ...args) => MockRegistry.create(type, ...args);
+export const createMockBatch = (items) => {
+    const results = [];
+    const uncachedItems = [];
 
-// Batch mock creation for improved performance
-export const createMockBatch = (items) => MockRegistry.createBatch(items);
+    // Check cache for all items first
+    for (let i = 0; i < items.length; i++) {
+        const {templateName, args = []} = items[i];
+        const cacheKey = `${templateName}:${JSON.stringify(args)}`;
+
+        if (MockRegistry.cache.get(cacheKey)) {
+            MockRegistry.metrics.cacheHits++;
+            results[i] = MockRegistry.cache.get(cacheKey);
+        } else {
+            uncachedItems.push({templateName, args, index: i, cacheKey});
+        }
+    }
+
+    // Create only uncached mocks
+    if (uncachedItems.length > 0) {
+        for (const {templateName, args, index, cacheKey} of uncachedItems) {
+            MockRegistry.metrics.creations++;
+            const template = MockRegistry.templates.get(templateName);
+            if (!template) throw new Error(`Unknown mock template: ${templateName}`);
+
+            const mock = template(...args);
+            MockRegistry.cache.set(cacheKey, mock);
+            results[index] = mock;
+        }
+    }
+
+    return results;
+};
 
 // Specialized mock creators for common types
 export const createCommandBusMock = () => createMock('commandBus');
@@ -203,25 +116,21 @@ export const createCustomMock = (config = {}) => {
     const mock = {};
 
     // Batch method creation for better performance
-    const methodEntries = Object.entries(methods);
-    for (let i = 0; i < methodEntries.length; i++) {
-        const [name, behavior] = methodEntries[i];
+    Object.entries(methods).forEach(([name, behavior]) => {
         mock[name] = typeof behavior === 'function' ? vi.fn(behavior) :
                     behavior instanceof Error ? vi.fn(() => { throw behavior; }) :
                     vi.fn(() => behavior);
-    }
+    });
 
     // Batch property creation
-    const propertyEntries = Object.entries(properties);
-    for (let i = 0; i < propertyEntries.length; i++) {
-        const [name, value] = propertyEntries[i];
+    Object.entries(properties).forEach(([name, value]) => {
         Object.defineProperty(mock, name, {
             get: vi.fn(() => value),
             set: vi.fn(),
             enumerable: true,
             configurable: true
         });
-    }
+    });
 
     // Add event emitter if specified - optimized
     if (events.length > 0) {
@@ -267,7 +176,7 @@ export const validateMock = (mock, expectations) => {
     properties.forEach(prop => validations.push(() => expect(mock).toHaveProperty(prop)));
 
     // Execute all validations
-    validations.forEach(validate => validate());
+    validations.forEach(v => v());
 
     // Batch validate call counts
     Object.entries(callCounts).forEach(([method, count]) => {
@@ -289,19 +198,9 @@ export const MockUtils = {
         (typeof obj[methodName] === 'function' ? vi.spyOn(obj, methodName) : obj[methodName] = vi.fn()),
 
     // Batch mock clearing for better performance
-    clearAll: (obj) => {
-        const values = Object.values(obj);
-        for (let i = 0; i < values.length; i++) {
-            values[i]?.mockClear?.();
-        }
-    },
+    clearAll: (obj) => Object.values(obj).forEach(v => v?.mockClear?.()),
 
-    resetAll: (obj) => {
-        const values = Object.values(obj);
-        for (let i = 0; i < values.length; i++) {
-            values[i]?.mockReset?.();
-        }
-    },
+    resetAll: (obj) => Object.values(obj).forEach(v => v?.mockReset?.()),
 
     waitForAsync: () => vi.waitUntil(() => true),
 
@@ -387,8 +286,8 @@ export const createConsistentMock = (componentName, customMethods = {}, customPr
     // Add custom methods
     Object.entries(customMethods).forEach(([methodName, methodConfig]) => {
         mock[methodName] = typeof methodConfig === 'function' ? vi.fn(methodConfig) :
-                         methodConfig instanceof Error ? vi.fn(() => { throw methodConfig; }) :
-                         vi.fn(() => methodConfig);
+                          methodConfig instanceof Error ? vi.fn(() => { throw methodConfig; }) :
+                          vi.fn(() => methodConfig);
     });
 
     // Add custom properties
@@ -407,34 +306,32 @@ export const createConsistentMock = (componentName, customMethods = {}, customPr
 // Mock validation utilities for backward compatibility
 export const MockValidator = {
     validateMethods: (mock, expectedMethods) => {
-        for (const method of expectedMethods) {
+        expectedMethods.forEach(method => {
             expect(mock).toHaveProperty(method);
             expect(typeof mock[method]).toBe('function');
-        }
+        });
     },
 
     validateProperties: (mock, expectedProperties) => {
-        for (const prop of expectedProperties) {
-            expect(mock).toHaveProperty(prop);
-        }
+        expectedProperties.forEach(prop => expect(mock).toHaveProperty(prop));
     },
 
     validateCallCounts: (mock, expectedCallCounts) => {
-        for (const [methodName, expectedCount] of Object.entries(expectedCallCounts)) {
+        Object.entries(expectedCallCounts).forEach(([methodName, expectedCount]) => {
             if (typeof mock[methodName] === 'function' && mock[methodName].mock) {
                 expect(mock[methodName]).toHaveBeenCalledTimes(expectedCount);
             }
-        }
+        });
     },
 
     validateCallArguments: (mock, expectedCalls) => {
-        for (const [methodName, expectedArgsList] of Object.entries(expectedCalls)) {
+        Object.entries(expectedCalls).forEach(([methodName, expectedArgsList]) => {
             if (typeof mock[methodName] === 'function' && mock[methodName].mock) {
                 expectedArgsList.forEach((expectedArgs, index) => {
                     expect(mock[methodName]).toHaveBeenNthCalledWith(index + 1, ...expectedArgs);
                 });
             }
-        }
+        });
     }
 };
 

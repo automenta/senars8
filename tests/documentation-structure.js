@@ -3,51 +3,7 @@
  * Consolidated documentation utilities for test organization
  */
 
-// Performance-optimized documentation registry
-const DocumentationRegistry = {
-    // Documentation cache
-    cache: new Map(),
-
-    // Documentation templates
-    templates: new Map(),
-
-    // Performance metrics
-    metrics: {generations: 0, cacheHits: 0},
-
-    // Register documentation template
-    register: (name, template) => DocumentationRegistry.templates.set(name, template),
-
-    // Generate documentation with caching
-    generate: (templateName, data) => {
-        DocumentationRegistry.metrics.generations++;
-        const cacheKey = `${templateName}:${JSON.stringify(data)}`;
-
-        if (DocumentationRegistry.cache.has(cacheKey)) {
-            DocumentationRegistry.metrics.cacheHits++;
-            return DocumentationRegistry.cache.get(cacheKey);
-        }
-
-        const template = DocumentationRegistry.templates.get(templateName);
-        if (!template) throw new Error(`Unknown documentation template: ${templateName}`);
-
-        const documentation = template(data);
-        DocumentationRegistry.cache.set(cacheKey, documentation);
-        return documentation;
-    },
-
-    // Reset cache and metrics
-    reset: () => {
-        DocumentationRegistry.cache.clear();
-        DocumentationRegistry.metrics = {generations: 0, cacheHits: 0};
-    },
-
-    // Get performance stats
-    getStats: () => ({
-        ...DocumentationRegistry.metrics,
-        hitRate: DocumentationRegistry.metrics.generations > 0 ?
-            (DocumentationRegistry.metrics.cacheHits / DocumentationRegistry.metrics.generations) * 100 : 0
-    })
-};
+import {DocumentationRegistry, generateDoc} from './shared/test-utils.js';
 
 // Register documentation templates
 DocumentationRegistry.register('suite', (data) => {
@@ -117,7 +73,7 @@ DocumentationRegistry.register('gherkin', (data) => {
 });
 
 // Unified documentation API
-export const generateDocumentation = (type, data) => DocumentationRegistry.generate(type, data);
+export const generateDocumentation = (type, data) => generateDoc(type, data);
 
 // Test organization guidelines
 export const TEST_GUIDELINES = {

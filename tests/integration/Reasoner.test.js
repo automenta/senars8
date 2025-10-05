@@ -50,7 +50,15 @@ describe('Reasoner Integration Test', () => {
         const task1 = new Task(parseTerm('(cat ==> mammal)'), '.');
         const task2 = new Task(termA, '.');
 
+        // Debug: Check the structure of the parsed terms
+        const parsed1 = parseTerm('(cat ==> mammal)');
+        const parsed2 = parseTerm('cat');
+
+        expect(parsed1.type).toBe('Implication');
+        expect(parsed2.type).toBe('Atomic');
+
         const derivedTasks = await reasoner.performInference([task1, task2]);
+        expect(derivedTasks.length).toBeGreaterThan(0);
         expect(derivedTasks.some(t => t.termKey === 'mammal')).toBe(true);
     });
 
@@ -61,7 +69,15 @@ describe('Reasoner Integration Test', () => {
         const task1 = new Task(parseTerm('(cat --> mammal)'), '.');
         const task2 = new Task(parseTerm('(mammal --> animal)'), '.');
 
+        // Debug: Check the structure of the parsed terms
+        const parsed1 = parseTerm('(cat --> mammal)');
+        const parsed2 = parseTerm('(mammal --> animal)');
+
+        expect(parsed1.type).toBe('Inheritance');
+        expect(parsed2.type).toBe('Inheritance');
+
         const derivedTasks = await reasoner.performInference([task1, task2]);
+        expect(derivedTasks.length).toBeGreaterThan(0);
         expect(derivedTasks.some(t => t.termKey === '(cat --> animal)')).toBe(true);
     });
 });

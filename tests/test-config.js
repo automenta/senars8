@@ -3,139 +3,7 @@
  * Optimized configuration management with shared caching and batch operations
  */
 
-// High-performance cache with size limits and LRU eviction
-class OptimizedCache {
-    constructor(maxSize = 1000) {
-        this.maxSize = maxSize;
-        this.cache = new Map();
-        this.accessOrder = [];
-    }
-
-    get(key) {
-        if (this.cache.has(key)) {
-            // Update access order for LRU
-            this.accessOrder = this.accessOrder.filter(k => k !== key);
-            this.accessOrder.push(key);
-            return this.cache.get(key);
-        }
-        return undefined;
-    }
-
-    set(key, value) {
-        if (this.cache.has(key)) {
-            this.accessOrder = this.accessOrder.filter(k => k !== key);
-        } else if (this.cache.size >= this.maxSize) {
-            // Evict least recently used
-            const lruKey = this.accessOrder.shift();
-            if (lruKey) this.cache.delete(lruKey);
-        }
-
-        this.cache.set(key, value);
-        this.accessOrder.push(key);
-    }
-
-    clear() {
-        this.cache.clear();
-        this.accessOrder = [];
-    }
-
-    get size() { return this.cache.size; }
-    get hitRate() { return this.hits / (this.hits + this.misses) || 0; }
-}
-
-// Global performance cache instance
-const globalCache = new OptimizedCache();
-
-// Optimized configuration registry
-const ConfigRegistry = {
-    cache: globalCache,
-    templates: new Map(),
-    validators: new Map(),
-    metrics: {accesses: 0, cacheHits: 0},
-
-    registerTemplate: (name, template, validator = null) => {
-        ConfigRegistry.templates.set(name, template);
-        if (validator) ConfigRegistry.validators.set(name, validator);
-    },
-
-    // Batch configuration retrieval for improved performance
-    getBatch: (configs) => {
-        const results = [];
-        const uncachedConfigs = [];
-
-        // Check cache for all configurations first
-        for (let i = 0; i < configs.length; i++) {
-            const {templateName, overrides = {}} = configs[i];
-            const cacheKey = `${templateName}:${JSON.stringify(overrides)}`;
-
-            if (ConfigRegistry.cache.has && ConfigRegistry.cache.has(cacheKey)) {
-                ConfigRegistry.metrics.cacheHits++;
-                results[i] = ConfigRegistry.cache.get(cacheKey);
-            } else {
-                uncachedConfigs.push({templateName, overrides, index: i, cacheKey});
-            }
-        }
-
-        // Process only uncached configurations
-        if (uncachedConfigs.length > 0) {
-            for (const {templateName, overrides, index, cacheKey} of uncachedConfigs) {
-                ConfigRegistry.metrics.accesses++;
-                const template = ConfigRegistry.templates.get(templateName);
-                if (!template) throw new Error(`Unknown configuration template: ${templateName}`);
-
-                const config = {...template, ...overrides};
-
-                // Validate if validator exists
-                const validator = ConfigRegistry.validators.get(templateName);
-                if (validator && !validator(config)) {
-                    throw new Error(`Invalid configuration for template: ${templateName}`);
-                }
-
-                if (ConfigRegistry.cache.set) ConfigRegistry.cache.set(cacheKey, config);
-                results[index] = config;
-            }
-        }
-
-        return results;
-    },
-
-    // Single configuration with caching
-    get: (templateName, overrides = {}) => {
-        ConfigRegistry.metrics.accesses++;
-        const cacheKey = `${templateName}:${JSON.stringify(overrides)}`;
-
-        if (ConfigRegistry.cache.has && ConfigRegistry.cache.has(cacheKey)) {
-            ConfigRegistry.metrics.cacheHits++;
-            return ConfigRegistry.cache.get(cacheKey);
-        }
-
-        const template = ConfigRegistry.templates.get(templateName);
-        if (!template) throw new Error(`Unknown configuration template: ${templateName}`);
-
-        const config = {...template, ...overrides};
-
-        // Validate if validator exists
-        const validator = ConfigRegistry.validators.get(templateName);
-        if (validator && !validator(config)) {
-            throw new Error(`Invalid configuration for template: ${templateName}`);
-        }
-
-        if (ConfigRegistry.cache.set) ConfigRegistry.cache.set(cacheKey, config);
-        return config;
-    },
-
-    reset: () => {
-        if (ConfigRegistry.cache.clear) ConfigRegistry.cache.clear();
-        ConfigRegistry.metrics = {accesses: 0, cacheHits: 0};
-    },
-
-    getStats: () => ({
-        ...ConfigRegistry.metrics,
-        hitRate: ConfigRegistry.metrics.accesses > 0 ?
-            (ConfigRegistry.metrics.cacheHits / ConfigRegistry.metrics.accesses) * 100 : 0,
-        cacheSize: ConfigRegistry.cache.size || 0
-    })
-};
+import {ConfigRegistry, createConfig} from './shared/test-utils.js';
 
 // Register core configuration templates
 ConfigRegistry.registerTemplate('TASK', {
@@ -194,10 +62,6 @@ export const TEST_SUITES = {
     }
 };
 
-// Unified configuration API
-export const createConfig = (templateName, overrides = {}) =>
-    ConfigRegistry.get(templateName, overrides);
-
 
 // Combinatorial testing with performance optimization
 export class TestMatrix {
@@ -221,7 +85,7 @@ export class TestMatrix {
         const dimensionValues = Array.from(this.dimensions.values());
 
         // Optimized cartesian product using iterative approach
-        const combinations = [{}];
+        let combinations = [{}];
         for (let i = 0; i < dimensionValues.length; i++) {
             const currentValues = dimensionValues[i];
             const newCombinations = [];
@@ -232,8 +96,7 @@ export class TestMatrix {
                 }
             }
 
-            combinations.length = 0;
-            combinations.push(...newCombinations);
+            combinations = newCombinations;
         }
 
         return combinations.filter(combination =>
@@ -380,7 +243,7 @@ export const TEST_DATA_SETS = {
 export const createScenarioData = (scenarioType, params = {}) => {
     const cacheKey = `${scenarioType}:${JSON.stringify(params)}`;
 
-    if (ConfigRegistry.cache.has(cacheKey)) {
+    if (ConfigRegistry.cache.get(cacheKey)) {
         return ConfigRegistry.cache.get(cacheKey);
     }
 

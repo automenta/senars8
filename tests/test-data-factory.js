@@ -6,53 +6,22 @@
 import Term from '../core/core/Term.js';
 import Task from '../core/core/Task.js';
 
-// Performance-optimized data factory registry
-const DataFactory = {
-    // Factory cache for performance
-    cache: new Map(),
-
-    // Factory templates
-    templates: new Map(),
-
-    // Performance metrics
-    metrics: {creations: 0, cacheHits: 0},
-
-    // Register factory template
-    register: (name, template) => DataFactory.templates.set(name, template),
-
-    // Create with caching
-    create: (templateName, ...args) => {
-        DataFactory.metrics.creations++;
-        const cacheKey = `${templateName}:${JSON.stringify(args)}`;
-
-        if (DataFactory.cache.has(cacheKey)) {
-            DataFactory.metrics.cacheHits++;
-            return DataFactory.cache.get(cacheKey);
-        }
-
-        const template = DataFactory.templates.get(templateName);
-        if (!template) throw new Error(`Unknown data template: ${templateName}`);
-
-        const data = template(...args);
-        DataFactory.cache.set(cacheKey, data);
-        return data;
-    },
-
-    // Reset cache and metrics
-    reset: () => {
-        DataFactory.cache.clear();
-        DataFactory.metrics = {creations: 0, cacheHits: 0};
-    },
-
-    // Get performance stats
-    getStats: () => ({
-        ...DataFactory.metrics,
-        hitRate: DataFactory.metrics.creations > 0 ?
-            (DataFactory.metrics.cacheHits / DataFactory.metrics.creations) * 100 : 0
-    })
-};
+// Unified data creation API
+const createData = (type, ...args) => DataFactory.create(type, ...args);
 
 // Register core data templates
+const DataFactory = {
+    templates: new Map(),
+
+    register: (name, template) => DataFactory.templates.set(name, template),
+
+    create: (templateName, ...args) => {
+        const template = DataFactory.templates.get(templateName);
+        if (!template) throw new Error(`Unknown data template: ${templateName}`);
+        return template(...args);
+    }
+};
+
 DataFactory.register('taskDef', (sentence, punctuation = '.', truth = [1.0, 0.9], options = {}) => ({
     sentence, punctuation, truth, ...options
 }));
@@ -81,9 +50,6 @@ DataFactory.register('complexTerm', (subjectKey, predicateKey, relation = '-->')
     predicate: DataFactory.create('termDef', predicateKey),
     relation
 }));
-
-// Unified data creation API
-export const createData = (type, ...args) => DataFactory.create(type, ...args);
 
 // Specialized creators for common data types
 export const createTaskDef = (...args) => createData('taskDef', ...args);
@@ -168,7 +134,3 @@ export const generateTermVariations = (baseKey, count, embeddingSize = 3) => {
     }
     return terms;
 };
-
-// Performance monitoring
-export const getDataFactoryStats = () => DataFactory.getStats();
-export const resetDataFactoryCache = () => DataFactory.reset();

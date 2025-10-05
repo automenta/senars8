@@ -5,11 +5,12 @@
  * Optimized test execution with parallel processing and caching
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import {fork} from 'child_process';
 
 // Performance-optimized test runner
-class TestRunner {
+export class TestRunner {
     constructor() {
         this.results = [];
         this.stats = {
@@ -89,7 +90,6 @@ class TestRunner {
     // Execute test in separate process for isolation
     executeInProcess(testFile) {
         return new Promise((resolve) => {
-            const {fork} = require('child_process');
             const child = fork(testFile.path, {
                 stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
                 env: {...process.env, TEST_RUNNER: 'true'}
@@ -99,13 +99,8 @@ class TestRunner {
             let stderr = '';
             const startTime = Date.now();
 
-            child.stdout.on('data', (data) => {
-                stdout += data.toString();
-            });
-
-            child.stderr.on('data', (data) => {
-                stderr += data.toString();
-            });
+            child.stdout.on('data', (data) => { stdout += data.toString(); });
+            child.stderr.on('data', (data) => { stderr += data.toString(); });
 
             child.on('message', (message) => {
                 if (message.type === 'test_complete') {
@@ -130,23 +125,14 @@ class TestRunner {
             });
 
             child.on('exit', (code) => {
-                if (code === 0) {
-                    resolve({
-                        test: testFile.name,
-                        success: true,
-                        duration: Date.now() - startTime,
-                        stdout,
-                        stderr
-                    });
-                } else {
-                    resolve({
-                        test: testFile.name,
-                        success: false,
-                        error: `Process exited with code ${code}`,
-                        duration: Date.now() - startTime,
-                        stderr
-                    });
-                }
+                resolve({
+                    test: testFile.name,
+                    success: code === 0,
+                    error: code !== 0 ? `Process exited with code ${code}` : undefined,
+                    duration: Date.now() - startTime,
+                    stdout,
+                    stderr
+                });
             });
 
             // Set timeout
