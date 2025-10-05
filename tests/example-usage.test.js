@@ -5,7 +5,7 @@
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest';
 import {createTaskDef, createTermDef} from './test-data-factory.js';
 import {assertTask, expectTruthValue} from './assertion-helpers.js';
-import {createTestConfig} from './config-driven-tests.js';
+import {createTestConfig} from './test-config.js';
 import {TaskProcessingScenario} from './reusable-test-scenarios.js';
 import {EdgeCaseTester} from './coverage-quality-checks.js';
 import * as logger from '../core/utils/logger.js';

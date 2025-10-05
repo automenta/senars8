@@ -1,42 +1,10 @@
 /**
- * Configuration-driven Testing Approach
+ * Unified Test Configuration System
  * Provides centralized test configuration objects and template-based test creation
  */
 
-/**
- * Base test configuration templates
- */
-export const TEST_CONFIG_TEMPLATES = {
-    UNIT: {
-        timeout: 5000,
-        setup: 'unit',
-        mockLevel: 'full',
-        validation: {
-            errorHandling: true,
-            edgeCases: true
-        }
-    },
-    INTEGRATION: {
-        timeout: 10000,
-        setup: 'integration',
-        mockLevel: 'partial',
-        validation: {
-            componentInteraction: true,
-            dataFlow: true,
-            performance: true
-        }
-    },
-    SYSTEM: {
-        timeout: 30000,
-        setup: 'system',
-        mockLevel: 'minimal',
-        validation: {
-            endToEnd: true,
-            performance: true,
-            errorRecovery: true
-        }
-    }
-};
+// Import from the new unified config system
+export * from './test-config.js';
 
 /**
  * Creates a test configuration based on a template with overrides

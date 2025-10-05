@@ -1,11 +1,65 @@
 /**
- * Generic Test Setup Utilities
+ * Unified Test Setup Utilities
  * Consolidated setup patterns to reduce duplication across test files
+ * Combines functionality from test-helpers.js and test-setup-utils.js
  */
 
 import {expect, vi} from 'vitest';
-import {createTestSystem} from './test-setup.js';
+import {DIContainer} from '../core/system/DIContainer.js';
+import registerComponents from '../core/system/register-components.js';
+import ConfigManager from '../core/config/ConfigManager.js';
+import {configService} from '../core/config/index.js';
+import BagSamplingStrategy from '../core/reasoner/strategies/BagSamplingStrategy.js';
+import BruteForceStrategy from '../core/reasoner/strategies/BruteForceStrategy.js';
 import {createTask} from './test-data-factory.js';
+
+// Import mock creation functions from mock-builders.js
+import {createMockCommandBus, createMockEventBus} from './mock-builders.js';
+
+/**
+ * @deprecated Use createMockCommandBus from mock-builders.js instead
+ */
+export {createMockCommandBus};
+
+/**
+ * @deprecated Use createMockEventBus from mock-builders.js instead
+ */
+export {createMockEventBus};
+
+/**
+ * Creates a complete system with mock buses for testing.
+ * @param {object} userConfig - Optional user configuration.
+ * @returns {object} An object containing the system instance and mock buses.
+ */
+export const createTestSystem = (userConfig = {}) => {
+    const container = new DIContainer();
+    const configManager = new ConfigManager(userConfig);
+    configService.initialize(configManager.getAll());
+
+    const mockCommandBus = createMockCommandBus();
+    const mockEventBus = createMockEventBus();
+
+    container.registerValue('configManager', configManager);
+    container.registerValue('commandBus', mockCommandBus);
+    container.registerValue('eventBus', mockEventBus);
+
+    registerComponents(container, configManager);
+
+    const strategyRegistry = container.get('strategyRegistry');
+    strategyRegistry.registerStrategies([
+        BagSamplingStrategy,
+        BruteForceStrategy,
+    ]);
+
+    const system = container.get('system');
+
+    return {
+        system,
+        commandBus: mockCommandBus,
+        eventBus: mockEventBus,
+        container,
+    };
+};
 
 /**
  * Common test context builder to consolidate setup patterns
@@ -296,4 +350,42 @@ export const createContextFromConfig = async (configName, overrides = {}) => {
     };
 
     return await createTestContext(config);
+};
+
+/**
+ * Creates a set of common test assertions and helpers
+ * @returns {object} Object with common test helpers
+ */
+export const getCommonTestHelpers = () => {
+    // Import createTaskDef from test-data-factory for consistency
+    const {createTaskDef} = require('./test-data-factory.js');
+    return {
+        createTaskDef
+    };
+};
+
+/**
+ * Helper for creating test configuration with common settings
+ * @param {object} overrides - Configuration overrides
+ * @returns {object} Test configuration
+ */
+export const createTestConfig = (overrides = {}) => {
+    return {
+        reasoner: {
+            strategy: 'BruteForce'
+        },
+        ...overrides
+    };
+};
+
+/**
+ * Common setup for tests that need basic mocking and utilities
+ * @param {object} config - Configuration for the test system
+ * @returns {object} Object with system and common test utilities
+ */
+export const setupTestEnvironment = (config = {}) => {
+    const testSystem = createTestSystem(config);
+    return {
+        ...testSystem
+    };
 };

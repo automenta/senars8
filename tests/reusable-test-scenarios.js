@@ -3,7 +3,7 @@
  * Extracted from complex beforeEach blocks to provide reusable scenario builders
  */
 
-import {createTestSystem} from './test-helpers.js';
+import {createTestSystem} from './test-setup.js';
 import {createTask, createTerm} from './test-data-factory.js';
 
 /**
@@ -61,48 +61,35 @@ export class TestScenario {
 }
 
 /**
- * Common test scenario builders
+ * Scenario configuration templates for common patterns
  */
-export const SCENARIO_BUILDERS = {
-    /**
-     * Creates a basic system test scenario with default setup
-     * @param {object} config - Configuration options
-     * @returns {TestScenario} Configured test scenario
-     */
-    basicSystem: (config = {}) => {
-        return new TestScenario('basic-system', config)
-            .addSetup(async (context, scenarioConfig) => {
-                context.systemData = createTestSystem(scenarioConfig);
-                context.system = context.systemData.system;
-                context.commandBus = context.systemData.commandBus;
-                context.eventBus = context.systemData.eventBus;
-                context.container = context.systemData.container;
-            })
-            .addTeardown(async (context) => {
-                // Cleanup if needed
-                if (context.system && context.system.destroy) {
-                    await context.system.destroy();
-                }
-            });
+const SCENARIO_TEMPLATES = {
+    basicSystem: {
+        name: 'basic-system',
+        systemConfig: {},
+        setup: async (context, config) => {
+            context.systemData = createTestSystem(config);
+            context.system = context.systemData.system;
+            context.commandBus = context.systemData.commandBus;
+            context.eventBus = context.systemData.eventBus;
+            context.container = context.systemData.container;
+        },
+        teardown: async (context) => {
+            if (context.system?.destroy) {
+                await context.system.destroy();
+            }
+        }
     },
 
-    /**
-     * Creates a task processing test scenario
-     * @param {object} config - Configuration options
-     * @returns {TestScenario} Configured test scenario
-     */
-    taskProcessing: (config = {}) => {
-        const scenario = SCENARIO_BUILDERS.basicSystem(config);
-        scenario.name = 'task-processing';
-
-        scenario.addSetup(async (context, scenarioConfig) => {
-            // Add task-specific setup
+    taskProcessing: {
+        name: 'task-processing',
+        extends: 'basicSystem',
+        setup: async (context, config) => {
             context.tasks = [];
             context.processedTasks = [];
 
-            // Add sample tasks if specified in config
-            if (scenarioConfig.sampleTasks) {
-                for (const taskData of scenarioConfig.sampleTasks) {
+            if (config.sampleTasks) {
+                for (const taskData of config.sampleTasks) {
                     const term = createTerm(taskData.key || 'sample');
                     const task = createTask(
                         term,
@@ -113,30 +100,18 @@ export const SCENARIO_BUILDERS = {
                     context.tasks.push(task);
                 }
             }
-        });
-
-        return scenario;
+        }
     },
 
-    /**
-     * Creates a memory management test scenario
-     * @param {object} config - Configuration options
-     * @returns {TestScenario} Configured test scenario
-     */
-    memoryManagement: (config = {}) => {
-        const scenario = SCENARIO_BUILDERS.basicSystem({
-            ...config,
-            memory: {capacity: config.capacity || 100}
-        });
-        scenario.name = 'memory-management';
-
-        scenario.addSetup(async (context, scenarioConfig) => {
-            // Access memory from the system container
+    memoryManagement: {
+        name: 'memory-management',
+        extends: 'basicSystem',
+        systemConfig: {memory: {capacity: 100}},
+        setup: async (context, config) => {
             context.memory = context.container.get('memory');
 
-            // Set up initial memory state if specified
-            if (scenarioConfig.initialTasks) {
-                for (const taskDef of scenarioConfig.initialTasks) {
+            if (config.initialTasks) {
+                for (const taskDef of config.initialTasks) {
                     if (context.memory.addTask) {
                         const term = createTerm(taskDef.key || 'memory-test');
                         const task = createTask(term, taskDef.punctuation || '.');
@@ -145,96 +120,65 @@ export const SCENARIO_BUILDERS = {
                 }
             }
 
-            // Track memory operations
             context.operationLog = [];
-        });
-
-        return scenario;
+        }
     },
 
-    /**
-     * Creates an inference/reasoning test scenario
-     * @param {object} config - Configuration options
-     * @returns {TestScenario} Configured test scenario
-     */
-    inference: (config = {}) => {
-        const scenario = SCENARIO_BUILDERS.taskProcessing(config);
-        scenario.name = 'inference';
-
-        scenario.addSetup(async (context, scenarioConfig) => {
-            // Add reasoning-specific setup
+    inference: {
+        name: 'inference',
+        extends: 'taskProcessing',
+        setup: async (context, config) => {
             context.reasoner = context.container.get('reasoner');
             context.inferenceEngine = context.container.get('inferenceEngine') || context.reasoner;
 
-            // Set up initial beliefs if specified
-            if (scenarioConfig.beliefs) {
-                context.beliefs = scenarioConfig.beliefs.map(b =>
+            if (config.beliefs) {
+                context.beliefs = config.beliefs.map(b =>
                     createTask(b.key || 'belief', b.punctuation || '.', b.truthValue)
                 );
             }
 
-            // Set up initial tasks for inference if specified
-            if (scenarioConfig.inputTasks) {
-                context.inputTasks = scenarioConfig.inputTasks.map(t =>
+            if (config.inputTasks) {
+                context.inputTasks = config.inputTasks.map(t =>
                     createTask(t.key || 'input', t.punctuation || '.', t.truthValue)
                 );
             }
-        });
-
-        return scenario;
+        }
     },
 
-    /**
-     * Creates an error handling test scenario
-     * @param {object} config - Configuration options
-     * @returns {TestScenario} Configured test scenario
-     */
-    errorHandling: (config = {}) => {
-        const scenario = SCENARIO_BUILDERS.basicSystem(config);
-        scenario.name = 'error-handling';
-
-        scenario.addSetup(async (context, scenarioConfig) => {
+    errorHandling: {
+        name: 'error-handling',
+        extends: 'basicSystem',
+        setup: async (context, config) => {
             context.errors = [];
             context.errorHandler = {
                 handle: (error) => {
                     context.errors.push(error);
-                    if (scenarioConfig.throwOnErrors) {
+                    if (config.throwOnErrors) {
                         throw error;
                     }
                 }
             };
 
-            // Override global error handling if needed
-            if (scenarioConfig.globalErrorHandling) {
+            if (config.globalErrorHandling) {
                 context.originalConsoleError = console.error;
                 console.error = (...args) => {
                     context.errors.push(new Error(args.join(' ')));
                 };
             }
-        });
-
-        scenario.addTeardown(async (context) => {
-            // Restore original console error if overridden
+        },
+        teardown: async (context) => {
             if (context.originalConsoleError) {
                 console.error = context.originalConsoleError;
             }
-        });
-
-        return scenario;
+        }
     },
 
-    /**
-     * Creates a performance test scenario
-     * @param {object} config - Configuration options
-     * @returns {TestScenario} Configured test scenario
-     */
-    performance: (config = {}) => {
-        const scenario = SCENARIO_BUILDERS.basicSystem(config);
-        scenario.name = 'performance';
-
-        scenario.addSetup(async (context, scenarioConfig) => {
+    performance: {
+        name: 'performance',
+        extends: 'basicSystem',
+        setup: async (context, config) => {
             context.metrics = {
-                startTime: null,
+                startTime: process.hrtime.bigint(),
                 endTime: null,
                 executionTime: 0,
                 memoryBefore: null,
@@ -242,25 +186,79 @@ export const SCENARIO_BUILDERS = {
                 operationsCount: 0
             };
 
-            // Start timing
-            context.metrics.startTime = process.hrtime.bigint();
-
-            // Capture initial memory stats if available
             if (global.gc) {
                 global.gc();
-                // Note: We can't access memory usage directly in all environments
-                // This would require Node.js specific APIs
             }
-        });
-
-        scenario.addTeardown(async (context) => {
-            // End timing
+        },
+        teardown: async (context) => {
             context.metrics.endTime = process.hrtime.bigint();
-            context.metrics.executionTime = Number(context.metrics.endTime - context.metrics.startTime) / 1000000; // Convert to milliseconds
-        });
-
-        return scenario;
+            context.metrics.executionTime = Number(context.metrics.endTime - context.metrics.startTime) / 1000000;
+        }
     }
+};
+
+/**
+ * Creates a scenario from template with inheritance support
+ * @param {string} templateName - Name of the template to use
+ * @param {object} overrides - Configuration overrides
+ * @returns {TestScenario} Configured test scenario
+ */
+const createScenarioFromTemplate = (templateName, overrides = {}) => {
+    const template = SCENARIO_TEMPLATES[templateName];
+    if (!template) {
+        throw new Error(`Unknown scenario template: ${templateName}`);
+    }
+
+    const config = {...template, ...overrides};
+    const scenario = new TestScenario(config.name, config);
+
+    // Apply system config with overrides
+    const systemConfig = {...(config.systemConfig || {}), ...overrides};
+
+    // Build setup functions with inheritance
+    const setupFunctions = [];
+    const teardownFunctions = [];
+
+    // Add parent setup if extending
+    if (config.extends) {
+        const parentScenario = createScenarioFromTemplate(config.extends, systemConfig);
+        setupFunctions.push(...parentScenario.setupFunctions);
+        teardownFunctions.push(...parentScenario.teardownFunctions);
+    }
+
+    // Add current template setup
+    if (template.setup) {
+        setupFunctions.push(template.setup);
+    }
+
+    // Add current template teardown
+    if (template.teardown) {
+        teardownFunctions.push(template.teardown);
+    }
+
+    // Apply setup functions
+    setupFunctions.forEach(setupFn => {
+        scenario.addSetup(setupFn);
+    });
+
+    // Apply teardown functions (in reverse order)
+    teardownFunctions.reverse().forEach(teardownFn => {
+        scenario.addTeardown(teardownFn);
+    });
+
+    return scenario;
+};
+
+/**
+ * Common test scenario builders using templates
+ */
+export const SCENARIO_BUILDERS = {
+    basicSystem: (config = {}) => createScenarioFromTemplate('basicSystem', config),
+    taskProcessing: (config = {}) => createScenarioFromTemplate('taskProcessing', config),
+    memoryManagement: (config = {}) => createScenarioFromTemplate('memoryManagement', config),
+    inference: (config = {}) => createScenarioFromTemplate('inference', config),
+    errorHandling: (config = {}) => createScenarioFromTemplate('errorHandling', config),
+    performance: (config = {}) => createScenarioFromTemplate('performance', config)
 };
 
 /**

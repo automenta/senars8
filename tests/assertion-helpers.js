@@ -7,14 +7,15 @@ import {expect} from 'vitest';
 import {commonValidators} from './common-validation-utils.js';
 
 /**
- * Common truth value validation helper
+ * Common truth value validation helper with configurable precision
  * @param {Object} actual - Actual truth value object
  * @param {number} expectedFreq - Expected frequency
  * @param {number} expectedConf - Expected confidence
+ * @param {number} precision - Number of decimal places precision (default: 3)
  */
-export const expectTruthValue = (actual, expectedFreq, expectedConf) => {
-    expect(actual.frequency).toBeCloseTo(expectedFreq, 3);
-    expect(actual.confidence).toBeCloseTo(expectedConf, 3);
+export const expectTruthValue = (actual, expectedFreq, expectedConf, precision = 3) => {
+    expect(actual.frequency).toBeCloseTo(expectedFreq, precision);
+    expect(actual.confidence).toBeCloseTo(expectedConf, precision);
 };
 
 /**
@@ -49,43 +50,35 @@ export const assertTaskWithSpec = (task, validationSpec) => {
 };
 
 /**
- * Asserts that a function throws an error with the expected message
- * @param {Function} fn - Function to execute
- * @param {string|RegExp} expectedMessage - Expected error message or pattern
+ * Generic error assertion that handles both sync and async functions
+ * @param {Function|Promise} fnOrPromise - Function to execute or Promise to await
+ * @param {string|RegExp|Function} expectedError - Expected error message, pattern, or constructor
  * @param {string} context - Context for the assertion (for better error messages)
  */
-export const expectToThrowError = (fn, expectedMessage, context = '') => {
-    if (typeof expectedMessage === 'string') {
-        expect(fn).toThrow(expectedMessage);
-    } else if (expectedMessage instanceof RegExp) {
-        const error = expect(() => fn()).toThrow();
-        expect(error.message).toMatch(expectedMessage);
-    } else {
-        expect(fn).toThrow(expectedMessage);
+export const expectToThrowError = async (fnOrPromise, expectedError, context = '') => {
+    try {
+        // Handle both sync and async cases
+        const result = fnOrPromise && typeof fnOrPromise.then === 'function' ? await fnOrPromise : fnOrPromise();
+
+        // If we reach this point, no error was thrown
+        throw new Error(`Expected function/promise to throw/reject but it resolved instead. Context: ${context}`);
+    } catch (error) {
+        if (typeof expectedError === 'string') {
+            expect(error.message).toContain(expectedError);
+        } else if (expectedError instanceof RegExp) {
+            expect(error.message).toMatch(expectedError);
+        } else if (typeof expectedError === 'function') {
+            expect(error).toBeInstanceOf(expectedError);
+        } else {
+            expect(error.message).toContain(String(expectedError));
+        }
     }
 };
 
 /**
- * Asserts that an async function rejects with the expected error
- * @param {Promise} promise - Promise to await
- * @param {string|RegExp} expectedMessage - Expected error message or pattern
- * @param {string} context - Context for the assertion (for better error messages)
+ * @deprecated Use expectToThrowError for both sync and async cases
  */
-export const expectToRejectWithError = async (promise, expectedMessage, context = '') => {
-    try {
-        await promise;
-        // If we reach this point, the promise didn't reject
-        throw new Error(`Expected promise to reject but it resolved instead. Context: ${context}`);
-    } catch (error) {
-        if (typeof expectedMessage === 'string') {
-            expect(error).toThrow(expectedMessage);
-        } else if (expectedMessage instanceof RegExp) {
-            expect(error.message).toMatch(expectedMessage);
-        } else {
-            expect(error).toBeInstanceOf(expectedMessage);
-        }
-    }
-};
+export const expectToRejectWithError = expectToThrowError;
 
 /**
  * Creates a reusable error validation function for specific error types
@@ -129,27 +122,57 @@ export const expectRejectionToContain = async (promise, expectedText) => {
 };
 
 /**
- * Assertion helper for validating object properties
+ * Unified object validation helper with flexible options
  * @param {Object} obj - Object to validate
- * @param {Object} expectedProps - Object with expected property values
+ * @param {Object} options - Validation options
+ * @param {Object} options.properties - Object with expected property values
+ * @param {string[]} options.requiredKeys - Array of required keys that must be present
+ * @param {string[]} options.optionalKeys - Array of optional keys that may be present
+ * @param {Object} options.types - Object mapping keys to expected types
+ * @param {string} context - Context for error messages
  */
-export const expectObjectProperties = (obj, expectedProps) => {
+export const expectObject = (obj, options = {}, context = 'object') => {
     expect(obj).toBeDefined();
-    Object.keys(expectedProps).forEach(key => {
-        expect(obj[key]).toEqual(expectedProps[key]);
+
+    const {properties = {}, requiredKeys = [], optionalKeys = [], types = {}} = options;
+
+    // Check required keys are present
+    requiredKeys.forEach(key => {
+        expect(obj).toHaveProperty(key);
+    });
+
+    // Check properties match expected values
+    Object.keys(properties).forEach(key => {
+        expect(obj[key]).toEqual(properties[key]);
+    });
+
+    // Check types if specified
+    Object.keys(types).forEach(key => {
+        if (obj[key] !== undefined) {
+            expect(typeof obj[key]).toBe(types[key]);
+        }
+    });
+
+    // Check optional keys are present if specified
+    optionalKeys.forEach(key => {
+        if (options.checkOptional !== false) {
+            expect(obj).toHaveProperty(key);
+        }
     });
 };
 
 /**
- * Assertion helper for validating object structure (keys present)
- * @param {Object} obj - Object to validate
- * @param {string[]} expectedKeys - Array of expected keys
+ * @deprecated Use expectObject with {properties: expectedProps} instead
+ */
+export const expectObjectProperties = (obj, expectedProps) => {
+    return expectObject(obj, {properties: expectedProps});
+};
+
+/**
+ * @deprecated Use expectObject with {requiredKeys: expectedKeys} instead
  */
 export const expectObjectStructure = (obj, expectedKeys) => {
-    expect(obj).toBeDefined();
-    expectedKeys.forEach(key => {
-        expect(obj).toHaveProperty(key);
-    });
+    return expectObject(obj, {requiredKeys: expectedKeys});
 };
 
 /**
@@ -184,35 +207,43 @@ export const expectCloseTo = (actual, expected, tolerance = 0.001) => {
 
 /**
  * Validates that a function completes within a specified time
- * @param {Function} fn - Function to execute
+ * @param {Function} fn - Function to execute (sync or async)
  * @param {number} maxTimeMs - Maximum allowed time in milliseconds
  * @param {string} description - Description of the test for error reporting
+ * @returns {Promise|any} Function result
  */
-export const expectToCompleteWithinTime = (fn, maxTimeMs, description = 'function execution') => {
+export const expectToCompleteWithinTime = async (fn, maxTimeMs, description = 'function execution') => {
     const startTime = Date.now();
-    const result = fn();
-    const endTime = Date.now();
-    const executionTime = endTime - startTime;
 
-    expect(executionTime).toBeLessThanOrEqual(maxTimeMs);
-    return result; // Return the result in case it's needed
+    try {
+        // Check if it's an async function
+        const result = fn();
+        if (result && typeof result.then === 'function') {
+            // It's a Promise
+            const asyncResult = await result;
+            const endTime = Date.now();
+            const executionTime = endTime - startTime;
+            expect(executionTime).toBeLessThanOrEqual(maxTimeMs);
+            return asyncResult;
+        } else {
+            // It's synchronous
+            const endTime = Date.now();
+            const executionTime = endTime - startTime;
+            expect(executionTime).toBeLessThanOrEqual(maxTimeMs);
+            return result;
+        }
+    } catch (error) {
+        const endTime = Date.now();
+        const executionTime = endTime - startTime;
+        expect(executionTime).toBeLessThanOrEqual(maxTimeMs);
+        throw error; // Re-throw the error after timing check
+    }
 };
 
 /**
- * Validates that an async function completes within a specified time
- * @param {Function} asyncFn - Async function to execute
- * @param {number} maxTimeMs - Maximum allowed time in milliseconds
- * @param {string} description - Description of the test for error reporting
+ * @deprecated Use expectToCompleteWithinTime for both sync and async functions
  */
-export const expectAsyncToCompleteWithinTime = async (asyncFn, maxTimeMs, description = 'async function execution') => {
-    const startTime = Date.now();
-    const result = await asyncFn();
-    const endTime = Date.now();
-    const executionTime = endTime - startTime;
-
-    expect(executionTime).toBeLessThanOrEqual(maxTimeMs);
-    return result; // Return the result in case it's needed
-};
+export const expectAsyncToCompleteWithinTime = expectToCompleteWithinTime;
 
 /**
  * Common assertion for testing term properties
@@ -228,17 +259,6 @@ export const assertTerm = (term, expectedKey, expectedComplexity = null) => {
     }
 };
 
-/**
- * Assertion helper for validating truth value properties with custom precision
- * @param {Object} truthValue - Truth value object to validate
- * @param {number} expectedFreq - Expected frequency
- * @param {number} expectedConf - Expected confidence
- * @param {number} precision - Number of decimal places precision (default: 3)
- */
-export const expectTruthValueWithPrecision = (truthValue, expectedFreq, expectedConf, precision = 3) => {
-    expect(truthValue.frequency).toBeCloseTo(expectedFreq, precision);
-    expect(truthValue.confidence).toBeCloseTo(expectedConf, precision);
-};
 
 /**
  * Creates a comprehensive validation helper for task objects

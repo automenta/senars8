@@ -193,53 +193,6 @@ export const createTestDataTemplate = (templateName) => {
     }
 };
 
-/**
- * Creates a mock function with predefined behavior
- * @param {any} returnValue - Value to return from the mock
- * @param {Error} error - Error to throw (if any)
- * @param {Function} implementation - Custom implementation function
- * @returns {Function} Mock function
- */
-export const createMockFunction = (returnValue = undefined, error = null, implementation = null) => {
-    if (error) {
-        return vi.fn(() => {
-            throw error;
-        });
-    }
-
-    if (implementation) {
-        return vi.fn(implementation);
-    }
-
-    return vi.fn(() => returnValue);
-};
-
-/**
- * Creates a mock object with predefined properties and methods
- * @param {object} props - Properties to set on the mock object
- * @param {object} methods - Methods to add to the mock object
- * @returns {object} Mock object
- */
-export const createMockObject = (props = {}, methods = {}) => {
-    const mock = {};
-
-    // Add properties
-    Object.keys(props).forEach(key => {
-        Object.defineProperty(mock, key, {
-            value: props[key],
-            writable: true,
-            enumerable: true,
-            configurable: true
-        });
-    });
-
-    // Add methods
-    Object.keys(methods).forEach(key => {
-        mock[key] = methods[key];
-    });
-
-    return mock;
-};
 
 // Export default configuration for reference
 export const DEFAULT_TEST_CONFIGS = DEFAULT_CONFIGS;
