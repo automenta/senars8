@@ -1,11 +1,43 @@
 import React, {useState, useEffect} from 'react';
-import {Box, Text} from 'ink';
+import {Box, Text, useInput} from 'ink';
 import PropTypes from 'prop-types';
 
 const MessageInput = ({agentService, onMessageSent, history = [], disabled = false}) => {
     const [input, setInput] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [historyIndex, setHistoryIndex] = useState(-1);
+
+(    // Handle keyboard input for text entry
+    useInput((inputChar, key) => {
+        if (disabled || isSubmitting) return;
+
+        if (key.return) {
+            handleSubmit();
+        } else if (key.escape) {
+            setInput('');
+            setHistoryIndex(-1);
+        } else if (key.upArrow) {
+            const newIndex = Math.min(historyIndex + 1, history.length - 1);
+            if (newIndex >= 0 && history[newIndex]) {
+                setHistoryIndex(newIndex);
+                setInput(history[newIndex]);
+            }
+        } else if (key.downArrow) {
+            const newIndex = Math.max(historyIndex - 1, -1);
+            if (newIndex === -1) {
+                setHistoryIndex(-1);
+                setInput('');
+            } else if (history[newIndex]) {
+                setHistoryIndex(newIndex);
+                setInput(history[newIndex]);
+            }
+        } else if (key.backspace || key.delete) {
+            setInput(prev => prev.slice(0, -1));
+        } else if (inputChar && inputChar.match(/[\x20-\x7E]/)) {
+            // Printable ASCII characters
+            setInput(prev => prev + inputChar);
+        }
+    }));
 
     const handleSubmit = async () => {
         if (!input.trim() || isSubmitting || disabled) return;
@@ -33,43 +65,7 @@ const MessageInput = ({agentService, onMessageSent, history = [], disabled = fal
         }
     };
 
-    const handleKeyPress = (key) => {
-        if (disabled) return;
 
-        try {
-            if (key === 'Enter') {
-                handleSubmit();
-            } else if (key === 'ArrowUp') {
-                const newIndex = Math.min(historyIndex + 1, history.length - 1);
-                if (newIndex >= 0 && history[newIndex]) {
-                    setHistoryIndex(newIndex);
-                    setInput(history[newIndex]);
-                }
-            } else if (key === 'ArrowDown') {
-                const newIndex = Math.max(historyIndex - 1, -1);
-                if (newIndex === -1) {
-                    setHistoryIndex(-1);
-                    setInput('');
-                } else if (history[newIndex]) {
-                    setHistoryIndex(newIndex);
-                    setInput(history[newIndex]);
-                }
-            } else if (key === 'Escape') {
-                setInput('');
-                setHistoryIndex(-1);
-            }
-        } catch (error) {
-            console.error('Error handling key event:', error);
-        }
-    };
-
-    // Global keyboard shortcut handler
-    useEffect(() => {
-        if (disabled) return;
-
-        // Note: In a real TUI, you might need to handle global shortcuts differently
-        // This is a simplified version for the basic functionality
-    }, [disabled]);
 
     const displayText = input || (isSubmitting ? 'Sending...' : 'Type your message... (Enter to send, ↑↓ for history, Esc to clear)');
     const color = disabled ? "gray" : (isSubmitting ? "yellow" : "white");

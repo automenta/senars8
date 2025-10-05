@@ -40,6 +40,28 @@ class ConsoleTransport {
     }
 }
 
+class TuiTransport {
+    constructor(logCallback) {
+        this.logCallback = logCallback;
+    }
+
+    log(timestamp, level, namespace, message, args) {
+        if (!this.logCallback) return;
+
+        const {name, color} = levelConfig[level];
+        const timeStr = timestamp.toISOString();
+        const nsStr = namespace ? `[${namespace}]` : '';
+        const formattedArgs = args.map(arg =>
+            (typeof arg === 'object' && arg !== null) ? JSON.stringify(arg) : String(arg)
+        ).join(' ');
+
+        const logMessage = `${timeStr} ${name} ${nsStr} ${message} ${formattedArgs}`;
+
+        // Send to TUI callback instead of console
+        this.logCallback(logMessage, level);
+    }
+}
+
 class Logger {
     constructor(options = {}) {
         this.level = this._getLogLevel(options.level);
@@ -117,4 +139,5 @@ export const info = logger.info.bind(logger);
 export const warn = logger.warn.bind(logger);
 export const error = logger.error.bind(logger);
 export const debug = logger.debug.bind(logger);
+export { TuiTransport };
 export default logger;

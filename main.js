@@ -30,7 +30,7 @@ export const AppRunner = {
 
     async startTui() {
         log.info('Starting TUI...');
-        const tuiProcess = execa('node', ['tui/src/index.js'], {stdio: 'inherit'});
+        const tuiProcess = execa('node', ['tui/src/index.jsx'], {stdio: 'inherit'});
         tuiProcess.on('exit', (code) => {
             log.info(`TUI process exited with code ${code}`);
             process.exit(code);
