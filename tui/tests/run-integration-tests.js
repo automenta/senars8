@@ -5,15 +5,16 @@
  * Runs comprehensive tests without requiring interactive input
  */
 
-import {spawn} from 'child_process';
 import {setTimeout as asyncSetTimeout} from 'timers/promises';
-import {WebSocketServer} from 'ws';
-import AgentManager from '../../agent/AgentManager.js';
-import {WebSocketManager} from '../../agent/WebSocketManager.js';
-import {createMessageHandler} from '../../agent/MessageHandler.js';
+import {
+    TEST_CONFIG,
+    MOCK_RESPONSES,
+    createMockTuiServer,
+    createTestAgentEnvironment,
+    findTuiTestPort
+} from './test-utils.js';
 
-const TEST_PORT = 8085;
-const TEST_TIMEOUT = 30000; // 30 seconds
+const TEST_TIMEOUT = TEST_CONFIG.TIMEOUTS.INTEGRATION_TEST;
 
 class TuiIntegrationTester {
     constructor() {
@@ -46,90 +47,39 @@ class TuiIntegrationTester {
     async setupTestAgent() {
         console.log('🚀 Setting up test agent...');
 
-        this.agentManager = new AgentManager();
-        this.wsManager = new WebSocketManager({port: TEST_PORT});
+        // Use the consolidated test environment setup
+        const testEnv = await createTestAgentEnvironment(TEST_CONFIG.PORTS.TEST_AGENT);
+        this.agentManager = testEnv.agentManager;
+        this.wsManager = testEnv.wsManager;
 
-        await this.wsManager.start();
-        this.agentManager.setBroadcast(this.wsManager.broadcast.bind(this.wsManager));
-
-        const messageHandler = createMessageHandler(this.agentManager, this.wsManager.broadcast.bind(this.wsManager));
-        this.wsManager.setMessageHandler(messageHandler);
-
-        await this.agentManager.initialize();
-
-        // Setup mock WebSocket server for testing
-        this.testWsServer = new WebSocketServer({port: TEST_PORT + 1});
+        // Setup mock WebSocket server for testing using the new utility
+        this.testWsServer = await createMockTuiServer(TEST_CONFIG.PORTS.TEST_AGENT + 1);
 
         return new Promise((resolve) => {
-            this.testWsServer.on('connection', (ws) => {
-                ws.on('message', (data) => {
-                    const message = JSON.parse(data.toString());
-                    this.handleTestMessage(message, ws);
-                });
-            });
-
-            setTimeout(resolve, 1000);
+            setTimeout(resolve, TEST_CONFIG.TIMEOUTS.CONNECTION);
         });
     }
 
     handleTestMessage(message, ws) {
+        // Use the standardized mock responses from test-utils.js
         const {type, payload} = message;
 
         switch (type) {
             case 'get_system_stats':
-                ws.send(JSON.stringify({
-                    type: 'system_stats',
-                    payload: {
-                        isRunning: true,
-                        cycleCount: 100,
-                        uptime: '00:01:30',
-                        connectionStatus: 'connected',
-                        stats: {
-                            cyclesPerSecond: 5.2,
-                            memoryUsedMB: 32.1,
-                            cpuUsage: 15.3,
-                            tasksPerSecond: 1.8
-                        }
-                    }
-                }));
+                ws.send(JSON.stringify(MOCK_RESPONSES.SYSTEM_STATS));
                 break;
             case 'get_tasks':
-                ws.send(JSON.stringify({
-                    type: 'tasks_response',
-                    payload: {
-                        tasks: [
-                            {termKey: '(test --> integration)', punctuation: '.', state: {truthValue: {confidence: 0.8}}},
-                            {termKey: 'automated_test!', punctuation: '!', state: {truthValue: {confidence: 0.9}}}
-                        ]
-                    }
-                }));
+                ws.send(JSON.stringify(MOCK_RESPONSES.TASKS_RESPONSE));
                 break;
             case 'get_beliefs':
-                ws.send(JSON.stringify({
-                    type: 'beliefs_response',
-                    payload: {
-                        beliefs: [
-                            {termKey: '(automated --> testing)', punctuation: '.', state: {truthValue: {confidence: 0.95}}}
-                        ]
-                    }
-                }));
+                ws.send(JSON.stringify(MOCK_RESPONSES.BELIEFS_RESPONSE));
                 break;
             case 'get_goals':
-                ws.send(JSON.stringify({
-                    type: 'goals_response',
-                    payload: {
-                        goals: [
-                            {termKey: 'pass_all_tests!', punctuation: '!', state: {truthValue: {confidence: 1.0}}}
-                        ]
-                    }
-                }));
+                ws.send(JSON.stringify(MOCK_RESPONSES.GOALS_RESPONSE));
                 break;
             case 'narsese':
             case 'natural_language':
-                ws.send(JSON.stringify({
-                    type: 'log',
-                    payload: `✅ Processed: ${payload.text || payload}`
-                }));
+                ws.send(JSON.stringify(MOCK_RESPONSES.LOG_RESPONSE(payload.text || payload)));
                 break;
         }
     }
@@ -138,7 +88,7 @@ class TuiIntegrationTester {
         console.log('\n🧹 Cleaning up...');
 
         if (this.testWsServer) {
-            this.testWsServer.close();
+            await this.testWsServer.close();
         }
         if (this.wsManager) {
             await this.wsManager.stop();
@@ -158,10 +108,10 @@ class TuiIntegrationTester {
             const {connectionManager} = await import('../../common/services/connection.js');
 
             // Test discovery with retry logic
-            await connectionManager.discover(TEST_PORT + 1);
+            await connectionManager.discover(TEST_CONFIG.PORTS.TEST_AGENT + 1);
 
             // Wait for connection attempts
-            await asyncSetTimeout(2000);
+            await asyncSetTimeout(TEST_CONFIG.TIMEOUTS.MESSAGE_PROCESSING);
 
             // Should have attempted connections (may not succeed due to test setup)
             return true;
@@ -274,18 +224,18 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
     const timeout = setTimeout(() => {
         console.log('\n⏰ Test timeout reached');
-        tester.cleanup().then(() => process.exit(1));
+        tester.cleanup().then(() => process.exit(TEST_CONFIG.EXIT_CODES.FAILURE));
     }, TEST_TIMEOUT);
 
     tester.runAllTests()
         .then(success => {
             clearTimeout(timeout);
-            process.exit(success ? 0 : 1);
+            process.exit(success ? TEST_CONFIG.EXIT_CODES.SUCCESS : TEST_CONFIG.EXIT_CODES.FAILURE);
         })
         .catch(error => {
             clearTimeout(timeout);
             console.error('Test runner error:', error);
-            tester.cleanup().then(() => process.exit(1));
+            tester.cleanup().then(() => process.exit(TEST_CONFIG.EXIT_CODES.FAILURE));
         });
 }
 

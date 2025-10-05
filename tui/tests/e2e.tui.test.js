@@ -1,13 +1,11 @@
 import {describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, vi} from 'vitest';
-import {spawn} from 'child_process';
-import {promisify} from 'util';
 import {setTimeout as promiseTimeout} from 'timers/promises';
+import {promisify} from 'util';
 import {WebSocketServer} from 'ws';
-import AgentManager from '../../agent/AgentManager.js';
-import {WebSocketManager} from '../../agent/WebSocketManager.js';
-import {createMessageHandler} from '../../agent/MessageHandler.js';
 import {connectionManager} from '../../common/services/connection.js';
 import {
+    TEST_CONFIG,
+    MOCK_RESPONSES,
     findTuiTestPort,
     waitForCondition,
     createMockTuiServer,
@@ -40,7 +38,7 @@ describe('TUI End-to-End Integration Tests', async () => {
 
     beforeAll(async () => {
         // Find an available port for all tests
-        wsPort = await findTuiTestPort(8085);
+        wsPort = await findTuiTestPort(TEST_CONFIG.PORTS.START);
 
         console.log(`Starting shared agent on port ${wsPort}`);
 
@@ -48,7 +46,7 @@ describe('TUI End-to-End Integration Tests', async () => {
         sharedAgent = await startTestAgent(wsPort);
 
         console.log(`Shared agent started on port ${wsPort}`);
-    }, 10000); // Shorter timeout for beforeAll
+    }, TEST_CONFIG.TIMEOUTS.TUI_RUN);
 
     afterAll(async () => {
         console.log(`Stopping shared agent on port ${wsPort}`);
@@ -66,7 +64,7 @@ describe('TUI End-to-End Integration Tests', async () => {
         // Shared agent is already started in beforeAll
 
         // Run TUI with timeout using utility function
-        const result = await runTuiWithTimeout(wsPort, 3000);
+        const result = await runTuiWithTimeout(wsPort, TEST_CONFIG.TIMEOUTS.MESSAGE_PROCESSING);
 
         // Validate that TUI ran without fatal errors
         if (result.timedOut) {
@@ -96,10 +94,10 @@ describe('TUI End-to-End Integration Tests', async () => {
     it('should be able to connect to agent and display status', async () => {
         // Shared agent is already running
         // Wait for agent to be ready
-        await promiseTimeout(500);
+        await promiseTimeout(TEST_CONFIG.RETRY_INTERVALS.MEDIUM);
 
         // Run TUI with timeout to test connection
-        const result = await runTuiWithTimeout(wsPort, 3000);
+        const result = await runTuiWithTimeout(wsPort, TEST_CONFIG.TIMEOUTS.MESSAGE_PROCESSING);
 
         // Validate the connection test
         if (result.timedOut) {
@@ -130,7 +128,7 @@ describe('TUI End-to-End Integration Tests', async () => {
 
     describe('TUI Connection Management', () => {
         it('should discover and connect to agents automatically', async () => {
-            const testPort = 8086;
+            const testPort = TEST_CONFIG.PORTS.MOCK_SERVERS.DISCOVERY;
             const mockWsServer = new WebSocketServer({port: testPort});
 
             mockWsServer.on('connection', (ws) => {
@@ -142,9 +140,9 @@ describe('TUI End-to-End Integration Tests', async () => {
                 });
             });
 
-            await promiseTimeout(500);
+            await promiseTimeout(TEST_CONFIG.RETRY_INTERVALS.MEDIUM);
             await connectionManager.discover(testPort);
-            await promiseTimeout(1000);
+            await promiseTimeout(TEST_CONFIG.RETRY_INTERVALS.SLOW);
 
             const connections = connectionManager.getConnections();
             expect(connections.length).toBeGreaterThan(0);
@@ -164,7 +162,7 @@ describe('TUI End-to-End Integration Tests', async () => {
 
             try {
                 await expect(connectionManager.discover(invalidPort)).resolves.not.toThrow();
-                await promiseTimeout(3000);
+                await promiseTimeout(TEST_CONFIG.TIMEOUTS.MESSAGE_PROCESSING);
 
                 connectionManager.disconnectAll();
                 const connections = connectionManager.getConnections();
@@ -181,7 +179,7 @@ describe('TUI End-to-End Integration Tests', async () => {
         let testPort;
 
         beforeEach(async () => {
-            testPort = await findTuiTestPort(8087);
+            testPort = await findTuiTestPort(TEST_CONFIG.PORTS.MOCK_SERVERS.SERVICE);
             const mockWsServer = new WebSocketServer({port: testPort});
 
             mockWsServer.on('connection', (ws) => {
@@ -192,7 +190,7 @@ describe('TUI End-to-End Integration Tests', async () => {
                 });
             });
 
-            await promiseTimeout(500);
+            await promiseTimeout(TEST_CONFIG.RETRY_INTERVALS.MEDIUM);
         });
 
         afterEach(() => {
@@ -262,14 +260,14 @@ describe('TUI End-to-End Integration Tests', async () => {
             service.connect();
 
             // Wait for connection
-            await promiseTimeout(1000);
+            await promiseTimeout(TEST_CONFIG.TIMEOUTS.CONNECTION);
 
             // Test sending a message
             service.sendNarsese('<bird --> animal>.');
             service.sendNaturalLanguage('Hello agent');
 
             // Wait for processing
-            await promiseTimeout(500);
+            await promiseTimeout(TEST_CONFIG.RETRY_INTERVALS.MEDIUM);
 
             // Test getting agent state
             const state = service.getAgentState();
@@ -352,8 +350,7 @@ describe('TUI End-to-End Integration Tests', async () => {
             const service = new TuiAgentService(`ws://localhost:${testPort}`);
             service.connect();
 
-            // Wait for initial data
-            await promiseTimeout(1500);
+            await promiseTimeout(TEST_CONFIG.TIMEOUTS.SETUP);
 
             // Test that state was updated
             const state = service.getAgentState();
@@ -455,8 +452,7 @@ describe('TUI End-to-End Integration Tests', async () => {
                 connectionManager.connect('ws://localhost:9998');
             }).not.toThrow();
 
-            // Wait for error handling
-            await promiseTimeout(1000);
+            await promiseTimeout(TEST_CONFIG.TIMEOUTS.CONNECTION);
 
             // Error should have been handled
             expect(errorHandled).toBe(true);
@@ -543,8 +539,7 @@ describe('TUI End-to-End Integration Tests', async () => {
                 });
             });
 
-            // Wait for server to be ready
-            await promiseTimeout(500);
+            await promiseTimeout(TEST_CONFIG.RETRY_INTERVALS.MEDIUM);
 
             const TuiAgentService = (await import('../src/services/TuiAgentService.js')).default;
             const service = new TuiAgentService(`ws://localhost:${testPort}`);
@@ -557,15 +552,14 @@ describe('TUI End-to-End Integration Tests', async () => {
             console.log('Connecting to service...');
             service.connect();
 
-            // Wait for connection to be established
-            await promiseTimeout(1000);
+            await promiseTimeout(TEST_CONFIG.TIMEOUTS.CONNECTION);
 
             console.log('Sending test message...');
             // Send a test message
             service.sendNaturalLanguage('test message');
 
             // Wait for message processing
-            await promiseTimeout(1000);
+            await promiseTimeout(TEST_CONFIG.TIMEOUTS.CONNECTION);
 
             console.log('Received message:', receivedMessage);
             console.log('Response sent:', responseSent);
