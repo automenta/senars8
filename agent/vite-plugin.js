@@ -5,54 +5,45 @@ import {createMessageHandler} from './MessageHandler.js';
 const log = logger.create('vite-plugin');
 
 export const agentServerPlugin = (agentManager) => {
-    let wsManager = null;
+  let wsManager = null;
 
-    return {
-        name: 'agent-server-plugin',
-        async configureServer(server) {
-            try {
-                // 1. Create the UnifiedWebSocketServer.
-                // If WS_PORT is specified, run a standalone server. Otherwise, attach to Vite's server.
-                if (process.env.WS_PORT) {
-                    const wsPort = parseInt(process.env.WS_PORT, 10);
-                    log.info(`Starting standalone WebSocket server on port ${wsPort}`);
-                    wsManager = new WebSocketManager({port: wsPort});
-                } else {
-                    log.info('Attaching UnifiedWebSocketServer to Vite dev server.');
-                    wsManager = new UnifiedWebSocketServer({server: server.httpServer});
-                }
-
-                await wsManager.start();
-
-                // 2. Link the UnifiedWebSocketServer to the AgentManager
-                agentManager.setBroadcast(wsManager.broadcast.bind(wsManager));
-
-                // 3. Initialize the AgentManager
-                await agentManager.initialize();
-
-                // 4. Set up the message handler
-                const messageHandler = createMessageHandler(agentManager, wsManager.broadcast.bind(wsManager));
-                wsManager.setMessageHandler(messageHandler);
-
-                if (!process.env.WS_PORT) {
-                    const address = server.httpServer.address();
-                    if (address) {
-                        log.info(`UnifiedWebSocketServer attached to Vite dev server on port ${address.port}.`);
-                    } else {
-                        log.info('WebSocket server attached to Vite dev server.');
-                    }
-                }
-
-            } catch (error) {
-                log.error('Failed to configure UnifiedWebSocketServer:', error);
-            }
-        },
-
-        async closeBundle() {
-            if (wsManager) {
-                await wsManager.stop();
-                wsManager = null;
-            }
+  return {
+    name: 'agent-server-plugin',
+    async configureServer(server) {
+      try {
+        if (process.env.WS_PORT) {
+          const wsPort = parseInt(process.env.WS_PORT, 10);
+          log.info(`Starting standalone WebSocket server on port ${wsPort}`);
+          wsManager = new UnifiedWebSocketServer({port: wsPort});
+        } else {
+          log.info('Attaching UnifiedWebSocketServer to Vite dev server.');
+          wsManager = new UnifiedWebSocketServer({server: server.httpServer});
         }
-    };
+
+        await wsManager.start();
+        agentManager.setBroadcast(wsManager.broadcast.bind(wsManager));
+        await agentManager.initialize();
+
+        const messageHandler = createMessageHandler(agentManager, wsManager.broadcast.bind(wsManager));
+        wsManager.setMessageHandler(messageHandler);
+
+        if (!process.env.WS_PORT) {
+          const address = server.httpServer.address();
+          log.info(address
+            ? `UnifiedWebSocketServer attached to Vite dev server on port ${address.port}.`
+            : 'WebSocket server attached to Vite dev server.'
+          );
+        }
+      } catch (error) {
+        log.error('Failed to configure UnifiedWebSocketServer:', error);
+      }
+    },
+
+    async closeBundle() {
+      if (wsManager) {
+        await wsManager.stop();
+        wsManager = null;
+      }
+    }
+  };
 };

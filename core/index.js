@@ -1,4 +1,4 @@
-// Core exports - entities & config
+// Core entities & config
 export {Task, Term, BaseEntity} from './core/index.js';
 export {default as config} from './config/index.js';
 export {PUNCTUATION, OP, REL, TOKEN} from './config/constants.js';
@@ -11,20 +11,20 @@ export {parseTerm, validateTermKey} from './parser/parse-utils.js';
 
 // Collections utilities
 export {
- filterByProperty, normalizeToArray, isNonEmptyArray, isEmptyArray,
- isPlainObject, sumBy, safeGet
+  filterByProperty, normalizeToArray, isNonEmptyArray, isEmptyArray,
+  isPlainObject, sumBy, safeGet
 } from './utils/collections/index.js';
 
 // Task utilities
 export {
- isBelief, isGoal, isQuestion, getTasksByType, getBeliefTasks,
- getGoalTasks, getQuestionTasks, isTask
+  isBelief, isGoal, isQuestion, getTasksByType, getBeliefTasks,
+  getGoalTasks, getQuestionTasks, isTask
 } from './utils/task-utils.js';
 
 // System components
 export {
- System, SystemFactory, Cycle, ActionExecutor, Perception, Planner,
- MetaCognition, Introspection, EventBus
+  System, SystemFactory, Cycle, ActionExecutor, Perception, Planner,
+  MetaCognition, Introspection, EventBus
 } from './utils/system.js';
 
 // Error handling
