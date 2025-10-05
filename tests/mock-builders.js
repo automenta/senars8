@@ -279,55 +279,44 @@ export const MOCK_BUILDERS = {
  * @returns {object} Mock object
  */
 export const createConsistentMock = (componentName, customMethods = {}, customProperties = {}) => {
-    // Check if there's a predefined builder for this component
     const predefinedBuilder = MOCK_BUILDERS[componentName.toLowerCase()];
-    if (predefinedBuilder) {
-        const builder = predefinedBuilder();
+    const builder = predefinedBuilder ? predefinedBuilder() : new MockBuilder(componentName);
 
-        // Add custom methods
-        for (const [methodName, methodConfig] of Object.entries(customMethods)) {
-            if (typeof methodConfig === 'function') {
-                builder.withMethod(methodName, undefined, {implementation: methodConfig});
-            } else if (methodConfig instanceof Error) {
-                builder.withMethod(methodName, undefined, {error: methodConfig});
-            } else {
-                builder.withMethod(methodName, methodConfig);
-            }
-        }
-
-        // Add custom properties
-        for (const [propName, propValue] of Object.entries(customProperties)) {
-            builder.withProperty(propName, propValue);
-        }
-
-        return builder.build();
+    // Add default methods for generic mocks
+    if (!predefinedBuilder) {
+        builder
+            .withMethod('initialize', Promise.resolve())
+            .withMethod('destroy', Promise.resolve())
+            .withMethod('toString', componentName);
     }
 
-    // If no predefined builder, create a generic one
-    const builder = new MockBuilder(componentName);
-
-    // Add default methods that most objects might have
-    builder
-        .withMethod('initialize', Promise.resolve())
-        .withMethod('destroy', Promise.resolve())
-        .withMethod('toString', componentName);
-
-    // Add custom methods and properties
-    for (const [methodName, methodConfig] of Object.entries(customMethods)) {
-        if (typeof methodConfig === 'function') {
-            builder.withMethod(methodName, undefined, {implementation: methodConfig});
-        } else if (methodConfig instanceof Error) {
-            builder.withMethod(methodName, undefined, {error: methodConfig});
-        } else {
-            builder.withMethod(methodName, methodConfig);
-        }
-    }
-
-    for (const [propName, propValue] of Object.entries(customProperties)) {
-        builder.withProperty(propName, propValue);
-    }
+    // Add custom methods and properties using helper
+    addCustomMocks(builder, customMethods, customProperties);
 
     return builder.build();
+};
+
+/**
+ * Helper to add custom methods and properties to a mock builder
+ * @param {MockBuilder} builder - Mock builder instance
+ * @param {object} customMethods - Custom methods to add
+ * @param {object} customProperties - Custom properties to add
+ */
+const addCustomMocks = (builder, customMethods, customProperties) => {
+    // Add custom methods
+    Object.entries(customMethods).forEach(([methodName, methodConfig]) => {
+        const options = {};
+        if (typeof methodConfig === 'function') options.implementation = methodConfig;
+        else if (methodConfig instanceof Error) options.error = methodConfig;
+        else options.returnValue = methodConfig;
+
+        builder.withMethod(methodName, options.returnValue, options);
+    });
+
+    // Add custom properties
+    Object.entries(customProperties).forEach(([propName, propValue]) => {
+        builder.withProperty(propName, propValue);
+    });
 };
 
 /**
@@ -396,48 +385,29 @@ export const MockUtils = {
      * @param {string} methodName - Method name to spy on
      * @returns {Function} The spy function
      */
-    spyOn(obj, methodName) {
-        if (typeof obj[methodName] === 'function') {
-            return vi.spyOn(obj, methodName);
-        }
-        // If the method doesn't exist, create a mock method
-        obj[methodName] = vi.fn();
-        return obj[methodName];
-    },
+    spyOn: (obj, methodName) =>
+        (typeof obj[methodName] === 'function' ? vi.spyOn(obj, methodName) : obj[methodName] = vi.fn()),
 
     /**
      * Clears all mocks from an object
      * @param {object} obj - Object with mocks to clear
      */
-    clearMocks(obj) {
-        for (const key of Object.keys(obj)) {
-            if (obj[key] && typeof obj[key] === 'function' && obj[key].mockClear) {
-                obj[key].mockClear();
-            }
-        }
-    },
+    clearMocks: (obj) =>
+        Object.keys(obj).forEach(key =>
+            obj[key]?.mockClear?.()),
 
     /**
      * Resets all mocks on an object
      * @param {object} obj - Object with mocks to reset
      */
-    resetMocks(obj) {
-        for (const key of Object.keys(obj)) {
-            if (obj[key] && typeof obj[key] === 'function' && obj[key].mockReset) {
-                obj[key].mockReset();
-            }
-        }
-    },
+    resetMocks: (obj) =>
+        Object.keys(obj).forEach(key =>
+            obj[key]?.mockReset?.()),
 
     /**
      * Waits for all async operations in mocks to complete
      */
-    waitForAsyncMocks() {
-        return vi.waitUntil(() => {
-            // This ensures all pending async operations in mocks are resolved
-            return true;
-        });
-    },
+    waitForAsyncMocks: () => vi.waitUntil(() => true),
 
     /**
      * Creates a mock with a specific implementation that tracks calls
@@ -445,10 +415,9 @@ export const MockUtils = {
      * @param {string} name - Name for the mock (for debugging)
      * @returns {Function} Mock function with implementation
      */
-    mockWithImplementation(implementation, name = 'mock') {
+    mockWithImplementation: (implementation, name = 'mock') => {
         const mockFn = vi.fn(implementation);
-        mockFn.mockName(name);
-        return mockFn;
+        return mockFn.mockName(name), mockFn;
     },
 
     /**
@@ -457,11 +426,9 @@ export const MockUtils = {
      * @param {number} delay - Delay in ms
      * @returns {Function} Async mock function
      */
-    asyncMock(value, delay = 0) {
-        return vi.fn(() => new Promise(resolve => {
-            setTimeout(() => resolve(value), delay);
-        }));
-    }
+    asyncMock: (value, delay = 0) =>
+        vi.fn(() => new Promise(resolve =>
+            setTimeout(() => resolve(value), delay)))
 };
 
 /**
@@ -472,64 +439,38 @@ export const MOCK_SETS = {
      * A complete system mock set with interconnected components
      */
     completeSystem: (options = {}) => {
-        const {
-            withEventBus = true,
-            withCommandBus = true,
-            withMemory = true,
-            withReasoner = true
-        } = options;
-
+        const {withEventBus = true, withCommandBus = true, withMemory = true, withReasoner = true} = options;
         const mocks = {};
 
-        if (withCommandBus) {
-            mocks.commandBus = MOCK_BUILDERS.commandBus().build();
-        }
+        // Build requested component mocks
+        if (withCommandBus) mocks.commandBus = MOCK_BUILDERS.commandBus().build();
+        if (withEventBus) mocks.eventBus = MOCK_BUILDERS.eventBus().build();
+        if (withMemory) mocks.memory = MOCK_BUILDERS.memory().build();
+        if (withReasoner) mocks.reasoner = MOCK_BUILDERS.reasoner().build();
 
-        if (withEventBus) {
-            mocks.eventBus = MOCK_BUILDERS.eventBus().build();
-        }
-
-        if (withMemory) {
-            mocks.memory = MOCK_BUILDERS.memory().build();
-        }
-
-        if (withReasoner) {
-            mocks.reasoner = MOCK_BUILDERS.reasoner().build();
-        }
-
-        // Add DI container to tie them together
+        // Add DI container and configure it
         mocks.container = MOCK_BUILDERS.diContainer().build();
-
-        // Configure the container to return the correct mocks
-        if (mocks.commandBus) {
-            vi.mocked(mocks.container.get).mockImplementation(key => {
-                if (key === 'commandBus') return mocks.commandBus;
-            });
-        }
-
-        if (mocks.eventBus) {
-            vi.mocked(mocks.container.get).mockImplementation(key => {
-                if (key === 'eventBus') return mocks.eventBus;
-                // Chain with previous mock implementation
-                if (key !== 'commandBus') {
-                    return mocks.eventBus;
-                }
-            });
-        }
-
-        if (mocks.memory) {
-            vi.mocked(mocks.container.get).mockImplementation(key => {
-                if (key === 'memory') return mocks.memory;
-            });
-        }
-
-        if (mocks.reasoner) {
-            vi.mocked(mocks.container.get).mockImplementation(key => {
-                if (key === 'reasoner') return mocks.reasoner;
-            });
-        }
+        configureContainerMocks(mocks);
 
         return mocks;
+    },
+
+    /**
+     * Helper to configure container mock with component mappings
+     * @param {object} mocks - Mock objects to configure
+     */
+    configureContainerMocks: (mocks) => {
+        const container = mocks.container;
+        const componentMappings = {
+            commandBus: mocks.commandBus,
+            eventBus: mocks.eventBus,
+            memory: mocks.memory,
+            reasoner: mocks.reasoner
+        };
+
+        vi.mocked(container.get).mockImplementation(key =>
+            componentMappings[key] || null
+        );
     },
 
     /**
@@ -576,19 +517,10 @@ export const MOCK_SETS = {
  * @param {Function} implementation - Custom implementation function
  * @returns {Function} Mock function
  */
-export const createMockFunction = (returnValue = undefined, error = null, implementation = null) => {
-    if (error) {
-        return vi.fn(() => {
-            throw error;
-        });
-    }
-
-    if (implementation) {
-        return vi.fn(implementation);
-    }
-
-    return vi.fn(() => returnValue);
-};
+export const createMockFunction = (returnValue = undefined, error = null, implementation = null) =>
+    error ? vi.fn(() => { throw error; }) :
+    implementation ? vi.fn(implementation) :
+    vi.fn(() => returnValue);
 
 /**
  * Creates a mock object with predefined properties and methods
@@ -599,20 +531,11 @@ export const createMockFunction = (returnValue = undefined, error = null, implem
 export const createMockObject = (props = {}, methods = {}) => {
     const mock = {};
 
-    // Add properties
-    Object.keys(props).forEach(key => {
-        Object.defineProperty(mock, key, {
-            value: props[key],
-            writable: true,
-            enumerable: true,
-            configurable: true
-        });
-    });
+    // Add properties and methods using terse syntax
+    Object.entries(props).forEach(([key, value]) =>
+        Object.defineProperty(mock, key, {value, writable: true, enumerable: true, configurable: true}));
 
-    // Add methods
-    Object.keys(methods).forEach(key => {
-        mock[key] = methods[key];
-    });
+    Object.entries(methods).forEach(([key, method]) => mock[key] = method);
 
     return mock;
 };

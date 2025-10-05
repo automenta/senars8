@@ -216,129 +216,226 @@ export const createContextConfig = (configName, overrides = {}) => {
     return config;
 };
 
-/**
- * Creates a test suite configuration
- * @param {string} suiteType - Type of test suite to create
- * @param {Function} testExecutor - Function to execute the actual tests
- * @returns {object} Configured test suite
- */
-export const createConfiguredTestSuite = (suiteType, testExecutor) => {
-    const config = TEST_SUITE_CONFIGS[suiteType];
-    if (!config) {
-        throw new Error(`Unknown test suite type: ${suiteType}`);
-    }
 
-    return {
-        type: suiteType,
-        config,
-        execute: testExecutor
-    };
-};
+// ============================================================================
+// CONFIG-DRIVEN TESTING - Consolidated from config-driven-tests.js
+// ============================================================================
 
 /**
- * Utility to run tests with different configurations
- * @param {Array} configs - Array of configuration objects
- * @param {Function} testFn - Test function to execute with each config
+ * Test scenario definition structure
  */
-export const runWithConfigurations = async (configs, testFn) => {
-    for (const [index, config] of configs.entries()) {
-        describe(`Configuration ${index + 1}: ${config.name || 'unnamed'}`, () => {
-            test(`should pass with ${config.name || 'configuration ' + (index + 1)}`, async () => {
-                await testFn(config, index);
-            });
-        });
-    }
-};
-
-/**
- * Test configuration documentation and validation
- */
-export class TestConfigDocumentation {
-    constructor() {
-        this.options = new Map();
+export class TestScenario {
+    constructor(name, config = {}) {
+        this.name = name;
+        this.config = config;
+        this.given = [];
+        this.when = null;
+        this.then = [];
+        this.cleanup = [];
     }
 
     /**
-     * Adds a configuration option to the documentation
-     * @param {string} key - Configuration key
-     * @param {string} type - Expected type (string, number, boolean, object, etc.)
-     * @param {*} defaultValue - Default value
-     * @param {string} description - Description of the option
-     * @param {Array} allowedValues - Optional list of allowed values for validation
-     * @returns {TestConfigDocumentation} Current instance for chaining
+     * Sets the 'given' preconditions for the test
+     * @param {Function|Array} conditions - Precondition setup function(s)
+     * @returns {TestScenario} Current instance for chaining
      */
-    addOption(key, type, defaultValue, description, allowedValues = null) {
-        this.options.set(key, {
-            key,
-            type,
-            defaultValue,
-            description,
-            allowedValues,
-            required: defaultValue === undefined
-        });
+    givenConditions(conditions) {
+        this.given = Array.isArray(conditions) ? conditions : [conditions];
         return this;
     }
 
     /**
-     * Validates a configuration object against documented options
-     * @param {object} config - Configuration object to validate
-     * @returns {Array} Array of validation errors
+     * Sets the 'when' action to be tested
+     * @param {Function} action - Action to execute
+     * @returns {TestScenario} Current instance for chaining
      */
-    validateConfig(config) {
-        const errors = [];
-
-        for (const [key, value] of Object.entries(config)) {
-            const option = this.options.get(key);
-            if (!option) {
-                errors.push(`Unknown configuration option: ${key}`);
-                continue;
-            }
-
-            // Validate type
-            if (typeof value !== option.type && option.type !== 'any') {
-                errors.push(`Invalid type for ${key}: expected ${option.type}, got ${typeof value}`);
-            }
-
-            // Validate allowed values if specified
-            if (option.allowedValues && !option.allowedValues.includes(value)) {
-                errors.push(`Invalid value for ${key}: ${value}. Allowed values: ${option.allowedValues.join(', ')}`);
-            }
-        }
-
-        // Check for required options
-        for (const [key, option] of this.options.entries()) {
-            if (option.required && !(key in config)) {
-                errors.push(`Missing required configuration option: ${key}`);
-            }
-        }
-
-        return errors;
+    whenAction(action) {
+        this.when = action;
+        return this;
     }
 
     /**
-     * Generates documentation for all configuration options
+     * Sets the 'then' expectations to be validated
+     * @param {Function|Array} expectations - Expectation validation function(s)
+     * @returns {TestScenario} Current instance for chaining
      */
-    generateDocumentation() {
-        let doc = `# Test Configuration Options\n\n`;
-        doc += `This document describes all available test configuration options:\n\n`;
+    thenExpectations(expectations) {
+        this.then = Array.isArray(expectations) ? expectations : [expectations];
+        return this;
+    }
 
-        for (const [key, option] of this.options.entries()) {
-            doc += `## \`${key}\`\n\n`;
-            doc += `- **Type:** ${option.type}\n`;
-            doc += `- **Required:** ${option.required ? 'Yes' : 'No'}\n`;
-            doc += `- **Default:** ${option.defaultValue === undefined ? 'N/A' : JSON.stringify(option.defaultValue)}\n`;
-            doc += `- **Description:** ${option.description}\n`;
+    /**
+     * Sets cleanup functions to run after the test
+     * @param {Function|Array} cleanupFunctions - Cleanup function(s)
+     * @returns {TestScenario} Current instance for chaining
+     */
+    withCleanup(cleanupFunctions) {
+        this.cleanup = Array.isArray(cleanupFunctions) ? cleanupFunctions : [cleanupFunctions];
+        return this;
+    }
 
-            if (option.allowedValues) {
-                doc += `- **Allowed Values:** ${option.allowedValues.map(v => `\`${v}\``).join(', ')}\n`;
-            }
-
-            doc += `\n`;
+    /**
+     * Executes the test scenario
+     * @param {object} context - Test context object
+     */
+    async execute(context = {}) {
+        // Setup preconditions
+        for (const condition of this.given) {
+            await condition(context);
         }
 
-        return doc;
+        try {
+            // Execute the action
+            const result = await this.when(context);
+            context.result = result;
+
+            // Validate expectations
+            for (const expectation of this.then) {
+                await expectation(context);
+            }
+        } finally {
+            // Perform cleanup
+            for (const cleanup of this.cleanup) {
+                await cleanup(context);
+            }
+        }
     }
 }
 
-// Export the documentation generator
-export const TestConfigDoc = TestConfigDocumentation;
+/**
+ * Creates a parameterized test suite for testing the same logic with different inputs
+ * @param {string} suiteName - Name of the test suite
+ * @param {Array} testCases - Array of test case objects
+ * @param {Function} testFunction - Function to execute for each test case
+ * @param {object} config - Test configuration
+ */
+export const createParameterizedTestSuite = (suiteName, testCases, testFunction, config = {}) => {
+    describe(suiteName, () => {
+        testCases.forEach((testCase, index) => {
+            const testName = testCase.name || `test case ${index + 1}`;
+            test(testName, async () => {
+                try {
+                    await testFunction(testCase, config);
+                } catch (error) {
+                    error.message = `Failed in test case "${testName}": ${error.message}`;
+                    throw error;
+                }
+            });
+        });
+    });
+};
+
+/**
+ * Data-driven test configuration
+ */
+export const DATA_DRIVEN_TESTS = {
+    TASK_PROCESSING: [
+        {
+            name: 'basic task processing',
+            input: {sentence: '(cat --> animal)', punctuation: '.', truth: [0.8, 0.9]},
+            expected: {success: true, resultType: 'processed'}
+        },
+        {
+            name: 'complex inheritance task',
+            input: {sentence: '((cat --> animal) && (animal --> living))', punctuation: '.', truth: [0.7, 0.85]},
+            expected: {success: true, resultType: 'inference'}
+        },
+        {
+            name: 'invalid task format',
+            input: {sentence: 'invalid format', punctuation: '?', truth: [1.0, 0.0]},
+            expected: {success: false, errorType: 'ValidationError'}
+        }
+    ],
+
+    REASONING_INFERENCES: [
+        {
+            name: 'deduction',
+            premises: [
+                {sentence: '(bird --> animal)', truth: [0.9, 0.8]},
+                {sentence: '(animal --> living_thing)', truth: [0.95, 0.85]}
+            ],
+            expected: {conclusion: '(bird --> living_thing)', truth: [0.85, 0.72]}
+        },
+        {
+            name: 'induction',
+            premises: [
+                {sentence: '(robin --> bird)', truth: [1.0, 0.9]},
+                {sentence: '(robin --> flyer)', truth: [0.8, 0.85]}
+            ],
+            expected: {conclusion: '(bird --> flyer)', truth: [0.8, 0.68]}
+        },
+        {
+            name: 'abduction',
+            premises: [
+                {sentence: '(eagle --> bird)', truth: [1.0, 0.9]},
+                {sentence: '(eagle --> flyer)', truth: [0.9, 0.85]}
+            ],
+            expected: {conclusion: '(bird --> flyer)', truth: [0.9, 0.77]}
+        }
+    ],
+
+    CONFIGURATION_VALIDATION: [
+        {
+            name: 'valid configuration',
+            config: {reasoner: {strategy: 'BruteForce'}, memory: {capacity: 1000}},
+            expected: {valid: true}
+        },
+        {
+            name: 'invalid strategy config',
+            config: {reasoner: {strategy: 'invalid_strategy'}},
+            expected: {valid: false, error: /invalid.*strategy/i}
+        },
+        {
+            name: 'missing required config',
+            config: {reasoner: {}},
+            expected: {valid: false, error: /required.*config/i}
+        }
+    ]
+};
+
+/**
+ * Creates test data based on scenario configuration
+ * @param {string} scenarioType - Type of scenario to create
+ * @param {object} params - Parameters for the scenario
+ * @returns {object} Test data for the scenario
+ */
+export const createScenarioData = (scenarioType, params = {}) => {
+    switch (scenarioType) {
+        case 'TASK_CREATION':
+            return {
+                taskDef: {
+                    sentence: params.sentence || '(test --> term)',
+                    punctuation: params.punctuation || '.',
+                    truth: params.truth || [0.9, 0.8]
+                }
+            };
+
+        case 'REASONING_CYCLE':
+            return {
+                inputTasks: params.inputTasks || [
+                    {sentence: '(A --> B)', truth: [0.8, 0.9]},
+                    {sentence: '(B --> C)', truth: [0.85, 0.88]}
+                ],
+                expectedOutput: params.expectedOutput || {sentence: '(A --> C)', truth: [0.68, 0.70]},
+                config: params.config || {strategy: 'BruteForce'}
+            };
+
+        case 'MEMORY_OPERATION':
+            return {
+                initialMemory: params.initialMemory || [],
+                operations: params.operations || [],
+                expectedState: params.expectedState || {}
+            };
+
+        case 'ERROR_HANDLING':
+            return {
+                inputs: params.inputs || [],
+                expectedErrors: params.expectedErrors || [],
+                recoverySteps: params.recoverySteps || []
+            };
+
+        default:
+            return params;
+    }
+};
+

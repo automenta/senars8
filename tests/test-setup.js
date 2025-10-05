@@ -16,15 +16,6 @@ import {createTask} from './test-data-factory.js';
 // Import mock creation functions from mock-builders.js
 import {createMockCommandBus, createMockEventBus} from './mock-builders.js';
 
-/**
- * @deprecated Use createMockCommandBus from mock-builders.js instead
- */
-export {createMockCommandBus};
-
-/**
- * @deprecated Use createMockEventBus from mock-builders.js instead
- */
-export {createMockEventBus};
 
 /**
  * Creates a complete system with mock buses for testing.
