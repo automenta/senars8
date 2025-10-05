@@ -1,7 +1,7 @@
 /**
- * High-quality Reasoner class that coordinates symbolic, temporal, and modular reasoning
- * This refactored version improves maintainability and prepares for modular reasoning strategies
- */
+* High-quality Reasoner class that coordinates symbolic, temporal, and modular reasoning
+* This refactored version improves maintainability and prepares for modular reasoning strategies
+*/
 
 import rules from './rules/index.js';
 import {debug, error as logError, info, warn} from '../utils/logger.js';
@@ -13,178 +13,77 @@ import {SystemContext} from './SystemContext.js';
 const errorHandler = createUnifiedErrorHandler('Reasoner');
 
 class Reasoner {
-    /**
-     * @param {ConfigManager} configManager - System configuration manager
-     * @param {TemporalReasoner} temporalReasoner - Temporal reasoning component
-     * @param {StrategyRegistry} strategyRegistry - Registry for various strategy types
-     * @param {CommandBus} commandBus - System command bus
-     */
     constructor(configManager, temporalReasoner, strategyRegistry, commandBus) {
         this.config = createConfigAccessor(configManager, 'reasoner');
         this.temporalReasoner = temporalReasoner;
         this.strategyRegistry = strategyRegistry;
         this.commandBus = commandBus;
         this.rules = rules;
-
-        // Initialize combination sampling strategy (for selecting task combinations to apply rules to)
-        this.combinationStrategy = this._initializeCombinationStrategy();
-
-        // Initialize modular reasoning context
         this.systemContext = null;
-
-        // Initialize internal state
-        this._processedCombinations = new Map(); // Changed from Set to Map for better performance tracking
+        this._processedCombinations = new Map();
         this._initiationTime = Date.now();
 
-        // Register system command handlers
+        this.combinationStrategy = this._initializeCombinationStrategy();
         this._registerCommandHandlers();
 
         info(`Reasoner initialized with combination strategy: ${this.combinationStrategy.constructor.name}`);
     }
 
-    /**
-     * Initializes the combination selection strategy (for choosing task combinations to apply reasoning rules)
-     * @private
-     * @returns {object} The initialized combination strategy
-     */
     _initializeCombinationStrategy() {
         const strategyName = this.config.getString('strategy', 'BagSamplingStrategy');
         try {
             return this.strategyRegistry.getCombinationStrategy(strategyName);
         } catch (error) {
             warn(`Falling back to default combination strategy due to error: ${error.message}`);
-            // Return a default strategy if the configured one fails
             return this.strategyRegistry.getCombinationStrategy('BagSampling');
         }
     }
 
-    /**
-     * Sets up the system context for modular reasoning strategies
-     * @param {SystemContext} systemContext - The system context to use
-     */
     setSystemContext(systemContext) {
         this.systemContext = systemContext;
     }
 
-    /**
-     * Registers command handlers for system events
-     * @private
-     */
     _registerCommandHandlers() {
-        this.commandBus.handle(
-            SystemCommands.REASONER_PROCESS_TASK,
-            async (payload) => this.performInference(payload.focusSet, payload.options)
-        );
+        this.commandBus.handle(SystemCommands.REASONER_PROCESS_TASK, async (payload) => this.performInference(payload.focusSet, payload.options));
     }
 
-    /**
-     * Generates a unique key for a combination of tasks for a specific rule
-     * @private
-     * @param {string} ruleName - Name of the reasoning rule
-     * @param {Task[]} tasks - Array of tasks in the combination
-     * @returns {string} Unique combination key
-     */
     _getCombinationKey(ruleName, tasks) {
-        // For small combinations (arity <= 2), use simple concatenation to avoid sort overhead
-        // For larger combinations, sort task IDs to ensure consistent keys regardless of task order
-        let key;
-        if (tasks.length <= 2) {
-            // For unary and binary rules, just use the IDs in order - there are only few possible
-            // orderings, so we'll have at most a few cache misses due to different orderings
-            key = tasks.map(t => t.id).join(',');
-        } else {
-            // For larger combinations, sort to ensure consistency
-            const sortedTaskIds = tasks.map(t => t.id).sort();
-            key = sortedTaskIds.join(',');
-        }
-        return `${ruleName}:${key}`;
+        const taskIds = tasks.length <= 2 ? tasks.map(t => t.id) : tasks.map(t => t.id).sort();
+        return `${ruleName}:${taskIds.join(',')}`;
     }
 
-    /**
-     * Performs comprehensive inference using symbolic, temporal, and modular reasoning
-     * @param {Task[]} focusSet - Set of tasks to reason about
-     * @param {object} options - Inference options
-     * @param {number} [options.maxDerivedTasks=Infinity] - Maximum number of tasks to derive
-     * @param {boolean} [options.enableModularReasoning=true] - Whether to use modular reasoning strategies
-     * @param {boolean} [options.enableSymbolicReasoning=true] - Whether to use symbolic reasoning
-     * @param {boolean} [options.enableTemporalReasoning=true] - Whether to use temporal reasoning
-     * @returns {Promise<Task[]>} Array of derived tasks
-     */
     async performInference(focusSet, options = {}) {
-        if (!Array.isArray(focusSet)) {
-            return errorHandler.handle(
-                new Error(`Focus set must be an array, received: ${typeof focusSet}`),
-                'performInference',
-                []
-            );
-        }
+        return !Array.isArray(focusSet)
+            ? errorHandler.handle(new Error(`Focus set must be an array, received: ${typeof focusSet}`), 'performInference', [])
+            : focusSet.length === 0
+            ? []
+            : this.#executeInference(focusSet, options);
+    }
 
-        if (focusSet.length === 0) {
-            debug('Empty focus set, returning empty result');
-            return [];
-        }
-
-        const {
-            maxDerivedTasks = Infinity,
-            enableModularReasoning = true,
-            enableSymbolicReasoning = true,
-            enableTemporalReasoning = true
-        } = options;
+    async #executeInference(focusSet, options) {
+        const {maxDerivedTasks = Infinity, enableModularReasoning = true, enableSymbolicReasoning = true, enableTemporalReasoning = true} = options;
 
         debug(`Performing inference on ${focusSet.length} tasks with max ${maxDerivedTasks} derived tasks`);
 
         let allDerivedTasks = [];
 
-        // Apply symbolic reasoning if enabled
-        if (enableSymbolicReasoning) {
-            const symbolicTasks = await this.#performSymbolicInference(focusSet, maxDerivedTasks);
-            allDerivedTasks.push(...symbolicTasks);
-        }
+        enableSymbolicReasoning && (allDerivedTasks.push(...await this.#performSymbolicInference(focusSet, maxDerivedTasks)));
+        enableTemporalReasoning && allDerivedTasks.length < maxDerivedTasks && (allDerivedTasks.push(...this.#performTemporalInference(focusSet, maxDerivedTasks - allDerivedTasks.length)));
+        enableModularReasoning && allDerivedTasks.length < maxDerivedTasks && this.systemContext && (allDerivedTasks.push(...await this.#performModularInference(focusSet, maxDerivedTasks - allDerivedTasks.length)));
 
-        // Apply temporal reasoning if enabled and there's capacity
-        if (enableTemporalReasoning && allDerivedTasks.length < maxDerivedTasks) {
-            const remainingCapacity = maxDerivedTasks - allDerivedTasks.length;
-            const temporalTasks = remainingCapacity > 0
-                ? this.#performTemporalInference(focusSet, remainingCapacity)
-                : [];
-            allDerivedTasks.push(...temporalTasks);
-        }
-
-        // Apply modular reasoning if enabled and there's capacity
-        if (enableModularReasoning && allDerivedTasks.length < maxDerivedTasks && this.systemContext) {
-            const remainingCapacity = maxDerivedTasks - allDerivedTasks.length;
-            const modularTasks = await this.#performModularInference(focusSet, remainingCapacity);
-            allDerivedTasks.push(...modularTasks);
-        }
-
-        // Limit to the maximum derived tasks and return
         const finalTasks = allDerivedTasks.slice(0, maxDerivedTasks);
         debug(`Total inference produced ${finalTasks.length} derived tasks`);
 
         return finalTasks;
     }
 
-    /**
-     * Performs symbolic inference using the built-in reasoning rules
-     * @private
-     * @param {Task[]} focusSet - Set of tasks to reason about
-     * @param {number} maxDerived - Maximum number of tasks to derive
-     * @returns {Promise<Task[]>} Array of derived tasks from symbolic reasoning
-     */
     async #performSymbolicInference(focusSet, maxDerived) {
         const derivedTasks = [];
-
-        // Only clear the processed combinations cache if it has grown too large
-        // to prevent memory bloat and maintain performance
-        if (this._processedCombinations.size > 1000) {
-            this._processedCombinations.clear();
-        }
+        this._processedCombinations.size > 1000 && this._processedCombinations.clear();
 
         debug(`Starting symbolic inference with ${this.rules.length} rules on ${focusSet.length} tasks`);
 
-        // Track performance metrics
-        let ruleApplications = 0;
-        let successfulApplications = 0;
+        let [ruleApplications, successfulApplications] = [0, 0];
 
         for (const rule of this.rules) {
             if (derivedTasks.length >= maxDerived) {
@@ -197,73 +96,37 @@ class Reasoner {
                 continue;
             }
 
-            // Get combinations of tasks for this rule
-            const combinations = this.combinationStrategy.selectCombinations(focusSet, rule.arity);
-
-            for (const tasks of combinations) {
-                if (derivedTasks.length >= maxDerived) {
-                    break; // Check again after getting new combinations
-                }
+            for (const tasks of this.combinationStrategy.selectCombinations(focusSet, rule.arity)) {
+                if (derivedTasks.length >= maxDerived) break;
 
                 ruleApplications++;
                 const derived = await this._applyRule(rule, tasks);
-
-                if (derived) {
-                    derivedTasks.push(derived);
-                    successfulApplications++;
-
-                    // Track this combination to avoid reprocessing
-                    const combinationKey = this._getCombinationKey(rule.name, tasks);
-                    this._processedCombinations.set(combinationKey, {
-                        timestamp: Date.now(),
-                        ruleName: rule.name
-                    });
-                }
+                derived && (derivedTasks.push(derived), successfulApplications++, this._trackCombination(rule.name, tasks));
             }
         }
 
         const successRate = ruleApplications > 0 ? successfulApplications / ruleApplications : 0;
-        debug(
-            `Symbolic inference: ${ruleApplications} applications, ` +
-            `${successfulApplications} successes, ${derivedTasks.length} derived tasks, ` +
-            `success rate: ${(successRate * 100).toFixed(2)}%`
-        );
+        debug(`Symbolic inference: ${ruleApplications} applications, ${successfulApplications} successes, ${derivedTasks.length} derived tasks, success rate: ${(successRate * 100).toFixed(2)}%`);
 
         return derivedTasks;
     }
 
-    /**
-     * Performs temporal inference using the TemporalReasoner
-     * @private
-     * @param {Task[]} focusSet - Set of tasks to reason about
-     * @param {number} maxTemporalTasks - Maximum number of temporal tasks to derive
-     * @returns {Task[]} Array of derived tasks from temporal reasoning
-     */
+    _trackCombination(ruleName, tasks) {
+        this._processedCombinations.set(this._getCombinationKey(ruleName, tasks), {timestamp: Date.now(), ruleName});
+    }
+
     #performTemporalInference(focusSet, maxTemporalTasks) {
         return errorHandler.executeSync(() => {
             debug(`Starting temporal inference on ${focusSet.length} tasks with max ${maxTemporalTasks} derived tasks`);
 
             const temporalTasks = this.temporalReasoner.infer(focusSet);
+            const limitedTasks = Array.isArray(temporalTasks) ? temporalTasks.slice(0, maxTemporalTasks) : [];
 
-            if (Array.isArray(temporalTasks)) {
-                // Limit to the maximum number of temporal tasks
-                const limitedTemporalTasks = temporalTasks.slice(0, maxTemporalTasks);
-                debug(`Temporal inference produced ${limitedTemporalTasks.length} derived tasks`);
-                return limitedTemporalTasks;
-            }
-
-            debug('Temporal inference returned invalid result');
-            return [];
+            debug(`Temporal inference produced ${limitedTasks.length} derived tasks`);
+            return limitedTasks;
         }, 'performTemporalInference', []);
     }
 
-    /**
-     * Performs modular reasoning using registered reasoning strategies
-     * @private
-     * @param {Task[]} focusSet - Set of tasks to reason about
-     * @param {number} maxModularTasks - Maximum number of modular tasks to derive
-     * @returns {Promise<Task[]>} Array of derived tasks from modular reasoning
-     */
     async #performModularInference(focusSet, maxModularTasks) {
         if (!this.systemContext) {
             debug('System context not available, skipping modular reasoning');
@@ -274,7 +137,7 @@ class Reasoner {
             debug(`Starting modular inference on ${focusSet.length} tasks with max ${maxModularTasks} derived tasks`);
 
             const derivedTasks = [];
-            const allReasoningStrategies = this.strategyRegistry.getAllReasoningStrategies();
+            const strategies = this.strategyRegistry.getAllReasoningStrategies();
 
             for (const task of focusSet) {
                 if (derivedTasks.length >= maxModularTasks) {
@@ -282,30 +145,21 @@ class Reasoner {
                     break;
                 }
 
-                // Find strategies applicable to this task
-                const applicableStrategies = this.strategyRegistry.findApplicableStrategies(task, this.systemContext);
-
-                for (const {name: strategyName, instance: strategy} of applicableStrategies) {
-                    if (derivedTasks.length >= maxModularTasks) {
-                        break; // Check again after finding applicable strategies
-                    }
+                for (const {name: strategyName, instance: strategy} of this.strategyRegistry.findApplicableStrategies(task, this.systemContext)) {
+                    if (derivedTasks.length >= maxModularTasks) break;
 
                     try {
                         const validation = strategy.validate(task);
-                        if (!validation.isValid) {
-                            debug(`Strategy "${strategyName}" validation failed for task:`, validation.errors);
-                            continue;
-                        }
-
-                        const result = await strategy.execute(task, this.systemContext);
-
-                        if (result.success && Array.isArray(result.inferredTasks)) {
-                            for (const inferredTask of result.inferredTasks) {
-                                if (derivedTasks.length >= maxModularTasks) {
-                                    break;
+                        if (validation.isValid) {
+                            const result = await strategy.execute(task, this.systemContext);
+                            if (result.success && Array.isArray(result.inferredTasks)) {
+                                for (const inferredTask of result.inferredTasks) {
+                                    if (derivedTasks.length >= maxModularTasks) break;
+                                    derivedTasks.push(inferredTask);
                                 }
-                                derivedTasks.push(inferredTask);
                             }
+                        } else {
+                            debug(`Strategy "${strategyName}" validation failed for task:`, validation.errors);
                         }
                     } catch (error) {
                         logError(`Error executing reasoning strategy "${strategyName}":`, error);
@@ -313,92 +167,48 @@ class Reasoner {
                 }
             }
 
-            debug(`Modular inference produced ${derivedTasks.length} derived tasks using ${allReasoningStrategies.length} strategies`);
+            debug(`Modular inference produced ${derivedTasks.length} derived tasks using ${strategies.length} strategies`);
             return derivedTasks;
         }, 'performModularInference', []);
     }
 
-    /**
-     * Checks if a rule is applicable to a set of tasks
-     * @private
-     * @param {object} rule - The reasoning rule to check
-     * @param {Task[]} tasks - Array of tasks to apply the rule to
-     * @returns {boolean} Whether the rule is applicable
-     */
     _isRuleApplicable(rule, tasks) {
-        // Validate task array structure
         if (!Array.isArray(tasks) || tasks.length !== rule.arity) {
             debug(`Skipping invalid combination for rule ${rule.name} - expected ${rule.arity} tasks, got ${tasks?.length}`);
             return false;
         }
 
-        // Check if this combination has already been processed in this inference cycle
         const combinationKey = this._getCombinationKey(rule.name, tasks);
         if (this._processedCombinations.has(combinationKey)) {
             debug(`Skipping already processed combination for rule ${rule.name}`);
             return false;
         }
 
-        // Validate operands if specified in the rule
-        const operandsValid = this._areOperandsValid(rule, tasks);
-        if (!operandsValid) {
-            debug(`Operands validation failed for rule ${rule.name}`);
-            return false;
-        }
-
-        // Check the rule's specific condition
-        let conditionResult = false;
-        try {
-            conditionResult = rule.condition(...tasks);
-        } catch (error) {
-            logError(`Error checking condition for rule ${rule.name}:`, error);
-            return false;
-        }
-
-        if (!conditionResult) {
-            debug(`Rule condition not met for rule ${rule.name}`);
-            return false;
-        }
-
-        return true;
+        return this._areOperandsValid(rule, tasks) && this._checkRuleCondition(rule, tasks);
     }
 
-    /**
-     * Applies a reasoning rule to a set of tasks
-     * @private
-     * @param {object} rule - The reasoning rule to apply
-     * @param {Task[]} tasks - Array of tasks to apply the rule to
-     * @returns {Promise<Task|null>} The derived task or null if the rule could not be applied
-     */
     async _applyRule(rule, tasks) {
-        if (!this._isRuleApplicable(rule, tasks)) {
-            return null;
-        }
+        if (!this._isRuleApplicable(rule, tasks)) return null;
 
         try {
-            // Apply the rule action
             const result = await Promise.resolve(rule.action(...tasks));
-
-            if (result) {
-                debug(`Rule ${rule.name} successfully applied`);
-                return result;
-            } else {
-                debug(`Rule ${rule.name} applied but returned no result`);
-                return null;
-            }
+            result ? debug(`Rule ${rule.name} successfully applied`) : debug(`Rule ${rule.name} applied but returned no result`);
+            return result;
         } catch (error) {
             logError(`Error applying rule ${rule.name}:`, error);
             return null;
         }
     }
 
-    /**
-     * Validates that the operands for a rule are valid
-     * @private
-     * @param {object} rule - The reasoning rule
-     * @param {Task[]} tasks - Array of tasks to validate
-     * @returns {boolean} Whether all operands are valid
-     */
+    _checkRuleCondition(rule, tasks) {
+        try {
+            return rule.condition(...tasks);
+        } catch (error) {
+            logError(`Error checking condition for rule ${rule.name}:`, error);
+            return false;
+        }
+    }
+
     _areOperandsValid(rule, tasks) {
         if (!rule.operands) return true;
 
@@ -409,11 +219,7 @@ class Reasoner {
             }
 
             try {
-                const isValid = validator(tasks[i]);
-                if (!isValid) {
-                    debug(`Task at index ${i} failed validation for rule ${rule.name}`);
-                }
-                return isValid;
+                return validator(tasks[i]) || (debug(`Task at index ${i} failed validation for rule ${rule.name}`), false);
             } catch (error) {
                 logError(`Error validating operand at index ${i} for rule ${rule.name}:`, error);
                 return false;
@@ -421,49 +227,29 @@ class Reasoner {
         });
     }
 
-    /**
-     * Gets the names of all available reasoning rules
-     * @returns {string[]} Array of rule names
-     */
     getRuleNames() {
         return this.rules.map(rule => rule.name);
     }
 
-    /**
-     * Gets a specific reasoning rule by name
-     * @param {string} name - Name of the rule to retrieve
-     * @returns {object|null} The rule object or null if not found
-     */
     getRule(name) {
         return this.rules.find(rule => rule.name === name) || null;
     }
 
-    /**
-     * Gets statistics about the reasoning rules
-     * @returns {object} Statistics about the rules
-     */
     getRuleStatistics() {
-        const stats = this.rules.reduce((acc, rule) => {
+        const rulesByArity = this.rules.reduce((acc, rule) => {
             const arity = rule.arity || 0;
-            if (!acc[arity]) {
-                acc[arity] = [];
-            }
-            acc[arity].push(rule.name);
+            (acc[arity] ||= []).push(rule.name);
             return acc;
         }, {});
 
         return {
             totalRules: this.rules.length,
             ruleNames: this.getRuleNames(),
-            rulesByArity: stats,
+            rulesByArity,
             uptime: Date.now() - this._initiationTime
         };
     }
 
-    /**
-     * Gets statistics about reasoning performance
-     * @returns {object} Performance statistics
-     */
     getPerformanceStats() {
         return {
             processedCombinationsCount: this._processedCombinations.size,
