@@ -9,38 +9,13 @@ const DEFAULT_CONFIG = {
     }
 };
 
-// Simple EventEmitter implementation
-class EventEmitter {
-    constructor() {
-        this._events = {};
-    }
-
-    on(event, callback) {
-        if (!this._events[event]) {
-            this._events[event] = [];
-        }
-        this._events[event].push(callback);
-    }
-
-    off(event, callback) {
-        if (this._events[event]) {
-            this._events[event] = this._events[event].filter(cb => cb !== callback);
-        }
-    }
-
-    emit(event, data) {
-        if (this._events[event]) {
-            this._events[event].forEach(callback => callback(data));
-        }
-    }
-}
-
 /**
  * A high-level service for the Web UI with Web UI-specific features like collaborative editing (Y.js).
  */
-class AgentService extends EventEmitter {
+class AgentService {
     constructor(url) {
-        super();
+        // Use EventEmitter-like functionality with a simple implementation
+        this._events = {};
         
         this.url = url;
         this.logger = logger.create('AgentServiceUI');
