@@ -4,6 +4,8 @@
  */
 
 import {expect, vi} from 'vitest';
+import {SYSTEM_CONSTANTS} from '../core/config/constants.js';
+import {TEST_CONSTANTS} from './test-constants.js';
 import {env} from '@xenova/transformers';
 import {createTask} from './test-data-factory.js';
 import {SystemFactory} from './shared/test-utils.js';
@@ -171,7 +173,7 @@ export const createMemoryContext = async (options = {}) => {
         addMultipleTasks: async (tasksData) => {
             const tasks = [];
             // Process in batches for performance
-            const batchSize = 10;
+            const batchSize = TEST_CONSTANTS.BATCH_PRESETS.DEFAULT_SIZE;
             for (let i = 0; i < tasksData.length; i += batchSize) {
                 const batch = tasksData.slice(i, i + batchSize);
                 const batchTasks = await Promise.all(
@@ -212,7 +214,7 @@ export const createContextFromConfig = async (configName, overrides = {}) => {
 
 // Common helpers factory
 export const getCommonHelpers = () => ({
-    createTaskDef: (sentence, punctuation = '.', truth = [1.0, 0.9], options = {}) => ({
+    createTaskDef: (sentence, punctuation = '.', truth = TEST_CONSTANTS.TRUTH_VALUE_PRESETS.DEFAULT, options = {}) => ({
         sentence, punctuation, truth, ...options
     })
 });

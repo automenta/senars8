@@ -1,4 +1,6 @@
 import {expect, vi} from 'vitest';
+import {SYSTEM_CONSTANTS} from '../../core/config/constants.js';
+import {TEST_CONSTANTS} from '../test-constants.js';
 
 const globalCache = new Map();
 const accessOrder = [];
@@ -271,11 +273,11 @@ ConfigRegistry.registerTemplate = (name, template, validator = null) => {
 
 // Register core configuration templates
 ConfigRegistry.registerTemplate('TASK', {
-    punctuation: '.', truth: [1.0, 0.9], priority: 0
+    punctuation: '.', truth: TEST_CONSTANTS.TRUTH_VALUE_PRESETS.DEFAULT, priority: SYSTEM_CONSTANTS.DEFAULT_PRIORITIES.DEFAULT
 });
 
 ConfigRegistry.registerTemplate('TERM', {
-    complexity: 1, embedding: [0.1, 0.2, 0.3]
+    complexity: SYSTEM_CONSTANTS.DEFAULT_COMPLEXITY, embedding: SYSTEM_CONSTANTS.DEFAULT_EMBEDDING
 });
 
 ConfigRegistry.registerTemplate('SYSTEM', {

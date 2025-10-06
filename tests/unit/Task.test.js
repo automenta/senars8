@@ -1,6 +1,7 @@
 import {expect, vi} from 'vitest';
 import Task from '../../core/core/Task.js';
 import {expectTruthValue} from '../shared/test-utils.js';
+import {SYSTEM_CONSTANTS} from '../../core/config/constants.js';
 
 vi.mock('../../core/core/Term.js', () => ({
     default: vi.fn().mockImplementation(key => ({
@@ -22,8 +23,8 @@ describe('Task', () => {
         expect(task.term.key).toBe(term.key);
         expect(task.termKey).toBe('cat');
         expect(task.punctuation).toBe('.');
-        expect(task.state.priority).toBe(0);
-        expectTruthValue(task.state.truthValue, 1.0, 0.9);
+        expect(task.state.priority).toBe(SYSTEM_CONSTANTS.DEFAULT_PRIORITIES.DEFAULT);
+        expectTruthValue(task.state.truthValue, SYSTEM_CONSTANTS.DEFAULT_TRUTH_VALUES.HIGH.frequency, SYSTEM_CONSTANTS.DEFAULT_TRUTH_VALUES.HIGH.confidence);
     });
 
     test('should create a new Task object with custom truth value and stamp', () => {

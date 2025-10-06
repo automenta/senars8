@@ -4,6 +4,8 @@ import Task from '../../core/core/Task.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
 import ConfigManager from '../../core/config/ConfigManager.js';
 import configService from '../../core/config/ConfigService.js';
+import {SYSTEM_CONSTANTS} from '../../core/config/constants.js';
+import {TEST_CONSTANTS} from '../test-constants.js';
 
 const createTestConfig = () => new ConfigManager({
     memory: {
@@ -70,11 +72,11 @@ describe('Memory', () => {
         const longAgo = now - (24 * 3600 * 1000 * 2);
         const task1 = createTask('(unimportant_and_old --> property)', {
             lastAccessed: longAgo,
-            priority: 0.1,
-            confidence: 0.1,
+            priority: SYSTEM_CONSTANTS.DEFAULT_PRIORITIES.LOW,
+            confidence: SYSTEM_CONSTANTS.DEFAULT_TRUTH_VALUES.VERY_LOW.confidence,
         });
         const task2 = createTask('(new_and_unimportant --> property)', {
-            confidence: 0.8
+            confidence: SYSTEM_CONSTANTS.DEFAULT_TRUTH_VALUES.MEDIUM.confidence
         });
         await memory.addTasks([task1, task2]);
         expect(memory.shortTermTasks.size).toBe(2);
@@ -93,7 +95,7 @@ describe('Memory', () => {
         const longAgo = now - (24 * 3600 * 1000 * 2);
         const task1 = createTask('(important_and_old --> property)', {
             lastAccessed: longAgo,
-            priority: 0.9
+            priority: SYSTEM_CONSTANTS.DEFAULT_PRIORITIES.HIGH
         });
         await memory.addTasks([task1]);
         expect(memory.shortTermTasks.size).toBe(1);

@@ -1,6 +1,7 @@
 import Term from '../../core/core/Term.js';
 import {findSimilarTerms, structuralSimilarity} from '../../core/core/TermUtils.js';
 import EmbeddingStore from '../../core/utils/embeddingStore.js';
+import {SYSTEM_CONSTANTS} from '../../core/config/constants.js';
 
 describe('Term', () => {
     afterEach(() => {
@@ -8,11 +9,11 @@ describe('Term', () => {
     });
 
     test('should create a new Term object', () => {
-        const term = new Term('cat', [0.1, 0.2, 0.3], 1);
+        const term = new Term('cat', SYSTEM_CONSTANTS.DEFAULT_EMBEDDING, SYSTEM_CONSTANTS.DEFAULT_COMPLEXITY);
         expect(term).toBeInstanceOf(Term);
         expect(term.key).toBe('cat');
-        expect(term.embedding).toEqual([0.1, 0.2, 0.3]);
-        expect(term.complexity).toBe(1);
+        expect(term.embedding).toEqual(SYSTEM_CONSTANTS.DEFAULT_EMBEDDING);
+        expect(term.complexity).toBe(SYSTEM_CONSTANTS.DEFAULT_COMPLEXITY);
     });
 
     test('should get the type of the term', () => {
@@ -31,8 +32,8 @@ describe('Term', () => {
     });
 
     test('should check for equality between two terms', () => {
-        const term1 = new Term('cat', [0.1, 0.2, 0.3]);
-        const term2 = new Term('cat', [0.1, 0.2, 0.3]);
+        const term1 = new Term('cat', SYSTEM_CONSTANTS.DEFAULT_EMBEDDING);
+        const term2 = new Term('cat', SYSTEM_CONSTANTS.DEFAULT_EMBEDDING);
         const term3 = new Term('dog', [0.4, 0.5, 0.6]);
         expect(Term.termsEqual(term1, term2)).toBe(true);
         expect(Term.termsEqual(term1, term3)).toBe(false);
@@ -41,8 +42,8 @@ describe('Term', () => {
     test('should create a Term from a JSON object', () => {
         const json = {
             key: 'cat',
-            embedding: [0.1, 0.2, 0.3],
-            complexity: 1
+            embedding: SYSTEM_CONSTANTS.DEFAULT_EMBEDDING,
+            complexity: SYSTEM_CONSTANTS.DEFAULT_COMPLEXITY
         };
         const term = Term.fromJSON(json);
         expect(term).toBeInstanceOf(Term);
@@ -82,7 +83,7 @@ describe('Term', () => {
     test('should set and release embeddings correctly', () => {
         const term = new Term('test');
         expect(EmbeddingStore.size()).toBe(0);
-        term.setEmbedding([0.1, 0.2, 0.3]);
+        term.setEmbedding(SYSTEM_CONSTANTS.DEFAULT_EMBEDDING);
         expect(EmbeddingStore.size()).toBe(1);
         term.destroy();
         expect(EmbeddingStore.size()).toBe(0);

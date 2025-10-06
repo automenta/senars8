@@ -5,6 +5,8 @@
 
 import Term from '../core/core/Term.js';
 import Task from '../core/core/Task.js';
+import {SYSTEM_CONSTANTS} from '../core/config/constants.js';
+import {TEST_CONSTANTS} from './test-constants.js';
 
 // Unified data creation API
 const createData = (type, ...args) => DataFactory.create(type, ...args);
@@ -22,11 +24,11 @@ const DataFactory = {
     }
 };
 
-DataFactory.register('taskDef', (sentence, punctuation = '.', truth = [1.0, 0.9], options = {}) => ({
+DataFactory.register('taskDef', (sentence, punctuation = '.', truth = TEST_CONSTANTS.TRUTH_VALUE_PRESETS.DEFAULT, options = {}) => ({
     sentence, punctuation, truth, ...options
 }));
 
-DataFactory.register('termDef', (key, embedding = [0.1, 0.2, 0.3], complexity = 1, options = {}) => ({
+DataFactory.register('termDef', (key, embedding = SYSTEM_CONSTANTS.DEFAULT_EMBEDDING, complexity = SYSTEM_CONSTANTS.DEFAULT_COMPLEXITY, options = {}) => ({
     key, embedding, complexity, ...options
 }));
 
@@ -37,11 +39,11 @@ DataFactory.register('systemConfig', (overrides = {}) => ({
 
 DataFactory.register('task', (termOrKey, punctuation = '.', truthValue = null, stamp = null, options = {}) => {
     const term = typeof termOrKey === 'string' ? new Term(termOrKey) : termOrKey;
-    const defaultTruthValue = truthValue || {frequency: 1.0, confidence: 0.9};
+    const defaultTruthValue = truthValue || SYSTEM_CONSTANTS.DEFAULT_TRUTH_VALUES.HIGH;
     return new Task(term, punctuation, defaultTruthValue, stamp, options);
 });
 
-DataFactory.register('term', (key, embedding = [0.1, 0.2, 0.3], complexity = 1, options = {}) =>
+DataFactory.register('term', (key, embedding = SYSTEM_CONSTANTS.DEFAULT_EMBEDDING, complexity = SYSTEM_CONSTANTS.DEFAULT_COMPLEXITY, options = {}) =>
     new Term(key, embedding, complexity, options));
 
 DataFactory.register('complexTerm', (subjectKey, predicateKey, relation = '-->') => ({
@@ -68,22 +70,22 @@ export const createScenario = (name, config) => ({
 });
 
 export const TEST_SCENARIOS = {
-    BASIC_TASK: () => createTaskDef('(cat --> animal)', '.', [0.8, 0.9]),
+    BASIC_TASK: () => createTaskDef('(cat --> animal)', '.', TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM),
 
     INHERITANCE_TASK: () => ({
-        subjectTask: createTaskDef('(cat --> animal)', '.', [0.8, 0.9]),
-        predicateTask: createTaskDef('(dog --> animal)', '.', [0.7, 0.85])
+        subjectTask: createTaskDef('(cat --> animal)', '.', TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM),
+        predicateTask: createTaskDef('(dog --> animal)', '.', TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM_LOW)
     }),
 
     DEDUCTION: () => ({
-        premise1: createTaskDef('(bird --> animal)', '.', [0.9, 0.8]),
-        premise2: createTaskDef('(animal --> living_thing)', '.', [0.95, 0.85]),
+        premise1: createTaskDef('(bird --> animal)', '.', TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM_HIGH),
+        premise2: createTaskDef('(animal --> living_thing)', '.', TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM_LOW),
         expected: createTaskDef('(bird --> living_thing)', '.', [0.85, 0.72])
     }),
 
     TEMPORAL_SEQUENCE: () => ({
-        first: createTaskDef('(A --> state)', '.', [1.0, 0.9]),
-        second: createTaskDef('(B --> state)', '.', [1.0, 0.9]),
+        first: createTaskDef('(A --> state)', '.', TEST_CONSTANTS.TRUTH_VALUE_PRESETS.DEFAULT),
+        second: createTaskDef('(B --> state)', '.', TEST_CONSTANTS.TRUTH_VALUE_PRESETS.DEFAULT),
         temporalRelation: '&/ A B'
     })
 };
@@ -93,19 +95,19 @@ export const createTestDataTemplate = (templateName) => {
     const templates = {
         basic: () => ({
             term: createTerm('cat'),
-            task: createTask('cat', '.', {frequency: 1.0, confidence: 0.9})
+            task: createTask('cat', '.', SYSTEM_CONSTANTS.DEFAULT_TRUTH_VALUES.HIGH)
         }),
         inheritance: () => ({
             subjectTerm: createTerm('cat'),
             predicateTerm: createTerm('animal'),
             inheritanceTerm: createTerm('(cat --> animal)'),
-            subjectTask: createTask('cat', '.', {frequency: 0.8, confidence: 0.9}),
-            predicateTask: createTask('animal', '.', {frequency: 1.0, confidence: 0.9}),
-            inheritanceTask: createTask('(cat --> animal)', '.', {frequency: 0.8, confidence: 0.7})
+            subjectTask: createTask('cat', '.', SYSTEM_CONSTANTS.DEFAULT_TRUTH_VALUES.MEDIUM),
+            predicateTask: createTask('animal', '.', SYSTEM_CONSTANTS.DEFAULT_TRUTH_VALUES.HIGH),
+            inheritanceTask: createTask('(cat --> animal)', '.', SYSTEM_CONSTANTS.DEFAULT_TRUTH_VALUES.MEDIUM_LOW)
         }),
         deduction: () => ({
-            premiseA: createTask('bird', '.', {frequency: 0.9, confidence: 0.8}),
-            premiseB: createTask('animal', '.', {frequency: 1.0, confidence: 0.9}),
+            premiseA: createTask('bird', '.', SYSTEM_CONSTANTS.DEFAULT_TRUTH_VALUES.MEDIUM_HIGH),
+            premiseB: createTask('animal', '.', SYSTEM_CONSTANTS.DEFAULT_TRUTH_VALUES.HIGH),
             conclusion: createTask('(bird --> animal)', '.', {frequency: 0.9, confidence: 0.72}),
             complexTerm: createTerm('(bird --> animal)')
         })
@@ -140,17 +142,17 @@ export const TEST_DATA_SETS = {
     TASK_PROCESSING: [
         {
             name: 'basic task processing',
-            input: {sentence: '(cat --> animal)', punctuation: '.', truth: [0.8, 0.9]},
+            input: {sentence: '(cat --> animal)', punctuation: '.', truth: TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM},
             expected: {success: true, resultType: 'processed'}
         },
         {
             name: 'complex inheritance task',
-            input: {sentence: '((cat --> animal) && (animal --> living))', punctuation: '.', truth: [0.7, 0.85]},
+            input: {sentence: '((cat --> animal) && (animal --> living))', punctuation: '.', truth: TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM_LOW},
             expected: {success: true, resultType: 'inference'}
         },
         {
             name: 'invalid task format',
-            input: {sentence: 'invalid format', punctuation: '?', truth: [1.0, 0.0]},
+            input: {sentence: 'invalid format', punctuation: '?', truth: TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MINIMAL},
             expected: {success: false, errorType: 'ValidationError'}
         }
     ],
@@ -159,16 +161,16 @@ export const TEST_DATA_SETS = {
         {
             name: 'deduction',
             premises: [
-                {sentence: '(bird --> animal)', truth: [0.9, 0.8]},
-                {sentence: '(animal --> living_thing)', truth: [0.95, 0.85]}
+                {sentence: '(bird --> animal)', truth: TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM_HIGH},
+                {sentence: '(animal --> living_thing)', truth: TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM_LOW}
             ],
             expected: {conclusion: '(bird --> living_thing)', truth: [0.85, 0.72]}
         },
         {
             name: 'induction',
             premises: [
-                {sentence: '(robin --> bird)', truth: [1.0, 0.9]},
-                {sentence: '(robin --> flyer)', truth: [0.8, 0.85]}
+                {sentence: '(robin --> bird)', truth: TEST_CONSTANTS.TRUTH_VALUE_PRESETS.DEFAULT},
+                {sentence: '(robin --> flyer)', truth: TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM}
             ],
             expected: {conclusion: '(bird --> flyer)', truth: [0.8, 0.68]}
         }
