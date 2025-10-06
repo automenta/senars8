@@ -6,6 +6,7 @@ import CONSTITUTION_TASKS from './Constitution.js';
 import BagSamplingStrategy from '../reasoner/strategies/BagSamplingStrategy.js';
 import BruteForceStrategy from '../reasoner/strategies/BruteForceStrategy.js';
 import {configService} from '../config/index.js';
+import PluginManager from '../../PluginManager.js';
 
 const initializeSystem = (system) => {
     info('SystemFactory: Initializing system with constitution...');
@@ -14,10 +15,14 @@ const initializeSystem = (system) => {
     return system;
 };
 
-const createSystem = (userConfig = {}, components = {}) => {
+const createSystem = async (userConfig = {}, components = {}, strategiesPath = undefined) => {
     info('SystemFactory: Creating new system...');
 
     const container = new DIContainer();
+    
+    // Register plugin manager early so plugins can be registered
+    const pluginManager = new PluginManager(container);
+    container.registerValue('pluginManager', pluginManager);
 
     const configManager = new ConfigManager(userConfig);
 
@@ -31,6 +36,14 @@ const createSystem = (userConfig = {}, components = {}) => {
     for (const [name, instance] of Object.entries(components)) {
         container.registerValue(name, instance);
     }
+
+    // Load additional strategies if path provided
+    if (strategiesPath) {
+        await container.load(strategiesPath);
+    }
+
+    // Register plugin components with the container (if any plugins were added via pluginManager elsewhere)
+    pluginManager.registerPluginComponents();
 
     info('SystemFactory: Registering strategies...');
     const strategyRegistry = container.get('strategyRegistry');

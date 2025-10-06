@@ -6,6 +6,7 @@ import AgentManager from './agent/AgentManager.js';
 import {UnifiedWebSocketServer} from './agent/StandaloneWebSocketServer.js';
 import {createMessageHandler} from './agent/MessageHandler.js';
 import {findAvailablePort} from './tests/utils/networkUtils.js';
+import config from './config.js';
 
 const log = logger.create('integrated-web-runner');
 const __filename = fileURLToPath(import.meta.url);
@@ -24,9 +25,9 @@ export class IntegratedWebRunner {
         try {
             log.info('Starting integrated Web UI with embedded Agent...');
 
-            // Find available ports
-            this.port = await findAvailablePort(3000);
-            this.wsPort = await findAvailablePort(8081);
+            // Use configured ports, with fallback to available ports
+            this.port = await findAvailablePort(config.uiPort);
+            this.wsPort = await findAvailablePort(config.wsPort);
 
             log.info(`Using HTTP port: ${this.port}`);
             log.info(`Using WebSocket port: ${this.wsPort}`);
@@ -88,33 +89,40 @@ export class IntegratedWebRunner {
         process.env.WS_PORT = this.wsPort.toString();
         process.env.VITE_WS_URL = `ws://localhost:${this.wsPort}`;
 
-        this.viteServer = await createServer({
-            configFile: path.resolve(__dirname, 'ui/vite.config.js'),
-            root: path.resolve(__dirname, 'ui'),
-            server: {
-                port: this.port,
-                host: '0.0.0.0', // Allow external connections
-                strictPort: true, // Fail if port is busy
-                clearScreen: false,
-                // Better HMR configuration for development
-                hmr: {
-                    overlay: true, // Show overlay on errors
-                }
-            },
-            define: {
-                __WS_PORT__: this.wsPort,
-                __DEV_MODE__: true,
-                // Make sure environment is correctly set
-                'process.env.NODE_ENV': JSON.stringify('development')
-            },
-            // Enable better logging during development
-            logLevel: 'info'
-        });
+        try {
+            this.viteServer = await createServer({
+                configFile: path.resolve(__dirname, 'ui/vite.config.js'),
+                root: path.resolve(__dirname, 'ui'),
+                server: {
+                    port: this.port,
+                    host: '0.0.0.0', // Allow external connections
+                    strictPort: true, // Fail if port is busy
+                    clearScreen: false,
+                    // Better HMR configuration for development
+                    hmr: {
+                        overlay: true, // Show overlay on errors
+                    }
+                },
+                define: {
+                    __WS_PORT__: this.wsPort,
+                    __DEV_MODE__: true,
+                    // Make sure environment is correctly set
+                    'process.env.NODE_ENV': JSON.stringify('development')
+                },
+                // Enable better logging during development
+                logLevel: 'info'
+            });
 
-        await this.viteServer.listen();
-        this.viteServer.printUrls();
+            await this.viteServer.listen();
+            this.viteServer.printUrls();
 
-        log.info(`Vite dev server started on port ${this.port}`);
+            log.info(`Vite dev server started on port ${this.port}`);
+        } catch (error) {
+            log.error(`Failed to start Vite dev server on port ${this.port}. Is the port already in use?`);
+            log.error(`Error details: ${error.message}`);
+            log.error(`Suggestion: Try using a different port or stopping other applications using port ${this.port}`);
+            throw error;
+        }
     }
 
     setupGracefulShutdown() {

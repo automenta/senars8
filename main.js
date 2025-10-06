@@ -6,6 +6,7 @@ import logger from './core/utils/logger.js';
 import AgentManager from './agent/AgentManager.js';
 import {agentServerPlugin} from './agent/vite-plugin.js';
 import {pathToFileURL} from 'url';
+import config from './config.js';
 
 const log = logger.create('main');
 
@@ -17,15 +18,28 @@ export const AppRunner = {
 
     async startWebInterface(agentManager) {
         log.info('Starting web UI...');
-        const server = await createServer({
-            configFile: path.resolve(process.cwd(), 'ui/vite.config.js'),
-            root: path.resolve(process.cwd(), 'ui'),
-            server: {port: process.env.PORT || 8080, clearScreen: false},
-            plugins: [agentServerPlugin(agentManager)],
-        });
-        await server.listen();
-        server.printUrls();
-        return server;
+        try {
+            const port = process.env.PORT || config.uiPort;
+            const server = await createServer({
+                configFile: path.resolve(process.cwd(), 'ui/vite.config.js'),
+                root: path.resolve(process.cwd(), 'ui'),
+                server: {
+                    port: port,
+                    clearScreen: false,
+                    strictPort: true // Fail if port is busy
+                },
+                plugins: [agentServerPlugin(agentManager)],
+            });
+            await server.listen();
+            server.printUrls();
+            log.info(`Web UI started successfully on port ${port}`);
+            return server;
+        } catch (error) {
+            log.error(`Failed to start web UI on port ${process.env.PORT || config.uiPort}. Is the port already in use?`);
+            log.error(`Error details: ${error.message}`);
+            log.error(`Suggestion: Try using a different port with PORT=3001 npm run dev`);
+            throw error;
+        }
     },
 
     async startTui() {

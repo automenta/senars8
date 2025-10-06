@@ -33,7 +33,7 @@ async function runSystem(title, taskDefs, {
 } = {}) {
     printBanner(`🚀 Starting: ${title}`, {width: 80});
 
-    const system = existingSystem || SystemFactory.createSystem(config, components, strategiesPath);
+    const system = existingSystem || await SystemFactory.createSystem(config, components, strategiesPath);
     if (!existingSystem) {
         debug('System created.');
     }
