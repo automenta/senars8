@@ -134,3 +134,56 @@ export const generateTermVariations = (baseKey, count, embeddingSize = 3) => {
     }
     return terms;
 };
+
+// Test data sets for common scenarios
+export const TEST_DATA_SETS = {
+    TASK_PROCESSING: [
+        {
+            name: 'basic task processing',
+            input: {sentence: '(cat --> animal)', punctuation: '.', truth: [0.8, 0.9]},
+            expected: {success: true, resultType: 'processed'}
+        },
+        {
+            name: 'complex inheritance task',
+            input: {sentence: '((cat --> animal) && (animal --> living))', punctuation: '.', truth: [0.7, 0.85]},
+            expected: {success: true, resultType: 'inference'}
+        },
+        {
+            name: 'invalid task format',
+            input: {sentence: 'invalid format', punctuation: '?', truth: [1.0, 0.0]},
+            expected: {success: false, errorType: 'ValidationError'}
+        }
+    ],
+
+    REASONING_INFERENCES: [
+        {
+            name: 'deduction',
+            premises: [
+                {sentence: '(bird --> animal)', truth: [0.9, 0.8]},
+                {sentence: '(animal --> living_thing)', truth: [0.95, 0.85]}
+            ],
+            expected: {conclusion: '(bird --> living_thing)', truth: [0.85, 0.72]}
+        },
+        {
+            name: 'induction',
+            premises: [
+                {sentence: '(robin --> bird)', truth: [1.0, 0.9]},
+                {sentence: '(robin --> flyer)', truth: [0.8, 0.85]}
+            ],
+            expected: {conclusion: '(bird --> flyer)', truth: [0.8, 0.68]}
+        }
+    ],
+
+    CONFIGURATION_VALIDATION: [
+        {
+            name: 'valid configuration',
+            config: {reasoner: {strategy: 'BruteForce'}, memory: {capacity: 1000}},
+            expected: {valid: true}
+        },
+        {
+            name: 'invalid strategy config',
+            config: {reasoner: {strategy: 'invalid_strategy'}},
+            expected: {valid: false, error: /invalid.*strategy/i}
+        }
+    ]
+};

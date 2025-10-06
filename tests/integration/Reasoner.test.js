@@ -2,8 +2,8 @@ import {beforeEach, describe, expect, test, vi} from 'vitest';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
-import {createTestConfig} from '../test-config.js';
-import {setupTestEnvironment} from '../test-setup.js';
+import {createConfig} from '../shared/test-utils.js';
+import {createTestSystem} from '../test-setup.js';
 import {SystemCommands} from '../../core/system/SystemCommands.js';
 
 vi.mock('@xenova/transformers', () => ({
@@ -35,11 +35,11 @@ describe('Reasoner Integration Test', () => {
     let system, reasoner, memory, commandBus;
 
     beforeEach(() => {
-        const testEnv = setupTestEnvironment(createTestConfig());
-        system = testEnv.system;
+        const systemData = createTestSystem(createConfig('UNIT_TEST'));
+        system = systemData.system;
         reasoner = system.reasoner;
-        memory = testEnv.container.get('memory'); // Get memory from container
-        commandBus = testEnv.commandBus;
+        memory = systemData.container.get('memory'); // Get memory from container
+        commandBus = systemData.commandBus;
 
         setupCommandBusMock(commandBus);
     });

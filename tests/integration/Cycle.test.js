@@ -2,8 +2,8 @@ import {beforeEach, describe, expect, test, vi} from 'vitest';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import CONSTITUTION_TASKS from '../../core/system/Constitution.js';
-import {createTestConfig} from '../test-config.js';
-import {setupTestEnvironment} from '../test-setup.js';
+import {createConfig} from '../shared/test-utils.js';
+import {createTestSystem} from '../test-setup.js';
 import {SystemCommands} from '../../core/system/SystemCommands.js';
 
 vi.mock('@xenova/transformers', () => ({
@@ -48,16 +48,16 @@ describe('Cycle Integration Test', () => {
     let system, memory, cycle, commandBus;
 
     beforeEach(() => {
-        const config = createTestConfig({
+        const config = createConfig('UNIT_TEST', {
             planner: {
                 strategy: 'HTN'
             }
         });
-        const testEnv = setupTestEnvironment(config);
-        system = testEnv.system;
-        memory = testEnv.container.get('memory'); // Get memory from container
+        const systemData = createTestSystem(config);
+        system = systemData.system;
+        memory = systemData.container.get('memory'); // Get memory from container
         cycle = system.cycle;
-        commandBus = testEnv.commandBus;
+        commandBus = systemData.commandBus;
 
         // Mock commandBus requests for LM commands
         setupCommandBusMock(commandBus, memory);

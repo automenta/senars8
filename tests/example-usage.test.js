@@ -3,13 +3,12 @@
  */
 
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest';
-import {createTaskDef, createTermDef} from './test-data-factory.js';
-import {assertTask, expectTruthValue} from './common-validation-utils.js';
-import {createTestConfig} from './test-config.js';
+import {createTaskDef, createTermDef, createTask} from './test-data-factory.js';
+import {assertTask, expectTruthValue} from './shared/test-utils.js';
+import {createConfig} from './shared/test-utils.js';
 import {BaseReasonerTest, ErrorTesting, PerformanceTesting, TaskProcessingScenario} from './test-base-classes.js';
 import {EdgeCaseTester} from './coverage-quality-checks.js';
 import * as logger from '../core/utils/logger.js';
-import {createConsistentMock, MockValidator} from './mock-builders.js';
 import {TestDocumentationGenerator} from './documentation-structure.js';
 
 // Example usage of the new test utilities
@@ -56,9 +55,10 @@ describe('Refactored Test Utilities - Example Usage', () => {
     });
 
     test('should demonstrate configuration-driven testing', () => {
-        // Create test config using template
-        const config = createTestConfig('UNIT', {timeout: 10000});
+        // Create test config using template with override
+        const config = createConfig('UNIT_TEST', {timeout: 10000});
 
+        // The config should have the overridden timeout value
         expect(config.timeout).toBe(10000);
         expect(config.setup).toBe('unit');
         expect(config.mockLevel).toBe('full');
@@ -111,20 +111,19 @@ describe('Refactored Test Utilities - Example Usage', () => {
         await tester.runAll();
     });
 
-    test('should demonstrate mock builders usage', () => {
-        // Create a consistent mock using the builder
-        const mockReasoner = createConsistentMock('reasoner', {
+    test('should demonstrate mock creation', () => {
+        // Create a mock reasoner manually since we don't have mock builders
+        const mockReasoner = {
+            name: 'TestReasoner',
             processTask: async () => ({result: 'processed'}),
             getInferences: () => ['inference1', 'inference2']
-        }, {
-            name: 'TestReasoner'
-        });
+        };
 
         // Validate the mock
-        MockValidator.validateMethods(mockReasoner, ['processTask', 'getInferences']);
-        MockValidator.validateProperties(mockReasoner, ['name']);
-
         expect(mockReasoner.name).toBe('TestReasoner');
+        expect(typeof mockReasoner.processTask).toBe('function');
+        expect(typeof mockReasoner.getInferences).toBe('function');
+        expect(mockReasoner.getInferences()).toEqual(['inference1', 'inference2']);
     });
 
     test('should demonstrate documentation generator usage', () => {
@@ -189,14 +188,3 @@ describe('New Utility Objects Example', () => {
     });
 });
 
-// Example of using the mock builders
-describe('Mock Builders Example', () => {
-    test('should create consistent mocks', () => {
-        const commandBusMock = createConsistentMock('commandBus', {
-            request: async (type, data) => ({success: true, data})
-        });
-
-        expect(commandBusMock.request).toBeDefined();
-        expect(typeof commandBusMock.request).toBe('function');
-    });
-});

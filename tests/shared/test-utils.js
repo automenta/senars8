@@ -22,7 +22,11 @@ class Registry {
 
     get(key, ...args) {
         this.metrics.operations++;
-        const cacheKey = `${key}:${JSON.stringify(args)}`;
+        // Handle BigInt serialization in cache key
+        const safeStringify = (obj) => JSON.stringify(obj, (k, v) => 
+            typeof v === 'bigint' ? v.toString() : v
+        );
+        const cacheKey = `${key}:${safeStringify(args)}`;
 
         const cached = this.cache.get(cacheKey);
         if (cached) {
@@ -137,9 +141,13 @@ ValidationEngine.validateBatch = (targets, ruleName, context = 'validation') => 
     return results;
 };
 
-ValidationEngine.validate = (target, ruleName, context = 'validation') => {
+ValidationEngine.validate = (target, ruleName, context = 'validation', ...args) => {
     ValidationEngine.metrics.validations++;
-    const cacheKey = `${ruleName}:${JSON.stringify(target)}`;
+    // Handle BigInt serialization in cache key
+    const safeStringify = (obj) => JSON.stringify(obj, (k, v) => 
+        typeof v === 'bigint' ? v.toString() : v
+    );
+    const cacheKey = `${ruleName}:${safeStringify(target)}`;
 
     const cached = ValidationEngine.cache.get(cacheKey);
     if (cached) {
@@ -150,7 +158,7 @@ ValidationEngine.validate = (target, ruleName, context = 'validation') => {
     const rule = ValidationEngine.storage.get(ruleName);
     if (!rule) throw new Error(`Unknown validation rule: ${ruleName}`);
 
-    const result = rule(target, context);
+    const result = rule(target, context, ...args);
     ValidationEngine.cache.set(cacheKey, result);
     return result;
 };
@@ -175,28 +183,39 @@ ValidationEngine.register('object', (obj, context) => {
 
 ValidationEngine.register('objectSpec', (obj, context, spec) => {
     if (!obj) throw new Error(`${context} is null or undefined`);
+    
+    // Initialize spec if not provided
+    if (!spec) spec = {};
 
     const validations = [];
 
-    spec.required?.forEach(prop =>
-        validations.push(() => expect(obj).toHaveProperty(prop, `${context} missing required property: ${prop}`)));
+    if (spec.required && Array.isArray(spec.required)) {
+        spec.required.forEach(prop =>
+            validations.push(() => expect(obj).toHaveProperty(prop)));
+    }
 
-    spec.properties && Object.entries(spec.properties).forEach(([prop, expected]) => {
-        validations.push(() => {
-            if (expected === null) {
-                expect(obj[prop]).toBeDefined(`${context}.${prop} should be defined`);
-            } else if (typeof expected === 'function') {
-                expected(obj[prop]);
-            } else {
-                expect(obj[prop]).toEqual(expected, `${context}.${prop} mismatch`);
+    if (spec.properties) {
+        Object.entries(spec.properties).forEach(([prop, expected]) => {
+            validations.push(() => {
+                if (expected === null) {
+                    expect(obj[prop]).toBeDefined(`${context}.${prop} should be defined`);
+                } else if (typeof expected === 'function') {
+                    expected(obj[prop]);
+                } else {
+                    expect(obj[prop]).toEqual(expected, `${context}.${prop} mismatch`);
+                }
+            });
+        });
+    }
+
+    if (spec.types) {
+        Object.entries(spec.types).forEach(([prop, expectedType]) => {
+            if (obj[prop] !== undefined) {
+                validations.push(() =>
+                    expect(typeof obj[prop]).toBe(expectedType, `${context}.${prop} type mismatch`));
             }
         });
-    });
-
-    spec.types && Object.entries(spec.types).forEach(([prop, expectedType]) => {
-        obj[prop] !== undefined && validations.push(() =>
-            expect(typeof obj[prop]).toBe(expectedType, `${context}.${prop} type mismatch`));
-    });
+    }
 
     validations.forEach(validate => validate());
     return obj;
@@ -250,9 +269,40 @@ ConfigRegistry.registerTemplate = (name, template, validator = null) => {
     if (validator) ConfigRegistry.validators.set(name, validator);
 };
 
+// Register core configuration templates
+ConfigRegistry.registerTemplate('TASK', {
+    punctuation: '.', truth: [1.0, 0.9], priority: 0
+});
+
+ConfigRegistry.registerTemplate('TERM', {
+    complexity: 1, embedding: [0.1, 0.2, 0.3]
+});
+
+ConfigRegistry.registerTemplate('SYSTEM', {
+    reasoner: {strategy: 'BruteForce'}
+});
+
+ConfigRegistry.registerTemplate('UNIT_TEST', {
+    timeout: 5000, setup: 'unit', mockLevel: 'full',
+    validation: {errorHandling: true, edgeCases: true}
+});
+
+ConfigRegistry.registerTemplate('INTEGRATION_TEST', {
+    timeout: 10000, setup: 'integration', mockLevel: 'partial',
+    validation: {componentInteraction: true, dataFlow: true, performance: true}
+});
+
+ConfigRegistry.registerTemplate('SYSTEM_TEST', {
+    timeout: 30000, setup: 'system', mockLevel: 'minimal',
+    validation: {endToEnd: true, performance: true, errorRecovery: true}
+});
+
 ConfigRegistry.get = (templateName, overrides = {}) => {
     ConfigRegistry.metrics.accesses++;
-    const result = ConfigRegistry.constructor.prototype.get.call(ConfigRegistry, templateName, overrides);
+    const template = ConfigRegistry.constructor.prototype.get.call(ConfigRegistry, templateName);
+
+    // Merge template with overrides to create the final config
+    const result = {...template, ...overrides};
 
     const validator = ConfigRegistry.validators.get(templateName);
     if (validator && !validator(result)) {
@@ -305,6 +355,9 @@ TestContextManager.create = async (type, config = {}) => {
 };
 
 TestContextManager._createSingle = async (type, config = {}) => ({type, config, created: Date.now()});
+
+// Register context templates
+TestContextManager.storage.set('taskProcessing', (config = {}) => ({type: 'taskProcessing', config, created: Date.now()}));
 
 TestContextManager.register = (name, context) => TestContextManager.active.set(name, context);
 TestContextManager.getActive = (name) => TestContextManager.active.get(name);
@@ -730,6 +783,14 @@ export const createMock = (type, ...args) => MockRegistry.create(type, ...args);
 export const createConfig = (templateName, overrides = {}) => ConfigRegistry.get(templateName, overrides);
 export const generateDoc = (type, data) => DocumentationRegistry.generate(type, data);
 export const createTestContext = (type, config = {}) => TestContextManager.create(type, config);
+
+// Additional utility functions for compatibility
+export const expectTruthValue = (actual, expectedFreq, expectedConf, precision = 3) => {
+    expect(actual.frequency).toBeCloseTo(expectedFreq, precision);
+    expect(actual.confidence).toBeCloseTo(expectedConf, precision);
+};
+
+export const assertTask = TestFramework.assertions.expectTask;
 
 // Performance monitoring
 export const getCacheStats = () => globalCache.hitRate || 0;

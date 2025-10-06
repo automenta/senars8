@@ -1,6 +1,6 @@
-import {expect} from 'vitest';
+import {expect, vi} from 'vitest';
 import Task from '../../core/core/Task.js';
-import {expectTruthValue} from '../common-validation-utils.js';
+import {expectTruthValue} from '../shared/test-utils.js';
 
 vi.mock('../../core/core/Term.js', () => ({
     default: vi.fn().mockImplementation(key => ({
