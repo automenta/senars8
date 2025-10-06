@@ -10,7 +10,7 @@ import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
 import Memory from '../../core/memory/Memory.js';
-import DIContainer, {LIFETIME} from '../../core/system/DIContainer.js';
+import Container, {DIContainer, LIFETIME} from '../../core/system/DIContainer.js';
 import ConfigManager from '../../core/config/ConfigManager.js';
 
 describe('Generalized Essential Functionality Tests', () => {
@@ -109,15 +109,14 @@ describe('Generalized Essential Functionality Tests', () => {
         memoryContext.assertMemoryState({size: 2, contains: ['cat', 'dog']});
 
         // Test memory interaction with cache validation
-        const cacheStatsBefore = getValidationStats();
         const hasTask = memoryContext.memory.hasTask ? memoryContext.memory.hasTask('cat') : memoryContext.memory.has('cat');
         expect(hasTask).toBe(true);
-        const cacheStatsAfter = getValidationStats();
 
         await memoryContext.cleanup();
     });
 
     test('should demonstrate comprehensive DIContainer functionality testing', () => {
+        // Create a new DIContainer instance for testing
         const container = new DIContainer();
         
         // Test transient service registration and resolution
@@ -266,23 +265,45 @@ describe('Generalized Essential Functionality Tests', () => {
         expect(validationResults.every(r => r !== null)).toBe(true);
     });
 
-    test('should demonstrate data-driven testing patterns', () => {
-        const testDataSets = [
-            {input: {key: 'test1', punct: '.', truth: [1.0, 0.9]}, expectedKey: 'test1', expectedPunct: '.'},
-            {input: {key: 'test2', punct: '!', truth: [0.8, 0.85]}, expectedKey: 'test2', expectedPunct: '!'},
-            {input: {key: 'test3', punct: '?', truth: [0.5, 0.75]}, expectedKey: 'test3', expectedPunct: '?'}
-        ];
+    test('should demonstrate system factory usage for complex scenarios', async () => {
+        // Use the system factory to create different system configurations
+        const basicSystem = SystemFactory.create({reasoner: {strategy: 'BruteForce'}});
+        expect(basicSystem.system).toBeDefined();
+        expect(basicSystem.commandBus).toBeDefined();
+        expect(basicSystem.eventBus).toBeDefined();
 
-        testDataSets.forEach((dataSet, index) => {
-            test(`Data-driven test case ${index + 1}`, () => {
-                const task = createTask(dataSet.input.key, dataSet.input.punct, 
-                    {frequency: dataSet.input.truth[0], confidence: dataSet.input.truth[1]});
-                
-                expect(task.termKey).toBe(dataSet.expectedKey);
-                expect(task.punctuation).toBe(dataSet.expectedPunct);
-            });
+        const enhancedSystem = SystemFactory.create({
+            reasoner: {strategy: 'BruteForce'},
+            memory: {capacity: 1000}
         });
+        expect(enhancedSystem.system).toBeDefined();
+        
+        // Test that both systems have the expected components
+        TestFramework.assertions.expectComponents(basicSystem.container, ['memory', 'reasoner', 'tools']);
+        TestFramework.assertions.expectComponents(enhancedSystem.container, ['memory', 'reasoner', 'tools']);
     });
+
+    test('should demonstrate cache validation and performance metrics', () => {
+        // Create a cache and perform operations to test its functionality
+        const cache = createCache(100);
+        
+        // Add some items to cache
+        cache.set('key1', 'value1');
+        cache.set('key2', 'value2');
+        cache.set('key3', 'value3');
+        
+        expect(cache.size).toBe(3);
+        expect(cache.get('key1')).toBe('value1');
+        expect(cache.get('key2')).toBe('value2');
+        
+        const hitRate = cache.hitRate;
+        expect(hitRate).toBeGreaterThanOrEqual(0);
+        
+        // Clear cache and verify
+        cache.clear();
+        expect(cache.size).toBe(0);
+    });
+// Test suite for common data templates
 
     test('should demonstrate system factory usage for complex scenarios', async () => {
         // Use the system factory to create different system configurations

@@ -8,7 +8,7 @@ import {createContext, createTaskProcessingContext} from '../test-setup.js';
 import {createTask, createTerm, TEST_DATA_SETS} from '../test-data-factory.js';
 import Task from '../../core/core/Task.js';
 import Memory from '../../core/memory/Memory.js';
-import DIContainer, {LIFETIME} from '../../core/system/DIContainer.js';
+import Container, {DIContainer, LIFETIME} from '../../core/system/DIContainer.js';
 
 describe('TDD Robustness - Core System Reliability', () => {
     beforeEach(() => {
