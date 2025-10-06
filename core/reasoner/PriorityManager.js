@@ -9,6 +9,9 @@ class PriorityManager {
     }
 
     calculatePriority(task, currentTime, driveEmbeddings) {
+        // Ensure task has required properties
+        if (!task.termKey) return 0;
+        
         const term = this.memory.getTerm(task.termKey);
         if (!term?.embedding?.length) return 0;
 
@@ -27,8 +30,8 @@ class PriorityManager {
         const I = (maxSimilarity + config.SIMILARITY_OFFSET) / config.SIMILARITY_SCALE;
         const U = 1 / (1 + (currentTime - Number(task.state.stamp.creationTime)) / config.RECENCY_DECAY_FACTOR);
         const T = calculateTemporalPriority(task, currentTime);
-        const C = task.state.truthValue.confidence;
-        const E = 1 / term.complexity;
+        const C = task.state.truthValue?.confidence || 0;
+        const E = term.complexity ? 1 / term.complexity : 0;
 
         return I * U * T * C * E;
     }
@@ -43,11 +46,11 @@ class PriorityManager {
         // In a real implementation, we would calculate this based on embeddings and similarity to drives
 
         // Goals ('!') should generally have higher priority than beliefs ('.')
-        let basePriority = task.punctuation === '!' ? 0.7 : 0.3;
+        let basePriority = (task.punctuation === '!' || (task.punctuation && task.punctuation === '!')) ? 0.7 : 0.3;
 
         // Tasks related to constitutional concepts should have higher priority
         const constitutionalTerms = ['AcquireKnowledge', 'ReduceUncertainty', 'MaintainCoherence', 'MaintainCognitiveIntegrity'];
-        if (constitutionalTerms.some(term => task.termKey.includes(term))) {
+        if (task.termKey && typeof task.termKey === 'string' && constitutionalTerms.some(term => task.termKey.includes(term))) {
             basePriority += 0.2; // Boost for constitutional relevance
         }
 

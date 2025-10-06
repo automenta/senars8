@@ -36,6 +36,9 @@ class Memory {
         this._recentTasksCache = new Map();
         this._semanticCache = new Map();
         this._termRelationshipCache = new Map();
+        
+        // Embedding store for semantic similarity calculations
+        this.embeddingStore = new Map();
 
         // Bag-based collections for capacity-limited prioritized task management
         this._focusSetBag = new Bag(this.config.getNumber('FOCUS_SET_SIZE', 20));
@@ -80,6 +83,7 @@ class Memory {
         this.getQuestions = wrapAsync(this._getTasksByPunctuation.bind(this, '?'), 'Memory', 'getQuestions', {defaultValue: []});
         this.getRecentTasks = wrapAsync(this._getRecentTasks.bind(this), 'Memory', 'getRecentTasks', {defaultValue: []});
         this.queryTasks = wrapAsync(this._queryTasks.bind(this), 'Memory', 'queryTasks', {defaultValue: []});
+        this.getTasksByPunctuation = wrapAsync(this._getTasksByPunctuation.bind(this), 'Memory', 'getTasksByPunctuation', {defaultValue: []});
         this.exportState = wrapAsync(this._exportState.bind(this), 'Memory', 'exportState', {defaultValue: '{}'});
         this.importState = wrapAsync(this._importState.bind(this), 'Memory', 'importState', {rethrow: true});
     }
@@ -302,7 +306,9 @@ class Memory {
         }
 
         this._storeTerm(term);
-        await this.eventBus.emitAsync(SystemEvents.TERM_ADD, term);
+        if (this.eventBus && typeof this.eventBus.emitAsync === 'function') {
+            await this.eventBus.emitAsync(SystemEvents.TERM_ADD, term);
+        }
         debug(`Added term '${term.key}'.`);
     }
 
@@ -396,7 +402,9 @@ class Memory {
     async _processValidTasks(tasks) {
         for (const task of tasks) {
             this._storeTask(task);
+            if (this.eventBus && typeof this.eventBus.emitAsync === 'function') {
             await this.eventBus.emitAsync(SystemEvents.TASK_ADD, task);
+        }
         }
 
         this._finalizeTaskProcessing(tasks.length);
@@ -514,7 +522,9 @@ class Memory {
             this.longTermTasks.delete(taskId);
             this.indexer.unindexTask(task);
             this._invalidateCachedTasks();
+            if (this.eventBus && typeof this.eventBus.emitAsync === 'function') {
             await this.eventBus.emitAsync(SystemEvents.TASK_REMOVE, task);
+        }
         }
     }
 
@@ -690,7 +700,7 @@ class Memory {
         const cached = this._getCachedTermRelationships(termKey, threshold, limit);
         if (cached) return cached;
 
-        const queryEmbedding = embeddingStore.get(termKey);
+        const queryEmbedding = this.embeddingStore.get(termKey);
         if (!queryEmbedding) return [];
 
         const relatedTerms = [];
@@ -699,7 +709,7 @@ class Memory {
         for (const term of allTerms) {
             if (term.key === termKey) continue; // Skip the query term itself
 
-            const termEmbedding = embeddingStore.get(term.key);
+            const termEmbedding = this.embeddingStore.get(term.key);
             if (termEmbedding) {
                 const similarity = this._calculateCosineSimilarity(queryEmbedding, termEmbedding);
                 if (similarity >= threshold) {
@@ -785,7 +795,7 @@ class Memory {
         if (!queryTask || !queryTask.termKey) return [];
 
         // Get embedding for the query task's term
-        const queryEmbedding = embeddingStore.get(queryTask.termKey);
+        const queryEmbedding = this.embeddingStore.get(queryTask.termKey);
         if (!queryEmbedding) return [];
 
         // Check cache first
@@ -798,7 +808,7 @@ class Memory {
         for (const task of allTasks) {
             if (task.id === queryTask.id) continue; // Skip the query task itself
 
-            const taskEmbedding = embeddingStore.get(task.termKey);
+            const taskEmbedding = this.embeddingStore.get(task.termKey);
             if (taskEmbedding) {
                 const similarity = this._calculateCosineSimilarity(queryEmbedding, taskEmbedding);
                 if (similarity >= threshold) {
@@ -832,7 +842,7 @@ class Memory {
         const similarTasks = [];
 
         for (const task of allTasks) {
-            const taskEmbedding = embeddingStore.get(task.termKey);
+            const taskEmbedding = this.embeddingStore.get(task.termKey);
             if (taskEmbedding) {
                 const similarity = this._calculateCosineSimilarity(queryEmbedding, taskEmbedding);
                 if (similarity >= threshold) {
@@ -929,9 +939,11 @@ class Memory {
         term.destroy?.();
         this.terms.delete(key);
         this.indexer.removeTerm(key);
-        await this.eventBus.emitAsync(SystemEvents.TERM_REMOVE, {
-            key
-        });
+        if (this.eventBus && typeof this.eventBus.emitAsync === 'function') {
+            await this.eventBus.emitAsync(SystemEvents.TERM_REMOVE, {
+                key
+            });
+        }
     }
 
     async _clear() {
@@ -942,7 +954,9 @@ class Memory {
         this.indexer.clear();
         this.cycleCounter = 0;
         this._invalidateCachedTasks();
-        await this.eventBus.emitAsync(SystemEvents.SYSTEM_RESET);
+        if (this.eventBus && typeof this.eventBus.emitAsync === 'function') {
+            await this.eventBus.emitAsync(SystemEvents.SYSTEM_RESET);
+        }
     }
 
     _getStatistics() {
@@ -965,6 +979,7 @@ class Memory {
             terms: this.terms.size,
             shortTermTasks: this.shortTermTasks.size,
             longTermTasks: this.longTermTasks.size,
+            totalTasks: this.shortTermTasks.size + this.longTermTasks.size,
             cycleCount: this.cycleCounter,
             accessCount: this._accessCounter,
             timeSinceLastMaintenance: Date.now() - this._lastMaintenanceTime,

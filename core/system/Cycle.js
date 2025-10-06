@@ -247,26 +247,27 @@ class Cycle {
                 }
             }
 
-            enhancedSet.push({
-                ...task,
-                semanticPriority: enhancedPriority,
-                originalPriority: task.state.priority
-            });
+            // Create a new object that preserves the original task's properties
+            // but allows property modification for test compatibility
+            const enhancedTask = {
+                // Preserve essential properties that might be accessed via getters
+                termKey: task.termKey,
+                punctuation: task.punctuation,
+                state: {
+                    ...task.state,
+                    priority: enhancedPriority
+                },
+                // Include any other enumerable properties from the original task
+                ...task
+            };
+
+            enhancedSet.push(enhancedTask);
         }
 
         // Sort by enhanced priority
-        enhancedSet.sort((a, b) => b.semanticPriority - a.semanticPriority);
+        enhancedSet.sort((a, b) => (b.state?.priority || 0) - (a.state?.priority || 0));
 
-        // Return the original task objects for compatibility
-        return enhancedSet.map(item => {
-            const task = {...item};
-            delete task.semanticPriority;
-            delete task.originalPriority;
-            if (task.state && typeof item.semanticPriority === 'number') {
-                task.state.priority = item.semanticPriority;
-            }
-            return task;
-        });
+        return enhancedSet;
     }
 
     async _calculateSemanticBoost(task, focusSet) {
@@ -458,9 +459,14 @@ class Cycle {
             };
         }
 
-        const derivedTasks = await this.commandBus.request(SystemCommands.REASONER_PROCESS_TASK, {
+        let derivedTasks = await this.commandBus.request(SystemCommands.REASONER_PROCESS_TASK, {
             focusSet
         });
+
+        // Ensure derivedTasks is an array, handle undefined case
+        if (!derivedTasks || !Array.isArray(derivedTasks)) {
+            derivedTasks = [];
+        }
 
         // Generate LM-powered hypotheses for enhanced inference if LM is available
         let enhancedTasks = [...derivedTasks];
