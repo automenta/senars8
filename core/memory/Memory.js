@@ -35,6 +35,7 @@ class Memory {
         this._invalidTaskWarningTimeout = 30000; // 30 seconds
 
         this.addTerm = wrapAsync(this._addTerm.bind(this), 'Memory', 'addTerm', {rethrow: true});
+        this.addTask = wrapAsync(this._addTask.bind(this), 'Memory', 'addTask');
         this.addTasks = wrapAsync(this._addTasks.bind(this), 'Memory', 'addTasks');
         this.removeTask = wrapAsync(this._removeTask.bind(this), 'Memory', 'removeTask');
         this.getAllTasks = wrapAsync(this._getAllTasks.bind(this), 'Memory', 'getAllTasks', {defaultValue: []});
@@ -182,6 +183,10 @@ class Memory {
 
     getAllTerms() {
         return [...this.terms.values()];
+    }
+
+    async _addTask(task) {
+        return await this._addTasks([task]);
     }
 
     async _addTasks(tasks) {

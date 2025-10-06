@@ -36,12 +36,25 @@ describe('AStarPlanner Integration Test', () => {
         return term;
     };
 
+    const addImplication = (implicationKey, cost = null) => {
+        const term = new Term(implicationKey, [Math.random(), Math.random(), Math.random()]);
+        memory.addTerm(term);
+        if (cost !== null) {
+            memory.indexer.costIndex.set(implicationKey, cost);
+        }
+        return term;
+    };
+
     test('should find the cheapest plan, even if it is longer', async () => {
+        // Add implication: goal can be achieved by action_expensive (cost 10)
         addTerm('(goal ==> action_expensive)', 10);
         addTerm('action_expensive', 10);
+
+        // Add implication: goal can be achieved by doing both action_cheap1 and action_cheap2
         addTerm('(goal ==> (&&, action_cheap1, action_cheap2))');
         addTerm('action_cheap1', 2);
         addTerm('action_cheap2', 2);
+
         const goalTerm = addTerm('goal');
 
         const goalTask = new Task(goalTerm, '!', {
@@ -50,7 +63,9 @@ describe('AStarPlanner Integration Test', () => {
         const plan = await planner.findPlan(goalTask);
 
         expect(plan).not.toBeNull();
-        expect(plan.map(p => p.key)).toEqual(['action_cheap1', 'action_cheap2']);
+        // The planner should find the cheaper path (total cost 4) rather than the expensive path (cost 10)
+        const planKeys = plan.map(p => p.key);
+        expect(planKeys).toEqual(['action_cheap1', 'action_cheap2']);
     });
 
     test('should find a simple plan with one level of decomposition', async () => {

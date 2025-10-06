@@ -380,15 +380,42 @@ class NarseseParser {
     parseTermList(closingToken) {
         const terms = [];
         if (!this.match(closingToken)) {
-            do {
-                // Check recursion depth before recursive call
+            // Parse first term - only if current token is a valid term starter
+            if (this.current && [TOKEN.IDENTIFIER, TOKEN.STRING, TOKEN.LPAREN, TOKEN.LBRACE, TOKEN.LBRACKET,
+                 TOKEN.INDEPENDENT_VAR, TOKEN.DEPENDENT_VAR, TOKEN.QUERY_VAR, TOKEN.QUESTION,
+                 TOKEN.NUMBER, TOKEN.NEXT, TOKEN.PREVIOUS, TOKEN.ALWAYS, TOKEN.EVENTUALLY,
+                 TOKEN.UNTIL, TOKEN.SINCE].includes(this.current.type)) {
+
                 this.recursionDepth++;
                 if (this.recursionDepth > this.maxRecursionDepth) {
                     throw new Error(`Recursion depth exceeded maximum of ${this.maxRecursionDepth}`);
                 }
                 terms.push(this.parseTerm());
-                this.recursionDepth--; // Decrement after the call
-            } while (this.match(TOKEN.COMMA) && this.consume(TOKEN.COMMA));
+                this.recursionDepth--;
+            }
+
+            // Parse additional terms separated by commas
+            while (this.match(TOKEN.COMMA) && !this.match(closingToken)) {
+                this.consume(TOKEN.COMMA);
+
+                // Check if there's a term after the comma
+                if (!this.match(closingToken) && this.current &&
+                    [TOKEN.IDENTIFIER, TOKEN.STRING, TOKEN.LPAREN, TOKEN.LBRACE, TOKEN.LBRACKET,
+                     TOKEN.INDEPENDENT_VAR, TOKEN.DEPENDENT_VAR, TOKEN.QUERY_VAR, TOKEN.QUESTION,
+                     TOKEN.NUMBER, TOKEN.NEXT, TOKEN.PREVIOUS, TOKEN.ALWAYS, TOKEN.EVENTUALLY,
+                     TOKEN.UNTIL, TOKEN.SINCE].includes(this.current.type)) {
+
+                    this.recursionDepth++;
+                    if (this.recursionDepth > this.maxRecursionDepth) {
+                        throw new Error(`Recursion depth exceeded maximum of ${this.maxRecursionDepth}`);
+                    }
+                    terms.push(this.parseTerm());
+                    this.recursionDepth--;
+                } else if (!this.match(closingToken)) {
+                    // If we have a comma but no valid term after it, that's an error
+                    throw new Error(`Expected term after comma, found '${this.current?.type || 'EOF'}'`);
+                }
+            }
 
             // For temporal operators, also allow space-separated terms without commas
             // This handles cases like (&& first second) instead of (&&, first, second)
