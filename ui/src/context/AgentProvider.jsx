@@ -1,7 +1,8 @@
 import React, {createContext, useContext, useMemo} from 'react';
 import PropTypes from 'prop-types';
-import {connectionManager, useAgentState} from '@common';
 import AgentService from '../services/agentService';
+import {browserConnectionManager} from '@common/services/BrowserConnectionManager.js';
+import useAgentState from '@common/hooks/useAgentState.js'; // This hook should be browser-safe
 
 const AgentServiceContext = createContext(null);
 const AgentStateContext = createContext(null);
@@ -22,9 +23,18 @@ export const AgentProvider = ({children}) => {
         const wsUrl = import.meta.env.VITE_WS_URL || `ws://localhost:${import.meta.env.WS_PORT || 8081}`;
 
         console.log('Connecting to WebSocket:', wsUrl);
-        connectionManager.connect(wsUrl);
-        return new AgentService(wsUrl);
+        return new UiAgentService(wsUrl);
     }, []);
+
+    // Initialize connection
+    useMemo(() => {
+        agentService.connect();
+        
+        // Cleanup on unmount
+        return () => {
+            agentService.disconnect();
+        };
+    }, [agentService]);
 
     const agentState = useAgentState(agentService);
 

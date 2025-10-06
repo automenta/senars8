@@ -93,13 +93,22 @@ export class IntegratedWebRunner {
             root: path.resolve(__dirname, 'ui'),
             server: {
                 port: this.port,
-                host: 'localhost',
-                clearScreen: false
+                host: '0.0.0.0', // Allow external connections
+                strictPort: true, // Fail if port is busy
+                clearScreen: false,
+                // Better HMR configuration for development
+                hmr: {
+                    overlay: true, // Show overlay on errors
+                }
             },
             define: {
                 __WS_PORT__: this.wsPort,
-                __DEV_MODE__: true
-            }
+                __DEV_MODE__: true,
+                // Make sure environment is correctly set
+                'process.env.NODE_ENV': JSON.stringify('development')
+            },
+            // Enable better logging during development
+            logLevel: 'info'
         });
 
         await this.viteServer.listen();

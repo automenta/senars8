@@ -23,7 +23,9 @@
     "dev": "node main.js --web",
     "dev:ws": "WS_PORT=8081 node main.js --web",
     "web": "node integrated-web-runner.js",
+    "dev:web": "node integrated-web-runner.js", 
     "tui": "tsx tui/src/index.jsx",
+    "agent": "node agent/start-agent.js",
     "agent:ws": "WS_PORT=8081 node agent/start-agent.js",
     "test": "ORT_LOGGING_LEVEL=FATAL vitest --run",
     "test:ui": "ORT_LOGGING_LEVEL=FATAL vitest --ui",
@@ -32,9 +34,16 @@
     "test:core": "CI=true ORT_LOGGING_LEVEL=FATAL vitest run --project core",
     "test:watch": "ORT_LOGGING_LEVEL=FATAL vitest --watch --reporter=verbose",
     "test:integrated": "ORT_LOGGING_LEVEL=FATAL npx playwright test ui/tests/integrated-web-fixed.e2e.test.js",
+    "test:e2e": "npx playwright test",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "slides": "slidev docs/slides.md"
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "clean": "rm -rf node_modules package-lock.json && npm install",
+    "build": "vite build --config ui/vite.config.js",
+    "build:ui": "cd ui && npm run build",
+    "slides": "slidev docs/slides.md",
+    "prepare": "husky install || true"
   },
   "repository": {
     "type": "git",

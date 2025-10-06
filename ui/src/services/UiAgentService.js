@@ -1,59 +1,19 @@
-import * as Y from 'yjs';
-import {WebsocketProvider} from 'y-websocket';
+/**
+ * UI-specific Agent Service that works in browser environment
+ * This replaces the BaseUiAgentService for browser usage
+ */
+import {EventEmitter} from 'events';
 import logger from '@ui/utils/uiLogger.js';
 
-// Default config for collaborative editing
-const DEFAULT_CONFIG = {
-    CONNECTION: {
-        CRDT_WEBSOCKET_URL: 'ws://localhost:8082' // Default collaborative editing WebSocket
-    }
-};
-
-// Simple EventEmitter implementation
-class EventEmitter {
-    constructor() {
-        this._events = {};
-    }
-
-    on(event, callback) {
-        if (!this._events[event]) {
-            this._events[event] = [];
-        }
-        this._events[event].push(callback);
-    }
-
-    off(event, callback) {
-        if (this._events[event]) {
-            this._events[event] = this._events[event].filter(cb => cb !== callback);
-        }
-    }
-
-    emit(event, data) {
-        if (this._events[event]) {
-            this._events[event].forEach(callback => callback(data));
-        }
-    }
-}
-
-/**
- * A high-level service for the Web UI with Web UI-specific features like collaborative editing (Y.js).
- */
-class AgentService extends EventEmitter {
+class UiAgentService extends EventEmitter {
     constructor(url) {
         super();
-        
         this.url = url;
-        this.logger = logger.create('AgentServiceUI');
-        this.crdtUrl = DEFAULT_CONFIG.CONNECTION.CRDT_WEBSOCKET_URL;
-
-        // Y.js for collaborative editing
-        this.yDoc = new Y.Doc();
-        this.yProvider = null;
-        this.awareness = null;
-
-        // Initialize WebSocket connection
+        this.logger = logger.create('UiAgentService');
         this.connection = null;
         this.isConnected = false;
+
+        // Local state cache for UI performance
         this.agentState = {
             isRunning: false,
             cycleCount: 0,
@@ -67,29 +27,7 @@ class AgentService extends EventEmitter {
     }
 
     /**
-     * Event system - simple implementation
-     */
-    on(event, callback) {
-        if (!this._events[event]) {
-            this._events[event] = [];
-        }
-        this._events[event].push(callback);
-    }
-
-    off(event, callback) {
-        if (this._events[event]) {
-            this._events[event] = this._events[event].filter(cb => cb !== callback);
-        }
-    }
-
-    emit(event, data) {
-        if (this._events[event]) {
-            this._events[event].forEach(callback => callback(data));
-        }
-    }
-
-    /**
-     * Connect to the agent
+     * Connect to the agent via WebSocket
      */
     connect() {
         if (!this.url) {
@@ -111,9 +49,6 @@ class AgentService extends EventEmitter {
             this.sendMessage('get_tasks');
             this.sendMessage('get_beliefs');
             this.sendMessage('get_goals');
-            
-            // Setup collaborative editing when connected
-            this.setupCollaborativeEditing();
         };
 
         this.connection.onmessage = (event) => {
@@ -147,14 +82,6 @@ class AgentService extends EventEmitter {
             this.connection.close();
             this.connection = null;
             this.isConnected = false;
-        }
-        
-        // Clean up collaborative editing
-        if (this.yProvider) {
-            this.yProvider.destroy();
-            this.yProvider = null;
-            this.awareness = null;
-            this.logger.info('Collaborative editing service disconnected.');
         }
     }
 
@@ -213,22 +140,6 @@ class AgentService extends EventEmitter {
     }
 
     /**
-     * Sets up the Y.js WebSocket provider for collaborative editing.
-     */
-    setupCollaborativeEditing() {
-        if (!this.yProvider) {
-            try {
-                this.yProvider = new WebsocketProvider(this.crdtUrl, 'senars-room', this.yDoc);
-                this.awareness = this.yProvider.awareness;
-                this.awareness.on('change', () => this.emit('awareness_change'));
-                this.logger.info('Collaborative editing service connected.');
-            } catch (error) {
-                this.logger.error('Error setting up collaborative editing:', error);
-            }
-        }
-    }
-
-    /**
      * Get current agent state
      */
     getAgentState() {
@@ -278,4 +189,4 @@ class AgentService extends EventEmitter {
     }
 }
 
-export default AgentService;
+export default UiAgentService;

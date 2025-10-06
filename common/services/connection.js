@@ -115,7 +115,7 @@ class ConnectionManager extends EventEmitter {
         if (this.connections.has(url)) return this.connections.get(url);
 
         // Determine WebSocket implementation for this environment
-        const WSImpl = this._getWebSocketImplementation();
+        const WSImpl = this._getWebSocketImplementationSync();
 
         const ws = new WSImpl(url);
         this._setupConnectionHandlers(ws, url);
@@ -246,7 +246,7 @@ class ConnectionManager extends EventEmitter {
     }
 
     _getConnectionStatus(readyState) {
-        const WSImpl = this._getWebSocketImplementation();
+        const WSImpl = this._getWebSocketImplementationSync();
 
         const states = {
             [WSImpl.CONNECTING]: 'connecting',
@@ -269,13 +269,25 @@ class ConnectionManager extends EventEmitter {
         this.removeAllListeners();
     }
 
-    _getWebSocketImplementation() {
+    async _getWebSocketImplementation() {
         if (typeof window !== 'undefined' && typeof window.WebSocket !== 'undefined') {
             // Browser environment
             return window.WebSocket;
         } else {
             // Node.js environment - import 'ws' dynamically
-            // Use dynamic import to avoid bundling issues
+            const wsModule = await import('ws');
+            return wsModule.default || wsModule;
+        }
+    }
+
+    // Synchronous version for environments where async isn't suitable
+    _getWebSocketImplementationSync() {
+        if (typeof window !== 'undefined' && typeof window.WebSocket !== 'undefined') {
+            // Browser environment
+            return window.WebSocket;
+        } else {
+            // Node.js environment - import 'ws'
+            // Using require for compatibility with CommonJS in Node.js
             const wsModule = require('ws');
             return wsModule.default || wsModule;
         }
