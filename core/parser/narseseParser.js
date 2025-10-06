@@ -172,6 +172,17 @@ class NarseseParser {
             if (this.current?.type in BINARY_RELATION_MAP) {
                 const relationType = BINARY_RELATION_MAP[this.current.type];
                 term = this.parseBinaryRelation(left, this.current.type, relationType);
+                // After parsing binary relation, consume the closing parenthesis
+                // Calculate end position before consuming the RPAREN (using the token's position)
+                const end = this.current.offset + this.current.text.length;
+                this.consume(TOKEN.RPAREN);
+                
+                // Assign the original string segment as the key for the compound term
+                if (term && typeof term === 'object' && !term.key) {
+                    term.key = this.input.substring(start, end);
+                }
+                
+                return term;
             } else if (this.current?.type in BINARY_OPERATOR_MAP) {
                 const terms = [left];
                 const operator = this.current.type;
@@ -194,6 +205,7 @@ class NarseseParser {
             }
         }
 
+        // Calculate end position before consuming the RPAREN
         const end = this.current.offset + this.current.text.length;
         this.consume(TOKEN.RPAREN);
 
@@ -234,9 +246,8 @@ class NarseseParser {
         if (this.recursionDepth > this.maxRecursionDepth) {
             throw new Error(`Recursion depth exceeded maximum of ${this.maxRecursionDepth}`);
         }
-        const predicate = this.match(TOKEN.RPAREN) ? null : this.parseTerm();
+        const predicate = this.parseTerm();
         this.recursionDepth--; // Decrement after the call
-        // this.consume(TOKEN.RPAREN); // This was the bug
         return {
             type: relationType,
             subject,

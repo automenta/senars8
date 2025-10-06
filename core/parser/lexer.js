@@ -8,13 +8,9 @@ const WHITESPACE = {
 };
 
 const PUNCTUATION = {
-    lparen: /[<(]/,
-    rparen: /[>)]/,
-    lbrace: '{',
-    rbrace: '}',
-    lbracket: '[',
-    rbracket: ']',
-    comma: ',',
+    // Multi-character operators first to avoid conflicts with single chars
+    equivalence: '<=>',
+    similarity: '<->',
     arrow: '-->',
     implies: '==>',
     instance: '{--',
@@ -22,16 +18,22 @@ const PUNCTUATION = {
     sequentialConjunction: '&&',
     parallelConjunction: '&|',
     negation: '--',
+    retrospection: '=/>',
+    prediction: '=\\\\>',
+    concurrent: '<>',
+    
+    // Single character operators after
+    lparen: /[<(]/,
+    rparen: /[>)]/,
+    lbrace: '{',
+    rbrace: '}',
+    lbracket: '[',
+    rbracket: ']',
+    comma: ',',
     conjunction: '&',
     disjunction: '||',
-    intensionalDifference: '\\',
-    product: '*',
-
-    equivalence: '<=>',
-    similarity: '<->',
-    retrospection: '=/>',
-    prediction: '=\\>',
-    concurrent: '<>'
+    intensionalDifference: '\\\\',
+    product: '*'
 };
 
 const TEMPORAL = {
@@ -51,11 +53,11 @@ const STATEMENT_PUNCTUATION = {
 };
 
 const LITERALS = {
-    string: /"[^"]*"/,
+    string: /\"[^\"]*\"/,
     dependentVar: /#\w*/,
     queryVar: /\?\w+/,
     independentVar: /\$\w+/,
-    identifier: /[a-zA-Z_][a-zA-Z0-9_]*/,
+    identifier: /[a-zA-Z_][a-zA-Z0-9_-]*/,
     number: /\d+(?:\.\d+)?/,
 };
 
