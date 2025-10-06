@@ -16,9 +16,9 @@ process.on('uncaughtException', (error) => handleError(error, 'TUI startup faile
 process.on('unhandledRejection', (reason) => handleError(reason, 'Unhandled promise rejection'));
 
 // Main TUI startup function
-const startTui = async () => {
+const startTui = async (initialMode = 'agent') => {
     try {
-        console.log('🚀 Starting SeNARS TUI...');
+        console.log(`🚀 Starting SeNARS TUI in ${initialMode} mode...`);
 
         // Import dependencies
         const {render} = await import('ink');
@@ -27,35 +27,33 @@ const startTui = async () => {
 
         // Environment detection
         const isRawModeSupported = process.stdin.isTTY && process.stdin.setRawMode;
-        const isDevelopment = process.env.NODE_ENV === 'development';
 
         if (!isRawModeSupported) {
             console.log(getMessage('LIMITED_INPUT'));
         }
 
-        // Initialize application
-        const app = render(React.default.createElement(App.default, {
-            onExit: () => isDevelopment && console.log('✅ TUI exited gracefully')
-        }), {
+        // Initialize application with proper raw mode handling
+        const renderOptions = {
             exitOnCtrlC: true,
             patchConsole: false,
-            stdin: isRawModeSupported ? process.stdin : undefined,
             stdout: process.stdout,
             stderr: process.stderr
-        });
+        };
 
-        // Graceful shutdown handler
+        // Only add stdin if raw mode is supported
+        if (isRawModeSupported) {
+            renderOptions.stdin = process.stdin;
+        }
+
+        const app = render(React.default.createElement(App.default, {initialMode}), renderOptions);
+
+        // Simplified shutdown handler
         const shutdown = (signal) => {
-            if (isDevelopment) {
-                console.log(`\n🛑 Shutting down TUI (${signal})...`);
-            }
-
             try {
                 app?.unmount();
             } catch (error) {
-                handleError(error, 'Shutdown error');
+                console.error('Shutdown error:', error.message);
             }
-
             process.exit(TUI_CONSTANTS.EXIT_CODES.SUCCESS);
         };
 
@@ -63,53 +61,30 @@ const startTui = async () => {
         process.on('SIGINT', () => shutdown('SIGINT'));
         process.on('SIGTERM', () => shutdown('SIGTERM'));
 
-        // Enhanced input handling for raw mode
-        if (isRawModeSupported) {
-            process.stdin.setRawMode(true);
-            process.stdin.resume();
-            process.stdin.on('data', (key) => {
-                if (key[0] === 3) { // Ctrl+C
-                    shutdown('Ctrl+C');
-                }
-            });
-        } else {
-            // Fallback for non-raw mode
-            process.stdin.on('data', (data) => {
-                const input = data.toString().trim().toLowerCase();
-                if (['quit', 'exit'].includes(input)) {
-                    shutdown('quit command');
-                }
-            });
-        }
-
-        // Development diagnostics
-        if (isDevelopment) {
-            setTimeout(() => {
-                console.log(`${getMessage('SIGNAL_TEST')} ${process.listeners('SIGINT').length}`);
-            }, getTimeout('SIGNAL_TEST'));
-        }
-
-        // Startup timeout protection
-        const startupTimeout = setTimeout(() => {
-            console.log(getMessage('STARTUP_TIMEOUT'));
-            shutdown('timeout');
-        }, getTimeout('STARTUP'));
-
-        // Clear timeout after successful startup
+        // Basic startup completion
         setTimeout(() => {
-            clearTimeout(startupTimeout);
             console.log(getMessage('STARTED'));
             if (isRawModeSupported) {
                 console.log(getMessage('PRESS_CTRL_C'));
             } else {
                 console.log(getMessage('TYPE_QUIT'));
             }
-        }, getTimeout('CLEANUP_DELAY'));
+        }, 100);
 
     } catch (error) {
         handleError(error, 'Failed to start TUI');
     }
 };
 
+// Parse command line arguments
+const parseArgs = () => {
+    const args = process.argv.slice(2);
+    const modeArg = args.find(arg => arg.startsWith('--mode='));
+    return {
+        mode: modeArg ? modeArg.split('=')[1] : 'agent'
+    };
+};
+
 // Start the application
-startTui().catch(handleError);
+const {mode} = parseArgs();
+startTui(mode).catch(handleError);

@@ -1,6 +1,6 @@
 import React, {useSyncExternalStore} from 'react';
 import PropTypes from 'prop-types';
-import notificationService from '@/services/notificationService';
+import notificationService from '../../services/notificationService.js';
 import {Trash2, X} from 'lucide-react';
 import './style.css';
 

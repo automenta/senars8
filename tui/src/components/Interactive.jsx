@@ -30,6 +30,11 @@ export const Button = memo(({
             hover: theme.colors.text,
             active: theme.colors.textMuted,
         },
+        default: {
+            normal: theme.colors.text,
+            hover: theme.colors.text,
+            active: theme.colors.textMuted,
+        },
         success: {
             normal: theme.colors.success,
             hover: '#00E676',
@@ -44,6 +49,11 @@ export const Button = memo(({
             normal: theme.colors.error,
             hover: '#FF3742',
             active: '#D32F2F',
+        },
+        info: {
+            normal: theme.colors.info,
+            hover: '#74B9FF',
+            active: '#0984E3',
         },
     }), []);
 
@@ -229,6 +239,8 @@ export const Badge = memo(({
         warning: theme.colors.warning,
         error: theme.colors.error,
         primary: theme.colors.primary,
+        secondary: theme.colors.secondary,
+        default: theme.colors.text,
     }), []);
 
     const sizes = useMemo(() => ({

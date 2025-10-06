@@ -29,6 +29,8 @@
     "tui": "tsx tui/src/index.jsx",
     "tui:dev": "tsx tui/src/index.jsx",
     "tui:debug": "SENARS_LOG_LEVEL=debug node --inspect tui/src/index.jsx",
+    "tui:demos": "tsx tui/src/index.jsx --mode=demos",
+    "demos": "npm run tui:demos",
     "debug:util": "node debug-util.js",
     "agent": "node agent/start-agent.js",
     "agent:ws": "WS_PORT=8081 node agent/start-agent.js",

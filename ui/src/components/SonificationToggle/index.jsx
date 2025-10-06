@@ -1,5 +1,5 @@
 import React from 'react';
-import {useSettings} from '@/context/useSettings';
+import {useSettings} from '../../context/useSettings.jsx';
 import {Volume2, VolumeX} from 'lucide-react';
 import './style.css';
 

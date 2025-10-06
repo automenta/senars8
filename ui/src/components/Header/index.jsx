@@ -1,5 +1,5 @@
 import React from 'react';
-import {GlobalSearch} from '@ui/components';
+import {GlobalSearch} from '../GlobalSearch/index.jsx';
 
 const Header = () => (
     <header className="app-header" role="banner">

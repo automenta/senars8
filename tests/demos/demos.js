@@ -11,7 +11,7 @@ const DEMO_DIR = path.dirname(new URL(import.meta.url).pathname);
 
 function getDemoFiles() {
     const files = fs.readdirSync(DEMO_DIR)
-        .filter(file => file.endsWith('-demo.js') && file !== 'run-all.js' && file !== 'interactive-runner.js');
+        .filter(file => file.endsWith('-demo.js') && file !== 'run-all.js' && file !== 'demos.js');
 
     const demos = files.map(file => {
         const content = fs.readFileSync(path.join(DEMO_DIR, file), 'utf-8');

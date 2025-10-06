@@ -1,8 +1,8 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import AceEditor from 'react-ace';
-import {useSharedState} from '@/context/useSharedState';
-import {useConnection} from '@/context/useConnection';
-import notificationService from '@/services/notificationService';
+import {useSharedState} from '../../../context/useSharedState';
+import {useConnection} from '../../../context/useConnection';
+import notificationService from '../../../services/notificationService';
 import log from '@core/utils/logger.js';
 import './NarseseMode'; // Import our custom Narsese mode
 import './style.css';

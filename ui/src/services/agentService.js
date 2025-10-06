@@ -1,7 +1,7 @@
 import * as Y from 'yjs';
 import {WebsocketProvider} from 'y-websocket';
-import logger from '@ui/utils/uiLogger.js';
-import {CONFIG} from '@common/constants/config.js';
+import logger from '../utils/uiLogger.js';
+import {CONFIG} from '../../../common/constants/config.js';
 
 // Use the shared config for collaborative editing
 const DEFAULT_CONFIG = {

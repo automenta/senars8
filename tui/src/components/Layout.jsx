@@ -6,8 +6,8 @@ import {createStyledBorder, theme} from '../theme.js';
 const useScreenSize = () => {
     const {stdout} = useStdin();
     const [dimensions, setDimensions] = useState({
-        width: 120,
-        height: 30
+        width: 140,
+        height: 35
     });
 
     useEffect(() => {
@@ -254,11 +254,12 @@ export const SplitPane = memo(({
 
 // Responsive main layout for the TUI - optimized with memoization
 export const MainLayout = memo(({
-                                    children,
-                                    showSidebar = true,
-                                    sidebarWidth = 35,
-                                    ...props
-                                }) => {
+                                     children,
+                                     showSidebar = true,
+                                     sidebarWidth = 35,
+                                     adaptive = true,
+                                     ...props
+                                 }) => {
     const screenSize = useScreenSize();
 
     // Memoize sidebar visibility calculation
@@ -267,10 +268,20 @@ export const MainLayout = memo(({
         [showSidebar, screenSize.isSmall]
     );
 
-    // Memoize sidebar width calculation
-    const sidebarWidthPercent = useMemo(() =>
-            screenSize.isLarge ? `${sidebarWidth}%` : `${sidebarWidth + 10}%`,
-        [screenSize.isLarge, sidebarWidth]
+    // Adaptive sidebar width based on screen size and content
+    const sidebarWidthPercent = useMemo(() => {
+        if (!adaptive) return `${sidebarWidth}%`;
+
+        if (screenSize.isSmall) return '100%'; // Stack vertically on small screens
+        if (screenSize.width < 100) return '45%'; // Narrower on medium-small
+        if (screenSize.width < 140) return '40%'; // Standard on medium
+        return '35%'; // More space for content on large screens
+    }, [adaptive, sidebarWidth, screenSize.isSmall, screenSize.width]);
+
+    // Adaptive spacing based on screen size
+    const adaptiveSpacing = useMemo(() =>
+        screenSize.isSmall ? theme.spacing.sm : theme.spacing.md,
+        [screenSize.isSmall]
     );
 
     if (React.Children.count(children) !== 2) {
@@ -287,15 +298,30 @@ export const MainLayout = memo(({
         );
     }
 
+    // Use column layout on very small screens for better space utilization
+    if (screenSize.isSmall) {
+        return (
+            <Container flexDirection="column" {...props}>
+                <Box flexDirection="column" marginBottom={adaptiveSpacing}>
+                    {mainContent}
+                </Box>
+                <Box flexDirection="column">
+                    {sidebarContent}
+                </Box>
+            </Container>
+        );
+    }
+
     return (
         <Container flexDirection="row" {...props}>
-            <Box flexDirection="column" flexGrow={1}>
+            <Box flexDirection="column" flexGrow={1} minWidth={screenSize.isSmall ? '100%' : '60%'}>
                 {mainContent}
             </Box>
             <Box
                 flexDirection="column"
                 width={sidebarWidthPercent}
-                marginLeft={theme.spacing.md}
+                marginLeft={adaptiveSpacing}
+                minWidth={20}
             >
                 {sidebarContent}
             </Box>

@@ -13,7 +13,8 @@
     "test": "vitest --run",
     "test:e2e": "vitest --run tests/e2e.tui.test.js",
     "capture": "node capture-tui.js",
-    "demo": "node tests/TuiDemo.js"
+    "demo": "node tests/TuiDemo.js",
+    "demos": "tsx src/index.jsx --mode=demos"
   },
   "dependencies": {
     "@senars/common": "*",

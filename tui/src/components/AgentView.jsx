@@ -63,8 +63,8 @@ const AgentView = ({agentService, globalFocusManager}) => {
 
     return (
         <Container flexDirection="column" width="100%">
-            {/* Modern Tab Navigation */}
-            <Card variant="primary" padding={theme.spacing.sm} marginBottom={theme.spacing.sm}>
+            {/* Compact Tab Navigation and Controls */}
+            <Card variant="primary" padding={theme.spacing.sm} marginBottom={theme.spacing.xs}>
                 <Flex justifyContent="space-between" alignItems="center">
                     <TabBar
                         tabs={tabs}
@@ -80,33 +80,21 @@ const AgentView = ({agentService, globalFocusManager}) => {
                 </Flex>
             </Card>
 
-            {/* Modern Agent Control Panel */}
-            <Card variant="success" padding={theme.spacing.md} marginBottom={theme.spacing.sm}>
-                <Flex alignItems="center" gap={theme.spacing.md}>
-                    <Text bold color={theme.colors.primary}>🤖 Agent Control:</Text>
-                    <Button variant="success" onClick={() => handleAgentControl('start')}>
-                        ▶️ Start
-                    </Button>
-                    <Button variant="warning" onClick={() => handleAgentControl('stop')}>
-                        ⏹️ Stop
-                    </Button>
-                    <Button variant="error" onClick={() => handleAgentControl('reset')}>
-                        🔄 Reset
-                    </Button>
-                </Flex>
-            </Card>
-
-            {/* Modern Tab Content with Enhanced Layout */}
-            <Box flexGrow={1}>
+            {/* Modern Tab Content with Compact Layout */}
+            <Box flexGrow={1} flexDirection="column">
                 {activeTab === 'status' && (
-                    <Panel title="📊 Agent Status" variant="primary">
+                    <Box flexGrow={1}>
                         <StatusPanel agentService={agentService}/>
-                    </Panel>
+                    </Box>
                 )}
                 {activeTab === 'tasks' && (
-                    <Panel title="⚡ Task Management" variant="warning">
+                    <Box flexGrow={1}>
                         <TasksPanel
-                            tasks={[]} // This should come from agent state
+                            tasks={[
+                                {termKey: '(learn --> narsese)', punctuation: '.'},
+                                {termKey: 'understand!', punctuation: '!'},
+                                {termKey: '(code --> write)', punctuation: '.'}
+                            ]}
                             onExecuteTask={(task) => {
                                 agentService.sendMessage('task_action', {action: 'execute', task});
                             }}
@@ -120,21 +108,21 @@ const AgentView = ({agentService, globalFocusManager}) => {
                                 });
                             }}
                         />
-                    </Panel>
+                    </Box>
                 )}
                 {activeTab === 'log' && (
-                    <Panel title="📝 System Logs" variant="info">
+                    <Box flexGrow={1}>
                         <LogPanel agentService={agentService}/>
-                    </Panel>
+                    </Box>
                 )}
                 {activeTab === 'input' && (
-                    <Panel title="💬 Message Input" variant="secondary">
+                    <Box flexGrow={1}>
                         <MessageInput
                             agentService={agentService}
                             onMessageSent={handleMessageSent}
                             history={messageHistory}
                         />
-                    </Panel>
+                    </Box>
                 )}
             </Box>
         </Container>

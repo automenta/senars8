@@ -1,6 +1,6 @@
 import React, {useEffect, useState, useSyncExternalStore} from 'react';
-import agentService from '@/services/agentService';
-import notificationService from '@/services/notificationService';
+import agentService from '../../services/agentService.js';
+import notificationService from '../../services/notificationService.js';
 import Toast from '../Toast';
 import './style.css';
 

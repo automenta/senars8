@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Box, Text} from 'ink';
+import {Box, Text, useInput} from 'ink';
 import PropTypes from 'prop-types';
 
 const TasksPanel = ({tasks = [], onExecuteTask, onAddTask}) => {

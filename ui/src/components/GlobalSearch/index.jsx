@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {useSearch} from '@/context/SearchContext';
+import {useSearch} from '../../context/SearchContext.jsx';
 import {Brain, FileText, Globe, Search as SearchIcon, X, Zap} from 'lucide-react';
 import './style.css';
 

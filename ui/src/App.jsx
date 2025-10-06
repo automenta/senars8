@@ -1,13 +1,13 @@
 import React, {useCallback} from 'react';
 import {Layout} from 'flexlayout-react';
 import 'flexlayout-react/style/light.css';
-import panelRegistry from '@/features/panelRegistry';
-import {ErrorBoundary, Header, StatusBar} from '@ui/components';
-import useAppInit from '@/hooks/useAppInit';
-import useLayoutModel from '@/hooks/useLayoutModel';
-import {useTheme} from '@/context/ThemeProvider';
-import {SearchProvider} from '@/context/SearchContext';
-import {NotificationProvider} from '@/context/NotificationContext';
+import panelRegistry from './features/panelRegistry';
+import {ErrorBoundary, Header, StatusBar} from '../common/services/UiComponents';
+import useAppInit from './hooks/useAppInit';
+import useLayoutModel from './hooks/useLayoutModel';
+import {useTheme} from './context/ThemeProvider';
+import {SearchProvider} from './context/SearchContext';
+import {NotificationProvider} from './context/NotificationContext';
 import './App.css';
 
 function App() {

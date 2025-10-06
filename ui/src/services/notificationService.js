@@ -1,6 +1,6 @@
-import {EventBus} from '@common/utils/eventBus.js';
-import log from '@core/utils/logger.js';
-import {NOTIFICATION_TYPES, UI_CONSTANTS} from '@/constants/ui';
+import {EventBus} from '../../../common/utils/eventBus.js';
+import log from '../../../core/utils/logger.js';
+import {NOTIFICATION_TYPES, UI_CONSTANTS} from '../constants/ui';
 
 class NotificationService extends EventBus {
     constructor() {
