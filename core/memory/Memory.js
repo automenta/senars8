@@ -10,6 +10,7 @@ import {createError} from '../utils/errorHandler.js';
 import {wrapAsync} from '../utils/asyncWrapper.js';
 import {SystemEvents} from '../system/SystemEvents.js';
 import {SystemCommands} from '../system/SystemCommands.js';
+import Bag from '../utils/bag.js';
 
 const FORGETTING_STRATEGIES = {
     TimeBased: TimeBasedForgettingStrategy,
@@ -35,6 +36,13 @@ class Memory {
         this._recentTasksCache = new Map();
         this._semanticCache = new Map();
         this._termRelationshipCache = new Map();
+
+        // Bag-based collections for capacity-limited prioritized task management
+        this._focusSetBag = new Bag(this.config.getNumber('FOCUS_SET_SIZE', 20));
+        this._recentTasksBag = new Bag(this.config.getNumber('RECENT_TASKS_CACHE_SIZE', 50));
+        this._priorityTasksBag = new Bag(this.config.getNumber('PRIORITY_TASKS_BAG_SIZE', 100));
+        this._semanticTasksBag = new Bag(this.config.getNumber('SEMANTIC_TASKS_BAG_SIZE', 30));
+
         this._loadForgettingStrategy();
         this._registerEventListeners();
         this._registerCommandHandlers();
@@ -401,7 +409,75 @@ class Memory {
 
     _finalizeTaskProcessing(count) {
         this._invalidateCachedTasks();
+        this._updateBagCollections();
         debug(`Added ${count} tasks.`);
+    }
+
+    _updateBagCollections() {
+        const allTasks = this._collectAllTasks();
+
+        // Update priority tasks bag with current tasks
+        this._priorityTasksBag.clear();
+        for (const task of allTasks) {
+            this._priorityTasksBag.put(task, task.state.priority);
+        }
+
+        // Update recent tasks bag
+        this._recentTasksBag.clear();
+        for (const task of allTasks) {
+            this._recentTasksBag.put(task, Number(task.state.stamp.creationTime));
+        }
+    }
+
+    /**
+     * Get tasks using Bag-based statistical sampling for fair priority selection
+     * @param {number} count - Number of tasks to sample
+     * @returns {Array} - Array of sampled tasks
+     */
+    getTasksByBagSampling(count = 20) {
+        if (count <= 0) return [];
+
+        // Use priority bag for statistical sampling
+        const sampledTasks = this._priorityTasksBag.sampleMultipleUnique(count);
+
+        // Sort by priority for consistent ordering
+        return sampledTasks.sort((a, b) => b.state.priority - a.state.priority);
+    }
+
+    /**
+     * Get recent tasks using Bag-based sampling
+     * @param {number} count - Number of tasks to sample
+     * @returns {Array} - Array of sampled recent tasks
+     */
+    getRecentTasksByBagSampling(count = 10) {
+        if (count <= 0) return [];
+
+        // Use recent tasks bag for statistical sampling
+        const sampledTasks = this._recentTasksBag.sampleMultipleUnique(count);
+
+        // Sort by creation time for consistent ordering
+        return sampledTasks.sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime));
+    }
+
+    /**
+     * Add task to semantic bag for semantic similarity-based collections
+     * @param {Task} task - Task to add
+     * @param {number} semanticScore - Semantic similarity score
+     */
+    addTaskToSemanticBag(task, semanticScore = 0.5) {
+        this._semanticTasksBag.put(task, semanticScore);
+    }
+
+    /**
+     * Get semantically similar tasks using Bag-based sampling
+     * @param {number} count - Number of tasks to sample
+     * @returns {Array} - Array of semantically sampled tasks
+     */
+    getSemanticTasksByBagSampling(count = 5) {
+        if (count <= 0) return [];
+
+        const sampledTasks = this._semanticTasksBag.sampleMultipleUnique(count);
+        return sampledTasks.sort((a, b) => b.state.priority - a.state.priority);
     }
 
     _getInvalidTaskSignature(task) {
@@ -786,36 +862,21 @@ class Memory {
     _getHighestPriorityTasksWithPQ(tasks, k) {
         if (k <= 0) return [];
 
-        const pq = new MinPriorityQueue({priority: task => task.state.priority});
+        // Use Bag for statistical priority sampling instead of strict priority queue
+        const bag = new Bag(k);
 
-        // Single pass: build heap with early termination optimization
-        for (let i = 0; i < tasks.length && pq.size() < k; i++) {
-            pq.enqueue(tasks[i]);
+        // Add all tasks to bag - this provides fair priority-based sampling
+        for (const task of tasks) {
+            bag.put(task, task.state.priority);
         }
 
-        // For remaining tasks, only compare if priority might be higher
-        const minPriority = pq.size() > 0 ? pq.front().priority : -Infinity;
-        for (let i = k; i < tasks.length; i++) {
-            if (tasks[i].state.priority > minPriority) {
-                pq.dequeue();
-                pq.enqueue(tasks[i]);
-            }
-        }
+        // Sample k items using statistical priority sampling
+        const sampledTasks = bag.sampleMultipleUnique(k);
 
-        return this._extractFromPriorityQueue(pq);
+        // Sort sampled tasks by priority for consistent ordering
+        return sampledTasks.sort((a, b) => b.state.priority - a.state.priority);
     }
 
-    _extractFromPriorityQueue(pq) {
-        const size = pq.size();
-        if (size === 0) return [];
-
-        // Pre-allocate with exact size for better memory efficiency
-        const result = new Array(size);
-        for (let i = size - 1; i >= 0; i--) {
-            result[i] = pq.dequeue().element;
-        }
-        return result;
-    }
 
     async _getHighestPriorityTasks(k = 20) {
         if (k <= 0) return [];
@@ -970,27 +1031,19 @@ class Memory {
             return result;
         }
 
-        // For small count relative to total tasks, use a min-heap to efficiently
-        // track the 'count' most recent tasks without sorting all
-        const pq = new MinPriorityQueue({
-            priority: task => Number(task.state.stamp.creationTime)
-        });
+        // For small count relative to total tasks, use Bag for statistical sampling
+        // of most recent tasks based on creation time
+        const bag = new Bag(count);
 
         for (const task of allTasks) {
-            if (pq.size() < count) {
-                pq.enqueue(task);
-            } else if (Number(task.state.stamp.creationTime) > pq.front().priority) {
-                pq.dequeue();
-                pq.enqueue(task);
-            }
+            bag.put(task, Number(task.state.stamp.creationTime));
         }
 
-        // Extract items in descending order - pre-allocate result array to avoid multiple allocations
-        const result = new Array(pq.size());
-        let i = result.length - 1;
-        while (!pq.isEmpty()) {
-            result[i--] = pq.dequeue().element;
-        }
+        // Sample tasks using statistical priority sampling
+        const sampledTasks = bag.sampleMultipleUnique(count);
+
+        // Sort by creation time (most recent first) for consistent ordering
+        return sampledTasks.sort((a, b) => Number(b.state.stamp.creationTime) - Number(a.state.stamp.creationTime));
 
         this._setCachedRecentTasks(count, result);
         return result;

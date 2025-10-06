@@ -4,6 +4,8 @@ import {wrapAsync} from '../utils/asyncWrapper.js';
 import {configService} from '../config/index.js';
 import {SystemCommands} from './SystemCommands.js';
 import {SystemEvents} from './SystemEvents.js';
+import Bag from '../utils/bag.js';
+import Bag from '../utils/bag.js';
 
 const errorHandler = createUnifiedErrorHandler('Cycle');
 
@@ -39,6 +41,10 @@ class Cycle {
         this._systemLoadHistory = [];
         this._baseCycleInterval = this.config.getNumber('CYCLE_BASE_INTERVAL_MS', 100);
         this._adaptiveCycleInterval = this._baseCycleInterval;
+
+        // Bag-based focus set management for non-greedy priority sampling
+        this._focusSetBag = new Bag(this.config.getNumber('FOCUS_SET_SIZE', 20));
+        this._diversityBag = new Bag(this.config.getNumber('FOCUS_SET_DIVERSITY_SIZE', 10));
 
         this.runOnce = wrapAsync(this._runOnce.bind(this), 'Cycle', 'runOnce');
     }
@@ -119,6 +125,69 @@ class Cycle {
         }
 
         return focusSet;
+    }
+
+    async _selectFocusSetWithBagSampling(focusSetSize) {
+        try {
+            // Get base tasks using memory's Bag-based sampling
+            const baseTasks = await this.commandBus.request(SystemCommands.MEMORY_GET_HIGHEST_PRIORITY_TASKS, focusSetSize * 2);
+
+            if (!baseTasks || baseTasks.length === 0) {
+                return [];
+            }
+
+            // Use Bag for non-greedy priority-based sampling
+            this._focusSetBag.clear();
+            for (const task of baseTasks) {
+                this._focusSetBag.put(task, task.state.priority);
+            }
+
+            // Sample using statistical priority sampling
+            const sampledTasks = this._focusSetBag.sampleMultipleUnique(focusSetSize);
+
+            // Add diversity sampling for better coverage
+            const diversityTasks = this._addDiversitySampling(baseTasks, sampledTasks, focusSetSize);
+
+            // Combine and deduplicate
+            const combinedSet = [...sampledTasks, ...diversityTasks];
+            const uniqueTasks = this._deduplicateTasks(combinedSet);
+
+            return uniqueTasks.slice(0, focusSetSize);
+
+        } catch (error) {
+            errorHandler.handle(error, `_selectFocusSetWithBagSampling`);
+            // Fallback to basic priority selection on error
+            return await this.commandBus.request(SystemCommands.MEMORY_GET_HIGHEST_PRIORITY_TASKS, focusSetSize);
+        }
+    }
+
+    _addDiversitySampling(baseTasks, currentTasks, targetSize) {
+        if (currentTasks.length >= targetSize) return [];
+
+        const currentTaskIds = new Set(currentTasks.map(t => t.id));
+        const remainingTasks = baseTasks.filter(t => !currentTaskIds.has(t.id));
+
+        if (remainingTasks.length === 0) return [];
+
+        // Use diversity bag for different sampling strategy
+        this._diversityBag.clear();
+        for (const task of remainingTasks) {
+            // Use a combination of priority and recency for diversity
+            const diversityScore = task.state.priority * 0.7 + (Number(task.state.stamp.creationTime) / Date.now()) * 0.3;
+            this._diversityBag.put(task, diversityScore);
+        }
+
+        const neededTasks = targetSize - currentTasks.length;
+        return this._diversityBag.sampleMultipleUnique(neededTasks);
+    }
+
+    _deduplicateTasks(tasks) {
+        const seen = new Set();
+        return tasks.filter(task => {
+            if (seen.has(task.id)) return false;
+            seen.add(task.id);
+            return true;
+        });
     }
 
     async _selectFocusSetWithSemanticPrioritization(focusSetSize) {
