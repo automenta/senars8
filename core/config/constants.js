@@ -49,7 +49,7 @@ export const REL = {
     PREDICTIVE_IMPLICATION: '=\\>',
     RETROSPECTIVE_IMPLICATION: '=/>',
     CONCURRENT_IMPLICATION: '=<>',
-    NEGATION: '--,',
+    NEGATION: '--',
     ALWAYS: 'always,',
     EVENTUALLY: 'eventually,',
     NEXT: 'next,',

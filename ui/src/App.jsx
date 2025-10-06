@@ -26,22 +26,20 @@ function App() {
     }, []);
 
     return (
-        <NotificationProvider>
-            <SearchProvider>
-                <div className="app-container" data-theme={theme}>
-                    <Header/>
-                    <main className="app-main" role="main">
-                        <Layout
-                            model={model}
-                            factory={factory}
-                            onModelChange={onModelChange}
-                            className="app-layout"
-                        />
-                    </main>
-                    <StatusBar/>
-                </div>
-            </SearchProvider>
-        </NotificationProvider>
+        <SearchProvider>
+            <div className="app-container" data-theme={theme}>
+                <Header/>
+                <main className="app-main" role="main">
+                    <Layout
+                        model={model}
+                        factory={factory}
+                        onModelChange={onModelChange}
+                        className="app-layout"
+                    />
+                </main>
+                <StatusBar/>
+            </div>
+        </SearchProvider>
     );
 }
 

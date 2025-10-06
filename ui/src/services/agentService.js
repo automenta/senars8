@@ -1,11 +1,12 @@
 import * as Y from 'yjs';
 import {WebsocketProvider} from 'y-websocket';
 import logger from '@ui/utils/uiLogger.js';
+import {CONFIG} from '@common/constants/config.js';
 
-// Default config for collaborative editing
+// Use the shared config for collaborative editing
 const DEFAULT_CONFIG = {
     CONNECTION: {
-        CRDT_WEBSOCKET_URL: 'ws://localhost:8082' // Default collaborative editing WebSocket
+        CRDT_WEBSOCKET_URL: CONFIG.CONNECTION.CRDT_WEBSOCKET_URL // Default collaborative editing WebSocket from shared config
     }
 };
 

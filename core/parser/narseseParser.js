@@ -284,16 +284,23 @@ class NarseseParser {
 
         // For temporal operators, comma is optional - check if next token is comma or term
         const isBinary = operatorTokenType in BINARY_OPERATOR_MAP;
-        const result = isBinary ? {
-            terms: this.parseTermList(TOKEN.RPAREN)
-        } : {
-            term: this.parseTerm()
-        };
 
-        return {
-            type: operatorType,
-            ...result
-        };
+        if (!isBinary) { // Unary operator
+            if (this.match(TOKEN.COMMA)) {
+                throw new Error(`Unexpected comma after unary operator '${operatorTokenType}'. Unary operators expect a single term, not a comma-separated list.`);
+            }
+            const term = this.parseTerm();
+            return {
+                type: operatorType,
+                term
+            };
+        } else { // Binary operator
+            const terms = this.parseTermList(TOKEN.RPAREN);
+            return {
+                type: operatorType,
+                terms
+            };
+        }
     }
 
     parseBinaryRelation(subject, tokenType, relationType) {
