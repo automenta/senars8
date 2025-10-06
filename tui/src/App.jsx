@@ -259,47 +259,26 @@ const App = ({onExit, initialMode = 'agent'}) => {
     return (
         <ErrorBoundary>
             <Container flexDirection="column" width="100%">
-                {/* Modern Header */}
-                <Card variant="primary" padding={theme.spacing.md} marginBottom={theme.spacing.sm}>
+                {/* Clean Mode Header - Only showing mode and essential controls */}
+                <Box width="100%" paddingX={theme.spacing.sm} paddingY={theme.spacing.xs} borderStyle="single" borderColor={theme.colors.border}>
                     <Flex justifyContent="space-between" alignItems="center">
-                        <Box flexDirection="column">
+                        <Box>
                             <Flex alignItems="center" gap={theme.spacing.sm}>
-                                <Text bold color={theme.colors.primary}>SENARS</Text>
-                                <Badge variant="success">v0.2.0</Badge>
+                                <Text bold>SeNARS Demo Runner</Text>
                                 <Badge variant={currentMode === 'agent' ? 'info' : 'secondary'}>
                                     {currentMode === 'agent' ? '🤖 Agent' : '🎓 Demos'}
                                 </Badge>
                             </Flex>
-                            <Text color={theme.colors.textMuted}>
-                                {process.stdin && process.stdin.isTTY && process.stdin.setRawMode ?
-                                    "🎹 Keyboard: Ctrl+C exit • 'm' toggle mode • 🔢 Tabs: 1-4 • 🖱️ Mouse: Click • Tab: Navigate • Enter: Select • ←→: Navigate" :
-                                    "💡 Limited input mode - Type 'quit' or 'exit' to stop"}
-                            </Text>
                         </Box>
-                        <Box flexDirection="column" alignItems="flex-end">
+                        <Box>
                             <Flex alignItems="center" gap={theme.spacing.sm}>
-                                {currentMode === 'agent' ? (
-                                    <>
-                                        <ConnectionStatus
-                                            isConnected={true}
-                                            connectionUrl={selectedConnection.url}
-                                        />
-                                        <Button variant="error" size="sm" onClick={handleDisconnect}>
-                                            Disconnect
-                                        </Button>
-                                    </>
-                                ) : (
-                                    <Button variant="info" size="sm" onClick={() => setCurrentMode('agent')}>
-                                        Switch to Agent
-                                    </Button>
-                                )}
+                                <Button variant="info" size="sm" onClick={() => setCurrentMode('agent')}>
+                                    Agent Mode
+                                </Button>
                             </Flex>
-                            <Text color={theme.colors.textMuted}>
-                                {new Date().toLocaleTimeString()}
-                            </Text>
                         </Box>
                     </Flex>
-                </Card>
+                </Box>
 
                 {/* Main Content Area with Compact Layout */}
                 {currentMode === 'agent' ? (

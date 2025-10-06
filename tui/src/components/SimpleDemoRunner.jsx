@@ -130,9 +130,9 @@ const DemoListView = ({demos, selectedDemo, onSelectDemo, isRunning}) => {
     const categories = Object.keys(demos).sort();
 
     return (
-        <Box flexDirection="column" width="30%" borderStyle="single" padding={1}>
+        <Box flexDirection="column" width="30%" borderStyle="single" padding={1} flexGrow={1}>
             <Text bold>Available Demos</Text>
-            <Box flexDirection="column" marginTop={1}>
+            <Box flexDirection="column" marginTop={1} flexGrow={1}>
                 {categories.map(category => {
                     const categoryDemos = demos[category];
                     return (
@@ -157,24 +157,34 @@ const DemoListView = ({demos, selectedDemo, onSelectDemo, isRunning}) => {
                     );
                 })}
             </Box>
-            <Text dimColor marginTop={1}>↑↓ to navigate, Enter to run</Text>
+            <Text dimColor>↑↓:nav Enter:run</Text>
         </Box>
     );
 };
 
-// Simple Text View component (70%)
+// Simple Text View component (70%) with fixed height container
 const DemoTextView = ({output, isRunning}) => {
     return (
-        <Box flexDirection="column" width="70%" borderStyle="single" padding={1} marginLeft={1}>
+        <Box flexDirection="column" width="70%" borderStyle="single" padding={1} marginLeft={1} flexGrow={1}>
             <Text bold>Demo Output</Text>
-            <Box flexDirection="column" marginTop={1} flexGrow={1}>
-                {isRunning ? (
-                    <Text color="yellow">Demo is running...</Text>
-                ) : output ? (
-                    <Text>{output}</Text>
-                ) : (
-                    <Text dimColor>Select a demo to run it</Text>
-                )}
+            <Box 
+                flexDirection="column" 
+                marginTop={1} 
+                flexGrow={1} 
+                borderStyle="single" 
+                padding={1} 
+                height="100%"
+            >
+                {/* Fixed height container that will show scroll bar in terminal */}
+                <Box height="100%" width="100%" flexDirection="column">
+                    {isRunning ? (
+                        <Text color="yellow">Demo is running...</Text>
+                    ) : output ? (
+                        <Text wrap="truncate">{output}</Text>
+                    ) : (
+                        <Text dimColor>Select a demo to run it</Text>
+                    )}
+                </Box>
             </Box>
         </Box>
     );
@@ -197,7 +207,7 @@ const SimpleDemoRunner = ({onExit}) => {
         if (isRunning) return;
 
         setSelectedDemo(demo);
-        setOutput('');
+        setOutput(''); // Clear output before running new demo
         setIsRunning(true);
 
         runDemo(
@@ -216,27 +226,17 @@ const SimpleDemoRunner = ({onExit}) => {
     });
 
     return (
-        <Box flexDirection="column" height="100%">
-            <Box marginBottom={1}>
-                <Text bold>SeNARS Demo Runner</Text>
-            </Box>
-            
-            <Box flexDirection="row" flexGrow={1}>
-                <DemoListView 
-                    demos={demos} 
-                    selectedDemo={selectedDemo} 
-                    onSelectDemo={handleSelectDemo}
-                    isRunning={isRunning}
-                />
-                <DemoTextView 
-                    output={output} 
-                    isRunning={isRunning}
-                />
-            </Box>
-            
-            <Box marginTop={1}>
-                <Text dimColor>Ctrl+C to exit</Text>
-            </Box>
+        <Box flexDirection="row" height="100%" width="100%">
+            <DemoListView 
+                demos={demos} 
+                selectedDemo={selectedDemo} 
+                onSelectDemo={handleSelectDemo}
+                isRunning={isRunning}
+            />
+            <DemoTextView 
+                output={output} 
+                isRunning={isRunning}
+            />
         </Box>
     );
 };
