@@ -25,7 +25,7 @@ async function advancedHypothesisGenerationDemo(options = {}) {
         {sentence: '(d --> c).', truth: [1.0, 0.9]},
     ];
 
-    const system = SystemFactory.createSystem();
+    const system = await SystemFactory.createSystem();
 
     // Override the commandBus to simulate hypothesis generation
     const originalRequest = system.commandBus.request.bind(system.commandBus);

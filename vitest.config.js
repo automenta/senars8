@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import * as path from 'path';
 
 export default defineConfig({
+    root: './',
     resolve: {
         alias: {
             '@core': path.resolve(__dirname, './core'),
@@ -26,6 +27,13 @@ export default defineConfig({
             }
         },
         bail: process.env.CI ? 1 : 0, // Stop on first failure in CI for faster feedback
+        exclude: [
+            'node_modules',
+            'dist',
+            'build',
+            'ui/tests/*playwright*.test.js', 
+            'ui/tests/*e2e*.test.js'
+        ],
         projects: [
             {
                 name: 'core',
@@ -38,6 +46,10 @@ export default defineConfig({
                         'tests/reasoner/**/*.test.js',
                         'tests/system/**/*.test.js',
                         'tests/demos/**/*.test.js',
+                    ],
+                    exclude: [
+                        'ui/tests/**/*playwright*.test.js',
+                        'ui/tests/**/*e2e*.test.js'
                     ],
                     setupFiles: ['./tests/setup.js'],
                     // Optimize for faster execution

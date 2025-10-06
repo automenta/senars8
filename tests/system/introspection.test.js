@@ -19,7 +19,7 @@ const {default: SystemFactory} = await import('../../core/system/SystemFactory.j
 describe('System Introspection API', () => {
     let system;
 
-    beforeAll(() => {
+    beforeAll(async () => {
         const customConfig = {
             LM: {
                 LLM_PROVIDER: 'xenova',
@@ -28,7 +28,7 @@ describe('System Introspection API', () => {
                 strategy: 'HTN'
             }
         };
-        system = SystemFactory.createSystem(customConfig);
+        system = await SystemFactory.createSystem(customConfig);
     });
 
     afterAll(async () => {

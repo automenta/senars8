@@ -42,6 +42,11 @@ class FileMonitor {
                 cwd: this.options.watchDir,
             });
 
+            // Ensure the watcher object is valid before setting up event handlers
+            if (!this.watcher || typeof this.watcher.on !== 'function') {
+                throw new Error('Chokidar watcher not created properly');
+            }
+
             this.setupWatcherEventHandlers();
             this.isWatching = true;
             info('File monitoring started successfully.');
@@ -59,12 +64,18 @@ class FileMonitor {
             return;
         }
 
-        this.watcher
-            .on('add', (filePath) => this.handleFileChange(filePath))
-            .on('change', (filePath) => this.handleFileChange(filePath))
-            .on('unlink', (filePath) => this.handleFileRemoval(filePath))
-            .on('error', (error) => warn('File monitoring error:', error))
-            .on('ready', () => info('File monitoring is ready and watching for changes.'));
+        // Check if the watcher object has the expected methods before using them
+        if (typeof this.watcher.on !== 'function') {
+            warn('Watcher object does not have expected event methods, skipping event handler setup');
+            return;
+        }
+
+        // Add event listeners one by one instead of chaining to be safer
+        this.watcher.on('add', (filePath) => this.handleFileChange(filePath));
+        this.watcher.on('change', (filePath) => this.handleFileChange(filePath));
+        this.watcher.on('unlink', (filePath) => this.handleFileRemoval(filePath));
+        this.watcher.on('error', (error) => warn('File monitoring error:', error));
+        this.watcher.on('ready', () => info('File monitoring is ready and watching for changes.'));
     }
 
     setupSystemEventHandlers() {
