@@ -138,86 +138,129 @@ class MemoryIndexer {
     }
 
     queryTasks(tasks, filters) {
-        // If no filters, return sorted tasks
+        // If no filters, return sorted tasks with optimized sorting
         if (!filters || Object.keys(filters).length === 0) {
-            const result = new Array(tasks.length);
-            for (let i = 0; i < tasks.length; i++) {
-                result[i] = tasks[i];
-            }
-            return result.sort((a, b) => b.state.priority - a.state.priority);
+            return this._sortTasksByPriority(tasks);
         }
 
         let filteredTasks = tasks;
 
         // Apply punctuation filter first if available (most efficient)
         if (filters.punctuation) {
-            const taskIds = this.punctuationIndex.get(filters.punctuation);
-            if (!taskIds || taskIds.size === 0) return [];
-
-            // More efficient approach: create task map and directly map IDs to tasks
-            const taskMap = new Map();
-            for (let i = 0; i < tasks.length; i++) {
-                taskMap.set(tasks[i].id, tasks[i]);
-            }
-
-            const result = new Array(taskIds.size);
-            let j = 0;
-            for (const id of taskIds) {
-                const task = taskMap.get(id);
-                if (task) {
-                    result[j++] = task;
-                }
-            }
-
-            // Trim array to actual size
-            filteredTasks = result.slice(0, j);
+            filteredTasks = this._filterByPunctuation(filteredTasks, filters.punctuation);
+            if (filteredTasks.length === 0) return [];
         }
 
-        // Apply other filters sequentially using for loops for better performance
-        if (filters.term) {
+        // Apply other filters with early termination and optimized loops
+        filteredTasks = this._applyAdvancedFilters(filteredTasks, filters);
+
+        // Sort and limit with optimized approach
+        return this._finalizeQueryResults(filteredTasks, filters);
+    }
+
+    _sortTasksByPriority(tasks) {
+        if (tasks.length <= 1) return tasks;
+
+        // Use more efficient sorting for large arrays
+        return tasks.length > 1000
+            ? this._mergeSortByPriority(tasks)
+            : [...tasks].sort((a, b) => b.state.priority - a.state.priority);
+    }
+
+    _mergeSortByPriority(tasks) {
+        if (tasks.length <= 1) return tasks;
+
+        const mid = Math.floor(tasks.length / 2);
+        const left = this._mergeSortByPriority(tasks.slice(0, mid));
+        const right = this._mergeSortByPriority(tasks.slice(mid));
+
+        return this._merge(left, right);
+    }
+
+    _merge(left, right) {
+        const result = [];
+        let leftIndex = 0;
+        let rightIndex = 0;
+
+        while (leftIndex < left.length && rightIndex < right.length) {
+            if (left[leftIndex].state.priority >= right[rightIndex].state.priority) {
+                result.push(left[leftIndex++]);
+            } else {
+                result.push(right[rightIndex++]);
+            }
+        }
+
+        return result.concat(left.slice(leftIndex)).concat(right.slice(rightIndex));
+    }
+
+    _filterByPunctuation(tasks, punctuation) {
+        const taskIds = this.punctuationIndex.get(punctuation);
+        if (!taskIds || taskIds.size === 0) return [];
+
+        // Pre-create task map for O(1) lookups
+        const taskMap = new Map();
+        for (const task of tasks) {
+            taskMap.set(task.id, task);
+        }
+
+        const result = [];
+        for (const id of taskIds) {
+            const task = taskMap.get(id);
+            if (task) result.push(task);
+        }
+
+        return result;
+    }
+
+    _applyAdvancedFilters(tasks, filters) {
+        let filteredTasks = tasks;
+
+        // Combine filters for better performance when multiple filters are applied
+        if (filters.term || filters.termKey || filters.minPriority !== undefined || filters.minConfidence !== undefined) {
             const result = [];
-            for (let i = 0; i < filteredTasks.length; i++) {
-                if (filteredTasks[i].term.key.includes(filters.term)) {
-                    result.push(filteredTasks[i]);
+
+            for (const task of filteredTasks) {
+                if (this._taskMatchesFilters(task, filters)) {
+                    result.push(task);
                 }
             }
+
             filteredTasks = result;
         }
 
-        if (filters.termKey) {
-            const result = [];
-            for (let i = 0; i < filteredTasks.length; i++) {
-                if (filteredTasks[i].termKey === filters.termKey) {
-                    result.push(filteredTasks[i]);
-                }
-            }
-            filteredTasks = result;
+        return filteredTasks;
+    }
+
+    _taskMatchesFilters(task, filters) {
+        // Term filter (substring search)
+        if (filters.term && !task.term.key.includes(filters.term)) {
+            return false;
         }
 
-        if (filters.minPriority !== undefined) {
-            const result = [];
-            for (let i = 0; i < filteredTasks.length; i++) {
-                if (filteredTasks[i].state.priority >= filters.minPriority) {
-                    result.push(filteredTasks[i]);
-                }
-            }
-            filteredTasks = result;
+        // Term key filter (exact match)
+        if (filters.termKey && task.termKey !== filters.termKey) {
+            return false;
         }
 
-        if (filters.minConfidence !== undefined) {
-            const result = [];
-            for (let i = 0; i < filteredTasks.length; i++) {
-                if (filteredTasks[i].state.truthValue.confidence >= filters.minConfidence) {
-                    result.push(filteredTasks[i]);
-                }
-            }
-            filteredTasks = result;
+        // Priority filter
+        if (filters.minPriority !== undefined && task.state.priority < filters.minPriority) {
+            return false;
         }
 
-        // Sort and limit
-        filteredTasks.sort((a, b) => b.state.priority - a.state.priority);
+        // Confidence filter
+        if (filters.minConfidence !== undefined && task.state.truthValue.confidence < filters.minConfidence) {
+            return false;
+        }
 
-        return filters.limit ? filteredTasks.slice(0, filters.limit) : filteredTasks;
+        return true;
+    }
+
+    _finalizeQueryResults(tasks, filters) {
+        // Sort by priority (descending)
+        const sortedTasks = this._sortTasksByPriority(tasks);
+
+        // Apply limit if specified
+        return filters.limit ? sortedTasks.slice(0, filters.limit) : sortedTasks;
     }
 
     clone() {
