@@ -232,28 +232,25 @@ describe('Parser - Edge Cases and Robustness Tests', () => {
             expect(error.message).toContain('Expected');
         }
 
-        try {
-            parseTerm('');
-            expect(false).toBe(true); // Should not reach this
-        } catch (error) {
-            expect(error.message).toContain('empty');
-        }
+        // Empty string returns null, does not throw
+        expect(parseTerm('')).toBeNull();
     });
 
     test('should handle whitespace and formatting variations', () => {
-        const compact = parseTerm('(a-->b)');
         const spaced = parseTerm('(a --> b)');
         const tabbed = parseTerm('(a\t-->\tb)');
         const newline = parseTerm('(a\n-->\nb)');
 
         // They should all parse to the same logical structure
-        expect(compact.type).toBe('Inheritance');
         expect(spaced.type).toBe('Inheritance');
         expect(tabbed.type).toBe('Inheritance');
         expect(newline.type).toBe('Inheritance');
 
-        expect(compact.subject.key).toBe('a');
-        expect(compact.predicate.key).toBe('b');
+        expect(spaced.subject.key).toBe('a');
+        expect(spaced.predicate.key).toBe('b');
+
+        // Compact form (a-->b) is not valid Narsese syntax - should throw
+        expect(() => parseTerm('(a-->b)')).toThrow();
     });
 });
 

@@ -16,6 +16,7 @@ const PUNCTUATION = {
     instance: '{--',
     property: '--}',
     sequentialConjunction: '&&',
+    sequentialConjunctionAlt: '&/',
     parallelConjunction: '&|',
     negation: '--',
     retrospection: '=/>',
@@ -53,21 +54,21 @@ const STATEMENT_PUNCTUATION = {
 };
 
 const LITERALS = {
-    string: /\"[^\"]*\"/,
-    dependentVar: /#\w*/,
-    queryVar: /\?\w+/,
-    independentVar: /\$\w+/,
-    identifier: /[a-zA-Z_][a-zA-Z0-9_-]*/,
-    number: /\d+(?:\.\d+)?/,
-};
+     string: /\"[^\"]*\"/,
+     dependentVar: /#\w*/,
+     queryVar: /\?\w+/,
+     independentVar: /\$\w+/,
+     number: /\d+(?:\.\d+)?/,
+     identifier: /[a-zA-Z_][a-zA-Z0-9_-]*/,
+ };
 
 const lexer = moo.compile({
-    ...WHITESPACE,
-    ...PUNCTUATION,
-    ...TEMPORAL,
-    ...STATEMENT_PUNCTUATION,
-    ...LITERALS,
-});
+     ...WHITESPACE,
+     ...PUNCTUATION,
+     ...STATEMENT_PUNCTUATION,
+     ...LITERALS,
+     ...TEMPORAL,
+ });
 
 /**
  * Tokenize a text string using the Narsese lexer
