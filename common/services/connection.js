@@ -1,4 +1,3 @@
-import WebSocket from 'ws';
 import {EventEmitter} from 'events';
 import logger from '../../core/utils/logger.js';
 import EmbeddedAgentService from './EmbeddedAgentService.js';
@@ -115,7 +114,10 @@ class ConnectionManager extends EventEmitter {
         if (this.isDestroyed) throw new Error('ConnectionManager destroyed');
         if (this.connections.has(url)) return this.connections.get(url);
 
-        const ws = new WebSocket(url);
+        // Determine WebSocket implementation for this environment
+        const WSImpl = this._getWebSocketImplementation();
+
+        const ws = new WSImpl(url);
         this._setupConnectionHandlers(ws, url);
         return ws;
     }
@@ -244,11 +246,13 @@ class ConnectionManager extends EventEmitter {
     }
 
     _getConnectionStatus(readyState) {
+        const WSImpl = this._getWebSocketImplementation();
+
         const states = {
-            [WebSocket.CONNECTING]: 'connecting',
-            [WebSocket.OPEN]: 'connected',
-            [WebSocket.CLOSING]: 'closing',
-            [WebSocket.CLOSED]: 'closed'
+            [WSImpl.CONNECTING]: 'connecting',
+            [WSImpl.OPEN]: 'connected',
+            [WSImpl.CLOSING]: 'closing',
+            [WSImpl.CLOSED]: 'closed'
         };
         return states[readyState] || 'unknown';
     }
@@ -263,6 +267,18 @@ class ConnectionManager extends EventEmitter {
             this.embeddedService = null;
         }
         this.removeAllListeners();
+    }
+
+    _getWebSocketImplementation() {
+        if (typeof window !== 'undefined' && typeof window.WebSocket !== 'undefined') {
+            // Browser environment
+            return window.WebSocket;
+        } else {
+            // Node.js environment - import 'ws' dynamically
+            // Use dynamic import to avoid bundling issues
+            const wsModule = require('ws');
+            return wsModule.default || wsModule;
+        }
     }
 
     isHealthy() {

@@ -102,7 +102,11 @@ class ToolSystem extends EventBus {
                             additionalProperties: {type: 'string'}
                         },
                         submitSelector: {type: 'string', description: 'CSS selector for submit button'},
-                        waitForNavigation: {type: 'boolean', description: 'Wait for navigation after submit', default: true}
+                        waitForNavigation: {
+                            type: 'boolean',
+                            description: 'Wait for navigation after submit',
+                            default: true
+                        }
                     },
                     required: ['url', 'fields']
                 },
@@ -111,7 +115,13 @@ class ToolSystem extends EventBus {
         ];
 
         webTools.forEach(({name, description, parameters, handler}) =>
-            this.registerTool({name, category: 'web', description, parameters, handler: this.executors.get('web')[handler].bind(this.executors.get('web'))}));
+            this.registerTool({
+                name,
+                category: 'web',
+                description,
+                parameters,
+                handler: this.executors.get('web')[handler].bind(this.executors.get('web'))
+            }));
     }
 
     registerFileTools() {
@@ -159,10 +169,18 @@ class ToolSystem extends EventBus {
                             items: {
                                 type: 'object',
                                 properties: {
-                                    type: {type: 'string', enum: ['replace', 'insert', 'delete'], description: 'Type of edit operation'},
+                                    type: {
+                                        type: 'string',
+                                        enum: ['replace', 'insert', 'delete'],
+                                        description: 'Type of edit operation'
+                                    },
                                     target: {type: 'string', description: 'Text to find or position'},
                                     content: {type: 'string', description: 'Content for insert/replace operations'},
-                                    regex: {type: 'boolean', description: 'Use regex for target matching', default: false}
+                                    regex: {
+                                        type: 'boolean',
+                                        description: 'Use regex for target matching',
+                                        default: false
+                                    }
                                 },
                                 required: ['type', 'target']
                             }
@@ -176,7 +194,13 @@ class ToolSystem extends EventBus {
         ];
 
         fileTools.forEach(({name, description, parameters, handler}) =>
-            this.registerTool({name, category: 'file', description, parameters, handler: this.executors.get('file')[handler].bind(this.executors.get('file'))}));
+            this.registerTool({
+                name,
+                category: 'file',
+                description,
+                parameters,
+                handler: this.executors.get('file')[handler].bind(this.executors.get('file'))
+            }));
     }
 
     registerCommandTools() {
@@ -192,7 +216,11 @@ class ToolSystem extends EventBus {
                     cwd: {type: 'string', description: 'Working directory'},
                     timeout: {type: 'number', description: 'Timeout in milliseconds', default: 30000},
                     env: {type: 'object', description: 'Environment variables', additionalProperties: {type: 'string'}},
-                    allowedCommands: {type: 'array', items: {type: 'string'}, description: 'Allowed commands (security override)'}
+                    allowedCommands: {
+                        type: 'array',
+                        items: {type: 'string'},
+                        description: 'Allowed commands (security override)'
+                    }
                 },
                 required: ['command']
             },
@@ -211,7 +239,13 @@ class ToolSystem extends EventBus {
                         path: {type: 'string', description: 'Path to PDF file'},
                         extractText: {type: 'boolean', description: 'Extract text content', default: true},
                         extractImages: {type: 'boolean', description: 'Extract images', default: false},
-                        pageRange: {type: 'object', properties: {start: {type: 'number', description: 'Start page (1-indexed)'}, end: {type: 'number', description: 'End page (1-indexed)'}}}
+                        pageRange: {
+                            type: 'object',
+                            properties: {
+                                start: {type: 'number', description: 'Start page (1-indexed)'},
+                                end: {type: 'number', description: 'End page (1-indexed)'}
+                            }
+                        }
                     },
                     required: ['path']
                 },
@@ -235,7 +269,13 @@ class ToolSystem extends EventBus {
         ];
 
         mediaTools.forEach(({name, description, parameters, handler}) =>
-            this.registerTool({name, category: 'media', description, parameters, handler: this.executors.get('media')[handler].bind(this.executors.get('media'))}));
+            this.registerTool({
+                name,
+                category: 'media',
+                description,
+                parameters,
+                handler: this.executors.get('media')[handler].bind(this.executors.get('media'))
+            }));
     }
 
     registerApiTools() {
@@ -247,7 +287,12 @@ class ToolSystem extends EventBus {
                 type: 'object',
                 properties: {
                     url: {type: 'string', description: 'Request URL'},
-                    method: {type: 'string', enum: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], description: 'HTTP method', default: 'GET'},
+                    method: {
+                        type: 'string',
+                        enum: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+                        description: 'HTTP method',
+                        default: 'GET'
+                    },
                     headers: {type: 'object', description: 'Request headers', additionalProperties: {type: 'string'}},
                     body: {type: 'string', description: 'Request body'},
                     timeout: {type: 'number', description: 'Timeout in milliseconds', default: 30000},
@@ -308,7 +353,15 @@ class ToolSystem extends EventBus {
     }
 
     createExecutionContext(executionId, toolName, parameters, context, startTime) {
-        return {executionId, toolName, parameters, context, startTime, user: context.user || 'system', session: context.session || null};
+        return {
+            executionId,
+            toolName,
+            parameters,
+            context,
+            startTime,
+            user: context.user || 'system',
+            session: context.session || null
+        };
     }
 
     handleExecutionSuccess(executionContext, result, startTime) {
@@ -335,7 +388,15 @@ class ToolSystem extends EventBus {
         const {executionId, toolName, parameters} = executionContext;
         const endTime = Date.now(), duration = endTime - startTime;
 
-        const errorContext = {executionId, toolName, parameters, error: error.message, stack: error.stack, duration, status: 'failed'};
+        const errorContext = {
+            executionId,
+            toolName,
+            parameters,
+            error: error.message,
+            stack: error.stack,
+            duration,
+            status: 'failed'
+        };
         this.addToHistory(errorContext);
         this.emit('execution:failed', errorContext);
 
@@ -370,10 +431,10 @@ class ToolSystem extends EventBus {
 
             const value = parameters[key];
             propSchema.type && typeof value !== propSchema.type &&
-                errors.push(`Parameter '${key}' must be of type ${propSchema.type}`);
+            errors.push(`Parameter '${key}' must be of type ${propSchema.type}`);
 
             propSchema.enum && !propSchema.enum.includes(value) &&
-                errors.push(`Parameter '${key}' must be one of: ${propSchema.enum.join(', ')}`);
+            errors.push(`Parameter '${key}' must be one of: ${propSchema.enum.join(', ')}`);
         });
 
         return {isValid: errors.length === 0, errors};

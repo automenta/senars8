@@ -6,7 +6,6 @@
  */
 
 import fs from 'fs';
-import path from 'path';
 
 // Test that all the expected files exist and are properly structured
 const expectedFiles = [

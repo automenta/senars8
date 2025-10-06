@@ -37,7 +37,7 @@ const useAppInit = () => {
             agentService.off('error', handleError);
             agentService.disconnect();
         };
-    }, [agentService, addNotification]);
+    }, [agentService, notifications]);
 };
 
 export default useAppInit;

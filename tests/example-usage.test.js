@@ -6,7 +6,7 @@ import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest';
 import {createTaskDef, createTermDef} from './test-data-factory.js';
 import {assertTask, expectTruthValue} from './common-validation-utils.js';
 import {createTestConfig} from './test-config.js';
-import {BaseReasonerTest, TaskProcessingScenario, ErrorTesting, PerformanceTesting} from './test-base-classes.js';
+import {BaseReasonerTest, ErrorTesting, PerformanceTesting, TaskProcessingScenario} from './test-base-classes.js';
 import {EdgeCaseTester} from './coverage-quality-checks.js';
 import * as logger from '../core/utils/logger.js';
 import {createConsistentMock, MockValidator} from './mock-builders.js';

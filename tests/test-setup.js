@@ -5,14 +5,7 @@
 
 import {expect, vi} from 'vitest';
 import {env} from '@xenova/transformers';
-import {DIContainer} from '../core/system/DIContainer.js';
-import registerComponents from '../core/system/register-components.js';
-import ConfigManager from '../core/config/ConfigManager.js';
-import {configService} from '../core/config/index.js';
-import BagSamplingStrategy from '../core/reasoner/strategies/BagSamplingStrategy.js';
-import BruteForceStrategy from '../core/reasoner/strategies/BruteForceStrategy.js';
 import {createTask} from './test-data-factory.js';
-import {createMockCommandBus, createMockEventBus} from './mock-builders.js';
 import {SystemFactory} from './shared/test-utils.js';
 
 // Re-export for backward compatibility

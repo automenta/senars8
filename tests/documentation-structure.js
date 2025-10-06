@@ -39,7 +39,17 @@ DocumentationRegistry.register('suite', (data) => {
 });
 
 DocumentationRegistry.register('gherkin', (data) => {
-    const {feature, scenario, preconditions = [], given, when, then, postconditions = [], errorConditions = [], edgeCases = []} = data;
+    const {
+        feature,
+        scenario,
+        preconditions = [],
+        given,
+        when,
+        then,
+        postconditions = [],
+        errorConditions = [],
+        edgeCases = []
+    } = data;
 
     let doc = `Feature: ${feature}\n\n`;
     doc += `  Scenario: ${scenario}\n`;
@@ -164,19 +174,19 @@ export const TestDocumentationGenerator = {
         testCases: [],
         setupRequirements: [],
         invariants: [],
-        addTestCase: function(name, purpose, scenario, expectedResult) {
+        addTestCase: function (name, purpose, scenario, expectedResult) {
             this.testCases.push({name, purpose, scenario, expectedResult});
             return this;
         },
-        addSetupRequirement: function(requirement) {
+        addSetupRequirement: function (requirement) {
             this.setupRequirements.push(requirement);
             return this;
         },
-        addInvariant: function(invariant) {
+        addInvariant: function (invariant) {
             this.invariants.push(invariant);
             return this;
         },
-        generateMarkdown: function() {
+        generateMarkdown: function () {
             return generateDocumentation('suite', this);
         }
     }),
@@ -185,29 +195,36 @@ export const TestDocumentationGenerator = {
         preconditions: [],
         postconditions: [],
         errorConditions: [],
-        addPrecondition: function(condition) {
+        addPrecondition: function (condition) {
             this.preconditions.push(condition);
             return this;
         },
-        addPostcondition: function(condition) {
+        addPostcondition: function (condition) {
             this.postconditions.push(condition);
             return this;
         },
-        addErrorCondition: function(condition) {
+        addErrorCondition: function (condition) {
             this.errorConditions.push(condition);
             return this;
         },
-        generateGherkin: function() {
+        generateGherkin: function () {
             return generateDocumentation('gherkin', this);
         }
     }),
     createConfigDoc: () => ({
         options: new Map(),
-        addOption: function(key, type, defaultValue, description, allowedValues = null) {
-            this.options.set(key, {key, type, defaultValue, description, allowedValues, required: defaultValue === undefined});
+        addOption: function (key, type, defaultValue, description, allowedValues = null) {
+            this.options.set(key, {
+                key,
+                type,
+                defaultValue,
+                description,
+                allowedValues,
+                required: defaultValue === undefined
+            });
             return this;
         },
-        validateConfig: function(config) {
+        validateConfig: function (config) {
             const errors = [];
             for (const [key, value] of Object.entries(config)) {
                 const option = this.options.get(key);
@@ -229,22 +246,22 @@ export const TestDocumentationGenerator = {
             }
             return errors;
         },
-        generateDocumentation: function() {
+        generateDocumentation: function () {
             return generateDocumentation('config', Array.from(this.options.values()));
         }
     }),
     createMetadata: () => ({
         metadata: new Map(),
-        add: function(testName, data) {
+        add: function (testName, data) {
             if (!this.metadata.has(testName)) {
                 this.metadata.set(testName, []);
             }
             this.metadata.get(testName).push(data);
         },
-        get: function(testName) {
+        get: function (testName) {
             return this.metadata.get(testName) || [];
         },
-        filterTests: function(predicate) {
+        filterTests: function (predicate) {
             const matchingTests = [];
             for (const [testName, metadataList] of this.metadata.entries()) {
                 if (metadataList.some(metadata => predicate(metadata))) {
@@ -253,7 +270,7 @@ export const TestDocumentationGenerator = {
             }
             return matchingTests;
         },
-        generateIndex: function() {
+        generateIndex: function () {
             const index = {byCategory: {}, byFeature: {}, byPriority: {}, byStatus: {}};
             for (const [testName, metadataList] of this.metadata.entries()) {
                 for (const metadata of metadataList) {

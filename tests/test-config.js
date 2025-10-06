@@ -3,7 +3,7 @@
  * Optimized configuration management with shared caching and batch operations
  */
 
-import {ConfigRegistry, createConfig} from './shared/test-utils.js';
+import {ConfigRegistry} from './shared/test-utils.js';
 
 // Register core configuration templates
 ConfigRegistry.registerTemplate('TASK', {
@@ -305,8 +305,8 @@ export const createTestConfig = (templateNameOrConfig = 'UNIT', overrides = {}) 
     // Handle case where first parameter is a string (template name)
     const templateName = templateNameOrConfig || 'UNIT';
     const resolvedTemplateName = templateName === 'UNIT' ? 'UNIT_TEST' :
-                                 templateName === 'INTEGRATION' ? 'INTEGRATION_TEST' :
-                                 templateName === 'SYSTEM' ? 'SYSTEM_TEST' : templateName;
+        templateName === 'INTEGRATION' ? 'INTEGRATION_TEST' :
+            templateName === 'SYSTEM' ? 'SYSTEM_TEST' : templateName;
 
     // Get the base template and merge with overrides
     const baseConfig = ConfigRegistry.get(resolvedTemplateName);
@@ -316,8 +316,18 @@ export const createTestConfig = (templateNameOrConfig = 'UNIT', overrides = {}) 
 // Legacy exports for backward compatibility
 export const TEST_CONFIG_TEMPLATES = {
     UNIT: {timeout: 5000, setup: 'unit', mockLevel: 'full', validation: {errorHandling: true, edgeCases: true}},
-    INTEGRATION: {timeout: 10000, setup: 'integration', mockLevel: 'partial', validation: {componentInteraction: true, dataFlow: true, performance: true}},
-    SYSTEM: {timeout: 30000, setup: 'system', mockLevel: 'minimal', validation: {endToEnd: true, performance: true, errorRecovery: true}}
+    INTEGRATION: {
+        timeout: 10000,
+        setup: 'integration',
+        mockLevel: 'partial',
+        validation: {componentInteraction: true, dataFlow: true, performance: true}
+    },
+    SYSTEM: {
+        timeout: 30000,
+        setup: 'system',
+        mockLevel: 'minimal',
+        validation: {endToEnd: true, performance: true, errorRecovery: true}
+    }
 };
 
 export const TEST_CONTEXT_CONFIGS = {

@@ -1,6 +1,6 @@
 import React, {createContext, useContext, useMemo} from 'react';
 import PropTypes from 'prop-types';
-import {connectionManager, useAgentState} from '@senars/common';
+import {connectionManager, useAgentState} from '@common';
 import AgentService from '../services/agentService';
 
 const AgentServiceContext = createContext(null);
@@ -19,7 +19,7 @@ export const AgentProvider = ({children}) => {
         // Use environment variables set by the integrated runner
         // VITE_WS_URL is set by the integrated web runner
         // WS_PORT is the fallback for direct connections
-        const wsUrl = import.meta.env.VITE_WS_URL || `ws://localhost:${process.env.WS_PORT || 8081}`;
+        const wsUrl = import.meta.env.VITE_WS_URL || `ws://localhost:${import.meta.env.WS_PORT || 8081}`;
 
         console.log('Connecting to WebSocket:', wsUrl);
         connectionManager.connect(wsUrl);

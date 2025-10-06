@@ -9,3 +9,4 @@ coverage
 junit.xml
 jules-scratch/
 *.log
+test-results

@@ -1,8 +1,6 @@
 import {afterAll, beforeAll, describe, expect, it, vi} from 'vitest';
-import {awaitNextMessage} from '../utils/WebSocketTestUtils.js';
 import {createMessageHandler} from '../../agent/MessageHandler.js';
 import {SystemCommands} from '../../core/system/SystemCommands.js';
-import {SystemEvents} from '../../core/system/SystemEvents.js';
 import WebSocket from 'ws';
 
 

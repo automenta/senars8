@@ -4,7 +4,7 @@
  */
 
 import {expect} from 'vitest';
-import {ValidationEngine, validate, validateBatch} from './shared/test-utils.js';
+import {validate, ValidationEngine} from './shared/test-utils.js';
 
 // High-performance validators using batch processing where possible
 export const validateObject = (obj, requirements, context = 'object') => {

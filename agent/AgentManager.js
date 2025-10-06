@@ -1,5 +1,5 @@
 import {Agent} from './index.js';
-import {info, warn} from '../core/utils/logger.js';
+import {warn} from '../core/utils/logger.js';
 import {formatTaskForBroadcast} from './utils/taskUtils.js';
 import {SystemCommands} from '../core/system/SystemCommands.js';
 import FileMonitor from './FileMonitor.js';
@@ -8,7 +8,8 @@ import {managerHandler} from './utils/errorHandler.js';
 class AgentManager {
     constructor() {
         this.agent = new Agent();
-        this.broadcast = () => {};
+        this.broadcast = () => {
+        };
         this.system = null;
         this.fileMonitor = null;
     }

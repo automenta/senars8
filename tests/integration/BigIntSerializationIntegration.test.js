@@ -96,7 +96,7 @@ describe('BigInt Serialization Unit Tests', () => {
             undefined: undefined,
             bigint: BigInt(123),
             array: [1, BigInt(2), 3],
-            object: { nested: BigInt(456) }
+            object: {nested: BigInt(456)}
         };
 
         const serialized = JSON.stringify(testData, bigIntSerializer);

@@ -4,7 +4,7 @@
  */
 
 import {vi} from 'vitest';
-import {MockRegistry, createMock} from './shared/test-utils.js';
+import {createMock, MockRegistry} from './shared/test-utils.js';
 
 // Optimized mock templates with shared patterns
 const createBaseComponentMock = () => ({
@@ -118,8 +118,10 @@ export const createCustomMock = (config = {}) => {
     // Batch method creation for better performance
     Object.entries(methods).forEach(([name, behavior]) => {
         mock[name] = typeof behavior === 'function' ? vi.fn(behavior) :
-                    behavior instanceof Error ? vi.fn(() => { throw behavior; }) :
-                    vi.fn(() => behavior);
+            behavior instanceof Error ? vi.fn(() => {
+                    throw behavior;
+                }) :
+                vi.fn(() => behavior);
     });
 
     // Batch property creation
@@ -286,8 +288,10 @@ export const createConsistentMock = (componentName, customMethods = {}, customPr
     // Add custom methods
     Object.entries(customMethods).forEach(([methodName, methodConfig]) => {
         mock[methodName] = typeof methodConfig === 'function' ? vi.fn(methodConfig) :
-                          methodConfig instanceof Error ? vi.fn(() => { throw methodConfig; }) :
-                          vi.fn(() => methodConfig);
+            methodConfig instanceof Error ? vi.fn(() => {
+                    throw methodConfig;
+                }) :
+                vi.fn(() => methodConfig);
     });
 
     // Add custom properties

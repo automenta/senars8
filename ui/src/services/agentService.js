@@ -1,7 +1,7 @@
 import * as Y from 'yjs';
 import {WebsocketProvider} from 'y-websocket';
-import BaseUiAgentService from '@senars/common/services/BaseUiAgentService.js';
-import {CONFIG} from '@senars/common/constants/config.js';
+import BaseUiAgentService from '@common/services/BaseUiAgentService.js';
+import {CONFIG} from '@common/constants/config.js';
 
 /**
  * A high-level service for the Web UI that extends the base UI agent service

@@ -41,7 +41,7 @@ class Agent {
     addTool(tool) {
         agentHandler.requireInitialized(this);
         agentHandler.validate(tool?.name && typeof tool.handler === 'function',
-                            'Tool must have name and handler function');
+            'Tool must have name and handler function');
 
         this.tools[tool.name] = tool;
         this.system.actionExecutor.registerActionHandler(tool.name, tool.handler);

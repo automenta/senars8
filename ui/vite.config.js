@@ -17,4 +17,15 @@ export default defineConfig({
             '@common': path.resolve(__dirname, '../common'),
         },
     },
+    define: {
+        global: 'globalThis',
+    },
+    build: {
+        rollupOptions: {
+            external: ['ws'],  // Mark ws as external for browser builds
+        },
+    },
+    optimizeDeps: {
+        exclude: ['ws'],  // Exclude ws from optimization for browser
+    },
 });

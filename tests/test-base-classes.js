@@ -5,8 +5,7 @@
 
 import {expect, test} from 'vitest';
 import {createTask, createTerm} from './test-data-factory.js';
-import {expectToThrowError} from './common-validation-utils.js';
-import {createContext, cleanupContext, createTestSystem} from './test-setup.js';
+import {createTestSystem} from './test-setup.js';
 import {TestContextManager, TestFramework} from './shared/test-utils.js';
 
 // Extract utility objects from TestFramework for convenience

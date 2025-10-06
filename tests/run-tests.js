@@ -5,9 +5,7 @@
  * Optimized test execution with intelligent batching and caching
  */
 
-import {OptimizedTestRunner, resetAllCaches, PerformanceMonitor} from './shared/test-utils.js';
-import fs from 'fs';
-import path from 'path';
+import {OptimizedTestRunner, PerformanceMonitor, resetAllCaches} from './shared/test-utils.js';
 
 // CLI interface for the optimized test runner
 async function main() {

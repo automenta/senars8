@@ -99,8 +99,12 @@ export class TestRunner {
             let stderr = '';
             const startTime = Date.now();
 
-            child.stdout.on('data', (data) => { stdout += data.toString(); });
-            child.stderr.on('data', (data) => { stderr += data.toString(); });
+            child.stdout.on('data', (data) => {
+                stdout += data.toString();
+            });
+            child.stderr.on('data', (data) => {
+                stderr += data.toString();
+            });
 
             child.on('message', (message) => {
                 if (message.type === 'test_complete') {

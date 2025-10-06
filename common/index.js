@@ -24,19 +24,19 @@ import useLogs from './hooks/useLogs.js';
 const log = logger;
 
 export {
-  // Core services
-  logger, configProvider, eventManager, sharedAPI, uiComponents,
-  connectionManager, BaseUiAgentService,
+    // Core services
+    logger, configProvider, eventManager, sharedAPI, uiComponents,
+    connectionManager, BaseUiAgentService,
 
-  // Constants
-  CONNECTION_STATUS, MESSAGE_TYPES, NOTIFICATION_TYPES, CONFIG,
+    // Constants
+    CONNECTION_STATUS, MESSAGE_TYPES, NOTIFICATION_TYPES, CONFIG,
 
-  // Utilities
-  validateNarseseStatement, DocumentationUtils, TestUtils,
+    // Utilities
+    validateNarseseStatement, DocumentationUtils, TestUtils,
 
-  // Hooks
-  useAgentState, useLogs,
+    // Hooks
+    useAgentState, useLogs,
 
-  // Legacy support
-  log,
+    // Legacy support
+    log,
 };

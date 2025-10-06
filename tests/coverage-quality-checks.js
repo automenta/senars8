@@ -150,10 +150,12 @@ export class EdgeCaseTester {
     // Backward compatibility methods
     async runAll() {
         // For backward compatibility, execute with a simple test function
-        return this.execute((input) => input, () => {});
+        return this.execute((input) => input, () => {
+        });
     }
 
-    addBoundaryTests(fn, boundaries, validator = () => {}) {
+    addBoundaryTests(fn, boundaries, validator = () => {
+    }) {
         // Store the function and validator for later use
         this.testFunction = fn;
         this.testValidator = validator;
@@ -161,14 +163,16 @@ export class EdgeCaseTester {
         return this;
     }
 
-    addNullUndefinedTests(fn, validator = (result, input) => {}) {
+    addNullUndefinedTests(fn, validator = (result, input) => {
+    }) {
         this.testFunction = fn;
         this.testValidator = validator;
         this.addNullGenerator('null');
         return this;
     }
 
-    addArrayEdgeCaseTests(fn, validator = () => {}) {
+    addArrayEdgeCaseTests(fn, validator = () => {
+    }) {
         this.testFunction = fn;
         this.testValidator = validator;
         this.addArrayGenerator('array');
@@ -345,11 +349,19 @@ export const runComprehensiveTests = async (testFn, inputs) => {
         const batchResults = await Promise.allSettled(
             batch.map(async input => {
                 const result = await TestEngine.execute(testFn, `test_${i}`, input);
-                return {input, result: result.success ? result.result : null, error: result.success ? null : result.error};
+                return {
+                    input,
+                    result: result.success ? result.result : null,
+                    error: result.success ? null : result.error
+                };
             })
         );
 
-        results.push(...batchResults.map(r => r.status === 'fulfilled' ? r.value : {input: null, result: null, error: r.reason}));
+        results.push(...batchResults.map(r => r.status === 'fulfilled' ? r.value : {
+            input: null,
+            result: null,
+            error: r.reason
+        }));
     }
 
     const passedTests = results.filter(r => r.error === null).length;

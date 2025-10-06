@@ -1,14 +1,13 @@
 /**
-* High-quality Reasoner class that coordinates symbolic, temporal, and modular reasoning
-* This refactored version improves maintainability and prepares for modular reasoning strategies
-*/
+ * High-quality Reasoner class that coordinates symbolic, temporal, and modular reasoning
+ * This refactored version improves maintainability and prepares for modular reasoning strategies
+ */
 
 import rules from './rules/index.js';
 import {debug, error as logError, info, warn} from '../utils/logger.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
 import {SystemCommands} from '../system/SystemCommands.js';
-import {SystemContext} from './SystemContext.js';
 
 const errorHandler = createUnifiedErrorHandler('Reasoner');
 
@@ -56,12 +55,17 @@ class Reasoner {
         return !Array.isArray(focusSet)
             ? errorHandler.handle(new Error(`Focus set must be an array, received: ${typeof focusSet}`), 'performInference', [])
             : focusSet.length === 0
-            ? []
-            : this.#executeInference(focusSet, options);
+                ? []
+                : this.#executeInference(focusSet, options);
     }
 
     async #executeInference(focusSet, options) {
-        const {maxDerivedTasks = Infinity, enableModularReasoning = true, enableSymbolicReasoning = true, enableTemporalReasoning = true} = options;
+        const {
+            maxDerivedTasks = Infinity,
+            enableModularReasoning = true,
+            enableSymbolicReasoning = true,
+            enableTemporalReasoning = true
+        } = options;
 
         debug(`Performing inference on ${focusSet.length} tasks with max ${maxDerivedTasks} derived tasks`);
 
@@ -145,7 +149,10 @@ class Reasoner {
                     break;
                 }
 
-                for (const {name: strategyName, instance: strategy} of this.strategyRegistry.findApplicableStrategies(task, this.systemContext)) {
+                for (const {
+                    name: strategyName,
+                    instance: strategy
+                } of this.strategyRegistry.findApplicableStrategies(task, this.systemContext)) {
                     if (derivedTasks.length >= maxModularTasks) break;
 
                     try {

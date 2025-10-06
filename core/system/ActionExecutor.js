@@ -240,7 +240,6 @@ class ActionExecutor {
     }
 
 
-
     _validateAction(action) {
         return errorHandler.executeSync(() => {
             if (!action || (!action?.name && !action?.operationTerm)) {

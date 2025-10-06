@@ -1,5 +1,4 @@
 import {error as logError, info, warn} from '../utils/logger.js';
-import {ReasoningStrategy} from './StrategyInterface.js';
 
 class StrategyRegistry {
     constructor() {
@@ -91,12 +90,25 @@ class StrategyRegistry {
         return this.instances.get(name);
     }
 
-    getCombinationStrategy(name) { return this.getStrategy(name); }
-    getReasoningStrategy(name) { return this.getStrategy(name); }
+    getCombinationStrategy(name) {
+        return this.getStrategy(name);
+    }
 
-    getStrategyNames() { return [...this.strategies.keys()]; }
-    getReasoningStrategyNames() { return this.getStrategyNames(); }
-    getCombinationStrategyNames() { return this.getStrategyNames(); }
+    getReasoningStrategy(name) {
+        return this.getStrategy(name);
+    }
+
+    getStrategyNames() {
+        return [...this.strategies.keys()];
+    }
+
+    getReasoningStrategyNames() {
+        return this.getStrategyNames();
+    }
+
+    getCombinationStrategyNames() {
+        return this.getStrategyNames();
+    }
 
     getAllReasoningStrategies() {
         return this.getStrategyNames().map(name => ({
@@ -171,17 +183,21 @@ class StrategyRegistry {
         try {
             const instance = new StrategyClass();
             return typeof instance.canHandle === 'function' &&
-                   typeof instance.execute === 'function' &&
-                   typeof instance.getMetadata === 'function' &&
-                   typeof instance.validate === 'function';
-        } catch { return false; }
+                typeof instance.execute === 'function' &&
+                typeof instance.getMetadata === 'function' &&
+                typeof instance.validate === 'function';
+        } catch {
+            return false;
+        }
     }
 
     _isCombination(StrategyClass) {
         try {
             const instance = new StrategyClass();
             return typeof instance.selectCombinations === 'function';
-        } catch { return false; }
+        } catch {
+            return false;
+        }
     }
 
     _nameFromClass(StrategyClass) {
