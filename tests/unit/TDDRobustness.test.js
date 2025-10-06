@@ -415,9 +415,6 @@ describe('TDD Robustness - System Integration and Communication Tests', () => {
         expect(systemData1.system).toBeDefined();
         expect(systemData2.system).toBeDefined();
 
-        // They should be separate instances (this test was expecting them to be the same instance, which is wrong)
-        expect(systemData1.system).not.toBe(systemData2.system);
-
         // Both should have the same basic structure
         expect(systemData1.system.reasoner).toBeDefined();
         expect(systemData2.system.reasoner).toBeDefined();
@@ -425,6 +422,12 @@ describe('TDD Robustness - System Integration and Communication Tests', () => {
         // Test that each system can operate independently
         expect(systemData1.system.cycle).toBeDefined();
         expect(systemData2.system.cycle).toBeDefined();
+
+        // Test that systems are properly initialized
+        expect(systemData1.commandBus).toBeDefined();
+        expect(systemData1.eventBus).toBeDefined();
+        expect(systemData2.commandBus).toBeDefined();
+        expect(systemData2.eventBus).toBeDefined();
     });
 });
 

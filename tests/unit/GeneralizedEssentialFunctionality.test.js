@@ -119,9 +119,9 @@ describe('Generalized Essential Functionality Tests', () => {
         const allTasks = await memoryContext.memory.getAllTasks();
         expect(allTasks.length).toBeGreaterThanOrEqual(0);
 
-        // Test memory interaction with cache validation
-        const hasTask = memoryContext.memory.hasTask ? memoryContext.memory.hasTask('cat') : memoryContext.memory.has('cat');
-        expect(hasTask).toBe(true);
+        // Test memory interaction - check if tasks exist in memory
+        const hasCatTask = allTasks.some(t => t.termKey === 'cat');
+        expect(hasCatTask).toBe(true);
 
         await memoryContext.cleanup();
     });
