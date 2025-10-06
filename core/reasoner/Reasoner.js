@@ -52,11 +52,12 @@ class Reasoner {
     }
 
     async performInference(focusSet, options = {}) {
-        return !Array.isArray(focusSet)
-            ? errorHandler.handle(new Error(`Focus set must be an array, received: ${typeof focusSet}`), 'performInference', [])
-            : focusSet.length === 0
-                ? []
-                : this.#executeInference(focusSet, options);
+        if (!Array.isArray(focusSet)) {
+            throw new Error(`Focus set must be an array, received: ${typeof focusSet}`);
+        }
+        return focusSet.length === 0
+            ? []
+            : this.#executeInference(focusSet, options);
     }
 
     async #executeInference(focusSet, options) {

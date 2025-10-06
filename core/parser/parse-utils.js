@@ -22,8 +22,8 @@ function parseTermInner(termKey) {
 const MALFORMED_PATTERNS = [
     /\(\s*-->\s*\)/, /\(\s*==>\s*\)/, /\(\s*<->\s*\)/, /\(\s*<=>\s*\)/,
     /\(\s*{\s*--\s*\)/, /\(\s*--\s*}\s*\)/, /\(\s*=\\>\s*\)/, /\(\s*=\/>\s*\)/,
-    /\(\s*=<>\s*\)/, /\(--,\s*\)/, /\(,\)/, /, \)/,
-    /\(\s*\^\s*\,\s*\)/  // Empty operation: (^,) or (^ ,)
+    /\(\s*=<>\s*\)/, /\(--,\s*\)/, /\(,\)/, /,\s*\)/,
+    /\(\s*\^\s*,\s*\)/  // Empty operation: (^,) or (^ ,)
 ].map(r => r.source).join('|');
 const MALFORMED_REGEX = new RegExp(MALFORMED_PATTERNS);
 
