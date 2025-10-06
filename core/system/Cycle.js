@@ -5,7 +5,6 @@ import {configService} from '../config/index.js';
 import {SystemCommands} from './SystemCommands.js';
 import {SystemEvents} from './SystemEvents.js';
 import Bag from '../utils/bag.js';
-import Bag from '../utils/bag.js';
 
 const errorHandler = createUnifiedErrorHandler('Cycle');
 
@@ -61,6 +60,19 @@ class Cycle {
 
         try {
             const focusSet = await this._selectFocusSet();
+
+            // Perform semantic term bootstrapping for new concepts
+            if (this.lm && this.config.getBoolean('CYCLE_ENABLE_SEMANTIC_BOOTSTRAPPING', true)) {
+                try {
+                    const bootstrappedConcepts = await this._performSemanticTermBootstrapping(focusSet);
+                    if (bootstrappedConcepts.length > 0) {
+                        debug(`Semantic bootstrapping created ${bootstrappedConcepts.length} new concepts`);
+                    }
+                } catch (error) {
+                    errorHandler.handle(error, `_runOnce semantic term bootstrapping`);
+                }
+            }
+
             const {
                 derivedTasks,
                 actionableGoals
@@ -450,12 +462,33 @@ class Cycle {
             focusSet
         });
 
+        // Generate LM-powered hypotheses for enhanced inference if LM is available
+        let enhancedTasks = [...derivedTasks];
+        if (this.lm && this.lm.generateHypotheses) {
+            try {
+                const lmHypotheses = await this._generateLMHypotheses(focusSet, derivedTasks);
+                enhancedTasks = [...enhancedTasks, ...lmHypotheses];
+                debug(`LM hypothesis generation added ${lmHypotheses.length} additional tasks`);
+            } catch (error) {
+                errorHandler.handle(error, `_performInference LM hypothesis generation`);
+            }
+        }
+
+        // Generate explanations for complex reasoning steps if LM is available
+        if (this.lm && this.lm.explain && enhancedTasks.length > 0) {
+            try {
+                await this._generateLMExplanations(enhancedTasks);
+            } catch (error) {
+                errorHandler.handle(error, `_performInference LM explanation generation`);
+            }
+        }
+
         // Filter actionable goals from both focusSet and derivedTasks in a single pass
         const priorityThreshold = this.config.getNumber('ACTIONABLE_GOAL_PRIORITY_THRESHOLD', 0.1);
         const actionableGoals = [];
 
         // Combine both arrays and filter in one pass for better performance
-        const allTasks = focusSet.concat(derivedTasks);
+        const allTasks = focusSet.concat(enhancedTasks);
         for (const task of allTasks) {
             if (task.punctuation === '!' && task.state?.priority >= priorityThreshold) {
                 actionableGoals.push(task);
@@ -463,7 +496,7 @@ class Cycle {
         }
 
         return {
-            derivedTasks,
+            derivedTasks: enhancedTasks,
             actionableGoals
         };
     }
@@ -472,12 +505,31 @@ class Cycle {
         if (!actionableGoals || !actionableGoals.length) {
             return;
         }
+
         for (const goal of actionableGoals) {
             try {
                 debug(`Requesting execution for goal: ${goal.termKey}`);
-                await this.commandBus.request(SystemCommands.EXECUTE_ACTION, goal);
+                const result = await this.commandBus.request(SystemCommands.EXECUTE_ACTION, goal);
+
+                // If execution failed and LM plan repair is available, attempt repair
+                if (!result?.success && this.lm?.suggestPlanRepair) {
+                    try {
+                        await this._attemptPlanRepair(goal, result);
+                    } catch (repairError) {
+                        errorHandler.handle(repairError, `_executeActions plan repair for goal ${goal.termKey}`);
+                    }
+                }
             } catch (error) {
                 errorHandler.handle(error, `_executeActions for goal ${goal.termKey}`);
+
+                // Attempt LM-powered plan repair for failed executions
+                if (this.lm?.suggestPlanRepair) {
+                    try {
+                        await this._attemptPlanRepair(goal, { error: error.message });
+                    } catch (repairError) {
+                        errorHandler.handle(repairError, `_executeActions plan repair for goal ${goal.termKey}`);
+                    }
+                }
             }
         }
     }
@@ -496,6 +548,168 @@ class Cycle {
             return;
         }
         await this.eventBus.emitAsync(SystemEvents.TASKS_ADD, derivedTasks);
+    }
+
+    async _generateLMHypotheses(focusSet, derivedTasks) {
+        if (!this.lm?.generateHypotheses) return [];
+
+        try {
+            // Generate hypotheses based on current focus set and derived tasks
+            const hypotheses = await this.lm.generateHypotheses(
+                [...focusSet, ...derivedTasks],
+                {
+                    maxHypotheses: this.config.getNumber('LM_MAX_HYPOTHESES_PER_CYCLE', 5),
+                    hypothesisTypes: ['inference', 'prediction', 'analogy'],
+                    context: 'reasoning_cycle'
+                }
+            );
+
+            // Convert hypotheses to tasks with appropriate metadata
+            const hypothesisTasks = hypotheses.map((hypothesis, index) => ({
+                termKey: hypothesis.termKey || `hypothesis_${Date.now()}_${index}`,
+                punctuation: hypothesis.confidence > 0.7 ? '.' : '?',
+                state: {
+                    priority: Math.min(0.8, hypothesis.confidence * 0.6), // Cap at 0.8, scale by confidence
+                    creationTime: Date.now(),
+                    truthValue: {
+                        frequency: hypothesis.confidence,
+                        confidence: 0.8
+                    }
+                },
+                metadata: {
+                    type: 'lm_hypothesis',
+                    hypothesisType: hypothesis.type,
+                    generatedBy: 'lm_hypothesis_generator',
+                    reasoningStep: 'inference_enhancement'
+                }
+            }));
+
+            debug(`Generated ${hypothesisTasks.length} LM-powered hypothesis tasks`);
+            return hypothesisTasks;
+
+        } catch (error) {
+            errorHandler.handle(error, `_generateLMHypotheses`);
+            return [];
+        }
+    }
+
+    async _generateLMExplanations(derivedTasks) {
+        if (!this.lm?.explain) return;
+
+        try {
+            // Generate explanations for complex or high-priority derived tasks
+            const complexTasks = derivedTasks.filter(task =>
+                task.state?.priority > 0.5 ||
+                (task.metadata?.type === 'lm_hypothesis')
+            );
+
+            if (complexTasks.length === 0) return;
+
+            // Generate explanations in batches to avoid overwhelming the LM
+            const batchSize = this.config.getNumber('LM_EXPLANATION_BATCH_SIZE', 3);
+            for (let i = 0; i < complexTasks.length; i += batchSize) {
+                const batch = complexTasks.slice(i, i + batchSize);
+
+                const explanations = await Promise.all(
+                    batch.map(task => this.lm.explain(task.termKey, {
+                        context: 'reasoning_cycle',
+                        detailLevel: 'concise'
+                    }))
+                );
+
+                // Attach explanations to tasks
+                batch.forEach((task, index) => {
+                    if (explanations[index]) {
+                        task.metadata = task.metadata || {};
+                        task.metadata.explanation = explanations[index];
+                        task.metadata.explanationGenerated = Date.now();
+                    }
+                });
+            }
+
+            debug(`Generated LM explanations for ${complexTasks.length} complex tasks`);
+        } catch (error) {
+            errorHandler.handle(error, `_generateLMExplanations`);
+        }
+    }
+
+    async _performSemanticTermBootstrapping(focusSet) {
+        if (!this.lm?.bootstrapTerm) return [];
+
+        try {
+            const newConcepts = [];
+
+            // Identify terms that might benefit from bootstrapping
+            for (const task of focusSet) {
+                if (task.termKey && !task.embedding) {
+                    // Check if this is a compound term that might need semantic bootstrapping
+                    const termComponents = task.termKey.split(/[(&,)/]/).filter(Boolean);
+                    if (termComponents.length > 1) {
+                        const bootstrappedTerm = await this.lm.bootstrapTerm(task.termKey, {
+                            context: 'focus_set',
+                            bootstrapType: 'semantic_enhancement'
+                        });
+
+                        if (bootstrappedTerm && bootstrappedTerm.embedding) {
+                            newConcepts.push(bootstrappedTerm);
+                            debug(`Bootstrapped semantic term: ${task.termKey}`);
+                        }
+                    }
+                }
+            }
+
+            return newConcepts;
+        } catch (error) {
+            errorHandler.handle(error, `_performSemanticTermBootstrapping`);
+            return [];
+        }
+    }
+
+    async _attemptPlanRepair(goal, failureResult) {
+        if (!this.lm?.suggestPlanRepair) return null;
+
+        try {
+            const repairSuggestion = await this.lm.suggestPlanRepair(goal, {
+                error: failureResult.error,
+                context: 'action_execution',
+                maxSuggestions: 3
+            });
+
+            if (repairSuggestion && repairSuggestion.success) {
+                debug(`LM-powered plan repair suggested for goal: ${goal.termKey}`);
+
+                // Create repair task with suggested modifications
+                const repairTask = {
+                    termKey: `repair_${goal.termKey}_${Date.now()}`,
+                    punctuation: '?',
+                    state: {
+                        priority: Math.min(goal.state.priority + 0.1, 0.9), // Boost priority slightly
+                        creationTime: Date.now(),
+                        truthValue: {
+                            frequency: 0.7,
+                            confidence: 0.8
+                        }
+                    },
+                    metadata: {
+                        type: 'plan_repair',
+                        originalGoal: goal.termKey,
+                        repairSuggestion: repairSuggestion,
+                        failureReason: failureResult.error,
+                        generatedBy: 'lm_plan_repairer'
+                    }
+                };
+
+                // Add repair task to memory for future consideration
+                await this.eventBus.emitAsync(SystemEvents.TASKS_ADD, [repairTask]);
+
+                return repairTask;
+            }
+
+            return null;
+        } catch (error) {
+            errorHandler.handle(error, `_attemptPlanRepair for goal ${goal.termKey}`);
+            return null;
+        }
     }
 }
 
