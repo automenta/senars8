@@ -52,6 +52,15 @@ class Tools {
      * @param {Object} mcpConfig - Configuration for MCP tool
      */
     registerMcpTool(name, mcpConfig) {
+        if (typeof name !== 'string' || !name.trim()) {
+            throw new Error('MCP tool name must be a non-empty string');
+        }
+
+        // Check for duplicate tool names
+        if (this.tools.has(name) || this.mcpTools.has(name) || this.externalTools.has(name)) {
+            throw new Error(`Tool with name '${name}' already exists`);
+        }
+
         this.mcpTools.set(name, {
             name,
             config: mcpConfig,
@@ -68,6 +77,15 @@ class Tools {
      * @param {Object} toolInstance - The external tool instance
      */
     registerExternalTool(name, toolInstance) {
+        if (typeof name !== 'string' || !name.trim()) {
+            throw new Error('External tool name must be a non-empty string');
+        }
+
+        // Check for duplicate tool names
+        if (this.tools.has(name) || this.mcpTools.has(name) || this.externalTools.has(name)) {
+            throw new Error(`Tool with name '${name}' already exists`);
+        }
+
         this.externalTools.set(name, {
             name,
             instance: toolInstance,
