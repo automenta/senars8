@@ -14,3 +14,5 @@
 - Few comments: rely on self-documenting code
 
 - Purpose: professional, not explanatory/educational
+
+- Unit testing: avoid using (and reduce reliance on) Mocks; test objects directly.  Use the system's own event/metric APIs to test correct functionality.
