@@ -3,7 +3,7 @@
  * Demonstrates how to create a plugin for the system
  */
 
-import {info} from '../core/utils/logger.js';
+import {info} from '../coreagent/utils/logger.js';
 
 class ExamplePlugin {
     constructor(options = {}) {
@@ -25,11 +25,11 @@ class ExamplePlugin {
      */
     async initialize(container) {
         info('ExamplePlugin: Initializing');
-        
+
         // Access system components through the container
         const system = container.get('system');
         const memory = container.get('memory');
-        
+
         // Perform initialization logic here
         info('ExamplePlugin: Initialized successfully');
     }

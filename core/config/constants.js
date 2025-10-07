@@ -113,14 +113,14 @@ export const TOKEN = {
 // Additional constants for system-wide use
 export const SYSTEM_CONSTANTS = {
     DEFAULT_TRUTH_VALUES: {
-        HIGH: { frequency: 1.0, confidence: 0.9 },
-        MEDIUM_HIGH: { frequency: 0.9, confidence: 0.85 },
-        MEDIUM: { frequency: 0.8, confidence: 0.85 },
-        MEDIUM_LOW: { frequency: 0.7, confidence: 0.8 },
-        LOW: { frequency: 0.5, confidence: 0.7 },
-        VERY_LOW: { frequency: 0.1, confidence: 0.2 }
+        HIGH: {frequency: 1.0, confidence: 0.9},
+        MEDIUM_HIGH: {frequency: 0.9, confidence: 0.85},
+        MEDIUM: {frequency: 0.8, confidence: 0.85},
+        MEDIUM_LOW: {frequency: 0.7, confidence: 0.8},
+        LOW: {frequency: 0.5, confidence: 0.7},
+        VERY_LOW: {frequency: 0.1, confidence: 0.2}
     },
-    
+
     DEFAULT_PRIORITIES: {
         DEFAULT: 0,
         LOW: 0.1,
@@ -128,11 +128,11 @@ export const SYSTEM_CONSTANTS = {
         HIGH: 0.8,
         VERY_HIGH: 0.95
     },
-    
+
     DEFAULT_EMBEDDING: [0.1, 0.2, 0.3],
-    
+
     DEFAULT_COMPLEXITY: 1,
-    
+
     TIME_THRESHOLDS: {
         DEFAULT_EXPIRATION_MS: 24 * 3600 * 1000, // 1 day in ms
         LONG_EXPIRATION_MS: 30 * 24 * 3600 * 1000, // 30 days in ms
@@ -140,13 +140,13 @@ export const SYSTEM_CONSTANTS = {
         HIGH_IMPORTANCE_THRESHOLD: 0.8,
         VERY_HIGH_IMPORTANCE_THRESHOLD: 0.95
     },
-    
+
     BATCH_SIZES: {
         DEFAULT: 10,
         SMALL: 5,
         LARGE: 50
     },
-    
+
     TIMEOUTS: {
         DEFAULT: 5000,
         LONG: 10000,

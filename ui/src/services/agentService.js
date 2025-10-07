@@ -17,7 +17,7 @@ class AgentService {
     constructor(url) {
         // Use EventEmitter-like functionality with a simple implementation
         this._events = {};
-        
+
         this.url = url;
         this.logger = logger.create('AgentServiceUI');
         this.crdtUrl = DEFAULT_CONFIG.CONNECTION.CRDT_WEBSOCKET_URL;
@@ -75,19 +75,19 @@ class AgentService {
 
         // Create WebSocket connection
         this.connection = new WebSocket(this.url);
-        
+
         this.connection.onopen = () => {
             this.isConnected = true;
             this.agentState.connectionStatus = 'connected';
             this.emit('status', 'connected');
             this.logger.info('Connected to agent');
-            
+
             // Request initial state
             this.sendMessage('get_system_stats');
             this.sendMessage('get_tasks');
             this.sendMessage('get_beliefs');
             this.sendMessage('get_goals');
-            
+
             // Setup collaborative editing when connected
             this.setupCollaborativeEditing();
         };
@@ -124,7 +124,7 @@ class AgentService {
             this.connection = null;
             this.isConnected = false;
         }
-        
+
         // Clean up collaborative editing
         if (this.yProvider) {
             this.yProvider.destroy();

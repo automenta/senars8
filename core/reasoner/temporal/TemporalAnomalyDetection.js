@@ -39,7 +39,7 @@ class TemporalAnomalyDetection {
     static _executeDetect(temporalFocusSet, options = {}) {
         return errorHandler.executeSync(() => {
             debug(`Detecting temporal anomalies for ${temporalFocusSet.length} tasks`);
-            
+
             const anomalyTasks = [];
             const anomalies = detectTemporalAnomalies(temporalFocusSet);
 

@@ -17,7 +17,7 @@ class TemporalCache {
         this.maxEntries = maxEntries;
         this.ttl = ttl;
         this.metricsService = null;
-        
+
         info(`TemporalCache initialized with maxEntries: ${maxEntries}, TTL: ${ttl}ms`);
     }
 
@@ -39,10 +39,10 @@ class TemporalCache {
     _generateKey(moduleName, tasks, options = {}) {
         // Create a stable key based on task term keys and timestamps, not IDs (which are unique)
         // This ensures identical tasks produce the same key
-        const taskKeys = tasks.map(task => 
+        const taskKeys = tasks.map(task =>
             `${task.termKey}_${task.state.stamp?.occurrenceTime || 'no_time'}`
         ).sort().join('|');
-        
+
         const optionsKey = JSON.stringify(options);
         return `${moduleName}|${taskKeys}|${optionsKey}`;
     }
@@ -54,16 +54,16 @@ class TemporalCache {
      */
     _isValid(key) {
         if (!this.cache.has(key)) return false;
-        
+
         const accessTime = this.accessTimes.get(key);
         const now = Date.now();
-        
+
         // Check if entry has expired
         if (now - accessTime > this.ttl) {
             this._remove(key);
             return false;
         }
-        
+
         return true;
     }
 
@@ -86,7 +86,7 @@ class TemporalCache {
             // Sort entries by access time (oldest first)
             const sortedEntries = Array.from(this.accessTimes.entries())
                 .sort((a, b) => a[1] - b[1]);
-            
+
             // Remove oldest entries (20% of maxEntries)
             const toRemove = Math.max(1, Math.floor(this.maxEntries * 0.2));
             for (let i = 0; i < toRemove && i < sortedEntries.length; i++) {
@@ -104,27 +104,27 @@ class TemporalCache {
      */
     get(moduleName, tasks, options = {}) {
         const key = this._generateKey(moduleName, tasks, options);
-        
+
         if (this._isValid(key)) {
             this.accessTimes.set(key, Date.now()); // Update access time
             this.hitCount++;
-            
+
             // Track cache hit in metrics if available
             if (this.metricsService) {
                 this.metricsService.trackTemporalCaching(true);
             }
-            
+
             debug(`Cache HIT for: ${moduleName} with ${tasks.length} tasks`);
             return this.cache.get(key);
         }
-        
+
         this.missCount++;
-        
+
         // Track cache miss in metrics if available
         if (this.metricsService) {
             this.metricsService.trackTemporalCaching(false);
         }
-        
+
         debug(`Cache MISS for: ${moduleName} with ${tasks.length} tasks`);
         return null;
     }
@@ -139,14 +139,14 @@ class TemporalCache {
      */
     set(moduleName, tasks, value, options = {}) {
         const key = this._generateKey(moduleName, tasks, options);
-        
+
         // Evict if necessary before adding new entry
         this._evictIfNecessary();
-        
+
         // Set the value and access time
         this.cache.set(key, value);
         this.accessTimes.set(key, Date.now());
-        
+
         return true;
     }
 
@@ -158,7 +158,7 @@ class TemporalCache {
         this.accessTimes.clear();
         this.hitCount = 0;
         this.missCount = 0;
-        
+
         info('TemporalCache cleared');
     }
 
@@ -169,7 +169,7 @@ class TemporalCache {
     getStats() {
         const totalRequests = this.hitCount + this.missCount;
         const hitRate = totalRequests > 0 ? this.hitCount / totalRequests : 0;
-        
+
         return {
             size: this.cache.size,
             hitCount: this.hitCount,
@@ -202,18 +202,18 @@ class TemporalCache {
      */
     preload(moduleName, tasks, predictedValue, options = {}) {
         const key = this._generateKey(moduleName, tasks, options);
-        
+
         // Don't overwrite existing valid entries
         if (this._isValid(key)) {
             return false;
         }
-        
+
         // Evict if necessary before adding new entry
         this._evictIfNecessary();
-        
+
         this.cache.set(key, predictedValue);
         this.accessTimes.set(key, Date.now());
-        
+
         debug(`Cache preloaded for: ${moduleName} with ${tasks.length} tasks`);
         return true;
     }

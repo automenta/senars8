@@ -23,13 +23,13 @@ class PipelineFactory {
 
         try {
             const {pipeline} = await import('@xenova/transformers');
-    
+
             info(`Loading pipeline: ${type} - ${model}`);
             const newPipeline = await errorHandler.execute(
                 () => pipeline(type, model, options),
                 `create-pipeline-${key}`
             );
-    
+
             // Only cache if the pipeline is valid (is a function or has expected call method)
             if (newPipeline && (typeof newPipeline === 'function' || typeof newPipeline.call === 'function')) {
                 this._pipelines.set(key, newPipeline);

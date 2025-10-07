@@ -1,8 +1,8 @@
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import {debug} from '../utils/logger.js';
 import {parseTerm} from '../parser/parse-utils.js';
-import Task from '../core/Task.js';
-import {getBeliefTasks} from '../utils/task-utils.js';
+import Task from '../../core/core/Task.js';
+import {getBeliefTasks} from '../../core/utils/task-utils.js';
 import zod from 'zod';
 
 const errorHandler = createUnifiedErrorHandler('ProactiveEnricher');

@@ -13,12 +13,12 @@
  * @returns {number} Effectiveness score
  */
 function calculateEffectiveness(successRate, averageTime, options = {}) {
-    const { timeWeight = 1, successWeight = 1 } = options;
-    
+    const {timeWeight = 1, successWeight = 1} = options;
+
     if (averageTime <= 0) {
         return successRate * successWeight;
     }
-    
+
     // Logarithmic scaling to prevent execution time from overly penalizing faster strategies
     const timeFactor = Math.log(averageTime + 1);
     return (successRate * successWeight) / (timeFactor * timeWeight);
@@ -34,10 +34,10 @@ function calculateStrategyEffectiveness(stats, options = {}) {
     const executions = stats.executions || 0;
     const successes = stats.successes || 0;
     const averageTime = stats.averageTime || 0;
-    
+
     const successRate = executions > 0 ? successes / executions : 0;
     const effectiveness = calculateEffectiveness(successRate, averageTime, options);
-    
+
     return {
         successRate,
         effectiveness,
@@ -45,7 +45,7 @@ function calculateStrategyEffectiveness(stats, options = {}) {
         totalExecutions: executions,
         totalSuccesses: successes,
         totalFailures: (stats.failures || 0),
-        ...(stats.taskTypePerformance && { taskTypePerformance: stats.taskTypePerformance })
+        ...(stats.taskTypePerformance && {taskTypePerformance: stats.taskTypePerformance})
     };
 }
 
@@ -59,17 +59,17 @@ function calculateTemporalModuleEffectiveness(moduleStats, options = {}) {
     const callCount = moduleStats.callCount || 0;
     const totalExecutionTime = moduleStats.totalExecutionTime || 0;
     const totalTasksGenerated = moduleStats.totalTasksGenerated || 0;
-    
+
     const averageExecutionTime = callCount > 0 ? totalExecutionTime / callCount : 0;
     const tasksPerSecond = totalExecutionTime > 0 ? totalTasksGenerated / (totalExecutionTime / 1000) : 0;
-    
+
     // Use execution time effectiveness for temporal modules
     const effectiveness = calculateEffectiveness(
         tasksPerSecond > 0 ? Math.min(1, tasksPerSecond / 100) : 0, // Normalize tasks per second
         averageExecutionTime,
         options
     );
-    
+
     return {
         effectiveness,
         averageExecutionTime,
@@ -90,14 +90,14 @@ function calculateContradictionResolutionEffectiveness(resolutionStats, options 
     const resolved = resolutionStats.resolved || 0;
     const successes = resolutionStats.successes || 0;
     const failures = resolutionStats.failures || 0;
-    
+
     const successRate = resolved > 0 ? successes / resolved : 0;
     // For contradiction resolution, we might weight success rate higher
     const effectiveness = calculateEffectiveness(successRate, resolutionStats.averageTime || 0, {
         timeWeight: options.timeWeight || 0.5,
         successWeight: options.successWeight || 1.5
     });
-    
+
     return {
         effectiveness,
         successRate,
@@ -116,7 +116,8 @@ function calculateContradictionResolutionEffectiveness(resolutionStats, options 
  * @param {Array} params - Parameters to pass to the tracking method
  * @param {Function} defaultAction - Function to execute when metrics service is not available
  */
-function trackEvent(metricsService, trackMethod, params, defaultAction = () => {}) {
+function trackEvent(metricsService, trackMethod, params, defaultAction = () => {
+}) {
     if (metricsService && typeof metricsService[trackMethod] === 'function') {
         try {
             return metricsService[trackMethod](...params);
@@ -131,7 +132,7 @@ function trackEvent(metricsService, trackMethod, params, defaultAction = () => {
 /**\n * Calculate resolution effectiveness score based on success and execution time\n * @param {boolean} success - Whether the resolution was successful\n * @param {number} executionTime - Execution time in milliseconds\n * @returns {number} Effectiveness score\n */
 function calculateResolutionEffectiveness(success, executionTime) {
     if (!success) return 0;
-    
+
     // Simple effectiveness calculation: higher success with faster execution gets higher score
     // Use logarithmic scaling to prevent execution time from overly penalizing faster strategies
     const timeFactor = executionTime > 0 ? Math.log(executionTime + 1) : 0;
@@ -142,33 +143,33 @@ function calculateResolutionEffectiveness(success, executionTime) {
 function calculateWeightedEffectiveness(stats) {
     // Base effectiveness score
     let effectiveness = stats.averageEffectiveness;
-    
+
     // Add weight for recent performance if we have enough history
     if (stats.effectivenessHistory?.length > 0) {
         // Calculate recent effectiveness (average of last entries)
         const recentEffectiveness = stats.effectivenessHistory
-            .slice(-3)
-            .reduce((sum, val) => sum + val, 0) / 
+                .slice(-3)
+                .reduce((sum, val) => sum + val, 0) /
             Math.min(3, stats.effectivenessHistory.length);
-        
+
         // Weight recent performance more heavily (0.7) than historical (0.3)
         effectiveness = (0.3 * stats.averageEffectiveness) + (0.7 * recentEffectiveness);
     }
-    
+
     // Boost effectiveness if success rate is high
     if (stats.successRate > 0.8) {
         effectiveness *= 1.2; // 20% boost for high success rates
     } else if (stats.successRate > 0.6) {
         effectiveness *= 1.1; // 10% boost for moderate success rates
     }
-    
+
     // Reduce effectiveness if execution time is too high (relative to other strategies)
     if (stats.averageExecutionTime > 100) { // Adjust threshold as needed
         effectiveness *= 0.9; // 10% penalty for slow execution
     } else if (stats.averageExecutionTime < 50) {
         effectiveness *= 1.05; // 5% boost for fast execution
     }
-    
+
     return effectiveness;
 }
 
@@ -194,20 +195,20 @@ function updateEffectiveStrategy(effectiveStrategies, contradictionType, strateg
 
     const stats = strategyMap.get(strategy);
     stats.totalAttempts++;
-    
+
     if (success) {
         stats.totalSuccesses++;
     } else {
         stats.totalFailures++;
     }
-    
+
     stats.totalEffectiveness += effectiveness;
     stats.averageEffectiveness = stats.totalEffectiveness / stats.totalAttempts;
     stats.successRate = stats.totalSuccesses / stats.totalAttempts;
-    
+
     // Track execution time
     stats.averageExecutionTime = ((stats.averageExecutionTime * (stats.totalAttempts - 1)) + executionTime) / stats.totalAttempts;
-    
+
     // Store recent effectiveness for trend analysis (keep last 10 entries)
     stats.effectivenessHistory.push(effectiveness);
     if (stats.effectivenessHistory.length > 10) {
@@ -224,25 +225,25 @@ function selectOptimalResolutionStrategy(effectiveStrategies, contradiction, fal
             // Find the strategy with the highest average effectiveness
             let bestStrategy = null;
             let bestEffectiveness = -1;
-            
+
             for (const [strategy, stats] of strategyMap) {
                 // Only consider strategies with at least 3 attempts to avoid bias from limited data
                 // Weight strategies based on success rate and recent effectiveness
                 const weightedEffectiveness = calculateWeightedEffectiveness(stats);
-                
+
                 if (stats.totalAttempts >= 3 && weightedEffectiveness > bestEffectiveness) {
                     bestEffectiveness = weightedEffectiveness;
                     bestStrategy = strategy;
                 }
             }
-            
+
             // If we found an effective strategy, use it
             if (bestStrategy) {
                 return bestStrategy;
             }
         }
     }
-    
+
     // If no effective strategy is found, use the original logic with severity-based selection
     // But also consider contradiction type as a factor in strategy selection
     if (contradiction.severity > 0.8) {
@@ -271,10 +272,10 @@ function getStrategyEffectivenessStats(effectiveStrategies, contradictionType) {
     if (!effectiveStrategies.has(contradictionType)) {
         return null;
     }
-    
+
     const strategyMap = effectiveStrategies.get(contradictionType);
     const result = {};
-    
+
     for (const [strategy, stats] of strategyMap) {
         result[strategy] = {
             totalAttempts: stats.totalAttempts,
@@ -285,7 +286,7 @@ function getStrategyEffectivenessStats(effectiveStrategies, contradictionType) {
             averageExecutionTime: stats.averageExecutionTime
         };
     }
-    
+
     return result;
 }
 

@@ -12,7 +12,7 @@ const errorHandler = createUnifiedErrorHandler('TemporalCachingUtils');
  * @returns {Function} The wrapped method with caching
  */
 function withTemporalCaching(moduleName, method, cache, metricsService = null) {
-    return function(tasks, options = {}) {
+    return function (tasks, options = {}) {
         return errorHandler.executeSync(() => {
             // If cache is available, try to retrieve cached result first
             if (cache) {
@@ -25,7 +25,7 @@ function withTemporalCaching(moduleName, method, cache, metricsService = null) {
 
             // Execute the original method
             const result = method.call(this, tasks, options);
-            
+
             // Cache the result if cache is available
             if (cache) {
                 cache.set(moduleName, tasks, result, options);
@@ -45,10 +45,10 @@ function withTemporalCaching(moduleName, method, cache, metricsService = null) {
  */
 function generateCacheKey(moduleName, tasks, options = {}) {
     // Create a stable key based on task term keys and timestamps, not IDs (which are unique)
-    const taskKeys = tasks.map(task => 
+    const taskKeys = tasks.map(task =>
         `${task.termKey}_${task.state.stamp?.occurrenceTime || 'no_time'}`
     ).sort().join('|');
-    
+
     const optionsKey = JSON.stringify(options);
     return `${moduleName}|${taskKeys}|${optionsKey}`;
 }
@@ -64,29 +64,29 @@ function generateCacheKey(moduleName, tasks, options = {}) {
  */
 function getCachedValue(cache, moduleName, tasks, options = {}, metricsService = null) {
     if (!cache) return null;
-    
+
     const key = generateCacheKey(moduleName, tasks, options);
-    
+
     if (cache._isValid(key)) {
         cache.accessTimes.set(key, Date.now()); // Update access time
         cache.hitCount++;
-        
+
         // Track cache hit in metrics if available
         if (metricsService) {
             metricsService.trackTemporalCaching(true);
         }
-        
+
         debug(`Cache HIT for: ${moduleName} with ${tasks.length} tasks`);
         return cache.cache.get(key);
     }
-    
+
     cache.missCount++;
-    
+
     // Track cache miss in metrics if available
     if (metricsService) {
         metricsService.trackTemporalCaching(false);
     }
-    
+
     debug(`Cache MISS for: ${moduleName} with ${tasks.length} tasks`);
     return null;
 }
@@ -102,16 +102,16 @@ function getCachedValue(cache, moduleName, tasks, options = {}, metricsService =
  */
 function setCachedValue(cache, moduleName, tasks, value, options = {}) {
     if (!cache) return false;
-    
+
     // Evict if necessary before adding new entry
     cache._evictIfNecessary();
-    
+
     const key = generateCacheKey(moduleName, tasks, options);
-    
+
     // Set the value and access time
     cache.cache.set(key, value);
     cache.accessTimes.set(key, Date.now());
-    
+
     return true;
 }
 
@@ -127,24 +127,24 @@ function createCachingTemporalModule(moduleName, methods, cache, metricsService 
     const module = {
         cache: null,
         metricsService: null,
-        
+
         setCache(c) {
             module.cache = c;
         },
-        
+
         setMetricsService(ms) {
             module.metricsService = ms;
         }
     };
-    
+
     // Apply caching to methods that follow the standard pattern
     for (const [methodName, method] of Object.entries(methods)) {
         if (typeof method === 'function') {
-            module[methodName] = function(tasks, options = {}) {
+            module[methodName] = function (tasks, options = {}) {
                 return withTemporalCaching(
-                    moduleName, 
-                    method.bind(methods), 
-                    cache, 
+                    moduleName,
+                    method.bind(methods),
+                    cache,
                     metricsService
                 ).call(this, tasks, options);
             };
@@ -152,7 +152,7 @@ function createCachingTemporalModule(moduleName, methods, cache, metricsService 
             module[methodName] = method;
         }
     }
-    
+
     return module;
 }
 

@@ -1,15 +1,14 @@
 import {createServer} from 'vite';
 import path from 'path';
 import {fileURLToPath} from 'url';
-import logger from './core/utils/logger.js';
-import AgentManager from './agent/AgentManager.js';
+import logger from './coreagent/utils/logger.js';
+import {System} from './coreagent/index.js';
 import {UnifiedWebSocketServer} from './agent/StandaloneWebSocketServer.js';
 import {createMessageHandler} from './agent/MessageHandler.js';
 import {findAvailablePort} from './tests/utils/networkUtils.js';
-import {applicationConfig} from './core/config/index.js';
-import {setupGracefulShutdown} from './core/utils/system.js';
-import {handleUncaughtError} from './core/utils/system.js';
-import resourceManager from './core/utils/ResourceManager.js';
+import {applicationConfig} from './coreagent/config/index.js';
+import {handleUncaughtError, setupGracefulShutdown} from './coreagent/utils/system.js';
+import resourceManager from './coreagent/utils/ResourceManager.js';
 
 const log = logger.create('integrated-web-runner');
 const __filename = fileURLToPath(import.meta.url);
@@ -63,24 +62,24 @@ export class IntegratedWebRunner {
     async startAgent() {
         log.info('Starting embedded agent...');
 
-        const agentManager = new AgentManager();
+        const agent = new System();
 
         // Create WebSocket server for the agent
         const wsServer = new UnifiedWebSocketServer({port: this.wsPort});
         await wsServer.start();
 
         // Set up message handling
-        const messageHandler = createMessageHandler(agentManager, wsServer.broadcast.bind(wsServer));
+        const messageHandler = createMessageHandler(agent, wsServer.broadcast.bind(wsServer));
         wsServer.setMessageHandler(messageHandler);
 
-        // Link WebSocket server to agent manager
-        agentManager.setBroadcast(wsServer.broadcast.bind(wsServer));
+        // Link WebSocket server to agent
+        agent.setBroadcast(wsServer.broadcast.bind(wsServer));
 
-        // Initialize the agent manager
-        await agentManager.initialize();
+        // Initialize the agent
+        await agent.initialize();
 
         // Register resources with resource manager
-        resourceManager.register('agentManager', agentManager);
+        resourceManager.register('agentManager', agent);
         resourceManager.register('wsServer', wsServer);
 
         log.info('Embedded agent started successfully');
@@ -131,7 +130,6 @@ export class IntegratedWebRunner {
             throw error;
         }
     }
-
 
 
     async cleanup() {

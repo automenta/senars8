@@ -1,14 +1,13 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Box, Text, useInput} from 'ink';
 import fs from 'fs';
 import path from 'path';
-import {URL} from 'url';
 
 // Simple demo discovery
 const getDemoFiles = () => {
     try {
         const DEMO_DIR = path.resolve(process.cwd(), 'tests/demos');
-        
+
         if (!fs.existsSync(DEMO_DIR)) {
             console.error('Demo directory not found:', DEMO_DIR);
             return {};
@@ -142,9 +141,9 @@ const DemoListView = ({demos, selectedDemo, onSelectDemo, isRunning}) => {
                                 const isSelected = currentIndex === selectedIndex;
                                 const isCurrentDemo = selectedDemo && selectedDemo.path === demo.path;
                                 currentIndex++;
-                                
+
                                 return (
-                                    <Text 
+                                    <Text
                                         key={demo.file}
                                         color={isSelected || isCurrentDemo ? 'green' : 'white'}
                                         backgroundColor={isSelected ? 'black' : undefined}
@@ -167,12 +166,12 @@ const DemoTextView = ({output, isRunning}) => {
     return (
         <Box flexDirection="column" width="70%" borderStyle="single" padding={1} marginLeft={1} flexGrow={1}>
             <Text bold>Demo Output</Text>
-            <Box 
-                flexDirection="column" 
-                marginTop={1} 
-                flexGrow={1} 
-                borderStyle="single" 
-                padding={1} 
+            <Box
+                flexDirection="column"
+                marginTop={1}
+                flexGrow={1}
+                borderStyle="single"
+                padding={1}
                 height="100%"
             >
                 {/* Fixed height container that will show scroll bar in terminal */}
@@ -227,14 +226,14 @@ const SimpleDemoRunner = ({onExit}) => {
 
     return (
         <Box flexDirection="row" height="100%" width="100%">
-            <DemoListView 
-                demos={demos} 
-                selectedDemo={selectedDemo} 
+            <DemoListView
+                demos={demos}
+                selectedDemo={selectedDemo}
                 onSelectDemo={handleSelectDemo}
                 isRunning={isRunning}
             />
-            <DemoTextView 
-                output={output} 
+            <DemoTextView
+                output={output}
                 isRunning={isRunning}
             />
         </Box>

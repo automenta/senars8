@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import {describe, expect, it} from 'vitest';
 import Bag from './bag.js';
 
 describe('Bag Sampling Distribution Validation', () => {
@@ -48,7 +48,7 @@ describe('Bag Sampling Distribution Validation', () => {
 
             // Verify that higher priority groups get more samples
             for (let i = 1; i < priorityLevels.length; i++) {
-                const lowerGroup = `group_${i-1}`;
+                const lowerGroup = `group_${i - 1}`;
                 const higherGroup = `group_${i}`;
 
                 const lowerRatio = actualCounts[lowerGroup] / expectedCounts[lowerGroup];
@@ -181,7 +181,7 @@ describe('Bag Sampling Distribution Validation', () => {
 
             // Higher priority levels should have more samples
             for (let i = 1; i < priorityLevels.length; i++) {
-                expect(levelCounts[i]).toBeGreaterThanOrEqual(levelCounts[i-1] * 0.7); // Allow some variance
+                expect(levelCounts[i]).toBeGreaterThanOrEqual(levelCounts[i - 1] * 0.7); // Allow some variance
             }
 
             // Verify that all levels get some samples (no starvation)

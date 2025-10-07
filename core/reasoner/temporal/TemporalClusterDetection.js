@@ -37,7 +37,7 @@ class TemporalClusterDetection {
     static _executeDetect(temporalFocusSet, options = {}) {
         return errorHandler.executeSync(() => {
             debug(`Detecting temporal clusters for ${temporalFocusSet.length} tasks`);
-            
+
             const clusterTasks = [];
             const clusters = detectTemporalClusters(temporalFocusSet);
             const abstractions = createTemporalClusterAbstractions(clusters);

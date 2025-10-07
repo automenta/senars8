@@ -1,6 +1,6 @@
 import {EventBus} from '@senars/common/utils/eventBus.js';
 import {connectionManager} from './connection.js';
-import log from '../../core/utils/logger.js';
+import log from '../../coreagent/utils/logger.js';
 
 /**
  * A base service for UIs (TUI, WebUI) that manages agent communication

@@ -13,7 +13,7 @@ class ApplicationConfig {
                 // UI and WebSocket ports with environment variable overrides
                 uiPort: parseInt(process.env.SENARS_UI_PORT || '3000'),
                 wsPort: parseInt(process.env.SENARS_WS_PORT || '8081'),
-                
+
                 // Development-specific settings
                 devMode: process.env.SENARS_DEV_MODE !== 'false',
                 logLevel: process.env.SENARS_LOG_LEVEL || 'info',
@@ -21,7 +21,7 @@ class ApplicationConfig {
                 debugMode: process.env.SENARS_DEBUG_MODE !== 'false',
                 verboseLogging: process.env.SENARS_VERBOSE_LOGGING !== 'false',
                 componentReload: process.env.SENARS_COMPONENT_RELOAD !== 'false',
-                
+
                 // Server settings
                 server: {
                     strictPort: true, // Fail if port is busy
@@ -113,4 +113,4 @@ const applicationConfig = new ApplicationConfig();
 export default applicationConfig;
 
 // Export class for direct instantiation if needed
-export { ApplicationConfig };
+export {ApplicationConfig};

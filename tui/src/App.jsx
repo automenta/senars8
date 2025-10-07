@@ -1,22 +1,21 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Box, Static, Text, useApp, useInput} from 'ink';
 import {connectionManager} from '@senars/common';
-import logger, {TuiTransport} from '../../core/utils/logger.js';
+import logger, {TuiTransport} from '../../coreagent/utils/logger.js';
 import TuiAgentService from './services/TuiAgentService.js';
 import AgentView from './components/AgentView.jsx';
 import SimpleDemoRunner from './components/SimpleDemoRunner.jsx';
 import ConnectionDiscovery from './components/ConnectionDiscovery.jsx';
 import {ErrorBoundary} from './components/ErrorBoundary.jsx';
-import {ConnectionStatus} from './components/LoadingStates.jsx';
 import {theme} from './theme.js';
 import {Container, Flex, MainLayout, Panel} from './components/Layout.jsx';
-import {Badge, Button, Card} from './components/Interactive.jsx';
+import {Badge, Button} from './components/Interactive.jsx';
 import {LOG_LEVEL_CONFIG, LOG_LEVELS} from './utils/uiHelpers.js';
 import {useFocusManager} from './hooks/useMouseInteraction.js';
 
 // Modern Transcript Panel Component for displaying captured logs
 const TranscriptPanel = ({logs = [], title = "System Transcript", maxHeight = 12}) => {
-    const screenSize = { width: 120, height: 30 }; // Default fallback
+    const screenSize = {width: 120, height: 30}; // Default fallback
 
     // Adaptive height based on screen size
     const adaptiveHeight = React.useMemo(() => {
@@ -26,10 +25,10 @@ const TranscriptPanel = ({logs = [], title = "System Transcript", maxHeight = 12
     }, [screenSize.height]);
 
     const displayLogs = React.useMemo(() =>
-        logs.length === 0 ? [
-            { message: 'TUI started successfully', level: 2, timestamp: new Date() },
-            { message: 'Ready for interaction', level: 2, timestamp: new Date() }
-        ] : logs.slice(-Math.floor(adaptiveHeight * 2)), // Show more logs on larger screens
+            logs.length === 0 ? [
+                {message: 'TUI started successfully', level: 2, timestamp: new Date()},
+                {message: 'Ready for interaction', level: 2, timestamp: new Date()}
+            ] : logs.slice(-Math.floor(adaptiveHeight * 2)), // Show more logs on larger screens
         [logs, adaptiveHeight]
     );
 
@@ -176,9 +175,13 @@ const App = ({onExit, initialMode = 'agent'}) => {
 
         // Initialize with some sample logs to show the transcript is working
         setTranscriptLogs([
-            { message: 'TUI started successfully', level: 2, timestamp: new Date() },
-            { message: currentMode === 'demos' ? 'Demo Runner mode activated' : 'Initializing embedded agent...', level: 2, timestamp: new Date() },
-            { message: 'Ready for interaction', level: 2, timestamp: new Date() }
+            {message: 'TUI started successfully', level: 2, timestamp: new Date()},
+            {
+                message: currentMode === 'demos' ? 'Demo Runner mode activated' : 'Initializing embedded agent...',
+                level: 2,
+                timestamp: new Date()
+            },
+            {message: 'Ready for interaction', level: 2, timestamp: new Date()}
         ]);
 
         // Skip agent initialization in demo mode
@@ -260,7 +263,8 @@ const App = ({onExit, initialMode = 'agent'}) => {
         <ErrorBoundary>
             <Container flexDirection="column" width="100%">
                 {/* Clean Mode Header - Only showing mode and essential controls */}
-                <Box width="100%" paddingX={theme.spacing.sm} paddingY={theme.spacing.xs} borderStyle="single" borderColor={theme.colors.border}>
+                <Box width="100%" paddingX={theme.spacing.sm} paddingY={theme.spacing.xs} borderStyle="single"
+                     borderColor={theme.colors.border}>
                     <Flex justifyContent="space-between" alignItems="center">
                         <Box>
                             <Flex alignItems="center" gap={theme.spacing.sm}>
@@ -298,7 +302,7 @@ const App = ({onExit, initialMode = 'agent'}) => {
                     </MainLayout>
                 ) : (
                     <ErrorBoundary>
-                        <SimpleDemoRunner onExit={onExit} />
+                        <SimpleDemoRunner onExit={onExit}/>
                     </ErrorBoundary>
                 )}
             </Container>

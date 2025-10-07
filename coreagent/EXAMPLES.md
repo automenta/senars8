@@ -68,22 +68,22 @@ system.core.reasoning.addStrategy(customStrategy);
 ```javascript
 // Register a custom plugin
 system.use('customPlugin', async (core) => {
-  return {
-    name: 'CustomPlugin',
-    async initialize() {
-      console.log('Plugin initialized');
-      // Set up event listeners
-      core.on('task:add', (task) => {
-        console.log('Plugin observed new task:', task);
-      });
-    },
-    async start() {
-      console.log('Plugin started');
-    },
-    async stop() {
-      console.log('Plugin stopped');
-    }
-  };
+    return {
+        name: 'CustomPlugin',
+        async initialize() {
+            console.log('Plugin initialized');
+            // Set up event listeners
+            core.on('task:add', (task) => {
+                console.log('Plugin observed new task:', task);
+            });
+        },
+        async start() {
+            console.log('Plugin started');
+        },
+        async stop() {
+            console.log('Plugin stopped');
+        }
+    };
 });
 
 // Load the plugin

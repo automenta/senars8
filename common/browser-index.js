@@ -1,12 +1,12 @@
 // Browser-specific exports - services & core functionality that work in browsers
-import logger from '../core/utils/logger.js';
+import logger from '../coreagent/utils/logger.js';
 
 // Constants
 import {CONNECTION_STATUS, MESSAGE_TYPES, NOTIFICATION_TYPES} from './constants/communication.js';
 import {CONFIG} from './constants/config.js';
 
 // Utilities - only import browser-compatible utilities
-import {validateNarseseStatement} from '../core/utils/task-utils.js';
+import {validateNarseseStatement} from '../coreagent/utils/task-utils.js';
 import * as DocumentationUtils from './utils/DocumentationUtils.js';
 import * as TestUtils from './utils/TestUtils.js';
 
@@ -22,9 +22,9 @@ const log = logger;
 
 export {
     // Core services
-    logger, 
+    logger,
     browserConnectionManager, // Use browser-specific connection manager
-    
+
     // Constants
     CONNECTION_STATUS, MESSAGE_TYPES, NOTIFICATION_TYPES, CONFIG,
 

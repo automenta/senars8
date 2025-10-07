@@ -1,4 +1,4 @@
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it} from 'vitest';
 import NarseseTranslator from '../../core/utils/NarseseTranslator.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
 import {createConfig} from '../shared/test-utils.js';
@@ -161,7 +161,7 @@ describe('Operation Operator (^) Integration', () => {
 
         // Execute via ActionExecutor directly
         const result = await actionExecutor.executeNarseseOperation('executor_tool(test)');
-        
+
         // The actual implementation returns a standardized format
         expect(result.result).toBeDefined();
         expect(result.result.action).toBe('executor_tool');

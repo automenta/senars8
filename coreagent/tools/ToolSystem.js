@@ -4,7 +4,6 @@
  * file operations, command execution, and multi-modal processing
  */
 
-import {EventBus} from '@senars/common/utils/eventBus.js';
 import {debug, error as logError, info} from '../utils/logger.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import WebAutomationExecutor from './executors/WebAutomationExecutor.js';
@@ -12,12 +11,13 @@ import FileOperationsExecutor from './executors/FileOperationsExecutor.js';
 import CommandExecutor from './executors/CommandExecutor.js';
 import MediaProcessorExecutor from './executors/MediaProcessorExecutor.js';
 import ApiExecutor from './executors/ApiExecutor.js';
+import Component from '../Component.js';
 
 const errorHandler = createUnifiedErrorHandler('ToolSystem');
 
-class ToolSystem extends EventBus {
-    constructor(config = {}) {
-        super();
+class ToolSystem extends Component {
+    constructor(core, config = {}) {
+        super('tools', core);
         this.config = config;
         this.tools = new Map();
         this.executors = new Map();
@@ -30,6 +30,15 @@ class ToolSystem extends EventBus {
         this.registerDefaultTools();
 
         info('ToolSystem initialized with sandboxing:', this.enableSandboxing);
+    }
+
+    setupHandlers() {
+        // Register tool execution handlers
+        this.core.messages.handle('tools:execute', (data) => this.executeTool(data.toolName, data.parameters, data.context));
+        this.core.messages.handle('tools:get', (toolName) => this.getTool(toolName));
+        this.core.messages.handle('tools:list', () => this.getAllTools());
+        this.core.messages.handle('tools:getStats', () => this.getStatistics());
+        this.core.messages.handle('tools:getHistory', (options) => this.getExecutionHistory(options));
     }
 
     initializeExecutors() {
@@ -325,7 +334,7 @@ class ToolSystem extends EventBus {
         this.tools.set(name, tool);
         debug(`Registered tool: ${name} (${category})`);
 
-        this.emit('tool:registered', tool);
+        this.core.emit('tool:registered', tool);
     }
 
     async executeTool(toolName, parameters = {}, context = {}) {
@@ -340,7 +349,7 @@ class ToolSystem extends EventBus {
 
         const executionContext = this.createExecutionContext(executionId, toolName, parameters, context, startTime);
         this.activeExecutions.set(executionId, executionContext);
-        this.emit('execution:started', executionContext);
+        this.core.emit('execution:started', executionContext);
 
         try {
             const result = await this.executeWithTimeout(tool.handler, parameters, context, context.timeout || 30000);
@@ -377,7 +386,7 @@ class ToolSystem extends EventBus {
         tool.lastUsed = Date.now();
 
         this.addToHistory(executionContext);
-        this.emit('execution:completed', executionContext);
+        this.core.emit('execution:completed', executionContext);
 
         info(`Tool execution completed: ${toolName} (${executionId}) in ${executionContext.duration}ms`);
 
@@ -398,7 +407,7 @@ class ToolSystem extends EventBus {
             status: 'failed'
         };
         this.addToHistory(errorContext);
-        this.emit('execution:failed', errorContext);
+        this.core.emit('execution:failed', errorContext);
 
         logError(`Tool execution failed: ${toolName} (${executionId})`, error);
 
@@ -529,14 +538,13 @@ class ToolSystem extends EventBus {
 
         // Cancel active executions
         this.activeExecutions.forEach((execution, executionId) =>
-            this.emit('execution:cancelled', {executionId, toolName: execution.toolName}));
+            this.core.emit('execution:cancelled', {executionId, toolName: execution.toolName}));
         this.activeExecutions.clear();
 
         // Shutdown executors
         await Promise.all(Array.from(this.executors.values(), executor =>
             typeof executor.shutdown === 'function' ? executor.shutdown() : Promise.resolve()));
 
-        this.removeAllListeners();
         info('ToolSystem shutdown complete');
     }
 }

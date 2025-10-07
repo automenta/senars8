@@ -13,7 +13,7 @@
       "verifyMigration": true,
       "supportedFeatures": [
         "memory",
-        "reasoning", 
+        "reasoning",
         "cycling",
         "plugins"
       ]

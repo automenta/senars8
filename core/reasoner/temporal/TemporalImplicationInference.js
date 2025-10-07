@@ -38,7 +38,7 @@ class TemporalImplicationInference {
     static _executeInfer(temporalFocusSet, options = {}) {
         return errorHandler.executeSync(() => {
             debug(`Inferring temporal implications for ${temporalFocusSet.length} tasks`);
-            
+
             const implicationTasks = [];
             let implicationCount = 0;
 

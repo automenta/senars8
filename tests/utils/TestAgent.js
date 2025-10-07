@@ -2,7 +2,6 @@
  * Simplified test-friendly Agent for use in tests without heavy mocking
  */
 import {Agent} from '../../agent/index.js';
-import {createSystem} from '../../core/index.js';
 import {SYSTEM_CONSTANTS} from '../../core/config/constants.js';
 
 export class TestAgent extends Agent {
@@ -14,7 +13,7 @@ export class TestAgent extends Agent {
     async initialize() {
         // Create a simplified system for testing that doesn't require heavy mocking
         this.system = await createSystemForTest(this.options.config || {});
-        
+
         // Initialize without file monitoring for tests
         this.isInitialized = true;
         return true;
@@ -23,7 +22,7 @@ export class TestAgent extends Agent {
 
 /**
  * Creates a simplified system for testing purposes
- * @param {Object} config - Configuration options 
+ * @param {Object} config - Configuration options
  * @returns {Object} Simplified system object for testing
  */
 export async function createSystemForTest(config = {}) {
@@ -38,9 +37,12 @@ export async function createSystemForTest(config = {}) {
     };
 
     // Add simple mock methods
-    system.initialize = async () => {};
-    system.start = async () => {};
-    system.stop = async () => {};
+    system.initialize = async () => {
+    };
+    system.start = async () => {
+    };
+    system.stop = async () => {
+    };
 
     return system;
 }
@@ -85,7 +87,7 @@ function createMockCommandBus() {
                 return this.commands.get(command)(payload);
             }
             // Default response for most commands
-            return { success: true, result: null };
+            return {success: true, result: null};
         },
         handle: (command, handler) => {
             this.commands.set(command, handler);
@@ -136,8 +138,11 @@ function createMockReasoner() {
 
 function createMockCycle() {
     return {
-        run: async () => {},
-        step: async () => {},
-        runOnce: async () => {}
+        run: async () => {
+        },
+        step: async () => {
+        },
+        runOnce: async () => {
+        }
     };
 }

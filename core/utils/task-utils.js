@@ -1,6 +1,6 @@
 import Task from '../core/Task.js';
 import {createUnifiedErrorHandler} from './errorHandler.js';
-import {parseTerm} from '../parser/parse-utils.js';
+import {parseTerm} from '../../coreagent/parser/parse-utils.js';
 
 // Optimized task type checking functions
 const isBelief = task => task?.punctuation === '.';

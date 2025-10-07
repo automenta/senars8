@@ -4,7 +4,7 @@
  */
 
 import {EventEmitter} from 'events';
-import logger from '../core/utils/logger.js';
+import logger from '../coreagent/utils/logger.js';
 
 const log = logger.create('BrowserConnectionManager');
 
@@ -117,7 +117,7 @@ class BrowserConnectionManager extends EventEmitter {
     _getConnectionStatus(readyState) {
         const states = {
             [WebSocket.CONNECTING]: 'connecting',
-            [WebSocket.OPEN]: 'connected', 
+            [WebSocket.OPEN]: 'connected',
             [WebSocket.CLOSING]: 'closing',
             [WebSocket.CLOSED]: 'closed'
         };

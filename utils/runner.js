@@ -1,6 +1,6 @@
-import SystemFactory from '../core/system/SystemFactory.js';
-import Task from '../core/core/Task.js';
-import {debug} from '../core/utils/logger.js';
+import SystemFactory from '../coreagent/system/SystemFactory.js';
+import Task from '../coreagent/core/Task.js';
+import {debug} from '../coreagent/utils/logger.js';
 import {printBanner} from '../common/ui.js';
 
 /**

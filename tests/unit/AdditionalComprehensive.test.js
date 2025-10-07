@@ -2,12 +2,10 @@
  * Additional comprehensive tests to improve coverage and validate functionality
  * This test suite covers edge cases and integration scenarios not covered by existing tests
  */
-import {describe, test, expect, beforeEach, afterEach} from 'vitest';
+import {afterEach, beforeEach, describe, expect, test} from 'vitest';
 import {createTask, createTerm} from '../test-data-factory.js';
-import {TestFramework, SystemFactory, createCache, validate, ValidationEngine} from '../shared/test-utils.js';
-import {createContext, createTaskProcessingContext} from '../test-setup.js';
-import Task from '../../core/core/Task.js';
-import Term from '../../core/core/Term.js';
+import {createCache, SystemFactory, TestFramework, validate, ValidationEngine} from '../shared/test-utils.js';
+import {createContext} from '../test-setup.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
 
 describe('Additional Comprehensive Functionality Tests', () => {
@@ -113,7 +111,7 @@ describe('Additional Comprehensive Functionality Tests', () => {
     test('should handle edge cases in parsing and validation', () => {
         // Test empty and near-empty parsing cases
         expect(parseTerm('')).toBeNull();
-        
+
         // Test parsing of complex but valid expressions
         // Using supported syntax based on lexer
         const complexExpr = parseTerm('((a --> b) ==> (c --> d))');
@@ -173,9 +171,9 @@ describe('Additional Comprehensive Functionality Tests', () => {
     test('should test system integration with various configurations', async () => {
         // Test system creation with different configurations
         const configs = [
-            { reasoner: { strategy: 'BruteForce' } },
-            { memory: { capacity: 100 }, reasoner: { strategy: 'BruteForce' } },
-            { reasoner: { strategy: 'BruteForce' }, eventBus: { enabled: true } }
+            {reasoner: {strategy: 'BruteForce'}},
+            {memory: {capacity: 100}, reasoner: {strategy: 'BruteForce'}},
+            {reasoner: {strategy: 'BruteForce'}, eventBus: {enabled: true}}
         ];
 
         for (const config of configs) {
@@ -184,7 +182,7 @@ describe('Additional Comprehensive Functionality Tests', () => {
             expect(systemData.commandBus).toBeDefined();
             expect(systemData.eventBus).toBeDefined();
             expect(systemData.container).toBeDefined();
-            
+
             // Test that essential components are available
             TestFramework.assertions.expectComponents(systemData.container, ['memory', 'reasoner', 'tools']);
         }
@@ -196,7 +194,7 @@ describe('Advanced Data Structure Tests', () => {
         // Create various complex tasks
         const tasks = [
             createTask('simple', '.', {frequency: 0.9, confidence: 0.8}),
-            createTask('(A --> B)', '?', {frequency: 0.5, confidence: 0.9}), 
+            createTask('(A --> B)', '?', {frequency: 0.5, confidence: 0.9}),
             createTask('(X ==> Y)', '!', {frequency: 1.0, confidence: 0.85}),
             createTask('(P <-> Q)', '.', {frequency: 0.7, confidence: 0.75})
         ];

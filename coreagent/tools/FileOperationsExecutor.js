@@ -60,7 +60,7 @@ class FileOperationsExecutor {
 
         try {
             // Security checks
-            this.validatePath(path);
+            await this.validatePath(path);
 
             // Check file existence
             await access(path, constants.R_OK);
@@ -109,7 +109,7 @@ class FileOperationsExecutor {
 
         try {
             // Security checks
-            this.validatePath(path);
+            await this.validatePath(path);
 
             // Validate syntax if requested
             if (validateSyntax) {
@@ -163,7 +163,7 @@ class FileOperationsExecutor {
 
         try {
             // Security checks
-            this.validatePath(path);
+            await this.validatePath(path);
 
             // Read existing content
             const originalContent = await readFile(path, 'utf8');
@@ -379,7 +379,7 @@ class FileOperationsExecutor {
         try {
             // For TypeScript, we'll do a basic check
             // In a real implementation, you'd use the TypeScript compiler
-            this.validateJavaScript(content);
+            await this.validateJavaScript(content);
         } catch (error) {
             throw new Error(`TypeScript syntax error: ${error.message}`);
         }

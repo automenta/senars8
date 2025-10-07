@@ -48,7 +48,7 @@ class TemporalSummaryGeneration {
     static _executeInfer(tasks, options = {}) {
         return errorHandler.executeSync(() => {
             debug(`Generating temporal summary for ${tasks.length} tasks`);
-            
+
             if (!Array.isArray(tasks) || tasks.length === 0) {
                 return [];
             }
@@ -58,11 +58,11 @@ class TemporalSummaryGeneration {
             // and generate high-level summaries
             const currentTime = Date.now();
             const summaryTasks = [];
-            
+
             // Create a summary for a time window
             const startTime = currentTime - (24 * 60 * 60 * 1000); // Last 24 hours
             const endTime = currentTime;
-            
+
             // Generate a temporal summary using utility function
             const summary = createTemporalSummary(tasks, startTime, endTime);
             if (summary) {

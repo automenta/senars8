@@ -16,9 +16,9 @@ class PlanRepairer {
         if (!goalTask) throw new Error('Goal task is required');
 
         debug(`Suggesting plan repair for goal: ${goalTask.termKey}`);
-        
+
         const context = this._createPlanRepairContext(goalTask.termKey, failedPlan);
-        
+
         try {
             // The _createStructuredChain might fail if the underlying LLM can't be initialized
             const chain = this._createStructuredChain(

@@ -14,8 +14,8 @@ import LogPanel from './LogPanel.jsx';
 import MessageInput from './MessageInput.jsx';
 import TasksPanel from './TasksPanel.jsx';
 import {theme} from '../theme.js';
-import {Container, Flex, Panel} from './Layout.jsx';
-import {Button, Card, TabBar} from './Interactive.jsx';
+import {Container, Flex} from './Layout.jsx';
+import {Card, TabBar} from './Interactive.jsx';
 import {useTabNavigation} from '../hooks/useMouseInteraction.js';
 
 const AgentView = ({agentService, globalFocusManager}) => {

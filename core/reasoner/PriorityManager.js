@@ -11,7 +11,7 @@ class PriorityManager {
     calculatePriority(task, currentTime, driveEmbeddings) {
         // Ensure task has required properties
         if (!task.termKey) return 0;
-        
+
         const term = this.memory.getTerm(task.termKey);
         if (!term?.embedding?.length) return 0;
 

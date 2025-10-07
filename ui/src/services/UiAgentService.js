@@ -37,13 +37,13 @@ class UiAgentService extends EventEmitter {
 
         // Create WebSocket connection
         this.connection = new WebSocket(this.url);
-        
+
         this.connection.onopen = () => {
             this.isConnected = true;
             this.agentState.connectionStatus = 'connected';
             this.emit('status', 'connected');
             this.logger.info('Connected to agent');
-            
+
             // Request initial state
             this.sendMessage('get_system_stats');
             this.sendMessage('get_tasks');

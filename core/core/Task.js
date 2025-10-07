@@ -1,5 +1,5 @@
 import {generateId} from '../utils/idGenerator.js';
-import {parseTerm} from '../parser/parse-utils.js';
+import {parseTerm} from '../../coreagent/parser/parse-utils.js';
 import config from '../config/index.js';
 import TruthValueManager from '../reasoner/TruthValueManager.js';
 import * as validation from '../utils/validation.js';

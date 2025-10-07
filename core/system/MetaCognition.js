@@ -1,4 +1,4 @@
-import {parseTerm} from '../parser/parse-utils.js';
+import {parseTerm} from '../../coreagent/parser/parse-utils.js';
 import {debug, info} from '../utils/logger.js';
 import {getBeliefTasks} from '../utils/task-utils.js';
 import {metaCognitionErrorHandler as errorHandler} from '../utils/errorHandler.js';
@@ -59,7 +59,7 @@ class MetaCognition {
                             details: contradictionType.details,
                             severity: this.contradictionAnalyzer.calculateSeverity(contradictionType, item1.task, item2.task),
                         });
-                        
+
                         // Track contradiction detection in metrics
                         if (this.metricsService) {
                             this.metricsService.trackContradictionDetection(contradictionType.type);
@@ -86,7 +86,7 @@ class MetaCognition {
             const startTime = Date.now();
             let success = false;
             let result;
-            
+
             try {
                 result = this.resolutionStrategy.resolve(contradiction, strategy);
                 success = !!result && result.length > 0;
@@ -95,18 +95,18 @@ class MetaCognition {
                 result = [];
             } finally {
                 const executionTime = Date.now() - startTime;
-                
+
                 // Track contradiction resolution in metrics
                 if (this.metricsService) {
                     this.metricsService.trackContradictionResolution(
-                        contradiction.type, 
-                        strategy || 'default', 
-                        success, 
+                        contradiction.type,
+                        strategy || 'default',
+                        success,
                         success ? 'success' : 'failure'
                     );
                 }
             }
-            
+
             debug('Contradiction resolution completed');
             return result;
         }, 'resolve', []);

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import {getMessage, getTimeout, TUI_CONSTANTS} from './constants.js';
+import {getMessage, TUI_CONSTANTS} from './constants.js';
 
 // Enhanced error handling with graceful degradation
 const handleError = (error, context) => {

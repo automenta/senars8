@@ -1,6 +1,6 @@
-import Reasoner from '../../core/reasoner/Reasoner.js';
-import Memory from '../../core/memory/Memory.js';
-import Task from '../../core/core/Task.js';
+import Reasoner from '../../coreagent/reasoner/Reasoner.js';
+import Memory from '../../coreagent/memory/Memory.js';
+import Task from '../../coreagent/core/Task.js';
 
 function setupMemory(numTerms) {
     const memory = new Memory();

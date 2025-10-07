@@ -1,9 +1,9 @@
-import Task from '../core/Task.js';
-import {cosineSimilarity} from '../utils/math.js';
+import Task from '../../core/core/Task.js';
+import {cosineSimilarity} from '../../core/utils/math.js';
 import {parseTerm} from '../parser/parse-utils.js';
-import config from '../config/index.js';
+import config from '../../core/config/index.js';
 import zod from 'zod';
-import MetaCognition from '../system/MetaCognition.js';
+import MetaCognition from '../../core/system/MetaCognition.js';
 
 const HYPOTHESIS_TYPES = {
     GENERAL: 'general',

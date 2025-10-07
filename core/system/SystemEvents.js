@@ -31,7 +31,7 @@ export const SystemEvents = Object.freeze({
     CYCLE_START: 'cycle:start',
     CYCLE_STEP: 'cycle:step',
     CYCLE_COMPLETE: 'cycle:complete',
-    
+
     // --- Metrics ---
     METRICS_UPDATE: 'metrics:update',
 });

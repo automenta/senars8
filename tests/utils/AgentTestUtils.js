@@ -69,7 +69,7 @@ export const createCoreIndexMock = (mockSystem) => ({
 // Test setup helper for agent integration tests
 export const setupAgentTest = async (testConfig = {}) => {
     const mockSystem = createMockSystem();
-    const coreIndexMock = await createCoreIndexMock(mockSystem);
+    const coreIndexMock = createCoreIndexMock(mockSystem);
 
     // Apply vi.mock for core index
     vi.mock('../../core/index.js', () => coreIndexMock);

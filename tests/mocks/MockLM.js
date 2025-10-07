@@ -18,7 +18,7 @@ class MockLM {
         }
         // Basic tokenization
         const tokens = text.trim().split(/\s+/);
-        return tokens.map(token => ({ token, type: 'word' }));
+        return tokens.map(token => ({token, type: 'word'}));
     }
 
     async getFeaturePipeline() {
@@ -42,9 +42,9 @@ class MockLM {
         return (question) => {
             // Simple response to common question patterns
             if (typeof question === 'string' && question.toLowerCase().includes('hello')) {
-                return { answer: 'Hello! How can I help you?' };
+                return {answer: 'Hello! How can I help you?'};
             }
-            return { answer: 'I understand your question.' };
+            return {answer: 'I understand your question.'};
         };
     }
 
@@ -52,14 +52,14 @@ class MockLM {
         if (!termKey) {
             throw new Error('Term key is required');
         }
-        
+
         // Create a minimal term structure
         const term = {
             key: termKey,
             type: 'atomic',
             complexity: 1
         };
-        
+
         this.termRegistry.set(termKey, term);
         return term;
     }
@@ -91,7 +91,7 @@ class MockLM {
         if (!Array.isArray(tasks)) {
             return [];
         }
-        
+
         // Generate simple hypotheses based on tasks
         return tasks.map((task, index) => ({
             id: `hyp_${index}`,
@@ -104,7 +104,7 @@ class MockLM {
         if (!Array.isArray(hypotheses)) {
             return [];
         }
-        
+
         // Sort by confidence (descending)
         return hypotheses.sort((a, b) => (b.confidence || 0) - (a.confidence || 0));
     }
@@ -113,7 +113,7 @@ class MockLM {
         if (!hypothesis) {
             return null;
         }
-        
+
         // Simple refinement that increases confidence slightly
         return {
             ...hypothesis,
@@ -125,7 +125,7 @@ class MockLM {
         if (!task) {
             return 'No task to explain';
         }
-        
+
         return `Explanation for task: ${task.termKey || 'unknown'}`;
     }
 
@@ -133,7 +133,7 @@ class MockLM {
         if (!question) {
             return 'No question provided';
         }
-        
+
         return `Answer to: ${question}`;
     }
 
@@ -141,7 +141,7 @@ class MockLM {
         if (!plan) {
             return null;
         }
-        
+
         // Return the plan unchanged for testing
         return plan;
     }
@@ -150,7 +150,7 @@ class MockLM {
         if (!context) {
             return [];
         }
-        
+
         return context.tasks ? context.tasks.slice(0, 2) : [];
     }
 

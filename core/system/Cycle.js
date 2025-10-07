@@ -531,7 +531,7 @@ class Cycle {
                 // Attempt LM-powered plan repair for failed executions
                 if (this.lm?.suggestPlanRepair) {
                     try {
-                        await this._attemptPlanRepair(goal, { error: error.message });
+                        await this._attemptPlanRepair(goal, {error: error.message});
                     } catch (repairError) {
                         errorHandler.handleWithDefault(repairError, `_executeActions plan repair for goal ${goal.termKey}`);
                     }

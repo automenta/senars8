@@ -20,7 +20,7 @@ class ResourceManager {
      * @param {string} method - Method name to call on resource (default: 'stop')
      */
     register(name, resource, method = 'stop') {
-        this._resources.set(name, { resource, method });
+        this._resources.set(name, {resource, method});
         if (this.logger) {
             this.logger.debug(`Registered resource: ${name}`);
         }
@@ -56,17 +56,17 @@ class ResourceManager {
         }
 
         const promises = [];
-        for (const [name, { resource, method }] of this._resources.entries()) {
+        for (const [name, {resource, method}] of this._resources.entries()) {
             if (resource && typeof resource[method] === 'function') {
                 promises.push(this._shutdownResource(name, resource, method));
             }
         }
 
         await Promise.allSettled(promises);
-        
+
         // Clear resources after shutdown attempts
         this._resources.clear();
-        
+
         if (this.logger) {
             this.logger.info('Resource shutdown sequence completed');
         }
@@ -95,7 +95,7 @@ class ResourceManager {
                 // Standard resource stop method
                 await resource[method]();
             }
-            
+
             if (this.logger) {
                 this.logger.info(`Successfully shut down resource: ${name}`);
             }
@@ -134,4 +134,4 @@ class ResourceManager {
 const resourceManager = new ResourceManager();
 
 export default resourceManager;
-export { ResourceManager };
+export {ResourceManager};

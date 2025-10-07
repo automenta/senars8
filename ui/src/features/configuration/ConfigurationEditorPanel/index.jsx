@@ -1,22 +1,24 @@
 import React, {useEffect, useState} from 'react';
 import {Panel} from '../../../components/index.js';
 import agentService from '../../services/agentService.js';
-vi.mock('../../services/agentService.js', () => ({
-  default: {
-    on: vi.fn(),
-    off: vi.fn(),
-    sendMessage: vi.fn(() => true),
-  },
-}));
 import notificationService from '../../services/notificationService.js';
-vi.mock('../../services/notificationService.js', () => ({
-  default: {
-    addError: vi.fn(),
-    addSuccess: vi.fn(),
-  },
-}));
 import {Code, FileText, RotateCcw, Save, Settings} from 'lucide-react';
 import './style.css';
+
+vi.mock('../../services/agentService.js', () => ({
+    default: {
+        on: vi.fn(),
+        off: vi.fn(),
+        sendMessage: vi.fn(() => true),
+    },
+}));
+
+vi.mock('../../services/notificationService.js', () => ({
+    default: {
+        addError: vi.fn(),
+        addSuccess: vi.fn(),
+    },
+}));
 
 const ConfigurationEditorPanel = () => {
     const [config, setConfig] = useState({});

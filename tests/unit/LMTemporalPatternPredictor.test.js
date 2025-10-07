@@ -1,5 +1,5 @@
-import { describe, it, beforeEach } from 'vitest';
-import { expect } from 'chai';
+import {beforeEach, describe, it} from 'vitest';
+import {expect} from 'chai';
 import LMTemporalPatternPredictor from '../../core/reasoner/temporal/LMTemporalPatternPredictor.js';
 import TemporalCache from '../../core/reasoner/temporal/TemporalCache.js';
 import Task from '../../core/core/Task.js';
@@ -47,10 +47,10 @@ describe('LMTemporalPatternPredictor', () => {
     });
 
     it('should predict temporal patterns', async () => {
-        const tasks = [new Task(parseTerm('A'), '.', { frequency: 1, confidence: 0.9 })];
-        
-        const result = await predictor.predictTemporalPatterns(tasks);
-        
+        const tasks = [new Task(parseTerm('A'), '.', {frequency: 1, confidence: 0.9})];
+
+        const result = predictor.predictTemporalPatterns(tasks);
+
         expect(result).toHaveProperty('predictedPatterns');
         expect(result).toHaveProperty('temporalInferences');
         expect(Array.isArray(result.predictedPatterns)).toBe(true);
@@ -60,11 +60,11 @@ describe('LMTemporalPatternPredictor', () => {
     it('should handle LM unavailability gracefully', async () => {
         // Create predictor without LM
         const predictorWithoutLM = new LMTemporalPatternPredictor(null);
-        
-        const tasks = [new Task(parseTerm('A'), '.', { frequency: 1, confidence: 0.9 })];
-        
-        const result = await predictorWithoutLM.predictTemporalPatterns(tasks);
-        
+
+        const tasks = [new Task(parseTerm('A'), '.', {frequency: 1, confidence: 0.9})];
+
+        const result = predictorWithoutLM.predictTemporalPatterns(tasks);
+
         expect(result).toEqual([]);
     });
 
@@ -74,12 +74,12 @@ describe('LMTemporalPatternPredictor', () => {
                 throw new Error('LM unavailable');
             }
         };
-        
+
         const predictorWithErrorLM = new LMTemporalPatternPredictor(errorLM);
-        const tasks = [new Task(parseTerm('A'), '.', { frequency: 1, confidence: 0.9 })];
-        
-        const result = await predictorWithErrorLM.predictTemporalPatterns(tasks);
-        
+        const tasks = [new Task(parseTerm('A'), '.', {frequency: 1, confidence: 0.9})];
+
+        const result = predictorWithErrorLM.predictTemporalPatterns(tasks);
+
         expect(result).toEqual([]);
     });
 });

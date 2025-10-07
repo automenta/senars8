@@ -1,5 +1,5 @@
 import {Ollama} from '@langchain/community/llms/ollama';
-import Term from '../core/Term.js';
+import Term from '../types.js';
 import XenovaLLM from './XenovaLLM.js';
 import {LLMChain} from 'langchain/chains';
 import {PromptTemplate} from '@langchain/core/prompts';
@@ -13,9 +13,6 @@ import ProactiveEnricher from './ProactiveEnricher.js';
 import NLP from './NLP.js';
 import {debug, info, warn} from '../utils/logger.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
-import {configService} from '../config/index.js';
-import {SystemCommands} from '../system/SystemCommands.js';
-import {SystemEvents} from '../system/SystemEvents.js';
 
 const errorHandler = createUnifiedErrorHandler('LM');
 
@@ -26,11 +23,12 @@ const PIPELINE_TYPES = {
 };
 
 class LM {
-    constructor(_configManager, commandBus, eventBus, metricsService = null) {
-        this.config = configService;
-        this.commandBus = commandBus;
-        this.eventBus = eventBus;
-        this.metricsService = metricsService;
+    constructor(core) {
+        this.core = core;
+        this.config = core.config;
+        this.commandBus = core.messages;
+        this.eventBus = core.messages;
+        this.metricsService = null;
         this._pipelineFactory = PipelineFactory;
         this._llm = null;
         this._reasoner = null;
@@ -49,20 +47,29 @@ class LM {
 
         info('LM initialized');
 
-        // Register command handlers
-        this.commandBus.handle(SystemCommands.LM_BOOTSTRAP_TERM, ({
-                                                                      termKey,
-                                                                      options
-                                                                  }) => this.bootstrapTerm(termKey, options));
-        this.commandBus.handle(SystemCommands.LM_ENRICH_TERM, (task) => this.proactiveEnrichment([task]));
-        this.commandBus.handle(SystemCommands.LM_NLP_PARSE, (payload) => this.nlp.parse(payload));
-        this.commandBus.handle(SystemCommands.LM_GENERATE_HYPOTHESES, (payload) => this.generateHypotheses(payload.tasks, payload.options));
-        this.commandBus.handle(SystemCommands.LM_EXPLAIN, (payload) => this.explain(payload.termKey, payload.options));
-        this.commandBus.handle(SystemCommands.LM_EVALUATE_AND_RANK_HYPOTHESES, (payload) => this.evaluateAndRankHypotheses(payload.tasks, payload.hypotheses));
+        // Register handlers when messages system is available
+        if (this.commandBus && this.eventBus) {
+            this._registerHandlers();
+        }
 
-        // Register event listeners
-        this.eventBus.on(SystemEvents.SYSTEM_START, () => this.startEmbeddingProcessor());
-        this.eventBus.on(SystemEvents.SYSTEM_STOP, () => this.stopEmbeddingProcessor());
+        // Register command handlers (deferred until messages is available)
+        this._registerHandlers = () => {
+            if (this.commandBus && this.eventBus) {
+                this.commandBus.handle(SystemCommands.LM_BOOTSTRAP_TERM, ({
+                                                                              termKey,
+                                                                              options
+                                                                          }) => this.bootstrapTerm(termKey, options));
+                this.commandBus.handle(SystemCommands.LM_ENRICH_TERM, (task) => this.proactiveEnrichment([task]));
+                this.commandBus.handle(SystemCommands.LM_NLP_PARSE, (payload) => this.nlp.parse(payload));
+                this.commandBus.handle(SystemCommands.LM_GENERATE_HYPOTHESES, (payload) => this.generateHypotheses(payload.tasks, payload.options));
+                this.commandBus.handle(SystemCommands.LM_EXPLAIN, (payload) => this.explain(payload.termKey, payload.options));
+                this.commandBus.handle(SystemCommands.LM_EVALUATE_AND_RANK_HYPOTHESES, (payload) => this.evaluateAndRankHypotheses(payload.tasks, payload.hypotheses));
+
+                // Register event listeners
+                this.eventBus.on(SystemEvents.SYSTEM_START, () => this.startEmbeddingProcessor());
+                this.eventBus.on(SystemEvents.SYSTEM_STOP, () => this.stopEmbeddingProcessor());
+            }
+        };
     }
 
     startEmbeddingProcessor() {
@@ -152,7 +159,7 @@ class LM {
                 // If Xenova fails due to ONNX runtime issues, warn and potentially fall back
                 if (error.code === 'ERR_DLOPEN_FAILED' && error.message.includes('did not self-register')) {
                     warn(`ONNX runtime failed to load for Xenova provider: ${error.message}. Consider switching providers in config.`);
-                    
+
                     // Optionally try to initialize Ollama as fallback
                     try {
                         info('Attempting fallback to Ollama provider...');
@@ -193,7 +200,7 @@ class LM {
         if (!prompt || typeof prompt !== 'string') {
             throw new Error('Prompt must be a non-empty string');
         }
-        
+
         debug('Generating text with prompt length:', prompt.length);
         try {
             await this.getGenerationPipeline();
@@ -256,7 +263,7 @@ class LM {
     async _generateAndAssignEmbedding(term) {
         const startTime = Date.now();
         let success = false;
-        
+
         await errorHandler.execute(async () => {
             debug(`Generating embedding for term: ${term.key}`);
             const extractor = await this.getFeaturePipeline();
@@ -269,9 +276,9 @@ class LM {
             debug(`Embedding generated and assigned for term: ${term.key}`);
             success = true;
         }, 'generateAndAssignEmbedding');
-        
+
         const executionTime = Date.now() - startTime;
-        
+
         // Track in metrics service if available
         if (this.metricsService) {
             this.metricsService.trackEmbeddingGeneration(success, executionTime);
@@ -306,7 +313,7 @@ class LM {
         const startTime = Date.now();
         let success = false;
         let result;
-        
+
         try {
             debug(`Generating hypotheses for ${tasks.length} tasks`);
             result = await this._hypothesisGenerator.generateHypotheses(tasks, options);
@@ -315,13 +322,13 @@ class LM {
             debug(`Hypothesis generation failed: ${error.message}`);
         } finally {
             const executionTime = Date.now() - startTime;
-            
+
             // Track in metrics service if available
             if (this.metricsService) {
                 this.metricsService.trackHypothesisGeneration(success, executionTime);
             }
         }
-        
+
         return result;
     }
 
@@ -329,7 +336,7 @@ class LM {
         const startTime = Date.now();
         let success = false;
         let result;
-        
+
         try {
             debug(`Evaluating and ranking ${hypotheses.length} hypotheses`);
             result = await this._hypothesisGenerator.evaluateAndRankHypotheses(tasks, hypotheses);
@@ -338,13 +345,13 @@ class LM {
             debug(`Hypothesis evaluation and ranking failed: ${error.message}`);
         } finally {
             const executionTime = Date.now() - startTime;
-            
+
             // Track in metrics service if available
             if (this.metricsService) {
                 this.metricsService.trackHypothesisGeneration(success, executionTime); // Reuse the same metric for now
             }
         }
-        
+
         return result;
     }
 

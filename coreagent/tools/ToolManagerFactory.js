@@ -6,17 +6,17 @@ import {info} from '../utils/logger.js';
  * Factory for creating tool managers with appropriate enhancements
  */
 class ToolManagerFactory {
-    static createToolManager(config = {}, lmInstance = null) {
+    static createToolManager(core, config = {}, lmInstance = null) {
         const useEnhanced = config.enhanced !== false &&
-                           (config.lmIntegration !== false && lmInstance) ||
-                           config.autoDiscovery === true;
+            (config.lmIntegration !== false && lmInstance) ||
+            config.autoDiscovery === true;
 
         if (useEnhanced) {
             info('Creating EnhancedToolManager with LM integration');
-            return new EnhancedToolManager(config, lmInstance);
+            return new EnhancedToolManager(core, config, lmInstance);
         } else {
             info('Creating standard ToolSystem');
-            return new ToolSystem(config);
+            return new ToolSystem(core, config);
         }
     }
 

@@ -51,7 +51,7 @@ describe('CostManager', () => {
             const taskTerm = new Term('complexTask');
             const precond1 = new Term('precond1');
             const precond2 = new Term('precond2');
-            
+
             // Create proper belief objects with truth values
             memory.indexer.beliefIndex.set(precond1.key, {
                 state: {
@@ -60,7 +60,7 @@ describe('CostManager', () => {
                     }
                 }
             });
-            
+
             // Create method with proper structure
             const method = {
                 subject: {
@@ -68,7 +68,7 @@ describe('CostManager', () => {
                     terms: [taskTerm, precond1, precond2]
                 }
             };
-            
+
             memory.indexer.implicationIndex.set(taskTerm.key, [method]);
             expect(costManager.getTaskDifficulty(taskTerm)).toBeCloseTo(1.1, 1); // Increased precision to 1 decimal place
         });
@@ -78,7 +78,7 @@ describe('CostManager', () => {
             const precond1 = new Term('precond1');
             const precond2 = new Term('precond2');
             const precond3 = new Term('precond3');
-            
+
             // Set up belief objects with truth values
             memory.indexer.beliefIndex.set(precond1.key, {
                 state: {
@@ -101,13 +101,13 @@ describe('CostManager', () => {
                     }
                 }
             });
-            
+
             // Calculate method difficulties:
             // method1: [taskTerm, precond1, precond3] -> 1 - 0.9 + 1 - 0.5 = 0.1 + 0.5 = 0.6
             // method2: [taskTerm, precond2, precond3] -> 1 - 0.8 + 1 - 0.5 = 0.2 + 0.5 = 0.7
             // method3: [taskTerm, precond1, precond2] -> 1 - 0.9 + 1 - 0.8 = 0.1 + 0.2 = 0.3
             // The minimum is 0.3 for method3
-            
+
             // Create methods with proper structure
             const method1 = {
                 subject: {
@@ -127,7 +127,7 @@ describe('CostManager', () => {
                     terms: [taskTerm, precond1, precond2]
                 }
             };
-            
+
             memory.indexer.implicationIndex.set(taskTerm.key, [method1, method2, method3]);
             expect(costManager.getTaskDifficulty(taskTerm)).toBeCloseTo(0.3, 1); // Minimum difficulty of the three methods
         });
@@ -138,12 +138,12 @@ describe('CostManager', () => {
             const action1 = new Term('action1');
             const action2 = new Term('action2');
             const action3 = new Term('action3');
-            
+
             // Set specific costs in the memory
             memory.indexer.costIndex.set('action1', 1);
             memory.indexer.costIndex.set('action2', 5);
             memory.indexer.costIndex.set('action3', 2);
-            
+
             const plan = [action1, action2, action3];
             expect(costManager.getPlanCost(plan)).toBe(8);
         });

@@ -30,7 +30,7 @@ class TemporalReasoner {
 
         // Performance tracking
         this.performanceStats = new Map();
-        
+
         // Caching metrics
         this.cachingStats = {
             hits: 0,
@@ -87,7 +87,7 @@ class TemporalReasoner {
 
                 // Update performance statistics
                 this._updatePerformanceStats(moduleName, endTime - startTime, Array.isArray(result) ? result.length : 0);
-                
+
                 // Update metrics service with temporal performance stats
                 if (this.metricsService) {
                     this.metricsService.updateTemporalPerformanceStats(this.getPerformanceStats());
@@ -285,7 +285,7 @@ class TemporalReasoner {
      * @returns {object} Caching statistics
      */
     getCachingStats() {
-        const effectiveness = this.cachingStats.totalRequests > 0 ? 
+        const effectiveness = this.cachingStats.totalRequests > 0 ?
             this.cachingStats.hits / this.cachingStats.totalRequests : 0;
         return {
             ...this.cachingStats,

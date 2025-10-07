@@ -4,7 +4,6 @@
  */
 
 import {expect, vi} from 'vitest';
-import {SYSTEM_CONSTANTS} from '../core/config/constants.js';
 import {TEST_CONSTANTS} from './test-constants.js';
 import {env} from '@xenova/transformers';
 import {createTask} from './test-data-factory.js';

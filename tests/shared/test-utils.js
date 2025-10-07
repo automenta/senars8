@@ -1,7 +1,7 @@
 import {expect, vi} from 'vitest';
 import {SYSTEM_CONSTANTS} from '../../core/config/constants.js';
 import {TEST_CONSTANTS} from '../test-constants.js';
-import {BaseRegistry, OptimizedCache, batchProcess as baseBatchProcess} from '../../core/utils/BaseRegistry.js';
+import {BaseRegistry, batchProcess as baseBatchProcess, OptimizedCache} from '../../core/utils/BaseRegistry.js';
 
 const globalCache = new Map();
 
@@ -41,7 +41,7 @@ ValidationEngine.validateBatch = (targets, ruleName, context = 'validation') => 
 
 ValidationEngine.validate = (target, ruleName, context = 'validation', ...args) => {
     ValidationEngine.metrics.validations = (ValidationEngine.metrics.validations || 0) + 1;
-    const safeStringify = (obj) => JSON.stringify(obj, (k, v) => 
+    const safeStringify = (obj) => JSON.stringify(obj, (k, v) =>
         typeof v === 'bigint' ? v.toString() : v
     );
     const cacheKey = `${ruleName}:${safeStringify(target)}`;
@@ -73,7 +73,7 @@ ValidationEngine.register('object', (obj, context) => {
 
 ValidationEngine.register('objectSpec', (obj, context, spec) => {
     if (!obj) throw new Error(`${context} is null or undefined`);
-    
+
     // Initialize spec if not provided
     if (!spec) spec = {};
 
@@ -139,7 +139,9 @@ ConfigRegistry.registerTemplate = (name, template, validator = null) => {
 
 // Register core configuration templates
 ConfigRegistry.registerTemplate('TASK', {
-    punctuation: '.', truth: TEST_CONSTANTS.TRUTH_VALUE_PRESETS.DEFAULT, priority: SYSTEM_CONSTANTS.DEFAULT_PRIORITIES.DEFAULT
+    punctuation: '.',
+    truth: TEST_CONSTANTS.TRUTH_VALUE_PRESETS.DEFAULT,
+    priority: SYSTEM_CONSTANTS.DEFAULT_PRIORITIES.DEFAULT
 });
 
 ConfigRegistry.registerTemplate('TERM', {
@@ -222,10 +224,11 @@ TestContextManager.active = new Map();
 TestContextManager.metrics = {creations: 0, cacheHits: 0};
 
 TestContextManager.create = async (type, config = {}) => ({
-    type, 
-    config, 
+    type,
+    config,
     created: Date.now(),
-    cleanup: async () => {} // Simple cleanup that does nothing for now
+    cleanup: async () => {
+    } // Simple cleanup that does nothing for now
 });
 
 // System factory using BaseRegistry

@@ -1,9 +1,5 @@
-import {info, debug, warn} from '../utils/logger.js';
-import {
-    calculateStrategyEffectiveness,
-    calculateTemporalModuleEffectiveness,
-    calculateContradictionResolutionEffectiveness
-} from '../utils/effectiveness-utils.js';
+import {info} from '../utils/logger.js';
+import {calculateStrategyEffectiveness} from '../utils/effectiveness-utils.js';
 
 /**
  * Centralized metrics service for system observability
@@ -12,14 +8,14 @@ class MetricsService {
     constructor() {
         this.metrics = new Map();
         this.startTime = Date.now();
-        
+
         // Initialize metric categories
         this.initSystemMetrics();
         this.initLMMetrics();
         this.initReasoningMetrics();
         this.initTemporalMetrics();
         this.initContradictionMetrics();
-        
+
         info('MetricsService initialized');
     }
 
@@ -120,7 +116,7 @@ class MetricsService {
         if (success) {
             lmMetrics.embeddingGeneration.totalGenerated++;
             lmMetrics.embeddingGeneration.totalTime += executionTime;
-            lmMetrics.embeddingGeneration.averageTime = 
+            lmMetrics.embeddingGeneration.averageTime =
                 lmMetrics.embeddingGeneration.totalTime / lmMetrics.embeddingGeneration.totalGenerated;
         } else {
             lmMetrics.embeddingGeneration.totalFailed++;
@@ -135,7 +131,7 @@ class MetricsService {
         if (success) {
             lmMetrics.hypothesisGeneration.totalGenerated++;
             lmMetrics.hypothesisGeneration.totalTime += executionTime;
-            lmMetrics.hypothesisGeneration.averageTime = 
+            lmMetrics.hypothesisGeneration.averageTime =
                 lmMetrics.hypothesisGeneration.totalTime / lmMetrics.hypothesisGeneration.totalGenerated;
         } else {
             lmMetrics.hypothesisGeneration.totalFailed++;
@@ -147,7 +143,7 @@ class MetricsService {
      */
     trackStrategyExecution(strategyName, success, executionTime) {
         const reasoningMetrics = this.metrics.get('reasoning');
-        
+
         if (!reasoningMetrics.strategyStats.has(strategyName)) {
             reasoningMetrics.strategyStats.set(strategyName, {
                 executions: 0,
@@ -172,7 +168,7 @@ class MetricsService {
         }
 
         reasoningMetrics.totalExecutions++;
-        reasoningMetrics.successRate = reasoningMetrics.totalSuccesses / 
+        reasoningMetrics.successRate = reasoningMetrics.totalSuccesses /
             (reasoningMetrics.totalExecutions || 1);
     }
 
@@ -182,7 +178,7 @@ class MetricsService {
     trackContradictionDetection(contradictionType) {
         const contradictionMetrics = this.metrics.get('contradiction');
         contradictionMetrics.detection.totalDetected++;
-        
+
         const count = contradictionMetrics.detection.byType.get(contradictionType) || 0;
         contradictionMetrics.detection.byType.set(contradictionType, count + 1);
     }
@@ -193,7 +189,7 @@ class MetricsService {
     trackContradictionResolution(contradictionType, strategy, success, outcome) {
         const contradictionMetrics = this.metrics.get('contradiction');
         contradictionMetrics.resolution.totalResolved++;
-        
+
         // Track by contradiction type
         if (!contradictionMetrics.resolution.byType.has(contradictionType)) {
             contradictionMetrics.resolution.byType.set(contradictionType, {
@@ -203,7 +199,7 @@ class MetricsService {
                 successRate: 0
             });
         }
-        
+
         const typeStats = contradictionMetrics.resolution.byType.get(contradictionType);
         typeStats.resolved++;
         if (success) {
@@ -214,7 +210,10 @@ class MetricsService {
         typeStats.successRate = typeStats.successes / typeStats.resolved;
 
         // Track success rates by strategy
-        const strategySuccessRate = contradictionMetrics.resolution.successRates.get(strategy) || {successes: 0, total: 0};
+        const strategySuccessRate = contradictionMetrics.resolution.successRates.get(strategy) || {
+            successes: 0,
+            total: 0
+        };
         strategySuccessRate.total++;
         if (success) {
             strategySuccessRate.successes++;
@@ -225,7 +224,7 @@ class MetricsService {
         if (!contradictionMetrics.resolution.outcomes.has(outcome)) {
             contradictionMetrics.resolution.outcomes.set(outcome, 0);
         }
-        contradictionMetrics.resolution.outcomes.set(outcome, 
+        contradictionMetrics.resolution.outcomes.set(outcome,
             contradictionMetrics.resolution.outcomes.get(outcome) + 1);
     }
 
@@ -249,7 +248,7 @@ class MetricsService {
             temporalMetrics.caching.misses++;
         }
         temporalMetrics.caching.totalRequests++;
-        temporalMetrics.caching.effectiveness = temporalMetrics.caching.hits / 
+        temporalMetrics.caching.effectiveness = temporalMetrics.caching.hits /
             (temporalMetrics.caching.totalRequests || 1);
     }
 
@@ -270,7 +269,7 @@ class MetricsService {
             },
             lm: {
                 ...lmMetrics,
-                embeddingRate: lmMetrics.embeddingGeneration.totalTime > 0 ? 
+                embeddingRate: lmMetrics.embeddingGeneration.totalTime > 0 ?
                     lmMetrics.embeddingGeneration.totalGenerated / (lmMetrics.embeddingGeneration.totalTime / 1000) : 0,
                 hypothesisSuccessRate: lmMetrics.hypothesisGeneration.totalGenerated > 0 ?
                     (lmMetrics.hypothesisGeneration.totalGenerated - lmMetrics.hypothesisGeneration.totalFailed) /
@@ -288,7 +287,7 @@ class MetricsService {
             contradiction: {
                 ...contradictionMetrics,
                 resolutionSuccessRate: contradictionMetrics.resolution.totalResolved > 0 ?
-                    contradictionMetrics.resolution.totalResolved / 
+                    contradictionMetrics.resolution.totalResolved /
                     (contradictionMetrics.resolution.totalResolved + contradictionMetrics.detection.totalDetected) : 0
             },
             summary: {
@@ -310,7 +309,7 @@ class MetricsService {
         let count = 0;
         for (const [category, data] of this.metrics) {
             if (typeof data === 'object' && data !== null) {
-                count += Object.keys(data).filter(key => 
+                count += Object.keys(data).filter(key =>
                     typeof data[key] !== 'object' && typeof data[key] !== 'function'
                 ).length;
             }

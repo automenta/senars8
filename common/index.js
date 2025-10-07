@@ -1,5 +1,5 @@
 // Common exports - services & core functionality
-import logger from '../core/utils/logger.js';
+import logger from '../coreagent/utils/logger.js';
 import configProvider from './services/ConfigProvider.js';
 import eventManager from './services/EventManager.js';
 import sharedAPI from './services/SharedAPI.js';
@@ -12,7 +12,7 @@ import {CONNECTION_STATUS, MESSAGE_TYPES, NOTIFICATION_TYPES} from './constants/
 import {CONFIG} from './constants/config.js';
 
 // Utilities
-import {validateNarseseStatement} from '../core/utils/task-utils.js';
+import {validateNarseseStatement} from '../coreagent/utils/task-utils.js';
 import * as DocumentationUtils from './utils/DocumentationUtils.js';
 import * as TestUtils from './utils/TestUtils.js';
 

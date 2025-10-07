@@ -1,6 +1,6 @@
 import {EventEmitter} from 'events';
-import AgentManager from '../../agent/AgentManager.js';
-import logger from '../../core/utils/logger.js';
+import {System} from '../../coreagent/index.js';
+import logger from '../../coreagent/utils/logger.js';
 
 const log = logger.create('EmbeddedAgentService');
 
@@ -11,7 +11,7 @@ const log = logger.create('EmbeddedAgentService');
 class EmbeddedAgentService extends EventEmitter {
     constructor() {
         super();
-        this.agentManager = null;
+        this.agent = null;
         this.isInitialized = false;
         this.isRunning = false;
     }
@@ -28,14 +28,14 @@ class EmbeddedAgentService extends EventEmitter {
         try {
             log.info('Initializing embedded agent...');
 
-            this.agentManager = new AgentManager();
+            this.agent = new System();
 
             // Set up broadcast handler to forward agent events
-            this.agentManager.setBroadcast((message) => {
+            this.agent.setBroadcast((message) => {
                 this._handleAgentMessage(message);
             });
 
-            await this.agentManager.initialize();
+            await this.agent.initialize();
             this.isInitialized = true;
 
             log.info('Embedded agent initialized successfully');
@@ -62,7 +62,7 @@ class EmbeddedAgentService extends EventEmitter {
 
         try {
             log.info('Starting embedded agent...');
-            await this.agentManager.start(maxCycles);
+            await this.agent.start(maxCycles);
             this.isRunning = true;
             this.emit('started');
         } catch (error) {
@@ -82,7 +82,7 @@ class EmbeddedAgentService extends EventEmitter {
 
         try {
             log.info('Stopping embedded agent...');
-            await this.agentManager.stop();
+            await this.agent.stop();
             this.isRunning = false;
             this.emit('stopped');
         } catch (error) {
@@ -102,7 +102,7 @@ class EmbeddedAgentService extends EventEmitter {
 
         try {
             log.info('Resetting embedded agent...');
-            await this.agentManager.reset();
+            await this.agent.reset();
             this.emit('reset');
         } catch (error) {
             log.error('Failed to reset embedded agent:', error);
@@ -115,15 +115,14 @@ class EmbeddedAgentService extends EventEmitter {
      * Get the current agent instance
      */
     getAgent() {
-        return this.agentManager?.getAgent();
+        return this.agent;
     }
 
     /**
      * Get the agent state
      */
     getAgentState() {
-        const agent = this.getAgent();
-        return agent?.getAgentState() || {};
+        return this.agent?.getAgentState() || {};
     }
 
     /**
@@ -309,7 +308,7 @@ class EmbeddedAgentService extends EventEmitter {
         try {
             await this.stop();
             this.removeAllListeners();
-            this.agentManager = null;
+            this.agent = null;
             this.isInitialized = false;
             log.info('Embedded agent service destroyed');
         } catch (error) {

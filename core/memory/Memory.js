@@ -1,4 +1,3 @@
-import {MinPriorityQueue} from '@datastructures-js/priority-queue';
 import Term from '../core/Term.js';
 import Task from '../core/Task.js';
 import {normalizeToArray} from '../utils/collections/index.js';
@@ -37,7 +36,7 @@ class Memory {
         this._semanticCache = new Map();
         this._termRelationshipCache = new Map();
         this._highestPriorityTasksCache = new Map();
-        
+
         // Embedding store for semantic similarity calculations
         this.embeddingStore = new Map();
 
@@ -201,17 +200,17 @@ class Memory {
 
     _calculateOverallCacheHitRate() {
         const totalRequests = (this._cacheStats.queryHits + this._cacheStats.queryMisses +
-                              this._cacheStats.punctuationHits + this._cacheStats.punctuationMisses +
-                              this._cacheStats.recentHits + this._cacheStats.recentMisses +
-                              this._cacheStats.semanticHits + this._cacheStats.semanticMisses +
-                              this._cacheStats.termRelationshipHits + this._cacheStats.termRelationshipMisses +
-                              this._cacheStats.highestPriorityHits + this._cacheStats.highestPriorityMisses);
+            this._cacheStats.punctuationHits + this._cacheStats.punctuationMisses +
+            this._cacheStats.recentHits + this._cacheStats.recentMisses +
+            this._cacheStats.semanticHits + this._cacheStats.semanticMisses +
+            this._cacheStats.termRelationshipHits + this._cacheStats.termRelationshipMisses +
+            this._cacheStats.highestPriorityHits + this._cacheStats.highestPriorityMisses);
 
         if (totalRequests === 0) return 1.0;
 
         const totalHits = this._cacheStats.queryHits + this._cacheStats.punctuationHits +
-                         this._cacheStats.recentHits + this._cacheStats.semanticHits + this._cacheStats.termRelationshipHits +
-                         this._cacheStats.highestPriorityHits;
+            this._cacheStats.recentHits + this._cacheStats.semanticHits + this._cacheStats.termRelationshipHits +
+            this._cacheStats.highestPriorityHits;
 
         return totalHits / totalRequests;
     }
@@ -408,8 +407,8 @@ class Memory {
         for (const task of tasks) {
             this._storeTask(task);
             if (this.eventBus && typeof this.eventBus.emitAsync === 'function') {
-            await this.eventBus.emitAsync(SystemEvents.TASK_ADD, task);
-        }
+                await this.eventBus.emitAsync(SystemEvents.TASK_ADD, task);
+            }
         }
 
         this._finalizeTaskProcessing(tasks.length);
@@ -528,8 +527,8 @@ class Memory {
             this.indexer.unindexTask(task);
             this._invalidateCachedTasks();
             if (this.eventBus && typeof this.eventBus.emitAsync === 'function') {
-            await this.eventBus.emitAsync(SystemEvents.TASK_REMOVE, task);
-        }
+                await this.eventBus.emitAsync(SystemEvents.TASK_REMOVE, task);
+            }
         }
     }
 
@@ -770,7 +769,11 @@ class Memory {
     }
 
     _getCachedSemantic(queryEmbedding, threshold, limit) {
-        const key = this._getCacheKey('semantic', {threshold, limit, embeddingHash: this._hashEmbedding(queryEmbedding)});
+        const key = this._getCacheKey('semantic', {
+            threshold,
+            limit,
+            embeddingHash: this._hashEmbedding(queryEmbedding)
+        });
         const cached = this._semanticCache.get(key);
         if (cached && (Date.now() - cached.timestamp) < 10000) { // 10 second cache for semantic search
             this._cacheStats.semanticHits++;
@@ -781,7 +784,11 @@ class Memory {
     }
 
     _setCachedSemantic(queryEmbedding, threshold, limit, result) {
-        const key = this._getCacheKey('semantic', {threshold, limit, embeddingHash: this._hashEmbedding(queryEmbedding)});
+        const key = this._getCacheKey('semantic', {
+            threshold,
+            limit,
+            embeddingHash: this._hashEmbedding(queryEmbedding)
+        });
         if (this._semanticCache.size >= 30) {
             const firstKey = this._semanticCache.keys().next().value;
             this._semanticCache.delete(firstKey);
@@ -990,15 +997,15 @@ class Memory {
 
     _getStatistics() {
         const totalCacheRequests = (this._cacheStats.queryHits + this._cacheStats.queryMisses +
-                                   this._cacheStats.punctuationHits + this._cacheStats.punctuationMisses +
-                                   this._cacheStats.recentHits + this._cacheStats.recentMisses +
-                                   this._cacheStats.semanticHits + this._cacheStats.semanticMisses +
-                                   this._cacheStats.termRelationshipHits + this._cacheStats.termRelationshipMisses +
-                                   this._cacheStats.highestPriorityHits + this._cacheStats.highestPriorityMisses);
+            this._cacheStats.punctuationHits + this._cacheStats.punctuationMisses +
+            this._cacheStats.recentHits + this._cacheStats.recentMisses +
+            this._cacheStats.semanticHits + this._cacheStats.semanticMisses +
+            this._cacheStats.termRelationshipHits + this._cacheStats.termRelationshipMisses +
+            this._cacheStats.highestPriorityHits + this._cacheStats.highestPriorityMisses);
 
         const totalHits = this._cacheStats.queryHits + this._cacheStats.punctuationHits +
-                         this._cacheStats.recentHits + this._cacheStats.semanticHits + this._cacheStats.termRelationshipHits +
-                         this._cacheStats.highestPriorityHits;
+            this._cacheStats.recentHits + this._cacheStats.semanticHits + this._cacheStats.termRelationshipHits +
+            this._cacheStats.highestPriorityHits;
 
         // Calculate memory pressure and access metrics
         const currentMemoryPressure = this._memoryPressureHistory.length > 0 ?

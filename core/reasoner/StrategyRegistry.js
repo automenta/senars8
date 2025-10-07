@@ -8,12 +8,12 @@ class StrategyRegistry {
         this.metadata = new Map();
         this.stats = new Map();
         this.metricsService = metricsService;
-        
+
         // Enhanced strategy selection properties
         this.lmService = null;
         this.contextualSelectionEnabled = true;
         this.taskHistory = new Map(); // Track task characteristics for learning
-        
+
         info('StrategyRegistry initialized');
     }
 
@@ -184,17 +184,17 @@ class StrategyRegistry {
         return applicable.map(strategy => {
             const {name, instance, metadata} = strategy;
             const stats = this.stats.get(name) || {};
-            
+
             // Calculate success rate for this strategy
             const successRate = stats.successes ? stats.successes / (stats.executions || 1) : 0;
-            
+
             // Get strategy effectiveness (combining success rate and execution time)
             const averageTime = stats.averageTime || 0;
             const effectiveness = calculateEffectiveness(successRate, averageTime);
-            
+
             // Add contextual information if available
             const taskContextScore = this._getTaskContextScore(task, name, taskType);
-            
+
             return {
                 name,
                 instance,
@@ -238,7 +238,7 @@ class StrategyRegistry {
     async _predictBestStrategyWithLM(applicableStrategies, task, context, taskType) {
         try {
             if (!this.lmService) return null;
-            
+
             // Create a context-aware prompt for strategy selection
             const taskDescription = this._describeTask(task);
             const strategyContext = applicableStrategies.map(strat => ({
@@ -311,7 +311,7 @@ Return only the name of the best strategy to use.
      */
     analyzeTaskCharacteristics(task) {
         if (!task) return {type: 'unknown', complexity: 0, confidence: 0.5, frequency: 0.5};
-        
+
         const characteristics = {
             type: task.type || 'unknown',
             complexity: task.term ? (task.term.key ? task.term.key.length : 1) : 1,
@@ -320,12 +320,12 @@ Return only the name of the best strategy to use.
             termStructure: task.term?.structuredTerm ? task.term.structuredTerm.type : 'atomic',
             taskSize: JSON.stringify(task).length
         };
-        
+
         // If the task has more complex structured information, add that
         if (task.term?.structuredTerm) {
             characteristics.complexity = this._calculateTermComplexity(task.term.structuredTerm);
         }
-        
+
         return characteristics;
     }
 
@@ -334,13 +334,13 @@ Return only the name of the best strategy to use.
      */
     _calculateTermComplexity(structuredTerm) {
         if (!structuredTerm) return 1;
-        
+
         switch (structuredTerm.type) {
             case 'Conjunction':
                 return 2 + (structuredTerm.terms?.reduce((sum, term) => sum + this._calculateTermComplexity(term), 0) || 0);
             case 'Implication':
-                return 3 + (this._calculateTermComplexity(structuredTerm.subject) || 0) + 
-                            (this._calculateTermComplexity(structuredTerm.predicate) || 0);
+                return 3 + (this._calculateTermComplexity(structuredTerm.subject) || 0) +
+                    (this._calculateTermComplexity(structuredTerm.predicate) || 0);
             case 'Negation':
                 return 2 + (this._calculateTermComplexity(structuredTerm.term) || 0);
             case 'Set':
@@ -361,7 +361,7 @@ Return only the name of the best strategy to use.
      */
     _describeTask(task) {
         if (!task) return 'unknown task';
-        
+
         const parts = [];
         if (task.term) {
             parts.push(`Term: ${task.term.key}`);
@@ -372,7 +372,7 @@ Return only the name of the best strategy to use.
         if (task.truth) {
             parts.push(`Truth: {frequency: ${task.truth.frequency}, confidence: ${task.truth.confidence}}`);
         }
-        
+
         return parts.length > 0 ? parts.join(', ') : JSON.stringify(task);
     }
 
@@ -381,12 +381,12 @@ Return only the name of the best strategy to use.
      */
     _recordTaskContext(task, selectedStrategyName, taskType, success) {
         const taskKey = task.term ? task.term.key : 'unknown';
-        
+
         // Update task history for learning
         if (!this.taskHistory.has(taskKey)) {
             this.taskHistory.set(taskKey, []);
         }
-        
+
         this.taskHistory.get(taskKey).push({
             strategy: selectedStrategyName,
             taskType,
@@ -401,11 +401,11 @@ Return only the name of the best strategy to use.
             if (!stats.taskTypePerformance) {
                 stats.taskTypePerformance = {};
             }
-            
+
             const performance = stats.taskTypePerformance[taskType] || {count: 0, successes: 0};
             performance.count++;
             if (success) performance.successes++;
-            
+
             // Calculate updated success rate for this task type
             stats.taskTypePerformance[taskType] = performance;
         }
@@ -440,26 +440,26 @@ Return only the name of the best strategy to use.
         try {
             const strategy = this.getStrategy(strategyName);
             const validation = strategy.validate(task);
-            
+
             if (validation.isValid) {
                 result = await Promise.resolve(strategy.execute(task, systemContext));
                 success = result && result.success !== false;
             } else {
-                result = { success: false, errors: validation.errors };
+                result = {success: false, errors: validation.errors};
             }
         } catch (error) {
-            result = { success: false, error: error.message };
+            result = {success: false, error: error.message};
         } finally {
             const executionTime = Date.now() - startTime;
-            
+
             // Track in metrics service if available
             if (this.metricsService) {
                 this.metricsService.trackStrategyExecution(strategyName, success, executionTime);
             }
-            
+
             // Update internal stats
             this._updateInternalStats(strategyName, success, executionTime);
-            
+
             // Record task context for learning (enhanced strategy selection)
             this._recordTaskContext(task, strategyName, taskType, success);
         }
@@ -475,7 +475,7 @@ Return only the name of the best strategy to use.
             stats.totalTime += executionTime;
             stats.executions++; // Track total executions
             stats.averageTime = stats.totalTime / stats.executions;
-            
+
             if (success) {
                 stats.successes = (stats.successes || 0) + 1;
             } else {
@@ -513,14 +513,14 @@ Return only the name of the best strategy to use.
     _initStats(name, type) {
         if (!this.stats.has(name)) {
             this.stats.set(name, {
-                type, 
-                usageCount: 0, 
+                type,
+                usageCount: 0,
                 executions: 0,  // Track total executions separately from usage
-                successes: 0, 
+                successes: 0,
                 failures: 0,
                 totalTime: 0,
                 averageTime: 0,
-                lastUsed: null, 
+                lastUsed: null,
                 errors: 0,
                 taskTypePerformance: {}  // Initialize task type performance tracking
             });
@@ -552,19 +552,19 @@ Return only the name of the best strategy to use.
      */
     getStrategySuccessRateReport() {
         const report = {};
-        
+
         for (const [name, stats] of this.stats.entries()) {
             const totalExecutions = stats.executions || 0;
             const successes = stats.successes || 0;
             const successRate = totalExecutions > 0 ? successes / totalExecutions : 0;
-            
+
             report[name] = {
                 ...stats,
                 successRate,
                 successPercentage: (successRate * 100).toFixed(2) + '%',
                 totalExecutions
             };
-            
+
             // Include task type performance if available
             if (stats.taskTypePerformance) {
                 report[name].taskTypePerformance = {};
@@ -577,7 +577,7 @@ Return only the name of the best strategy to use.
                 }
             }
         }
-        
+
         return report;
     }
 
@@ -586,14 +586,14 @@ Return only the name of the best strategy to use.
      */
     getStrategyEffectivenessRanking() {
         const strategyRanks = [];
-        
+
         for (const [name, stats] of this.stats.entries()) {
             const totalExecutions = stats.executions || 0;
             const successes = stats.successes || 0;
             const successRate = totalExecutions > 0 ? successes / totalExecutions : 0;
             const averageTime = stats.averageTime || 0;
             const effectiveness = calculateEffectiveness(successRate, averageTime);
-            
+
             strategyRanks.push({
                 name,
                 effectiveness,
@@ -604,7 +604,7 @@ Return only the name of the best strategy to use.
                 failures: stats.failures || 0
             });
         }
-        
+
         return strategyRanks.sort((a, b) => b.effectiveness - a.effectiveness);
     }
 }

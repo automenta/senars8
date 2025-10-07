@@ -102,8 +102,8 @@ class PerformanceTracker {
 }
 
 class EnhancedToolManager extends ToolSystem {
-    constructor(config = {}, lmInstance = null) {
-        super(config);
+    constructor(core, config = {}, lmInstance = null) {
+        super(core, config);
         this.lm = lmInstance;
         this.config = config;
 

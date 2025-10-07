@@ -1,5 +1,4 @@
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
-import {debug, info, warn} from '../utils/logger.js';
 
 const errorHandler = createUnifiedErrorHandler('GeneralUtils');
 
@@ -26,21 +25,21 @@ function safeExecute(fn, operationName, defaultValue = null) {
 function waitForCondition(condition, timeoutMs = 5000, intervalMs = 100) {
     return new Promise((resolve) => {
         const startTime = Date.now();
-        
+
         const checkCondition = () => {
             if (condition()) {
                 resolve(true);
                 return;
             }
-            
+
             if (Date.now() - startTime >= timeoutMs) {
                 resolve(false);
                 return;
             }
-            
+
             setTimeout(checkCondition, intervalMs);
         };
-        
+
         checkCondition();
     });
 }
@@ -124,7 +123,7 @@ function deepClone(obj) {
  */
 function deepMerge(...objects) {
     const result = {};
-    
+
     for (const obj of objects) {
         for (const key in obj) {
             if (obj.hasOwnProperty(key)) {
@@ -136,7 +135,7 @@ function deepMerge(...objects) {
             }
         }
     }
-    
+
     return result;
 }
 

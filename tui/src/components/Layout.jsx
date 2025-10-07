@@ -254,12 +254,12 @@ export const SplitPane = memo(({
 
 // Responsive main layout for the TUI - optimized with memoization
 export const MainLayout = memo(({
-                                     children,
-                                     showSidebar = true,
-                                     sidebarWidth = 35,
-                                     adaptive = true,
-                                     ...props
-                                 }) => {
+                                    children,
+                                    showSidebar = true,
+                                    sidebarWidth = 35,
+                                    adaptive = true,
+                                    ...props
+                                }) => {
     const screenSize = useScreenSize();
 
     // Memoize sidebar visibility calculation
@@ -280,7 +280,7 @@ export const MainLayout = memo(({
 
     // Adaptive spacing based on screen size
     const adaptiveSpacing = useMemo(() =>
-        screenSize.isSmall ? theme.spacing.sm : theme.spacing.md,
+            screenSize.isSmall ? theme.spacing.sm : theme.spacing.md,
         [screenSize.isSmall]
     );
 

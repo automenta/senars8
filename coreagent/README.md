@@ -1,6 +1,7 @@
 # CoreAgent System
 
-A unified, optimized Core/Agent system that combines all key functionality into a clean, component-based architecture with metaprogramming for elegant access patterns.
+A unified, optimized Core/Agent system that combines all key functionality into a clean, component-based architecture
+with metaprogramming for elegant access patterns.
 
 ## Overview
 
@@ -15,6 +16,7 @@ The CoreAgent system provides:
 ## Key Features
 
 ### Direct Property Access
+
 Instead of `core.get('memory')`, you can use `core.memory` directly thanks to metaprogramming:
 
 ```javascript
@@ -30,10 +32,14 @@ const cycle = system.core.cycle;
 ```
 
 ### Optimized Rule Evaluation
-The system uses winnowing to filter rules by conditions before execution, providing up to 3x better performance than exhaustive evaluation.
+
+The system uses winnowing to filter rules by conditions before execution, providing up to 3x better performance than
+exhaustive evaluation.
 
 ### Component-Based Architecture
+
 All functionality is organized as Components with standardized interfaces:
+
 - Memory: Task and belief management with caching
 - Reasoning: Strategy-based inference with priority ordering
 - Cycle: Adaptive timing cognitive cycle
@@ -41,11 +47,13 @@ All functionality is organized as Components with standardized interfaces:
 - Self: Self-management using system's own facilities
 
 ### Self-Optimization
+
 The system uses its own rule and messaging systems for self-management, creating a self-improving system.
 
 ## Usage
 
 ### Creating a System
+
 ```javascript
 import { System } from './coreagent/index.js';
 
@@ -61,6 +69,7 @@ await system.start();
 ```
 
 ### Working with Components
+
 ```javascript
 // Access components directly
 const memory = system.core.memory;
@@ -81,6 +90,7 @@ const result = await reasoning._processTask({
 ```
 
 ### Event Handling
+
 ```javascript
 // Listen to system events
 system.on('task:added', (task) => {
@@ -92,6 +102,7 @@ system.emit('custom:event', { data: 'example' });
 ```
 
 ### Plugin System
+
 ```javascript
 // Register a plugin
 system.use('myPlugin', async (core) => {

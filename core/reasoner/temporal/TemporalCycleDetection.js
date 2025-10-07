@@ -39,7 +39,7 @@ class TemporalCycleDetection {
     static _executeDetect(temporalFocusSet, options = {}) {
         return errorHandler.executeSync(() => {
             debug(`Detecting temporal cycles for ${temporalFocusSet.length} tasks`);
-            
+
             const cycleTasks = [];
             const cycles = detectTemporalCycles(temporalFocusSet);
 

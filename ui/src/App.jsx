@@ -7,7 +7,6 @@ import useAppInit from './hooks/useAppInit';
 import useLayoutModel from './hooks/useLayoutModel';
 import {useTheme} from './context/ThemeProvider';
 import {SearchProvider} from './context/SearchContext';
-import {NotificationProvider} from './context/NotificationContext';
 import './App.css';
 
 function App() {

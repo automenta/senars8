@@ -1,4 +1,4 @@
-import {OP} from '../../config/constants.js';
+import {OP} from '../../../core/config/constants.js';
 
 export default {
     [OP.ATOMIC]: pTerm => pTerm.key,

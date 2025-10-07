@@ -2,12 +2,11 @@
  * Comprehensive reasoner tests using consolidated test utilities
  * Tests inference and reasoning functionality
  */
-import {describe, test, expect, beforeEach, afterEach} from 'vitest';
+import {afterEach, beforeEach, describe, expect, test} from 'vitest';
 import Task from '../../core/core/Task.js';
-import Term from '../../core/core/Term.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
-import {createTask, createTestDataTemplate} from '../test-data-factory.js';
-import {TestFramework, SystemFactory} from '../shared/test-utils.js';
+import {createTask} from '../test-data-factory.js';
+import {SystemFactory, TestFramework} from '../shared/test-utils.js';
 import {createContext, createTaskProcessingContext} from '../test-setup.js';
 
 describe('Reasoner - Inference and Reasoning Tests', () => {
@@ -32,10 +31,10 @@ describe('Reasoner - Inference and Reasoning Tests', () => {
         // Create premises: If cat then mammal, and cat exists
         const implicationTask = createTask('(cat ==> mammal)', '.', {frequency: 0.9, confidence: 0.8});
         const atomicTask = createTask('cat', '.', {frequency: 1.0, confidence: 0.9});
-        
+
         // Perform inference
         const derivedTasks = await reasoner.performInference([implicationTask, atomicTask]);
-        
+
         // Verify that mammal task was derived
         const mammalTask = derivedTasks.find(t => t.termKey === 'mammal');
         expect(mammalTask).toBeDefined();
@@ -82,10 +81,10 @@ describe('Reasoner - Inference and Reasoning Tests', () => {
         // Create similarity: cat similar to dog, cat has property
         const similarityTask = createTask('(cat <-> dog)', '.', {frequency: 0.8, confidence: 0.7});
         const propertyTask = createTask('(cat --> pet)', '.', {frequency: 1.0, confidence: 0.9});
-        
+
         // Perform inference
         const derivedTasks = await reasoner.performInference([similarityTask, propertyTask]);
-        
+
         // Should derive that dog might be pet based on similarity
         expect(derivedTasks).toHaveLength(0); // Similarity reasoning may not be implemented, so expect no derivations
     });
@@ -99,10 +98,10 @@ describe('Reasoner - Inference and Reasoning Tests', () => {
         // Create temporal sequence: if A then B, and A happens
         const temporalImplication = createTask('(&/ A B)', '.', {frequency: 0.8, confidence: 0.7});
         const eventA = createTask('A', '.', {frequency: 1.0, confidence: 0.9});
-        
+
         // Perform inference
         const derivedTasks = await reasoner.performInference([temporalImplication, eventA]);
-        
+
         // The result depends on the specific implementation of temporal reasoning
         // For now, just verify no errors occur
         expect(derivedTasks).toBeDefined();
@@ -117,10 +116,10 @@ describe('Reasoner - Inference and Reasoning Tests', () => {
         // Create conjunction: both A and B are true
         const conjunctionTask = createTask('(A & B)', '.', {frequency: 0.8, confidence: 0.7});
         const taskA = createTask('A', '.', {frequency: 1.0, confidence: 0.9});
-        
+
         // Perform inference
         const derivedTasks = await reasoner.performInference([conjunctionTask, taskA]);
-        
+
         // Should potentially derive B from A & B and A
         expect(derivedTasks).toBeDefined();
     });
@@ -133,10 +132,10 @@ describe('Reasoner - Inference and Reasoning Tests', () => {
 
         // Create a task for the reasoner to process
         const task = createTask('test_concept', '.', {frequency: 0.9, confidence: 0.85});
-        
+
         // Process the task
         await reasoner.processTask(task);
-        
+
         // Verify the reasoner handled the task
         expect(reasoner.processTask).toBeDefined();
     });
@@ -149,10 +148,10 @@ describe('Reasoner - Inference and Reasoning Tests', () => {
 
         // Create a goal task
         const goalTask = createTask('food', '!', {frequency: 1.0, confidence: 0.9});
-        
+
         // Process the goal
         await reasoner.processTask(goalTask);
-        
+
         // Verify the goal was processed appropriately
         expect(goalTask.punctuation).toBe('!');
     });
@@ -165,10 +164,10 @@ describe('Reasoner - Inference and Reasoning Tests', () => {
 
         // Create a question task
         const questionTask = createTask('weather', '?', {frequency: 0.5, confidence: 0.8});
-        
+
         // Process the question
         await reasoner.processTask(questionTask);
-        
+
         // Verify the question was processed appropriately
         expect(questionTask.punctuation).toBe('?');
     });
@@ -193,7 +192,7 @@ describe('Reasoner - Inference and Reasoning Tests', () => {
 
         // Perform batch inference
         const derivedTasks = await reasoner.performInference(tasks);
-        
+
         // Should have derived tasks from the reasoning
         expect(derivedTasks).toBeDefined();
     });
@@ -207,13 +206,13 @@ describe('Reasoner - Inference and Reasoning Tests', () => {
         // Create potentially conflicting tasks
         const positiveTask = createTask('dog', '.', {frequency: 0.9, confidence: 0.8});
         const negativeTask = createTask('~dog', '.', {frequency: 0.3, confidence: 0.6});
-        
+
         // Process both tasks
         await Promise.all([
             reasoner.processTask(positiveTask),
             reasoner.processTask(negativeTask)
         ]);
-        
+
         // Verify both tasks were processed
         expect(positiveTask).toBeDefined();
         expect(negativeTask).toBeDefined();
@@ -227,12 +226,12 @@ describe('Reasoner - Inference and Reasoning Tests', () => {
 
         // Multiple reasoning cycles with the same input should produce consistent results
         const testTask = createTask('stability_test', '.', {frequency: 0.7, confidence: 0.8});
-        
+
         // Run the same reasoning multiple times
         for (let i = 0; i < 3; i++) {
             await reasoner.processTask(testTask);
         }
-        
+
         // Verify consistency
         expect(testTask.termKey).toBe('stability_test');
     });
@@ -242,11 +241,14 @@ describe('Reasoner - Performance and Edge Case Tests', () => {
     test('should handle large numbers of tasks efficiently', async () => {
         const systemData = SystemFactory.create();
         const reasoner = systemData.system.reasoner;
-        
+
         // Create many tasks
         const tasks = [];
         for (let i = 0; i < 100; i++) {
-            tasks.push(createTask(`concept_${i}`, '.', {frequency: 0.7 + Math.random() * 0.3, confidence: 0.6 + Math.random() * 0.3}));
+            tasks.push(createTask(`concept_${i}`, '.', {
+                frequency: 0.7 + Math.random() * 0.3,
+                confidence: 0.6 + Math.random() * 0.3
+            }));
         }
 
         // Measure performance
@@ -263,7 +265,7 @@ describe('Reasoner - Performance and Edge Case Tests', () => {
     test('should handle empty task lists gracefully', async () => {
         const systemData = SystemFactory.create();
         const reasoner = systemData.system.reasoner;
-        
+
         // Process empty list
         const emptyResult = await reasoner.performInference([]);
         expect(emptyResult).toEqual([]);
@@ -286,9 +288,9 @@ describe('Reasoner - Performance and Edge Case Tests', () => {
         // Test with specific truth values that should produce predictable results
         const premise1 = new Task(parseTerm('A'), '.', {frequency: 1.0, confidence: 0.9});
         const premise2 = new Task(parseTerm('(A ==> B)'), '.', {frequency: 0.8, confidence: 0.8});
-        
+
         const derivedTasks = await reasoner.performInference([premise1, premise2]);
-        
+
         // Derived truth value should be: frequency(p1) * frequency(p2), confidence(p1) * confidence(p2)
         const derivedTask = derivedTasks.find(t => t.termKey === 'B');
         if (derivedTask) {
@@ -319,20 +321,20 @@ describe('Reasoner - Integration Tests', () => {
 
     test('should interact correctly with command bus', async () => {
         const systemContext = await createContext({withSystem: true, withMemory: true, withReasoner: true});
-        
+
         // Verify that reasoner is connected to the system properly
         const reasoner = systemContext.system?.reasoner;
         const commandBus = systemContext.commandBus;
-        
+
         expect(reasoner).toBeDefined();
         expect(commandBus).toBeDefined();
-        
+
         // Try to send a command to the reasoner
         if (commandBus?.request) {
             const result = await commandBus.request('REASONER_GET_STATE', {});
             expect(result).toBeDefined(); // May be null if not implemented, but should not error
         }
-        
+
         await systemContext.cleanup();
     });
 
@@ -397,15 +399,15 @@ describe('Reasoner - Data Driven Reasoning Tests', () => {
     test.each(reasoningScenarios)('should handle $name reasoning', async (scenario) => {
         const systemData = SystemFactory.create();
         const reasoner = systemData.system.reasoner;
-        
+
         // Create tasks from scenario premises
-        const tasks = scenario.premises.map(p => 
+        const tasks = scenario.premises.map(p =>
             createTask(p.sentence, '.', {frequency: p.truth[0], confidence: p.truth[1]})
         );
-        
+
         // Perform inference
         const derivedTasks = await reasoner.performInference(tasks);
-        
+
         // Check if expected conclusion was derived (implementation-dependent)
         // The actual result may vary based on the specific NARS reasoning implementation
         expect(derivedTasks).toBeDefined();

@@ -1,5 +1,4 @@
 import React from 'react';
-import {Text} from 'ink';
 import PropTypes from 'prop-types';
 import {useAgentState} from '@senars/common';
 import {BeliefsView, GoalsView, MemoryView, StatsView, StatusView, TasksView} from '../TuiRenderer.jsx';

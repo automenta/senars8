@@ -39,7 +39,7 @@ class TemporalPatternDetection {
     static _executeDetect(temporalFocusSet, config = {}) {
         return errorHandler.executeSync(() => {
             debug(`Detecting temporal patterns for ${temporalFocusSet.length} tasks`);
-            
+
             const patternTasks = [];
             const patterns = detectTemporalPatterns(temporalFocusSet);
 

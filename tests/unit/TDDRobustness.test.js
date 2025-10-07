@@ -2,13 +2,12 @@
  * TDD Robustness Tests - Demonstrating Test-Driven Development principles
  * These tests define expected behavior before verifying implementation
  */
-import {describe, test, expect, beforeEach, afterEach, vi} from 'vitest';
-import {TestFramework, SystemFactory, createConfig, resetAllCaches} from '../shared/test-utils.js';
+import {beforeEach, describe, expect, test} from 'vitest';
+import {resetAllCaches, SystemFactory, TestFramework} from '../shared/test-utils.js';
 import {createContext, createTaskProcessingContext} from '../test-setup.js';
-import {createTask, createTerm, TEST_DATA_SETS} from '../test-data-factory.js';
+import {createTask, TEST_DATA_SETS} from '../test-data-factory.js';
 import Task from '../../core/core/Task.js';
-import Memory from '../../core/memory/Memory.js';
-import Container, {DIContainer, LIFETIME} from '../../core/system/DIContainer.js';
+import {DIContainer, LIFETIME} from '../../core/system/DIContainer.js';
 
 describe('TDD Robustness - Core System Reliability', () => {
     beforeEach(() => {
@@ -56,7 +55,7 @@ describe('TDD Robustness - Core System Reliability', () => {
     test('should handle invalid inputs gracefully without crashing', async () => {
         // TDD: Define expected behavior - system should handle invalid inputs gracefully
         const context = await createContext({withSystem: true, withMemory: true});
-        
+
         // Test various invalid inputs
         const invalidInputs = [
             null,
@@ -66,7 +65,7 @@ describe('TDD Robustness - Core System Reliability', () => {
             {term: 'valid', punctuation: 'invalid_punct'},
             {term: 'valid', punctuation: '.', state: null}
         ];
-        
+
         // System should handle these without throwing
         for (const input of invalidInputs) {
             try {
@@ -76,7 +75,7 @@ describe('TDD Robustness - Core System Reliability', () => {
                 expect(error.message).toMatch(/invalid|validation|error/i);
             }
         }
-        
+
         await context.cleanup();
     });
 
@@ -124,32 +123,36 @@ describe('TDD Robustness - Core System Reliability', () => {
     test('should recover gracefully from error conditions', async () => {
         // TDD: Define expected behavior - system should recover gracefully from errors
         const container = new DIContainer();
-        
+
         // Register services with potential circular dependencies (error condition)
         class ServiceA {
-            constructor(serviceB) {}
+            constructor(serviceB) {
+            }
         }
-        
+
         class ServiceB {
-            constructor(serviceC) {}
+            constructor(serviceC) {
+            }
         }
-        
+
         class ServiceC {
-            constructor(serviceA) {} // This creates a circular dependency
+            constructor(serviceA) {
+            } // This creates a circular dependency
         }
-        
+
         container.register('serviceA', ServiceA, ['serviceB']);
         container.register('serviceB', ServiceB, ['serviceC']);
         container.register('serviceC', ServiceC, ['serviceA']);
-        
+
         // Verify that the error is handled appropriately
         expect(() => container.get('serviceA')).toThrow('Circular dependency detected');
-        
+
         // After error, system should still work for other services
         class IndependentService {
-            constructor() {}
+            constructor() {
+            }
         }
-        
+
         container.register('independentService', IndependentService, [], {lifetime: LIFETIME.SINGLETON});
         const independentInstance = container.get('independentService');
         expect(independentInstance).toBeInstanceOf(IndependentService);
@@ -161,15 +164,15 @@ describe('TDD Robustness - Core System Reliability', () => {
             reasoner: {strategy: 'BruteForce'},
             memory: {capacity: 1000}
         };
-        
+
         const systemData = SystemFactory.create(validConfig);
         expect(systemData.system).toBeDefined();
-        
+
         // Test with invalid configuration
         const invalidConfig = {
             reasoner: {strategy: 'NonExistentStrategy'} // Invalid strategy
         };
-        
+
         // This should either fail gracefully or use defaults
         const robustSystemData = SystemFactory.create(invalidConfig);
         expect(robustSystemData.system).toBeDefined();
@@ -178,14 +181,14 @@ describe('TDD Robustness - Core System Reliability', () => {
     test('should maintain performance under varying loads', async () => {
         // TDD: Define expected performance behavior - system should maintain performance thresholds
         const context = await createTaskProcessingContext({withSystem: true, withMemory: true});
-        
+
         // Test with small load
         const smallLoadStart = performance.now();
         for (let i = 0; i < 10; i++) {
             await context.createAndAddTask(`small_load_${i}`, '.', {frequency: 0.5, confidence: 0.5});
         }
         const smallLoadTime = performance.now() - smallLoadStart;
-        
+
         // Test with large load
         const largeLoadStart = performance.now();
         const largeLoadPromises = [];
@@ -196,12 +199,12 @@ describe('TDD Robustness - Core System Reliability', () => {
         }
         await Promise.all(largeLoadPromises);
         const largeLoadTime = performance.now() - largeLoadStart;
-        
+
         // Performance should scale reasonably (not exponentially)
         // The large load should not take disproportionately longer
         const ratio = largeLoadTime / smallLoadTime;
         expect(ratio).toBeLessThan(25); // Large load shouldn't take 25x longer than small load
-        
+
         await context.cleanup();
     });
 
@@ -323,7 +326,7 @@ describe('TDD Robustness - Error Boundary and Recovery Tests', () => {
     test('should provide meaningful error messages for debugging', async () => {
         // TDD: Define expected behavior - errors should provide meaningful messages
         const container = new DIContainer();
-        
+
         // Attempt to get non-existent service
         try {
             container.get('nonExistentService');
@@ -333,14 +336,21 @@ describe('TDD Robustness - Error Boundary and Recovery Tests', () => {
             expect(error.message).toContain('Service not found');
             expect(error.message).toContain('nonExistentService');
         }
-        
+
         // Attempt circular dependency
-        class A { constructor(b) {} }
-        class B { constructor(a) {} }
-        
+        class A {
+            constructor(b) {
+            }
+        }
+
+        class B {
+            constructor(a) {
+            }
+        }
+
         container.register('A', A, ['B']);
         container.register('B', B, ['A']);
-        
+
         try {
             container.get('A');
             expect(false).toBe(true); // Should not reach here
@@ -356,19 +366,19 @@ describe('TDD Robustness - System Integration and Communication Tests', () => {
     test('should maintain consistent communication between components', async () => {
         // TDD: Define expected behavior - components should communicate consistently
         const context = await createContext({withSystem: true, withMemory: true, withReasoner: true});
-        
+
         // Verify that all components are properly connected
         expect(context.system).toBeDefined();
         expect(context.memory).toBeDefined();
         expect(context.system.reasoner).toBeDefined();
-        
+
         // Test communication patterns
         const commandBus = context.commandBus;
         const eventBus = context.eventBus;
-        
+
         expect(commandBus).toBeDefined();
         expect(eventBus).toBeDefined();
-        
+
         // Components should be able to communicate without errors
         if (commandBus && commandBus.request) {
             // Test that command bus doesn't crash on basic requests
@@ -376,7 +386,7 @@ describe('TDD Robustness - System Integration and Communication Tests', () => {
             // Result might be null if command is not implemented, but shouldn't error
             expect(result).toBeDefined(); // Could be null if command doesn't exist
         }
-        
+
         await context.cleanup();
     });
 
@@ -384,17 +394,17 @@ describe('TDD Robustness - System Integration and Communication Tests', () => {
         // TDD: Define expected behavior - component lifecycle should be handled properly
         const systemData = SystemFactory.create();
         const system = systemData.system;
-        
+
         // Verify system components are initialized
         expect(system).toBeDefined();
         expect(system.cycle).toBeDefined();
         expect(system.reasoner).toBeDefined();
-        
+
         // Test system lifecycle methods exist and don't crash
         if (system.cycle && typeof system.cycle.runOnce === 'function') {
             await expect(system.cycle.runOnce()).resolves.toBeUndefined();
         }
-        
+
         if (system.cycle && typeof system.cycle.run === 'function') {
             // Only run for a short time to avoid infinite loops
             const runPromise = system.cycle.run();
@@ -435,7 +445,7 @@ describe('TDD Robustness - Data Validation and Sanitization Tests', () => {
     test('should validate all inputs before processing', async () => {
         // TDD: Define expected behavior - all inputs should be validated
         const testCases = TEST_DATA_SETS.TASK_PROCESSING;
-        
+
         // Each test case should be validated before processing
         for (const testCase of testCases) {
             if (testCase.expected.valid === false) {
@@ -510,17 +520,17 @@ describe('TDD Robustness - Data Validation and Sanitization Tests', () => {
                 return null; // Expected for invalid values
             }
         };
-        
+
         // Valid values should work
         expect(createBoundedTask(0.5, 0.8)).toBeDefined();
         expect(createBoundedTask(0.0, 0.0)).toBeDefined();
         expect(createBoundedTask(1.0, 1.0)).toBeDefined();
-        
+
         // Invalid values should either be corrected or rejected
         // (behavior depends on implementation)
         const tooHigh = createBoundedTask(1.5, 1.5);
         const tooLow = createBoundedTask(-0.5, -0.5);
-        
+
         // Should handle these appropriately based on system design
         expect(tooHigh).toBeDefined(); // May be clamped or null
         expect(tooLow).toBeDefined();  // May be clamped or null
@@ -532,17 +542,17 @@ describe('TDD Robustness - Performance Regression Tests', () => {
     test('should not regress in performance from previous implementations', async () => {
         // TDD: Define performance expectations to prevent regressions
         const context = await createTaskProcessingContext({withSystem: true, withMemory: true});
-        
+
         // Baseline performance test
         const baselineStart = performance.now();
         for (let i = 0; i < 100; i++) {
             await context.createAndAddTask(`perf_test_${i}`, '.', {frequency: 0.5, confidence: 0.5});
         }
         const baselineTime = performance.now() - baselineStart;
-        
+
         // The operation should complete in a reasonable time
         expect(baselineTime).toBeLessThan(5000); // 5 seconds for 100 tasks
-        
+
         // Cleanup
         await context.cleanup();
     });
@@ -550,39 +560,39 @@ describe('TDD Robustness - Performance Regression Tests', () => {
     test('should maintain memory efficiency under load', async () => {
         // TDD: Define memory usage expectations
         const initialMemory = process.memoryUsage ? process.memoryUsage().heapUsed : 0;
-        
+
         const context = await createTaskProcessingContext({withSystem: true, withMemory: true});
-        
+
         // Add many tasks
         for (let i = 0; i < 500; i++) {
             await context.createAndAddTask(`memory_test_${i}`, '.', {frequency: 0.5, confidence: 0.5});
         }
-        
+
         const finalMemory = process.memoryUsage ? process.memoryUsage().heapUsed : 0;
         const memoryGrowth = finalMemory - initialMemory;
-        
+
         // Reasonable memory growth (this is implementation-dependent)
         expect(memoryGrowth).toBeLessThan(50 * 1024 * 1024); // Less than 50MB for 500 tasks
-        
+
         await context.cleanup();
     });
 
     test('should maintain cache efficiency', async () => {
         // TDD: Define cache performance expectations
         const context = await createContext({withSystem: true});
-        
+
         // Test cache utilization metrics
         const initialStats = TestFramework.assertions.expectComponents(context.container, ['memory', 'reasoner']);
-        
+
         // Perform operations that should utilize caching
         for (let i = 0; i < 50; i++) {
             const service = context.container.get('memory');
             expect(service).toBeDefined();
         }
-        
+
         // Cache should improve performance
         const finalStats = TestFramework.assertions.expectComponents(context.container, ['memory', 'reasoner']);
-        
+
         await context.cleanup();
     });
 });

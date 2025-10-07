@@ -1,4 +1,4 @@
-import {debug, info} from '../../utils/logger.js';
+import {debug} from '../../utils/logger.js';
 import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
 
 const errorHandler = createUnifiedErrorHandler('LMTemporalPatternPredictor');
@@ -35,7 +35,7 @@ class LMTemporalPatternPredictor {
         return errorHandler.execute(async () => {
             // Analyze the recent tasks to identify patterns that might continue
             const tasksContext = this._createContextFromTasks(recentTasks);
-            
+
             const prompt = `
             Analyze the following temporal patterns and predict what patterns are likely to occur next:
             
@@ -61,30 +61,30 @@ class LMTemporalPatternPredictor {
                 ]
             }
             `;
-            
+
             try {
                 const result = await this.lm.generate(prompt, {
                     max_tokens: 500,
                     temperature: 0.3 // Lower temperature for more consistent predictions
                 });
-                
+
                 if (!result) {
                     debug('No LM result for temporal pattern prediction');
                     return [];
                 }
-                
+
                 // Try to parse the JSON response
                 const parsedResult = this._parseLMResult(result);
                 if (!parsedResult) {
                     debug('Failed to parse LM result for temporal pattern prediction');
                     return [];
                 }
-                
+
                 // Preload cache with predictions if available
                 if (this.cache && parsedResult.predictedPatterns && recentTasks.length > 0) {
                     this._preloadCacheWithPredictions(recentTasks, parsedResult);
                 }
-                
+
                 debug(`LM predicted ${parsedResult.predictedPatterns?.length || 0} temporal patterns`);
                 return parsedResult;
             } catch (error) {
@@ -102,7 +102,7 @@ class LMTemporalPatternPredictor {
      */
     _createContextFromTasks(tasks) {
         if (!tasks || tasks.length === 0) return "No recent tasks to analyze.";
-        
+
         // Extract temporal information from tasks
         const temporalInfo = tasks.map(task => {
             const stamp = task.state.stamp;
@@ -113,7 +113,7 @@ class LMTemporalPatternPredictor {
                 punctuation: task.punctuation || 'N/A'
             };
         });
-        
+
         return JSON.stringify(temporalInfo, null, 2);
     }
 
@@ -147,14 +147,14 @@ class LMTemporalPatternPredictor {
                 // Preload an empty result for relationship inference (common high-cost operation)
                 // This is a conservative approach - we're preloading the cache with an empty result
                 // that will be calculated when actually needed
-                this.cache.preload('TemporalRelationshipInference', tasks, [], { predicted: true });
+                this.cache.preload('TemporalRelationshipInference', tasks, [], {predicted: true});
             }
         }
-        
+
         if (predictions.predictedPatterns) {
             for (const pattern of predictions.predictedPatterns) {
                 // Preload pattern detection results based on prediction confidence
-                this.cache.preload('TemporalPatternDetection', tasks, [], { 
+                this.cache.preload('TemporalPatternDetection', tasks, [], {
                     predicted: true,
                     estimatedConfidence: pattern.estimatedConfidence
                 });

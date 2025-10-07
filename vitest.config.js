@@ -31,7 +31,7 @@ export default defineConfig({
             'node_modules',
             'dist',
             'build',
-            'ui/tests/*playwright*.test.js', 
+            'ui/tests/*playwright*.test.js',
             'ui/tests/*e2e*.test.js'
         ],
         projects: [

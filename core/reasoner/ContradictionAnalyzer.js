@@ -1,4 +1,3 @@
-import {CONTRADICTION_TYPES, CONTRADICTION_SEVERITY_WEIGHTS} from './contradiction-types.js';
 import {detectionStrategies} from './strategies/detection/index.js';
 import {calculateSeverity} from './ContradictionUtils.js';
 

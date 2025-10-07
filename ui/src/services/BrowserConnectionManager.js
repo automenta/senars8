@@ -3,7 +3,7 @@
  * This version only handles WebSocket connections (no embedded agent)
  */
 import {EventEmitter} from 'events';
-import logger from '../core/utils/logger.js';
+import logger from '../coreagent/utils/logger.js';
 
 const log = logger.create('BrowserConnectionManager');
 
@@ -44,7 +44,7 @@ class BrowserConnectionManager extends EventEmitter {
             try {
                 log.debug(`Attempt ${attempt}/${this.config.maxRetries} to ${wsUrl}`);
                 const ws = this.connect(wsUrl);
-                
+
                 // Wait for connection with timeout
                 await this._waitForConnection(ws, wsUrl);
                 return {success: true, ws};
@@ -62,12 +62,12 @@ class BrowserConnectionManager extends EventEmitter {
     _waitForConnection(ws, wsUrl) {
         return new Promise((resolve, reject) => {
             const timeout = setTimeout(() => reject(new Error('Connection timeout')), this.config.connectionTimeout);
-            
+
             ws.onopen = () => {
                 clearTimeout(timeout);
                 resolve();
             };
-            
+
             ws.onerror = (error) => {
                 clearTimeout(timeout);
                 reject(error);
@@ -170,7 +170,7 @@ class BrowserConnectionManager extends EventEmitter {
     _getConnectionStatus(readyState) {
         const states = {
             [WebSocket.CONNECTING]: 'connecting',
-            [WebSocket.OPEN]: 'connected', 
+            [WebSocket.OPEN]: 'connected',
             [WebSocket.CLOSING]: 'closing',
             [WebSocket.CLOSED]: 'closed'
         };

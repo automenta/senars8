@@ -103,15 +103,15 @@ class TuiDemo {
         console.log('Demo: Adding sample tasks and observing the system...');
 
         // Simulate some agent activity to show in the TUI
-        setTimeout(() => {
+        await setTimeout(() => {
             console.log('Simulated: Agent processed a task');
         }, 5000);
 
-        setTimeout(() => {
+        await setTimeout(() => {
             console.log('Simulated: New belief formed');
         }, 10000);
 
-        setTimeout(() => {
+        await setTimeout(() => {
             console.log('Simulated: Inference completed');
         }, 15000);
     }

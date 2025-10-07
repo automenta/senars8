@@ -1,4 +1,4 @@
-import {describe, it, beforeEach, afterEach} from 'vitest';
+import {afterEach, beforeEach, describe, it} from 'vitest';
 import EnhancedToolManager from '../../core/tools/EnhancedToolManager.js';
 import ToolManagerFactory from '../../core/tools/ToolManagerFactory.js';
 import CompatibilityAdapter from '../../core/tools/CompatibilityAdapter.js';

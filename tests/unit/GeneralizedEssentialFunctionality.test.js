@@ -2,16 +2,14 @@
  * Generalized tests for essential functionality using the new consolidated test utilities
  * This test suite demonstrates comprehensive coverage of core system functionality
  */
-import {describe, test, expect, vi, beforeEach, afterEach} from 'vitest';
+import {afterEach, beforeEach, describe, expect, test} from 'vitest';
 import {createTask, createTerm, createTestDataTemplate} from '../test-data-factory.js';
-import {TestFramework, SystemFactory, createCache, validate, ValidationEngine} from '../shared/test-utils.js';
-import {createContext, createTaskProcessingContext, createMemoryContext} from '../test-setup.js';
+import {createCache, SystemFactory, TestFramework, validate, ValidationEngine} from '../shared/test-utils.js';
+import {createContext, createMemoryContext} from '../test-setup.js';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
-import Memory from '../../core/memory/Memory.js';
-import Container, {DIContainer, LIFETIME} from '../../core/system/DIContainer.js';
-import ConfigManager from '../../core/config/ConfigManager.js';
+import {DIContainer, LIFETIME} from '../../core/system/DIContainer.js';
 
 describe('Generalized Essential Functionality Tests', () => {
     let testContext;
@@ -53,7 +51,7 @@ describe('Generalized Essential Functionality Tests', () => {
                 punctuation: 'string'
             }
         });
-        
+
         expect(validationResult).toBe(basicTask);
     });
 
@@ -129,7 +127,7 @@ describe('Generalized Essential Functionality Tests', () => {
     test('should demonstrate comprehensive DIContainer functionality testing', () => {
         // Create a new DIContainer instance for testing
         const container = new DIContainer();
-        
+
         // Test transient service registration and resolution
         class ServiceA {
             constructor() {
@@ -140,7 +138,7 @@ describe('Generalized Essential Functionality Tests', () => {
         container.register('serviceA', ServiceA, [], {lifetime: LIFETIME.TRANSIENT});
         const instance1 = container.get('serviceA');
         const instance2 = container.get('serviceA');
-        
+
         expect(instance1).toBeInstanceOf(ServiceA);
         expect(instance2).toBeInstanceOf(ServiceA);
         expect(instance1).not.toBe(instance2);
@@ -155,7 +153,7 @@ describe('Generalized Essential Functionality Tests', () => {
         container.register('serviceB', ServiceB, [], {lifetime: LIFETIME.SINGLETON});
         const instance3 = container.get('serviceB');
         const instance4 = container.get('serviceB');
-        
+
         expect(instance3).toBeInstanceOf(ServiceB);
         expect(instance4).toBeInstanceOf(ServiceB);
         expect(instance3).toBe(instance4);
@@ -164,12 +162,13 @@ describe('Generalized Essential Functionality Tests', () => {
         const testValue = {message: 'hello'};
         container.registerValue('testValue', testValue);
         const resolvedValue = container.get('testValue');
-        
+
         expect(resolvedValue).toBe(testValue);
 
         // Test dependency handling
         class ServiceD {
-            constructor() {}
+            constructor() {
+            }
         }
 
         class ServiceC {
@@ -181,7 +180,7 @@ describe('Generalized Essential Functionality Tests', () => {
         container.register('serviceD', ServiceD, [], {lifetime: LIFETIME.SINGLETON});
         container.register('serviceC', ServiceC, ['serviceD'], {lifetime: LIFETIME.SINGLETON});
         const instanceC = container.get('serviceC');
-        
+
         expect(instanceC).toBeInstanceOf(ServiceC);
         expect(instanceC.serviceD).toBeInstanceOf(ServiceD);
 
@@ -288,7 +287,7 @@ describe('Generalized Essential Functionality Tests', () => {
             memory: {capacity: 1000}
         });
         expect(enhancedSystem.system).toBeDefined();
-        
+
         // Test that both systems have the expected components
         TestFramework.assertions.expectComponents(basicSystem.container, ['memory', 'reasoner', 'tools']);
         TestFramework.assertions.expectComponents(enhancedSystem.container, ['memory', 'reasoner', 'tools']);
@@ -297,19 +296,19 @@ describe('Generalized Essential Functionality Tests', () => {
     test('should demonstrate cache validation and performance metrics', () => {
         // Create a cache and perform operations to test its functionality
         const cache = createCache(100);
-        
+
         // Add some items to cache
         cache.set('key1', 'value1');
         cache.set('key2', 'value2');
         cache.set('key3', 'value3');
-        
+
         expect(cache.size).toBe(3);
         expect(cache.get('key1')).toBe('value1');
         expect(cache.get('key2')).toBe('value2');
-        
+
         const hitRate = cache.hitRate;
         expect(hitRate).toBeGreaterThanOrEqual(0);
-        
+
         // Clear cache and verify
         cache.clear();
         expect(cache.size).toBe(0);
@@ -328,7 +327,7 @@ describe('Generalized Essential Functionality Tests', () => {
             memory: {capacity: 1000}
         });
         expect(enhancedSystem.system).toBeDefined();
-        
+
         // Test that both systems have the expected components
         TestFramework.assertions.expectComponents(basicSystem.container, ['memory', 'reasoner', 'tools']);
         TestFramework.assertions.expectComponents(enhancedSystem.container, ['memory', 'reasoner', 'tools']);
@@ -337,19 +336,19 @@ describe('Generalized Essential Functionality Tests', () => {
     test('should demonstrate cache validation and performance metrics', () => {
         // Create a cache and perform operations to test its functionality
         const cache = createCache(100);
-        
+
         // Add some items to cache
         cache.set('key1', 'value1');
         cache.set('key2', 'value2');
         cache.set('key3', 'value3');
-        
+
         expect(cache.size).toBe(3);
         expect(cache.get('key1')).toBe('value1');
         expect(cache.get('key2')).toBe('value2');
-        
+
         const hitRate = cache.hitRate;
         expect(hitRate).toBeGreaterThanOrEqual(0);
-        
+
         // Clear cache and verify
         cache.clear();
         expect(cache.size).toBe(0);
@@ -368,14 +367,14 @@ describe('Test Data Template Validation', () => {
 
     test('should validate inheritance test data template', () => {
         const inheritanceData = createTestDataTemplate('inheritance');
-        
+
         expect(inheritanceData.subjectTerm).toBeDefined();
         expect(inheritanceData.predicateTerm).toBeDefined();
         expect(inheritanceData.inheritanceTerm).toBeDefined();
         expect(inheritanceData.subjectTask).toBeDefined();
         expect(inheritanceData.predicateTask).toBeDefined();
         expect(inheritanceData.inheritanceTask).toBeDefined();
-        
+
         expect(inheritanceData.subjectTerm.key).toBe('cat');
         expect(inheritanceData.predicateTerm.key).toBe('animal');
         expect(inheritanceData.inheritanceTerm.key).toBe('(cat --> animal)');
@@ -383,7 +382,7 @@ describe('Test Data Template Validation', () => {
 
     test('should validate deduction test data template', () => {
         const deductionData = createTestDataTemplate('deduction');
-        
+
         expect(deductionData.premiseA).toBeDefined();
         expect(deductionData.premiseB).toBeDefined();
         expect(deductionData.conclusion).toBeDefined();
@@ -396,18 +395,18 @@ describe('Scenario-based Testing Example', () => {
     test('should execute task processing scenario', async () => {
         await TestFramework.execution.withContext('taskProcessing', {}, async (context) => {
             expect(context).toBeDefined();
-            
+
             // Simulate task processing
             const task = createTask('scenario-test', '.', {frequency: 0.9, confidence: 0.85});
-            
+
             if (context.memory) {
                 await context.memory.addTask?.(task) || context.memory.add?.(task);
             }
-            
+
             if (context.reasoner) {
                 await context.reasoner.processTask?.(task);
             }
-            
+
             // Verify the scenario worked as expected
             expect(task).toBeDefined();
         });

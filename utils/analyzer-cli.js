@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import fs from 'fs';
-import {UnitTestAnalyzer} from '../../core/analyzer/index.js';
-import {logAndExit, safeAsync} from '../../core/utils/errorHandler.js';
+import {UnitTestAnalyzer} from '../../coreagent/analyzer/index.js';
+import {logAndExit, safeAsync} from '../../coreagent/utils/errorHandler.js';
 
 const showHelp = () => {
     console.log(`

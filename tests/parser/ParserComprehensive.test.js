@@ -2,9 +2,9 @@
  * Comprehensive parser tests using consolidated test utilities
  * Tests Narsese parser functionality with various input types
  */
-import {describe, test, expect, beforeEach, afterEach} from 'vitest';
+import {afterEach, beforeEach, describe, expect, test} from 'vitest';
 import {parseTerm} from '../../core/parser/narseseParser.js';
-import {createTask, createTestDataTemplate} from '../test-data-factory.js';
+import {createTask} from '../test-data-factory.js';
 import {TestFramework, validate} from '../shared/test-utils.js';
 import {createContext} from '../test-setup.js';
 
@@ -136,7 +136,7 @@ describe('Parser - Narsese Expression Tests', () => {
     test('should work with Task creation and validation', () => {
         const parsedTerm = parseTerm('(dog --> mammal)');
         const task = createTask(parsedTerm, '.', {frequency: 0.8, confidence: 0.9});
-        
+
         TestFramework.assertions.expectTask(task, '(dog --> mammal)', '.', {frequency: 0.8, confidence: 0.9});
     });
 

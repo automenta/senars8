@@ -1,5 +1,5 @@
 import {EventEmitter} from 'events';
-import logger from '../../core/utils/logger.js';
+import logger from '../../coreagent/utils/logger.js';
 import EmbeddedAgentService from './EmbeddedAgentService.js';
 
 const log = logger.create('ConnectionManager');

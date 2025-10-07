@@ -22,7 +22,7 @@ const PUNCTUATION = {
     retrospection: '=/>',
     prediction: '=\\\\>',
     concurrent: '<>',
-    
+
     // Single character operators after
     lparen: /[<(]/,
     rparen: /[>)]/,
@@ -54,21 +54,21 @@ const STATEMENT_PUNCTUATION = {
 };
 
 const LITERALS = {
-     string: /\"[^\"]*\"/,
-     dependentVar: /#\w*/,
-     queryVar: /\?\w+/,
-     independentVar: /\$\w+/,
-     number: /\d+(?:\.\d+)?/,
-     identifier: /[a-zA-Z_][a-zA-Z0-9_-]*/,
- };
+    string: /\"[^\"]*\"/,
+    dependentVar: /#\w*/,
+    queryVar: /\?\w+/,
+    independentVar: /\$\w+/,
+    number: /\d+(?:\.\d+)?/,
+    identifier: /[a-zA-Z_][a-zA-Z0-9_-]*/,
+};
 
 const lexer = moo.compile({
-     ...WHITESPACE,
-     ...PUNCTUATION,
-     ...STATEMENT_PUNCTUATION,
-     ...LITERALS,
-     ...TEMPORAL,
- });
+    ...WHITESPACE,
+    ...PUNCTUATION,
+    ...STATEMENT_PUNCTUATION,
+    ...LITERALS,
+    ...TEMPORAL,
+});
 
 /**
  * Tokenize a text string using the Narsese lexer

@@ -47,6 +47,7 @@ npm run dev
 ```
 
 This automatically starts:
+
 - The embedded agent with all cognitive components
 - The Web UI on http://localhost:3000
 - The WebSocket server on port 8081
@@ -164,7 +165,7 @@ Create a new file in the `plugins/` directory:
 
 ```js
 // plugins/my-plugin.js
-import {info} from '../core/utils/logger.js';
+import {info} from '../coreagent/utils/logger.js';
 
 class MyPlugin {
     constructor(options = {}) {

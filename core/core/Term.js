@@ -1,13 +1,13 @@
-import {parseTerm} from '../parser/parse-utils.js';
-import {embeddingsEqual} from '../utils/math.js';
-import EmbeddingStore from '../utils/embeddingStore.js';
-import {OP} from '../config/constants.js';
-import * as validation from '../utils/validation.js';
+import {parseTerm} from '../../coreagent/parser/parse-utils.js';
+import {embeddingsEqual} from '../../core/utils/math.js';
+import EmbeddingStore from '../../core/utils/embeddingStore.js';
+import {OP} from '../../core/config/constants.js';
+import * as validation from '../../core/utils/validation.js';
 import BaseEntity from './BaseEntity.js';
-import {isNonEmptyArray} from '../utils/collections/index.js';
-import createKeyBuilder from '../parser/key-builders/index.js';
-import {warn} from '../utils/logger.js';
-import {createSharedInstance} from '../utils/instance-sharing.js';
+import {isNonEmptyArray} from '../../core/utils/collections/index.js';
+import createKeyBuilder from '../../coreagent/parser/key-builders/index.js';
+import {warn} from '../../core/utils/logger.js';
+import {createSharedInstance} from '../../core/utils/instance-sharing.js';
 
 class Term extends BaseEntity {
     static #keyBuilder = null;

@@ -1,14 +1,7 @@
 import {CONTRADICTION_SEVERITY_WEIGHTS} from './contradiction-types.js';
 import {SystemCommands} from '../system/SystemCommands.js';
 import {debug} from '../utils/logger.js';
-import {
-    calculateEffectiveness,
-    calculateResolutionEffectiveness,
-    calculateWeightedEffectiveness,
-    updateEffectiveStrategy,
-    selectOptimalResolutionStrategy,
-    getStrategyEffectivenessStats
-} from '../utils/effectiveness-utils.js';
+import {calculateResolutionEffectiveness, updateEffectiveStrategy} from '../utils/effectiveness-utils.js';
 
 /**\n * Calculate contradiction severity based on task truth values and contradiction type\n * @param {string} contradictionType - Type of contradiction\n * @param {object} task1 - First task\n * @param {object} task2 - Second task\n * @returns {number} Severity score between 0 and 1\n */
 function calculateSeverity(contradictionType, task1, task2) {
@@ -21,7 +14,7 @@ function calculateSeverity(contradictionType, task1, task2) {
 /**\n * Generate explanation using LM service for contradiction analysis and resolution rationale\n * @param {object} commandBus - Command bus instance\n * @param {object} contradiction - The contradiction object\n * @param {string} strategy - The strategy used\n * @param {boolean} success - Whether the resolution was successful\n * @param {number} executionTime - Execution time in milliseconds\n * @param {Error} [error] - Error object if resolution failed\n */
 async function generateExplanation(commandBus, contradiction, strategy, success, executionTime, error = null) {
     if (!commandBus) return;
-    
+
     try {
         const explanationPayload = {
             termKey: 'contradiction_resolution',
@@ -51,12 +44,12 @@ function trackOutcome(outcomeTracking, effectiveStrategies, contradictionTypeWei
     if (!outcomeTracking.has(contradictionType)) {
         outcomeTracking.set(contradictionType, []);
     }
-    
+
     // Calculate effectiveness score based on success, execution time, and contradiction type weight
     const baseEffectiveness = calculateResolutionEffectiveness(success, executionTime);
     const typeWeight = contradictionTypeWeights[contradictionType] || 0.5; // Use existing contradiction weight
     const effectiveness = baseEffectiveness * typeWeight;
-    
+
     // Store outcome data
     outcomeTracking.get(contradictionType).push({
         strategy,

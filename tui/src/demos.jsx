@@ -5,7 +5,7 @@ import {render} from 'ink';
 import DemoRunner from './components/DemoRunner.jsx';
 
 const DemoApp = () => {
-    return <DemoRunner />;
+    return <DemoRunner/>;
 };
 
 // Check if raw mode is supported
@@ -22,7 +22,7 @@ if (!isRawModeSupported) {
     process.exit(1);
 }
 
-const app = render(<DemoApp />);
+const app = render(<DemoApp/>);
 
 // Handle graceful shutdown
 process.on('SIGINT', () => {

@@ -37,7 +37,7 @@ class TemporalAbstraction {
     static _executeCreate(temporalFocusSet, options = {}) {
         return errorHandler.executeSync(() => {
             debug(`Creating temporal abstractions for ${temporalFocusSet.length} tasks`);
-            
+
             const abstractionTasks = [];
 
             const overallAbstraction = createTemporalAbstraction(temporalFocusSet);

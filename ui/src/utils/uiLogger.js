@@ -22,7 +22,7 @@ class UiLogger {
 
         const timestamp = new Date().toISOString();
         const levelStr = ['ERROR', 'WARN', 'INFO', 'DEBUG'][level];
-        
+
         console.log(`[${timestamp}] [${levelStr}] [${this.namespace || 'UiLogger'}]`, message, ...args);
     }
 

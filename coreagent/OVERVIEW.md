@@ -1,10 +1,12 @@
 # CoreAgent System: Complete Implementation Overview
 
-This document provides a comprehensive overview of the CoreAgent system implementation that subsumes the original `core/` and `agent/` directories.
+This document provides a comprehensive overview of the CoreAgent system implementation that subsumes the original
+`core/` and `agent/` directories.
 
 ## Architecture Overview
 
-The CoreAgent system is a unified, optimized Core/Agent architecture that replaces the original separate core/ and agent/ directories. It provides:
+The CoreAgent system is a unified, optimized Core/Agent architecture that replaces the original separate core/ and
+agent/ directories. It provides:
 
 - **Unified Core**: Single Core class with metaprogramming for direct property access
 - **Optimized Rule Evaluation**: Winnowing instead of exhaustive evaluation
@@ -15,12 +17,14 @@ The CoreAgent system is a unified, optimized Core/Agent architecture that replac
 ## Key Components
 
 ### Core Architecture
+
 - **Core**: Central orchestrator with metaprogramming for direct access
 - **Config**: Optimized configuration with caching
 - **Messages**: Unified event/command system with middleware
 - **Rules**: Winnowing-based rule evaluation engine
 
 ### Component System
+
 - **Memory**: Task and belief management with caching
 - **Reasoning**: Strategy-based inference with priority ordering
 - **Cycle**: Adaptive timing cognitive cycle
@@ -30,16 +34,20 @@ The CoreAgent system is a unified, optimized Core/Agent architecture that replac
 ## Migration Strategy
 
 ### Environment Variable Control
+
 The system can be switched between old and new implementations using the `USE_COREAGENT` environment variable:
+
 - `USE_COREAGENT=true` activates the new CoreAgent system
 - Default behavior uses the original system
 
 ### Backward Compatibility
+
 - Legacy interfaces maintained through compatibility layer
 - Same method signatures and return types
 - Gradual migration path with full rollback capability
 
 ### Configuration Options
+
 The system supports various configuration options:
 
 ```javascript
@@ -93,16 +101,19 @@ coreagent/
 ## Key Improvements
 
 ### Performance
+
 - Up to 3x faster rule evaluation through winnowing
 - Direct property access instead of Map lookups
 - Optimized memory management with caching
 
-### Architecture  
+### Architecture
+
 - Component-based design with clear interfaces
 - Self-optimizing through system's own facilities
 - Metaprogramming for elegant access patterns
 
 ### Maintainability
+
 - Reduced code duplication through DRY principles
 - Clear separation of concerns
 - Comprehensive test coverage
@@ -110,6 +121,7 @@ coreagent/
 ## Migration Commands
 
 ### To Start with CoreAgent:
+
 ```bash
 USE_COREAGENT=true npm start
 # or
@@ -117,6 +129,7 @@ node -e "process.env.USE_COREAGENT='true'; require('./main.js')"
 ```
 
 ### To Migrate:
+
 ```bash
 npm run migrate
 # or directly:
@@ -126,6 +139,7 @@ node coreagent/migrate.js
 ## Usage Examples
 
 ### Basic Usage:
+
 ```javascript
 import { System } from './coreagent/System.js';
 
@@ -143,6 +157,7 @@ const reasoning = system.core.reasoning;
 ```
 
 ### With Configuration:
+
 ```javascript
 import { createCore } from './coreagent/createCore.js';
 
@@ -158,6 +173,7 @@ await core.initialize();
 ## Testing
 
 All components are thoroughly tested using the system's own event/metric APIs:
+
 - Core functionality tests
 - Memory management tests
 - Reasoning tests
@@ -167,6 +183,7 @@ All components are thoroughly tested using the system's own event/metric APIs:
 ## Rollback Capability
 
 The system provides full rollback capability:
+
 - Automatic backups during migration
 - Rollback script included
 - Environment variable toggle for system switching
@@ -174,6 +191,7 @@ The system provides full rollback capability:
 ## Integration with Existing Code
 
 The CoreAgent system integrates seamlessly with existing code through:
+
 - Compatibility layer maintaining legacy interfaces
 - Configurable system factory
 - Unified import approach in core/index.js

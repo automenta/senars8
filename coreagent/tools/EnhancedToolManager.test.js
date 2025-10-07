@@ -1,4 +1,4 @@
-import {describe, it, beforeEach, afterEach} from 'vitest';
+import {afterEach, beforeEach, describe, it} from 'vitest';
 import EnhancedToolManager from './EnhancedToolManager.js';
 import ToolManagerFactory from './ToolManagerFactory.js';
 import CompatibilityAdapter from './CompatibilityAdapter.js';
@@ -11,6 +11,35 @@ describe('EnhancedToolManager Phase 2.3', () => {
     let mockLM;
 
     beforeEach(() => {
+        // Mock core object for testing
+        const mockCore = {
+            emit: () => {
+            },
+            messages: {
+                handle: () => {
+                },
+                on: () => {
+                },
+                off: () => {
+                }
+            },
+            config: {
+                get: () => undefined,
+                getNumber: () => 100,
+                getString: () => 'test',
+                getBoolean: () => false
+            },
+            components: new Map(),
+            register: () => mockCore,
+            get: () => null,
+            on: () => {
+            },
+            request: () => null,
+            rules: {
+                getStats: () => ({totalRules: 0})
+            }
+        };
+
         // Mock LM instance for testing
         mockLM = {
             _generate: async (prompt, options) => {
@@ -27,7 +56,7 @@ describe('EnhancedToolManager Phase 2.3', () => {
             }
         };
 
-        toolManager = new EnhancedToolManager({
+        toolManager = new EnhancedToolManager(mockCore, {
             enhanced: true,
             lmIntegration: true,
             autoDiscovery: true
@@ -54,10 +83,39 @@ describe('EnhancedToolManager Phase 2.3', () => {
         it('should fallback to simple matching when LM fails', async () => {
             // Test with LM that throws error
             const failingLM = {
-                _generate: async () => { throw new Error('LM unavailable'); }
+                _generate: async () => {
+                    throw new Error('LM unavailable');
+                }
             };
 
-            const fallbackManager = new EnhancedToolManager({}, failingLM);
+            const mockCore = {
+                emit: () => {
+                },
+                messages: {
+                    handle: () => {
+                    },
+                    on: () => {
+                    },
+                    off: () => {
+                    }
+                },
+                config: {
+                    get: () => undefined,
+                    getNumber: () => 100,
+                    getString: () => 'test',
+                    getBoolean: () => false
+                },
+                components: new Map(),
+                register: () => mockCore,
+                get: () => null,
+                on: () => {
+                },
+                request: () => null,
+                rules: {
+                    getStats: () => ({totalRules: 0})
+                }
+            };
+            const fallbackManager = new EnhancedToolManager(mockCore, {}, failingLM);
 
             // First register a file_read tool for fallback to work
             fallbackManager.registerTool({
@@ -108,7 +166,34 @@ describe('EnhancedToolManager Phase 2.3', () => {
         });
 
         it('should return original parameters when LM unavailable', async () => {
-            const noLMManager = new EnhancedToolManager({lmIntegration: false});
+            const mockCore = {
+                emit: () => {
+                },
+                messages: {
+                    handle: () => {
+                    },
+                    on: () => {
+                    },
+                    off: () => {
+                    }
+                },
+                config: {
+                    get: () => undefined,
+                    getNumber: () => 100,
+                    getString: () => 'test',
+                    getBoolean: () => false
+                },
+                components: new Map(),
+                register: () => mockCore,
+                get: () => null,
+                on: () => {
+                },
+                request: () => null,
+                rules: {
+                    getStats: () => ({totalRules: 0})
+                }
+            };
+            const noLMManager = new EnhancedToolManager(mockCore, {lmIntegration: false});
             const tool = {name: 'file_read'};
             const initialParams = {path: 'test.txt'};
 
@@ -214,7 +299,34 @@ describe('EnhancedToolManager Phase 2.3', () => {
         });
 
         it('should not start auto-discovery when disabled', () => {
-            const noDiscoveryManager = new EnhancedToolManager({autoDiscovery: false});
+            const mockCore = {
+                emit: () => {
+                },
+                messages: {
+                    handle: () => {
+                    },
+                    on: () => {
+                    },
+                    off: () => {
+                    }
+                },
+                config: {
+                    get: () => undefined,
+                    getNumber: () => 100,
+                    getString: () => 'test',
+                    getBoolean: () => false
+                },
+                components: new Map(),
+                register: () => mockCore,
+                get: () => null,
+                on: () => {
+                },
+                request: () => null,
+                rules: {
+                    getStats: () => ({totalRules: 0})
+                }
+            };
+            const noDiscoveryManager = new EnhancedToolManager(mockCore, {autoDiscovery: false});
             expect(noDiscoveryManager.discoveryInterval).toBeNull();
         });
     });
@@ -222,6 +334,7 @@ describe('EnhancedToolManager Phase 2.3', () => {
     describe('Factory Pattern', () => {
         it('should create EnhancedToolManager when LM available', () => {
             const manager = ToolManagerFactory.createToolManager(
+                mockCore,
                 {enhanced: true},
                 mockLM
             );
@@ -230,7 +343,7 @@ describe('EnhancedToolManager Phase 2.3', () => {
         });
 
         it('should create standard ToolSystem when no LM', () => {
-            const manager = ToolManagerFactory.createToolManager({}, null);
+            const manager = ToolManagerFactory.createToolManager(mockCore, {}, null);
 
             expect(ToolManagerFactory.isEnhanced(manager)).toBe(false);
         });
@@ -238,7 +351,25 @@ describe('EnhancedToolManager Phase 2.3', () => {
 
     describe('Compatibility Adapter', () => {
         it('should provide backward compatible interface', async () => {
-            const adapter = new CompatibilityAdapter({enhanced: true}, mockLM);
+            const mockCore = {
+                emit: () => {
+                },
+                messages: {
+                    handle: () => {
+                    }, on: () => {
+                    }, off: () => {
+                    }
+                },
+                config: {get: () => undefined, getNumber: () => 100, getString: () => 'test', getBoolean: () => false},
+                components: new Map(),
+                register: () => mockCore,
+                get: () => null,
+                on: () => {
+                },
+                request: () => null,
+                rules: {getStats: () => ({totalRules: 0})}
+            };
+            const adapter = new CompatibilityAdapter(mockCore, {enhanced: true}, mockLM);
 
             // Should work with standard interface
             expect(typeof adapter.registerTool).toBe('function');
@@ -248,7 +379,25 @@ describe('EnhancedToolManager Phase 2.3', () => {
         });
 
         it('should delegate enhanced features when available', async () => {
-            const adapter = new CompatibilityAdapter({enhanced: true}, mockLM);
+            const mockCore = {
+                emit: () => {
+                },
+                messages: {
+                    handle: () => {
+                    }, on: () => {
+                    }, off: () => {
+                    }
+                },
+                config: {get: () => undefined, getNumber: () => 100, getString: () => 'test', getBoolean: () => false},
+                components: new Map(),
+                register: () => mockCore,
+                get: () => null,
+                on: () => {
+                },
+                request: () => null,
+                rules: {getStats: () => ({totalRules: 0})}
+            };
+            const adapter = new CompatibilityAdapter(mockCore, {enhanced: true}, mockLM);
 
             expect(adapter.hasFeature('selectOptimalTool')).toBe(true);
             expect(adapter.hasFeature('optimizeParameters')).toBe(true);
@@ -258,7 +407,25 @@ describe('EnhancedToolManager Phase 2.3', () => {
         });
 
         it('should gracefully handle missing features', async () => {
-            const adapter = new CompatibilityAdapter({}, null);
+            const mockCore = {
+                emit: () => {
+                },
+                messages: {
+                    handle: () => {
+                    }, on: () => {
+                    }, off: () => {
+                    }
+                },
+                config: {get: () => undefined, getNumber: () => 100, getString: () => 'test', getBoolean: () => false},
+                components: new Map(),
+                register: () => mockCore,
+                get: () => null,
+                on: () => {
+                },
+                request: () => null,
+                rules: {getStats: () => ({totalRules: 0})}
+            };
+            const adapter = new CompatibilityAdapter(mockCore, {}, null);
 
             expect(adapter.hasFeature('selectOptimalTool')).toBe(false);
 
@@ -269,7 +436,16 @@ describe('EnhancedToolManager Phase 2.3', () => {
 
     describe('Performance Validation', () => {
         it('should not significantly degrade performance without LM', async () => {
-            const standardManager = new EnhancedToolManager({lmIntegration: false});
+            const mockCore = {
+                emit: () => {
+                },
+                messages: {
+                    handle: () => {
+                    }
+                },
+                config: {get: () => undefined, getNumber: () => 100, getString: () => 'test', getBoolean: () => false}
+            };
+            const standardManager = new EnhancedToolManager(mockCore, {lmIntegration: false});
 
             // Register a mock tool first
             standardManager.registerTool({
@@ -343,5 +519,119 @@ describe('EnhancedToolManager Phase 2.3', () => {
                 duration: expect.any(Number)
             });
         });
+
+
+        it('should maintain reasonable performance with LM integration', async () => {
+            // Register a mock tool first
+            toolManager.registerTool({
+                name: 'test_tool',
+                description: 'Test tool',
+                category: 'test',
+                parameters: {type: 'object', properties: {}},
+                handler: async () => ({success: true, result: 'test'})
+            });
+
+            const startTime = Date.now();
+
+            await toolManager.executeToolWithEnhancements(
+                'test_tool',
+                {},
+                {requestExplanation: true}
+            );
+
+            const duration = Date.now() - startTime;
+            expect(duration).toBeLessThan(1000); // Should complete within reasonable time
+        });
+    });
+
+    describe('Backward Compatibility', () => {
+        it('should maintain all original ToolSystem methods', () => {
+            const originalMethods = [
+                'registerTool', 'executeTool', 'getTool', 'getAllTools',
+                'getToolsByCategory', 'getStatistics', 'getExecutionHistory', 'shutdown'
+            ];
+
+            for (const method of originalMethods) {
+                expect(typeof toolManager[method]).toBe('function');
+            }
+        });
+
+        it('should produce identical results to ToolSystem for basic operations', async () => {
+            // Register a tool and execute it
+            const toolConfig = {
+                name: 'test_tool',
+                description: 'Test tool',
+                parameters: {type: 'object', properties: {}},
+                handler: async () => ({success: true, result: 'test'})
+            };
+
+            toolManager.registerTool(toolConfig);
+            const result = await toolManager.executeTool('test_tool');
+
+            // The ToolSystem wraps the handler result in a success wrapper
+            expect(result).toEqual({
+                success: true,
+                executionId: expect.any(String),
+                result: {success: true, result: 'test'},
+                duration: expect.any(Number)
+            });
+        });
+
+        it('should maintain reasonable performance with LM integration', async () => {
+            // Register a mock tool first
+            toolManager.registerTool({
+                name: 'test_tool',
+                description: 'Test tool',
+                category: 'test',
+                parameters: {type: 'object', properties: {}},
+                handler: async () => ({success: true, result: 'test'})
+            });
+
+            const startTime = Date.now();
+
+            await toolManager.executeToolWithEnhancements(
+                'test_tool',
+                {},
+                {requestExplanation: true}
+            );
+
+            const duration = Date.now() - startTime;
+            expect(duration).toBeLessThan(1000); // Should complete within reasonable time
+        });
+    });
+
+    describe('Backward Compatibility', () => {
+        it('should maintain all original ToolSystem methods', () => {
+            const originalMethods = [
+                'registerTool', 'executeTool', 'getTool', 'getAllTools',
+                'getToolsByCategory', 'getStatistics', 'getExecutionHistory', 'shutdown'
+            ];
+
+            for (const method of originalMethods) {
+                expect(typeof toolManager[method]).toBe('function');
+            }
+        });
+
+        it('should produce identical results to ToolSystem for basic operations', async () => {
+            // Register a tool and execute it
+            const toolConfig = {
+                name: 'test_tool',
+                description: 'Test tool',
+                parameters: {type: 'object', properties: {}},
+                handler: async () => ({success: true, result: 'test'})
+            };
+
+            toolManager.registerTool(toolConfig);
+            const result = await toolManager.executeTool('test_tool');
+
+            // The ToolSystem wraps the handler result in a success wrapper
+            expect(result).toEqual({
+                success: true,
+                executionId: expect.any(String),
+                result: {success: true, result: 'test'},
+                duration: expect.any(Number)
+            });
+        });
     });
 });
+

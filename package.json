@@ -25,7 +25,7 @@
     "dev:ui": "node integrated-web-runner.js",
     "dev:ws": "WS_PORT=8081 node main.js --web",
     "web": "node integrated-web-runner.js",
-    "dev:web": "node integrated-web-runner.js", 
+    "dev:web": "node integrated-web-runner.js",
     "tui": "tsx tui/src/index.jsx",
     "tui:dev": "tsx tui/src/index.jsx",
     "tui:debug": "SENARS_LOG_LEVEL=debug node --inspect tui/src/index.jsx",

@@ -1,15 +1,14 @@
-import { describe, it, expect } from 'vitest';
+import {describe, expect, it} from 'vitest';
 import {
+    calculateContradictionResolutionEffectiveness,
     calculateEffectiveness,
     calculateResolutionEffectiveness,
-    calculateWeightedEffectiveness,
     calculateStrategyEffectiveness,
     calculateTemporalModuleEffectiveness,
-    calculateContradictionResolutionEffectiveness,
-    updateEffectiveStrategy,
-    selectOptimalResolutionStrategy,
     getStrategyEffectivenessStats,
-    trackEvent
+    selectOptimalResolutionStrategy,
+    trackEvent,
+    updateEffectiveStrategy
 } from '../../core/utils/effectiveness-utils.js';
 
 describe('Effectiveness Utilities', () => {
@@ -18,22 +17,22 @@ describe('Effectiveness Utilities', () => {
             // High success rate, low time should be high effectiveness
             const result1 = calculateEffectiveness(0.9, 10);
             expect(result1).toBeGreaterThan(0);
-            
+
             // Low success rate should be low effectiveness regardless of time
             const result2 = calculateEffectiveness(0.1, 10);
             expect(result2).toBeLessThan(result1);
-            
+
             // With same success rate, faster execution time should have higher effectiveness
             const result3 = calculateEffectiveness(0.8, 100);
             const result4 = calculateEffectiveness(0.8, 50);
             expect(result4).toBeGreaterThan(result3);
         });
-        
+
         it('should handle edge cases', () => {
             // Zero execution time
             const result = calculateEffectiveness(0.9, 0);
             expect(result).toBe(0.9);
-            
+
             // Zero success rate
             const result2 = calculateEffectiveness(0, 100);
             expect(result2).toBe(0);
@@ -45,12 +44,12 @@ describe('Effectiveness Utilities', () => {
             const result = calculateResolutionEffectiveness(false, 100);
             expect(result).toBe(0);
         });
-        
+
         it('should return effectiveness score for successful resolution', () => {
             const result = calculateResolutionEffectiveness(true, 50);
             expect(result).toBeGreaterThan(0);
             expect(result).toBeLessThanOrEqual(1); // Should be normalized
-            
+
             // Faster execution should have higher effectiveness for successful resolutions
             const result1 = calculateResolutionEffectiveness(true, 10);
             const result2 = calculateResolutionEffectiveness(true, 100);
@@ -65,7 +64,7 @@ describe('Effectiveness Utilities', () => {
                 successes: 8,
                 averageTime: 50
             };
-            
+
             const result = calculateStrategyEffectiveness(stats);
             expect(result.successRate).toBe(0.8);
             expect(result.effectiveness).toBeGreaterThan(0);
@@ -82,7 +81,7 @@ describe('Effectiveness Utilities', () => {
                 totalExecutionTime: 500,
                 totalTasksGenerated: 20
             };
-            
+
             const result = calculateTemporalModuleEffectiveness(moduleStats);
             expect(result.averageExecutionTime).toBe(100); // 500/5
             expect(result.tasksPerSecond).toBe(40); // 20 tasks in 500ms, or 40/sec
@@ -98,7 +97,7 @@ describe('Effectiveness Utilities', () => {
                 failures: 2,
                 averageTime: 100
             };
-            
+
             const result = calculateContradictionResolutionEffectiveness(resolutionStats);
             expect(result.successRate).toBe(0.8);
             expect(result.successPercentage).toBe('80.00');
@@ -111,15 +110,15 @@ describe('Effectiveness Utilities', () => {
         it('should update strategy effectiveness in the map', () => {
             const effectiveStrategies = new Map();
             const contradictionType = 'test_type';
-            
+
             // First update
-            updateEffectiveStrategy(effectiveStrategies, contradictionType, 'test_strategy', 
+            updateEffectiveStrategy(effectiveStrategies, contradictionType, 'test_strategy',
                 true, 0.9, 50);
-                
+
             expect(effectiveStrategies.has(contradictionType)).toBe(true);
             const strategyMap = effectiveStrategies.get(contradictionType);
             expect(strategyMap.has('test_strategy')).toBe(true);
-            
+
             const stats = strategyMap.get('test_strategy');
             expect(stats.totalAttempts).toBe(1);
             expect(stats.totalSuccesses).toBe(1);
@@ -131,12 +130,12 @@ describe('Effectiveness Utilities', () => {
     describe('selectOptimalResolutionStrategy', () => {
         it('should select the optimal strategy based on effectiveness', () => {
             const effectiveStrategies = new Map();
-            const contradiction = { type: 'test_type', severity: 0.7 };
-            
+            const contradiction = {type: 'test_type', severity: 0.7};
+
             // Add some test data
             effectiveStrategies.set('test_type', new Map());
             const strategyMap = effectiveStrategies.get('test_type');
-            
+
             // Add two strategies with different effectivenesses
             strategyMap.set('strategy_a', {
                 totalAttempts: 5,
@@ -146,7 +145,7 @@ describe('Effectiveness Utilities', () => {
                 effectivenessHistory: [0.8, 0.8, 0.8, 0.8, 0.8],
                 successRate: 0.8
             });
-            
+
             strategyMap.set('strategy_b', {
                 totalAttempts: 5,
                 totalSuccesses: 2,
@@ -155,15 +154,15 @@ describe('Effectiveness Utilities', () => {
                 effectivenessHistory: [0.4, 0.4, 0.4, 0.4, 0.4],
                 successRate: 0.4
             });
-            
+
             const result = selectOptimalResolutionStrategy(effectiveStrategies, contradiction);
             expect(result).toBe('strategy_a'); // Should pick the better performing strategy
         });
-        
+
         it('should fall back to default logic when no effective strategy found', () => {
             const effectiveStrategies = new Map();
-            const contradiction = { type: 'test_type', severity: 0.9 }; // High severity
-            
+            const contradiction = {type: 'test_type', severity: 0.9}; // High severity
+
             const result = selectOptimalResolutionStrategy(effectiveStrategies, contradiction);
             expect(result).toBe('revision'); // High severity should default to revision
         });
@@ -173,10 +172,10 @@ describe('Effectiveness Utilities', () => {
         it('should return effectiveness stats for a contradiction type', () => {
             const effectiveStrategies = new Map();
             const contradictionType = 'test_type';
-            
+
             effectiveStrategies.set(contradictionType, new Map());
             const strategyMap = effectiveStrategies.get(contradictionType);
-            
+
             strategyMap.set('test_strategy', {
                 totalAttempts: 10,
                 totalSuccesses: 7,
@@ -185,7 +184,7 @@ describe('Effectiveness Utilities', () => {
                 averageExecutionTime: 100,
                 successRate: 0.7
             });
-            
+
             const result = getStrategyEffectivenessStats(effectiveStrategies, contradictionType);
             expect(result).toHaveProperty('test_strategy');
             expect(result.test_strategy.totalAttempts).toBe(10);
@@ -199,17 +198,17 @@ describe('Effectiveness Utilities', () => {
             const mockMetricsService = {
                 testMethod: vi.fn(() => 'result')
             };
-            
+
             const result = trackEvent(mockMetricsService, 'testMethod', ['param1', 'param2']);
-            
+
             expect(mockMetricsService.testMethod).toHaveBeenCalledWith('param1', 'param2');
             expect(result).toBe('result');
         });
-        
+
         it('should execute default action when metrics service is not available', () => {
             const defaultAction = vi.fn(() => 'default_result');
             const result = trackEvent(null, 'testMethod', ['param1'], defaultAction);
-            
+
             expect(defaultAction).toHaveBeenCalled();
             expect(result).toBe('default_result');
         });

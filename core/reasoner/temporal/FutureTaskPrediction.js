@@ -37,11 +37,11 @@ class FutureTaskPrediction {
     static _executePredict(temporalFocusSet, options = {}) {
         return errorHandler.executeSync(() => {
             debug(`Predicting future tasks for ${temporalFocusSet.length} tasks`);
-            
+
             const predictionHorizon = options.predictionHorizon || 24 * 60 * 60 * 1000;
             const predictionTasks = advancedPredictFutureTasks(temporalFocusSet, predictionHorizon);
             debug(`Predicted ${predictionTasks.length} future tasks`);
-            
+
             return predictionTasks;
         }, 'predict', []);
     }

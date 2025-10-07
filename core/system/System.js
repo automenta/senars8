@@ -178,7 +178,7 @@ class System {
     _setupMetricsBroadcasting() {
         // Set up periodic metrics broadcasting
         const broadcastInterval = this.config.getNumber('system.METRICS_BROADCAST_INTERVAL_MS', 5000); // 5 seconds default
-        
+
         if (broadcastInterval > 0) {
             this._metricsBroadcastInterval = setInterval(async () => {
                 if (this.isRunning) {
@@ -229,13 +229,13 @@ class System {
         errorHandler.executeSync(() => {
             if (!this.isRunning) return;
             this.isRunning = false;
-            
+
             // Clear metrics broadcast interval
             if (this._metricsBroadcastInterval) {
                 clearInterval(this._metricsBroadcastInterval);
                 this._metricsBroadcastInterval = null;
             }
-            
+
             this.eventBus.emit(SystemEvents.SYSTEM_STOP);
             info(`System stopped after ${this.cycleCount} cycles.`);
         }, 'stop');

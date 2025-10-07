@@ -28,7 +28,7 @@ export const AgentProvider = ({children}) => {
     // Initialize connection
     useMemo(() => {
         agentService.connect();
-        
+
         // Cleanup on unmount
         return () => {
             agentService.disconnect();

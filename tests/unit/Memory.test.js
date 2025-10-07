@@ -1,11 +1,9 @@
-import {vi} from 'vitest';
 import Memory from '../../core/memory/Memory.js';
 import Task from '../../core/core/Task.js';
 import {parseTerm} from '../../core/parser/narseseParser.js';
 import ConfigManager from '../../core/config/ConfigManager.js';
 import configService from '../../core/config/ConfigService.js';
 import {SYSTEM_CONSTANTS} from '../../core/config/constants.js';
-import {TEST_CONSTANTS} from '../test-constants.js';
 
 const createTestConfig = () => new ConfigManager({
     memory: {
@@ -73,7 +71,8 @@ describe('Memory', () => {
             }
         };
         const minimalCommandBus = {
-            handle: () => {}, // no-op function
+            handle: () => {
+            }, // no-op function
             request: () => Promise.resolve(null), // return resolved promise with null
         };
         memory = new Memory(configManager, minimalEventBus, minimalCommandBus);

@@ -1,7 +1,7 @@
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Box, Text, useInput} from 'ink';
-import {MainLayout, Panel, ScrollableArea, Container, Flex} from './Layout.jsx';
-import {Button, Card, Badge} from './Interactive.jsx';
+import {Container, Flex, MainLayout, Panel, ScrollableArea} from './Layout.jsx';
+import {Badge, Button, Card} from './Interactive.jsx';
 import {theme} from '../theme.js';
 import fs from 'fs';
 import path from 'path';
@@ -411,20 +411,20 @@ const DemoOutput = ({output, isRunning, demoName}) => {
                                     {'\n'}⏳ This may take a few moments depending on the demo complexity
                                     {'\n'}
                                     {'\n'}💡 Educational Content:
-                                    {'\n'}   • Each demo provides hands-on learning
-                                    {'\n'}   • Watch for step-by-step explanations
-                                    {'\n'}   • Observe real-time system behavior
-                                    {'\n'}   • Learn by seeing concepts in action
+                                    {'\n'} • Each demo provides hands-on learning
+                                    {'\n'} • Watch for step-by-step explanations
+                                    {'\n'} • Observe real-time system behavior
+                                    {'\n'} • Learn by seeing concepts in action
                                 </>
                             ) : (
                                 <>
                                     👈 Select a demo from the sidebar to begin learning
                                     {'\n'}
                                     {'\n'}🎓 Learning Path Suggestions:
-                                    {'\n'}   • Start with "Core Reasoning" category
-                                    {'\n'}   • Try "basic-demo" for fundamentals
-                                    {'\n'}   • Explore different categories progressively
-                                    {'\n'}   • Each demo builds on previous knowledge
+                                    {'\n'} • Start with "Core Reasoning" category
+                                    {'\n'} • Try "basic-demo" for fundamentals
+                                    {'\n'} • Explore different categories progressively
+                                    {'\n'} • Each demo builds on previous knowledge
                                 </>
                             )}
                         </Text>
@@ -438,15 +438,15 @@ const DemoOutput = ({output, isRunning, demoName}) => {
                             <Box marginTop={1} borderStyle="single" borderColor={theme.colors.border} padding={1}>
                                 <Text color={theme.colors.textMuted}>
                                     🎓 Learning Complete! Key takeaways from this demo:
-                                    {'\n'}   • Concepts demonstrated in real-time
-                                    {'\n'}   • System behavior observed directly
-                                    {'\n'}   • Interactive learning experience
+                                    {'\n'} • Concepts demonstrated in real-time
+                                    {'\n'} • System behavior observed directly
+                                    {'\n'} • Interactive learning experience
                                     {'\n'}
                                     {'\n'}💡 Next Steps:
-                                    {'\n'}   • Try related demos in the same category
-                                    {'\n'}   • Explore advanced topics in other categories
-                                    {'\n'}   • Review the output to understand patterns
-                                    {'\n'}   • Apply concepts to your own projects
+                                    {'\n'} • Try related demos in the same category
+                                    {'\n'} • Explore advanced topics in other categories
+                                    {'\n'} • Review the output to understand patterns
+                                    {'\n'} • Apply concepts to your own projects
                                 </Text>
                             </Box>
                         )}

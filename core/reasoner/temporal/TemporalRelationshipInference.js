@@ -38,7 +38,7 @@ class TemporalRelationshipInference {
     static _executeInfer(temporalFocusSet, options = {}) {
         return errorHandler.executeSync(() => {
             debug(`Inferring temporal relationships for ${temporalFocusSet.length} tasks`);
-            
+
             const temporalTasks = [];
             let relationshipCount = 0;
 

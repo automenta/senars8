@@ -6,8 +6,8 @@ import {warn} from '../utils/logger.js';
  * Provides backward compatibility while enabling enhanced features
  */
 class CompatibilityAdapter {
-    constructor(config = {}, lmInstance = null) {
-        this.toolManager = ToolManagerFactory.createToolManager(config, lmInstance);
+    constructor(core, config = {}, lmInstance = null) {
+        this.toolManager = ToolManagerFactory.createToolManager(core, config, lmInstance);
         this.isEnhanced = ToolManagerFactory.isEnhanced(this.toolManager);
     }
 
@@ -95,7 +95,7 @@ class CompatibilityAdapter {
     hasFeature(featureName) {
         const capabilities = ToolManagerFactory.getToolManagerCapabilities();
         return capabilities[featureName] === 'function' ||
-               (capabilities[featureName] === 'function?' && this.isEnhanced);
+            (capabilities[featureName] === 'function?' && this.isEnhanced);
     }
 
     // Graceful degradation for missing features

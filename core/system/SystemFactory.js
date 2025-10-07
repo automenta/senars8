@@ -19,7 +19,7 @@ const createSystem = async (userConfig = {}, components = {}, strategiesPath = u
     info('SystemFactory: Creating new system...');
 
     const container = new DIContainer();
-    
+
     // Register plugin manager early so plugins can be registered
     const pluginManager = new PluginManager(container);
     container.registerValue('pluginManager', pluginManager);

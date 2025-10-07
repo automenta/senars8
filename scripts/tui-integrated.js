@@ -5,7 +5,7 @@ import {createServer} from 'vite';
 import path from 'path';
 import AgentManager from '../agent/AgentManager.js';
 import {agentServerPlugin} from '../agent/vite-plugin.js';
-import logger from '../core/utils/logger.js';
+import logger from '../coreagent/utils/logger.js';
 
 const log = logger.create('tui-integrated');
 

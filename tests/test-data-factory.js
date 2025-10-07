@@ -147,7 +147,11 @@ export const TEST_DATA_SETS = {
         },
         {
             name: 'complex inheritance task',
-            input: {sentence: '((cat --> animal) && (animal --> living))', punctuation: '.', truth: TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM_LOW},
+            input: {
+                sentence: '((cat --> animal) && (animal --> living))',
+                punctuation: '.',
+                truth: TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM_LOW
+            },
             expected: {success: true, resultType: 'inference'}
         },
         {

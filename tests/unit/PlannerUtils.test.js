@@ -1,4 +1,4 @@
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it} from 'vitest';
 import * as PlannerUtils from '../../core/reasoner/utils/PlannerUtils.js';
 import Term from '../../core/core/Term.js';
 

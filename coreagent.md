@@ -1,21 +1,29 @@
 # NEXT2.md: Ultimate Combined Core/Agent Design (Simplified) - CORRECTED
 
 ## Overview
-This document outlines a development plan to create a new, clean implementation of a unified Core/Agent system that incorporates all the refactoring patterns identified. This "ultimate" design eliminates the current messy codebase and provides a foundation for attaching subsystems in a modular way, with optimized rule evaluation and metaprogramming.
+
+This document outlines a development plan to create a new, clean implementation of a unified Core/Agent system that
+incorporates all the refactoring patterns identified. This "ultimate" design eliminates the current messy codebase and
+provides a foundation for attaching subsystems in a modular way, with optimized rule evaluation and metaprogramming.
 
 ## Vision
+
 A minimal, elegant Core/Agent that:
+
 - Follows all identified refactoring patterns
 - Provides a clean foundation for subsystem attachment
 - Eliminates current architectural complexity
-- Embodies the project's coding guidelines (Elegant, Consolidated, Consistent, Organized, DRY, Abstract, Modularized, Parameterized, Terse, Professional)
+- Embodies the project's coding guidelines (Elegant, Consolidated, Consistent, Organized, DRY, Abstract, Modularized,
+  Parameterized, Terse, Professional)
 - Uses optimized rule evaluation (winnowing instead of exhaustive)
 - Leverages metaprogramming for elegance
 - Uses system's own facilities ("dogfooding")
 - Achieves more with less through simplified identifiers and architecture
 
 ## Design Philosophy: Achieve More with Less
-- **Simpler identifiers**: CycleSubsystem → Cycle, PluginManager → Plugins, MessageSystem → Messages, ReasoningEngine → Reasoning
+
+- **Simpler identifiers**: CycleSubsystem → Cycle, PluginManager → Plugins, MessageSystem → Messages, ReasoningEngine →
+  Reasoning
 - **Unified communication**: Single Messages system handling both events and commands
 - **Component-based architecture**: All major functionality as Components with standardized interfaces
 - **Self-optimization**: System uses its own facilities to optimize its behavior
@@ -25,6 +33,7 @@ A minimal, elegant Core/Agent that:
 ### Core Foundation with Metaprogramming
 
 - [ ] **Create Core Agent with simplified interface**
+
 ```javascript
 // core/Core.js
 import Config from './Config.js';
@@ -136,6 +145,7 @@ export default function createCoreInstance(configData = {}) {
 ```
 
 - [ ] **Create simplified configuration system**
+
 ```javascript
 // core/Config.js
 class Config {
@@ -214,6 +224,7 @@ export default Config;
 ### Unified Communication System
 
 - [ ] **Create unified Messages system (events and commands)**
+
 ```javascript
 // core/Messages.js
 class Messages {
@@ -327,6 +338,7 @@ export { Messages };
 ### Optimized Rule System with Winnowing
 
 - [ ] **Create optimized rule system with winnowing**
+
 ```javascript
 // core/Rules.js
 class Rules {
@@ -445,48 +457,49 @@ export default Rules;
 ### Component Base Class with Metaprogramming
 
 - [ ] **Create component base class (Achieve more with less)**
+
 ```javascript
 // core/Component.js
 class Component {
-  constructor(name, core) {
-    this.name = name;
-    this.core = core;
-    this.initialized = false;
-  }
-
-  async initialize() {
-    if (this.initialized) return;
-    
-    // Set up handlers during initialization
-    if (typeof this.setupHandlers === 'function') {
-      this.setupHandlers();
+    constructor(name, core) {
+        this.name = name;
+        this.core = core;
+        this.initialized = false;
     }
-    
-    this.initialized = true;
-  }
 
-  async start() {
-    // Run custom start logic if provided
-    if (typeof this.onStart === 'function') {
-      await this.onStart();
+    async initialize() {
+        if (this.initialized) return;
+
+        // Set up handlers during initialization
+        if (typeof this.setupHandlers === 'function') {
+            this.setupHandlers();
+        }
+
+        this.initialized = true;
     }
-  }
 
-  async stop() {
-    // Run custom stop logic if provided
-    if (typeof this.onStop === 'function') {
-      await this.onStop();
+    async start() {
+        // Run custom start logic if provided
+        if (typeof this.onStart === 'function') {
+            await this.onStart();
+        }
     }
-  }
 
-  // Helper methods using core
-  emit(event, data) {
-    return this.core.emit(event, data);
-  }
+    async stop() {
+        // Run custom stop logic if provided
+        if (typeof this.onStop === 'function') {
+            await this.onStop();
+        }
+    }
 
-  request(command, data) {
-    return this.core.request(command, data);
-  }
+    // Helper methods using core
+    emit(event, data) {
+        return this.core.emit(event, data);
+    }
+
+    request(command, data) {
+        return this.core.request(command, data);
+    }
 }
 
 export default Component;
@@ -495,87 +508,88 @@ export default Component;
 ### Memory Component
 
 - [ ] **Create Memory component**
+
 ```javascript
 // core/Memory.js
 import Component from './Component.js';
 
 class Memory extends Component {
-  constructor(core) {
-    super('memory', core);
-    this.tasks = new Map();
-    this.terms = new Map();
-    this.cache = new Map();
-  }
-
-  setupHandlers() {
-    this.core.messages.handle('memory:get-all', () => [...this.tasks.values()]);
-    this.core.messages.handle('memory:get-by-id', (id) => this._getById(id));
-    this.core.messages.handle('memory:add-task', (task) => this._addTask(task));
-    this.core.messages.handle('memory:query', (query) => this._query(query));
-    this.core.messages.handle('memory:get-focus-set', () => this._getFocusSet());
-    this.core.messages.handle('memory:getStats', () => this._getStats());
-  }
-
-  _getById(id) {
-    return this.tasks.get(id);
-  }
-
-  _addTask(task) {
-    if (!task.id) task.id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
-    this.tasks.set(task.id, task);
-    this._invalidateCache();
-    this.core.emit('task:add', task); // Use standard event
-  }
-
-  _query(query) {
-    const cacheKey = JSON.stringify(query);
-    if (this.cache.has(cacheKey)) {
-      return this.cache.get(cacheKey);
+    constructor(core) {
+        super('memory', core);
+        this.tasks = new Map();
+        this.terms = new Map();
+        this.cache = new Map();
     }
 
-    let result = [...this.tasks.values()];
-    
-    if (query.type) {
-      result = result.filter(task => task.type === query.type);
+    setupHandlers() {
+        this.core.messages.handle('memory:get-all', () => [...this.tasks.values()]);
+        this.core.messages.handle('memory:get-by-id', (id) => this._getById(id));
+        this.core.messages.handle('memory:add-task', (task) => this._addTask(task));
+        this.core.messages.handle('memory:query', (query) => this._query(query));
+        this.core.messages.handle('memory:get-focus-set', () => this._getFocusSet());
+        this.core.messages.handle('memory:getStats', () => this._getStats());
     }
-    if (query.priorityThreshold) {
-      result = result.filter(task => task.priority >= query.priorityThreshold);
+
+    _getById(id) {
+        return this.tasks.get(id);
     }
-    
-    // Cache for 5 seconds
-    this.cache.set(cacheKey, result);
-    setTimeout(() => this.cache.delete(cacheKey), 5000);
-    
-    return result;
-  }
 
-  _getFocusSet() {
-    const focusSetSize = this.core.config.getNumber('FOCUS_SET_SIZE', 20);
-    const allTasks = [...this.tasks.values()];
-    allTasks.sort((a, b) => (b.priority || 0) - (a.priority || 0));
-    return allTasks.slice(0, focusSetSize);
-  }
+    _addTask(task) {
+        if (!task.id) task.id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+        this.tasks.set(task.id, task);
+        this._invalidateCache();
+        this.core.emit('task:add', task); // Use standard event
+    }
 
-  _getStats() {
-    return {
-      tasks: this.tasks.size,
-      utilization: this.tasks.size / (this.core.config.getNumber('MEMORY_CAPACITY', 1000) || 1000)
-    };
-  }
+    _query(query) {
+        const cacheKey = JSON.stringify(query);
+        if (this.cache.has(cacheKey)) {
+            return this.cache.get(cacheKey);
+        }
 
-  _invalidateCache() {
-    this.cache.clear();
-  }
+        let result = [...this.tasks.values()];
 
-  async onStart() {
-    // Start any background maintenance tasks
-  }
+        if (query.type) {
+            result = result.filter(task => task.type === query.type);
+        }
+        if (query.priorityThreshold) {
+            result = result.filter(task => task.priority >= query.priorityThreshold);
+        }
 
-  async onStop() {
-    this.tasks.clear();
-    this.terms.clear();
-    this.cache.clear();
-  }
+        // Cache for 5 seconds
+        this.cache.set(cacheKey, result);
+        setTimeout(() => this.cache.delete(cacheKey), 5000);
+
+        return result;
+    }
+
+    _getFocusSet() {
+        const focusSetSize = this.core.config.getNumber('FOCUS_SET_SIZE', 20);
+        const allTasks = [...this.tasks.values()];
+        allTasks.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+        return allTasks.slice(0, focusSetSize);
+    }
+
+    _getStats() {
+        return {
+            tasks: this.tasks.size,
+            utilization: this.tasks.size / (this.core.config.getNumber('MEMORY_CAPACITY', 1000) || 1000)
+        };
+    }
+
+    _invalidateCache() {
+        this.cache.clear();
+    }
+
+    async onStart() {
+        // Start any background maintenance tasks
+    }
+
+    async onStop() {
+        this.tasks.clear();
+        this.terms.clear();
+        this.cache.clear();
+    }
 }
 
 export default Memory;
@@ -584,178 +598,179 @@ export default Memory;
 ### Reasoning Component
 
 - [ ] **Create Reasoning component with winnowing strategies**
+
 ```javascript
 // core/Reasoning.js
 import Component from './Component.js';
 
 class Reasoning extends Component {
-  constructor(core) {
-    super('reasoning', core);
-    this.strategies = new Map();
-    this.strategyIndex = new Map();
-    this._registerDefaultStrategies();
-  }
-
-  _registerDefaultStrategies() {
-    const defaultStrategies = [
-      {
-        name: 'deductive',
-        priority: 0.9,
-        canHandle: (task, belief) => task.type === 'implication' && belief.term?.key === task.terms?.[0]?.key,
-        execute: this._deductiveReason.bind(this)
-      },
-      {
-        name: 'abductive',
-        priority: 0.8,
-        canHandle: (task, belief) => task.type === 'question' && belief.type === 'belief',
-        execute: this._abductiveReason.bind(this)
-      },
-      {
-        name: 'inductive',
-        priority: 0.7,
-        canHandle: (task, belief) => task.type === 'belief' && belief.type === 'belief',
-        execute: this._inductiveReason.bind(this)
-      }
-    ];
-
-    defaultStrategies.forEach(strategy => {
-      this.addStrategy(strategy);
-    });
-  }
-
-  addStrategy(strategy) {
-    this.strategies.set(strategy.name, strategy);
-    
-    if (!this.strategyIndex.has(strategy.name)) {
-      this.strategyIndex.set(strategy.name, strategy);
+    constructor(core) {
+        super('reasoning', core);
+        this.strategies = new Map();
+        this.strategyIndex = new Map();
+        this._registerDefaultStrategies();
     }
-  }
 
-  setupHandlers() {
-    // Handle both new and legacy command names for compatibility
-    this.core.messages.handle('reasoning:process', (data) => this._processTask(data));
-    this.core.messages.handle('reasoner:processTask', (data) => this._processTaskLegacy(data)); // Legacy compatibility
-  }
-  
-  // Support legacy interface
-  async _processTaskLegacy(payload) {
-    const { focusSet = [], options = {} } = payload || {};
-    if (!Array.isArray(focusSet)) {
-      throw new Error(`Focus set must be an array, received: ${typeof focusSet}`);
-    }
-    
-    if (focusSet.length === 0) return [];
-    
-    const allDerivedTasks = [];
-    const maxDerivedTasks = options.maxDerivedTasks || Infinity;
-    
-    for (const task of focusSet) {
-      if (allDerivedTasks.length >= maxDerivedTasks) break;
-      
-      // Get beliefs to combine with each task
-      const beliefs = await this.core.request('memory:query', { 
-        type: 'belief',
-        limit: 50
-      });
-      
-      const result = await this._processTask({ task, beliefs });
-      if (result) {
-        allDerivedTasks.push(result);
-        if (allDerivedTasks.length >= maxDerivedTasks) break;
-      }
-    }
-    
-    return allDerivedTasks.slice(0, maxDerivedTasks);
-  }
+    _registerDefaultStrategies() {
+        const defaultStrategies = [
+            {
+                name: 'deductive',
+                priority: 0.9,
+                canHandle: (task, belief) => task.type === 'implication' && belief.term?.key === task.terms?.[0]?.key,
+                execute: this._deductiveReason.bind(this)
+            },
+            {
+                name: 'abductive',
+                priority: 0.8,
+                canHandle: (task, belief) => task.type === 'question' && belief.type === 'belief',
+                execute: this._abductiveReason.bind(this)
+            },
+            {
+                name: 'inductive',
+                priority: 0.7,
+                canHandle: (task, belief) => task.type === 'belief' && belief.type === 'belief',
+                execute: this._inductiveReason.bind(this)
+            }
+        ];
 
-  async _processTask({ task, beliefs = [] }) {
-    // Winnow: quickly filter strategies that can handle this task-belief combination
-    const viableStrategies = this._winnowStrategies(task, beliefs);
-    
-    // Sort by priority
-    viableStrategies.sort((a, b) => b.priority - a.priority);
-    
-    for (const strategy of viableStrategies) {
-      for (const belief of beliefs) {
-        const result = await strategy.execute(task, belief, {
-          memory: this.core.memory  // CORRECTED: Use direct property access instead of get()
+        defaultStrategies.forEach(strategy => {
+            this.addStrategy(strategy);
         });
-        
-        if (result && result.success && result.derived) {
-          this.core.emit('task:derived', result.derived);
-          return result.derived;
+    }
+
+    addStrategy(strategy) {
+        this.strategies.set(strategy.name, strategy);
+
+        if (!this.strategyIndex.has(strategy.name)) {
+            this.strategyIndex.set(strategy.name, strategy);
         }
-      }
     }
-    
-    // Self-application
-    return this._applySelfStrategies(task);
-  }
 
-  _winnowStrategies(task, beliefs) {
-    const results = [];
-    
-    for (const [name, strategy] of this.strategies) {
-      for (const belief of beliefs) {
-        if (strategy.canHandle(task, belief)) {
-          results.push(strategy);
-          break;
+    setupHandlers() {
+        // Handle both new and legacy command names for compatibility
+        this.core.messages.handle('reasoning:process', (data) => this._processTask(data));
+        this.core.messages.handle('reasoner:processTask', (data) => this._processTaskLegacy(data)); // Legacy compatibility
+    }
+
+    // Support legacy interface
+    async _processTaskLegacy(payload) {
+        const {focusSet = [], options = {}} = payload || {};
+        if (!Array.isArray(focusSet)) {
+            throw new Error(`Focus set must be an array, received: ${typeof focusSet}`);
         }
-      }
-      
-      if (strategy.canHandle(task, task)) {
-        results.push(strategy);
-      }
+
+        if (focusSet.length === 0) return [];
+
+        const allDerivedTasks = [];
+        const maxDerivedTasks = options.maxDerivedTasks || Infinity;
+
+        for (const task of focusSet) {
+            if (allDerivedTasks.length >= maxDerivedTasks) break;
+
+            // Get beliefs to combine with each task
+            const beliefs = await this.core.request('memory:query', {
+                type: 'belief',
+                limit: 50
+            });
+
+            const result = await this._processTask({task, beliefs});
+            if (result) {
+                allDerivedTasks.push(result);
+                if (allDerivedTasks.length >= maxDerivedTasks) break;
+            }
+        }
+
+        return allDerivedTasks.slice(0, maxDerivedTasks);
     }
-    
-    return results;
-  }
 
-  async _applySelfStrategies(task) {
-    const selfStrategies = this.strategies
-      .values()
-      .filter(strategy => strategy.canHandle(task, task));
-    
-    for (const strategy of selfStrategies) {
-      const result = await strategy.execute(task, task, {
-        memory: this.core.memory  // CORRECTED: Use direct property access instead of get()
-      });
-      
-      if (result && result.success && result.derived) {
-        this.core.emit('task:derived', result.derived);
-        return result.derived;
-      }
+    async _processTask({task, beliefs = []}) {
+        // Winnow: quickly filter strategies that can handle this task-belief combination
+        const viableStrategies = this._winnowStrategies(task, beliefs);
+
+        // Sort by priority
+        viableStrategies.sort((a, b) => b.priority - a.priority);
+
+        for (const strategy of viableStrategies) {
+            for (const belief of beliefs) {
+                const result = await strategy.execute(task, belief, {
+                    memory: this.core.memory  // CORRECTED: Use direct property access instead of get()
+                });
+
+                if (result && result.success && result.derived) {
+                    this.core.emit('task:derived', result.derived);
+                    return result.derived;
+                }
+            }
+        }
+
+        // Self-application
+        return this._applySelfStrategies(task);
     }
-    
-    return null;
-  }
 
-  _deductiveReason(task, belief, context) {
-    if (task.type === 'implication' && task.terms?.length === 2 && 
-        belief.term?.key === task.terms[0].key) {
-      return Promise.resolve({
-        derived: {
-          termKey: task.terms[1].key,
-          type: 'belief',
-          priority: Math.min(task.priority || 0.5, belief.priority || 0.5) * 0.8,
-          truthValue: {
-            frequency: Math.min(task.truthValue?.frequency || 0.5, belief.truthValue?.frequency || 0.5),
-            confidence: (task.truthValue?.confidence || 0.5) * (belief.truthValue?.confidence || 0.5)
-          }
-        },
-        success: true
-      });
+    _winnowStrategies(task, beliefs) {
+        const results = [];
+
+        for (const [name, strategy] of this.strategies) {
+            for (const belief of beliefs) {
+                if (strategy.canHandle(task, belief)) {
+                    results.push(strategy);
+                    break;
+                }
+            }
+
+            if (strategy.canHandle(task, task)) {
+                results.push(strategy);
+            }
+        }
+
+        return results;
     }
-    return Promise.resolve({ derived: null, success: false });
-  }
 
-  _abductiveReason(task, belief, context) {
-    return Promise.resolve({ derived: null, success: false });
-  }
+    async _applySelfStrategies(task) {
+        const selfStrategies = this.strategies
+            .values()
+            .filter(strategy => strategy.canHandle(task, task));
 
-  _inductiveReason(task, belief, context) {
-    return Promise.resolve({ derived: null, success: false });
-  }
+        for (const strategy of selfStrategies) {
+            const result = await strategy.execute(task, task, {
+                memory: this.core.memory  // CORRECTED: Use direct property access instead of get()
+            });
+
+            if (result && result.success && result.derived) {
+                this.core.emit('task:derived', result.derived);
+                return result.derived;
+            }
+        }
+
+        return null;
+    }
+
+    _deductiveReason(task, belief, context) {
+        if (task.type === 'implication' && task.terms?.length === 2 &&
+            belief.term?.key === task.terms[0].key) {
+            return Promise.resolve({
+                derived: {
+                    termKey: task.terms[1].key,
+                    type: 'belief',
+                    priority: Math.min(task.priority || 0.5, belief.priority || 0.5) * 0.8,
+                    truthValue: {
+                        frequency: Math.min(task.truthValue?.frequency || 0.5, belief.truthValue?.frequency || 0.5),
+                        confidence: (task.truthValue?.confidence || 0.5) * (belief.truthValue?.confidence || 0.5)
+                    }
+                },
+                success: true
+            });
+        }
+        return Promise.resolve({derived: null, success: false});
+    }
+
+    _abductiveReason(task, belief, context) {
+        return Promise.resolve({derived: null, success: false});
+    }
+
+    _inductiveReason(task, belief, context) {
+        return Promise.resolve({derived: null, success: false});
+    }
 }
 
 export default Reasoning;
@@ -764,153 +779,154 @@ export default Reasoning;
 ### Cycle Component
 
 - [ ] **Create Cycle component with adaptive timing**
+
 ```javascript
 // core/Cycle.js
 import Component from './Component.js';
 
 class Cycle extends Component {
-  constructor(core) {
-    super('cycle', core);
-    this.cycleCount = 0;
-    this.running = false;
-    this.cycleTimings = [];
-    this.baseInterval = 100;
-    this.adaptiveInterval = this.baseInterval;
-    
-    this.focusSetSize = this.core.config.getNumber('FOCUS_SET_SIZE', 20);
-    this.priorityThreshold = this.core.config.getNumber('ACTIONABLE_GOAL_PRIORITY_THRESHOLD', 0.1);
-  }
+    constructor(core) {
+        super('cycle', core);
+        this.cycleCount = 0;
+        this.running = false;
+        this.cycleTimings = [];
+        this.baseInterval = 100;
+        this.adaptiveInterval = this.baseInterval;
 
-  setupHandlers() {
-    this.core.messages.handle('cycle:start', () => this.start());
-    this.core.messages.handle('cycle:stop', () => this.stop());
-    this.core.messages.handle('cycle:get-stats', () => this._getStats());
-  }
-
-  async start() {
-    this.running = true;
-    while (this.running) {
-      const startTime = Date.now();
-      await this._executeCycle();
-      const cycleDuration = Date.now() - startTime;
-      
-      this._trackCyclePerformance(cycleDuration);
-      
-      const nextInterval = this._calculateNextInterval();
-      await this._wait(Math.max(0, nextInterval - cycleDuration));
+        this.focusSetSize = this.core.config.getNumber('FOCUS_SET_SIZE', 20);
+        this.priorityThreshold = this.core.config.getNumber('ACTIONABLE_GOAL_PRIORITY_THRESHOLD', 0.1);
     }
-  }
 
-  async _executeCycle() {
-    this.core.emit('cycle:start', { 
-      cycle: ++this.cycleCount,
-      timestamp: Date.now()
-    });
+    setupHandlers() {
+        this.core.messages.handle('cycle:start', () => this.start());
+        this.core.messages.handle('cycle:stop', () => this.stop());
+        this.core.messages.handle('cycle:get-stats', () => this._getStats());
+    }
 
-    try {
-      const focusSet = await this.core.request('memory:get-focus-set', { 
-        size: this.focusSetSize 
-      });
-      
-      if (focusSet?.length > 0) {
-        const beliefs = await this.core.request('memory:query', { 
-          type: 'belief',
-          limit: 50
+    async start() {
+        this.running = true;
+        while (this.running) {
+            const startTime = Date.now();
+            await this._executeCycle();
+            const cycleDuration = Date.now() - startTime;
+
+            this._trackCyclePerformance(cycleDuration);
+
+            const nextInterval = this._calculateNextInterval();
+            await this._wait(Math.max(0, nextInterval - cycleDuration));
+        }
+    }
+
+    async _executeCycle() {
+        this.core.emit('cycle:start', {
+            cycle: ++this.cycleCount,
+            timestamp: Date.now()
         });
-        
-        for (const task of focusSet) {
-          // Use legacy command name for compatibility with existing system
-          const result = await this.core.request('reasoner:processTask', { 
-            focusSet: [task] // Match existing interface
-          });
-          
-          if (result && Array.isArray(result)) {
-            for (const derivedTask of result) {
-              await this.core.request('memory:add-task', derivedTask);
+
+        try {
+            const focusSet = await this.core.request('memory:get-focus-set', {
+                size: this.focusSetSize
+            });
+
+            if (focusSet?.length > 0) {
+                const beliefs = await this.core.request('memory:query', {
+                    type: 'belief',
+                    limit: 50
+                });
+
+                for (const task of focusSet) {
+                    // Use legacy command name for compatibility with existing system
+                    const result = await this.core.request('reasoner:processTask', {
+                        focusSet: [task] // Match existing interface
+                    });
+
+                    if (result && Array.isArray(result)) {
+                        for (const derivedTask of result) {
+                            await this.core.request('memory:add-task', derivedTask);
+                        }
+                    }
+                }
+
+                const actionableGoals = focusSet.filter(task =>
+                    task.punctuation === '!' && task.priority >= this.priorityThreshold
+                );
+
+                if (actionableGoals.length > 0) {
+                    for (const goal of actionableGoals) {
+                        await this.core.request('action:execute', goal);
+                    }
+                }
             }
-          }
+        } catch (error) {
+            console.error('Error in cycle execution:', error);
         }
-        
-        const actionableGoals = focusSet.filter(task => 
-          task.punctuation === '!' && task.priority >= this.priorityThreshold
-        );
-        
-        if (actionableGoals.length > 0) {
-          for (const goal of actionableGoals) {
-            await this.core.request('action:execute', goal);
-          }
+
+        this.core.emit('cycle:complete', {
+            cycle: this.cycleCount,
+            timestamp: Date.now()
+        });
+    }
+
+    _trackCyclePerformance(duration) {
+        this.cycleTimings.push({
+            cycle: this.cycleCount,
+            duration,
+            timestamp: Date.now()
+        });
+
+        if (this.cycleTimings.length > 20) {
+            this.cycleTimings.shift();
         }
-      }
-    } catch (error) {
-      console.error('Error in cycle execution:', error);
     }
 
-    this.core.emit('cycle:complete', { 
-      cycle: this.cycleCount,
-      timestamp: Date.now()
-    });
-  }
+    _calculateNextInterval() {
+        if (this.cycleTimings.length < 3) {
+            return this.baseInterval;
+        }
 
-  _trackCyclePerformance(duration) {
-    this.cycleTimings.push({
-      cycle: this.cycleCount,
-      duration,
-      timestamp: Date.now()
-    });
+        const recentCycles = this.cycleTimings.slice(-5);
+        const avgDuration = recentCycles.reduce((sum, cycle) => sum + cycle.duration, 0) / recentCycles.length;
 
-    if (this.cycleTimings.length > 20) {
-      this.cycleTimings.shift();
-    }
-  }
+        let newInterval = this.baseInterval;
 
-  _calculateNextInterval() {
-    if (this.cycleTimings.length < 3) {
-      return this.baseInterval;
-    }
+        if (avgDuration > 200) {
+            newInterval = Math.min(this.baseInterval * 2, this.baseInterval * 3);
+        } else if (avgDuration < 50) {
+            newInterval = Math.max(this.baseInterval * 0.5, this.baseInterval * 0.7);
+        }
 
-    const recentCycles = this.cycleTimings.slice(-5);
-    const avgDuration = recentCycles.reduce((sum, cycle) => sum + cycle.duration, 0) / recentCycles.length;
+        const memoryLoad = this.core.memory?._getLoad?.() || 0;  // CORRECTED: Use direct property access instead of get()
+        if (memoryLoad > 0.8) {
+            newInterval *= 1.2;
+        } else if (memoryLoad < 0.2) {
+            newInterval *= 0.9;
+        }
 
-    let newInterval = this.baseInterval;
-    
-    if (avgDuration > 200) {
-      newInterval = Math.min(this.baseInterval * 2, this.baseInterval * 3);
-    } else if (avgDuration < 50) {
-      newInterval = Math.max(this.baseInterval * 0.5, this.baseInterval * 0.7);
-    }
-    
-    const memoryLoad = this.core.memory?._getLoad?.() || 0;  // CORRECTED: Use direct property access instead of get()
-    if (memoryLoad > 0.8) {
-      newInterval *= 1.2;
-    } else if (memoryLoad < 0.2) {
-      newInterval *= 0.9;
+        this.adaptiveInterval = newInterval;
+        return this.adaptiveInterval;
     }
 
-    this.adaptiveInterval = newInterval;
-    return this.adaptiveInterval;
-  }
+    _getStats() {
+        return {
+            cycleCount: this.cycleCount,
+            running: this.running,
+            averageCycleDuration: this.cycleTimings.length > 0
+                ? this.cycleTimings.reduce((sum, c) => sum + c.duration, 0) / this.cycleTimings.length
+                : 0,
+            currentInterval: this.adaptiveInterval,
+            baseInterval: this.baseInterval,
+            focusSetSize: this.focusSetSize,
+            performanceHistory: this.cycleTimings.slice(-10)
+        };
+    }
 
-  _getStats() {
-    return {
-      cycleCount: this.cycleCount,
-      running: this.running,
-      averageCycleDuration: this.cycleTimings.length > 0 
-        ? this.cycleTimings.reduce((sum, c) => sum + c.duration, 0) / this.cycleTimings.length 
-        : 0,
-      currentInterval: this.adaptiveInterval,
-      baseInterval: this.baseInterval,
-      focusSetSize: this.focusSetSize,
-      performanceHistory: this.cycleTimings.slice(-10)
-    };
-  }
+    async stop() {
+        this.running = false;
+    }
 
-  async stop() {
-    this.running = false;
-  }
-
-  _wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
+    _wait(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 }
 
 export default Cycle;
@@ -919,6 +935,7 @@ export default Cycle;
 ### Plugins Component
 
 - [ ] **Create Plugins component with hot reloading**
+
 ```javascript
 // core/Plugins.js
 import Component from './Component.js';
@@ -1041,83 +1058,84 @@ export default Plugins;
 ### Self-Management Component (Dogfooding)
 
 - [ ] **Create Self component that uses internal facilities**
+
 ```javascript
 // core/Self.js
 import Component from './Component.js';
 
 class Self extends Component {
-  constructor(core) {
-    super('self', core);
-  }
+    constructor(core) {
+        super('self', core);
+    }
 
-  setupHandlers() {
-    this.core.messages.handle('self:stats', () => this._getStats());
-    this.core.messages.handle('self:rules:add', (rule) => this.core.addRule(rule));
-  }
+    setupHandlers() {
+        this.core.messages.handle('self:stats', () => this._getStats());
+        this.core.messages.handle('self:rules:add', (rule) => this.core.addRule(rule));
+    }
 
-  async initialize() {
-    if (this.initialized) return;
-    
-    this._setupSelfManagementRules();
-    this.setupHandlers();
-    this.initialized = true;
-  }
+    async initialize() {
+        if (this.initialized) return;
 
-  _setupSelfManagementRules() {
-    // Rule to auto-increase cycle speed when system is underutilized
-    this.core.addRule({
-      id: 'adaptive-performance',
-      type: 'performance',
-      conditions: [
-        (context) => context.type === 'cycle:stats' && 
+        this._setupSelfManagementRules();
+        this.setupHandlers();
+        this.initialized = true;
+    }
+
+    _setupSelfManagementRules() {
+        // Rule to auto-increase cycle speed when system is underutilized
+        this.core.addRule({
+            id: 'adaptive-performance',
+            type: 'performance',
+            conditions: [
+                (context) => context.type === 'cycle:stats' &&
                     context.data.averageCycleDuration < 10
-      ],
-      action: (context, core) => {
-        const currentInterval = core.config.getNumber('CYCLE_INTERVAL_MS', 100);
-        if (currentInterval > 50) {
-          core.config.set('CYCLE_INTERVAL_MS', Math.max(20, currentInterval * 0.9));
-          core.emit('system:performance:adjusted', { 
-            change: 'speed-up', 
-            newInterval: core.config.get('CYCLE_INTERVAL_MS') 
-          });
-        }
-      }
-    });
+            ],
+            action: (context, core) => {
+                const currentInterval = core.config.getNumber('CYCLE_INTERVAL_MS', 100);
+                if (currentInterval > 50) {
+                    core.config.set('CYCLE_INTERVAL_MS', Math.max(20, currentInterval * 0.9));
+                    core.emit('system:performance:adjusted', {
+                        change: 'speed-up',
+                        newInterval: core.config.get('CYCLE_INTERVAL_MS')
+                    });
+                }
+            }
+        });
 
-    // Rule to increase memory maintenance when memory pressure is high
-    this.core.addRule({
-      id: 'memory-pressure',
-      type: 'memory',
-      conditions: [
-        (context) => context.type === 'memory:stats' && 
+        // Rule to increase memory maintenance when memory pressure is high
+        this.core.addRule({
+            id: 'memory-pressure',
+            type: 'memory',
+            conditions: [
+                (context) => context.type === 'memory:stats' &&
                     context.data.utilization > 0.8
-      ],
-      action: (context, core) => {
-        core.emit('memory:maintenance:needed', { urgency: 'high' });
-      }
-    });
+            ],
+            action: (context, core) => {
+                core.emit('memory:maintenance:needed', {urgency: 'high'});
+            }
+        });
 
-    // Rule to trigger reasoning when new high-priority tasks arrive
-    this.core.addRule({
-      id: 'priority-task',
-      type: 'task',
-      conditions: [
-        (context) => context.type === 'task:added' && 
+        // Rule to trigger reasoning when new high-priority tasks arrive
+        this.core.addRule({
+            id: 'priority-task',
+            type: 'task',
+            conditions: [
+                (context) => context.type === 'task:added' &&
                     context.data.priority > 0.9
-      ],
-      action: (context, core) => {
-        core.emit('reasoning:trigger', { source: 'priority-task', task: context.data });
-      }
-    });
-  }
+            ],
+            action: (context, core) => {
+                core.emit('reasoning:trigger', {source: 'priority-task', task: context.data});
+            }
+        });
+    }
 
-  _getStats() {
-    return {
-      rules: this.core.rules.getStats(),
-      memory: this.core.memory?._getStats?.() || 'not available',  // CORRECTED: Use direct property access instead of get()
-      cycle: this.core.cycle?._getStats?.() || 'not available'     // CORRECTED: Use direct property access instead of get()
-    };
-  }
+    _getStats() {
+        return {
+            rules: this.core.rules.getStats(),
+            memory: this.core.memory?._getStats?.() || 'not available',  // CORRECTED: Use direct property access instead of get()
+            cycle: this.core.cycle?._getStats?.() || 'not available'     // CORRECTED: Use direct property access instead of get()
+        };
+    }
 }
 
 export default Self;
@@ -1126,6 +1144,7 @@ export default Self;
 ### Factory with Dogfooding
 
 - [ ] **Create factory that uses system facilities**
+
 ```javascript
 // core/createCore.js
 import createCoreInstance from './Core.js';  // CORRECTED: Import the function that returns proxied core
@@ -1172,118 +1191,120 @@ export function createCore(configData = {}) {
 ### System Class with Self-Optimization
 
 - [ ] **Enhanced System class with self-optimization**
+
 ```javascript
 // core/System.js
-import { createCore } from './createCore.js';
+import {createCore} from './createCore.js';
 
 export class System {
-  constructor(config = {}) {
-    this.core = createCore(config);
-    this.lifecycle = { initialized: false, started: false };
-    
-    this._setupSelfMonitoring();
-  }
+    constructor(config = {}) {
+        this.core = createCore(config);
+        this.lifecycle = {initialized: false, started: false};
 
-  _setupSelfMonitoring() {
-    // Listen to system events and feed them back into the rule engine
-    this.core.on('cycle:stats', (data) => {
-      this.core.evaluateRules({ type: 'cycle:stats', data });
-    });
-    
-    this.core.on('memory:stats', (data) => {
-      this.core.evaluateRules({ type: 'memory:stats', data });
-    });
-    
-    this.core.on('task:added', (data) => {
-      this.core.evaluateRules({ type: 'task:added', data });
-    });
-  }
-
-  async initialize() {
-    if (this.lifecycle.initialized) return;
-    await this.core.initialize();
-    this.lifecycle.initialized = true;
-  }
-
-  async start() {
-    if (!this.lifecycle.initialized) await this.initialize();
-    
-    const selfComponent = this.core.self;  // CORRECTED: Use direct property access instead of get()
-    if (selfComponent && typeof selfComponent.start === 'function') {
-      await selfComponent.start();
+        this._setupSelfMonitoring();
     }
-    
-    await this.core.start();
-    this.lifecycle.started = true;
-  }
 
-  async stop() {
-    await this.core.stop();
-    this.lifecycle.started = false;
-  }
+    _setupSelfMonitoring() {
+        // Listen to system events and feed them back into the rule engine
+        this.core.on('cycle:stats', (data) => {
+            this.core.evaluateRules({type: 'cycle:stats', data});
+        });
 
-  use(pluginName, pluginFactory) {
-    const plugins = this.core.plugins;  // CORRECTED: Use direct property access instead of get()
-    if (plugins) {
-      plugins.register(pluginName, pluginFactory);
+        this.core.on('memory:stats', (data) => {
+            this.core.evaluateRules({type: 'memory:stats', data});
+        });
+
+        this.core.on('task:added', (data) => {
+            this.core.evaluateRules({type: 'task:added', data});
+        });
     }
-    return this;
-  }
 
-  async loadPlugin(pluginName) {
-    const plugins = this.core.plugins;  // CORRECTED: Use direct property access instead of get()
-    if (plugins) {
-      return await plugins.load(pluginName);
+    async initialize() {
+        if (this.lifecycle.initialized) return;
+        await this.core.initialize();
+        this.lifecycle.initialized = true;
     }
-  }
 
-  async unloadPlugin(pluginName) {
-    const plugins = this.core.plugins;  // CORRECTED: Use direct property access instead of get()
-    if (plugins) {
-      return await plugins.unload(pluginName);
+    async start() {
+        if (!this.lifecycle.initialized) await this.initialize();
+
+        const selfComponent = this.core.self;  // CORRECTED: Use direct property access instead of get()
+        if (selfComponent && typeof selfComponent.start === 'function') {
+            await selfComponent.start();
+        }
+
+        await this.core.start();
+        this.lifecycle.started = true;
     }
-  }
 
-  register(name, component) {
-    return this.core.register(name, component);
-  }
+    async stop() {
+        await this.core.stop();
+        this.lifecycle.started = false;
+    }
 
-  get(name) {
-    return this.core.get(name);
-  }
+    use(pluginName, pluginFactory) {
+        const plugins = this.core.plugins;  // CORRECTED: Use direct property access instead of get()
+        if (plugins) {
+            plugins.register(pluginName, pluginFactory);
+        }
+        return this;
+    }
 
-  on(event, handler) {
-    return this.core.on(event, handler);
-  }
+    async loadPlugin(pluginName) {
+        const plugins = this.core.plugins;  // CORRECTED: Use direct property access instead of get()
+        if (plugins) {
+            return await plugins.load(pluginName);
+        }
+    }
 
-  emit(event, data) {
-    return this.core.emit(event, data);
-  }
+    async unloadPlugin(pluginName) {
+        const plugins = this.core.plugins;  // CORRECTED: Use direct property access instead of get()
+        if (plugins) {
+            return await plugins.unload(pluginName);
+        }
+    }
 
-  request(command, data) {
-    return this.core.request(command, data);
-  }
+    register(name, component) {
+        return this.core.register(name, component);
+    }
 
-  getStatus() {
-    return {
-      initialized: this.lifecycle.initialized,
-      started: this.lifecycle.started,
-      components: Array.from(this.core.components.keys()),
-      stats: {
-        memory: this.core.memory?._getStats?.() || null,      // CORRECTED: Use direct property access instead of get()
-        reasoning: this.core.reasoning?.getStats?.() || null, // CORRECTED: Use direct property access instead of get()
-        cycle: this.core.cycle?._getStats?.() || null,       // CORRECTED: Use direct property access instead of get()
-        self: this.core.self?._getStats?.() || null,         // CORRECTED: Use direct property access instead of get()
-        rules: this.core.rules.getStats()
-      }
-    };
-  }
+    get(name) {
+        return this.core.get(name);
+    }
+
+    on(event, handler) {
+        return this.core.on(event, handler);
+    }
+
+    emit(event, data) {
+        return this.core.emit(event, data);
+    }
+
+    request(command, data) {
+        return this.core.request(command, data);
+    }
+
+    getStatus() {
+        return {
+            initialized: this.lifecycle.initialized,
+            started: this.lifecycle.started,
+            components: Array.from(this.core.components.keys()),
+            stats: {
+                memory: this.core.memory?._getStats?.() || null,      // CORRECTED: Use direct property access instead of get()
+                reasoning: this.core.reasoning?.getStats?.() || null, // CORRECTED: Use direct property access instead of get()
+                cycle: this.core.cycle?._getStats?.() || null,       // CORRECTED: Use direct property access instead of get()
+                self: this.core.self?._getStats?.() || null,         // CORRECTED: Use direct property access instead of get()
+                rules: this.core.rules.getStats()
+            }
+        };
+    }
 }
 ```
 
 ### API Interface
 
 - [ ] **Create main export interface**
+
 ```javascript
 // core/index.js
 import { System } from './System.js';
@@ -1299,6 +1320,7 @@ export default System;
 ### Integration and Compatibility Features
 
 - [ ] **Ensure compatibility with existing SystemEvents and SystemCommands**
+
 ```javascript
 // core/compat/Events.js
 export const SystemEvents = Object.freeze({
@@ -1361,40 +1383,40 @@ export const SystemCommands = Object.freeze({
 ### Implementation Guidelines
 
 - [ ] **Configuration and Environment Setup**
-  - Create default configuration profiles for different environments (development, production, testing)
-  - Implement configuration validation and error handling
-  - Provide configuration schema for type safety
+    - Create default configuration profiles for different environments (development, production, testing)
+    - Implement configuration validation and error handling
+    - Provide configuration schema for type safety
 
 - [ ] **Performance Monitoring and Metrics**
-  - Implement performance counters and metrics collection
-  - Add memory usage tracking and garbage collection hints
-  - Create performance benchmarking utilities
-  - Set up monitoring dashboards and alerting
+    - Implement performance counters and metrics collection
+    - Add memory usage tracking and garbage collection hints
+    - Create performance benchmarking utilities
+    - Set up monitoring dashboards and alerting
 
 - [ ] **Error Handling and Logging**
-  - Implement comprehensive error handling with context preservation
-  - Add structured logging with levels (debug, info, warn, error)
-  - Create error recovery mechanisms and fallback strategies
-  - Implement circuit breakers for external dependencies
+    - Implement comprehensive error handling with context preservation
+    - Add structured logging with levels (debug, info, warn, error)
+    - Create error recovery mechanisms and fallback strategies
+    - Implement circuit breakers for external dependencies
 
 - [ ] **Security Considerations**
-  - Validate all inputs and sanitize data
-  - Implement authentication and authorization for sensitive operations
-  - Add rate limiting and DoS protection
-  - Secure communication channels and data storage
+    - Validate all inputs and sanitize data
+    - Implement authentication and authorization for sensitive operations
+    - Add rate limiting and DoS protection
+    - Secure communication channels and data storage
 
 - [ ] **Testing Strategy**
-  - Unit tests for individual components and functions
-  - Integration tests for component interactions
-  - Performance tests for rule evaluation and winnowing
-  - End-to-end tests for complete system workflows
-  - Chaos engineering tests for resilience
+    - Unit tests for individual components and functions
+    - Integration tests for component interactions
+    - Performance tests for rule evaluation and winnowing
+    - End-to-end tests for complete system workflows
+    - Chaos engineering tests for resilience
 
 - [ ] **Deployment and Operations**
-  - Containerization support (Docker, Kubernetes)
-  - Configuration management for different environments
-  - Health check endpoints and liveness probes
-  - Backup and recovery procedures
+    - Containerization support (Docker, Kubernetes)
+    - Configuration management for different environments
+    - Health check endpoints and liveness probes
+    - Backup and recovery procedures
 
 ### Testing and Validation
 
@@ -1408,7 +1430,8 @@ export const SystemCommands = Object.freeze({
 ## Benefits of This Simplified Ultimate Design
 
 - [x] **Simplified Architecture**: Single Core class instead of complex multi-layered systems
-- [x] **Simpler Identifiers**: CycleSubsystem → Cycle, PluginManager → Plugins, MessageSystem → Messages, ReasoningEngine → Reasoning
+- [x] **Simpler Identifiers**: CycleSubsystem → Cycle, PluginManager → Plugins, MessageSystem → Messages,
+  ReasoningEngine → Reasoning
 - [x] **Achieve More with Less**: Unified communication system handles both events and commands
 - [x] **Metaprogramming**: Reduces codebase size and increases elegance
 - [x] **Optimized Rule Evaluation**: Winnowing instead of exhaustive evaluation for better performance

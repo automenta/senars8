@@ -1,17 +1,15 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import Memory from '../../core/memory/Memory.js';
 import Cycle from '../../core/system/Cycle.js';
 import Bag from '../../core/utils/bag.js';
 import BagBufferManager from '../../core/utils/BagBufferManager.js';
 import BagAdjacencyCollection from '../../core/utils/BagAdjacencyCollection.js';
-import { EventEmitter } from 'events';
+import {EventEmitter} from 'events';
 import CommandBus from '../../core/system/CommandBus.js';
 import Term from '../../core/core/Term.js';
 import Task from '../../core/core/Task.js';
 
 // Import additional components for comprehensive testing
-import { SystemCommands } from '../../core/system/SystemCommands.js';
-import { SystemEvents } from '../../core/system/SystemEvents.js';
 
 describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
     let memory, cycle, eventBus, commandBus;
@@ -43,7 +41,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
                 generateHypotheses: async () => [],
                 explain: async () => 'test explanation',
                 suggestPlanRepair: async () => null,
-                bootstrapTerm: async () => ({ embedding: [0.1, 0.2, 0.3] }),
+                bootstrapTerm: async () => ({embedding: [0.1, 0.2, 0.3]}),
                 proactiveEnricher: {
                     proactiveEnrichment: async () => []
                 }
@@ -85,7 +83,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const tasks = [];
             for (let i = 0; i < 100; i++) {
                 const term = new Term(`test_term_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = Math.random();
                 tasks.push(task);
             }
@@ -116,7 +114,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const tasks = [];
             for (let i = 0; i < 200; i++) {
                 const term = new Term(`pressure_term_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = 0.9;
                 tasks.push(task);
             }
@@ -162,7 +160,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const tasks = [];
             for (let i = 0; i < 50; i++) {
                 const term = new Term(`query_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, i % 2 === 0 ? '.' : '!', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, i % 2 === 0 ? '.' : '!', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = Math.random() * 0.8 + 0.1;
                 tasks.push(task);
             }
@@ -208,7 +206,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             for (let i = 0; i < 100; i++) {
                 const term = new Term(`index_test_${i}`, [0.5, 0.8]);
                 const punctuation = ['.', '!', '?'][i % 3];
-                const task = new Task(term, punctuation, { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, punctuation, {frequency: 0.8, confidence: 0.9});
                 task.state.priority = Math.random() * 0.9 + 0.1;
                 tasks.push(task);
             }
@@ -218,7 +216,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             // Test complex query operations
             const startTime = performance.now();
             for (let i = 0; i < 30; i++) {
-                await memory.queryTasks({ priority: { min: 0.5 } });
+                await memory.queryTasks({priority: {min: 0.5}});
                 await memory.getTasksByPunctuation('.');
             }
             const endTime = performance.now();
@@ -232,7 +230,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const tasks = [];
             for (let i = 0; i < 20; i++) {
                 const term = new Term(`cache_test_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = 0.7;
                 tasks.push(task);
             }
@@ -247,7 +245,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const newTasks = [];
             for (let i = 0; i < 10; i++) {
                 const term = new Term(`new_cache_test_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = 0.8;
                 newTasks.push(task);
             }
@@ -266,7 +264,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const tasks = [];
             for (let i = 0; i < 50; i++) {
                 const term = new Term(`task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = Math.random() * 0.5 + 0.3; // Medium priorities
                 tasks.push(task);
             }
@@ -288,7 +286,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const tasks = [];
             for (let i = 0; i < 100; i++) {
                 const term = new Term(`load_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = 0.8;
                 tasks.push(task);
             }
@@ -310,7 +308,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const baseTasks = [];
             for (let i = 0; i < 10; i++) {
                 const term = new Term(`base_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = 0.7;
                 baseTasks.push(task);
             }
@@ -328,7 +326,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const tasks = [];
             for (let i = 0; i < 30; i++) {
                 const term = new Term(`semantic_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = Math.random() * 0.6 + 0.2;
                 tasks.push(task);
             }
@@ -351,7 +349,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const tasks = [];
             for (let i = 0; i < 50; i++) {
                 const term = new Term(`timing_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = 0.6;
                 tasks.push(task);
             }
@@ -380,7 +378,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const tasks = [];
             for (let i = 0; i < 100; i++) {
                 const term = new Term(`bag_focus_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = Math.random();
                 tasks.push(task);
             }
@@ -404,7 +402,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const tasks = [];
             for (let i = 0; i < 60; i++) {
                 const term = new Term(`diversity_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = Math.random() * 0.7 + 0.2;
                 tasks.push(task);
             }
@@ -429,7 +427,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const tasks = [];
             for (let i = 0; i < 20; i++) {
                 const term = new Term(`duplicate_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = 0.5;
                 tasks.push(task);
             }
@@ -449,7 +447,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const tasks = [];
             for (let i = 0; i < 15; i++) {
                 const term = new Term(`boost_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = 0.5;
                 tasks.push(task);
             }
@@ -502,7 +500,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const messages = [];
             for (let i = 0; i < 30; i++) {
                 const success = bagBufferManager.addMessage(
-                    { content: `message_${i}` },
+                    {content: `message_${i}`},
                     Math.random(),
                     'test'
                 );
@@ -525,14 +523,14 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
 
         it('should demonstrate Bag-based adjacency collections', () => {
             // Add nodes and relationships
-            adjacencyCollection.addNode('node1', { type: 'test' });
-            adjacencyCollection.addNode('node2', { type: 'test' });
-            adjacencyCollection.addNode('node3', { type: 'test' });
+            adjacencyCollection.addNode('node1', {type: 'test'});
+            adjacencyCollection.addNode('node2', {type: 'test'});
+            adjacencyCollection.addNode('node3', {type: 'test'});
 
             // Add relationships with different priorities
-            adjacencyCollection.addRelationship('node1', 'node2', 0.8, { type: 'strong' });
-            adjacencyCollection.addRelationship('node1', 'node3', 0.3, { type: 'weak' });
-            adjacencyCollection.addRelationship('node2', 'node3', 0.6, { type: 'medium' });
+            adjacencyCollection.addRelationship('node1', 'node2', 0.8, {type: 'strong'});
+            adjacencyCollection.addRelationship('node1', 'node3', 0.3, {type: 'weak'});
+            adjacencyCollection.addRelationship('node2', 'node3', 0.6, {type: 'medium'});
 
             // Test priority-based traversal
             const adjacent = adjacencyCollection.getAdjacentNodes('node1', 5);
@@ -617,7 +615,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const tasks = [];
             for (let i = 0; i < 50; i++) {
                 const term = new Term(`memory_bag_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = Math.random() * 0.8 + 0.1;
                 tasks.push(task);
             }
@@ -692,7 +690,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const focusTasks = [];
             for (let i = 0; i < 5; i++) {
                 const term = new Term(`hypothesis_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = 0.7;
                 focusTasks.push(task);
             }
@@ -709,9 +707,9 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const complexTasks = [];
             for (let i = 0; i < 3; i++) {
                 const term = new Term(`complex_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = 0.8; // High priority for explanation
-                task.metadata = { type: 'test_complex' };
+                task.metadata = {type: 'test_complex'};
                 complexTasks.push(task);
             }
 
@@ -728,7 +726,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const compoundTasks = [];
             for (let i = 0; i < 3; i++) {
                 const term = new Term(`compound_term_${i}_A_compound_term_${i}_B`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = 0.6;
                 compoundTasks.push(task);
             }
@@ -743,11 +741,11 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
         it('should demonstrate LM-powered plan repair', async () => {
             // Create a goal task
             const goalTerm = new Term('test_goal', [0.5, 0.8]);
-            const goalTask = new Task(goalTerm, '!', { frequency: 0.9, confidence: 0.9 });
+            const goalTask = new Task(goalTerm, '!', {frequency: 0.9, confidence: 0.9});
             goalTask.state.priority = 0.8;
 
             // Simulate execution failure
-            const failureResult = { error: 'Test execution failed' };
+            const failureResult = {error: 'Test execution failed'};
 
             // Test plan repair
             const repairTask = await cycle._attemptPlanRepair(goalTask, failureResult);
@@ -765,7 +763,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             for (let i = 0; i < 20; i++) {
                 const term = new Term(`inference_task_${i}`, [0.5, 0.8]);
                 const punctuation = i % 3 === 0 ? '!' : '.';
-                const task = new Task(term, punctuation, { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, punctuation, {frequency: 0.8, confidence: 0.9});
                 task.state.priority = Math.random() * 0.7 + 0.2;
                 tasks.push(task);
             }
@@ -797,7 +795,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const errorTasks = [];
             for (let i = 0; i < 5; i++) {
                 const term = new Term(`error_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = 0.6;
                 errorTasks.push(task);
             }
@@ -807,13 +805,13 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             expect(Array.isArray(hypotheses)).toBe(true);
 
             // Test explanation generation with error handling
-            const explanationTasks = errorTasks.map(task => ({ ...task, state: { ...task.state, priority: 0.8 } }));
+            const explanationTasks = errorTasks.map(task => ({...task, state: {...task.state, priority: 0.8}}));
             await cycle._generateLMExplanations(explanationTasks);
             expect(explanationTasks.length).toBe(5);
 
             // Test plan repair with error handling
             const goalTask = errorTasks[0].withPunctuation('!');
-            const repairTask = await cycle._attemptPlanRepair(goalTask, { error: 'test error' });
+            const repairTask = await cycle._attemptPlanRepair(goalTask, {error: 'test error'});
             // Should handle gracefully (return null or valid repair task)
             expect(repairTask === null || typeof repairTask === 'object').toBe(true);
         });
@@ -823,7 +821,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const semanticTasks = [];
             for (let i = 0; i < 10; i++) {
                 const term = new Term(`semantic_group_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = 0.5;
                 semanticTasks.push(task);
             }
@@ -845,7 +843,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const integrationTasks = [];
             for (let i = 0; i < 8; i++) {
                 const term = new Term(`integration_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = 0.6;
                 integrationTasks.push(task);
             }
@@ -857,7 +855,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             // Test batch explanation generation
             const highPriorityTasks = integrationTasks.map(task => ({
                 ...task,
-                state: { ...task.state, priority: 0.8 }
+                state: {...task.state, priority: 0.8}
             }));
             await cycle._generateLMExplanations(highPriorityTasks);
             expect(highPriorityTasks.length).toBe(8);
@@ -876,7 +874,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const performanceTasks = [];
             for (let i = 0; i < 30; i++) {
                 const term = new Term(`performance_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = Math.random() * 0.6 + 0.3;
                 performanceTasks.push(task);
             }
@@ -907,7 +905,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const tasks = [];
             for (let i = 0; i < 50; i++) {
                 const term = new Term(`integration_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = Math.random() * 0.5 + 0.3;
                 tasks.push(task);
             }
@@ -937,7 +935,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const tasks = [];
             for (let i = 0; i < 200; i++) {
                 const term = new Term(`performance_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = Math.random();
                 tasks.push(task);
             }
@@ -977,7 +975,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const errorTasks = [];
             for (let i = 0; i < 10; i++) {
                 const term = new Term(`error_recovery_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = 0.5;
                 errorTasks.push(task);
             }
@@ -1003,7 +1001,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const resourceTasks = [];
             for (let i = 0; i < 100; i++) {
                 const term = new Term(`resource_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = Math.random() * 0.8 + 0.1;
                 resourceTasks.push(task);
             }
@@ -1033,7 +1031,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const configTasks = [];
             for (let i = 0; i < 30; i++) {
                 const term = new Term(`config_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = 0.6;
                 configTasks.push(task);
             }
@@ -1059,7 +1057,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const statisticalTasks = [];
             for (let i = 0; i < 100; i++) {
                 const term = new Term(`statistical_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = Math.random();
                 statisticalTasks.push(task);
             }
@@ -1077,7 +1075,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             // Test statistical properties in buffer management
             for (let i = 0; i < 20; i++) {
                 bagBufferManager.addMessage(
-                    { content: `statistical_message_${i}` },
+                    {content: `statistical_message_${i}`},
                     Math.random(),
                     'statistical_test'
                 );
@@ -1096,7 +1094,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const compatibilityTasks = [];
             for (let i = 0; i < 40; i++) {
                 const term = new Term(`compatibility_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = 0.5;
                 compatibilityTasks.push(task);
             }
@@ -1131,7 +1129,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const scalabilityTasks = [];
             for (let i = 0; i < 500; i++) {
                 const term = new Term(`scalability_task_${i}`, [0.5, 0.8]);
-                const task = new Task(term, '.', { frequency: 0.8, confidence: 0.9 });
+                const task = new Task(term, '.', {frequency: 0.8, confidence: 0.9});
                 task.state.priority = Math.random() * 0.9 + 0.05;
                 scalabilityTasks.push(task);
             }
@@ -1147,7 +1145,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             const memoryScaleStart = performance.now();
             for (let i = 0; i < 50; i++) {
                 await memory.getHighestPriorityTasks(20);
-                await memory.queryTasks({ priority: { min: 0.5 } });
+                await memory.queryTasks({priority: {min: 0.5}});
             }
             const memoryScaleEnd = performance.now();
 

@@ -28,10 +28,10 @@ class TemporalReasoner {
             this.config.get('temporal.CACHE_MAX_ENTRIES', 1000),
             this.config.get('temporal.CACHE_TTL_MS', 5 * 60 * 1000) // 5 minutes default
         );
-        
+
         // Initialize LM-powered predictor
         this.lmPredictor = new LMTemporalPatternPredictor(lm);
-        
+
         // Initialize all temporal inference modules
         this.inferenceModules = [
             TemporalModules.TemporalRelationshipInference,
@@ -47,28 +47,28 @@ class TemporalReasoner {
 
         // Set cache for all modules that support it
         this._setupCaching();
-        
+
         // Set metrics service for all modules that support it
         this._setupMetrics(metricsService);
-        
+
         // Set LM predictor cache
         this.lmPredictor.setCache(this.cache);
 
         // Performance tracking
         this.performanceStats = new Map();
-        
+
         // Caching metrics
         this.cachingStats = {
             hits: 0,
             misses: 0,
             totalRequests: 0
         };
-        
+
         this.metricsService = metricsService;
 
         info(`TemporalReasoner initialized with ${this.inferenceModules.length} inference modules and caching`);
     }
-    
+
     /**
      * Sets up caching for modules that support it
      * @private
@@ -80,7 +80,7 @@ class TemporalReasoner {
             }
         }
     }
-    
+
     /**
      * Sets up metrics service for modules that support it
      * @private
@@ -90,7 +90,7 @@ class TemporalReasoner {
         if (metricsService) {
             // Set metrics service in cache
             this.cache.setMetricsService(metricsService);
-            
+
             // Set metrics service for modules that support it
             for (const module of this.inferenceModules) {
                 if (module.setMetricsService) {
@@ -137,7 +137,7 @@ class TemporalReasoner {
 
         // Use LM enhancement to predict likely patterns and preload cache
         if (useLMEnhancement && this.lmPredictor) {
-            await this.lmPredictor.predictTemporalPatterns(tasks);
+            this.lmPredictor.predictTemporalPatterns(tasks);
         }
 
         // Run all selected inference modules
@@ -152,7 +152,7 @@ class TemporalReasoner {
 
                 // Update performance statistics
                 this._updatePerformanceStats(moduleName, endTime - startTime, Array.isArray(result) ? result.length : 0);
-                
+
                 // Update metrics service with temporal performance stats
                 if (this.metricsService) {
                     this.metricsService.updateTemporalPerformanceStats(this.getPerformanceStats());
@@ -209,7 +209,7 @@ class TemporalReasoner {
                 const endTime = Date.now();
 
                 this._updatePerformanceStats(moduleName, endTime - startTime, Array.isArray(result) ? result.length : 0);
-                
+
                 // Update metrics service with temporal performance stats
                 if (this.metricsService) {
                     this.metricsService.updateTemporalPerformanceStats(this.getPerformanceStats());
@@ -353,7 +353,7 @@ class TemporalReasoner {
             this.cachingStats.misses++;
         }
         this.cachingStats.totalRequests++;
-        
+
         // Also update metrics service with caching effectiveness
         if (this.metricsService) {
             this.metricsService.trackTemporalCaching(hit);
@@ -365,14 +365,14 @@ class TemporalReasoner {
      * @returns {object} Caching statistics
      */
     getCachingStats() {
-        const effectiveness = this.cachingStats.totalRequests > 0 ? 
+        const effectiveness = this.cachingStats.totalRequests > 0 ?
             this.cachingStats.hits / this.cachingStats.totalRequests : 0;
         return {
             ...this.cachingStats,
             effectiveness
         };
     }
-    
+
     /**
      * Gets the cache instance
      * @returns {TemporalCache} The temporal cache instance
@@ -380,7 +380,7 @@ class TemporalReasoner {
     getCache() {
         return this.cache;
     }
-    
+
     /**
      * Clears the temporal cache
      */
@@ -390,7 +390,7 @@ class TemporalReasoner {
             info('Temporal cache cleared');
         }
     }
-    
+
     /**
      * Gets cache statistics
      * @returns {object} Cache statistics
@@ -401,7 +401,7 @@ class TemporalReasoner {
         }
         return null;
     }
-    
+
     /**
      * Performs cache maintenance (removes expired entries)
      */

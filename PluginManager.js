@@ -3,8 +3,7 @@
  * Provides a clean API for extending the system with new components
  */
 
-import {info, warn, error} from './core/utils/logger.js';
-import {LIFETIME} from './core/system/DIContainer.js';
+import {error, info, warn} from './coreagent/utils/logger.js';
 
 class PluginManager {
     constructor(container) {
@@ -44,21 +43,21 @@ class PluginManager {
     async loadPluginsFromDirectory(directoryPath) {
         const {readdir, stat, readFile} = await import('fs/promises');
         const {join} = await import('path');
-        
+
         try {
             const files = await readdir(directoryPath);
-            
+
             for (const file of files) {
                 const fullPath = join(directoryPath, file);
                 const fileStat = await stat(fullPath);
-                
+
                 if (fileStat.isDirectory()) {
                     await this.loadPluginsFromDirectory(fullPath);
                 } else if (file.endsWith('.js')) {
                     try {
                         const module = await import(`file://${fullPath}`);
                         const plugin = module.default || module;
-                        
+
                         if (plugin && typeof plugin === 'object') {
                             const pluginName = file.replace('.js', '');
                             this.registerPlugin(pluginName, plugin);

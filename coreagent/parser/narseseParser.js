@@ -1,5 +1,5 @@
 import lexer from './lexer.js';
-import {OP, TOKEN} from '../config/constants.js';
+import {OP, TOKEN} from '../../core/config/constants.js';
 
 const UNARY_OPERATOR_MAP = {
     [TOKEN.NEGATION]: OP.NEGATION,
@@ -13,15 +13,15 @@ const TEMPORAL_OPERATOR_MAP = {
 };
 
 const BINARY_OPERATOR_MAP = {
-     [TOKEN.CONJUNCTION]: OP.CONJUNCTION,
-     [TOKEN.SEQUENTIAL_CONJUNCTION]: OP.SEQUENTIAL_CONJUNCTION,
-     [TOKEN.SEQUENTIAL_CONJUNCTION_ALT]: OP.SEQUENTIAL_CONJUNCTION,
-     [TOKEN.PARALLEL_CONJUNCTION]: OP.PARALLEL_CONJUNCTION,
-     [TOKEN.DISJUNCTION]: OP.DISJUNCTION,
-     [TOKEN.EXTENSIONAL_DIFFERENCE]: OP.EXTENSIONAL_DIFFERENCE,
-     [TOKEN.INTENSIONAL_DIFFERENCE]: OP.INTENSIONAL_DIFFERENCE,
-     [TOKEN.PRODUCT]: OP.PRODUCT,
- };
+    [TOKEN.CONJUNCTION]: OP.CONJUNCTION,
+    [TOKEN.SEQUENTIAL_CONJUNCTION]: OP.SEQUENTIAL_CONJUNCTION,
+    [TOKEN.SEQUENTIAL_CONJUNCTION_ALT]: OP.SEQUENTIAL_CONJUNCTION,
+    [TOKEN.PARALLEL_CONJUNCTION]: OP.PARALLEL_CONJUNCTION,
+    [TOKEN.DISJUNCTION]: OP.DISJUNCTION,
+    [TOKEN.EXTENSIONAL_DIFFERENCE]: OP.EXTENSIONAL_DIFFERENCE,
+    [TOKEN.INTENSIONAL_DIFFERENCE]: OP.INTENSIONAL_DIFFERENCE,
+    [TOKEN.PRODUCT]: OP.PRODUCT,
+};
 
 const OPERATOR_MAP = {
     ...UNARY_OPERATOR_MAP,
@@ -395,9 +395,9 @@ class NarseseParser {
         if (!this.match(closingToken)) {
             // Parse first term - only if current token is a valid term starter
             if (this.current && [TOKEN.IDENTIFIER, TOKEN.STRING, TOKEN.LPAREN, TOKEN.LBRACE, TOKEN.LBRACKET,
-                 TOKEN.INDEPENDENT_VAR, TOKEN.DEPENDENT_VAR, TOKEN.QUERY_VAR, TOKEN.QUESTION,
-                 TOKEN.NUMBER, TOKEN.NEXT, TOKEN.PREVIOUS, TOKEN.ALWAYS, TOKEN.EVENTUALLY,
-                 TOKEN.UNTIL, TOKEN.SINCE].includes(this.current.type)) {
+                TOKEN.INDEPENDENT_VAR, TOKEN.DEPENDENT_VAR, TOKEN.QUERY_VAR, TOKEN.QUESTION,
+                TOKEN.NUMBER, TOKEN.NEXT, TOKEN.PREVIOUS, TOKEN.ALWAYS, TOKEN.EVENTUALLY,
+                TOKEN.UNTIL, TOKEN.SINCE].includes(this.current.type)) {
 
                 this.recursionDepth++;
                 if (this.recursionDepth > this.maxRecursionDepth) {
@@ -414,9 +414,9 @@ class NarseseParser {
                 // Check if there's a term after the comma
                 if (!this.match(closingToken) && this.current &&
                     [TOKEN.IDENTIFIER, TOKEN.STRING, TOKEN.LPAREN, TOKEN.LBRACE, TOKEN.LBRACKET,
-                     TOKEN.INDEPENDENT_VAR, TOKEN.DEPENDENT_VAR, TOKEN.QUERY_VAR, TOKEN.QUESTION,
-                     TOKEN.NUMBER, TOKEN.NEXT, TOKEN.PREVIOUS, TOKEN.ALWAYS, TOKEN.EVENTUALLY,
-                     TOKEN.UNTIL, TOKEN.SINCE].includes(this.current.type)) {
+                        TOKEN.INDEPENDENT_VAR, TOKEN.DEPENDENT_VAR, TOKEN.QUERY_VAR, TOKEN.QUESTION,
+                        TOKEN.NUMBER, TOKEN.NEXT, TOKEN.PREVIOUS, TOKEN.ALWAYS, TOKEN.EVENTUALLY,
+                        TOKEN.UNTIL, TOKEN.SINCE].includes(this.current.type)) {
 
                     this.recursionDepth++;
                     if (this.recursionDepth > this.maxRecursionDepth) {
@@ -467,5 +467,6 @@ function parseTerm(input) {
 }
 
 export {
-    parseTerm
+    parseTerm,
+    NarseseParser
 };

@@ -1,14 +1,12 @@
 import {execa} from 'execa';
 import {createServer} from 'vite';
 import path from 'path';
-import {System} from './coreagent/index.js';
+import {applicationConfig, System} from './coreagent/index.js';
 import logger from './coreagent/utils/logger.js';
 
 import {pathToFileURL} from 'url';
-import {applicationConfig} from './core/index.js';
-import {setupGracefulShutdown} from './core/utils/system.js';
-import {handleUncaughtError} from './core/utils/system.js';
-import resourceManager from './core/utils/ResourceManager.js';
+import {handleUncaughtError, setupGracefulShutdown} from './coreagent/utils/system.js';
+import resourceManager from './coreagent/utils/ResourceManager.js';
 
 const log = logger.create('main');
 
@@ -25,12 +23,12 @@ export const AppRunner = {
                     clearScreen: false,
                     strictPort: true // Fail if port is busy
                 },
-                
+
             });
             await server.listen();
             server.printUrls();
             log.info(`Web UI started successfully on port ${port}`);
-            
+
             // Register server with resource manager
             resourceManager.register('server', server, 'close');
             return server;
@@ -49,7 +47,7 @@ export const AppRunner = {
             log.info(`TUI process exited with code ${code}`);
             process.exit(code);
         });
-        
+
         // Register process with resource manager
         resourceManager.register('tuiProcess', tuiProcess, 'kill');
         return tuiProcess;
@@ -59,15 +57,15 @@ export const AppRunner = {
         log.info('Starting agent with CoreAgent system...');
         const agent = new System();
         await agent.initialize();
-        agent.start();
+        await agent.start();
         log.info('Agent with CoreAgent system started successfully.');
         return agent;
     },
 
     async run(args = {}) {
         try {
-            
-            
+
+
             if (args.web) {
                 await this.startWebInterface();
             } else if (args.tui) {

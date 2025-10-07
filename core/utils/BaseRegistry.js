@@ -19,6 +19,15 @@ export class BaseRegistry {
     }
 
     /**
+     * Gets hit rate for caching
+     * @returns {number} Hit rate ratio
+     */
+    get hitRate() {
+        return this.metrics.operations > 0 ?
+            this.metrics.cacheHits / this.metrics.operations : 0;
+    }
+
+    /**
      * Registers a value with a key
      * @param {string} key - Key to register the value under
      * @param {*} value - Value to register
@@ -35,9 +44,9 @@ export class BaseRegistry {
      */
     get(key, ...args) {
         this.metrics.operations++;
-        
+
         // Create cache key considering BigInt and circular references
-        const safeStringify = (obj) => JSON.stringify(obj, (k, v) => 
+        const safeStringify = (obj) => JSON.stringify(obj, (k, v) =>
             typeof v === 'bigint' ? v.toString() : v
         );
         const cacheKey = `${key}:${safeStringify(args)}`;
@@ -56,15 +65,6 @@ export class BaseRegistry {
         const result = typeof item === 'function' ? item(...args) : item;
         this.cache.set(cacheKey, result);
         return result;
-    }
-
-    /**
-     * Gets hit rate for caching
-     * @returns {number} Hit rate ratio
-     */
-    get hitRate() {
-        return this.metrics.operations > 0 ? 
-            this.metrics.cacheHits / this.metrics.operations : 0;
     }
 
     /**
@@ -104,6 +104,23 @@ export class OptimizedCache {
         this.accessOrder = []; // Tracks access order for LRU
         this.hits = 0;
         this.misses = 0;
+    }
+
+    /**
+     * Gets the current size of the cache
+     * @returns {number} Current cache size
+     */
+    get size() {
+        return this.cache.size;
+    }
+
+    /**
+     * Gets the hit rate of the cache
+     * @returns {number} Hit rate ratio
+     */
+    get hitRate() {
+        return (this.hits + this.misses) > 0 ?
+            this.hits / (this.hits + this.misses) : 0;
     }
 
     /**
@@ -151,23 +168,6 @@ export class OptimizedCache {
         this.cache.clear();
         this.accessOrder = [];
         this.hits = this.misses = 0;
-    }
-
-    /**
-     * Gets the current size of the cache
-     * @returns {number} Current cache size
-     */
-    get size() {
-        return this.cache.size;
-    }
-
-    /**
-     * Gets the hit rate of the cache
-     * @returns {number} Hit rate ratio
-     */
-    get hitRate() {
-        return (this.hits + this.misses) > 0 ? 
-            this.hits / (this.hits + this.misses) : 0;
     }
 
     /**

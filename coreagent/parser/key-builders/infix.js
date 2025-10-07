@@ -1,4 +1,4 @@
-import {OP, REL} from '../../config/constants.js';
+import {OP, REL} from '../../../core/config/constants.js';
 import {termKeyInfix} from './helpers.js';
 
 export default (termKey) => ({
