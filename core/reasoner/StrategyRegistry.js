@@ -356,11 +356,6 @@ Return only the name of the best strategy to use.
      * Calculate strategy effectiveness combining success rate and execution time
      * DEPRECATED: Use utility function from effectiveness-utils.js
      */
-    _calculateEffectiveness(successRate, averageTime) {
-        // DEPRECATED: Use utility function instead
-        return calculateEffectiveness(successRate, averageTime);
-    }
-
     /**
      * Describe a task for LM-based strategy selection
      */

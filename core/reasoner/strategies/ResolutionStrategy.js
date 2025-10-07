@@ -4,11 +4,11 @@ import {SystemCommands} from '../../system/SystemCommands.js';
 import {
     calculateResolutionEffectiveness,
     calculateWeightedEffectiveness,
-    generateExplanation,
-    trackOutcome,
+    updateEffectiveStrategy,
     selectOptimalResolutionStrategy,
     getStrategyEffectivenessStats
-} from '../ContradictionUtils.js';
+} from '../../utils/effectiveness-utils.js';
+import {calculateSeverity, generateExplanation, trackOutcome} from '../ContradictionUtils.js';
 
 class ResolutionStrategy {
     constructor(truthValueManager, metricsService = null, commandBus = null) {
