@@ -6,7 +6,8 @@ import AgentManager from './agent/AgentManager.js';
 import {UnifiedWebSocketServer} from './agent/StandaloneWebSocketServer.js';
 import {createMessageHandler} from './agent/MessageHandler.js';
 import {findAvailablePort} from './tests/utils/networkUtils.js';
-import config from './config.js';
+import {applicationConfig} from './core/config/index.js';
+import {setupGracefulShutdown} from './core/utils/system.js';
 
 const log = logger.create('integrated-web-runner');
 const __filename = fileURLToPath(import.meta.url);
@@ -26,8 +27,8 @@ export class IntegratedWebRunner {
             log.info('Starting integrated Web UI with embedded Agent...');
 
             // Use configured ports, with fallback to available ports
-            this.port = await findAvailablePort(config.uiPort);
-            this.wsPort = await findAvailablePort(config.wsPort);
+            this.port = await findAvailablePort(applicationConfig.getUiPort());
+            this.wsPort = await findAvailablePort(applicationConfig.getWsPort());
 
             log.info(`Using HTTP port: ${this.port}`);
             log.info(`Using WebSocket port: ${this.wsPort}`);
@@ -39,7 +40,7 @@ export class IntegratedWebRunner {
             await this.startViteServer();
 
             // Set up graceful shutdown
-            this.setupGracefulShutdown();
+            setupGracefulShutdown(log, () => this.cleanup());
 
             log.info('Integrated Web UI started successfully!');
             log.info(`Web UI available at: http://localhost:${this.port}`);
@@ -125,16 +126,7 @@ export class IntegratedWebRunner {
         }
     }
 
-    setupGracefulShutdown() {
-        const shutdown = async (signal) => {
-            log.info(`Received ${signal}. Shutting down gracefully...`);
-            await this.cleanup();
-            process.exit(0);
-        };
 
-        process.on('SIGINT', () => shutdown('SIGINT'));
-        process.on('SIGTERM', () => shutdown('SIGTERM'));
-    }
 
     async cleanup() {
         log.info('Cleaning up integrated Web UI...');
@@ -181,9 +173,11 @@ const main = async () => {
 
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
+    import {handleUncaughtError} from './core/utils/system.js';
     main().catch(error => {
-        log.error('Unhandled error in integrated web runner:', error);
-        process.exit(1);
+        handleUncaughtError(error, log, async () => {
+            // Perform any necessary cleanup here
+        });
     });
 }
 

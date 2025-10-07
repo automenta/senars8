@@ -15,7 +15,7 @@ const initializeSystem = (system) => {
     return system;
 };
 
-const createSystem = async (userConfig = {}, components = {}, strategiesPath = undefined) => {
+const createSystem = async (userConfig = {}, components = {}, strategiesPath = undefined, additionalComponents = {}) => {
     info('SystemFactory: Creating new system...');
 
     const container = new DIContainer();
@@ -30,7 +30,7 @@ const createSystem = async (userConfig = {}, components = {}, strategiesPath = u
     configService.initialize(configManager.getAll());
 
     info('SystemFactory: Registering components...');
-    registerComponents(container, configManager);
+    registerComponents(container, configManager, additionalComponents);
 
     // Override with any user-provided components
     for (const [name, instance] of Object.entries(components)) {

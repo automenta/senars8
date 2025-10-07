@@ -2,6 +2,7 @@ import logger from '../core/utils/logger.js';
 import AgentManager from './AgentManager.js';
 import {UnifiedWebSocketServer} from './StandaloneWebSocketServer.js';
 import {createMessageHandler} from './MessageHandler.js';
+import {applicationConfig} from '../core/config/index.js';
 
 const log = logger.create('start-agent');
 
@@ -10,7 +11,7 @@ const startAgent = async () => {
         log.info('Starting agent with WebSocket server...');
 
         const agentManager = new AgentManager();
-        const wsPort = parseInt(process.env.WS_PORT, 10) || 8081;
+        const wsPort = parseInt(process.env.WS_PORT, 10) || applicationConfig.getWsPort();
         const wsManager = new UnifiedWebSocketServer({port: wsPort});
 
         await wsManager.start();

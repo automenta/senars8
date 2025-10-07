@@ -23,8 +23,9 @@ import MetricsService from './MetricsService.js';
  * Registers all core components with the DI container.
  * @param {DIContainer} container - The DI container instance.
  * @param {ConfigManager} configManager - The configuration manager.
+ * @param {Object} additionalComponents - Additional components to register
  */
-const registerComponents = (container, configManager) => {
+const registerComponents = (container, configManager, additionalComponents = {}) => {
     const singleton = {lifetime: LIFETIME.SINGLETON};
 
     container.registerValue('configManager', configManager);
@@ -61,6 +62,11 @@ const registerComponents = (container, configManager) => {
         'configManager', 'memory', 'reasoner', 'actionExecutor', 'cycle',
         'planner', 'metaCognition', 'perception', 'eventBus', 'commandBus'
     ], singleton);
+
+    // Register any additional components provided by plugins or custom implementations
+    Object.entries(additionalComponents).forEach(([name, {definition, dependencies = [], options = {}}]) => {
+        container.register(name, definition, dependencies, {lifetime: LIFETIME.SINGLETON, ...options});
+    });
 };
 
 export default registerComponents;

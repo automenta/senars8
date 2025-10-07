@@ -6,7 +6,8 @@ import logger from './core/utils/logger.js';
 import AgentManager from './agent/AgentManager.js';
 import {agentServerPlugin} from './agent/vite-plugin.js';
 import {pathToFileURL} from 'url';
-import config from './config.js';
+import {applicationConfig} from './core/config/index.js';
+import {setupGracefulShutdown, gracefulShutdown} from './core/utils/system.js';
 
 const log = logger.create('main');
 
@@ -19,7 +20,7 @@ export const AppRunner = {
     async startWebInterface(agentManager) {
         log.info('Starting web UI...');
         try {
-            const port = process.env.PORT || config.uiPort;
+            const port = process.env.PORT || applicationConfig.getUiPort();
             const server = await createServer({
                 configFile: path.resolve(process.cwd(), 'ui/vite.config.js'),
                 root: path.resolve(process.cwd(), 'ui'),
@@ -35,7 +36,7 @@ export const AppRunner = {
             log.info(`Web UI started successfully on port ${port}`);
             return server;
         } catch (error) {
-            log.error(`Failed to start web UI on port ${process.env.PORT || config.uiPort}. Is the port already in use?`);
+            log.error(`Failed to start web UI on port ${process.env.PORT || applicationConfig.getUiPort()}. Is the port already in use?`);
             log.error(`Error details: ${error.message}`);
             log.error(`Suggestion: Try using a different port with PORT=3001 npm run dev`);
             throw error;
@@ -74,6 +75,9 @@ export const AppRunner = {
             } else {
                 await this.startAgent();
             }
+
+            // Set up graceful shutdown after the app is running
+            setupGracefulShutdown(log, () => this.shutdown());
 
             return {
                 agentManager: this._activeAgentManager,
@@ -121,22 +125,17 @@ const getArgs = () => {
 };
 
 const main = async () => {
-    const gracefulShutdownHandler = async (signal) => {
-        log.info(`Received ${signal}.`);
-        await AppRunner.shutdown();
-        process.exit(0);
-    };
-
-    process.on('SIGINT', () => gracefulShutdownHandler('SIGINT'));
-    process.on('SIGTERM', () => gracefulShutdownHandler('SIGTERM'));
-
     await AppRunner.run(getArgs());
 };
 
 // This check ensures that main() is only called when the script is executed directly
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+    import {handleUncaughtError} from './core/utils/system.js';
     main().catch(error => {
-        log.error('Unhandled error in main execution:', error);
-        process.exit(1);
+        handleUncaughtError(error, log, async () => {
+            if (AppRunner._activeAgentManager) {
+                await AppRunner._activeAgentManager.stop();
+            }
+        });
     });
 }
