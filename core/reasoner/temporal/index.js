@@ -9,6 +9,7 @@ import TemporalClusterDetection from './TemporalClusterDetection.js';
 import TemporalSummaryGeneration from './TemporalSummaryGeneration.js';
 import TemporalCache from './TemporalCache.js';
 import LMTemporalPatternPredictor from './LMTemporalPatternPredictor.js';
+import * as TemporalCachingUtils from './TemporalCachingUtils.js';
 
 export {
     TemporalRelationshipInference,
@@ -21,5 +22,6 @@ export {
     TemporalClusterDetection,
     TemporalSummaryGeneration,
     TemporalCache,
-    LMTemporalPatternPredictor
+    LMTemporalPatternPredictor,
+    TemporalCachingUtils
 };

@@ -2,6 +2,7 @@ import {createTemporalRelationshipTask, determineTemporalRelationship} from '../
 import {debug} from '../../utils/logger.js';
 import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
 import config from '../../config/index.js';
+import {withTemporalCaching} from './TemporalCachingUtils.js';
 
 const errorHandler = createUnifiedErrorHandler('TemporalRelationshipInference');
 
@@ -26,18 +27,18 @@ class TemporalRelationshipInference {
     }
 
     static infer(temporalFocusSet, options = {}) {
+        return withTemporalCaching(
+            'TemporalRelationshipInference',
+            (tasks, options) => TemporalRelationshipInference._executeInfer(tasks, options),
+            TemporalRelationshipInference.cache,
+            TemporalRelationshipInference.metricsService
+        )(temporalFocusSet, options);
+    }
+
+    static _executeInfer(temporalFocusSet, options = {}) {
         return errorHandler.executeSync(() => {
             debug(`Inferring temporal relationships for ${temporalFocusSet.length} tasks`);
             
-            // If cache is available, try to retrieve cached result first
-            if (TemporalRelationshipInference.cache) {
-                const cachedResult = TemporalRelationshipInference.cache.get('TemporalRelationshipInference', temporalFocusSet, options);
-                if (cachedResult !== null) {
-                    debug(`Cache hit for TemporalRelationshipInference with ${temporalFocusSet.length} tasks`);
-                    return cachedResult;
-                }
-            }
-
             const temporalTasks = [];
             let relationshipCount = 0;
 
@@ -61,12 +62,6 @@ class TemporalRelationshipInference {
             }
 
             debug(`Found ${relationshipCount} temporal relationships (${comparisonCount} comparisons)`);
-            
-            // Cache the result if cache is available
-            if (TemporalRelationshipInference.cache) {
-                TemporalRelationshipInference.cache.set('TemporalRelationshipInference', temporalFocusSet, temporalTasks, options);
-            }
-
             return temporalTasks;
         }, 'infer', []);
     }

@@ -1,6 +1,7 @@
 import {createTemporalSummary} from '../../utils/temporal.js';
 import {debug} from '../../utils/logger.js';
 import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
+import {withTemporalCaching} from './TemporalCachingUtils.js';
 
 const errorHandler = createUnifiedErrorHandler('TemporalSummaryGeneration');
 
@@ -36,18 +37,18 @@ class TemporalSummaryGeneration {
      * @returns {Object} Summary of temporal patterns
      */
     static infer(tasks, options = {}) {
+        return withTemporalCaching(
+            'TemporalSummaryGeneration',
+            (tasks, options) => TemporalSummaryGeneration._executeInfer(tasks, options),
+            TemporalSummaryGeneration.cache,
+            TemporalSummaryGeneration.metricsService
+        )(tasks, options);
+    }
+
+    static _executeInfer(tasks, options = {}) {
         return errorHandler.executeSync(() => {
             debug(`Generating temporal summary for ${tasks.length} tasks`);
             
-            // If cache is available, try to retrieve cached result first
-            if (TemporalSummaryGeneration.cache) {
-                const cachedResult = TemporalSummaryGeneration.cache.get('TemporalSummaryGeneration', tasks, options);
-                if (cachedResult !== null) {
-                    debug(`Cache hit for TemporalSummaryGeneration with ${tasks.length} tasks`);
-                    return cachedResult;
-                }
-            }
-
             if (!Array.isArray(tasks) || tasks.length === 0) {
                 return [];
             }
@@ -66,11 +67,6 @@ class TemporalSummaryGeneration {
             const summary = createTemporalSummary(tasks, startTime, endTime);
             if (summary) {
                 summaryTasks.push(summary);
-            }
-
-            // Cache the result if cache is available
-            if (TemporalSummaryGeneration.cache) {
-                TemporalSummaryGeneration.cache.set('TemporalSummaryGeneration', tasks, summaryTasks, options);
             }
 
             debug(`Generated ${summaryTasks.length} temporal summary tasks`);

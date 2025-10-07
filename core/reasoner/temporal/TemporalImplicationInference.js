@@ -2,6 +2,7 @@ import {inferTemporalImplications} from '../../utils/temporal.js';
 import {debug} from '../../utils/logger.js';
 import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
 import config from '../../config/index.js';
+import {withTemporalCaching} from './TemporalCachingUtils.js';
 
 const errorHandler = createUnifiedErrorHandler('TemporalImplicationInference');
 
@@ -26,18 +27,18 @@ class TemporalImplicationInference {
     }
 
     static infer(temporalFocusSet, options = {}) {
+        return withTemporalCaching(
+            'TemporalImplicationInference',
+            (tasks, options) => TemporalImplicationInference._executeInfer(tasks, options),
+            TemporalImplicationInference.cache,
+            TemporalImplicationInference.metricsService
+        )(temporalFocusSet, options);
+    }
+
+    static _executeInfer(temporalFocusSet, options = {}) {
         return errorHandler.executeSync(() => {
             debug(`Inferring temporal implications for ${temporalFocusSet.length} tasks`);
             
-            // If cache is available, try to retrieve cached result first
-            if (TemporalImplicationInference.cache) {
-                const cachedResult = TemporalImplicationInference.cache.get('TemporalImplicationInference', temporalFocusSet, options);
-                if (cachedResult !== null) {
-                    debug(`Cache hit for TemporalImplicationInference with ${temporalFocusSet.length} tasks`);
-                    return cachedResult;
-                }
-            }
-
             const implicationTasks = [];
             let implicationCount = 0;
 
@@ -56,12 +57,6 @@ class TemporalImplicationInference {
             }
 
             debug(`Found ${implicationCount} temporal implications (${comparisonCount} comparisons)`);
-            
-            // Cache the result if cache is available
-            if (TemporalImplicationInference.cache) {
-                TemporalImplicationInference.cache.set('TemporalImplicationInference', temporalFocusSet, implicationTasks, options);
-            }
-
             return implicationTasks;
         }, 'infer', []);
     }

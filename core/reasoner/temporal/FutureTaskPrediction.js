@@ -1,6 +1,7 @@
 import {advancedPredictFutureTasks} from '../../utils/temporal.js';
 import {debug} from '../../utils/logger.js';
 import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
+import {withTemporalCaching} from './TemporalCachingUtils.js';
 
 const errorHandler = createUnifiedErrorHandler('FutureTaskPrediction');
 
@@ -25,30 +26,22 @@ class FutureTaskPrediction {
     }
 
     static predict(temporalFocusSet, options = {}) {
+        return withTemporalCaching(
+            'FutureTaskPrediction',
+            (tasks, options) => FutureTaskPrediction._executePredict(tasks, options),
+            FutureTaskPrediction.cache,
+            FutureTaskPrediction.metricsService
+        )(temporalFocusSet, options);
+    }
+
+    static _executePredict(temporalFocusSet, options = {}) {
         return errorHandler.executeSync(() => {
             debug(`Predicting future tasks for ${temporalFocusSet.length} tasks`);
             
-            // If cache is available, try to retrieve cached result first
-            if (FutureTaskPrediction.cache) {
-                const predictionHorizon = options.predictionHorizon || 24 * 60 * 60 * 1000;
-                const cacheOptions = { ...options, predictionHorizon };
-                const cachedResult = FutureTaskPrediction.cache.get('FutureTaskPrediction', temporalFocusSet, cacheOptions);
-                if (cachedResult !== null) {
-                    debug(`Cache hit for FutureTaskPrediction with ${temporalFocusSet.length} tasks`);
-                    return cachedResult;
-                }
-            }
-
             const predictionHorizon = options.predictionHorizon || 24 * 60 * 60 * 1000;
             const predictionTasks = advancedPredictFutureTasks(temporalFocusSet, predictionHorizon);
             debug(`Predicted ${predictionTasks.length} future tasks`);
             
-            // Cache the result if cache is available
-            if (FutureTaskPrediction.cache) {
-                const cacheOptions = { ...options, predictionHorizon };
-                FutureTaskPrediction.cache.set('FutureTaskPrediction', temporalFocusSet, predictionTasks, cacheOptions);
-            }
-
             return predictionTasks;
         }, 'predict', []);
     }

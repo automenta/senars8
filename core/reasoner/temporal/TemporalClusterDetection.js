@@ -1,6 +1,7 @@
 import {createTemporalClusterAbstractions, detectTemporalClusters} from '../../utils/temporal.js';
 import {debug} from '../../utils/logger.js';
 import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
+import {withTemporalCaching} from './TemporalCachingUtils.js';
 
 const errorHandler = createUnifiedErrorHandler('TemporalClusterDetection');
 
@@ -25,29 +26,23 @@ class TemporalClusterDetection {
     }
 
     static detect(temporalFocusSet, options = {}) {
+        return withTemporalCaching(
+            'TemporalClusterDetection',
+            (tasks, options) => TemporalClusterDetection._executeDetect(tasks, options),
+            TemporalClusterDetection.cache,
+            TemporalClusterDetection.metricsService
+        )(temporalFocusSet, options);
+    }
+
+    static _executeDetect(temporalFocusSet, options = {}) {
         return errorHandler.executeSync(() => {
             debug(`Detecting temporal clusters for ${temporalFocusSet.length} tasks`);
             
-            // If cache is available, try to retrieve cached result first
-            if (TemporalClusterDetection.cache) {
-                const cachedResult = TemporalClusterDetection.cache.get('TemporalClusterDetection', temporalFocusSet, options);
-                if (cachedResult !== null) {
-                    debug(`Cache hit for TemporalClusterDetection with ${temporalFocusSet.length} tasks`);
-                    return cachedResult;
-                }
-            }
-
             const clusterTasks = [];
             const clusters = detectTemporalClusters(temporalFocusSet);
             const abstractions = createTemporalClusterAbstractions(clusters);
             clusterTasks.push(...abstractions);
             debug(`Detected ${clusterTasks.length} temporal cluster abstractions`);
-            
-            // Cache the result if cache is available
-            if (TemporalClusterDetection.cache) {
-                TemporalClusterDetection.cache.set('TemporalClusterDetection', temporalFocusSet, clusterTasks, options);
-            }
-
             return clusterTasks;
         }, 'detect', []);
     }

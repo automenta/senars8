@@ -3,6 +3,7 @@ import {parseTerm} from '../../parser/narseseParser.js';
 import {detectTemporalCycles} from '../../utils/temporal.js';
 import {debug} from '../../utils/logger.js';
 import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
+import {withTemporalCaching} from './TemporalCachingUtils.js';
 
 const errorHandler = createUnifiedErrorHandler('TemporalCycleDetection');
 
@@ -27,18 +28,18 @@ class TemporalCycleDetection {
     }
 
     static detect(temporalFocusSet, options = {}) {
+        return withTemporalCaching(
+            'TemporalCycleDetection',
+            (tasks, options) => TemporalCycleDetection._executeDetect(tasks, options),
+            TemporalCycleDetection.cache,
+            TemporalCycleDetection.metricsService
+        )(temporalFocusSet, options);
+    }
+
+    static _executeDetect(temporalFocusSet, options = {}) {
         return errorHandler.executeSync(() => {
             debug(`Detecting temporal cycles for ${temporalFocusSet.length} tasks`);
             
-            // If cache is available, try to retrieve cached result first
-            if (TemporalCycleDetection.cache) {
-                const cachedResult = TemporalCycleDetection.cache.get('TemporalCycleDetection', temporalFocusSet, options);
-                if (cachedResult !== null) {
-                    debug(`Cache hit for TemporalCycleDetection with ${temporalFocusSet.length} tasks`);
-                    return cachedResult;
-                }
-            }
-
             const cycleTasks = [];
             const cycles = detectTemporalCycles(temporalFocusSet);
 
@@ -60,12 +61,6 @@ class TemporalCycleDetection {
             }
 
             debug(`Detected ${cycleTasks.length} temporal cycles`);
-            
-            // Cache the result if cache is available
-            if (TemporalCycleDetection.cache) {
-                TemporalCycleDetection.cache.set('TemporalCycleDetection', temporalFocusSet, cycleTasks, options);
-            }
-
             return cycleTasks;
         }, 'detect', []);
     }

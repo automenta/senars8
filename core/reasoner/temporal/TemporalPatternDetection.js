@@ -3,6 +3,7 @@ import {parseTerm} from '../../parser/narseseParser.js';
 import {createTemporalSequenceTask, detectTemporalPatterns} from '../../utils/temporal.js';
 import {debug} from '../../utils/logger.js';
 import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
+import {withTemporalCaching} from './TemporalCachingUtils.js';
 
 const errorHandler = createUnifiedErrorHandler('TemporalPatternDetection');
 
@@ -27,18 +28,18 @@ class TemporalPatternDetection {
     }
 
     static detect(temporalFocusSet, config = {}) {
+        return withTemporalCaching(
+            'TemporalPatternDetection',
+            (tasks, options) => TemporalPatternDetection._executeDetect(tasks, options),
+            TemporalPatternDetection.cache,
+            TemporalPatternDetection.metricsService
+        )(temporalFocusSet, config);
+    }
+
+    static _executeDetect(temporalFocusSet, config = {}) {
         return errorHandler.executeSync(() => {
             debug(`Detecting temporal patterns for ${temporalFocusSet.length} tasks`);
             
-            // If cache is available, try to retrieve cached result first
-            if (TemporalPatternDetection.cache) {
-                const cachedResult = TemporalPatternDetection.cache.get('TemporalPatternDetection', temporalFocusSet, config);
-                if (cachedResult !== null) {
-                    debug(`Cache hit for TemporalPatternDetection with ${temporalFocusSet.length} tasks`);
-                    return cachedResult;
-                }
-            }
-
             const patternTasks = [];
             const patterns = detectTemporalPatterns(temporalFocusSet);
 
@@ -69,12 +70,6 @@ class TemporalPatternDetection {
             }
 
             debug(`Detected ${patternTasks.length} temporal pattern tasks`);
-            
-            // Cache the result if cache is available
-            if (TemporalPatternDetection.cache) {
-                TemporalPatternDetection.cache.set('TemporalPatternDetection', temporalFocusSet, patternTasks, config);
-            }
-
             return patternTasks;
         }, 'detect', []);
     }

@@ -1,5 +1,6 @@
 import {CONTRADICTION_TYPES, CONTRADICTION_SEVERITY_WEIGHTS} from './contradiction-types.js';
 import {detectionStrategies} from './strategies/detection/index.js';
+import {calculateSeverity} from './ContradictionUtils.js';
 
 class ContradictionAnalyzer {
     constructor() {
@@ -15,10 +16,7 @@ class ContradictionAnalyzer {
     }
 
     calculateSeverity(contradictionType, task1, task2) {
-        const c1 = task1.state.truthValue.confidence;
-        const c2 = task2.state.truthValue.confidence;
-        const typeWeight = CONTRADICTION_SEVERITY_WEIGHTS[contradictionType.type] || 0.5;
-        return Math.min(1.0, typeWeight * (c1 + c2) / 2);
+        return calculateSeverity(contradictionType.type, task1, task2);
     }
 }
 
