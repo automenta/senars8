@@ -4,9 +4,10 @@ import {parseTerm} from '../parser/parse-utils.js';
 class NLP {
     async parse(nl) {
         const tasks = [];
-        const trimmed = nl.toLowerCase().trim();
+        // Remove trailing punctuation before processing
+        const trimmed = nl.toLowerCase().replace(/[.!?]+$/, '').trim();
 
-        if (trimmed.endsWith('?')) {
+        if (nl.toLowerCase().endsWith('?')) {
             const term = this._parseQuestion(trimmed.slice(0, -1));
             if (term) {
                 tasks.push(new Task(term, '?', {}));
@@ -20,7 +21,7 @@ class NLP {
             const parts = trimmed.split(' ');
             if (parts.length === 4 && parts[1] === 'is' && parts[2] === 'a') {
                 const subject = parts[0];
-                const predicate = parts[3].replace('.', '');
+                const predicate = parts[3];
                 const term = parseTerm(`(${subject} --> ${predicate})`);
                 if (term) {
                     tasks.push(new Task(term, '.', {}));
@@ -40,10 +41,12 @@ class NLP {
         const parts = question.split(' ');
         if (parts.length === 4 && parts[1] === 'is' && parts[2] === 'a') {
             const subject = parts[0];
-            const predicate = parts[3];
+            const predicate = parts[3].replace(/[.!?]+$/, ''); // Remove trailing punctuation
             return parseTerm(`(${subject} --> ${predicate})`);
         }
-        return parseTerm(`(${question.replace(/ /g, '_')})`);
+        // Remove any trailing punctuation from the question before processing
+        const cleanQuestion = question.replace(/[.!?]+$/, '').replace(/ /g, '_');
+        return parseTerm(`(${cleanQuestion})`);
     }
 }
 
