@@ -286,6 +286,11 @@ class TemporalReasoner {
             this.cachingStats.misses++;
         }
         this.cachingStats.totalRequests++;
+        
+        // Also update metrics service with caching effectiveness
+        if (this.metricsService) {
+            this.metricsService.trackTemporalCaching(hit);
+        }
     }
 
     /**

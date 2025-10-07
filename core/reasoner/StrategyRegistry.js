@@ -189,7 +189,7 @@ class StrategyRegistry {
             
             // Get strategy effectiveness (combining success rate and execution time)
             const averageTime = stats.averageTime || 0;
-            const effectiveness = averageTime > 0 ? successRate / Math.log(averageTime + 1) : successRate; // Logarithmic scaling
+            const effectiveness = this._calculateEffectiveness(successRate, averageTime);
             
             // Add contextual information if available
             const taskContextScore = this._getTaskContextScore(task, name, taskType);
@@ -352,6 +352,14 @@ Return only the name of the best strategy to use.
     }
 
     /**
+     * Calculate strategy effectiveness combining success rate and execution time
+     */
+    _calculateEffectiveness(successRate, averageTime) {
+        // Logarithmic scaling to prevent execution time from overly penalizing faster strategies
+        return averageTime > 0 ? successRate / Math.log(averageTime + 1) : successRate;
+    }
+
+    /**
      * Describe a task for LM-based strategy selection
      */
     _describeTask(task) {
@@ -507,7 +515,18 @@ Return only the name of the best strategy to use.
 
     _initStats(name, type) {
         if (!this.stats.has(name)) {
-            this.stats.set(name, {type, usageCount: 0, lastUsed: null, errors: 0});
+            this.stats.set(name, {
+                type, 
+                usageCount: 0, 
+                executions: 0,  // Track total executions separately from usage
+                successes: 0, 
+                failures: 0,
+                totalTime: 0,
+                averageTime: 0,
+                lastUsed: null, 
+                errors: 0,
+                taskTypePerformance: {}  // Initialize task type performance tracking
+            });
         }
     }
 
@@ -576,7 +595,7 @@ Return only the name of the best strategy to use.
             const successes = stats.successes || 0;
             const successRate = totalExecutions > 0 ? successes / totalExecutions : 0;
             const averageTime = stats.averageTime || 0;
-            const effectiveness = averageTime > 0 ? successRate / Math.log(averageTime + 1) : successRate;
+            const effectiveness = this._calculateEffectiveness(successRate, averageTime);
             
             strategyRanks.push({
                 name,
