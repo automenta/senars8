@@ -913,6 +913,297 @@ export class System {
 }
 ```
 
+### Missing Subsystem Implementations
+
+- [ ] **Create Cycle Subsystem with adaptive timing**
+```javascript
+// core-agent/subsystems/CycleSubsystem.js
+import Subsystem from '../Subsystem.js';
+
+class CycleSubsystem extends Subsystem {
+  constructor(coreAgent) {
+    super('cycle', coreAgent);
+    this.cycleCount = 0;
+    this.running = false;
+    this.cycleTimings = [];
+    this.baseInterval = 100;
+    this.adaptiveInterval = this.baseInterval;
+    
+    // Performance tracking
+    this.focusSetSize = this.coreAgent.config.getNumber('FOCUS_SET_SIZE', 20);
+    this.priorityThreshold = this.coreAgent.config.getNumber('ACTIONABLE_GOAL_PRIORITY_THRESHOLD', 0.1);
+  }
+
+  setupMessageHandlers() {
+    this.coreAgent.handle('cycle:start', () => this.start());
+    this.coreAgent.handle('cycle:stop', () => this.stop());
+    this.coreAgent.handle('cycle:get-stats', () => this._getStats());
+  }
+
+  async doStart() {
+    this.running = true;
+    while (this.running) {
+      const startTime = Date.now();
+      await this._executeCycle();
+      const cycleDuration = Date.now() - startTime;
+      
+      // Track performance
+      this._trackCyclePerformance(cycleDuration);
+      
+      // Adaptive timing
+      const nextInterval = this._calculateNextInterval();
+      await this._wait(Math.max(0, nextInterval - cycleDuration));
+    }
+  }
+
+  async _executeCycle() {
+    this.coreAgent.emit('cycle:start', { 
+      cycle: ++this.cycleCount,
+      timestamp: Date.now()
+    });
+
+    try {
+      // Get focus set from memory
+      const focusSet = await this.coreAgent.request('memory:get-focus-set', { 
+        size: this.focusSetSize 
+      });
+      
+      if (focusSet?.length > 0) {
+        // Get beliefs to combine with focus set for reasoning
+        const beliefs = await this.coreAgent.request('memory:query', { 
+          type: 'belief',
+          limit: 50 // Limit for performance
+        });
+        
+        // Process each task in focus set with reasoner
+        for (const task of focusSet) {
+          const result = await this.coreAgent.request('reasoner:process', { 
+            task, 
+            beliefs 
+          });
+          
+          if (result) {
+            // Add derived task to memory
+            await this.coreAgent.request('memory:add-task', result);
+          }
+        }
+        
+        // Look for actionable goals (high priority tasks)
+        const actionableGoals = focusSet.filter(task => 
+          task.punctuation === '!' && task.priority >= this.priorityThreshold
+        );
+        
+        // Execute actionable goals if any
+        if (actionableGoals.length > 0) {
+          for (const goal of actionableGoals) {
+            await this.coreAgent.request('action:execute', goal);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error in cycle execution:', error);
+      // Continue execution despite errors
+    }
+
+    this.coreAgent.emit('cycle:complete', { 
+      cycle: this.cycleCount,
+      timestamp: Date.now()
+    });
+  }
+
+  _trackCyclePerformance(duration) {
+    this.cycleTimings.push({
+      cycle: this.cycleCount,
+      duration,
+      timestamp: Date.now()
+    });
+
+    // Keep only last 20 cycles for performance tracking
+    if (this.cycleTimings.length > 20) {
+      this.cycleTimings.shift();
+    }
+  }
+
+  _calculateNextInterval() {
+    if (this.cycleTimings.length < 3) {
+      return this.baseInterval;
+    }
+
+    // Calculate average cycle duration
+    const recentCycles = this.cycleTimings.slice(-5);
+    const avgDuration = recentCycles.reduce((sum, cycle) => sum + cycle.duration, 0) / recentCycles.length;
+
+    // Adaptive logic based on performance
+    let newInterval = this.baseInterval;
+    
+    if (avgDuration > 200) { // If cycles are taking too long
+      newInterval = Math.min(this.baseInterval * 2, this.baseInterval * 3); // Slow down
+    } else if (avgDuration < 50) { // If cycles are very fast
+      newInterval = Math.max(this.baseInterval * 0.5, this.baseInterval * 0.7); // Can speed up slightly
+    }
+    
+    // Apply system-wide load considerations
+    const memoryLoad = this.coreAgent.get('memory')?._getLoad?.() || 0;
+    if (memoryLoad > 0.8) {
+      newInterval *= 1.2; // Slow down under high memory load
+    } else if (memoryLoad < 0.2) {
+      newInterval *= 0.9; // Speed up under low load
+    }
+
+    this.adaptiveInterval = newInterval;
+    return this.adaptiveInterval;
+  }
+
+  _getStats() {
+    return {
+      cycleCount: this.cycleCount,
+      running: this.running,
+      averageCycleDuration: this.cycleTimings.length > 0 
+        ? this.cycleTimings.reduce((sum, c) => sum + c.duration, 0) / this.cycleTimings.length 
+        : 0,
+      currentInterval: this.adaptiveInterval,
+      baseInterval: this.baseInterval,
+      focusSetSize: this.focusSetSize,
+      performanceHistory: this.cycleTimings.slice(-10) // Last 10 cycles
+    };
+  }
+
+  async doStop() {
+    this.running = false;
+  }
+
+  _wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+}
+```
+
+- [ ] **Create Plugin Manager with hot reloading**
+```javascript
+// core-agent/PluginManager.js
+class PluginManager {
+  constructor(coreAgent) {
+    this.coreAgent = coreAgent;
+    this.plugins = new Map();
+    this.pluginInstances = new Map();
+    this.pluginMetadata = new Map();
+  }
+
+  // Register a plugin with metadata
+  register(pluginName, pluginFactory, metadata = {}) {
+    this.plugins.set(pluginName, pluginFactory);
+    this.pluginMetadata.set(pluginName, {
+      ...metadata,
+      registeredAt: Date.now()
+    });
+  }
+
+  // Load and initialize a plugin
+  async load(pluginName) {
+    const factory = this.plugins.get(pluginName);
+    if (!factory) {
+      throw new Error(`Plugin ${pluginName} not found`);
+    }
+    
+    try {
+      const plugin = await factory(this.coreAgent);
+      this.pluginInstances.set(pluginName, plugin);
+      this.coreAgent.register(pluginName, plugin);
+      
+      if (typeof plugin.initialize === 'function') {
+        await plugin.initialize();
+      }
+      
+      // Update metadata with loaded status
+      const meta = this.pluginMetadata.get(pluginName) || {};
+      meta.loadedAt = Date.now();
+      meta.status = 'active';
+      this.pluginMetadata.set(pluginName, meta);
+      
+      this.coreAgent.emit('plugin:loaded', { 
+        name: pluginName, 
+        metadata: meta 
+      });
+      
+      return plugin;
+    } catch (error) {
+      console.error(`Failed to load plugin ${pluginName}:`, error);
+      const meta = this.pluginMetadata.get(pluginName) || {};
+      meta.status = 'error';
+      meta.error = error.message;
+      this.pluginMetadata.set(pluginName, meta);
+      throw error;
+    }
+  }
+
+  // Unload a plugin
+  async unload(pluginName) {
+    const plugin = this.pluginInstances.get(pluginName);
+    if (plugin) {
+      // Give plugin chance to clean up
+      if (typeof plugin.stop === 'function') {
+        await plugin.stop();
+      }
+      
+      // Remove from core agent
+      this.coreAgent.components.delete(pluginName);
+      this.pluginInstances.delete(pluginName);
+      
+      const meta = this.pluginMetadata.get(pluginName) || {};
+      meta.unloadedAt = Date.now();
+      meta.status = 'unloaded';
+      this.pluginMetadata.set(pluginName, meta);
+      
+      this.coreAgent.emit('plugin:unloaded', { name: pluginName });
+    }
+  }
+
+  // Reload (unload and reload) a plugin
+  async reload(pluginName) {
+    await this.unload(pluginName);
+    return await this.load(pluginName);
+  }
+
+  // Get plugin status information
+  getStatus(pluginName = null) {
+    if (pluginName) {
+      return {
+        name: pluginName,
+        loaded: this.pluginInstances.has(pluginName),
+        metadata: this.pluginMetadata.get(pluginName) || null
+      };
+    }
+    
+    return Array.from(this.plugins.keys()).map(name => ({
+      name,
+      loaded: this.pluginInstances.has(name),
+      metadata: this.pluginMetadata.get(name) || null
+    }));
+  }
+
+  // Get all registered plugins
+  listPlugins() {
+    return Array.from(this.plugins.keys());
+  }
+
+  // Hot reload all plugins (for development)
+  async hotReloadAll() {
+    const results = {};
+    
+    for (const [name, plugin] of this.pluginInstances) {
+      try {
+        await this.reload(name);
+        results[name] = { status: 'success' };
+      } catch (error) {
+        results[name] = { status: 'error', error: error.message };
+      }
+    }
+    
+    return results;
+  }
+}
+```
+
 ### API and Interfaces
 
 - [ ] **Create main export interface**
@@ -927,6 +1218,44 @@ import SimpleConfig from './config/SimpleConfig.js';
 export { System, createCoreAgent, CoreAgent, Subsystem, SimpleConfig };
 export default System;
 ```
+
+### Implementation Guidelines
+
+- [ ] **Configuration and Environment Setup**
+  - Create default configuration profiles for different environments (development, production, testing)
+  - Implement configuration validation and error handling
+  - Provide configuration schema for type safety
+
+- [ ] **Performance Monitoring and Metrics**
+  - Implement performance counters and metrics collection
+  - Add memory usage tracking and garbage collection hints
+  - Create performance benchmarking utilities
+  - Set up monitoring dashboards and alerting
+
+- [ ] **Error Handling and Logging**
+  - Implement comprehensive error handling with context preservation
+  - Add structured logging with levels (debug, info, warn, error)
+  - Create error recovery mechanisms and fallback strategies
+  - Implement circuit breakers for external dependencies
+
+- [ ] **Security Considerations**
+  - Validate all inputs and sanitize data
+  - Implement authentication and authorization for sensitive operations
+  - Add rate limiting and DoS protection
+  - Secure communication channels and data storage
+
+- [ ] **Testing Strategy**
+  - Unit tests for individual components and functions
+  - Integration tests for subsystem interactions
+  - Performance tests for rule evaluation and winnowing
+  - End-to-end tests for complete system workflows
+  - Chaos engineering tests for resilience
+
+- [ ] **Deployment and Operations**
+  - Containerization support (Docker, Kubernetes)
+  - Configuration management for different environments
+  - Health check endpoints and liveness probes
+  - Backup and recovery procedures
 
 ### Testing and Validation
 
@@ -953,3 +1282,23 @@ export default System;
 - [x] **Robust**: Built-in error handling, caching, and lifecycle management
 - [x] **Adaptive**: Self-tuning performance based on system load
 - [x] **Production-ready**: Logging, statistics, and monitoring capabilities
+
+## Implementation Checklist
+
+- [ ] CoreAgent with metaprogramming and rule engine
+- [ ] Simplified configuration system with caching
+- [ ] Optimized rule engine with winnowing
+- [ ] Unified message system with middleware
+- [ ] Winnowing-based reasoning engine
+- [ ] Metaprogrammed subsystem base class  
+- [ ] Self-management subsystem using internal rules
+- [ ] Factory with system facilities ("dogfooding")
+- [ ] Enhanced System class with self-optimization
+- [ ] Cycle subsystem with adaptive timing
+- [ ] Plugin manager with hot reloading
+- [ ] Complete API and export interface
+- [ ] Performance monitoring and metrics
+- [ ] Error handling and logging framework
+- [ ] Security considerations implemented
+- [ ] Comprehensive testing suite
+- [ ] Deployment and operations setup
