@@ -1,4 +1,4 @@
-# NEXT2.md: Ultimate Combined Core/Agent Design (Simplified)
+# NEXT2.md: Ultimate Combined Core/Agent Design (Simplified) - CORRECTED
 
 ## Overview
 This document outlines a development plan to create a new, clean implementation of a unified Core/Agent system that incorporates all the refactoring patterns identified. This "ultimate" design eliminates the current messy codebase and provides a foundation for attaching subsystems in a modular way, with optimized rule evaluation and metaprogramming.
@@ -128,7 +128,11 @@ class Core {
   }
 }
 
-export default Core;
+// Return a proxied version of Core to enable direct property access to components
+export default function createCoreInstance(configData = {}) {
+  const core = new Core(configData);
+  return Core.createProxy(core);
+}
 ```
 
 - [ ] **Create simplified configuration system**
@@ -674,7 +678,7 @@ class Reasoning extends Component {
     for (const strategy of viableStrategies) {
       for (const belief of beliefs) {
         const result = await strategy.execute(task, belief, {
-          memory: this.core.get('memory')
+          memory: this.core.memory  // CORRECTED: Use direct property access instead of get()
         });
         
         if (result && result.success && result.derived) {
@@ -714,7 +718,7 @@ class Reasoning extends Component {
     
     for (const strategy of selfStrategies) {
       const result = await strategy.execute(task, task, {
-        memory: this.core.get('memory')
+        memory: this.core.memory  // CORRECTED: Use direct property access instead of get()
       });
       
       if (result && result.success && result.derived) {
@@ -783,7 +787,7 @@ class Cycle extends Component {
     this.core.messages.handle('cycle:get-stats', () => this._getStats());
   }
 
-  async doStart() {
+  async start() {
     this.running = true;
     while (this.running) {
       const startTime = Date.now();
@@ -875,7 +879,7 @@ class Cycle extends Component {
       newInterval = Math.max(this.baseInterval * 0.5, this.baseInterval * 0.7);
     }
     
-    const memoryLoad = this.core.get('memory')?._getLoad?.() || 0;
+    const memoryLoad = this.core.memory?._getLoad?.() || 0;  // CORRECTED: Use direct property access instead of get()
     if (memoryLoad > 0.8) {
       newInterval *= 1.2;
     } else if (memoryLoad < 0.2) {
@@ -900,7 +904,7 @@ class Cycle extends Component {
     };
   }
 
-  async doStop() {
+  async stop() {
     this.running = false;
   }
 
@@ -1051,9 +1055,12 @@ class Self extends Component {
     this.core.messages.handle('self:rules:add', (rule) => this.core.addRule(rule));
   }
 
-  async onInitialize() {
+  async initialize() {
+    if (this.initialized) return;
+    
     this._setupSelfManagementRules();
     this.setupHandlers();
+    this.initialized = true;
   }
 
   _setupSelfManagementRules() {
@@ -1107,8 +1114,8 @@ class Self extends Component {
   _getStats() {
     return {
       rules: this.core.rules.getStats(),
-      memory: this.core.get('memory')?._getStats?.() || 'not available',
-      cycle: this.core.get('cycle')?._getStats?.() || 'not available'
+      memory: this.core.memory?._getStats?.() || 'not available',  // CORRECTED: Use direct property access instead of get()
+      cycle: this.core.cycle?._getStats?.() || 'not available'     // CORRECTED: Use direct property access instead of get()
     };
   }
 }
@@ -1121,7 +1128,7 @@ export default Self;
 - [ ] **Create factory that uses system facilities**
 ```javascript
 // core/createCore.js
-import Core from './Core.js';
+import createCoreInstance from './Core.js';  // CORRECTED: Import the function that returns proxied core
 import Memory from './Memory.js';
 import Reasoning from './Reasoning.js';
 import Cycle from './Cycle.js';
@@ -1129,7 +1136,7 @@ import Self from './Self.js';
 import Plugins from './Plugins.js';
 
 export function createCore(configData = {}) {
-  const core = new Core(configData);
+  const core = createCoreInstance(configData);  // CORRECTED: Use the function that returns proxied core
   
   // Add default middleware that uses the core's own facilities
   core.messages?.use(async (type, data, next) => {
@@ -1201,7 +1208,7 @@ export class System {
   async start() {
     if (!this.lifecycle.initialized) await this.initialize();
     
-    const selfComponent = this.core.get('self');
+    const selfComponent = this.core.self;  // CORRECTED: Use direct property access instead of get()
     if (selfComponent && typeof selfComponent.start === 'function') {
       await selfComponent.start();
     }
@@ -1216,7 +1223,7 @@ export class System {
   }
 
   use(pluginName, pluginFactory) {
-    const plugins = this.core.get('plugins');
+    const plugins = this.core.plugins;  // CORRECTED: Use direct property access instead of get()
     if (plugins) {
       plugins.register(pluginName, pluginFactory);
     }
@@ -1224,14 +1231,14 @@ export class System {
   }
 
   async loadPlugin(pluginName) {
-    const plugins = this.core.get('plugins');
+    const plugins = this.core.plugins;  // CORRECTED: Use direct property access instead of get()
     if (plugins) {
       return await plugins.load(pluginName);
     }
   }
 
   async unloadPlugin(pluginName) {
-    const plugins = this.core.get('plugins');
+    const plugins = this.core.plugins;  // CORRECTED: Use direct property access instead of get()
     if (plugins) {
       return await plugins.unload(pluginName);
     }
@@ -1263,10 +1270,10 @@ export class System {
       started: this.lifecycle.started,
       components: Array.from(this.core.components.keys()),
       stats: {
-        memory: this.core.get('memory')?._getStats?.() || null,
-        reasoning: this.core.get('reasoning')?.getStats?.() || null,
-        cycle: this.core.get('cycle')?._getStats?.() || null,
-        self: this.core.get('self')?._getStats?.() || null,
+        memory: this.core.memory?._getStats?.() || null,      // CORRECTED: Use direct property access instead of get()
+        reasoning: this.core.reasoning?.getStats?.() || null, // CORRECTED: Use direct property access instead of get()
+        cycle: this.core.cycle?._getStats?.() || null,       // CORRECTED: Use direct property access instead of get()
+        self: this.core.self?._getStats?.() || null,         // CORRECTED: Use direct property access instead of get()
         rules: this.core.rules.getStats()
       }
     };
