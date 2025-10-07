@@ -3,7 +3,7 @@
  * Provides message handling capabilities using the coreagent architecture
  */
 
-import {System} from '../coreagent/index.js';
+// System import removed - not currently used
 import logger from '../coreagent/utils/logger.js';
 
 const log = logger.create('MessageHandler');
@@ -19,7 +19,7 @@ export function createMessageHandler(coreagentSystem, options = {}) {
         /**
          * Handle incoming message
          */
-        async handleMessage(message, clientInfo = {}) {
+        async handleMessage(message, _clientInfo = {}) {
             try {
                 log.debug('Handling message:', message);
 

@@ -41,7 +41,7 @@ class PluginManager {
      * @param {string} directoryPath - Path to directory containing plugins
      */
     async loadPluginsFromDirectory(directoryPath) {
-        const {readdir, stat, readFile} = await import('fs/promises');
+        const {readdir, stat} = await import('fs/promises');
         const {join} = await import('path');
 
         try {

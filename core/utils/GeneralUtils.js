@@ -150,6 +150,9 @@ function generateId() {
     return generateCoreId();
 }
 
+// Re-export utilities that are duplicated in coreagent/utils.js
+// These should eventually be consolidated into a single location
+
 /**
  * Utility to format time duration in human-readable format
  * @param {number} ms - Duration in milliseconds

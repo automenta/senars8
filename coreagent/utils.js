@@ -70,10 +70,8 @@ export const benchmarkFunction = async (name, fn, iterations = 1000, ...args) =>
     };
 };
 
-// Import debounce and throttle from GeneralUtils for consistency
-import {debounce, throttle} from '../core/utils/GeneralUtils.js';
-
-export {debounce, throttle};
+// Note: debounce and throttle are available from GeneralUtils but not re-exported here
+// to avoid circular dependencies. Import directly from '../core/utils/GeneralUtils.js' if needed
 
 export const createTaskFilter = criteria => task =>
     Object.entries(criteria).every(([k, v]) => task[k] === v);

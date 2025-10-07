@@ -3,7 +3,7 @@
  * Provides WebSocket connectivity using the coreagent architecture
  */
 
-import {System} from '../coreagent/index.js';
+// System import removed - not currently used
 import logger from '../coreagent/utils/logger.js';
 
 const log = logger.create('WebSocketServer');
@@ -30,7 +30,7 @@ export class UnifiedWebSocketServer {
         log.info(`Starting WebSocket server on ${this.options.host}:${this.options.port}`);
 
         // Use coreagent's plugin system for WebSocket functionality
-        this.system.use('websocket', async (core) => {
+        this.system.use('websocket', async (_core) => {
             return {
                 name: 'WebSocketServer',
                 async initialize() {

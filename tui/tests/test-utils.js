@@ -164,9 +164,8 @@ export async function createMockTuiServer(port, messageHandler) {
  * @returns {Promise<Object>} Test setup with agent manager, ws manager, etc.
  */
 export async function setupTuiTestEnvironment(port) {
-    // TODO: Fix these broken imports - UnifiedWebSocketServer and createMessageHandler need to be implemented or imported from correct location
-    // const {UnifiedWebSocketServer} = await import('../../agent/StandaloneWebSocketServer.js');
-    // const {createMessageHandler} = await import('../../agent/MessageHandler.js');
+    // TODO: Implement proper WebSocket server and message handler integration with System
+    // These imports are currently broken and need to be fixed when WebSocket functionality is implemented
 
     // Setup agent manager and WebSocket manager
     // const agent = new System();

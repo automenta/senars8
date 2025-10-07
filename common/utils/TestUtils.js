@@ -4,9 +4,8 @@
  */
 
 import {setTimeout} from 'timers/promises';
-// TODO: Fix these broken imports - UnifiedWebSocketServer and createMessageHandler need to be implemented or imported from correct location
-// import {UnifiedWebSocketServer} from '../../agent/StandaloneWebSocketServer.js';
-// import {createMessageHandler} from '../../agent/MessageHandler.js';
+// TODO: Implement proper WebSocket server and message handler integration with System
+// These imports are currently broken and need to be fixed when WebSocket functionality is implemented
 
 /**
  * Starts a test agent for use in UI tests
