@@ -138,14 +138,43 @@ class LM {
         }
 
         if (provider === 'xenova') {
-            const pipeline = await this._pipelineFactory.get(
-                PIPELINE_TYPES.TEXT_GENERATION,
-                this.config.getString('LM.TEXT_GENERATION_MODEL', 'Xenova/distilgpt2'), {
-                    useCache: false
+            try {
+                const pipeline = await this._pipelineFactory.get(
+                    PIPELINE_TYPES.TEXT_GENERATION,
+                    this.config.getString('LM.TEXT_GENERATION_MODEL', 'Xenova/distilgpt2'), {
+                        useCache: false
+                    }
+                );
+                this._llm = new XenovaLLM(pipeline);
+                return pipeline;
+            } catch (error) {
+                // If Xenova fails due to ONNX runtime issues, warn and potentially fall back
+                if (error.code === 'ERR_DLOPEN_FAILED' && error.message.includes('did not self-register')) {
+                    warn(`ONNX runtime failed to load for Xenova provider: ${error.message}. Consider switching providers in config.`);
+                    
+                    // Optionally try to initialize Ollama as fallback
+                    try {
+                        info('Attempting fallback to Ollama provider...');
+                        this._llm = new Ollama({
+                            model: this.config.getString('LM.TEXT_GENERATION_MODEL', 'Xenova/distilgpt2'),
+                            baseUrl: this.config.getString('LM.OLLAMA_BASE_URL', 'http://127.0.0.1:11434'),
+                        });
+                        return (prompt, options) => this._llm.invoke(prompt, options);
+                    } catch (fallbackError) {
+                        warn(`Fallback to Ollama also failed: ${fallbackError.message}`);
+                        // Check if it's a fetch error - if so, we can still return the Ollama instance but it will fail on use
+                        if (fallbackError.message.includes('fetch failed')) {
+                            // Still set the Ollama instance, but warn that it's not accessible
+                            warn('Ollama provider configured but server may not be accessible');
+                        } else {
+                            // For other errors, re-throw the original error
+                            throw error;
+                        }
+                    }
                 }
-            );
-            this._llm = new XenovaLLM(pipeline);
-            return pipeline;
+                // Re-throw other errors
+                throw error;
+            }
         }
 
         throw new Error(`Unsupported LLM provider: ${provider}`);
@@ -163,13 +192,25 @@ class LM {
         if (!prompt || typeof prompt !== 'string') {
             throw new Error('Prompt must be a non-empty string');
         }
-        return errorHandler.execute(async () => {
-            debug('Generating text with prompt length:', prompt.length);
+        
+        debug('Generating text with prompt length:', prompt.length);
+        try {
             await this.getGenerationPipeline();
             const result = await this._llm.invoke(prompt, options);
             debug('Text generation completed');
             return result;
-        }, 'generate', null);
+        } catch (error) {
+            if (error.message.includes('fetch failed')) {
+                // Suppress fetch errors - just return null when Ollama is unavailable
+                return null;
+            }
+            if (error.code === 'ERR_DLOPEN_FAILED' && error.message.includes('did not self-register')) {
+                // Suppress ONNX runtime errors - just return null when transformers unavailable
+                return null;
+            }
+            // Re-throw other errors so they can be handled by calling code
+            throw error;
+        }
     }
 
     _getStructuredOutputParser(outputSchema) {
@@ -270,6 +311,16 @@ class LM {
 
     async answerQuestion(question, context = null) {
         return this._qaService.answerQuestion(question, context);
+    }
+
+    async generate(prompt, options = {}) {
+        // Public generate method that handles LLM unavailability gracefully
+        try {
+            return await this._generate(prompt, options);
+        } catch (error) {
+            // Return null if LLM is unavailable
+            return null;
+        }
     }
 
     async suggestPlanRepair(goalTask, failedPlan) {

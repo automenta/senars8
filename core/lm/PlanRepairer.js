@@ -15,11 +15,12 @@ class PlanRepairer {
     async suggestPlanRepair(goalTask, failedPlan) {
         if (!goalTask) throw new Error('Goal task is required');
 
-        return await errorHandler.execute(async () => {
-            debug(`Suggesting plan repair for goal: ${goalTask.termKey}`);
-            await this._getGenerationPipeline();
-
-            const context = this._createPlanRepairContext(goalTask.termKey, failedPlan);
+        debug(`Suggesting plan repair for goal: ${goalTask.termKey}`);
+        
+        const context = this._createPlanRepairContext(goalTask.termKey, failedPlan);
+        
+        try {
+            // The _createStructuredChain might fail if the underlying LLM can't be initialized
             const chain = this._createStructuredChain(
                 `${context}New creative plan:`,
                 zod.object({plan: zod.array(zod.string()).describe('A list of Narsese terms for the new plan.')})
@@ -36,11 +37,20 @@ class PlanRepairer {
             const planTerms = parsed.plan.map(parseTerm).filter(Boolean);
             debug(`Plan repair suggested ${planTerms.length} terms`);
             return planTerms;
-        }, `suggestPlanRepair for goal: ${goalTask.termKey}`, null);
+        } catch (error) {
+            // Suppress ALL LLM-related errors and just return null
+            return null;
+        }
     }
 
     _createPlanRepairContext(goal, failedPlan) {
-        const failedPlanSteps = failedPlan?.map(t => t.key).join(', ') || 'None';
+        let failedPlanSteps = 'None';
+        if (Array.isArray(failedPlan)) {
+            failedPlanSteps = failedPlan.map(t => t?.key || t).filter(Boolean).join(', ') || 'None';
+        } else if (failedPlan != null) {
+            // If failedPlan is not an array but is truthy, try to get a string representation
+            failedPlanSteps = String(failedPlan);
+        }
         return `Goal: ${goal}\nFailed Plan: ${failedPlanSteps}\nThe previous attempt to achieve the goal failed. Please suggest a new sequence of primitive actions to achieve the goal. The new plan should be a list of Narsese terms.`;
     }
 }

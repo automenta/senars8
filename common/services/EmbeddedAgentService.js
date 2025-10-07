@@ -149,7 +149,11 @@ class EmbeddedAgentService extends EventEmitter {
      */
     _handleAgentMessage(message) {
         // Forward agent messages as if they came from WebSocket
-        this.emit('message', {data: JSON.stringify(message)});
+        // Use custom JSON serialization to handle BigInt values
+        const serializedMessage = JSON.stringify(message, (key, value) =>
+            typeof value === 'bigint' ? value.toString() : value
+        );
+        this.emit('message', {data: serializedMessage});
     }
 
     /**

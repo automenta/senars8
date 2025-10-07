@@ -21,19 +21,29 @@ class PipelineFactory {
             }
         }
 
-        const {pipeline} = await import('@xenova/transformers');
-
-        info(`Loading pipeline: ${type} - ${model}`);
-        const newPipeline = await errorHandler.execute(
-            () => pipeline(type, model, options),
-            `create-pipeline-${key}`
-        );
-
-        // Only cache if the pipeline is valid (is a function or has expected call method)
-        if (newPipeline && (typeof newPipeline === 'function' || typeof newPipeline.call === 'function')) {
-            this._pipelines.set(key, newPipeline);
+        try {
+            const {pipeline} = await import('@xenova/transformers');
+    
+            info(`Loading pipeline: ${type} - ${model}`);
+            const newPipeline = await errorHandler.execute(
+                () => pipeline(type, model, options),
+                `create-pipeline-${key}`
+            );
+    
+            // Only cache if the pipeline is valid (is a function or has expected call method)
+            if (newPipeline && (typeof newPipeline === 'function' || typeof newPipeline.call === 'function')) {
+                this._pipelines.set(key, newPipeline);
+            }
+            return newPipeline;
+        } catch (error) {
+            // Handle the specific ONNX runtime error
+            if (error.code === 'ERR_DLOPEN_FAILED' && error.message.includes('did not self-register')) {
+                console.warn(`ONNX runtime failed to load: ${error.message}. Transformers functionality unavailable.`);
+                throw error; // Re-throw so calling code can handle it appropriately
+            }
+            // Re-throw other errors
+            throw error;
         }
-        return newPipeline;
     }
 
     dispose() {
