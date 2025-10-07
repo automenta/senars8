@@ -8,6 +8,8 @@ import {debug, info} from '../utils/logger.js';
 import * as TemporalModules from './temporal/index.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
 import {calculateTemporalModuleEffectiveness} from '../utils/effectiveness-utils.js';
+import TemporalCache from './temporal/TemporalCache.js';
+import LMTemporalPatternPredictor from './temporal/LMTemporalPatternPredictor.js';
 
 const errorHandler = createUnifiedErrorHandler('TemporalReasoner');
 
@@ -15,10 +17,21 @@ class TemporalReasoner {
     /**
      * Creates a TemporalReasoner instance
      * @param {ConfigManager} configManager - System configuration manager
+     * @param {MetricsService} metricsService - Metrics service instance
+     * @param {LM} lm - Language model instance for predictions
      */
-    constructor(configManager, metricsService = null) {
+    constructor(configManager, metricsService = null, lm = null) {
         this.config = createConfigAccessor(configManager, 'temporal');
 
+        // Initialize caching mechanism
+        this.cache = new TemporalCache(
+            this.config.get('temporal.CACHE_MAX_ENTRIES', 1000),
+            this.config.get('temporal.CACHE_TTL_MS', 5 * 60 * 1000) // 5 minutes default
+        );
+        
+        // Initialize LM-powered predictor
+        this.lmPredictor = new LMTemporalPatternPredictor(lm);
+        
         // Initialize all temporal inference modules
         this.inferenceModules = [
             TemporalModules.TemporalRelationshipInference,
@@ -32,6 +45,15 @@ class TemporalReasoner {
             TemporalModules.TemporalSummaryGeneration
         ];
 
+        // Set cache for all modules that support it
+        this._setupCaching();
+        
+        // Set metrics service for all modules that support it
+        this._setupMetrics(metricsService);
+        
+        // Set LM predictor cache
+        this.lmPredictor.setCache(this.cache);
+
         // Performance tracking
         this.performanceStats = new Map();
         
@@ -44,7 +66,38 @@ class TemporalReasoner {
         
         this.metricsService = metricsService;
 
-        info(`TemporalReasoner initialized with ${this.inferenceModules.length} inference modules`);
+        info(`TemporalReasoner initialized with ${this.inferenceModules.length} inference modules and caching`);
+    }
+    
+    /**
+     * Sets up caching for modules that support it
+     * @private
+     */
+    _setupCaching() {
+        for (const module of this.inferenceModules) {
+            if (module.setCache) {
+                module.setCache(this.cache);
+            }
+        }
+    }
+    
+    /**
+     * Sets up metrics service for modules that support it
+     * @private
+     * @param {MetricsService} metricsService
+     */
+    _setupMetrics(metricsService) {
+        if (metricsService) {
+            // Set metrics service in cache
+            this.cache.setMetricsService(metricsService);
+            
+            // Set metrics service for modules that support it
+            for (const module of this.inferenceModules) {
+                if (module.setMetricsService) {
+                    module.setMetricsService(metricsService);
+                }
+            }
+        }
     }
 
     /**
@@ -53,9 +106,10 @@ class TemporalReasoner {
      * @param {object} [options] - Options for temporal inference
      * @param {boolean} [options.enableAllModules=true] - Whether to run all modules
      * @param {string[]} [options.enabledModules] - Specific modules to enable (if provided, overrides enableAllModules)
+     * @param {boolean} [options.useLMEnhancement=true] - Whether to use LM-powered temporal pattern prediction
      * @returns {Task[]} Array of temporally-derived tasks
      */
-    infer(tasks, options = {}) {
+    async infer(tasks, options = {}) {
         const config = this.config.get('temporal');
 
         if (!config) {
@@ -65,7 +119,8 @@ class TemporalReasoner {
 
         const {
             enableAllModules = true,
-            enabledModules = null
+            enabledModules = null,
+            useLMEnhancement = true
         } = options;
 
         let modulesToRun = this.inferenceModules;
@@ -80,13 +135,19 @@ class TemporalReasoner {
             return [];
         }
 
+        // Use LM enhancement to predict likely patterns and preload cache
+        if (useLMEnhancement && this.lmPredictor) {
+            await this.lmPredictor.predictTemporalPatterns(tasks);
+        }
+
         // Run all selected inference modules
         const allInferredTasks = modulesToRun.flatMap(InferenceModule => {
             const moduleName = this._getModuleName(InferenceModule);
             const result = errorHandler.executeSync(() => {
                 // Track performance for this module
                 const startTime = Date.now();
-                const result = InferenceModule.infer(tasks, config);
+                // Pass options to the infer method so modules can use them for caching
+                const result = InferenceModule.infer(tasks, options);
                 const endTime = Date.now();
 
                 // Update performance statistics
@@ -116,9 +177,10 @@ class TemporalReasoner {
      * Performs selective temporal inference on specific modules
      * @param {Task[]} tasks - Array of tasks to perform temporal reasoning on
      * @param {string[]} moduleNames - Names of modules to run
+     * @param {object} [options] - Options for temporal inference
      * @returns {Task[]} Array of temporally-derived tasks
      */
-    selectiveInfer(tasks, moduleNames) {
+    selectiveInfer(tasks, moduleNames, options = {}) {
         if (!Array.isArray(moduleNames)) {
             throw new Error('moduleNames must be an array of module names');
         }
@@ -142,7 +204,8 @@ class TemporalReasoner {
 
             const result = errorHandler.executeSync(() => {
                 const startTime = Date.now();
-                const result = module.infer(tasks, config);
+                // Pass options to the infer method so modules can use them for caching
+                const result = module.infer(tasks, options);
                 const endTime = Date.now();
 
                 this._updatePerformanceStats(moduleName, endTime - startTime, Array.isArray(result) ? result.length : 0);
@@ -164,9 +227,10 @@ class TemporalReasoner {
     /**
      * Detects temporal patterns in the given tasks
      * @param {Task[]} tasks - Array of tasks to analyze
+     * @param {object} [options] - Options for pattern detection
      * @returns {object[]} Array of detected temporal patterns
      */
-    detectTemporalPatterns(tasks) {
+    detectTemporalPatterns(tasks, options = {}) {
         const config = this.config.get('temporal');
 
         if (!config) {
@@ -174,16 +238,17 @@ class TemporalReasoner {
         }
 
         return errorHandler.executeSync(() => {
-            return TemporalModules.TemporalPatternDetection?.detect?.(tasks, config) || [];
+            return TemporalModules.TemporalPatternDetection?.detect?.(tasks, options) || [];
         }, 'detectTemporalPatterns', []);
     }
 
     /**
      * Predicts future tasks based on temporal patterns
      * @param {Task[]} tasks - Array of tasks to base predictions on
+     * @param {object} [options] - Options for future task prediction
      * @returns {Task[]} Array of predicted future tasks
      */
-    predictFutureTasks(tasks) {
+    predictFutureTasks(tasks, options = {}) {
         const config = this.config.get('temporal');
 
         if (!config) {
@@ -191,7 +256,7 @@ class TemporalReasoner {
         }
 
         return errorHandler.executeSync(() => {
-            return TemporalModules.FutureTaskPrediction?.predict?.(tasks, config) || [];
+            return TemporalModules.FutureTaskPrediction?.predict?.(tasks, options) || [];
         }, 'predictFutureTasks', []);
     }
 
@@ -306,6 +371,44 @@ class TemporalReasoner {
             ...this.cachingStats,
             effectiveness
         };
+    }
+    
+    /**
+     * Gets the cache instance
+     * @returns {TemporalCache} The temporal cache instance
+     */
+    getCache() {
+        return this.cache;
+    }
+    
+    /**
+     * Clears the temporal cache
+     */
+    clearCache() {
+        if (this.cache) {
+            this.cache.clear();
+            info('Temporal cache cleared');
+        }
+    }
+    
+    /**
+     * Gets cache statistics
+     * @returns {object} Cache statistics
+     */
+    getCacheStats() {
+        if (this.cache) {
+            return this.cache.getStats();
+        }
+        return null;
+    }
+    
+    /**
+     * Performs cache maintenance (removes expired entries)
+     */
+    cleanupCache() {
+        if (this.cache) {
+            this.cache.cleanup();
+        }
     }
 }
 

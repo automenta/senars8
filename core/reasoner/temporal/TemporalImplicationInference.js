@@ -6,13 +6,42 @@ import config from '../../config/index.js';
 const errorHandler = createUnifiedErrorHandler('TemporalImplicationInference');
 
 class TemporalImplicationInference {
-    static infer(temporalFocusSet) {
+    static cache = null;
+    static metricsService = null;
+
+    /**
+     * Sets the cache instance for this module
+     * @param {TemporalCache} cache - Temporal cache instance
+     */
+    static setCache(cache) {
+        TemporalImplicationInference.cache = cache;
+    }
+
+    /**
+     * Sets the metrics service for tracking performance
+     * @param {MetricsService} metricsService - Metrics service instance
+     */
+    static setMetricsService(metricsService) {
+        TemporalImplicationInference.metricsService = metricsService;
+    }
+
+    static infer(temporalFocusSet, options = {}) {
         return errorHandler.executeSync(() => {
             debug(`Inferring temporal implications for ${temporalFocusSet.length} tasks`);
+            
+            // If cache is available, try to retrieve cached result first
+            if (TemporalImplicationInference.cache) {
+                const cachedResult = TemporalImplicationInference.cache.get('TemporalImplicationInference', temporalFocusSet, options);
+                if (cachedResult !== null) {
+                    debug(`Cache hit for TemporalImplicationInference with ${temporalFocusSet.length} tasks`);
+                    return cachedResult;
+                }
+            }
+
             const implicationTasks = [];
             let implicationCount = 0;
 
-            const maxComparisons = config.temporal.MAX_COMPARISONS;
+            const maxComparisons = config.temporal.MAX_COMPARISONS || options.maxComparisons || 1000; // Use options as fallback
             let comparisonCount = 0;
 
             for (let i = 0; i < temporalFocusSet.length && comparisonCount < maxComparisons; i++) {
@@ -27,6 +56,12 @@ class TemporalImplicationInference {
             }
 
             debug(`Found ${implicationCount} temporal implications (${comparisonCount} comparisons)`);
+            
+            // Cache the result if cache is available
+            if (TemporalImplicationInference.cache) {
+                TemporalImplicationInference.cache.set('TemporalImplicationInference', temporalFocusSet, implicationTasks, options);
+            }
+
             return implicationTasks;
         }, 'infer', []);
     }

@@ -7,9 +7,38 @@ import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
 const errorHandler = createUnifiedErrorHandler('TemporalPatternDetection');
 
 class TemporalPatternDetection {
-    static detect(temporalFocusSet) {
+    static cache = null;
+    static metricsService = null;
+
+    /**
+     * Sets the cache instance for this module
+     * @param {TemporalCache} cache - Temporal cache instance
+     */
+    static setCache(cache) {
+        TemporalPatternDetection.cache = cache;
+    }
+
+    /**
+     * Sets the metrics service for tracking performance
+     * @param {MetricsService} metricsService - Metrics service instance
+     */
+    static setMetricsService(metricsService) {
+        TemporalPatternDetection.metricsService = metricsService;
+    }
+
+    static detect(temporalFocusSet, config = {}) {
         return errorHandler.executeSync(() => {
             debug(`Detecting temporal patterns for ${temporalFocusSet.length} tasks`);
+            
+            // If cache is available, try to retrieve cached result first
+            if (TemporalPatternDetection.cache) {
+                const cachedResult = TemporalPatternDetection.cache.get('TemporalPatternDetection', temporalFocusSet, config);
+                if (cachedResult !== null) {
+                    debug(`Cache hit for TemporalPatternDetection with ${temporalFocusSet.length} tasks`);
+                    return cachedResult;
+                }
+            }
+
             const patternTasks = [];
             const patterns = detectTemporalPatterns(temporalFocusSet);
 
@@ -40,6 +69,12 @@ class TemporalPatternDetection {
             }
 
             debug(`Detected ${patternTasks.length} temporal pattern tasks`);
+            
+            // Cache the result if cache is available
+            if (TemporalPatternDetection.cache) {
+                TemporalPatternDetection.cache.set('TemporalPatternDetection', temporalFocusSet, patternTasks, config);
+            }
+
             return patternTasks;
         }, 'detect', []);
     }

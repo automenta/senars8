@@ -7,6 +7,8 @@ import TemporalAnomalyDetection from './TemporalAnomalyDetection.js';
 import FutureTaskPrediction from './FutureTaskPrediction.js';
 import TemporalClusterDetection from './TemporalClusterDetection.js';
 import TemporalSummaryGeneration from './TemporalSummaryGeneration.js';
+import TemporalCache from './TemporalCache.js';
+import LMTemporalPatternPredictor from './LMTemporalPatternPredictor.js';
 
 export {
     TemporalRelationshipInference,
@@ -17,5 +19,7 @@ export {
     TemporalAnomalyDetection,
     FutureTaskPrediction,
     TemporalClusterDetection,
-    TemporalSummaryGeneration
+    TemporalSummaryGeneration,
+    TemporalCache,
+    LMTemporalPatternPredictor
 };
