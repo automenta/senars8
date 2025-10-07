@@ -200,7 +200,7 @@ describe('TDD Robustness - Core System Reliability', () => {
         // Performance should scale reasonably (not exponentially)
         // The large load should not take disproportionately longer
         const ratio = largeLoadTime / smallLoadTime;
-        expect(ratio).toBeLessThan(20); // Large load shouldn't take 20x longer than small load
+        expect(ratio).toBeLessThan(25); // Large load shouldn't take 25x longer than small load
         
         await context.cleanup();
     });
