@@ -1,4 +1,9 @@
 import {info, debug, warn} from '../utils/logger.js';
+import {
+    calculateStrategyEffectiveness,
+    calculateTemporalModuleEffectiveness,
+    calculateContradictionResolutionEffectiveness
+} from '../utils/effectiveness-utils.js';
 
 /**
  * Centralized metrics service for system observability
@@ -296,12 +301,7 @@ class MetricsService {
         const reasoningMetrics = this.metrics.get('reasoning');
         const effectiveness = {};
         for (const [name, stats] of reasoningMetrics.strategyStats) {
-            effectiveness[name] = {
-                successRate: stats.successes / (stats.executions || 1),
-                averageExecutionTime: stats.averageTime,
-                totalExecutions: stats.executions,
-                totalSuccesses: stats.successes
-            };
+            effectiveness[name] = calculateStrategyEffectiveness(stats);
         }
         return effectiveness;
     }

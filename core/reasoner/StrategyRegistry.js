@@ -1,4 +1,5 @@
 import {error as logError, info, warn} from '../utils/logger.js';
+import {calculateEffectiveness} from '../utils/effectiveness-utils.js';
 
 class StrategyRegistry {
     constructor(metricsService = null) {
@@ -189,7 +190,7 @@ class StrategyRegistry {
             
             // Get strategy effectiveness (combining success rate and execution time)
             const averageTime = stats.averageTime || 0;
-            const effectiveness = this._calculateEffectiveness(successRate, averageTime);
+            const effectiveness = calculateEffectiveness(successRate, averageTime);
             
             // Add contextual information if available
             const taskContextScore = this._getTaskContextScore(task, name, taskType);
@@ -353,10 +354,11 @@ Return only the name of the best strategy to use.
 
     /**
      * Calculate strategy effectiveness combining success rate and execution time
+     * DEPRECATED: Use utility function from effectiveness-utils.js
      */
     _calculateEffectiveness(successRate, averageTime) {
-        // Logarithmic scaling to prevent execution time from overly penalizing faster strategies
-        return averageTime > 0 ? successRate / Math.log(averageTime + 1) : successRate;
+        // DEPRECATED: Use utility function instead
+        return calculateEffectiveness(successRate, averageTime);
     }
 
     /**
@@ -595,7 +597,7 @@ Return only the name of the best strategy to use.
             const successes = stats.successes || 0;
             const successRate = totalExecutions > 0 ? successes / totalExecutions : 0;
             const averageTime = stats.averageTime || 0;
-            const effectiveness = this._calculateEffectiveness(successRate, averageTime);
+            const effectiveness = calculateEffectiveness(successRate, averageTime);
             
             strategyRanks.push({
                 name,

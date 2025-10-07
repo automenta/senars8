@@ -7,6 +7,7 @@ import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import {debug, info} from '../utils/logger.js';
 import * as TemporalModules from './temporal/index.js';
 import createConfigAccessor from '../config/ConfigAccessor.js';
+import {calculateTemporalModuleEffectiveness} from '../utils/effectiveness-utils.js';
 
 const errorHandler = createUnifiedErrorHandler('TemporalReasoner');
 
@@ -201,10 +202,11 @@ class TemporalReasoner {
     getPerformanceStats() {
         const stats = {};
         for (const [moduleName, moduleStats] of this.performanceStats) {
+            // Calculate standardized effectiveness for each module
+            const moduleEffectiveness = calculateTemporalModuleEffectiveness(moduleStats);
             stats[moduleName] = {
                 ...moduleStats,
-                averageExecutionTime: moduleStats.totalExecutionTime / moduleStats.callCount,
-                tasksPerSecond: moduleStats.totalTasksGenerated / (moduleStats.totalExecutionTime / 1000 || 1)
+                ...moduleEffectiveness
             };
         }
 
