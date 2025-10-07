@@ -44,13 +44,19 @@ const BINARY_RELATION_MAP = {
 };
 
 class NarseseParser {
-    constructor(input) {
-        this.input = input;
-        this.lexer = lexer.clone().reset(input);
+    constructor(core) {
+        this.core = core;
+        this.lexer = lexer.clone();
         this.current = null;
         this.recursionDepth = 0;
         this.maxRecursionDepth = 100; // Prevent infinite recursion/stack overflow
+    }
+
+    parse(input) {
+        this.input = input;
+        this.lexer.reset(input);
         this.next();
+        return this.parseMain();
     }
 
     next() {

@@ -4,6 +4,9 @@ import Reasoning from './Reasoning.js';
 import Cycle from './Cycle.js';
 import Self from './Self.js';
 import Plugins from './Plugins.js';
+import LM from './lm/LM.js';
+import { NarseseParser } from './parser/narseseParser.js';
+import ToolSystem from './tools/ToolSystem.js';
 
 export function createCore(configData = {}) {
   const core = createCoreInstance(configData);
@@ -33,7 +36,10 @@ export function createCore(configData = {}) {
     .register('reasoning', new Reasoning(core))
     .register('cycle', new Cycle(core))
     .register('self', new Self(core))
-    .register('plugins', new Plugins(core));
+    .register('plugins', new Plugins(core))
+    .register('lm', new LM(core))
+    .register('parser', new NarseseParser(core))
+    .register('tools', new ToolSystem(core));
   
   return core;
 }

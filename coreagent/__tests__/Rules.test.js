@@ -1,14 +1,13 @@
-// coreagent/__tests__/Rules.test.js
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createCore } from '../createCore.js';
+import Core from '../Core.js';
+import Rules from '../Rules.js';
 
 describe('Rules', () => {
-  let system, rules;
+  let core, rules;
 
-  beforeEach(async () => {
-    system = createCore();
-    await system.initialize();
-    rules = system.rules;
+  beforeEach(() => {
+    core = new Core();
+    rules = new Rules(core);
   });
 
   it('should add and retrieve rules', () => {

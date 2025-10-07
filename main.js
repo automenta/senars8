@@ -1,10 +1,9 @@
 import {execa} from 'execa';
 import {createServer} from 'vite';
 import path from 'path';
-import Agent from './agent/index.js';
-import logger from './core/utils/logger.js';
-import AgentManager from './agent/AgentManager.js';
-import {agentServerPlugin} from './agent/vite-plugin.js';
+import {System} from './coreagent/index.js';
+import logger from './coreagent/utils/logger.js';
+
 import {pathToFileURL} from 'url';
 import {applicationConfig} from './core/index.js';
 import {setupGracefulShutdown} from './core/utils/system.js';
@@ -14,7 +13,7 @@ import resourceManager from './core/utils/ResourceManager.js';
 const log = logger.create('main');
 
 export const AppRunner = {
-    async startWebInterface(agentManager) {
+    async startWebInterface() {
         log.info('Starting web UI...');
         try {
             const port = process.env.PORT || applicationConfig.getUiPort();
@@ -26,7 +25,7 @@ export const AppRunner = {
                     clearScreen: false,
                     strictPort: true // Fail if port is busy
                 },
-                plugins: [agentServerPlugin(agentManager)],
+                
             });
             await server.listen();
             server.printUrls();
@@ -58,7 +57,7 @@ export const AppRunner = {
 
     async startAgent() {
         log.info('Starting agent with CoreAgent system...');
-        const agent = new Agent();
+        const agent = new System();
         await agent.initialize();
         agent.start();
         log.info('Agent with CoreAgent system started successfully.');
@@ -67,14 +66,10 @@ export const AppRunner = {
 
     async run(args = {}) {
         try {
-            const agentManager = new AgentManager();
-            // Initialization is now handled by the component that uses it (e.g., Vite plugin)
             
-            // Register agent manager with resource manager
-            resourceManager.register('agentManager', agentManager);
             
             if (args.web) {
-                await this.startWebInterface(agentManager);
+                await this.startWebInterface();
             } else if (args.tui) {
                 await this.startTui();
             } else {

@@ -59,7 +59,7 @@ class Core {
     for (const [name, component] of this.components) {
       if (typeof component.start === 'function') {
         try {
-          await component.start();
+          component.start();
         } catch (error) {
           console.error(`Error starting component ${name}:`, error);
         }
