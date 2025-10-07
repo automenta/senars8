@@ -104,7 +104,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             expect(endTime - startTime).toBeLessThan(100);
 
             // Verify cache statistics are working
-            const stats = memory.getStatistics();
+            const stats = await memory.getStatistics();
             expect(stats).toBeDefined();
             if (stats.totalCacheRequests !== undefined) {
                 expect(stats.totalCacheRequests).toBeGreaterThan(0);
@@ -124,14 +124,14 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             await memory.addTasks(tasks);
 
             // Trigger multiple cycles to test adaptive maintenance
-            const initialStats = memory.getStatistics();
+            const initialStats = await memory.getStatistics();
 
             // Simulate access patterns
             for (let i = 0; i < 20; i++) {
                 await memory.getHighestPriorityTasks(10);
             }
 
-            const finalStats = memory.getStatistics();
+            const finalStats = await memory.getStatistics();
 
             // Should show intelligent maintenance metrics
             expect(finalStats).toBeDefined();
@@ -812,8 +812,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             expect(explanationTasks.length).toBe(5);
 
             // Test plan repair with error handling
-            const goalTask = errorTasks[0];
-            goalTask.punctuation = '!';
+            const goalTask = errorTasks[0].withPunctuation('!');
             const repairTask = await cycle._attemptPlanRepair(goalTask, { error: 'test error' });
             // Should handle gracefully (return null or valid repair task)
             expect(repairTask === null || typeof repairTask === 'object').toBe(true);
@@ -966,7 +965,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             expect(totalTime).toBeLessThan(500);
 
             // Verify all components are working
-            const memoryStats = memory.getStatistics();
+            const memoryStats = await memory.getStatistics();
             const cycleStats = cycle.getCyclePerformanceStats();
 
             expect(memoryStats.totalTasks).toBeGreaterThan(0);
@@ -1012,7 +1011,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             await memory.addTasks(resourceTasks);
 
             // Test resource usage in memory
-            const memoryStats = memory.getStatistics();
+            const memoryStats = await memory.getStatistics();
             expect(memoryStats.totalTasks).toBeGreaterThan(0);
 
             // Test resource usage in Bag collections
@@ -1088,7 +1087,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             expect(bufferStats.messageQueueSize).toBeGreaterThan(0);
 
             // Verify overall system maintains statistical properties
-            const memoryStats = memory.getStatistics();
+            const memoryStats = await memory.getStatistics();
             expect(memoryStats.totalTasks).toBeGreaterThan(0);
         });
 
@@ -1164,7 +1163,7 @@ describe('Phase 1.1-1.4 Comprehensive Integration Tests', () => {
             expect(cycleScaleEnd - cycleScaleStart).toBeLessThan(100);
 
             // System should scale appropriately
-            const finalStats = memory.getStatistics();
+            const finalStats = await memory.getStatistics();
             expect(finalStats.totalTasks).toBe(500);
         });
     });

@@ -36,6 +36,7 @@ class Memory {
         this._recentTasksCache = new Map();
         this._semanticCache = new Map();
         this._termRelationshipCache = new Map();
+        this._highestPriorityTasksCache = new Map();
         
         // Embedding store for semantic similarity calculations
         this.embeddingStore = new Map();
@@ -65,7 +66,9 @@ class Memory {
             semanticHits: 0,
             semanticMisses: 0,
             termRelationshipHits: 0,
-            termRelationshipMisses: 0
+            termRelationshipMisses: 0,
+            highestPriorityHits: 0,
+            highestPriorityMisses: 0
         };
 
         this.addTerm = wrapAsync(this._addTerm.bind(this), 'Memory', 'addTerm', {rethrow: true});
@@ -201,12 +204,14 @@ class Memory {
                               this._cacheStats.punctuationHits + this._cacheStats.punctuationMisses +
                               this._cacheStats.recentHits + this._cacheStats.recentMisses +
                               this._cacheStats.semanticHits + this._cacheStats.semanticMisses +
-                              this._cacheStats.termRelationshipHits + this._cacheStats.termRelationshipMisses);
+                              this._cacheStats.termRelationshipHits + this._cacheStats.termRelationshipMisses +
+                              this._cacheStats.highestPriorityHits + this._cacheStats.highestPriorityMisses);
 
         if (totalRequests === 0) return 1.0;
 
         const totalHits = this._cacheStats.queryHits + this._cacheStats.punctuationHits +
-                         this._cacheStats.recentHits + this._cacheStats.semanticHits + this._cacheStats.termRelationshipHits;
+                         this._cacheStats.recentHits + this._cacheStats.semanticHits + this._cacheStats.termRelationshipHits +
+                         this._cacheStats.highestPriorityHits;
 
         return totalHits / totalRequests;
     }
@@ -574,6 +579,7 @@ class Memory {
         this._clearRecentTasksCache();
         this._clearSemanticCache();
         this._clearTermRelationshipCache();
+        this._clearHighestPriorityTasksCache();
     }
 
     _getCacheKey(type, params) {
@@ -668,6 +674,33 @@ class Memory {
 
     _clearTermRelationshipCache() {
         this._termRelationshipCache.clear();
+    }
+
+    _clearHighestPriorityTasksCache() {
+        this._highestPriorityTasksCache.clear();
+    }
+
+    _getCachedHighestPriorityTasks(k) {
+        const key = this._getCacheKey('highest_priority', {k});
+        const cached = this._highestPriorityTasksCache.get(key);
+        if (cached && (Date.now() - cached.timestamp) < 2000) { // 2-second cache
+            this._cacheStats.highestPriorityHits++;
+            return cached.result;
+        }
+        this._cacheStats.highestPriorityMisses++;
+        return null;
+    }
+
+    _setCachedHighestPriorityTasks(k, result) {
+        const key = this._getCacheKey('highest_priority', {k});
+        if (this._highestPriorityTasksCache.size >= 20) {
+            const firstKey = this._highestPriorityTasksCache.keys().next().value;
+            this._highestPriorityTasksCache.delete(firstKey);
+        }
+        this._highestPriorityTasksCache.set(key, {
+            result,
+            timestamp: Date.now()
+        });
     }
 
     _getCachedTermRelationships(termKey, threshold, limit) {
@@ -831,7 +864,7 @@ class Memory {
     async findTasksBySemanticQuery(queryTermKey, threshold = 0.7, limit = 10) {
         if (!queryTermKey) return [];
 
-        const queryEmbedding = embeddingStore.get(queryTermKey);
+        const queryEmbedding = this.embeddingStore.get(queryTermKey);
         if (!queryEmbedding) return [];
 
         // Check cache first
@@ -869,7 +902,7 @@ class Memory {
         return k < K_THRESHOLD && k * RATIO_THRESHOLD < totalTasks;
     }
 
-    _getHighestPriorityTasksWithPQ(tasks, k) {
+    _getHighestPriorityTasksWithBagSampling(tasks, k) {
         if (k <= 0) return [];
 
         // Use Bag for statistical priority sampling instead of strict priority queue
@@ -891,27 +924,23 @@ class Memory {
     async _getHighestPriorityTasks(k = 20) {
         if (k <= 0) return [];
 
+        const cached = this._getCachedHighestPriorityTasks(k);
+        if (cached) return cached;
+
         const allTasks = await this.getAllTasks();
         const totalTasks = allTasks.length;
 
+        let result;
         if (k >= totalTasks) {
-            // For full sorts, use more efficient approach
-            if (totalTasks <= 1) return allTasks;
-
-            // Use typed arrays for better performance on large arrays
-            return totalTasks > 1000
-                ? this._sortTasksEfficiently(allTasks)
-                : [...allTasks].sort((a, b) => b.state.priority - a.state.priority);
+            result = [...allTasks].sort((a, b) => b.state.priority - a.state.priority);
+        } else {
+            result = this._shouldUsePriorityQueue(k, totalTasks)
+                ? this._getHighestPriorityTasksWithBagSampling(allTasks, k)
+                : this._getTopKBySorting(allTasks, k);
         }
 
-        return this._shouldUsePriorityQueue(k, totalTasks)
-            ? this._getHighestPriorityTasksWithPQ(allTasks, k)
-            : this._getTopKBySorting(allTasks, k);
-    }
-
-    _sortTasksEfficiently(tasks) {
-        // For very large arrays, use a more memory-efficient approach
-        return [...tasks].sort((a, b) => b.state.priority - a.state.priority);
+        this._setCachedHighestPriorityTasks(k, result);
+        return result;
     }
 
     _getTopKBySorting(tasks, k) {
@@ -964,10 +993,12 @@ class Memory {
                                    this._cacheStats.punctuationHits + this._cacheStats.punctuationMisses +
                                    this._cacheStats.recentHits + this._cacheStats.recentMisses +
                                    this._cacheStats.semanticHits + this._cacheStats.semanticMisses +
-                                   this._cacheStats.termRelationshipHits + this._cacheStats.termRelationshipMisses);
+                                   this._cacheStats.termRelationshipHits + this._cacheStats.termRelationshipMisses +
+                                   this._cacheStats.highestPriorityHits + this._cacheStats.highestPriorityMisses);
 
         const totalHits = this._cacheStats.queryHits + this._cacheStats.punctuationHits +
-                         this._cacheStats.recentHits + this._cacheStats.semanticHits + this._cacheStats.termRelationshipHits;
+                         this._cacheStats.recentHits + this._cacheStats.semanticHits + this._cacheStats.termRelationshipHits +
+                         this._cacheStats.highestPriorityHits;
 
         // Calculate memory pressure and access metrics
         const currentMemoryPressure = this._memoryPressureHistory.length > 0 ?
@@ -990,12 +1021,15 @@ class Memory {
             recentTasksCacheSize: this._recentTasksCache.size,
             semanticCacheSize: this._semanticCache.size,
             termRelationshipCacheSize: this._termRelationshipCache.size,
+            highestPriorityTasksCacheSize: this._highestPriorityTasksCache.size,
             totalCacheRequests,
             cacheHitRate: totalCacheRequests > 0 ? (totalHits / totalCacheRequests) * 100 : 0,
             semanticCacheHitRate: (this._cacheStats.semanticHits + this._cacheStats.semanticMisses) > 0 ?
                 (this._cacheStats.semanticHits / (this._cacheStats.semanticHits + this._cacheStats.semanticMisses)) * 100 : 0,
             termRelationshipCacheHitRate: (this._cacheStats.termRelationshipHits + this._cacheStats.termRelationshipMisses) > 0 ?
                 (this._cacheStats.termRelationshipHits / (this._cacheStats.termRelationshipHits + this._cacheStats.termRelationshipMisses)) * 100 : 0,
+            highestPriorityCacheHitRate: (this._cacheStats.highestPriorityHits + this._cacheStats.highestPriorityMisses) > 0 ?
+                (this._cacheStats.highestPriorityHits / (this._cacheStats.highestPriorityHits + this._cacheStats.highestPriorityMisses)) * 100 : 0,
             // Intelligent maintenance metrics
             currentMemoryPressure: currentMemoryPressure * 100,
             averageMemoryPressure: avgMemoryPressure * 100,

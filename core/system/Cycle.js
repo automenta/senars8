@@ -69,7 +69,7 @@ class Cycle {
                         debug(`Semantic bootstrapping created ${bootstrappedConcepts.length} new concepts`);
                     }
                 } catch (error) {
-                    errorHandler.handle(error, `_runOnce semantic term bootstrapping`);
+                    errorHandler.handleWithDefault(error, `_runOnce semantic term bootstrapping`);
                 }
             }
 
@@ -167,7 +167,7 @@ class Cycle {
             return uniqueTasks.slice(0, focusSetSize);
 
         } catch (error) {
-            errorHandler.handle(error, `_selectFocusSetWithBagSampling`);
+            errorHandler.handleWithDefault(error, `_selectFocusSetWithBagSampling`);
             // Fallback to basic priority selection on error
             return await this.commandBus.request(SystemCommands.MEMORY_GET_HIGHEST_PRIORITY_TASKS, focusSetSize);
         }
@@ -217,7 +217,7 @@ class Cycle {
             // Ensure we don't exceed the desired size
             return enhancedFocusSet.slice(0, focusSetSize);
         } catch (error) {
-            errorHandler.handle(error, `_selectFocusSetWithSemanticPrioritization`);
+            errorHandler.handleWithDefault(error, `_selectFocusSetWithSemanticPrioritization`);
             // Fallback to basic priority selection on error
             return await this.commandBus.request(SystemCommands.MEMORY_GET_HIGHEST_PRIORITY_TASKS, focusSetSize);
         }
@@ -299,7 +299,7 @@ class Cycle {
             return boost;
 
         } catch (error) {
-            errorHandler.handle(error, `_calculateSemanticBoost for task ${task.termKey}`);
+            errorHandler.handleWithDefault(error, `_calculateSemanticBoost for task ${task.termKey}`);
             return 0;
         }
     }
@@ -354,7 +354,7 @@ class Cycle {
             return focusSet;
 
         } catch (error) {
-            errorHandler.handle(error, `_enrichFocusSetProactively`);
+            errorHandler.handleWithDefault(error, `_enrichFocusSetProactively`);
             return focusSet; // Return original focus set on error
         }
     }
@@ -476,7 +476,7 @@ class Cycle {
                 enhancedTasks = [...enhancedTasks, ...lmHypotheses];
                 debug(`LM hypothesis generation added ${lmHypotheses.length} additional tasks`);
             } catch (error) {
-                errorHandler.handle(error, `_performInference LM hypothesis generation`);
+                errorHandler.handleWithDefault(error, `_performInference LM hypothesis generation`);
             }
         }
 
@@ -485,7 +485,7 @@ class Cycle {
             try {
                 await this._generateLMExplanations(enhancedTasks);
             } catch (error) {
-                errorHandler.handle(error, `_performInference LM explanation generation`);
+                errorHandler.handleWithDefault(error, `_performInference LM explanation generation`);
             }
         }
 
@@ -522,18 +522,18 @@ class Cycle {
                     try {
                         await this._attemptPlanRepair(goal, result);
                     } catch (repairError) {
-                        errorHandler.handle(repairError, `_executeActions plan repair for goal ${goal.termKey}`);
+                        errorHandler.handleWithDefault(repairError, `_executeActions plan repair for goal ${goal.termKey}`);
                     }
                 }
             } catch (error) {
-                errorHandler.handle(error, `_executeActions for goal ${goal.termKey}`);
+                errorHandler.handleWithDefault(error, `_executeActions for goal ${goal.termKey}`);
 
                 // Attempt LM-powered plan repair for failed executions
                 if (this.lm?.suggestPlanRepair) {
                     try {
                         await this._attemptPlanRepair(goal, { error: error.message });
                     } catch (repairError) {
-                        errorHandler.handle(repairError, `_executeActions plan repair for goal ${goal.termKey}`);
+                        errorHandler.handleWithDefault(repairError, `_executeActions plan repair for goal ${goal.termKey}`);
                     }
                 }
             }
@@ -594,7 +594,7 @@ class Cycle {
             return hypothesisTasks;
 
         } catch (error) {
-            errorHandler.handle(error, `_generateLMHypotheses`);
+            errorHandler.handleWithDefault(error, `_generateLMHypotheses`);
             return [];
         }
     }
@@ -635,7 +635,7 @@ class Cycle {
 
             debug(`Generated LM explanations for ${complexTasks.length} complex tasks`);
         } catch (error) {
-            errorHandler.handle(error, `_generateLMExplanations`);
+            errorHandler.handleWithDefault(error, `_generateLMExplanations`);
         }
     }
 
@@ -666,7 +666,7 @@ class Cycle {
 
             return newConcepts;
         } catch (error) {
-            errorHandler.handle(error, `_performSemanticTermBootstrapping`);
+            errorHandler.handleWithDefault(error, `_performSemanticTermBootstrapping`);
             return [];
         }
     }
@@ -713,7 +713,7 @@ class Cycle {
 
             return null;
         } catch (error) {
-            errorHandler.handle(error, `_attemptPlanRepair for goal ${goal.termKey}`);
+            errorHandler.handleWithDefault(error, `_attemptPlanRepair for goal ${goal.termKey}`);
             return null;
         }
     }
