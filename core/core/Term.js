@@ -1,4 +1,4 @@
-import {parseTerm} from '../../coreagent/parser/parse-utils.js';
+import {parseTerm} from '../parser/parse-utils.js';
 import {embeddingsEqual} from '../../core/utils/math.js';
 import EmbeddingStore from '../../core/utils/embeddingStore.js';
 import {OP} from '../../core/config/constants.js';

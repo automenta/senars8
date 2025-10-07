@@ -1,6 +1,6 @@
 import Task from '../../core/Task.js';
 import Term from '../../core/Term.js';
-import {parseTerm} from '../../parser/parse-utils.js';
+import {parseTerm} from '../../../coreagent/parser/parse-utils.js';
 
 function createMetaTask(action, targetTermKey, confidence) {
     // Create proper conjunction term structure to avoid string concatenation issues

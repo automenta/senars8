@@ -1,5 +1,5 @@
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest';
-import Tools from '../../core/lm/Tools.js';
+import Tools from '../../coreagent/lm/Tools.js';
 
 // Mock LM instance for testing LM-powered functionality
 const mockLM = {

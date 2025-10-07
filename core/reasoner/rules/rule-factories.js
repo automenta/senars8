@@ -1,6 +1,6 @@
 import Task from '../../core/Task.js';
 import {isBelief} from '../../utils/task-utils.js';
-import {parseTerm, validateTermKey} from '../../parser/parse-utils.js';
+import {parseTerm, validateTermKey} from '../../../coreagent/parser/parse-utils.js';
 import Term from '../../core/Term.js';
 import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
 

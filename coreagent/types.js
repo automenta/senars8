@@ -11,6 +11,8 @@
  * @property {string} createdAt
  */
 
+// Task type definition only - constructor is in utils.js as createTask
+
 /**
  * @typedef {Object} TruthValue
  * @property {number} frequency

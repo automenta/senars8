@@ -133,5 +133,3 @@ class Messages {
 }
 
 export {Messages};
-
-export {Messages};

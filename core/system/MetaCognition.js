@@ -1,4 +1,4 @@
-import {parseTerm} from '../../coreagent/parser/parse-utils.js';
+import {parseTerm} from '../parser/parse-utils.js';
 import {debug, info} from '../utils/logger.js';
 import {getBeliefTasks} from '../utils/task-utils.js';
 import {metaCognitionErrorHandler as errorHandler} from '../utils/errorHandler.js';

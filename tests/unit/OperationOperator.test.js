@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, it} from 'vitest';
 import NarseseTranslator from '../../core/utils/NarseseTranslator.js';
-import {parseTerm} from '../../core/parser/narseseParser.js';
+import {parseTerm} from '../../coreagent/parser/narseseParser.js';
 import {createConfig} from '../shared/test-utils.js';
 import {createTestSystem} from '../test-setup.js';
 

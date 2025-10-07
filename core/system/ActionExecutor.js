@@ -5,7 +5,7 @@ import {generateId} from '../utils/idGenerator.js';
 import Tools from '../lm/Tools.js';
 import NarseseTranslator from '../utils/NarseseTranslator.js';
 import {OP} from '../config/constants.js';
-import {parseTerm} from '../parser/narseseParser.js';
+import {parseTerm} from '../../coreagent/parser/narseseParser.js';
 import {SystemCommands} from './SystemCommands.js';
 import logger from '../utils/logger.js';
 

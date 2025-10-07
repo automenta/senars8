@@ -1,5 +1,5 @@
 import {describe, expect, test} from 'vitest';
-import {parseTerm} from '../../core/parser/narseseParser.js';
+import {parseTerm} from '../../coreagent/parser/narseseParser.js';
 import {OP} from '../../core/config/constants.js';
 
 describe('Narsese Parser Infix and Error Handling', () => {

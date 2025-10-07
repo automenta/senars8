@@ -1,5 +1,5 @@
 import {Ollama} from '@langchain/community/llms/ollama';
-import Term from '../types.js';
+import Term from '../../core/core/Term.js';
 import XenovaLLM from './XenovaLLM.js';
 import {LLMChain} from 'langchain/chains';
 import {PromptTemplate} from '@langchain/core/prompts';
@@ -13,6 +13,7 @@ import ProactiveEnricher from './ProactiveEnricher.js';
 import NLP from './NLP.js';
 import {debug, info, warn} from '../utils/logger.js';
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
+import {SystemCommands, SystemEvents} from '../compatibility.js';
 
 const errorHandler = createUnifiedErrorHandler('LM');
 

@@ -2,7 +2,7 @@ import PatternDetector from '../reasoner/PatternDetector.js';
 import {perceptionErrorHandler as errorHandler} from '../utils/errorHandler.js';
 import {SystemCommands} from './SystemCommands.js';
 import {SystemEvents} from './SystemEvents.js';
-import {parseTerm} from '../parser/parse-utils.js';
+import {parseTerm} from '../../coreagent/parser/parse-utils.js';
 
 class Perception {
     constructor(memory, taskFactory, eventBus, commandBus) {

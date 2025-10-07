@@ -1,4 +1,4 @@
-import {Task} from '../index.js';
+import Task from '../../core/core/Task.js';
 import {parseTerm} from '../parser/parse-utils.js';
 
 class NLP {

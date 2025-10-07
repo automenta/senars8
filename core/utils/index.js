@@ -19,7 +19,7 @@ import {
     isQuestion,
     isTask
 } from './task-utils.js';
-import {parseTerm, validateTermKey} from '../parser/parse-utils.js';
+import {parseTerm, validateTermKey} from '../../coreagent/parser/parse-utils.js';
 import {createUnifiedErrorHandler} from './errorHandler.js';
 import {debug, error, info, warn} from './logger.js';
 import Validator from './Validator.js';

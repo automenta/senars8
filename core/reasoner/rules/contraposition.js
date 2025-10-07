@@ -1,6 +1,6 @@
 import {createUnaryInheritanceRule} from './rule-factories.js';
 import Term from '../../core/Term.js';
-import {validateTermKey} from '../../parser/parse-utils.js';
+import {validateTermKey} from '../../../coreagent/parser/parse-utils.js';
 import {createUnifiedErrorHandler} from '../../utils/errorHandler.js';
 
 const errorHandler = createUnifiedErrorHandler('contraposition-rule');

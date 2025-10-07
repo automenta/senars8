@@ -1,7 +1,7 @@
 import {beforeEach, describe, expect, test, vi} from 'vitest';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
-import {parseTerm} from '../../core/parser/narseseParser.js';
+import {parseTerm} from '../../coreagent/parser/narseseParser.js';
 import {createConfig} from '../shared/test-utils.js';
 import {createTestSystem} from '../test-setup.js';
 import {SystemCommands} from '../../core/system/SystemCommands.js';
