@@ -1,21 +1,10 @@
-import {expect, vi} from 'vitest';
+import {expect} from 'vitest';
 import Task from '../../core/core/Task.js';
+import Term from '../../core/core/Term.js';
 import {expectTruthValue} from '../shared/test-utils.js';
 import {SYSTEM_CONSTANTS} from '../../core/config/constants.js';
 
-vi.mock('../../core/core/Term.js', () => ({
-    default: vi.fn().mockImplementation(key => ({
-        key
-    })),
-}));
-
-const {default: Term} = await import('../../core/core/Term.js');
-
 describe('Task', () => {
-    beforeEach(() => {
-        vi.mocked(Term).mockClear();
-    });
-
     test('should create a new Task object', () => {
         const term = new Term('cat');
         const task = new Task(term, '.');
@@ -34,8 +23,8 @@ describe('Task', () => {
             confidence: 0.5
         };
         const stamp = {
-            creationTime: 123,
-            occurrenceTime: 456
+            creationTime: 123n, // Using BigInt for consistency with actual implementation
+            occurrenceTime: 456n
         };
         const task = new Task(term, '!', truthValue, stamp);
         expect(task).toBeInstanceOf(Task);

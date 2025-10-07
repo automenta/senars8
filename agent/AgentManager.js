@@ -43,8 +43,8 @@ class AgentManager {
 
             this.cleanupEventListeners();
 
-            // Event listener configuration - DRY approach
-            const eventConfig = {
+            // Event listener configuration map - DRY approach
+            this._eventConfig = {
                 status_update: status => ({type: 'status_update', payload: status}),
                 system_cycle: cycleCount => ({type: 'system_cycle', payload: {cycleCount}}),
                 add_belief: belief => ({type: 'add_belief', payload: formatTaskForBroadcast(belief)}),
@@ -55,35 +55,41 @@ class AgentManager {
                 'tasks:add': tasks => tasks.map(task => ({type: 'task_added', payload: formatTaskForBroadcast(task)}))
             };
 
-            // Create and store listeners - more elegant approach
-            Object.entries(eventConfig).forEach(([event, formatter]) => {
-                const listenerName = `_${event.replace(':', '_')}Listener`;
-                this[listenerName] = (...args) => {
-                    const messages = Array.isArray(formatter(...args)) ? formatter(...args) : [formatter(...args)];
-                    messages.forEach(msg => this.broadcast(msg));
-                };
+            // Create and register listeners efficiently
+            for (const [event, formatter] of Object.entries(this._eventConfig)) {
+                const listenerName = this._getListenerName(event);
+                this[listenerName] = this._createListener(formatter);
                 this.system.eventBus.on(event, this[listenerName]);
-            });
+            }
         }, 'setupEventListeners');
     }
 
+    // Helper to generate consistent listener names
+    _getListenerName(event) {
+        return `_${event.replace(':', '_')}Listener`;
+    }
+
+    // Helper to create listeners with consistent behavior
+    _createListener(formatter) {
+        return (...args) => {
+            const messages = Array.isArray(formatter(...args)) ? formatter(...args) : [formatter(...args)];
+            for (const msg of messages) {
+                this.broadcast(msg);
+            }
+        };
+    }
+
     cleanupEventListeners() {
-        if (!this.system?.eventBus) return;
+        if (!this.system?.eventBus || !this._eventConfig) return;
 
-        // Event listener cleanup - DRY approach
-        const eventConfig = [
-            'status_update', 'system_cycle', 'add_belief', 'add_goal',
-            'add_question', 'reasoning_step', 'memory_update', 'tasks:add'
-        ];
-
-        // Remove all previously registered listeners and clear references
-        eventConfig.forEach(event => {
-            const listenerName = `_${event.replace(':', '_')}Listener`;
+        // Use the same configuration for cleanup - consistent DRY approach
+        for (const event of Object.keys(this._eventConfig)) {
+            const listenerName = this._getListenerName(event);
             if (this[listenerName]) {
                 this.system.eventBus.off(event, this[listenerName]);
                 this[listenerName] = null;
             }
-        });
+        }
     }
 
     getAgent() {

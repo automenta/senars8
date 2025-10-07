@@ -1,118 +1,14 @@
 import {expect, vi} from 'vitest';
 import {SYSTEM_CONSTANTS} from '../../core/config/constants.js';
 import {TEST_CONSTANTS} from '../test-constants.js';
+import {BaseRegistry, OptimizedCache, batchProcess as baseBatchProcess} from '../../core/utils/BaseRegistry.js';
 
 const globalCache = new Map();
-const accessOrder = [];
 
-// Generic registry with caching, metrics, and lifecycle management
-class Registry {
-    constructor(name, cache = globalCache) {
-        this.name = name;
-        this.cache = cache;
-        this.storage = new Map();
-        this.metrics = {operations: 0, cacheHits: 0};
-    }
-
-    get hitRate() {
-        return this.metrics.operations > 0 ? this.metrics.cacheHits / this.metrics.operations : 0;
-    }
-
-    register(key, value) {
-        this.storage.set(key, value);
-    }
-
-    get(key, ...args) {
-        this.metrics.operations++;
-        // Handle BigInt serialization in cache key
-        const safeStringify = (obj) => JSON.stringify(obj, (k, v) => 
-            typeof v === 'bigint' ? v.toString() : v
-        );
-        const cacheKey = `${key}:${safeStringify(args)}`;
-
-        const cached = this.cache.get(cacheKey);
-        if (cached) {
-            this.metrics.cacheHits++;
-            return cached;
-        }
-
-        const item = this.storage.get(key);
-        if (!item) throw new Error(`Unknown ${this.name}: ${key}`);
-
-        const result = typeof item === 'function' ? item(...args) : item;
-        this.cache.set(cacheKey, result);
-        return result;
-    }
-
-    reset() {
-        this.metrics = {operations: 0, cacheHits: 0};
-    }
-}
-
-// Optimized cache with LRU eviction
-class OptimizedCache {
-    constructor(maxSize = 1000) {
-        this.maxSize = maxSize;
-        this.cache = new Map();
-        this.accessOrder = [];
-        this.hits = 0;
-        this.misses = 0;
-    }
-
-    get size() {
-        return this.cache.size;
-    }
-
-    get hitRate() {
-        return (this.hits + this.misses) > 0 ? this.hits / (this.hits + this.misses) : 0;
-    }
-
-    get(key) {
-        if (this.cache.has(key)) {
-            this.hits++;
-            this.accessOrder = this.accessOrder.filter(k => k !== key);
-            this.accessOrder.push(key);
-            return this.cache.get(key);
-        }
-        this.misses++;
-        return undefined;
-    }
-
-    set(key, value) {
-        if (this.cache.has(key)) {
-            this.accessOrder = this.accessOrder.filter(k => k !== key);
-        } else if (this.cache.size >= this.maxSize) {
-            const lruKey = this.accessOrder.shift();
-            if (lruKey) this.cache.delete(lruKey);
-        }
-
-        this.cache.set(key, value);
-        this.accessOrder.push(key);
-    }
-
-    clear() {
-        this.cache.clear();
-        this.accessOrder = [];
-        this.hits = this.misses = 0;
-    }
-}
-
-// Batch processing utility
-export const batchProcess = (items, processor, batchSize = 10) => {
-    const results = [];
-    for (let i = 0; i < items.length; i += batchSize) {
-        results.push(...items.slice(i, i + batchSize).map(processor));
-    }
-    return results;
-};
-
-// Validation registry using generic registry pattern
-export const ValidationEngine = new Registry('validation rule');
-
-ValidationEngine.metrics = {validations: 0, cacheHits: 0, batches: 0};
+// Validation registry using BaseRegistry
+export const ValidationEngine = new BaseRegistry('validation rule', globalCache);
 
 ValidationEngine.validateBatch = (targets, ruleName, context = 'validation') => {
-    ValidationEngine.metrics.batches++;
     const results = [];
     const uncachedTargets = [];
 
@@ -144,8 +40,7 @@ ValidationEngine.validateBatch = (targets, ruleName, context = 'validation') => 
 };
 
 ValidationEngine.validate = (target, ruleName, context = 'validation', ...args) => {
-    ValidationEngine.metrics.validations++;
-    // Handle BigInt serialization in cache key
+    ValidationEngine.metrics.validations = (ValidationEngine.metrics.validations || 0) + 1;
     const safeStringify = (obj) => JSON.stringify(obj, (k, v) => 
         typeof v === 'bigint' ? v.toString() : v
     );
@@ -153,7 +48,7 @@ ValidationEngine.validate = (target, ruleName, context = 'validation', ...args) 
 
     const cached = ValidationEngine.cache.get(cacheKey);
     if (cached) {
-        ValidationEngine.metrics.cacheHits++;
+        ValidationEngine.metrics.cacheHits = (ValidationEngine.metrics.cacheHits || 0) + 1;
         return cached;
     }
 
@@ -165,16 +60,9 @@ ValidationEngine.validate = (target, ruleName, context = 'validation', ...args) 
     return result;
 };
 
-ValidationEngine.reset = () => {
-    ValidationEngine.cache.clear();
-    ValidationEngine.metrics = {validations: 0, cacheHits: 0, batches: 0};
-};
-
 ValidationEngine.getStats = () => ({
-    ...ValidationEngine.metrics,
-    hitRate: ValidationEngine.metrics.validations > 0 ?
-        ValidationEngine.metrics.cacheHits / ValidationEngine.metrics.validations : 0,
-    cacheSize: ValidationEngine.cache.size
+    ...ValidationEngine.getMetrics(),
+    validations: ValidationEngine.metrics.validations || 0
 });
 
 // Validation rules
@@ -240,31 +128,9 @@ ValidationEngine.register('timed', async (fn, context, maxTimeMs, expectedResult
     return {result, executionTime};
 });
 
-// Mock registry
-export const MockRegistry = new Registry('mock template');
-MockRegistry.metrics = {creations: 0, cacheHits: 0};
-
-MockRegistry.create = (templateName, ...args) => {
-    MockRegistry.metrics.creations++;
-    return MockRegistry.get(templateName, ...args);
-};
-
-MockRegistry.reset = () => {
-    MockRegistry.cache.clear();
-    MockRegistry.metrics = {creations: 0, cacheHits: 0};
-};
-
-MockRegistry.getStats = () => ({
-    ...MockRegistry.metrics,
-    hitRate: MockRegistry.metrics.creations > 0 ?
-        (MockRegistry.metrics.cacheHits / MockRegistry.metrics.creations) * 100 : 0,
-    cacheSize: MockRegistry.cache.size || 0
-});
-
 // Configuration registry
-export const ConfigRegistry = new Registry('configuration template');
+export const ConfigRegistry = new BaseRegistry('configuration template', globalCache);
 ConfigRegistry.validators = new Map();
-ConfigRegistry.metrics = {accesses: 0, cacheHits: 0};
 
 ConfigRegistry.registerTemplate = (name, template, validator = null) => {
     ConfigRegistry.storage.set(name, template);
@@ -300,9 +166,8 @@ ConfigRegistry.registerTemplate('SYSTEM_TEST', {
 });
 
 ConfigRegistry.get = (templateName, overrides = {}) => {
-    ConfigRegistry.metrics.accesses++;
-    const template = ConfigRegistry.constructor.prototype.get.call(ConfigRegistry, templateName);
-
+    // Use the base class get method to avoid recursion
+    const template = BaseRegistry.prototype.get.call(ConfigRegistry, templateName);
     // Merge template with overrides to create the final config
     const result = {...template, ...overrides};
 
@@ -314,20 +179,29 @@ ConfigRegistry.get = (templateName, overrides = {}) => {
     return result;
 };
 
-ConfigRegistry.reset = () => {
-    ConfigRegistry.cache.clear();
-    ConfigRegistry.metrics = {accesses: 0, cacheHits: 0};
-};
-
 ConfigRegistry.getStats = () => ({
-    ...ConfigRegistry.metrics,
-    hitRate: ConfigRegistry.metrics.accesses > 0 ?
-        (ConfigRegistry.metrics.cacheHits / ConfigRegistry.metrics.accesses) * 100 : 0,
-    cacheSize: ConfigRegistry.cache.size || 0
+    ...ConfigRegistry.getMetrics(),
+    accesses: ConfigRegistry.metrics.accesses || 0
 });
 
-// Documentation registry
-export const DocumentationRegistry = new Registry('documentation template');
+// Mock registry using BaseRegistry
+export const MockRegistry = new BaseRegistry('mock template', globalCache);
+MockRegistry.metrics = {creations: 0, cacheHits: 0};
+
+MockRegistry.create = (templateName, ...args) => {
+    MockRegistry.metrics.creations++;
+    return MockRegistry.get(templateName, ...args);
+};
+
+MockRegistry.getStats = () => ({
+    ...MockRegistry.getMetrics(),
+    creations: MockRegistry.metrics.creations || 0,
+    hitRate: (MockRegistry.metrics.creations || 0) > 0 ?
+        (MockRegistry.metrics.cacheHits || 0) / (MockRegistry.metrics.creations || 0) * 100 : 0
+});
+
+// Documentation registry using BaseRegistry
+export const DocumentationRegistry = new BaseRegistry('documentation template', globalCache);
 DocumentationRegistry.metrics = {generations: 0, cacheHits: 0};
 
 DocumentationRegistry.generate = (templateName, data) => {
@@ -335,58 +209,27 @@ DocumentationRegistry.generate = (templateName, data) => {
     return DocumentationRegistry.get(templateName, data);
 };
 
-DocumentationRegistry.reset = () => {
-    DocumentationRegistry.cache.clear();
-    DocumentationRegistry.metrics = {generations: 0, cacheHits: 0};
-};
-
 DocumentationRegistry.getStats = () => ({
-    ...DocumentationRegistry.metrics,
-    hitRate: DocumentationRegistry.metrics.generations > 0 ?
-        (DocumentationRegistry.metrics.cacheHits / DocumentationRegistry.metrics.generations) * 100 : 0
+    ...DocumentationRegistry.getMetrics(),
+    generations: DocumentationRegistry.metrics.generations || 0,
+    hitRate: (DocumentationRegistry.metrics.generations || 0) > 0 ?
+        (DocumentationRegistry.metrics.cacheHits || 0) / (DocumentationRegistry.metrics.generations || 0) * 100 : 0
 });
 
-// Test context manager
-export const TestContextManager = new Registry('test context');
+// Test context manager - simplified version that doesn't require complex setup
+export const TestContextManager = new BaseRegistry('test context', globalCache);
 TestContextManager.active = new Map();
 TestContextManager.metrics = {creations: 0, cacheHits: 0};
 
-TestContextManager.create = async (type, config = {}) => {
-    TestContextManager.metrics.creations++;
-    return TestContextManager.get(type, config);
-};
-
-TestContextManager._createSingle = async (type, config = {}) => ({type, config, created: Date.now()});
-
-// Register context templates
-TestContextManager.storage.set('taskProcessing', (config = {}) => ({type: 'taskProcessing', config, created: Date.now()}));
-
-TestContextManager.register = (name, context) => TestContextManager.active.set(name, context);
-TestContextManager.getActive = (name) => TestContextManager.active.get(name);
-
-TestContextManager.cleanup = async (name) => {
-    const context = TestContextManager.active.get(name);
-    if (context?.cleanup) await context.cleanup();
-    TestContextManager.active.delete(name);
-};
-
-TestContextManager.reset = async () => {
-    const activeNames = Array.from(TestContextManager.active.keys());
-    await Promise.all(activeNames.map(name => TestContextManager.cleanup(name)));
-    TestContextManager.active.clear();
-    TestContextManager.metrics = {creations: 0, cacheHits: 0};
-};
-
-TestContextManager.getStats = () => ({
-    ...TestContextManager.metrics,
-    activeContexts: TestContextManager.active.size,
-    hitRate: TestContextManager.metrics.creations > 0 ?
-        (TestContextManager.metrics.cacheHits / TestContextManager.metrics.creations) * 100 : 0,
-    cacheSize: TestContextManager.cache.size || 0
+TestContextManager.create = async (type, config = {}) => ({
+    type, 
+    config, 
+    created: Date.now(),
+    cleanup: async () => {} // Simple cleanup that does nothing for now
 });
 
-// System factory
-export const SystemFactory = new Registry('system');
+// System factory using BaseRegistry
+export const SystemFactory = new BaseRegistry('system', globalCache);
 SystemFactory.metrics = {creations: 0, cacheHits: 0};
 
 SystemFactory.create = (config = {}) => {
@@ -394,20 +237,16 @@ SystemFactory.create = (config = {}) => {
     return SystemFactory.get('system', config);
 };
 
-SystemFactory.reset = () => {
-    SystemFactory.cache.clear();
-    SystemFactory.metrics = {creations: 0, cacheHits: 0};
-};
-
 SystemFactory.getStats = () => ({
-    ...SystemFactory.metrics,
-    hitRate: SystemFactory.metrics.creations > 0 ?
-        (SystemFactory.metrics.cacheHits / SystemFactory.metrics.creations) * 100 : 0,
-    cacheSize: SystemFactory.cache.size || 0
+    ...SystemFactory.getMetrics(),
+    creations: SystemFactory.metrics.creations || 0,
+    hitRate: (SystemFactory.metrics.creations || 0) > 0 ?
+        (SystemFactory.metrics.cacheHits || 0) / (SystemFactory.metrics.creations || 0) * 100 : 0
 });
 
-// System creation logic
+// System creation logic - register the system template
 SystemFactory.register('system', (config = {}) => {
+    // Create realistic but simplified mock objects for system components
     const mockTools = {
         registerTool: vi.fn(),
         executeTool: vi.fn((name, params) => {
@@ -620,18 +459,20 @@ SystemFactory.register('system', (config = {}) => {
     };
 });
 
-// Test framework with consolidated patterns
+// Test framework with simplified patterns - reduced mock usage
 export const TestFramework = {
     lifecycle: {
         async setup(type, config = {}) {
             const context = await TestContextManager.create(type, config);
             const contextName = `test_${Date.now()}_${Math.random()}`;
-            TestContextManager.register(contextName, context);
+            TestContextManager.active.set(contextName, context);
             return {context, contextName};
         },
 
         async teardown(contextName) {
-            await TestContextManager.cleanup(contextName);
+            const context = TestContextManager.active.get(contextName);
+            if (context?.cleanup) await context.cleanup();
+            TestContextManager.active.delete(contextName);
         }
     },
 
@@ -645,9 +486,9 @@ export const TestFramework = {
             }
         },
 
-        withReasoner: (config, testFn) => TestFramework.execution.withContext('reasoner', config, testFn),
-        withMemory: (config, testFn) => TestFramework.execution.withContext('memory', config, testFn),
-        withSystem: (config, testFn) => TestFramework.execution.withContext('system', config, testFn)
+        withReasoner: (config, testFn) => testFn({type: 'reasoner', config}),
+        withMemory: (config, testFn) => testFn({type: 'memory', config}),
+        withSystem: (config, testFn) => testFn({type: 'system', config})
     },
 
     assertions: {
@@ -733,47 +574,6 @@ export const TestFramework = {
             expect(averageTime).toBeLessThanOrEqual(maxAverageTimeMs);
             return {times, averageTime};
         }
-    },
-
-    dataDriven: {
-        runDataDrivenTest: (testName, dataSets, testFn) => {
-            dataSets.forEach((dataSet, index) =>
-                test(`${testName} - data set ${index + 1}`, async () => await testFn(dataSet, index)));
-        },
-
-        runParameterizedTest: (baseName, parameters, testFn) => {
-            parameters.forEach((params, index) =>
-                test(`${baseName} with parameters ${index + 1}`, async () => await testFn(params, index)));
-        }
-    },
-
-    config: {
-        async testConfigValidation(configManager, testConfig, shouldPass = true) {
-            if (!configManager) throw new Error('ConfigManager not available');
-
-            if (shouldPass) {
-                expect(() => configManager.validate(testConfig)).not.toThrow();
-            } else {
-                expect(() => configManager.validate(testConfig)).toThrow();
-            }
-        },
-
-        testConfigType(configManager, key, value, expectedType) {
-            if (!configManager) throw new Error('ConfigManager not available');
-
-            const testConfig = {[key]: value};
-
-            switch (expectedType.toLowerCase()) {
-                case 'string':
-                case 'number':
-                case 'boolean':
-                case 'object':
-                    expect(typeof value).toBe(expectedType.toLowerCase());
-                    break;
-                default:
-                    throw new Error(`Unknown expected type: ${expectedType}`);
-            }
-        }
     }
 };
 
@@ -783,8 +583,6 @@ export const batchValidate = (targets, rule, context = 'validation') => Validati
 export const validate = (target, rule, context = 'validation', ...args) => ValidationEngine.validate(target, rule, context, ...args);
 export const createMock = (type, ...args) => MockRegistry.create(type, ...args);
 export const createConfig = (templateName, overrides = {}) => ConfigRegistry.get(templateName, overrides);
-export const generateDoc = (type, data) => DocumentationRegistry.generate(type, data);
-export const createTestContext = (type, config = {}) => TestContextManager.create(type, config);
 
 // Additional utility functions for compatibility
 export const expectTruthValue = (actual, expectedFreq, expectedConf, precision = 3) => {
@@ -798,11 +596,10 @@ export const assertTask = TestFramework.assertions.expectTask;
 export const getCacheStats = () => globalCache.hitRate || 0;
 export const resetAllCaches = () => {
     globalCache.clear();
-    accessOrder.length = 0;
     ValidationEngine.reset();
     MockRegistry.reset();
     ConfigRegistry.reset();
-    DocumentationRegistry.reset();
-    TestContextManager.reset();
-    SystemFactory.reset();
 };
+
+// Export the base batchProcess function for direct use
+export const batchProcess = baseBatchProcess;
