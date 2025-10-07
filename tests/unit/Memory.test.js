@@ -54,16 +54,29 @@ describe('Memory', () => {
         // Initialize configService with test config
         configService.initialize(configManager.getAll());
 
-        const mockEventBus = {
-            on: vi.fn(),
-            emit: vi.fn(),
-            emitAsync: vi.fn(),
+        // Create eventBus that can store registered handlers for testing, without heavy vi.fn mocks
+        const eventHandlers = new Map();
+        const minimalEventBus = {
+            on: (event, handler) => {
+                const handlers = eventHandlers.get(event) || [];
+                handlers.push(handler);
+                eventHandlers.set(event, handlers);
+            },
+            emit: () => Promise.resolve(),
+            emitAsync: () => Promise.resolve(),
+            // Add a method to get handlers for testing
+            getHandlers: (event) => eventHandlers.get(event) || [],
+            // Add a method to trigger handlers for testing
+            trigger: (event, ...args) => {
+                const handlers = eventHandlers.get(event) || [];
+                return Promise.all(handlers.map(handler => handler(...args)));
+            }
         };
-        const mockCommandBus = {
-            handle: vi.fn(),
-            request: vi.fn(),
+        const minimalCommandBus = {
+            handle: () => {}, // no-op function
+            request: () => Promise.resolve(null), // return resolved promise with null
         };
-        memory = new Memory(configManager, mockEventBus, mockCommandBus);
+        memory = new Memory(configManager, minimalEventBus, minimalCommandBus);
     });
 
     it('should prune expired, unimportant tasks during maintenance', async () => {
@@ -81,9 +94,8 @@ describe('Memory', () => {
         await memory.addTasks([task1, task2]);
         expect(memory.shortTermTasks.size).toBe(2);
 
-        // Manually trigger the event handler
-        const systemCycleEndedHandler = memory.eventBus.on.mock.calls.find(call => call[0] === SystemEvents.CYCLE_COMPLETE)[1];
-        systemCycleEndedHandler();
+        // Manually trigger the event handler using our new trigger method
+        await memory.eventBus.trigger(SystemEvents.CYCLE_COMPLETE);
 
         expect(memory.shortTermTasks.size).toBe(1);
         expect(memory.shortTermTasks.has(task2.id)).toBe(true);
@@ -100,9 +112,8 @@ describe('Memory', () => {
         await memory.addTasks([task1]);
         expect(memory.shortTermTasks.size).toBe(1);
 
-        // Manually trigger the event handler
-        const systemCycleEndedHandler = memory.eventBus.on.mock.calls.find(call => call[0] === SystemEvents.CYCLE_COMPLETE)[1];
-        systemCycleEndedHandler();
+        // Manually trigger the event handler using our new trigger method
+        await memory.eventBus.trigger(SystemEvents.CYCLE_COMPLETE);
 
         expect(memory.shortTermTasks.size).toBe(1);
         expect(memory.shortTermTasks.has(task1.id)).toBe(true);

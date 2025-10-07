@@ -17,16 +17,17 @@ describe('Memory - Edge Cases', () => {
         });
 
         const configManager = new ConfigManager();
-        const mockEventBus = {
-            on: vi.fn(),
-            emit: vi.fn(),
-            emitAsync: vi.fn(),
+        // Create minimal objects that satisfy the interfaces without heavy mocking
+        const minimalEventBus = {
+            on: () => {}, // no-op function
+            emit: () => Promise.resolve(), // return resolved promise
+            emitAsync: () => Promise.resolve(),
         };
-        const mockCommandBus = {
-            handle: vi.fn(),
-            request: vi.fn(),
+        const minimalCommandBus = {
+            handle: () => {}, // no-op function
+            request: () => Promise.resolve(null), // return resolved promise with null
         };
-        memory = new Memory(configManager, mockEventBus, mockCommandBus);
+        memory = new Memory(configManager, minimalEventBus, minimalCommandBus);
     });
 
     afterEach(() => {
