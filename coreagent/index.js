@@ -2,7 +2,7 @@ import {createSystem, System} from './System.js';
 import {createCore} from './createCore.js';
 import createCoreInstance from './Core.js';
 import Component from './Component.js';
-import Config from './Config.js';
+import {ConfigManager as Config} from './Config.js';
 import Memory from './Memory.js';
 import Reasoning from './Reasoning.js';
 import Cycle from './Cycle.js';

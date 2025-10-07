@@ -139,12 +139,15 @@ function deepMerge(...objects) {
     return result;
 }
 
+// Import the more sophisticated ID generator from idGenerator.js
+import {generateId as generateCoreId} from './idGenerator.js';
+
 /**
  * Utility to generate a unique ID
  * @returns {string} Unique ID
  */
 function generateId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    return generateCoreId();
 }
 
 /**

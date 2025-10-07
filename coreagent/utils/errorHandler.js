@@ -34,7 +34,11 @@ const createUnifiedErrorHandler = (namespace) => {
         };
     };
 
-    return {handleError, wrapAsync, wrapSync};
+    const executeSync = (fn, context = {}) => {
+        return wrapSync(fn, context)();
+    };
+
+    return {handleError, wrapAsync, wrapSync, executeSync};
 };
 
 export {createUnifiedErrorHandler};

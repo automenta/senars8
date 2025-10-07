@@ -1,4 +1,4 @@
-import Config from './Config.js';
+import {ConfigManager as Config} from './Config.js';
 import Rules from './Rules.js';
 import {Messages} from './Messages.js';
 

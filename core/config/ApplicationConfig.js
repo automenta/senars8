@@ -6,38 +6,26 @@ import defaultConfig from './default-config.js';
  */
 class ApplicationConfig {
     constructor(userConfig = {}) {
-        // Extend default config with application-specific settings
-        const extendedDefaultConfig = {
-            ...defaultConfig,
-            app: {
-                // UI and WebSocket ports with environment variable overrides
-                uiPort: parseInt(process.env.SENARS_UI_PORT || '3000'),
-                wsPort: parseInt(process.env.SENARS_WS_PORT || '8081'),
+        // For now, just use the default config and handle application-specific
+        // settings through environment variables without modifying the core schema
+        this.configManager = new ConfigManager({...defaultConfig, ...userConfig});
 
-                // Development-specific settings
-                devMode: process.env.SENARS_DEV_MODE !== 'false',
-                logLevel: process.env.SENARS_LOG_LEVEL || 'info',
-                hotReload: process.env.SENARS_HOT_RELOAD !== 'false',
-                debugMode: process.env.SENARS_DEBUG_MODE !== 'false',
-                verboseLogging: process.env.SENARS_VERBOSE_LOGGING !== 'false',
-                componentReload: process.env.SENARS_COMPONENT_RELOAD !== 'false',
-
-                // Server settings
-                server: {
-                    strictPort: true, // Fail if port is busy
-                    clearScreen: false,
-                    host: '0.0.0.0', // Allow external connections
-                }
-            }
+        // Store application-specific settings separately to avoid schema conflicts
+        this.appSettings = {
+            uiPort: parseInt(process.env.SENARS_UI_PORT || '3000'),
+            wsPort: parseInt(process.env.SENARS_WS_PORT || '8081'),
+            logLevel: process.env.SENARS_LOG_LEVEL || 'info',
+            devMode: process.env.SENARS_DEV_MODE !== 'false',
+            hotReload: process.env.SENARS_HOT_RELOAD !== 'false',
+            debugMode: process.env.SENARS_DEBUG_MODE !== 'false',
+            verboseLogging: process.env.SENARS_VERBOSE_LOGGING !== 'false',
+            componentReload: process.env.SENARS_COMPONENT_RELOAD !== 'false',
         };
-
-        // Merge user config with extended defaults
-        this.configManager = new ConfigManager({...extendedDefaultConfig, ...userConfig});
     }
 
     /**
      * Get a configuration value
-     * @param {string} path - Configuration path (e.g. 'app.uiPort', 'planner.strategy')
+     * @param {string} path - Configuration path (e.g. 'system.uiPort', 'planner.strategy')
      * @param {*} defaultValue - Default value if not found
      * @returns {*} Configuration value
      */
@@ -80,7 +68,7 @@ class ApplicationConfig {
      * @returns {number} UI port number
      */
     getUiPort() {
-        return this.getNumber('app.uiPort', 3000);
+        return this.appSettings.uiPort;
     }
 
     /**
@@ -88,7 +76,7 @@ class ApplicationConfig {
      * @returns {number} WebSocket port number
      */
     getWsPort() {
-        return this.getNumber('app.wsPort', 8081);
+        return this.appSettings.wsPort;
     }
 
     /**

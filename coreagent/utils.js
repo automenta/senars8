@@ -17,21 +17,15 @@ export const createGoal = (content, priority = 0.7, truthValue = null) =>
 export const createQuestion = (content, priority = 0.6, truthValue = null) =>
     createTask(content, 'question', priority, truthValue);
 
-export const generateId = () =>
-    `id_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+// Import the more sophisticated ID generator from core utils
+import {generateId as generateCoreId} from '../core/utils/idGenerator.js';
 
-export const deepClone = obj => {
-    if (obj === null || typeof obj !== 'object') return obj;
-    if (obj instanceof Date) return new Date(obj.getTime());
-    if (obj instanceof Array) return obj.map(item => deepClone(item));
-    if (typeof obj === 'object') {
-        const cloned = {};
-        for (const key in obj) {
-            if (obj.hasOwnProperty(key)) cloned[key] = deepClone(obj[key]);
-        }
-        return cloned;
-    }
-};
+export const generateId = generateCoreId;
+
+// Import deepClone from GeneralUtils for consistency
+import {deepClone} from '../core/utils/GeneralUtils.js';
+
+export {deepClone};
 
 export const validateTask = task => {
     if (!task || typeof task !== 'object')
@@ -76,24 +70,10 @@ export const benchmarkFunction = async (name, fn, iterations = 1000, ...args) =>
     };
 };
 
-export const debounce = (func, wait) => {
-    let timeout;
-    return (...args) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func(...args), wait);
-    };
-};
+// Import debounce and throttle from GeneralUtils for consistency
+import {debounce, throttle} from '../core/utils/GeneralUtils.js';
 
-export const throttle = (func, limit) => {
-    let inThrottle;
-    return function (...args) {
-        if (!inThrottle) {
-            func.apply(this, args);
-            inThrottle = true;
-            setTimeout(() => inThrottle = false, limit);
-        }
-    };
-};
+export {debounce, throttle};
 
 export const createTaskFilter = criteria => task =>
     Object.entries(criteria).every(([k, v]) => task[k] === v);

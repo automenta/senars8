@@ -6,7 +6,7 @@ import {System} from './coreagent/index.js';
 import {UnifiedWebSocketServer} from './agent/StandaloneWebSocketServer.js';
 import {createMessageHandler} from './agent/MessageHandler.js';
 import {findAvailablePort} from './tests/utils/networkUtils.js';
-import {applicationConfig} from './coreagent/config/index.js';
+import {applicationConfig} from './core/config/index.js';
 import {handleUncaughtError, setupGracefulShutdown} from './coreagent/utils/system.js';
 import resourceManager from './coreagent/utils/ResourceManager.js';
 

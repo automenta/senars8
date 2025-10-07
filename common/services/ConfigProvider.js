@@ -18,12 +18,12 @@ class ConfigProvider {
             this.configManager = config;
         } else {
             // Create a new ConfigManager with the provided config
-            const {default: ConfigManager} = await import('../../coreagent/config/ConfigManager.js');
+            const {default: ConfigManager} = await import('../../core/config/ConfigManager.js');
             this.configManager = new ConfigManager(config);
         }
 
         // Initialize the global config service with the merged configuration
-        const {configService} = await import('../../coreagent/config/index.js');
+        const {configService} = await import('../../core/config/index.js');
         configService.initialize(this.configManager.getAll());
         this.configService = configService;
     }
