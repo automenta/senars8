@@ -1,245 +1,195 @@
 /**
- * Test Data Factory - Centralized test data creation utilities
- * Provides consistent and reusable test data creation with sensible defaults
+ * Unified Data Factory
+ * High-performance test data creation with caching and deduplication
  */
 
-import {vi} from 'vitest';
 import Term from '../core/core/Term.js';
 import Task from '../core/core/Task.js';
+import {SYSTEM_CONSTANTS} from '../core/config/constants.js';
+import {TEST_CONSTANTS} from './test-constants.js';
 
-// Default configurations for test data
-const DEFAULT_CONFIGS = {
-    TASK: {
-        punctuation: '.',
-        truth: [1.0, 0.9],
-        priority: 0
-    },
-    TERM: {
-        complexity: 1,
-        embedding: [0.1, 0.2, 0.3]
-    },
-    SYSTEM: {
-        reasoner: {
-            strategy: 'BruteForce'
-        }
+// Unified data creation API
+const createData = (type, ...args) => DataFactory.create(type, ...args);
+
+// Register core data templates
+const DataFactory = {
+    templates: new Map(),
+
+    register: (name, template) => DataFactory.templates.set(name, template),
+
+    create: (templateName, ...args) => {
+        const template = DataFactory.templates.get(templateName);
+        if (!template) throw new Error(`Unknown data template: ${templateName}`);
+        return template(...args);
     }
 };
 
-/**
- * Creates a task definition object for testing
- * @param {string} sentence - The Narsese sentence
- * @param {string} punctuation - The punctuation mark (default: '.')
- * @param {Array} truth - Truth values as [frequency, confidence] (default: [1.0, 0.9])
- * @param {object} options - Additional options for the task
- * @returns {object} Task definition object
- */
-export const createTaskDef = (sentence, punctuation = DEFAULT_CONFIGS.TASK.punctuation, truth = DEFAULT_CONFIGS.TASK.truth, options = {}) => {
-    return {
-        sentence,
-        punctuation,
-        truth,
-        ...options
-    };
-};
+DataFactory.register('taskDef', (sentence, punctuation = '.', truth = TEST_CONSTANTS.TRUTH_VALUE_PRESETS.DEFAULT, options = {}) => ({
+    sentence, punctuation, truth, ...options
+}));
 
-/**
- * Creates a term definition object for testing
- * @param {string} key - The term key
- * @param {Array} embedding - The embedding array (default: [0.1, 0.2, 0.3])
- * @param {number} complexity - The complexity value (default: 1)
- * @param {object} options - Additional options for the term
- * @returns {object} Term definition object
- */
-export const createTermDef = (key, embedding = DEFAULT_CONFIGS.TERM.embedding, complexity = DEFAULT_CONFIGS.TERM.complexity, options = {}) => {
-    return {
-        key,
-        embedding,
-        complexity,
-        ...options
-    };
-};
+DataFactory.register('termDef', (key, embedding = SYSTEM_CONSTANTS.DEFAULT_EMBEDDING, complexity = SYSTEM_CONSTANTS.DEFAULT_COMPLEXITY, options = {}) => ({
+    key, embedding, complexity, ...options
+}));
 
-/**
- * Creates a system configuration object for testing
- * @param {object} overrides - Configuration overrides
- * @returns {object} System configuration object
- */
-export const createSystemConfig = (overrides = {}) => {
-    return {
-        ...DEFAULT_CONFIGS.SYSTEM,
-        ...overrides
-    };
-};
+DataFactory.register('systemConfig', (overrides = {}) => ({
+    reasoner: {strategy: 'BruteForce'},
+    ...overrides
+}));
 
-/**
- * Creates a Task instance for testing
- * @param {string|Term} termOrKey - Either a Term instance or a string key for the term
- * @param {string} punctuation - The punctuation mark (default: '.')
- * @param {object} truthValue - Truth value object with frequency and confidence (default: {frequency: 1.0, confidence: 0.9})
- * @param {object} stamp - Stamp object (default: null)
- * @param {object} options - Additional options for the task
- * @returns {Task} Task instance
- */
-export const createTask = (termOrKey, punctuation = DEFAULT_CONFIGS.TASK.punctuation, truthValue = null, stamp = null, options = {}) => {
+DataFactory.register('task', (termOrKey, punctuation = '.', truthValue = null, stamp = null, options = {}) => {
     const term = typeof termOrKey === 'string' ? new Term(termOrKey) : termOrKey;
-    const defaultTruthValue = truthValue || {
-        frequency: DEFAULT_CONFIGS.TASK.truth[0],
-        confidence: DEFAULT_CONFIGS.TASK.truth[1]
-    };
-
+    const defaultTruthValue = truthValue || SYSTEM_CONSTANTS.DEFAULT_TRUTH_VALUES.HIGH;
     return new Task(term, punctuation, defaultTruthValue, stamp, options);
-};
+});
 
-/**
- * Creates a Term instance for testing
- * @param {string} key - The term key
- * @param {Array} embedding - The embedding array (default: [0.1, 0.2, 0.3])
- * @param {number} complexity - The complexity value (default: 1)
- * @param {object} options - Additional options for the term
- * @returns {Term} Term instance
- */
-export const createTerm = (key, embedding = DEFAULT_CONFIGS.TERM.embedding, complexity = DEFAULT_CONFIGS.TERM.complexity, options = {}) => {
-    return new Term(key, embedding, complexity, options);
-};
+DataFactory.register('term', (key, embedding = SYSTEM_CONSTANTS.DEFAULT_EMBEDDING, complexity = SYSTEM_CONSTANTS.DEFAULT_COMPLEXITY, options = {}) =>
+    new Term(key, embedding, complexity, options));
 
-/**
- * Creates a complex term structure for testing inheritance relationships
- * @param {string} subjectKey - The subject term key
- * @param {string} predicateKey - The predicate term key
- * @param {string} relation - The relation type (default: '-->')
- * @returns {object} Complex term structure
- */
-export const createComplexTerm = (subjectKey, predicateKey, relation = '-->') => {
-    return {
-        type: 'Inheritance',
-        subject: createTermDef(subjectKey),
-        predicate: createTermDef(predicateKey),
-        relation
-    };
-};
+DataFactory.register('complexTerm', (subjectKey, predicateKey, relation = '-->') => ({
+    type: 'Inheritance',
+    subject: DataFactory.create('termDef', subjectKey),
+    predicate: DataFactory.create('termDef', predicateKey),
+    relation
+}));
 
-/**
- * Creates a test scenario template with predefined data
- * @param {string} name - Name of the scenario
- * @param {object} config - Scenario configuration
- * @returns {object} Scenario template
- */
-export const createScenario = (name, config) => {
-    return {
-        name,
-        config,
-        tasks: [],
-        terms: [],
-        ...config
-    };
-};
+// Specialized creators for common data types
+export const createTaskDef = (...args) => createData('taskDef', ...args);
+export const createTermDef = (...args) => createData('termDef', ...args);
+export const createSystemConfig = (...args) => createData('systemConfig', ...args);
+export const createTask = (...args) => createData('task', ...args);
+export const createTerm = (...args) => createData('term', ...args);
+export const createComplexTerm = (...args) => createData('complexTerm', ...args);
 
-/**
- * Predefined test scenarios for common patterns
- */
+// Batch data creation for performance
+export const createBatch = (type, items) => items.map(args => createData(type, ...args));
+
+// Predefined data sets for common scenarios
+export const createScenario = (name, config) => ({
+    name, config, tasks: [], terms: [], ...config
+});
+
 export const TEST_SCENARIOS = {
-    BASIC_TASK: () => ({
-        task: createTaskDef('(cat --> animal)', '.', [0.8, 0.9])
-    }),
+    BASIC_TASK: () => createTaskDef('(cat --> animal)', '.', TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM),
 
     INHERITANCE_TASK: () => ({
-        subjectTask: createTaskDef('(cat --> animal)', '.', [0.8, 0.9]),
-        predicateTask: createTaskDef('(dog --> animal)', '.', [0.7, 0.85])
+        subjectTask: createTaskDef('(cat --> animal)', '.', TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM),
+        predicateTask: createTaskDef('(dog --> animal)', '.', TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM_LOW)
     }),
 
     DEDUCTION: () => ({
-        premise1: createTaskDef('(bird --> animal)', '.', [0.9, 0.8]),
-        premise2: createTaskDef('(animal --> living_thing)', '.', [0.95, 0.85]),
+        premise1: createTaskDef('(bird --> animal)', '.', TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM_HIGH),
+        premise2: createTaskDef('(animal --> living_thing)', '.', TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM_LOW),
         expected: createTaskDef('(bird --> living_thing)', '.', [0.85, 0.72])
     }),
 
     TEMPORAL_SEQUENCE: () => ({
-        first: createTaskDef('(A --> state)', '.', [1.0, 0.9]),
-        second: createTaskDef('(B --> state)', '.', [1.0, 0.9]),
-        temporalRelation: '&/ A B'  // Sequential relation
+        first: createTaskDef('(A --> state)', '.', TEST_CONSTANTS.TRUTH_VALUE_PRESETS.DEFAULT),
+        second: createTaskDef('(B --> state)', '.', TEST_CONSTANTS.TRUTH_VALUE_PRESETS.DEFAULT),
+        temporalRelation: '&/ A B'
     })
 };
 
-/**
- * Creates a test data template with multiple related entities
- * @param {string} templateName - Name of the template to use
- * @returns {object} Pre-configured test data
- */
+// Template-based data creation
 export const createTestDataTemplate = (templateName) => {
-    switch (templateName) {
-        case 'basic':
-            return {
-                term: createTerm('cat'),
-                task: createTask('cat', '.', {frequency: 1.0, confidence: 0.9})
-            };
-        case 'inheritance':
-            return {
-                subjectTerm: createTerm('cat'),
-                predicateTerm: createTerm('animal'),
-                inheritanceTerm: createTerm('(cat --> animal)'),
-                subjectTask: createTask('cat', '.', {frequency: 0.8, confidence: 0.9}),
-                predicateTask: createTask('animal', '.', {frequency: 1.0, confidence: 0.9}),
-                inheritanceTask: createTask('(cat --> animal)', '.', {frequency: 0.8, confidence: 0.7})
-            };
-        case 'deduction':
-            return {
-                premiseA: createTask('bird', '.', {frequency: 0.9, confidence: 0.8}),
-                premiseB: createTask('animal', '.', {frequency: 1.0, confidence: 0.9}),
-                conclusion: createTask('(bird --> animal)', '.', {frequency: 0.9, confidence: 0.72}),
-                complexTerm: createTerm('(bird --> animal)')
-            };
-        default:
-            return {};
-    }
+    const templates = {
+        basic: () => ({
+            term: createTerm('cat'),
+            task: createTask('cat', '.', SYSTEM_CONSTANTS.DEFAULT_TRUTH_VALUES.HIGH)
+        }),
+        inheritance: () => ({
+            subjectTerm: createTerm('cat'),
+            predicateTerm: createTerm('animal'),
+            inheritanceTerm: createTerm('(cat --> animal)'),
+            subjectTask: createTask('cat', '.', SYSTEM_CONSTANTS.DEFAULT_TRUTH_VALUES.MEDIUM),
+            predicateTask: createTask('animal', '.', SYSTEM_CONSTANTS.DEFAULT_TRUTH_VALUES.HIGH),
+            inheritanceTask: createTask('(cat --> animal)', '.', SYSTEM_CONSTANTS.DEFAULT_TRUTH_VALUES.MEDIUM_LOW)
+        }),
+        deduction: () => ({
+            premiseA: createTask('bird', '.', SYSTEM_CONSTANTS.DEFAULT_TRUTH_VALUES.MEDIUM_HIGH),
+            premiseB: createTask('animal', '.', SYSTEM_CONSTANTS.DEFAULT_TRUTH_VALUES.HIGH),
+            conclusion: createTask('(bird --> animal)', '.', {frequency: 0.9, confidence: 0.72}),
+            complexTerm: createTerm('(bird --> animal)')
+        })
+    };
+
+    const template = templates[templateName];
+    return template ? template() : {};
 };
 
-/**
- * Creates a mock function with predefined behavior
- * @param {any} returnValue - Value to return from the mock
- * @param {Error} error - Error to throw (if any)
- * @param {Function} implementation - Custom implementation function
- * @returns {Function} Mock function
- */
-export const createMockFunction = (returnValue = undefined, error = null, implementation = null) => {
-    if (error) {
-        return vi.fn(() => {
-            throw error;
-        });
+// Data generation utilities
+export const generateTaskSeries = (baseSentence, count, variations = []) => {
+    const tasks = [];
+    for (let i = 0; i < count; i++) {
+        const variation = variations[i] || '';
+        const sentence = baseSentence.replace('{i}', i).replace('{variation}', variation);
+        tasks.push(createTaskDef(sentence, '.', [0.8 + Math.random() * 0.2, 0.8 + Math.random() * 0.2]));
     }
-
-    if (implementation) {
-        return vi.fn(implementation);
-    }
-
-    return vi.fn(() => returnValue);
+    return tasks;
 };
 
-/**
- * Creates a mock object with predefined properties and methods
- * @param {object} props - Properties to set on the mock object
- * @param {object} methods - Methods to add to the mock object
- * @returns {object} Mock object
- */
-export const createMockObject = (props = {}, methods = {}) => {
-    const mock = {};
-
-    // Add properties
-    Object.keys(props).forEach(key => {
-        Object.defineProperty(mock, key, {
-            value: props[key],
-            writable: true,
-            enumerable: true,
-            configurable: true
-        });
-    });
-
-    // Add methods
-    Object.keys(methods).forEach(key => {
-        mock[key] = methods[key];
-    });
-
-    return mock;
+export const generateTermVariations = (baseKey, count, embeddingSize = 3) => {
+    const terms = [];
+    for (let i = 0; i < count; i++) {
+        const embedding = Array.from({length: embeddingSize}, () => Math.random());
+        terms.push(createTermDef(`${baseKey}_${i}`, embedding, 1 + Math.floor(Math.random() * 3)));
+    }
+    return terms;
 };
 
-// Export default configuration for reference
-export const DEFAULT_TEST_CONFIGS = DEFAULT_CONFIGS;
+// Test data sets for common scenarios
+export const TEST_DATA_SETS = {
+    TASK_PROCESSING: [
+        {
+            name: 'basic task processing',
+            input: {sentence: '(cat --> animal)', punctuation: '.', truth: TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM},
+            expected: {success: true, resultType: 'processed'}
+        },
+        {
+            name: 'complex inheritance task',
+            input: {
+                sentence: '((cat --> animal) && (animal --> living))',
+                punctuation: '.',
+                truth: TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM_LOW
+            },
+            expected: {success: true, resultType: 'inference'}
+        },
+        {
+            name: 'invalid task format',
+            input: {sentence: 'invalid format', punctuation: '?', truth: TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MINIMAL},
+            expected: {success: false, errorType: 'ValidationError'}
+        }
+    ],
+
+    REASONING_INFERENCES: [
+        {
+            name: 'deduction',
+            premises: [
+                {sentence: '(bird --> animal)', truth: TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM_HIGH},
+                {sentence: '(animal --> living_thing)', truth: TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM_LOW}
+            ],
+            expected: {conclusion: '(bird --> living_thing)', truth: [0.85, 0.72]}
+        },
+        {
+            name: 'induction',
+            premises: [
+                {sentence: '(robin --> bird)', truth: TEST_CONSTANTS.TRUTH_VALUE_PRESETS.DEFAULT},
+                {sentence: '(robin --> flyer)', truth: TEST_CONSTANTS.TRUTH_VALUE_PRESETS.MEDIUM}
+            ],
+            expected: {conclusion: '(bird --> flyer)', truth: [0.8, 0.68]}
+        }
+    ],
+
+    CONFIGURATION_VALIDATION: [
+        {
+            name: 'valid configuration',
+            config: {reasoner: {strategy: 'BruteForce'}, memory: {capacity: 1000}},
+            expected: {valid: true}
+        },
+        {
+            name: 'invalid strategy config',
+            config: {reasoner: {strategy: 'invalid_strategy'}},
+            expected: {valid: false, error: /invalid.*strategy/i}
+        }
+    ]
+};

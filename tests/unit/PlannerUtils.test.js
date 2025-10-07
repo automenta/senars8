@@ -1,27 +1,21 @@
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it} from 'vitest';
 import * as PlannerUtils from '../../core/reasoner/utils/PlannerUtils.js';
 import Term from '../../core/core/Term.js';
 
-vi.mock('../../core/memory/Memory.js', () => ({
-    default: vi.fn().mockImplementation(() => ({
-        indexer: {
-            implicationIndex: new Map(),
-            beliefIndex: new Map(),
-        }
-    })),
-}));
-
-const {default: Memory} = await import('../../core/memory/Memory.js');
+// Create a simple mock memory object with just the properties PlannerUtils needs
+// This avoids mocking the entire Memory module
+const createMockMemory = () => ({
+    indexer: {
+        implicationIndex: new Map(),
+        beliefIndex: new Map(),
+    }
+});
 
 describe('PlannerUtils', () => {
     let memory;
 
     beforeEach(() => {
-        memory = new Memory();
-        memory.indexer = {
-            implicationIndex: new Map(),
-            beliefIndex: new Map(),
-        };
+        memory = createMockMemory();
     });
 
     describe('findDecompositionMethods', () => {

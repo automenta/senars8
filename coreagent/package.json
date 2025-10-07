@@ -1,0 +1,41 @@
+{
+  "name": "@senars/coreagent",
+  "version": "1.0.0",
+  "description": "Unified Core/Agent system with optimized rule evaluation and metaprogramming",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "vitest --run",
+    "lint": "eslint . --ext .js",
+    "start:coreagent": "USE_COREAGENT=true node ../../main.js"
+  },
+  "keywords": [
+    "ai",
+    "nars",
+    "agent",
+    "core",
+    "reasoning",
+    "metaprogramming",
+    "rule-engine",
+    "winnowing"
+  ],
+  "author": "Senars AI",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "vitest": "^1.0.0",
+    "eslint": "^8.0.0"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./compatibility": "./compatibility.js",
+    "./integration": "./integration.js",
+    "./utils": "./utils.js",
+    "./legacy-compat": "./legacy-compat.js",
+    "./entry": "./entry.js",
+    "./migrate": "./migrate.js"
+  }
+}

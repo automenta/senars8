@@ -6,6 +6,7 @@ import {configService} from '../config/index.js';
 import registerDefaultActions from './default-actions.js';
 import {SystemEvents} from './SystemEvents.js';
 import {SystemCommands} from './SystemCommands.js';
+import MetricsService from './MetricsService.js';
 
 class System {
     constructor(
@@ -34,6 +35,7 @@ class System {
         this.cycleCount = 0;
         this.introspection = new Introspection(this);
         this.constitutionTasks = [];
+        this.metricsService = new MetricsService();
 
         registerDefaultActions(this.actionExecutor);
 
@@ -43,6 +45,10 @@ class System {
         this.commandBus.handle(SystemCommands.SYSTEM_RESET, () => this.reset());
         this.commandBus.handle(SystemCommands.SYSTEM_ADD_TASKS, (tasks) => this.addTasks(tasks));
         this.commandBus.handle(SystemCommands.SYSTEM_GET_STATS, () => this.getStats());
+        this.commandBus.handle(SystemCommands.SYSTEM_GET_METRICS, () => this.getMetrics());
+
+        // Set up periodic metrics broadcasting
+        this._setupMetricsBroadcasting();
 
         info('System components created and initialized.');
     }
@@ -70,6 +76,14 @@ class System {
             }
         }
 
+        // Update metrics in the metrics service
+        this.metricsService.updateSystemMetrics(this.cycleCount, memoryStats, {
+            beliefs,
+            goals,
+            questions,
+            total: allTasks.length
+        });
+
         return {
             cycleCount: this.cycleCount,
             memoryUsage: memoryStats.terms + memoryStats.shortTermTasks + memoryStats.longTermTasks,
@@ -78,6 +92,10 @@ class System {
             questions,
             tasks: allTasks.length,
         };
+    }
+
+    async getMetrics() {
+        return this.metricsService.getMetrics();
     }
 
     async initialize(constitutionTasks) {
@@ -157,6 +175,25 @@ class System {
         }, 'runCycle');
     }
 
+    _setupMetricsBroadcasting() {
+        // Set up periodic metrics broadcasting
+        const broadcastInterval = this.config.getNumber('system.METRICS_BROADCAST_INTERVAL_MS', 5000); // 5 seconds default
+
+        if (broadcastInterval > 0) {
+            this._metricsBroadcastInterval = setInterval(async () => {
+                if (this.isRunning) {
+                    try {
+                        const metrics = await this.getMetrics();
+                        await this.eventBus.emitAsync(SystemEvents.METRICS_UPDATE, metrics);
+                    } catch (error) {
+                        // Don't let metrics broadcasting errors affect system operation
+                        console.warn('Error broadcasting metrics:', error);
+                    }
+                }
+            }, broadcastInterval);
+        }
+    }
+
     async start(maxCycles = 0) {
         await errorHandler.execute(async () => {
             if (this.isRunning) {
@@ -192,6 +229,13 @@ class System {
         errorHandler.executeSync(() => {
             if (!this.isRunning) return;
             this.isRunning = false;
+
+            // Clear metrics broadcast interval
+            if (this._metricsBroadcastInterval) {
+                clearInterval(this._metricsBroadcastInterval);
+                this._metricsBroadcastInterval = null;
+            }
+
             this.eventBus.emit(SystemEvents.SYSTEM_STOP);
             info(`System stopped after ${this.cycleCount} cycles.`);
         }, 'stop');

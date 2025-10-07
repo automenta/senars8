@@ -1,67 +1,58 @@
-import logger from '../core/utils/logger.js';
-import {StandaloneWebSocketServer} from './StandaloneWebSocketServer.js';
-import {createMessageHandler} from './MessageHandler.js';
+/**
+ * Vite plugin for agent server functionality
+ * Provides Vite integration for CoreAgent system
+ */
 
-const log = logger.create('vite-plugin');
+import {AgentManager} from './AgentManager.js';
+import logger from '../coreagent/utils/logger.js';
 
-export const agentServerPlugin = (agentManager) => {
-    let standaloneWsServer = null;
+const log = logger.create('AgentVitePlugin');
+
+/**
+ * Create a Vite plugin for agent server functionality
+ */
+export function agentServerPlugin(options = {}) {
+    const {
+        port = 8080,
+        host = 'localhost',
+        agentConfig = {}
+    } = options;
 
     return {
-        name: 'agent-server-plugin',
-        async configureServer(server) {
-            const wsPort = process.env.WS_PORT ? parseInt(process.env.WS_PORT) : 8081;
+        name: 'agent-server',
+        configureServer(server) {
+            const agentManager = new AgentManager();
 
-            try {
-                // 1. Create and start the WebSocket server
-                standaloneWsServer = new StandaloneWebSocketServer(wsPort);
-                await standaloneWsServer.start();
+            // Create and start agent when server starts
+            server.middlewares.use(async (req, res, next) => {
+                if (req.url === '/agent/status') {
+                    // Agent status endpoint
+                    const statuses = agentManager.getAllAgentStatuses();
+                    res.setHeader('Content-Type', 'application/json');
+                    res.end(JSON.stringify(statuses));
+                    return;
+                }
 
-                // 2. Link the server to the AgentManager
-                agentManager.setBroadcast(standaloneWsServer.broadcast.bind(standaloneWsServer));
+                if (req.url === '/agent/create' && req.method === 'POST') {
+                    // Create new agent endpoint
+                    try {
+                        const agentId = await agentManager.createAgent(agentConfig);
+                        await agentManager.startAgent(agentId);
 
-                // 3. Initialize the AgentManager
-                await agentManager.initialize();
-
-                // 4. Set up the message handler, which now connects the server back to the agent
-                const messageHandler = createMessageHandler(agentManager, standaloneWsServer.broadcast.bind(standaloneWsServer));
-                standaloneWsServer.setMessageHandler(messageHandler);
-
-                log.info(`WebSocket server started on port ${wsPort} (standalone). UI should connect to ws://localhost:${wsPort}`);
-
-                // Update config to reflect the actual WebSocket port being used
-                process.env.ACTUAL_WS_PORT = wsPort.toString();
-
-                // Add cleanup handler for dev server specifically
-                server.httpServer.on('close', async () => {
-                    if (standaloneWsServer) {
-                        await standaloneWsServer.stop();
+                        res.setHeader('Content-Type', 'application/json');
+                        res.end(JSON.stringify({success: true, agentId}));
+                    } catch (error) {
+                        log.error('Error creating agent:', error);
+                        res.statusCode = 500;
+                        res.end(JSON.stringify({error: error.message}));
                     }
-                });
+                    return;
+                }
 
-                // Also handle process exit for proper cleanup
-                const cleanup = async () => {
-                    if (standaloneWsServer) {
-                        await standaloneWsServer.stop();
-                        standaloneWsServer = null;
-                    }
-                };
+                next();
+            });
 
-                process.on('SIGINT', cleanup);
-                process.on('SIGTERM', cleanup);
-                process.on('exit', cleanup);
-
-            } catch (error) {
-                log.error('Failed to start standalone WebSocket server:', error);
-            }
-        },
-
-        async closeBundle() {
-            // Clean up the standalone WebSocket server when Vite server closes
-            if (standaloneWsServer) {
-                await standaloneWsServer.stop();
-                standaloneWsServer = null;
-            }
+            log.info('Agent server plugin configured for Vite');
         }
     };
-};
+}

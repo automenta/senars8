@@ -1,70 +1,86 @@
 import {execa} from 'execa';
 import {createServer} from 'vite';
 import path from 'path';
-import Agent from './agent/index.js';
-import logger from './core/utils/logger.js';
-import AgentManager from './agent/AgentManager.js';
-import {agentServerPlugin} from './agent/vite-plugin.js';
+import {applicationConfig, System} from './coreagent/index.js';
+import logger from './coreagent/utils/logger.js';
+
 import {pathToFileURL} from 'url';
+import {handleUncaughtError, setupGracefulShutdown} from './coreagent/utils/system.js';
+import resourceManager from './coreagent/utils/ResourceManager.js';
 
 const log = logger.create('main');
 
 export const AppRunner = {
-    // Keep track of active components for graceful shutdown
-    _activeProcess: null,
-    _activeServer: null,
-    _activeAgentManager: null,
-
-    async startWebInterface(agentManager) {
+    async startWebInterface() {
         log.info('Starting web UI...');
-        const server = await createServer({
-            configFile: path.resolve(process.cwd(), 'ui/vite.config.js'),
-            root: path.resolve(process.cwd(), 'ui'),
-            server: {port: 8080, clearScreen: false},
-            plugins: [agentServerPlugin(agentManager)],
-        });
-        await server.listen();
-        server.printUrls();
-        return server;
+        try {
+            const port = process.env.PORT || applicationConfig.getUiPort();
+            const server = await createServer({
+                configFile: path.resolve(process.cwd(), 'ui/vite.config.js'),
+                root: path.resolve(process.cwd(), 'ui'),
+                server: {
+                    port: port,
+                    clearScreen: false,
+                    strictPort: true // Fail if port is busy
+                },
+
+            });
+            await server.listen();
+            server.printUrls();
+            log.info(`Web UI started successfully on port ${port}`);
+
+            // Register server with resource manager
+            resourceManager.register('server', server, 'close');
+            return server;
+        } catch (error) {
+            log.error(`Failed to start web UI on port ${process.env.PORT || applicationConfig.getUiPort()}. Is the port already in use?`);
+            log.error(`Error details: ${error.message}`);
+            log.error(`Suggestion: Try using a different port with PORT=3001 npm run dev`);
+            throw error;
+        }
     },
 
     async startTui() {
         log.info('Starting TUI...');
-        const tuiProcess = execa('node', ['tui/src/index.js'], {stdio: 'inherit'});
+        const tuiProcess = execa('node', ['tui/src/index.jsx'], {stdio: 'inherit'});
         tuiProcess.on('exit', (code) => {
             log.info(`TUI process exited with code ${code}`);
             process.exit(code);
         });
+
+        // Register process with resource manager
+        resourceManager.register('tuiProcess', tuiProcess, 'kill');
         return tuiProcess;
     },
 
     async startAgent() {
-        log.info('Starting agent...');
-        const agent = new Agent();
+        log.info('Starting agent with CoreAgent system...');
+        const agent = new System();
         await agent.initialize();
-        agent.start();
-        log.info('Agent started successfully.');
+        await agent.start();
+        log.info('Agent with CoreAgent system started successfully.');
         return agent;
     },
 
     async run(args = {}) {
         try {
-            const agentManager = new AgentManager();
-            // Initialization is now handled by the component that uses it (e.g., Vite plugin)
-            this._activeAgentManager = agentManager;
+
 
             if (args.web) {
-                this._activeServer = await this.startWebInterface(agentManager);
+                await this.startWebInterface();
             } else if (args.tui) {
-                this._activeProcess = await this.startTui();
+                await this.startTui();
             } else {
                 await this.startAgent();
             }
 
+            // Set up graceful shutdown after the app is running
+            setupGracefulShutdown(log, () => this.shutdown());
+
             return {
-                agentManager: this._activeAgentManager,
-                server: this._activeServer,
-                process: this._activeProcess,
+                agentManager: resourceManager.get('agentManager'),
+                server: resourceManager.get('server'),
+                process: resourceManager.get('tuiProcess'),
             };
         } catch (error) {
             log.error('Application run failed:', error);
@@ -78,19 +94,8 @@ export const AppRunner = {
 
     async shutdown() {
         log.info('Shutting down gracefully...');
-        if (this._activeAgentManager) {
-            await this._activeAgentManager.stop();
-            this._activeAgentManager = null;
-        }
-        if (this._activeProcess) {
-            this._activeProcess.kill('SIGTERM');
-            this._activeProcess = null;
-        }
-        if (this._activeServer) {
-            // The Vite dev server will handle closing the standalone WebSocket server through the plugin's closeBundle hook
-            await this._activeServer.close();
-            this._activeServer = null;
-        }
+        // Use resource manager to handle all resource cleanup
+        await resourceManager.shutdown();
     },
 };
 
@@ -107,22 +112,14 @@ const getArgs = () => {
 };
 
 const main = async () => {
-    const gracefulShutdownHandler = async (signal) => {
-        log.info(`Received ${signal}.`);
-        await AppRunner.shutdown();
-        process.exit(0);
-    };
-
-    process.on('SIGINT', () => gracefulShutdownHandler('SIGINT'));
-    process.on('SIGTERM', () => gracefulShutdownHandler('SIGTERM'));
-
     await AppRunner.run(getArgs());
 };
 
 // This check ensures that main() is only called when the script is executed directly
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     main().catch(error => {
-        log.error('Unhandled error in main execution:', error);
-        process.exit(1);
+        handleUncaughtError(error, log, async () => {
+            // Resource manager handles cleanup
+        });
     });
 }

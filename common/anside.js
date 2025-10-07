@@ -1,7 +1,3 @@
-/**
- * A centralized object for ANSI escape codes for styling terminal output.
- * This ensures consistency and easy management of terminal colors and styles.
- */
 const anside = {
     reset: "\x1b[0m",
     bright: "\x1b[1m",
@@ -13,8 +9,8 @@ const anside = {
         yellow: "\x1b[33m",
         blue: "\x1b[34m",
         magenta: "\x1b[35m",
-        cyan: "\x1b[36m",
-    },
+        cyan: "\x1b[36m"
+    }
 };
 
 export default anside;

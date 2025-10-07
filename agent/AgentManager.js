@@ -1,108 +1,167 @@
-import {Agent} from './index.js';
-import {error, info, warn} from '../core/utils/logger.js';
-import {formatTaskForBroadcast} from './utils/taskUtils.js';
-import {SystemCommands} from '../core/system/SystemCommands.js';
-import FileMonitor from './FileMonitor.js';
-import {createUnifiedErrorHandler} from '../core/utils/errorHandler.js';
+/**
+ * Agent Manager for CoreAgent system
+ * Manages agent instances using the coreagent architecture
+ */
 
-class AgentManager {
-    constructor() {
-        this.agent = new Agent();
-        this.broadcast = () => {}; // No-op broadcast function by default
-        this.system = null;
-        this.fileMonitor = null;
-        this.errorHandler = createUnifiedErrorHandler('AgentManager');
+import {System} from '../coreagent/index.js';
+import logger from '../coreagent/utils/logger.js';
+
+const log = logger.create('AgentManager');
+
+/**
+ * Agent Manager that uses CoreAgent system
+ */
+export class AgentManager {
+    constructor(options = {}) {
+        this.options = options;
+        this.agents = new Map();
+        this.systems = new Map();
     }
 
-    setBroadcast(broadcast) {
-        this.broadcast = broadcast;
-    }
+    /**
+     * Create a new agent instance
+     */
+    async createAgent(config = {}) {
+        const agentId = config.id || `agent_${Date.now()}`;
 
-    async initialize() {
-        return this.errorHandler.runAsync(async () => {
-            await this.agent.initialize();
-            this.system = this.agent.system;
+        log.info(`Creating agent: ${agentId}`);
 
-            this.fileMonitor = new FileMonitor(this.system, this.agent.config.fileMonitoring);
-            this.fileMonitor.initialize();
+        // Create CoreAgent system for this agent
+        const system = new System(config);
+        await system.initialize();
 
-            info('Agent initialized');
-            this.broadcast({type: 'agentStatus', payload: 'initialized'});
-
-            this.setupEventListeners();
-            await this.fileMonitor.start();
-            return true;
-        }, 'initialize', {
-            onError: (err) => {
-                error('Agent initialization failed:', err);
-                this.broadcast({type: 'agentStatus', payload: 'initialization_failed'});
-                return false;
-            }
+        // Store agent
+        this.agents.set(agentId, {
+            id: agentId,
+            system,
+            config,
+            created: new Date()
         });
+
+        this.systems.set(agentId, system);
+
+        log.info(`Agent ${agentId} created successfully`);
+        return agentId;
     }
 
-    setupEventListeners() {
-        this.errorHandler.runSync(() => {
-            const eventBus = this.system.eventBus;
-            if (!eventBus) {
-                warn('Agent event bus not available. UI will not receive real-time updates.');
-                return;
-            }
+    /**
+     * Start an agent
+     */
+    async startAgent(agentId) {
+        const agent = this.agents.get(agentId);
+        if (!agent) {
+            throw new Error(`Agent ${agentId} not found`);
+        }
 
-            info('Attaching event listeners to EventBus');
-            const events = {
-                'status_update': (status) => ({type: 'status_update', payload: status}),
-                'system_cycle': (cycleCount) => ({type: 'system_cycle', payload: {cycleCount}}),
-                'add_belief': (belief) => ({type: 'add_belief', payload: formatTaskForBroadcast(belief)}),
-                'add_goal': (goal) => ({type: 'add_goal', payload: formatTaskForBroadcast(goal)}),
-                'add_question': (question) => ({type: 'add_question', payload: formatTaskForBroadcast(question)}),
-                'add_task': (task) => ({type: 'task_added', payload: formatTaskForBroadcast(task)}),
-                'reasoning_step': (step) => ({type: 'reasoning_step', payload: step}),
-                'memory_update': (changes) => ({type: 'memory_update', payload: changes}),
-            };
+        log.info(`Starting agent: ${agentId}`);
 
-            for (const [eventName, formatter] of Object.entries(events)) {
-                eventBus.on(eventName, (data) => {
-                    console.log(`AgentManager: Event received: ${eventName}`, data);
-                    this.errorHandler.runSync(() => {
-                        this.broadcast(formatter(data));
-                    }, `broadcast:${eventName}`);
-                });
-            }
-        }, 'setupEventListeners');
+        if (!agent.system.lifecycle.started) {
+            await agent.system.start();
+        }
+
+        agent.status = 'running';
+        log.info(`Agent ${agentId} started successfully`);
     }
 
-    getAgent() {
-        return this.agent;
+    /**
+     * Stop an agent
+     */
+    async stopAgent(agentId) {
+        const agent = this.agents.get(agentId);
+        if (!agent) {
+            throw new Error(`Agent ${agentId} not found`);
+        }
+
+        log.info(`Stopping agent: ${agentId}`);
+
+        if (agent.system.lifecycle.started) {
+            await agent.system.stop();
+        }
+
+        agent.status = 'stopped';
+        log.info(`Agent ${agentId} stopped successfully`);
     }
 
-    async start(maxCycles) {
-        return this.errorHandler.runAsync(async () => {
-            if (this.system?.commandBus) {
-                this.broadcast({type: 'log', payload: {source: 'system', message: 'Agent command received: start'}});
-                await this.system.commandBus.request(SystemCommands.SYSTEM_START_CYCLING, {maxCycles});
-            }
-        }, 'start');
+    /**
+     * Get agent status
+     */
+    getAgentStatus(agentId) {
+        const agent = this.agents.get(agentId);
+        if (!agent) {
+            return null;
+        }
+
+        return {
+            id: agent.id,
+            status: agent.status || 'unknown',
+            created: agent.created,
+            systemStatus: agent.system.getStatus()
+        };
     }
 
-    async stop() {
-        await this.errorHandler.runAsync(async () => {
-            if (this.system?.commandBus) {
-                this.broadcast({type: 'log', payload: {source: 'system', message: 'Agent command received: stop'}});
-                await this.system.commandBus.request(SystemCommands.SYSTEM_STOP_CYCLING);
-            }
-        }, 'stop');
-        await this.fileMonitor?.stop();
+    /**
+     * Get all agent statuses
+     */
+    getAllAgentStatuses() {
+        const statuses = {};
+        for (const [agentId] of this.agents) {
+            statuses[agentId] = this.getAgentStatus(agentId);
+        }
+        return statuses;
     }
 
-    async reset() {
-        return this.errorHandler.runAsync(async () => {
-            if (this.system?.commandBus) {
-                this.broadcast({type: 'log', payload: {source: 'system', message: 'Agent command received: reset'}});
-                await this.system.commandBus.request(SystemCommands.SYSTEM_RESET);
-            }
-        }, 'reset');
+    /**
+     * Send message to agent
+     */
+    async sendMessage(agentId, message) {
+        const agent = this.agents.get(agentId);
+        if (!agent) {
+            throw new Error(`Agent ${agentId} not found`);
+        }
+
+        log.debug(`Sending message to agent ${agentId}:`, message);
+
+        // Use coreagent's message system
+        return await agent.system.request('message:handle', message);
+    }
+
+    /**
+     * Remove an agent
+     */
+    async removeAgent(agentId) {
+        const agent = this.agents.get(agentId);
+        if (!agent) {
+            throw new Error(`Agent ${agentId} not found`);
+        }
+
+        log.info(`Removing agent: ${agentId}`);
+
+        // Stop agent if running
+        if (agent.system.lifecycle.started) {
+            await this.stopAgent(agentId);
+        }
+
+        // Clean up
+        this.agents.delete(agentId);
+        this.systems.delete(agentId);
+
+        log.info(`Agent ${agentId} removed successfully`);
+    }
+
+    /**
+     * Get agent system
+     */
+    getAgentSystem(agentId) {
+        return this.systems.get(agentId);
+    }
+
+    /**
+     * List all agents
+     */
+    listAgents() {
+        return Array.from(this.agents.keys());
     }
 }
 
+// Export default instance
 export default AgentManager;

@@ -4,7 +4,7 @@ import Memory from '../../core/memory/Memory.js';
 import Term from '../../core/core/Term.js';
 import Task from '../../core/core/Task.js';
 import ConfigManager from '../../core/config/ConfigManager.js';
-import {createMockCommandBus, createMockEventBus} from '../test-helpers.js';
+import {createMockCommandBus, createMockEventBus} from '../mock-builders.js';
 
 describe('HTNPlanner Integration Test', () => {
     let memory;

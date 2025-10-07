@@ -1,6 +1,6 @@
 import React from 'react';
 import {fireEvent, render, screen} from '@testing-library/react';
-import ErrorBoundary from '../ErrorBoundary';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // A component that throws an error for testing purposes
 const ProblemChild = () => {

@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import agentService from '@/services/agentService';
+import agentService from '../../services/agentService.js';
 
 const useChat = () => {
     const [messages, setMessages] = useState([]);

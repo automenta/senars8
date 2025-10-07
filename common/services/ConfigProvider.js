@@ -12,7 +12,7 @@ class ConfigProvider {
      * Initialize the configuration provider
      * @param {Object} config - Configuration object or ConfigManager instance
      */
-    initialize(config) {
+    async initialize(config) {
         if (config && typeof config.get === 'function') {
             // If config is already a ConfigManager instance
             this.configManager = config;

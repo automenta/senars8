@@ -1,5 +1,5 @@
 import React from 'react';
-import {EnhancedInput, Panel, SendButton} from '@ui/components';
+import {EnhancedInput, Panel, SendButton} from '../../components/index.js';
 import useChat from './useChat';
 import './Chat.css';
 

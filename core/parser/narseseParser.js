@@ -15,6 +15,7 @@ const TEMPORAL_OPERATOR_MAP = {
 const BINARY_OPERATOR_MAP = {
     [TOKEN.CONJUNCTION]: OP.CONJUNCTION,
     [TOKEN.SEQUENTIAL_CONJUNCTION]: OP.SEQUENTIAL_CONJUNCTION,
+    [TOKEN.SEQUENTIAL_CONJUNCTION_ALT]: OP.SEQUENTIAL_CONJUNCTION,
     [TOKEN.PARALLEL_CONJUNCTION]: OP.PARALLEL_CONJUNCTION,
     [TOKEN.DISJUNCTION]: OP.DISJUNCTION,
     [TOKEN.EXTENSIONAL_DIFFERENCE]: OP.EXTENSIONAL_DIFFERENCE,
@@ -43,13 +44,19 @@ const BINARY_RELATION_MAP = {
 };
 
 class NarseseParser {
-    constructor(input) {
-        this.input = input;
-        this.lexer = lexer.clone().reset(input);
+    constructor(core) {
+        this.core = core;
+        this.lexer = lexer.clone();
         this.current = null;
         this.recursionDepth = 0;
         this.maxRecursionDepth = 100; // Prevent infinite recursion/stack overflow
+    }
+
+    parse(input) {
+        this.input = input;
+        this.lexer.reset(input);
         this.next();
+        return this.parseMain();
     }
 
     next() {
@@ -75,6 +82,10 @@ class NarseseParser {
 
     parseMain() {
         const result = this.parseStatement();
+        // Allow trailing whitespace or end of input
+        while (this.current && (this.current.type === TOKEN.WHITESPACE || !this.current.type)) {
+            this.next();
+        }
         if (this.current) {
             throw new Error(`Unexpected token '${this.current.type}' at end`);
         }
@@ -83,10 +94,10 @@ class NarseseParser {
 
     parseStatement() {
         const term = this.parseTerm();
+        const truthValue = this.match(TOKEN.LPAREN) ? this.parseTruthValue() : null;
         const punctuation = this.match(TOKEN.BELIEF) ? this.consume(TOKEN.BELIEF) :
             this.match(TOKEN.GOAL) ? this.consume(TOKEN.GOAL) :
                 this.match(TOKEN.QUESTION) ? this.consume(TOKEN.QUESTION) : null;
-        const truthValue = this.match(TOKEN.LPAREN) ? this.parseTruthValue() : null;
 
         return (punctuation || truthValue) ? {
             type: OP.STATEMENT,
@@ -130,6 +141,14 @@ class NarseseParser {
             [TOKEN.QUERY_VAR]: () => this.parseVariable(TOKEN.QUERY_VAR, OP.QUERY_VARIABLE),
             [TOKEN.QUESTION]: () => this.parseVariable(TOKEN.QUESTION, OP.QUERY_VARIABLE),
             [TOKEN.NUMBER]: () => this.parseNumber(),
+            // Handle temporal operators as atomic terms when they appear in term contexts
+            // But only if they're not being used as identifiers in operator arguments
+            [TOKEN.NEXT]: () => this.parseAtomicTermFromToken(),
+            [TOKEN.PREVIOUS]: () => this.parseAtomicTermFromToken(),
+            [TOKEN.ALWAYS]: () => this.parseAtomicTermFromToken(),
+            [TOKEN.EVENTUALLY]: () => this.parseAtomicTermFromToken(),
+            [TOKEN.UNTIL]: () => this.parseAtomicTermFromToken(),
+            [TOKEN.SINCE]: () => this.parseAtomicTermFromToken(),
         };
         const parser = this.current ? parsers[this.current.type] : null;
         if (parser) {
@@ -165,6 +184,17 @@ class NarseseParser {
             if (this.current?.type in BINARY_RELATION_MAP) {
                 const relationType = BINARY_RELATION_MAP[this.current.type];
                 term = this.parseBinaryRelation(left, this.current.type, relationType);
+                // After parsing binary relation, consume the closing parenthesis
+                // Calculate end position before consuming the RPAREN (using the token's position)
+                const end = this.current.offset + this.current.text.length;
+                this.consume(TOKEN.RPAREN);
+
+                // Assign the original string segment as the key for the compound term
+                if (term && typeof term === 'object' && !term.key) {
+                    term.key = this.input.substring(start, end);
+                }
+
+                return term;
             } else if (this.current?.type in BINARY_OPERATOR_MAP) {
                 const terms = [left];
                 const operator = this.current.type;
@@ -173,6 +203,33 @@ class NarseseParser {
                     terms.push(this.parseTerm());
                 }
                 term = {type: BINARY_OPERATOR_MAP[operator], terms};
+
+                // After parsing a binary operator, check if there's a binary relation following
+                // This handles cases like (a & b ==> c & d)
+                if (this.current?.type in BINARY_RELATION_MAP) {
+                    const relationType = BINARY_RELATION_MAP[this.current.type];
+                    const binaryRelation = this.parseBinaryRelation(term, this.current.type, relationType);
+
+                    // After parsing the binary relation, check if there are more terms
+                    if (this.current && !this.match(TOKEN.RPAREN) && this.current?.type in BINARY_OPERATOR_MAP) {
+                        // We have a compound expression like (a & b ==> c & d)
+                        // Parse the right side as another compound term
+                        const rightTerms = [binaryRelation.predicate];
+                        const rightOperator = this.current.type;
+                        while (this.match(rightOperator)) {
+                            this.consume(rightOperator);
+                            rightTerms.push(this.parseTerm());
+                        }
+
+                        term = {
+                            type: binaryRelation.type,
+                            subject: binaryRelation.subject,
+                            predicate: {type: BINARY_OPERATOR_MAP[rightOperator], terms: rightTerms}
+                        };
+                    } else {
+                        term = binaryRelation;
+                    }
+                }
             } else if (this.match(TOKEN.COMMA)) {
                 const productTerms = [left];
                 while (this.match(TOKEN.COMMA)) {
@@ -183,10 +240,38 @@ class NarseseParser {
                 }
                 term = {type: OP.PRODUCT, terms: productTerms};
             } else {
-                term = left;
+                // Handle case where we have a term followed by a binary relation that's not at the top level
+                // This handles cases like (a & b ==> c & d)
+                if (this.current?.type in BINARY_RELATION_MAP) {
+                    const relationType = BINARY_RELATION_MAP[this.current.type];
+                    const binaryRelation = this.parseBinaryRelation(left, this.current.type, relationType);
+
+                    // After parsing the binary relation, check if there are more terms
+                    if (this.current && !this.match(TOKEN.RPAREN) && this.current?.type in BINARY_OPERATOR_MAP) {
+                        // We have a compound expression like (a & b ==> c & d)
+                        // Parse the right side as another compound term
+                        const rightTerms = [binaryRelation.predicate];
+                        const operator = this.current.type;
+                        while (this.match(operator)) {
+                            this.consume(operator);
+                            rightTerms.push(this.parseTerm());
+                        }
+
+                        term = {
+                            type: binaryRelation.type,
+                            subject: binaryRelation.subject,
+                            predicate: {type: BINARY_OPERATOR_MAP[operator], terms: rightTerms}
+                        };
+                    } else {
+                        term = binaryRelation;
+                    }
+                } else {
+                    term = left;
+                }
             }
         }
 
+        // Calculate end position before consuming the RPAREN
         const end = this.current.offset + this.current.text.length;
         this.consume(TOKEN.RPAREN);
 
@@ -203,18 +288,25 @@ class NarseseParser {
         const operatorType = OPERATOR_MAP[operatorTokenType];
         this.consume(operatorTokenType);
 
-        this.consume(TOKEN.COMMA);
+        // For temporal operators, comma is optional - check if next token is comma or term
         const isBinary = operatorTokenType in BINARY_OPERATOR_MAP;
-        const result = isBinary ? {
-            terms: this.parseTermList(TOKEN.RPAREN)
-        } : {
-            term: this.parseTerm()
-        };
-        // this.consume(TOKEN.RPAREN); // This was the bug
-        return {
-            type: operatorType,
-            ...result
-        };
+
+        if (!isBinary) { // Unary operator
+            if (this.match(TOKEN.COMMA)) {
+                throw new Error(`Unexpected comma after unary operator '${operatorTokenType}'. Unary operators expect a single term, not a comma-separated list.`);
+            }
+            const term = this.parseTerm();
+            return {
+                type: operatorType,
+                term
+            };
+        } else { // Binary operator
+            const terms = this.parseTermList(TOKEN.RPAREN);
+            return {
+                type: operatorType,
+                terms
+            };
+        }
     }
 
     parseBinaryRelation(subject, tokenType, relationType) {
@@ -227,9 +319,8 @@ class NarseseParser {
         if (this.recursionDepth > this.maxRecursionDepth) {
             throw new Error(`Recursion depth exceeded maximum of ${this.maxRecursionDepth}`);
         }
-        const predicate = this.match(TOKEN.RPAREN) ? null : this.parseTerm();
+        const predicate = this.parseTerm();
         this.recursionDepth--; // Decrement after the call
-        // this.consume(TOKEN.RPAREN); // This was the bug
         return {
             type: relationType,
             subject,
@@ -290,25 +381,83 @@ class NarseseParser {
         };
     }
 
+    parseAtomicTermFromToken() {
+        const token = this.current;
+        this.next();
+        return {
+            type: OP.ATOMIC,
+            key: token.value
+        };
+    }
+
     parseTermList(closingToken) {
         const terms = [];
         if (!this.match(closingToken)) {
-            do {
-                // Check recursion depth before recursive call
+            // Parse first term - only if current token is a valid term starter
+            if (this.current && [TOKEN.IDENTIFIER, TOKEN.STRING, TOKEN.LPAREN, TOKEN.LBRACE, TOKEN.LBRACKET,
+                TOKEN.INDEPENDENT_VAR, TOKEN.DEPENDENT_VAR, TOKEN.QUERY_VAR, TOKEN.QUESTION,
+                TOKEN.NUMBER, TOKEN.NEXT, TOKEN.PREVIOUS, TOKEN.ALWAYS, TOKEN.EVENTUALLY,
+                TOKEN.UNTIL, TOKEN.SINCE].includes(this.current.type)) {
+
                 this.recursionDepth++;
                 if (this.recursionDepth > this.maxRecursionDepth) {
                     throw new Error(`Recursion depth exceeded maximum of ${this.maxRecursionDepth}`);
                 }
                 terms.push(this.parseTerm());
-                this.recursionDepth--; // Decrement after the call
-            } while (this.match(TOKEN.COMMA) && this.consume(TOKEN.COMMA));
+                this.recursionDepth--;
+            }
+
+            // Parse additional terms separated by commas
+            while (this.match(TOKEN.COMMA) && !this.match(closingToken)) {
+                this.consume(TOKEN.COMMA);
+
+                // Check if there's a term after the comma
+                if (!this.match(closingToken) && this.current &&
+                    [TOKEN.IDENTIFIER, TOKEN.STRING, TOKEN.LPAREN, TOKEN.LBRACE, TOKEN.LBRACKET,
+                        TOKEN.INDEPENDENT_VAR, TOKEN.DEPENDENT_VAR, TOKEN.QUERY_VAR, TOKEN.QUESTION,
+                        TOKEN.NUMBER, TOKEN.NEXT, TOKEN.PREVIOUS, TOKEN.ALWAYS, TOKEN.EVENTUALLY,
+                        TOKEN.UNTIL, TOKEN.SINCE].includes(this.current.type)) {
+
+                    this.recursionDepth++;
+                    if (this.recursionDepth > this.maxRecursionDepth) {
+                        throw new Error(`Recursion depth exceeded maximum of ${this.maxRecursionDepth}`);
+                    }
+                    terms.push(this.parseTerm());
+                    this.recursionDepth--;
+                } else if (!this.match(closingToken)) {
+                    // If we have a comma but no valid term after it, that's an error
+                    throw new Error(`Expected term after comma, found '${this.current?.type || 'EOF'}'`);
+                }
+            }
+
+            // For temporal operators, also allow space-separated terms without commas
+            // This handles cases like (&& first second) instead of (&&, first, second)
+            // But only if we haven't reached the closing token and there are more terms
+            while (!this.match(closingToken) && this.current && this.current.type !== TOKEN.RPAREN) {
+                if (this.current.type in BINARY_RELATION_MAP || this.current.type in BINARY_OPERATOR_MAP) {
+                    break; // Stop if we encounter another operator
+                }
+                // Only add more terms if the current token is a valid term starter
+                if (this.current && [TOKEN.IDENTIFIER, TOKEN.STRING, TOKEN.LPAREN, TOKEN.LBRACE, TOKEN.LBRACKET].includes(this.current.type)) {
+                    this.recursionDepth++;
+                    if (this.recursionDepth > this.maxRecursionDepth) {
+                        throw new Error(`Recursion depth exceeded maximum of ${this.maxRecursionDepth}`);
+                    }
+                    terms.push(this.parseTerm());
+                    this.recursionDepth--;
+                } else {
+                    break;
+                }
+            }
         }
         return terms;
     }
 }
 
 function parseTerm(input) {
-    if (typeof input !== 'string' || !input.length) return null;
+    if (typeof input !== 'string') return null;
+    if (!input.length) return null; // Empty string returns null, no error
+
     const parser = new NarseseParser(input);
     const parsed = parser.parseMain();
     if (parsed && typeof parsed === 'object' && !parsed.key) {
@@ -318,5 +467,6 @@ function parseTerm(input) {
 }
 
 export {
-    parseTerm
+    parseTerm,
+    NarseseParser
 };

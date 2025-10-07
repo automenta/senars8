@@ -1,4 +1,4 @@
-import Agent from '../../core/agent/Agent.js';
+import Agent from '../../coreagent/agent/Agent.js';
 import fs from 'fs/promises';
 import path from 'path';
 import assert from 'assert';

@@ -1,8 +1,9 @@
 import {beforeEach, describe, expect, test, vi} from 'vitest';
 import Task from '../../core/core/Task.js';
 import Term from '../../core/core/Term.js';
-import {parseTerm} from '../../core/parser/narseseParser.js';
-import {createTestConfig, setupTestEnvironment} from '../test-helpers.js';
+import {parseTerm} from '../../coreagent/parser/narseseParser.js';
+import {createConfig} from '../shared/test-utils.js';
+import {createTestSystem} from '../test-setup.js';
 import {SystemCommands} from '../../core/system/SystemCommands.js';
 
 vi.mock('@xenova/transformers', () => ({
@@ -34,11 +35,11 @@ describe('Reasoner Integration Test', () => {
     let system, reasoner, memory, commandBus;
 
     beforeEach(() => {
-        const testEnv = setupTestEnvironment(createTestConfig());
-        system = testEnv.system;
+        const systemData = createTestSystem(createConfig('UNIT_TEST'));
+        system = systemData.system;
         reasoner = system.reasoner;
-        memory = testEnv.container.get('memory'); // Get memory from container
-        commandBus = testEnv.commandBus;
+        memory = systemData.container.get('memory'); // Get memory from container
+        commandBus = systemData.commandBus;
 
         setupCommandBusMock(commandBus);
     });
@@ -49,7 +50,15 @@ describe('Reasoner Integration Test', () => {
         const task1 = new Task(parseTerm('(cat ==> mammal)'), '.');
         const task2 = new Task(termA, '.');
 
+        // Debug: Check the structure of the parsed terms
+        const parsed1 = parseTerm('(cat ==> mammal)');
+        const parsed2 = parseTerm('cat');
+
+        expect(parsed1.type).toBe('Implication');
+        expect(parsed2.type).toBe('Atomic');
+
         const derivedTasks = await reasoner.performInference([task1, task2]);
+        expect(derivedTasks.length).toBeGreaterThan(0);
         expect(derivedTasks.some(t => t.termKey === 'mammal')).toBe(true);
     });
 
@@ -60,7 +69,15 @@ describe('Reasoner Integration Test', () => {
         const task1 = new Task(parseTerm('(cat --> mammal)'), '.');
         const task2 = new Task(parseTerm('(mammal --> animal)'), '.');
 
+        // Debug: Check the structure of the parsed terms
+        const parsed1 = parseTerm('(cat --> mammal)');
+        const parsed2 = parseTerm('(mammal --> animal)');
+
+        expect(parsed1.type).toBe('Inheritance');
+        expect(parsed2.type).toBe('Inheritance');
+
         const derivedTasks = await reasoner.performInference([task1, task2]);
+        expect(derivedTasks.length).toBeGreaterThan(0);
         expect(derivedTasks.some(t => t.termKey === '(cat --> animal)')).toBe(true);
     });
 });

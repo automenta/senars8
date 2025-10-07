@@ -88,7 +88,7 @@ class SharedAPI {
         }
 
         // Parse the content into a term and create a task
-        const {parseTerm, Task} = await import('../../core/index.js');
+        const {parseTerm, Task} = await import('../../coreagent/index.js');
         const term = parseTerm(content);
 
         if (!term) {
@@ -131,7 +131,7 @@ class SharedAPI {
         }
 
         // Parse the content into a term and create a belief
-        const {parseTerm, Task} = await import('../../core/index.js');
+        const {parseTerm, Task} = await import('../../coreagent/index.js');
         const term = parseTerm(content);
 
         if (!term) {
@@ -162,7 +162,7 @@ class SharedAPI {
         }
 
         // Parse the content into a term and create a goal
-        const {parseTerm, Task} = await import('../../core/index.js');
+        const {parseTerm, Task} = await import('../../coreagent/index.js');
         const term = parseTerm(content);
 
         if (!term) {
@@ -193,7 +193,7 @@ class SharedAPI {
         }
 
         // Parse the content into a term and create a question
-        const {parseTerm, Task} = await import('../../core/index.js');
+        const {parseTerm, Task} = await import('../../coreagent/index.js');
         const term = parseTerm(content);
 
         if (!term) {
@@ -224,7 +224,7 @@ class SharedAPI {
         }
 
         // Parse the content into a term and create a task
-        const {parseTerm, Task} = await import('../../core/index.js');
+        const {parseTerm, Task} = await import('../../coreagent/index.js');
         const term = parseTerm(content);
 
         if (!term) {

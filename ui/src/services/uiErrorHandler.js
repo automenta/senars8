@@ -1,9 +1,9 @@
 // Enhanced Error Handling for UI Components
-import {EventEmitter} from 'events';
+import {EventBus} from '@common/utils/eventBus.js';
 import log from '@core/utils/logger.js';
 import notificationService from '@/services/notificationService';
 
-class UIErrorHandler extends EventEmitter {
+class UIErrorHandler extends EventBus {
     constructor() {
         super();
         this.errorCount = 0;

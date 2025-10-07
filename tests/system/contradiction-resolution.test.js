@@ -17,7 +17,7 @@ describe('System-level Contradiction Resolution', () => {
     let system;
     let warnSpy;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {
         });
 
@@ -29,7 +29,7 @@ describe('System-level Contradiction Resolution', () => {
                 enabled: false
             }
         };
-        system = SystemFactory.createSystem(customConfig);
+        system = await SystemFactory.createSystem(customConfig);
     });
 
     afterEach(() => {
@@ -50,8 +50,6 @@ describe('System-level Contradiction Resolution', () => {
         });
 
         await system.addTasks([task1, task2]);
-
-        console.log(system);
 
         await system.runCycle();
 

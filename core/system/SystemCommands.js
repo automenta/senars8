@@ -12,6 +12,7 @@ export const SystemCommands = Object.freeze({
     SYSTEM_START_CYCLING: 'system:startCycling',
     SYSTEM_STOP_CYCLING: 'system:stopCycling',
     SYSTEM_GET_STATS: 'system:getStats',
+    SYSTEM_GET_METRICS: 'system:getMetrics',
 
     // --- Reasoner ---
     REASONER_PROCESS_TASK: 'reasoner:processTask',

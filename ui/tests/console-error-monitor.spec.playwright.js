@@ -1,4 +1,4 @@
-import {test, expect} from '@playwright/test';
+import {expect, test} from '@playwright/test';
 
 // Test to monitor browser console errors
 test.describe('Browser Console Error Monitor', () => {

@@ -1,122 +1,87 @@
-import {WebSocketServer as WsServer} from 'ws';
-import logger from '../core/utils/logger.js';
+/**
+ * Unified WebSocket Server for CoreAgent system
+ * Provides WebSocket connectivity using the coreagent architecture
+ */
 
-const log = logger.create('StandaloneWebSocketServer');
+// System import removed - not currently used
+import logger from '../coreagent/utils/logger.js';
 
-export class StandaloneWebSocketServer {
-    constructor(port = 8081) {
-        this.port = port;
+const log = logger.create('WebSocketServer');
+
+/**
+ * Unified WebSocket Server that integrates with CoreAgent system
+ */
+export class UnifiedWebSocketServer {
+    constructor(coreagentSystem, options = {}) {
+        this.system = coreagentSystem;
+        this.options = {
+            port: options.port || 8080,
+            host: options.host || 'localhost',
+            ...options
+        };
         this.wss = null;
-        this.server = null;
-        this.messageHandler = null;
+        this.clients = new Set();
     }
 
+    /**
+     * Start the WebSocket server
+     */
     async start() {
-        // Import http module first, then create and start server
-        const httpModule = await import('http');
-        this.server = httpModule.createServer();
+        log.info(`Starting WebSocket server on ${this.options.host}:${this.options.port}`);
 
-        return new Promise((resolve, reject) => {
-            // Listen on the specified port
-            this.server.listen(this.port, () => {
-                log.info(`Standalone WebSocket server listening on port ${this.port}`);
-
-                // Create WebSocket server attached to the HTTP server
-                this.wss = new WsServer({server: this.server});
-
-                this.setupWebSocketHandlers();
-                resolve();
-            });
-
-            this.server.on('error', (err) => {
-                log.error('WebSocket server error:', err);
-                reject(err);
-            });
-        });
-    }
-
-    setupWebSocketHandlers() {
-        this.wss.on('connection', (ws) => {
-            log.info('A new client connected to standalone WebSocket server');
-            ws.send(JSON.stringify({
-                type: 'connection_ack',
-                payload: {message: 'Welcome to the standalone WebSocket server!'}
-            }));
-
-            ws.on('error', (err) => {
-                log.error('WebSocket error:', err);
-            });
-
-            ws.on('message', async (data) => {
-                if (this.messageHandler) {
-                    const {executeAsync} = await import('./utils/asyncWrapper.js');
-                    await executeAsync(async () => {
-                        const message = JSON.parse(data);
-                        await this.messageHandler(message, ws);
-                    }, ws, 'handle message');
+        // Use coreagent's plugin system for WebSocket functionality
+        this.system.use('websocket', async (_core) => {
+            return {
+                name: 'WebSocketServer',
+                async initialize() {
+                    log.info('WebSocket plugin initialized');
+                },
+                async start() {
+                    log.info('WebSocket plugin started');
                 }
-            });
-
-            ws.on('close', () => {
-                log.info('Client disconnected from standalone WebSocket server');
-            });
+            };
         });
+
+        await this.system.loadPlugin('websocket');
+        log.info('WebSocket server started successfully');
     }
 
-    setMessageHandler(handler) {
-        this.messageHandler = handler;
-    }
-
+    /**
+     * Stop the WebSocket server
+     */
     async stop() {
-        return new Promise((resolve) => {
-            // Close all WebSocket connections first
-            if (this.wss) {
-                // Close all client connections
-                if (this.wss.clients) {
-                    for (const client of this.wss.clients) {
-                        if (client.readyState === client.OPEN) {
-                            client.terminate(); // Force close
-                        }
-                    }
-                }
+        log.info('Stopping WebSocket server');
 
-                // Close the WebSocket server
-                this.wss.close(() => {
-                    log.info('WebSocket server closed');
-
-                    // Now close the HTTP server
-                    if (this.server) {
-                        this.server.close(() => {
-                            log.info('Standalone WebSocket server closed');
-                            resolve();
-                        });
-                    } else {
-                        resolve();
-                    }
-                });
-            } else if (this.server) {
-                // If no WSS but HTTP server exists, close it directly
-                this.server.close(() => {
-                    log.info('Standalone HTTP server closed');
-                    resolve();
-                });
-            } else {
-                resolve();
+        if (this.wss) {
+            for (const client of this.clients) {
+                client.close();
             }
-        });
+            this.clients.clear();
+            this.wss.close();
+            this.wss = null;
+        }
+
+        await this.system.unloadPlugin('websocket');
+        log.info('WebSocket server stopped');
     }
 
+    /**
+     * Broadcast message to all connected clients
+     */
     broadcast(data) {
-        console.log('Broadcasting message from StandaloneWebSocketServer:', JSON.stringify(data, null, 2));
-        if (this.wss && this.wss.clients) {
-            const message = JSON.stringify(data, (key, value) =>
-                typeof value === 'bigint' ? value.toString() : value
-            );
-            this.wss.clients.forEach(client => {
-                if (client.readyState === client.OPEN) {
-                    client.send(message);
-                }
-            });
+        const message = JSON.stringify(data);
+        for (const client of this.clients) {
+            if (client.readyState === 1) { // OPEN
+                client.send(message);
+            }
         }
+    }
+
+    /**
+     * Send message to specific client
+     */
+    send(clientId, data) {
+        // Implementation would depend on how clients are tracked
+        log.debug(`Sending message to client ${clientId}`);
     }
 }

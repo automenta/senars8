@@ -1,5 +1,5 @@
 import Task from '../core/Task.js';
-import {parseTerm} from '../parser/narseseParser.js';
+import {parseTerm} from '../../coreagent/parser/narseseParser.js';
 import config from '../config/index.js';
 
 function groupTasksByTermKey(tasks) {

@@ -1,5 +1,16 @@
-import Agent from './Agent.js';
-import FileMonitoringConfig from './fileMonitoringConfig.js';
+/**
+ * Agent module exports
+ * Provides agent functionality using the coreagent architecture
+ */
 
-export {Agent, FileMonitoringConfig};
-export default Agent;
+// Main agent classes
+export {Agent} from './Agent.js';
+export {AgentManager} from './AgentManager.js';
+export {WebSocketManager} from './WebSocketManager.js';
+export {UnifiedWebSocketServer} from './StandaloneWebSocketServer.js';
+
+// Message handling
+export {createMessageHandler, createWebSocketMessageHandler} from './MessageHandler.js';
+
+// Default export
+export {Agent as default};

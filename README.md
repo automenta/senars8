@@ -26,24 +26,54 @@
 - Node.js (v18 or higher)
 - npm
 
-### Installation
+### Installation & Quick Start
+
+**One-command setup:** The simplest way to get started is with a single command:
 
 ```bash
-npm install
+npm install && npm run dev
 ```
+
+This will install dependencies and start the full application with both the Web UI and embedded agent.
 
 ### Running the Application
 
-To start the full application (agent + Web UI + TUI):
+#### Full Development Mode (Recommended for new users)
+
+Start everything with hot reloading:
 
 ```bash
 npm run dev
 ```
 
-To start just the agent service:
+This automatically starts:
+
+- The embedded agent with all cognitive components
+- The Web UI on http://localhost:3000
+- The WebSocket server on port 8081
+
+#### For Development Workflows
+
+- `npm run dev:core` - Start the core agent for development
+- `npm run dev:ui` - Start the Web UI with embedded agent
+- `npm run tui:dev` - Start the Terminal UI independently
+
+#### Alternative Commands
+
+- `npm run start` - Start the core agent only (without UI)
+- `npm run tui` - Start the terminal UI only (requires agent with WebSocket)
+- `npm run agent` - Start the agent service only
+- `npm run web` - Start the Web UI with embedded agent (same as `npm run dev`)
+
+### Configuration
+
+The application uses sensible defaults but can be configured with environment variables:
 
 ```bash
-npm start
+SENARS_UI_PORT=3000      # Web UI port
+SENARS_WS_PORT=8081      # WebSocket port
+SENARS_DEV_MODE=true     # Development mode
+SENARS_LOG_LEVEL=info    # Log level (debug, info, warn, error)
 ```
 
 ### Running Tests
@@ -115,5 +145,66 @@ graph TD
 
     SystemAPI -- Manages --> Cognitive Cycle
     SystemFactory -- Assembles --> SystemAPI
+
+    subgraph "Extensibility"
+        PluginManager
+        DIContainer
+    end
+
+    SystemFactory -- Uses --> PluginManager
+    PluginManager -- Integrates with --> DIContainer
 ```
 
+## Plugin System
+
+SeNARS features a modular plugin system that allows extending functionality without modifying core code:
+
+### Creating a Plugin
+
+Create a new file in the `plugins/` directory:
+
+```js
+// plugins/my-plugin.js
+import {info} from '../coreagent/utils/logger.js';
+
+class MyPlugin {
+    constructor(options = {}) {
+        this.options = options;
+    }
+
+    registerComponents(container) {
+        // Register new services with the DI container
+        // container.register('myService', MyService, ['dependency1']);
+    }
+
+    async initialize(container) {
+        // Access system components through the container
+        const system = container.get('system');
+        const memory = container.get('memory');
+
+        info('MyPlugin: Initialized');
+    }
+
+    async shutdown() {
+        info('MyPlugin: Shutting down');
+    }
+}
+
+export default new MyPlugin();
+```
+
+### Loading Plugins
+
+Plugins are loaded automatically from the `plugins/` directory or can be registered programmatically.
+
+For complete API documentation, see [PLUGIN_API.md](PLUGIN_API.md).
+
+### Plugin Development
+
+To create your own plugin, implement the plugin interface with the following methods:
+
+- `registerComponents(container)` - Register new services with the DI container
+- `initialize(container)` - Initialize the plugin and access system components
+- `shutdown()` - Clean up resources when shutting down
+
+See `plugins/example-plugin.js` for a complete example.

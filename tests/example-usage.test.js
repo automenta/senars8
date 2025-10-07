@@ -4,13 +4,10 @@
 
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest';
 import {createTaskDef, createTermDef} from './test-data-factory.js';
-import {assertTask, expectTruthValue} from './assertion-helpers.js';
-import {createTestConfig} from './config-driven-tests.js';
-import {TaskProcessingScenario} from './reusable-test-scenarios.js';
+import {assertTask, createConfig, expectTruthValue} from './shared/test-utils.js';
+import {BaseReasonerTest, ErrorTesting, PerformanceTesting, TaskProcessingScenario} from './test-base-classes.js';
 import {EdgeCaseTester} from './coverage-quality-checks.js';
 import * as logger from '../core/utils/logger.js';
-import {BaseReasonerTest} from './test-base-classes.js';
-import {createConsistentMock, MockValidator} from './mock-builders.js';
 import {TestDocumentationGenerator} from './documentation-structure.js';
 
 // Example usage of the new test utilities
@@ -57,9 +54,10 @@ describe('Refactored Test Utilities - Example Usage', () => {
     });
 
     test('should demonstrate configuration-driven testing', () => {
-        // Create test config using template
-        const config = createTestConfig('UNIT', {timeout: 10000});
+        // Create test config using template with override
+        const config = createConfig('UNIT_TEST', {timeout: 10000});
 
+        // The config should have the overridden timeout value
         expect(config.timeout).toBe(10000);
         expect(config.setup).toBe('unit');
         expect(config.mockLevel).toBe('full');
@@ -100,36 +98,31 @@ describe('Refactored Test Utilities - Example Usage', () => {
         const tester = new EdgeCaseTester();
         tester
             .addBoundaryTests(processValue, [0, 1, 10], (result, input) => {
-                if (input < 0) {
-                    expect(result).toBe(0); // Changed to expect 0 instead of error
-                } else {
-                    expect(result).toBe(input * 2);
-                }
+                input < 0
+                    ? expect(result).toBe(0)
+                    : expect(result).toBe(input * 2);
             })
             .addNullUndefinedTests(processValue, (result, input) => {
                 // Verify error handling for null/undefined
-                if (input === null || input === undefined) {
-                    expect(result.error).toBeDefined();
-                }
+                (input === null || input === undefined) && expect(result.error).toBeDefined();
             });
 
         await tester.runAll();
     });
 
-    test('should demonstrate mock builders usage', () => {
-        // Create a consistent mock using the builder
-        const mockReasoner = createConsistentMock('reasoner', {
+    test('should demonstrate mock creation', () => {
+        // Create a mock reasoner manually since we don't have mock builders
+        const mockReasoner = {
+            name: 'TestReasoner',
             processTask: async () => ({result: 'processed'}),
             getInferences: () => ['inference1', 'inference2']
-        }, {
-            name: 'TestReasoner'
-        });
+        };
 
         // Validate the mock
-        MockValidator.validateMethods(mockReasoner, ['processTask', 'getInferences']);
-        MockValidator.validateProperties(mockReasoner, ['name']);
-
         expect(mockReasoner.name).toBe('TestReasoner');
+        expect(typeof mockReasoner.processTask).toBe('function');
+        expect(typeof mockReasoner.getInferences).toBe('function');
+        expect(mockReasoner.getInferences()).toEqual(['inference1', 'inference2']);
     });
 
     test('should demonstrate documentation generator usage', () => {
@@ -169,14 +162,27 @@ class ExampleReasonerTest extends BaseReasonerTest {
     }
 }
 
-// Example of using the mock builders
-describe('Mock Builders Example', () => {
-    test('should create consistent mocks', () => {
-        const commandBusMock = createConsistentMock('commandBus', {
-            request: async (type, data) => ({success: true, data})
-        });
+// Example of using the new utility objects
+describe('New Utility Objects Example', () => {
+    test('should demonstrate error testing utilities', () => {
+        const failingFunction = () => {
+            throw new Error('Test error');
+        };
 
-        expect(commandBusMock.request).toBeDefined();
-        expect(typeof commandBusMock.request).toBe('function');
+        // Using the new utility object instead of mixin
+        expect(() => ErrorTesting.testErrorHandling(failingFunction, 'Test error')).not.toThrow();
+    });
+
+    test('should demonstrate performance testing utilities', async () => {
+        const quickOperation = () => 'result';
+
+        // Using the new utility object instead of mixin
+        const {result, executionTime} = await PerformanceTesting.measurePerformance(
+            () => quickOperation(),
+            100 // max 100ms
+        );
+
+        expect(result).toBe('result');
+        expect(executionTime).toBeLessThan(100);
     });
 });

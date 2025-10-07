@@ -26,7 +26,7 @@ class Planner {
         this.strategy = new PlannerClass(memory, lm, configManager);
         this.actionExecutor = actionExecutor;
         this.planCache = new Map();
-        console.log(`Planner initialized with strategy: ${strategyName}`);
+        //console.log(`Planner initialized with strategy: ${strategyName}`);
     }
 
     async createPlan(goalTask, failedPlan = null) {

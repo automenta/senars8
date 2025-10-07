@@ -1,283 +1,145 @@
-/**
- * High-quality StrategyRegistry for managing both legacy combination strategies and new reasoning strategies
- * This refactored version improves maintainability, performance, and extensibility
- */
-
 import {error as logError, info, warn} from '../utils/logger.js';
-import {ReasoningStrategy} from './StrategyInterface.js';
-import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
-
-const errorHandler = createUnifiedErrorHandler('StrategyRegistry');
+import {calculateEffectiveness} from '../utils/effectiveness-utils.js';
 
 class StrategyRegistry {
-    /**
-     * Creates a StrategyRegistry instance
-     */
-    constructor() {
-        // For combination sampling strategies (existing functionality)
-        this.combinationStrategies = new Map();
+    constructor(metricsService = null) {
+        this.strategies = new Map();
+        this.instances = new Map();
+        this.metadata = new Map();
+        this.stats = new Map();
+        this.metricsService = metricsService;
 
-        // For task reasoning strategies (new functionality)
-        this.reasoningStrategies = new Map();
-
-        // Cache instances to avoid repeated construction
-        this.combinationStrategyInstances = new Map();
-        this.reasoningStrategyInstances = new Map();
-
-        // Cache metadata for better performance
-        this.reasoningMetadataCache = new Map();
-
-        // Track strategy statistics
-        this.strategyUsageStats = new Map();
+        // Enhanced strategy selection properties
+        this.lmService = null;
+        this.contextualSelectionEnabled = true;
+        this.taskHistory = new Map(); // Track task characteristics for learning
 
         info('StrategyRegistry initialized');
     }
 
-    // ========================================================================
-    // Registration Methods
-    // ========================================================================
-
-    /**
-     * Backward-compatible register method for existing code
-     * For backward compatibility, this method registers strategies as combination strategies
-     * without strict validation to maintain compatibility with existing tests
-     * @param {string} name - Name of the strategy
-     * @param {Function} strategyClass - The strategy class constructor
-     */
-    register(name, strategyClass) {
-        // For backward compatibility, register as a combination strategy with minimal validation
-        // This maintains compatibility with existing tests that use simple mock classes
-        if (this.combinationStrategies.has(name)) {
-            warn(`Combination strategy "${name}" is already registered. Overwriting.`);
-        }
-
-        this.combinationStrategies.set(name, strategyClass);
-        this._initStrategyStats(name, 'combination');
-
-        info(`Registered combination strategy: ${name}`);
+    // Method to set the LM service for enhanced strategy selection
+    setLMService(lmService) {
+        this.lmService = lmService;
+        info('LM service set for StrategyRegistry');
     }
 
-    /**
-     * Register multiple strategy classes at once
-     * This method automatically detects the type of strategy and registers it appropriately
-     * @param {Array<Function>} strategyClasses - Array of strategy classes to register
-     */
-    registerStrategies(strategyClasses) {
-        if (!Array.isArray(strategyClasses)) {
-            throw new Error('strategyClasses must be an array');
+    register(name, strategyClass) {
+        if (this.strategies.has(name)) {
+            warn(`Strategy "${name}" is already registered. Overwriting.`);
         }
+        this.strategies.set(name, strategyClass);
+        this._initStats(name, 'combination');
+        info(`Registered strategy: ${name}`);
+    }
+
+    registerStrategies(strategyClasses) {
+        if (!Array.isArray(strategyClasses)) throw new Error('strategyClasses must be an array');
 
         for (const StrategyClass of strategyClasses) {
-            // Detect strategy type and register appropriately
-            if (this._isReasoningStrategyClass(StrategyClass)) {
-                // This is a new reasoning strategy
+            const isReasoning = this._isReasoning(StrategyClass);
+            const isCombination = this._isCombination(StrategyClass);
+
+            if (isReasoning) {
                 try {
                     const metadata = new StrategyClass().getMetadata();
-                    if (metadata && metadata.name) {
-                        this.registerReasoningStrategy(metadata.name, StrategyClass);
-                    } else {
-                        warn(`Reasoning strategy class ${StrategyClass.name} has invalid metadata, skipping registration`);
+                    if (metadata?.name) {
+                        this._register(metadata.name, StrategyClass, 'reasoning');
                     }
                 } catch (error) {
-                    warn(`Error getting metadata from reasoning strategy ${StrategyClass.name}:`, error.message);
+                    warn(`Error registering reasoning strategy ${StrategyClass.name}: ${error.message}`);
                 }
-            } else if (this._hasSelectCombinationsMethod(StrategyClass)) {
-                // This is a legacy combination sampling strategy
-                const strategyName = StrategyClass.name || this._generateStrategyName(StrategyClass);
-                this.registerCombinationStrategy(strategyName, StrategyClass);
+            } else if (isCombination) {
+                const name = StrategyClass.name || this._nameFromClass(StrategyClass);
+                this._register(name, StrategyClass, 'combination');
             } else {
-                // For backward compatibility, register as a combination strategy if it doesn't match known interfaces
-                const strategyName = StrategyClass.name || this._generateStrategyName(StrategyClass);
-                this.registerCombinationStrategy(strategyName, StrategyClass);
-                warn(`Strategy class ${StrategyClass.name} does not match expected interfaces, registering as combination strategy`);
+                const name = StrategyClass.name || this._nameFromClass(StrategyClass);
+                this._register(name, StrategyClass, 'combination');
+                warn(`Strategy class ${StrategyClass.name} registered as combination strategy`);
             }
         }
     }
 
-    /**
-     * Register a new reasoning strategy (implements ReasoningStrategy interface)
-     * @param {string} name - Unique name for the strategy
-     * @param {Function} strategyClass - The strategy class constructor
-     */
     registerReasoningStrategy(name, strategyClass) {
-        if (!name || typeof name !== 'string') {
-            throw new Error('Strategy name must be a non-empty string');
+        this._validateName(name);
+        this._validateClass(strategyClass);
+        if (!this._isReasoning(strategyClass)) {
+            throw new Error(`Strategy class for "${name}" does not implement ReasoningStrategy interface.`);
         }
-
-        if (typeof strategyClass !== 'function') {
-            throw new Error('Strategy class must be a constructor function');
-        }
-
-        // Validate the reasoning strategy class
-        if (!this._isReasoningStrategyClass(strategyClass)) {
-            throw new Error(`Strategy class for "${name}" does not implement ReasoningStrategy interface properly.`);
-        }
-
-        if (this.reasoningStrategies.has(name)) {
-            warn(`Reasoning strategy "${name}" is already registered. Overwriting.`);
-        }
-
-        this.reasoningStrategies.set(name, strategyClass);
-        this._invalidateReasoningMetadataCache(name); // Clear cache since strategy changed
-        this._initStrategyStats(name, 'reasoning');
-
-        info(`Registered reasoning strategy: ${name}`);
+        this._register(name, strategyClass, 'reasoning');
     }
 
-    /**
-     * Register a legacy combination sampling strategy
-     * @param {string} name - Unique name for the strategy
-     * @param {Function} strategyClass - The strategy class constructor
-     */
     registerCombinationStrategy(name, strategyClass) {
-        if (!name || typeof name !== 'string') {
-            throw new Error('Strategy name must be a non-empty string');
+        this._validateName(name);
+        this._validateClass(strategyClass);
+        if (!this._isCombination(strategyClass)) {
+            throw new Error(`Strategy class for "${name}" does not have required selectCombinations method.`);
         }
-
-        if (typeof strategyClass !== 'function') {
-            throw new Error('Strategy class must be a constructor function');
-        }
-
-        // Validate the combination strategy class
-        if (!this._hasSelectCombinationsMethod(strategyClass)) {
-            throw new Error(`Combination strategy class for "${name}" does not have required selectCombinations method.`);
-        }
-
-        if (this.combinationStrategies.has(name)) {
-            warn(`Combination strategy "${name}" is already registered. Overwriting.`);
-        }
-
-        this.combinationStrategies.set(name, strategyClass);
-        this._initStrategyStats(name, 'combination');
-
-        info(`Registered combination strategy: ${name}`);
+        this._register(name, strategyClass, 'combination');
     }
 
-    // ========================================================================
-    // Retrieval Methods
-    // ========================================================================
-
-    /**
-     * Get a combination sampling strategy (legacy functionality)
-     * @param {string} name - Name of the strategy to retrieve
-     * @returns {object} The strategy instance
-     */
-    getCombinationStrategy(name) {
-        if (!this.combinationStrategies.has(name)) {
-            throw new Error(`Combination strategy "${name}" not found.`);
-        }
-
-        // Return cached instance if available, otherwise create and cache
-        if (!this.combinationStrategyInstances.has(name)) {
-            const StrategyClass = this.combinationStrategies.get(name);
-            const instance = new StrategyClass();
-            this.combinationStrategyInstances.set(name, instance);
-            this._recordStrategyUsage(name, 'combination');
-        }
-
-        const instance = this.combinationStrategyInstances.get(name);
-        this._recordStrategyUsage(name, 'combination');
-        return instance;
+    _register(name, strategyClass, type) {
+        this.strategies.set(name, strategyClass);
+        this.metadata.delete(name);
+        this._initStats(name, type);
     }
 
-    /**
-     * Get a reasoning strategy (new functionality)
-     * @param {string} name - Name of the strategy to retrieve
-     * @returns {object} The strategy instance
-     */
-    getReasoningStrategy(name) {
-        if (!this.reasoningStrategies.has(name)) {
-            throw new Error(`Reasoning strategy "${name}" not found.`);
-        }
-
-        // Return cached instance if available, otherwise create and cache
-        if (!this.reasoningStrategyInstances.has(name)) {
-            const StrategyClass = this.reasoningStrategies.get(name);
-            const instance = new StrategyClass();
-            this.reasoningStrategyInstances.set(name, instance);
-            this._recordStrategyUsage(name, 'reasoning');
-        }
-
-        const instance = this.reasoningStrategyInstances.get(name);
-        this._recordStrategyUsage(name, 'reasoning');
-        return instance;
+    _validateName(name) {
+        if (!name || typeof name !== 'string') throw new Error('Strategy name must be a non-empty string');
     }
 
-    /**
-     * Get strategy by name - tries both types, prioritizing reasoning strategies
-     * @param {string} name - Name of the strategy to retrieve
-     * @returns {object} The strategy instance
-     */
+    _validateClass(strategyClass) {
+        if (typeof strategyClass !== 'function') throw new Error('Strategy class must be a constructor function');
+    }
+
     getStrategy(name) {
-        if (this.reasoningStrategies.has(name)) {
-            return this.getReasoningStrategy(name);
+        if (!this.strategies.has(name)) throw new Error(`Strategy "${name}" not found.`);
+
+        if (!this.instances.has(name)) {
+            const StrategyClass = this.strategies.get(name);
+            this.instances.set(name, new StrategyClass());
+            this._recordUsage(name);
         }
 
-        if (this.combinationStrategies.has(name)) {
-            return this.getCombinationStrategy(name);
-        }
-
-        throw new Error(`Strategy "${name}" not found.`);
+        this._recordUsage(name);
+        return this.instances.get(name);
     }
 
-    // ========================================================================
-    // Query Methods
-    // ========================================================================
+    getCombinationStrategy(name) {
+        return this.getStrategy(name);
+    }
 
-    /**
-     * Get names of all registered strategies
-     * @returns {string[]} Array of all strategy names
-     */
+    getReasoningStrategy(name) {
+        return this.getStrategy(name);
+    }
+
     getStrategyNames() {
-        return [
-            ...this.combinationStrategies.keys(),
-            ...this.reasoningStrategies.keys()
-        ];
+        return [...this.strategies.keys()];
     }
 
-    /**
-     * Get names of just the reasoning strategies
-     * @returns {string[]} Array of reasoning strategy names
-     */
     getReasoningStrategyNames() {
-        return [...this.reasoningStrategies.keys()];
+        return this.getStrategyNames();
     }
 
-    /**
-     * Get names of just the combination strategies
-     * @returns {string[]} Array of combination strategy names
-     */
     getCombinationStrategyNames() {
-        return [...this.combinationStrategies.keys()];
+        return this.getStrategyNames();
     }
 
-    /**
-     * Get all reasoning strategies with metadata
-     * @returns {Array<{name: string, metadata: object, instance: object}>} Array of strategy information
-     */
     getAllReasoningStrategies() {
-        return this.getReasoningStrategyNames().map(name => ({
+        return this.getStrategyNames().map(name => ({
             name,
             metadata: this.getStrategyMetadata(name),
-            instance: this.getReasoningStrategy(name)
+            instance: this.getStrategy(name)
         }));
     }
 
-    /**
-     * Get metadata for a reasoning strategy
-     * @param {string} name - Name of the strategy
-     * @returns {object} Strategy metadata
-     */
     getStrategyMetadata(name) {
-        if (!this.reasoningMetadataCache.has(name)) {
-            const strategy = this.getReasoningStrategy(name);
+        if (!this.metadata.has(name)) {
             try {
-                const metadata = strategy.getMetadata();
-                this.reasoningMetadataCache.set(name, metadata);
+                const strategy = this.getStrategy(name);
+                this.metadata.set(name, strategy.getMetadata());
             } catch (error) {
-                logError(`Error getting metadata for reasoning strategy "${name}":`, error);
-                // Return default metadata on error
-                this.reasoningMetadataCache.set(name, {
+                logError(`Error getting metadata for strategy "${name}":`, error);
+                this.metadata.set(name, {
                     name,
                     description: `Error loading metadata for ${name}`,
                     supportedTaskTypes: [],
@@ -286,236 +148,464 @@ class StrategyRegistry {
                 });
             }
         }
-        return this.reasoningMetadataCache.get(name);
+        return this.metadata.get(name);
     }
 
-    /**
-     * Find all reasoning strategies that can handle a given task in the provided context
-     * @param {Task} task - The task to check
-     * @param {SystemContext} context - The system context
-     * @param {object} [options] - Options for the search
-     * @param {number} [options.minPriority=0] - Minimum priority threshold
-     * @param {string[]} [options.allowedCategories] - Only consider strategies in these categories
-     * @returns {Array<{name: string, instance: ReasoningStrategy, metadata: object}>} Matching strategies
-     */
     findApplicableStrategies(task, context, options = {}) {
-        const {
-            minPriority = 0,
-            allowedCategories = null
-        } = options;
-
+        const {minPriority = 0, allowedCategories = null} = options;
         const applicable = [];
 
-        for (const [name, instance] of this.reasoningStrategyInstances.entries()) {
+        for (const name of this.strategies.keys()) {
             try {
-                // Get metadata to check constraints
+                const instance = this.getStrategy(name);
                 const metadata = this.getStrategyMetadata(name);
 
-                // Check category filter if specified
-                if (allowedCategories && allowedCategories.length > 0 &&
-                    !allowedCategories.includes(metadata.category)) {
-                    continue;
-                }
-
-                // Check minimum priority
-                if ((metadata.priority || 0.5) < minPriority) {
-                    continue;
-                }
-
-                // Check if the strategy can handle the task
+                if (allowedCategories?.length && !allowedCategories.includes(metadata.category)) continue;
+                if ((metadata.priority || 0.5) < minPriority) continue;
                 if (instance.canHandle(task, context)) {
-                    applicable.push({
-                        name,
-                        instance,
-                        metadata
-                    });
+                    applicable.push({name, instance, metadata});
                 }
             } catch (error) {
-                warn(`Error checking if reasoning strategy "${name}" can handle task:`, error.message);
+                warn(`Error checking strategy "${name}": ${error.message}`);
             }
         }
 
-        // Sort by priority defined in metadata
-        applicable.sort((a, b) => {
-            return (b.metadata.priority || 0) - (a.metadata.priority || 0);
-        });
-
-        return applicable;
+        return applicable.sort((a, b) => (b.metadata.priority || 0) - (a.metadata.priority || 0));
     }
 
-    // ========================================================================
-    // Management Methods
-    // ========================================================================
+    /**
+     * Enhanced method to find and rank applicable strategies based on performance analytics and task context
+     */
+    findApplicableStrategiesWithAnalytics(task, context, options = {}) {
+        const {minPriority = 0, allowedCategories = null, taskType = 'default'} = options;
+        const applicable = this.findApplicableStrategies(task, context, options);
+
+        // Add performance analytics to each applicable strategy
+        return applicable.map(strategy => {
+            const {name, instance, metadata} = strategy;
+            const stats = this.stats.get(name) || {};
+
+            // Calculate success rate for this strategy
+            const successRate = stats.successes ? stats.successes / (stats.executions || 1) : 0;
+
+            // Get strategy effectiveness (combining success rate and execution time)
+            const averageTime = stats.averageTime || 0;
+            const effectiveness = calculateEffectiveness(successRate, averageTime);
+
+            // Add contextual information if available
+            const taskContextScore = this._getTaskContextScore(task, name, taskType);
+
+            return {
+                name,
+                instance,
+                metadata,
+                stats: {
+                    ...stats,
+                    successRate,
+                    effectiveness,
+                    taskContextScore
+                }
+            };
+        });
+    }
 
     /**
-     * Unregister a strategy
-     * @param {string} name - Name of the strategy to unregister
+     * Select the best strategy based on performance analytics and contextual information
      */
-    unregister(name) {
-        let unregistered = false;
+    async selectBestStrategy(task, context, options = {}) {
+        const {taskType = 'default', requiredCapabilities = []} = options;
+        const applicable = this.findApplicableStrategiesWithAnalytics(task, context, options);
 
-        if (this.reasoningStrategies.has(name)) {
-            this.reasoningStrategies.delete(name);
-            this.reasoningStrategyInstances.delete(name);
-            this.reasoningMetadataCache.delete(name);
-            this.strategyUsageStats.delete(name);
-            info(`Unregistered reasoning strategy: ${name}`);
-            unregistered = true;
+        if (applicable.length === 0) {
+            return null;
         }
 
-        if (this.combinationStrategies.has(name)) {
-            this.combinationStrategies.delete(name);
-            this.combinationStrategyInstances.delete(name);
-            if (!unregistered) {
-                // Only log if this wasn't already logged as a reasoning strategy
-                this.strategyUsageStats.delete(name);
-                info(`Unregistered combination strategy: ${name}`);
+        // If LM service is available, use it to predict the optimal strategy
+        if (this.lmService && this.contextualSelectionEnabled) {
+            const bestStrategy = await this._predictBestStrategyWithLM(applicable, task, context, taskType);
+            if (bestStrategy) {
+                return bestStrategy;
             }
-            unregistered = true;
         }
 
-        if (!unregistered) {
+        // Fallback to performance-based selection
+        return this._selectBestStrategyByPerformance(applicable, taskType);
+    }
+
+    /**
+     * Use LM to predict the best strategy based on task characteristics and historical performance
+     */
+    async _predictBestStrategyWithLM(applicableStrategies, task, context, taskType) {
+        try {
+            if (!this.lmService) return null;
+
+            // Create a context-aware prompt for strategy selection
+            const taskDescription = this._describeTask(task);
+            const strategyContext = applicableStrategies.map(strat => ({
+                name: strat.name,
+                description: strat.metadata.description,
+                category: strat.metadata.category,
+                successRate: strat.stats.successRate,
+                averageTime: strat.stats.averageTime
+            }));
+
+            const prompt = `
+You are an intelligent strategy selector for a neuro-symbolic reasoning system.
+Based on the given task and available strategies, select the most appropriate strategy.
+
+Task Description: ${taskDescription}
+Task Type: ${taskType}
+Available Strategies: ${JSON.stringify(strategyContext, null, 2)}
+
+Consider:
+- Historical success rates of each strategy
+- Contextual fit for the task type
+- Performance characteristics (execution time)
+- Task complexity and requirements
+
+Return only the name of the best strategy to use.
+`;
+
+            const result = await this.lmService.generate(prompt);
+            if (result) {
+                const strategyName = result.trim();
+                const selected = applicableStrategies.find(s => s.name === strategyName);
+                if (selected) {
+                    return selected;
+                }
+            }
+        } catch (error) {
+            warn(`LM strategy prediction failed: ${error.message}`);
+            // Fall back to performance-based selection
+        }
+
+        return null; // Will fallback to performance-based selection
+    }
+
+    /**
+     * Select the best strategy based on performance analytics
+     */
+    _selectBestStrategyByPerformance(applicableStrategies, taskType) {
+        // Sort by effectiveness (success rate adjusted by execution time) and contextual score
+        return applicableStrategies.sort((a, b) => {
+            const effectivenessA = a.stats.effectiveness + (a.stats.taskContextScore || 0);
+            const effectivenessB = b.stats.effectiveness + (b.stats.taskContextScore || 0);
+            return effectivenessB - effectivenessA; // Higher effectiveness first
+        })[0];
+    }
+
+    /**
+     * Get a score representing how well a strategy matches the task context
+     */
+    _getTaskContextScore(task, strategyName, taskType) {
+        // Check if this strategy has performed well on similar task types historically
+        const stats = this.stats.get(strategyName) || {};
+        if (!stats.taskTypePerformance) return 0;
+
+        // Return performance score for this specific task type, or default to overall success rate
+        return stats.taskTypePerformance[taskType] || (stats.successes ? stats.successes / (stats.executions || 1) : 0);
+    }
+
+    /**
+     * Analyze task characteristics for contextual strategy selection
+     */
+    analyzeTaskCharacteristics(task) {
+        if (!task) return {type: 'unknown', complexity: 0, confidence: 0.5, frequency: 0.5};
+
+        const characteristics = {
+            type: task.type || 'unknown',
+            complexity: task.term ? (task.term.key ? task.term.key.length : 1) : 1,
+            confidence: task.truth?.confidence || 0.5,
+            frequency: task.truth?.frequency || 0.5,
+            termStructure: task.term?.structuredTerm ? task.term.structuredTerm.type : 'atomic',
+            taskSize: JSON.stringify(task).length
+        };
+
+        // If the task has more complex structured information, add that
+        if (task.term?.structuredTerm) {
+            characteristics.complexity = this._calculateTermComplexity(task.term.structuredTerm);
+        }
+
+        return characteristics;
+    }
+
+    /**
+     * Calculate term complexity based on structure
+     */
+    _calculateTermComplexity(structuredTerm) {
+        if (!structuredTerm) return 1;
+
+        switch (structuredTerm.type) {
+            case 'Conjunction':
+                return 2 + (structuredTerm.terms?.reduce((sum, term) => sum + this._calculateTermComplexity(term), 0) || 0);
+            case 'Implication':
+                return 3 + (this._calculateTermComplexity(structuredTerm.subject) || 0) +
+                    (this._calculateTermComplexity(structuredTerm.predicate) || 0);
+            case 'Negation':
+                return 2 + (this._calculateTermComplexity(structuredTerm.term) || 0);
+            case 'Set':
+            case 'ExtensionalSet':
+            case 'IntensionalSet':
+                return 2 + (structuredTerm.elements?.reduce((sum, term) => sum + this._calculateTermComplexity(term), 0) || 0);
+            default:
+                return 1; // Atomic terms
+        }
+    }
+
+    /**
+     * Calculate strategy effectiveness combining success rate and execution time
+     * DEPRECATED: Use utility function from effectiveness-utils.js
+     */
+    /**
+     * Describe a task for LM-based strategy selection
+     */
+    _describeTask(task) {
+        if (!task) return 'unknown task';
+
+        const parts = [];
+        if (task.term) {
+            parts.push(`Term: ${task.term.key}`);
+        }
+        if (task.type) {
+            parts.push(`Type: ${task.type}`);
+        }
+        if (task.truth) {
+            parts.push(`Truth: {frequency: ${task.truth.frequency}, confidence: ${task.truth.confidence}}`);
+        }
+
+        return parts.length > 0 ? parts.join(', ') : JSON.stringify(task);
+    }
+
+    /**
+     * Track strategy selection context for learning
+     */
+    _recordTaskContext(task, selectedStrategyName, taskType, success) {
+        const taskKey = task.term ? task.term.key : 'unknown';
+
+        // Update task history for learning
+        if (!this.taskHistory.has(taskKey)) {
+            this.taskHistory.set(taskKey, []);
+        }
+
+        this.taskHistory.get(taskKey).push({
+            strategy: selectedStrategyName,
+            taskType,
+            success,
+            timestamp: Date.now(),
+            task: JSON.stringify(task)
+        });
+
+        // Update strategy stats with task type performance
+        const stats = this.stats.get(selectedStrategyName);
+        if (stats) {
+            if (!stats.taskTypePerformance) {
+                stats.taskTypePerformance = {};
+            }
+
+            const performance = stats.taskTypePerformance[taskType] || {count: 0, successes: 0};
+            performance.count++;
+            if (success) performance.successes++;
+
+            // Calculate updated success rate for this task type
+            stats.taskTypePerformance[taskType] = performance;
+        }
+    }
+
+    unregister(name) {
+        if (this.strategies.has(name)) {
+            this.strategies.delete(name);
+            this.instances.delete(name);
+            this.metadata.delete(name);
+            this.stats.delete(name);
+            info(`Unregistered strategy: ${name}`);
+        } else {
             warn(`Strategy "${name}" not found for unregistration`);
         }
     }
 
-    /**
-     * Clear all strategies from the registry
-     */
     clear() {
-        this.combinationStrategies.clear();
-        this.reasoningStrategies.clear();
-        this.combinationStrategyInstances.clear();
-        this.reasoningStrategyInstances.clear();
-        this.reasoningMetadataCache.clear();
-        this.strategyUsageStats.clear();
-
+        this.strategies.clear();
+        this.instances.clear();
+        this.metadata.clear();
+        this.stats.clear();
         info('StrategyRegistry cleared all strategies');
     }
 
-    /**
-     * Validate a strategy class to check if it implements the ReasoningStrategy interface
-     * @param {Function} StrategyClass - The strategy class to validate
-     * @returns {boolean} Whether the class implements the interface correctly
-     */
-    _isReasoningStrategyClass(StrategyClass) {
+    async executeStrategy(strategyName, task, systemContext, options = {}) {
+        const startTime = Date.now();
+        let success = false;
+        let result;
+        const {taskType = 'default'} = options;
+
+        try {
+            const strategy = this.getStrategy(strategyName);
+            const validation = strategy.validate(task);
+
+            if (validation.isValid) {
+                result = await Promise.resolve(strategy.execute(task, systemContext));
+                success = result && result.success !== false;
+            } else {
+                result = {success: false, errors: validation.errors};
+            }
+        } catch (error) {
+            result = {success: false, error: error.message};
+        } finally {
+            const executionTime = Date.now() - startTime;
+
+            // Track in metrics service if available
+            if (this.metricsService) {
+                this.metricsService.trackStrategyExecution(strategyName, success, executionTime);
+            }
+
+            // Update internal stats
+            this._updateInternalStats(strategyName, success, executionTime);
+
+            // Record task context for learning (enhanced strategy selection)
+            this._recordTaskContext(task, strategyName, taskType, success);
+        }
+
+        return result;
+    }
+
+    _updateInternalStats(name, success, executionTime) {
+        const stats = this.stats.get(name);
+        if (stats) {
+            if (!stats.totalTime) stats.totalTime = 0;
+            if (!stats.executions) stats.executions = 0;
+            stats.totalTime += executionTime;
+            stats.executions++; // Track total executions
+            stats.averageTime = stats.totalTime / stats.executions;
+
+            if (success) {
+                stats.successes = (stats.successes || 0) + 1;
+            } else {
+                stats.failures = (stats.failures || 0) + 1;
+            }
+        }
+    }
+
+    _isReasoning(StrategyClass) {
         try {
             const instance = new StrategyClass();
-            return (
-                typeof instance.canHandle === 'function' &&
+            return typeof instance.canHandle === 'function' &&
                 typeof instance.execute === 'function' &&
                 typeof instance.getMetadata === 'function' &&
-                typeof instance.validate === 'function'
-            );
-        } catch (error) {
-            // If construction fails, it's not a valid strategy
+                typeof instance.validate === 'function';
+        } catch {
             return false;
         }
     }
 
-    /**
-     * Check if a class has the selectCombinations method (legacy strategy)
-     * @param {Function} StrategyClass - The strategy class to check
-     * @returns {boolean} Whether the class has the method
-     */
-    _hasSelectCombinationsMethod(StrategyClass) {
+    _isCombination(StrategyClass) {
         try {
             const instance = new StrategyClass();
             return typeof instance.selectCombinations === 'function';
-        } catch (error) {
-            // If construction fails, assume it doesn't have the method
+        } catch {
             return false;
         }
     }
 
-    /**
-     * Generate a strategy name based on the constructor name
-     * @private
-     * @param {Function} StrategyClass - The strategy class
-     * @returns {string} Generated name
-     */
-    _generateStrategyName(StrategyClass) {
-        // Remove "Strategy" suffix if present and return the name
+    _nameFromClass(StrategyClass) {
         let name = StrategyClass.name || 'UnnamedStrategy';
-        if (name.endsWith('Strategy')) {
-            name = name.slice(0, -8); // Remove "Strategy"
-        }
-        return name;
+        return name.endsWith('Strategy') ? name.slice(0, -8) : name;
     }
 
-    /**
-     * Initialize usage statistics for a strategy
-     * @private
-     * @param {string} name - Strategy name
-     * @param {string} type - Strategy type ('reasoning' or 'combination')
-     */
-    _initStrategyStats(name, type) {
-        if (!this.strategyUsageStats.has(name)) {
-            this.strategyUsageStats.set(name, {
+    _initStats(name, type) {
+        if (!this.stats.has(name)) {
+            this.stats.set(name, {
                 type,
                 usageCount: 0,
+                executions: 0,  // Track total executions separately from usage
+                successes: 0,
+                failures: 0,
+                totalTime: 0,
+                averageTime: 0,
                 lastUsed: null,
-                errors: 0
+                errors: 0,
+                taskTypePerformance: {}  // Initialize task type performance tracking
             });
         }
     }
 
-    /**
-     * Record usage of a strategy
-     * @private
-     * @param {string} name - Strategy name
-     * @param {string} type - Strategy type
-     */
-    _recordStrategyUsage(name, type) {
-        if (!this.strategyUsageStats.has(name)) {
-            this._initStrategyStats(name, type);
+    _recordUsage(name) {
+        const stats = this.stats.get(name);
+        if (stats) {
+            stats.usageCount++;
+            stats.lastUsed = Date.now();
         }
-
-        const stats = this.strategyUsageStats.get(name);
-        stats.usageCount++;
-        stats.lastUsed = Date.now();
     }
 
-    /**
-     * Record an error for a strategy
-     * @private
-     * @param {string} name - Strategy name
-     */
-    _recordStrategyError(name) {
-        if (!this.strategyUsageStats.has(name)) {
-            return; // Strategy may not be registered
-        }
-
-        const stats = this.strategyUsageStats.get(name);
-        stats.errors++;
+    _recordError(name) {
+        const stats = this.stats.get(name);
+        if (stats) stats.errors++;
     }
 
-    /**
-     * Invalidate the metadata cache for a strategy
-     * @private
-     * @param {string} name - Strategy name
-     */
-    _invalidateReasoningMetadataCache(name) {
-        this.reasoningMetadataCache.delete(name);
-    }
-
-    /**
-     * Get usage statistics for strategies
-     * @returns {object} Statistics about strategy usage
-     */
     getUsageStats() {
-        const stats = {
-            totalStrategies: this.getStrategyNames().length,
-            totalReasoningStrategies: this.getReasoningStrategyNames().length,
-            totalCombinationStrategies: this.getCombinationStrategyNames().length,
-            strategyDetails: {}
+        return {
+            totalStrategies: this.strategies.size,
+            strategyDetails: Object.fromEntries([...this.stats.entries()].map(([k, v]) => [k, {...v}]))
         };
+    }
 
-        for (const [name, stat] of this.strategyUsageStats.entries()) {
-            stats.strategyDetails[name] = {...stat};
+    /**
+     * Get strategy success rate report for debugging and optimization
+     */
+    getStrategySuccessRateReport() {
+        const report = {};
+
+        for (const [name, stats] of this.stats.entries()) {
+            const totalExecutions = stats.executions || 0;
+            const successes = stats.successes || 0;
+            const successRate = totalExecutions > 0 ? successes / totalExecutions : 0;
+
+            report[name] = {
+                ...stats,
+                successRate,
+                successPercentage: (successRate * 100).toFixed(2) + '%',
+                totalExecutions
+            };
+
+            // Include task type performance if available
+            if (stats.taskTypePerformance) {
+                report[name].taskTypePerformance = {};
+                for (const [taskType, perf] of Object.entries(stats.taskTypePerformance)) {
+                    report[name].taskTypePerformance[taskType] = {
+                        ...perf,
+                        successRate: perf.count > 0 ? perf.successes / perf.count : 0,
+                        successPercentage: perf.count > 0 ? ((perf.successes / perf.count) * 100).toFixed(2) + '%' : '0.00%'
+                    };
+                }
+            }
         }
 
-        return stats;
+        return report;
+    }
+
+    /**
+     * Get strategy effectiveness ranking
+     */
+    getStrategyEffectivenessRanking() {
+        const strategyRanks = [];
+
+        for (const [name, stats] of this.stats.entries()) {
+            const totalExecutions = stats.executions || 0;
+            const successes = stats.successes || 0;
+            const successRate = totalExecutions > 0 ? successes / totalExecutions : 0;
+            const averageTime = stats.averageTime || 0;
+            const effectiveness = calculateEffectiveness(successRate, averageTime);
+
+            strategyRanks.push({
+                name,
+                effectiveness,
+                successRate,
+                averageTime,
+                totalExecutions,
+                successes,
+                failures: stats.failures || 0
+            });
+        }
+
+        return strategyRanks.sort((a, b) => b.effectiveness - a.effectiveness);
     }
 }
 

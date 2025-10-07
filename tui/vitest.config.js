@@ -1,40 +1,31 @@
 import {defineConfig} from 'vitest/config';
-import {resolve} from 'path';
+import path from 'path';
 
 export default defineConfig({
     resolve: {
         alias: {
-            '@common': resolve(__dirname, '../common'),
-            '@core': resolve(__dirname, '../core'),
-            '@agent': resolve(__dirname, '../agent'),
-            '@tui': resolve(__dirname, '.'),
-            '@ui': resolve(__dirname, '../ui')
-        }
+            '@senars/common': path.resolve(__dirname, '../common'),
+            '@senars/core': path.resolve(__dirname, '../core'),
+        },
     },
     test: {
-        include: ['tests/**/*.test.js', 'src/tests/**/*.test.js'],
-        exclude: [
-            'node_modules/**',
-            'dist/**',
-            'cypress/**',
-            '.*',
-            'karma.*',
-            'rollup.*',
-            'webpack.*',
-            'vite.*',
-            'vitest.*',
-            'jest.*',
-            'ava.*',
-            'babel.*',
-            'nyc.*',
-            'cypress.*',
-            'tsup.*',
-            'build.*',
-            'eslint.*',
-            'prettier.*'
-        ],
-        testTimeout: 30000,
-        hookTimeout: 30000,
-        globals: true  // Enable globals like describe, it, vi, etc.
-    }
+        environment: 'node',
+        include: ['tests/**/*.test.js'],
+        exclude: ['tests/**/*.spec.js'],
+        // Enable parallel execution for faster tests
+        pool: 'threads',
+        poolOptions: {
+            threads: {
+                singleThread: false,
+                useAtomics: true
+            }
+        },
+        // Faster test execution settings
+        testTimeout: 20000,
+        hookTimeout: 10000,
+        bail: 1, // Stop on first failure for faster feedback
+        reporter: 'verbose',
+        // Run tests in parallel where possible
+        maxConcurrency: 4,
+    },
 });

@@ -1,25 +1,31 @@
 {
   "name": "@senars/tui",
-  "version": "0.1.0",
-  "description": "TUI (Terminal User Interface) for SENARS",
-  "main": "src/index.js",
+  "version": "0.2.0",
+  "description": "Multi-agent Terminal User Interface for SENARS using Ink",
+  "main": "src/index.jsx",
   "type": "module",
+  "bin": {
+    "senars-tui": "./src/index.jsx"
+  },
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "node --watch src/index.js",
+    "start": "tsx src/index.jsx",
+    "dev": "tsx --watch src/index.jsx",
     "test": "vitest --run",
-    "test:ui": "vitest --ui"
+    "test:e2e": "vitest --run tests/e2e.tui.test.js",
+    "capture": "node capture-tui.js",
+    "demo": "node tests/TuiDemo.js",
+    "demos": "tsx src/index.jsx --mode=demos"
   },
   "dependencies": {
     "@senars/common": "*",
     "@senars/core": "*",
-    "blessed": "^0.1.81",
-    "blessed-contrib": "^4.11.0",
-    "chalk": "^4.1.2",
-    "readline": "^1.3.0"
+    "ink": "^4.4.1",
+    "react": "^18.3.1",
+    "prop-types": "^15.8.1",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
-    "@vitest/ui": "^2.1.9",
+    "tsx": "^4.19.2",
     "vitest": "^2.1.9"
   },
   "keywords": [
@@ -28,16 +34,14 @@
     "interface",
     "senars",
     "ai",
-    "reasoning"
+    "reasoning",
+    "multi-agent"
   ],
   "author": "SENARS Team",
   "license": "MIT",
   "directories": {
     "src": "src"
   },
-  "files": [
-    "src/**/*"
-  ],
   "engines": {
     "node": ">=18.0.0"
   }

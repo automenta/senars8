@@ -203,6 +203,22 @@ class Task extends BaseEntity {
         return this.#id;
     }
 
+    withPunctuation(newPunctuation) {
+        validation.validatePunctuation(newPunctuation, 'New task punctuation');
+
+        const newTask = new Task(
+            this.#term,
+            newPunctuation,
+            this.#state.truthValue,
+            this.#state.stamp
+        );
+
+        // Preserve the priority from the original task
+        newTask.state.priority = this.#state.priority;
+
+        return newTask;
+    }
+
     clone() {
         const clonedTask = new Task(
             this.#term,
@@ -212,6 +228,9 @@ class Task extends BaseEntity {
                 ...this.#state.stamp
             }
         );
+        // Preserve the priority from the original task for consistency
+        clonedTask.state.priority = this.#state.priority;
+        // The ID is generated in the constructor, so we need to override it with the original ID for a true clone.
         clonedTask.#id = this.#id;
         return clonedTask;
     }

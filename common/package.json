@@ -3,5 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "main": "index.js",
+  "browser": "browser-index.js",
   "type": "module"
 }

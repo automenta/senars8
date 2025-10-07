@@ -1,5 +1,5 @@
 // benchmarks/CognitiveTestSuite.js
-import {SystemFactory} from '../../core/index.js';
+import {SystemFactory} from '../../coreagent/index.js';
 import {runSystem} from '../runner.js';
 
 export default class CognitiveTestSuite {

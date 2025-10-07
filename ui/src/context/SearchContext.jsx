@@ -1,6 +1,6 @@
 import {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import agentService from '@/services/agentService';
-import {MESSAGE_TYPES} from '@/constants/ui';
+import agentService from '../services/agentService.js';
+import {MESSAGE_TYPES} from '../constants/ui.js';
 
 const SearchContext = createContext();
 
