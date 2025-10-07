@@ -6,6 +6,8 @@ class Rules {
   }
 
   addRule(rule) {
+    if (!rule) return null;
+    
     const id = rule.id || `rule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     rule.id = id;
     
@@ -54,7 +56,7 @@ class Rules {
   }
 
   _matchesConditions(rule, context) {
-    if (!rule.conditions) return true;
+    if (!rule.conditions || rule.conditions.length === 0) return true;
     
     return rule.conditions.every(condition => {
       try {
@@ -81,15 +83,17 @@ class Rules {
   _getRelevantTypes(context) {
     const types = new Set(['general']);
     
-    if (context.type) types.add(context.type);
-    if (context.punctuation) types.add(context.punctuation);
-    if (context.task) types.add('task');
-    if (context.belief) types.add('belief');
+    if (context && context.type) types.add(context.type);
+    if (context && context.punctuation) types.add(context.punctuation);
+    if (context && context.task) types.add('task');
+    if (context && context.belief) types.add('belief');
     
     return Array.from(types);
   }
 
   removeRule(id) {
+    if (!id) return;
+    
     this.rules = this.rules.filter(rule => rule.id !== id);
     
     for (const [type, rules] of this.index) {

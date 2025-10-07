@@ -1,0 +1,22 @@
+{
+  "coreagent": {
+    "enabled": false,
+    "defaultConfig": {
+      "FOCUS_SET_SIZE": 20,
+      "ACTIONABLE_GOAL_PRIORITY_THRESHOLD": 0.1,
+      "CYCLE_INTERVAL_MS": 100,
+      "MEMORY_CAPACITY": 1000,
+      "DEBUG_LOGGING": false
+    },
+    "migration": {
+      "autoBackup": true,
+      "verifyMigration": true,
+      "supportedFeatures": [
+        "memory",
+        "reasoning", 
+        "cycling",
+        "plugins"
+      ]
+    }
+  }
+}

@@ -1,4 +1,9 @@
 import { createCore } from './createCore.js';
+import Memory from './Memory.js';
+import Reasoning from './Reasoning.js';
+import Cycle from './Cycle.js';
+import Self from './Self.js';
+import Plugins from './Plugins.js';
 
 export class System {
   constructor(config = {}) {
@@ -24,9 +29,20 @@ export class System {
   }
 
   async initialize() {
-    if (this.lifecycle.initialized) return;
+    if (this.lifecycle.initialized) return this;
+    
+    // Register all core components
+    this.core
+      .register('memory', new Memory(this.core))
+      .register('reasoning', new Reasoning(this.core))
+      .register('cycle', new Cycle(this.core))
+      .register('self', new Self(this.core))
+      .register('plugins', new Plugins(this.core));
+    
     await this.core.initialize();
     this.lifecycle.initialized = true;
+    
+    return this;
   }
 
   async start() {
@@ -39,11 +55,14 @@ export class System {
     
     await this.core.start();
     this.lifecycle.started = true;
+    
+    return this;
   }
 
   async stop() {
     await this.core.stop();
     this.lifecycle.started = false;
+    return this;
   }
 
   use(pluginName, pluginFactory) {
@@ -92,14 +111,21 @@ export class System {
     return {
       initialized: this.lifecycle.initialized,
       started: this.lifecycle.started,
-      components: Array.from(this.core.components.keys()),
+      components: this.core.components ? Array.from(this.core.components.keys()) : [],
       stats: {
         memory: this.core.memory?._getStats?.() || null,
         reasoning: this.core.reasoning?.getStats?.() || null,
         cycle: this.core.cycle?._getStats?.() || null,
         self: this.core.self?._getStats?.() || null,
-        rules: this.core.rules.getStats()
+        rules: this.core.rules?.getStats() || { totalRules: 0 }
       }
     };
   }
+}
+
+// Create a factory function that matches the original createSystem interface
+export function createSystem(userConfig = {}, components = {}, strategiesPath = undefined, additionalComponents = {}) {
+  // We can ignore the legacy parameters since we're using the new system
+  const system = new System(userConfig);
+  return system;
 }

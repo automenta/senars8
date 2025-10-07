@@ -11,21 +11,46 @@ class Messages {
   }
 
   async _applyMiddleware(type, data, next) {
+    if (this.middleware.length === 0) {
+      return await next(data);
+    }
+
     let index = 0;
+    let nextCalled = false;
     
-    const dispatch = async (i) => {
-      if (i <= index) throw new Error('next() called multiple times');
-      index = i;
+    const dispatch = async (i, prevResult) => {
+      // If we've reached the end, call the final handler
+      if (i >= this.middleware.length) {
+        return await next(prevResult);
+      }
       
-      let fn = this.middleware[i];
-      if (i === this.middleware.length) fn = next;
+      // Get the current middleware
+      const fn = this.middleware[i];
       
-      if (!fn) return data;
+      if (!fn) {
+        return await dispatch(i + 1, prevResult);
+      }
       
-      return await fn(type, data, () => dispatch(i + 1));
+      // Create the next function for this middleware
+      const nextFn = async (result) => {
+        if (nextCalled) {
+          throw new Error('next() called multiple times');
+        }
+        nextCalled = true;
+        return await dispatch(i + 1, result);
+      };
+      
+      try {
+        nextCalled = false;
+        return await fn(type, prevResult, nextFn);
+      } catch (error) {
+        console.error(`Error in middleware ${i}:`, error);
+        // Skip to next middleware on error
+        return await dispatch(i + 1, prevResult);
+      }
     };
     
-    return await dispatch(0);
+    return await dispatch(0, data);
   }
 
   // Event methods
@@ -47,22 +72,26 @@ class Messages {
     const listeners = this.events.get(event);
     if (!listeners) return;
 
-    const processedData = await this._applyMiddleware('event', data, async (d) => d);
+    try {
+      const processedData = await this._applyMiddleware('event', data, async (d) => d);
 
-    const promises = [];
-    for (const callback of listeners) {
-      promises.push(
-        (async () => {
-          try {
-            await callback(processedData);
-          } catch (e) {
-            console.error(`Error in event listener for ${event}:`, e);
-          }
-        })()
-      );
+      const promises = [];
+      for (const callback of listeners) {
+        promises.push(
+          (async () => {
+            try {
+              await callback(processedData);
+            } catch (e) {
+              console.error(`Error in event listener for ${event}:`, e);
+            }
+          })()
+        );
+      }
+      
+      await Promise.all(promises);
+    } catch (error) {
+      console.error(`Error emitting event ${event}:`, error);
     }
-    
-    await Promise.all(promises);
   }
 
   // Command methods
@@ -102,5 +131,7 @@ class Messages {
     this.eventQueue = [];
   }
 }
+
+export { Messages };
 
 export { Messages };

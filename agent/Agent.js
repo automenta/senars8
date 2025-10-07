@@ -1,8 +1,5 @@
-import {createSystem} from '../core/index.js';
-import {parseTerm} from '../core/parser/parse-utils.js';
-import Task from '../core/core/Task.js';
+import {createCore} from '../core/index.js';
 import MCP from './MCP.js';
-import {parseTermToAction} from './utils/index.js';
 import {agentHandler} from './utils/errorHandler.js';
 import logger from '../core/utils/logger.js';
 
@@ -20,21 +17,21 @@ class Agent {
     async initialize() {
         if (this.isInitialized) return;
         return agentHandler.execute(async () => {
-            this.system = await createSystem(this.config);
+            this.system = await createCore(this.config);
             this.isInitialized = true;
 
             // Set up event listeners for real-time UI updates
-            if (this.system.eventBus) {
-                ['task', 'belief', 'goal', 'question'].forEach(eventType => {
-                    this.system.eventBus.on(`add_${eventType}`, task =>
+            ['task', 'belief', 'goal', 'question'].forEach(eventType => {
+                this.system.on(`task:add`, task => {
+                    if (task.type === eventType) {
                         this.mcp.log({
                             type: `${eventType}_added`,
                             content: task,
                             timestamp: new Date().toISOString()
-                        })
-                    );
+                        });
+                    }
                 });
-            }
+            });
         }, 'initialize');
     }
 
@@ -44,14 +41,17 @@ class Agent {
             'Tool must have name and handler function');
 
         this.tools[tool.name] = tool;
-        this.system.actionExecutor.registerActionHandler(tool.name, tool.handler);
+        
+        // CoreAgent system - store the handler for action execution
+        if (!this.system.actionHandlers) this.system.actionHandlers = new Map();
+        this.system.actionHandlers.set(tool.name, tool.handler);
     }
 
     async decideNextAction(goalString) {
         agentHandler.requireInitialized(this);
 
         const plan = await this.createPlan(goalString);
-        return plan?.steps?.length ? this._parseTermToAction(plan.steps[0]) : null;
+        return plan?.length > 0 ? plan[0] : null;
     }
 
     async executeAction(action) {
@@ -69,49 +69,52 @@ class Agent {
         );
     }
 
-    _parseTermToAction(term) {
-        return parseTermToAction(term, agentLogger);
-    }
-
     async createPlan(goalString) {
         return agentHandler.execute(async () => {
-            const goalTerm = parseTerm(goalString);
-            if (!goalTerm) return null;
-
-            const goalTask = new Task(goalTerm, '!');
-            const plan = await this.system.reasoner.planner.createPlan(goalTask);
-
-            return plan?.steps?.length ? plan : null;
+            // Create a goal task for CoreAgent
+            const goalTask = { 
+                id: `goal_${Date.now()}`,
+                content: goalString,
+                type: 'goal',
+                priority: 0.9
+            };
+            
+            // Use CoreAgent's reasoning process
+            const result = await this.system.request('reasoner:processTask', { 
+                focusSet: [goalTask] 
+            });
+            
+            return result ? [result] : [];
         }, `createPlan: ${goalString}`);
     }
 
     start() {
         agentHandler.requireInitialized(this);
-        this.system?.start?.();
+        this.system.start();
     }
 
     stop() {
         agentHandler.requireInitialized(this);
-        this.system?.stop?.();
+        this.system.stop();
     }
 
     async reset() {
-        this.system?.stop?.();
+        this.system.stop();
         await this.initialize();
     }
 
     getAgentState() {
-        if (!this.isInitialized || !this.system?.memory) {
+        if (!this.isInitialized || !this.system.memory) {
             return {tasks: [], beliefs: [], goals: [], questions: []};
         }
 
         return agentHandler.runSync(() => {
-            const {memory} = this.system;
+            const allTasks = Array.from(this.system.memory.tasks?.values?.() || []);
             return {
-                tasks: memory.getAllTasks?.() || [],
-                beliefs: memory.getBeliefs?.() || [],
-                goals: memory.getGoals?.() || [],
-                questions: memory.getQuestions?.() || [],
+                tasks: allTasks,
+                beliefs: allTasks.filter(t => t.type === 'belief'),
+                goals: allTasks.filter(t => t.type === 'goal'),
+                questions: allTasks.filter(t => t.type === 'question'),
             };
         }, 'getAgentState', {defaultValue: {tasks: [], beliefs: [], goals: [], questions: []}});
     }

@@ -8,7 +8,9 @@
     "test": "vitest",
     "test:run": "vitest run",
     "lint": "eslint . --ext .js",
-    "build": "echo 'CoreAgent is a source-only package'"
+    "build": "echo 'CoreAgent is a source-only package'",
+    "migrate": "node migrate.js",
+    "start:coreagent": "USE_COREAGENT=true node ../../main.js"
   },
   "keywords": [
     "ai",
@@ -29,5 +31,14 @@
   "devDependencies": {
     "vitest": "^1.0.0",
     "eslint": "^8.0.0"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./compatibility": "./compatibility.js",
+    "./integration": "./integration.js",
+    "./utils": "./utils.js",
+    "./legacy-compat": "./legacy-compat.js",
+    "./entry": "./entry.js",
+    "./migrate": "./migrate.js"
   }
 }

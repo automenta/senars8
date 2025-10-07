@@ -17,16 +17,23 @@ class Core {
   static createProxy(core) {
     return new Proxy(core, {
       get(target, prop) {
-        if (target.components.has(prop)) {
+        // First check if it's a direct property/method
+        if (prop in target) {
+          return target[prop];
+        }
+        
+        // Then check components
+        if (target.components && target.components.has(prop)) {
           return target.components.get(prop);
         }
-        return target[prop];
+        
+        return undefined;
       }
     });
   }
 
   async initialize() {
-    if (this.lifecycle.initialized) return;
+    if (this.lifecycle.initialized) return this;
     
     this.messages = new Messages();
     this.lifecycle.initialized = true;
@@ -34,9 +41,15 @@ class Core {
     // Initialize all registered components
     for (const [name, component] of this.components) {
       if (typeof component.initialize === 'function') {
-        await component.initialize();
+        try {
+          await component.initialize();
+        } catch (error) {
+          console.error(`Error initializing component ${name}:`, error);
+        }
       }
     }
+    
+    return this;
   }
 
   async start() {
@@ -45,9 +58,15 @@ class Core {
     
     for (const [name, component] of this.components) {
       if (typeof component.start === 'function') {
-        await component.start();
+        try {
+          await component.start();
+        } catch (error) {
+          console.error(`Error starting component ${name}:`, error);
+        }
       }
     }
+    
+    return this;
   }
 
   async stop() {
@@ -55,9 +74,15 @@ class Core {
     
     for (const [name, component] of this.components) {
       if (typeof component.stop === 'function') {
-        await component.stop();
+        try {
+          await component.stop();
+        } catch (error) {
+          console.error(`Error stopping component ${name}:`, error);
+        }
       }
     }
+    
+    return this;
   }
 
   register(name, component) {
@@ -67,7 +92,11 @@ class Core {
     this.components.set(name, component);
     
     if (this.lifecycle.initialized && typeof component.initialize === 'function') {
-      component.initialize();
+      try {
+        component.initialize();
+      } catch (error) {
+        console.error(`Error initializing component ${name} during registration:`, error);
+      }
     }
     return this;
   }
@@ -100,7 +129,7 @@ class Core {
 }
 
 // Return a proxied version of Core to enable direct property access to components
-export default function createCoreInstance(configData = {}) {
+export default function createCore(configData = {}) {
   const core = new Core(configData);
   return Core.createProxy(core);
 }

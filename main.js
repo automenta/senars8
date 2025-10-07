@@ -6,7 +6,7 @@ import logger from './core/utils/logger.js';
 import AgentManager from './agent/AgentManager.js';
 import {agentServerPlugin} from './agent/vite-plugin.js';
 import {pathToFileURL} from 'url';
-import {applicationConfig} from './core/config/index.js';
+import {applicationConfig} from './core/index.js';
 import {setupGracefulShutdown} from './core/utils/system.js';
 import {handleUncaughtError} from './core/utils/system.js';
 import resourceManager from './core/utils/ResourceManager.js';
@@ -57,11 +57,11 @@ export const AppRunner = {
     },
 
     async startAgent() {
-        log.info('Starting agent...');
+        log.info('Starting agent with CoreAgent system...');
         const agent = new Agent();
         await agent.initialize();
         agent.start();
-        log.info('Agent started successfully.');
+        log.info('Agent with CoreAgent system started successfully.');
         return agent;
     },
 
