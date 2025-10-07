@@ -33,15 +33,28 @@ export class System {
     async initialize() {
         if (this.lifecycle.initialized) return this;
 
-        // Register all core components
-        this.core
-            .register('memory', new Memory(this.core))
-            .register('reasoning', new Reasoning(this.core))
-            .register('cycle', new Cycle(this.core))
-            .register('self', new Self(this.core))
-            .register('plugins', new Plugins(this.core))
-            .register('lm', new LM(this.core))
-            .register('tools', new ToolSystem(this.core, this.core.config.get('tools', {})));
+        // Register all core components (check if not already registered)
+        if (!this.core.get('memory')) {
+            this.core.register('memory', new Memory(this.core));
+        }
+        if (!this.core.get('reasoning')) {
+            this.core.register('reasoning', new Reasoning(this.core));
+        }
+        if (!this.core.get('cycle')) {
+            this.core.register('cycle', new Cycle(this.core));
+        }
+        if (!this.core.get('self')) {
+            this.core.register('self', new Self(this.core));
+        }
+        if (!this.core.get('plugins')) {
+            this.core.register('plugins', new Plugins(this.core));
+        }
+        if (!this.core.get('lm')) {
+            this.core.register('lm', new LM(this.core));
+        }
+        if (!this.core.get('tools')) {
+            this.core.register('tools', new ToolSystem(this.core, this.core.config.get('tools', {})));
+        }
 
         await this.core.initialize();
         this.lifecycle.initialized = true;

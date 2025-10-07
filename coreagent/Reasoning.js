@@ -1,56 +1,67 @@
+
 import Component from './Component.js';
+import ReasonerCore from '../core/reasoner/Reasoner.js';
+import rules from '../core/reasoner/rules/index.js';
+import {debug, error as logError, info, warn} from '../core/utils/logger.js';
+import {createUnifiedErrorHandler} from '../core/utils/errorHandler.js';
+import createConfigAccessor from '../core/config/ConfigAccessor.js';
+import {SystemCommands} from '../core/system/SystemCommands.js';
+
+const errorHandler = createUnifiedErrorHandler('Reasoning');
 
 class Reasoning extends Component {
     constructor(core) {
         super('reasoning', core);
-        this.strategies = new Map();
-        this.strategyIndex = new Map();
-        this._registerDefaultStrategies();
-    }
 
-    _registerDefaultStrategies() {
-        const defaultStrategies = [
-            {
-                name: 'deductive',
-                priority: 0.9,
-                canHandle: (task, belief) => task.type === 'implication' && belief.term?.key === task.terms?.[0]?.key,
-                execute: this._deductiveReason.bind(this)
-            },
-            {
-                name: 'abductive',
-                priority: 0.8,
-                canHandle: (task, belief) => task.type === 'question' && belief.type === 'belief',
-                execute: this._abductiveReason.bind(this)
-            },
-            {
-                name: 'inductive',
-                priority: 0.7,
-                canHandle: (task, belief) => task.type === 'belief' && belief.type === 'belief',
-                execute: this._inductiveReason.bind(this)
-            }
-        ];
+        // Initialize core reasoner with proper dependencies
+        this.reasonerCore = new ReasonerCore(
+            this.core.config,
+            this.core.temporalReasoner || null, // Will be set up later if available
+            this.core.strategyRegistry || null,  // Will be set up later if available
+            this.core.messages  // Use coreagent's message system as command bus
+        );
 
-        defaultStrategies.forEach(strategy => {
-            this.addStrategy(strategy);
-        });
-    }
-
-    addStrategy(strategy) {
-        this.strategies.set(strategy.name, strategy);
-
-        if (!this.strategyIndex.has(strategy.name)) {
-            this.strategyIndex.set(strategy.name, strategy);
+        // Set system context for modular reasoning
+        if (this.core.systemContext) {
+            this.reasonerCore.setSystemContext(this.core.systemContext);
         }
+
+        // Expose core reasoner methods for compatibility
+        this.performInference = this.reasonerCore.performInference.bind(this.reasonerCore);
+        this.getRuleNames = this.reasonerCore.getRuleNames.bind(this.reasonerCore);
+        this.getRule = this.reasonerCore.getRule.bind(this.reasonerCore);
+        this.getRuleStatistics = this.reasonerCore.getRuleStatistics.bind(this.reasonerCore);
+        this.getPerformanceStats = this.reasonerCore.getPerformanceStats.bind(this.reasonerCore);
     }
 
     setupHandlers() {
-        // Handle both new and legacy command names for compatibility
-        this.core.messages.handle('reasoning:process', (data) => this._processTask(data));
-        this.core.messages.handle('reasoner:processTask', (data) => this._processTaskLegacy(data)); // Legacy compatibility
+        // Core reasoning command handlers
+        this.core.messages.handle('reasoning:process', (data) => this._processTaskCompat(data));
+        this.core.messages.handle('reasoner:processTask', (data) => this._processTaskLegacyCompat(data));
+
+        // Legacy compatibility handlers
+        this.core.messages.handle(SystemCommands.REASONER_PROCESS_TASK, async (payload) =>
+            this._processTaskLegacyCompat(payload));
     }
 
-    // Support legacy interface
-    async _processTaskLegacy(payload) {
+    // Compatibility wrapper methods
+    async _processTaskCompat({task, beliefs = []}) {
+        if (!task) return null;
+
+        // Convert coreagent task format to core Task if needed
+        const coreTask = this._convertToCoreTask(task);
+        const coreBeliefs = beliefs.map(belief => this._convertToCoreTask(belief)).filter(b => b !== null);
+
+        try {
+            const result = await this.reasonerCore.performInference([coreTask]);
+            return result.length > 0 ? this._convertFromCoreTask(result[0]) : null;
+        } catch (error) {
+            logError('Error in reasoning process:', error);
+            return null;
+        }
+    }
+
+    async _processTaskLegacyCompat(payload) {
         const {focusSet = [], options = {}} = payload || {};
         if (!Array.isArray(focusSet)) {
             throw new Error(`Focus set must be an array, received: ${typeof focusSet}`);
@@ -70,7 +81,7 @@ class Reasoning extends Component {
                 limit: 50
             });
 
-            const result = await this._processTask({task, beliefs});
+            const result = await this._processTaskCompat({task, beliefs});
             if (result) {
                 allDerivedTasks.push(result);
                 if (allDerivedTasks.length >= maxDerivedTasks) break;
@@ -80,93 +91,109 @@ class Reasoning extends Component {
         return allDerivedTasks.slice(0, maxDerivedTasks);
     }
 
-    async _processTask({task, beliefs = []}) {
-        // Winnow: quickly filter strategies that can handle this task-belief combination
-        const viableStrategies = this._winnowStrategies(task, beliefs);
+    _convertToCoreTask(taskData) {
+        if (!taskData) return null;
 
-        // Sort by priority
-        viableStrategies.sort((a, b) => b.priority - a.priority);
-
-        for (const strategy of viableStrategies) {
-            for (const belief of beliefs) {
-                const result = await strategy.execute(task, belief, {
-                    memory: this.core.memory
-                });
-
-                if (result && result.success && result.derived) {
-                    this.core.emit('task:derived', result.derived);
-                    return result.derived;
-                }
-            }
+        // If it's already a core Task, return as-is
+        if (taskData.constructor && taskData.constructor.name === 'Task') {
+            return taskData;
         }
 
-        // Self-application
-        return this._applySelfStrategies(task);
-    }
-
-    _winnowStrategies(task, beliefs) {
-        const results = [];
-
-        for (const [name, strategy] of this.strategies) {
-            for (const belief of beliefs) {
-                if (strategy.canHandle(task, belief)) {
-                    results.push(strategy);
-                    break;
-                }
-            }
-
-            if (strategy.canHandle(task, task)) {
-                results.push(strategy);
-            }
-        }
-
-        return results;
-    }
-
-    async _applySelfStrategies(task) {
-        const selfStrategies = this.strategies
-            .values()
-            .filter(strategy => strategy.canHandle(task, task));
-
-        for (const strategy of selfStrategies) {
-            const result = await strategy.execute(task, task, {
-                memory: this.core.memory
-            });
-
-            if (result && result.success && result.derived) {
-                this.core.emit('task:derived', result.derived);
-                return result.derived;
+        // Convert coreagent task format to core Task
+        if (typeof taskData === 'object' && taskData.termKey && taskData.punctuation) {
+            try {
+                return new this.core.Task(
+                    taskData.term,
+                    taskData.punctuation,
+                    taskData.truthValue || {},
+                    taskData.stamp || {}
+                );
+            } catch (error) {
+                warn(`Failed to convert task data to core Task: ${error.message}`);
+                return null;
             }
         }
 
         return null;
     }
 
-    _deductiveReason(task, belief, context) {
-        if (task.type === 'implication' && task.terms?.length === 2 &&
-            belief.term?.key === task.terms[0].key) {
-            return Promise.resolve({
-                derived: {
-                    termKey: task.terms[1].key,
-                    type: 'belief',
-                    priority: Math.min(task.priority || 0.5, belief.priority || 0.5) * 0.8,
-                    truthValue: {
-                        frequency: Math.min(task.truthValue?.frequency || 0.5, belief.truthValue?.frequency || 0.5),
-                        confidence: (task.truthValue?.confidence || 0.5) * (belief.truthValue?.confidence || 0.5)
-                    }
-                },
-                success: true
-            });
+    _convertFromCoreTask(coreTask) {
+        if (!coreTask) return null;
+
+        // Convert core Task back to coreagent format
+        return {
+            id: coreTask.id,
+            termKey: coreTask.termKey,
+            punctuation: coreTask.punctuation,
+            priority: coreTask.state?.priority || 0,
+            truthValue: coreTask.state?.truthValue || {frequency: 0.5, confidence: 0.5},
+            stamp: coreTask.state?.stamp || {},
+            type: 'belief' // Default type for derived tasks
+        };
+    }
+
+    // Enhanced methods for coreagent API compatibility
+    async _processTask({task, beliefs = []}) {
+        return await this._processTaskCompat({task, beliefs});
+    }
+
+    async _processTaskLegacy(payload) {
+        return await this._processTaskLegacyCompat(payload);
+    }
+
+    // Strategy management methods
+    addStrategy(strategy) {
+        if (!this.core.strategyRegistry) {
+            warn('Strategy registry not available, cannot add strategy');
+            return;
         }
-        return Promise.resolve({derived: null, success: false});
+
+        try {
+            this.core.strategyRegistry.registerStrategy(strategy);
+        } catch (error) {
+            logError('Error adding strategy:', error);
+        }
     }
 
-    _abductiveReason(task, belief, context) {
-        return Promise.resolve({derived: null, success: false});
+    // Rule management methods
+    getStats() {
+        return {
+            rules: this.reasonerCore.getRuleStatistics(),
+            performance: this.reasonerCore.getPerformanceStats(),
+            strategies: this.core.strategyRegistry ?
+                this.core.strategyRegistry.getAllReasoningStrategies().length : 0
+        };
     }
 
-    _inductiveReason(task, belief, context) {
-        return Promise.resolve({derived: null, success: false});
+    async onStart() {
+        // Initialize core reasoner if needed
+        if (this.reasonerCore && typeof this.reasonerCore.initialize === 'function') {
+            await this.reasonerCore.initialize();
+        }
+    }
+
+    async onStop() {
+        // Clean shutdown of core reasoner
+        if (this.reasonerCore && typeof this.reasonerCore.shutdown === 'function') {
+            await this.reasonerCore.shutdown();
+        }
+    }
+
+    // Additional utility methods for coreagent compatibility
+    getRuleNames() {
+        return this.reasonerCore.getRuleNames();
+    }
+
+    getRule(name) {
+        return this.reasonerCore.getRule(name);
+    }
+
+    getRuleStatistics() {
+        return this.reasonerCore.getRuleStatistics();
+    }
+
+    getPerformanceStats() {
+        return this.reasonerCore.getPerformanceStats();
     }
 }
 
