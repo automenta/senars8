@@ -4,6 +4,7 @@ import {formatTaskForBroadcast} from './utils/taskUtils.js';
 import {SystemCommands} from '../core/system/SystemCommands.js';
 import FileMonitor from './FileMonitor.js';
 import {managerHandler} from './utils/errorHandler.js';
+import EventListenerManager from '../core/utils/EventListenerManager.js';
 
 class AgentManager {
     constructor() {
@@ -12,6 +13,7 @@ class AgentManager {
         };
         this.system = null;
         this.fileMonitor = null;
+        this.eventListenerManager = new EventListenerManager();
     }
 
     setBroadcast(broadcast) {
@@ -28,23 +30,8 @@ class AgentManager {
 
             this.broadcast({type: 'agentStatus', payload: 'initialized'});
 
-            this.setupEventListeners();
-            await this.fileMonitor.start();
-            return true;
-        }, 'initialize', false);
-    }
-
-    setupEventListeners() {
-        managerHandler.runSync(() => {
-            if (!this.system?.eventBus) {
-                warn('Agent event bus not available. UI will not receive real-time updates.');
-                return;
-            }
-
-            this.cleanupEventListeners();
-
-            // Event listener configuration map - DRY approach
-            this._eventConfig = {
+            // Initialize the event listener manager with configuration
+            const eventConfig = {
                 status_update: status => ({type: 'status_update', payload: status}),
                 system_cycle: cycleCount => ({type: 'system_cycle', payload: {cycleCount}}),
                 add_belief: belief => ({type: 'add_belief', payload: formatTaskForBroadcast(belief)}),
@@ -54,42 +41,23 @@ class AgentManager {
                 memory_update: changes => ({type: 'memory_update', payload: changes}),
                 'tasks:add': tasks => tasks.map(task => ({type: 'task_added', payload: formatTaskForBroadcast(task)}))
             };
+            
+            this.eventListenerManager.initialize(this.system, this.broadcast, eventConfig, { warn });
+            this.eventListenerManager.setupEventListeners();
 
-            // Create and register listeners efficiently
-            for (const [event, formatter] of Object.entries(this._eventConfig)) {
-                const listenerName = this._getListenerName(event);
-                this[listenerName] = this._createListener(formatter);
-                this.system.eventBus.on(event, this[listenerName]);
-            }
-        }, 'setupEventListeners');
+            await this.fileMonitor.start();
+            return true;
+        }, 'initialize', false);
     }
 
-    // Helper to generate consistent listener names
-    _getListenerName(event) {
-        return `_${event.replace(':', '_')}Listener`;
-    }
-
-    // Helper to create listeners with consistent behavior
-    _createListener(formatter) {
-        return (...args) => {
-            const messages = Array.isArray(formatter(...args)) ? formatter(...args) : [formatter(...args)];
-            for (const msg of messages) {
-                this.broadcast(msg);
-            }
-        };
+    setupEventListeners() {
+        // Use the event listener manager for consistent behavior
+        this.eventListenerManager.setupEventListeners();
     }
 
     cleanupEventListeners() {
-        if (!this.system?.eventBus || !this._eventConfig) return;
-
-        // Use the same configuration for cleanup - consistent DRY approach
-        for (const event of Object.keys(this._eventConfig)) {
-            const listenerName = this._getListenerName(event);
-            if (this[listenerName]) {
-                this.system.eventBus.off(event, this[listenerName]);
-                this[listenerName] = null;
-            }
-        }
+        // Use the event listener manager for consistent behavior
+        this.eventListenerManager.cleanupEventListeners();
     }
 
     getAgent() {

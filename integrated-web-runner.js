@@ -8,6 +8,8 @@ import {createMessageHandler} from './agent/MessageHandler.js';
 import {findAvailablePort} from './tests/utils/networkUtils.js';
 import {applicationConfig} from './core/config/index.js';
 import {setupGracefulShutdown} from './core/utils/system.js';
+import {handleUncaughtError} from './core/utils/system.js';
+import resourceManager from './core/utils/ResourceManager.js';
 
 const log = logger.create('integrated-web-runner');
 const __filename = fileURLToPath(import.meta.url);
@@ -15,9 +17,6 @@ const __dirname = path.dirname(__filename);
 
 export class IntegratedWebRunner {
     constructor() {
-        this.viteServer = null;
-        this.agentManager = null;
-        this.wsServer = null;
         this.port = null;
         this.wsPort = null;
     }
@@ -49,9 +48,9 @@ export class IntegratedWebRunner {
             return {
                 port: this.port,
                 wsPort: this.wsPort,
-                server: this.viteServer,
-                agentManager: this.agentManager,
-                wsServer: this.wsServer
+                server: resourceManager.get('viteServer'),
+                agentManager: resourceManager.get('agentManager'),
+                wsServer: resourceManager.get('wsServer')
             };
 
         } catch (error) {
@@ -64,21 +63,25 @@ export class IntegratedWebRunner {
     async startAgent() {
         log.info('Starting embedded agent...');
 
-        this.agentManager = new AgentManager();
+        const agentManager = new AgentManager();
 
         // Create WebSocket server for the agent
-        this.wsServer = new UnifiedWebSocketServer({port: this.wsPort});
-        await this.wsServer.start();
+        const wsServer = new UnifiedWebSocketServer({port: this.wsPort});
+        await wsServer.start();
 
         // Set up message handling
-        const messageHandler = createMessageHandler(this.agentManager, this.wsServer.broadcast.bind(this.wsServer));
-        this.wsServer.setMessageHandler(messageHandler);
+        const messageHandler = createMessageHandler(agentManager, wsServer.broadcast.bind(wsServer));
+        wsServer.setMessageHandler(messageHandler);
 
         // Link WebSocket server to agent manager
-        this.agentManager.setBroadcast(this.wsServer.broadcast.bind(this.wsServer));
+        agentManager.setBroadcast(wsServer.broadcast.bind(wsServer));
 
         // Initialize the agent manager
-        await this.agentManager.initialize();
+        await agentManager.initialize();
+
+        // Register resources with resource manager
+        resourceManager.register('agentManager', agentManager);
+        resourceManager.register('wsServer', wsServer);
 
         log.info('Embedded agent started successfully');
     }
@@ -91,7 +94,7 @@ export class IntegratedWebRunner {
         process.env.VITE_WS_URL = `ws://localhost:${this.wsPort}`;
 
         try {
-            this.viteServer = await createServer({
+            const viteServer = await createServer({
                 configFile: path.resolve(__dirname, 'ui/vite.config.js'),
                 root: path.resolve(__dirname, 'ui'),
                 server: {
@@ -114,8 +117,11 @@ export class IntegratedWebRunner {
                 logLevel: 'info'
             });
 
-            await this.viteServer.listen();
-            this.viteServer.printUrls();
+            await viteServer.listen();
+            viteServer.printUrls();
+
+            // Register vite server with resource manager
+            resourceManager.register('viteServer', viteServer, 'close');
 
             log.info(`Vite dev server started on port ${this.port}`);
         } catch (error) {
@@ -130,33 +136,8 @@ export class IntegratedWebRunner {
 
     async cleanup() {
         log.info('Cleaning up integrated Web UI...');
-
-        if (this.agentManager) {
-            try {
-                await this.agentManager.stop();
-                log.info('Agent manager stopped');
-            } catch (error) {
-                log.error('Error stopping agent manager:', error);
-            }
-        }
-
-        if (this.wsServer) {
-            try {
-                await this.wsServer.stop();
-                log.info('WebSocket server stopped');
-            } catch (error) {
-                log.error('Error stopping WebSocket server:', error);
-            }
-        }
-
-        if (this.viteServer) {
-            try {
-                await this.viteServer.close();
-                log.info('Vite dev server stopped');
-            } catch (error) {
-                log.error('Error stopping Vite dev server:', error);
-            }
-        }
+        // Use resource manager to handle all resource cleanup
+        await resourceManager.shutdown();
     }
 }
 
@@ -173,7 +154,6 @@ const main = async () => {
 
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-    import {handleUncaughtError} from './core/utils/system.js';
     main().catch(error => {
         handleUncaughtError(error, log, async () => {
             // Perform any necessary cleanup here

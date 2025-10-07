@@ -7,16 +7,13 @@ import AgentManager from './agent/AgentManager.js';
 import {agentServerPlugin} from './agent/vite-plugin.js';
 import {pathToFileURL} from 'url';
 import {applicationConfig} from './core/config/index.js';
-import {setupGracefulShutdown, gracefulShutdown} from './core/utils/system.js';
+import {setupGracefulShutdown} from './core/utils/system.js';
+import {handleUncaughtError} from './core/utils/system.js';
+import resourceManager from './core/utils/ResourceManager.js';
 
 const log = logger.create('main');
 
 export const AppRunner = {
-    // Keep track of active components for graceful shutdown
-    _activeProcess: null,
-    _activeServer: null,
-    _activeAgentManager: null,
-
     async startWebInterface(agentManager) {
         log.info('Starting web UI...');
         try {
@@ -34,6 +31,9 @@ export const AppRunner = {
             await server.listen();
             server.printUrls();
             log.info(`Web UI started successfully on port ${port}`);
+            
+            // Register server with resource manager
+            resourceManager.register('server', server, 'close');
             return server;
         } catch (error) {
             log.error(`Failed to start web UI on port ${process.env.PORT || applicationConfig.getUiPort()}. Is the port already in use?`);
@@ -50,6 +50,9 @@ export const AppRunner = {
             log.info(`TUI process exited with code ${code}`);
             process.exit(code);
         });
+        
+        // Register process with resource manager
+        resourceManager.register('tuiProcess', tuiProcess, 'kill');
         return tuiProcess;
     },
 
@@ -66,12 +69,14 @@ export const AppRunner = {
         try {
             const agentManager = new AgentManager();
             // Initialization is now handled by the component that uses it (e.g., Vite plugin)
-            this._activeAgentManager = agentManager;
-
+            
+            // Register agent manager with resource manager
+            resourceManager.register('agentManager', agentManager);
+            
             if (args.web) {
-                this._activeServer = await this.startWebInterface(agentManager);
+                await this.startWebInterface(agentManager);
             } else if (args.tui) {
-                this._activeProcess = await this.startTui();
+                await this.startTui();
             } else {
                 await this.startAgent();
             }
@@ -80,9 +85,9 @@ export const AppRunner = {
             setupGracefulShutdown(log, () => this.shutdown());
 
             return {
-                agentManager: this._activeAgentManager,
-                server: this._activeServer,
-                process: this._activeProcess,
+                agentManager: resourceManager.get('agentManager'),
+                server: resourceManager.get('server'),
+                process: resourceManager.get('tuiProcess'),
             };
         } catch (error) {
             log.error('Application run failed:', error);
@@ -96,19 +101,8 @@ export const AppRunner = {
 
     async shutdown() {
         log.info('Shutting down gracefully...');
-        if (this._activeAgentManager) {
-            await this._activeAgentManager.stop();
-            this._activeAgentManager = null;
-        }
-        if (this._activeProcess) {
-            this._activeProcess.kill('SIGTERM');
-            this._activeProcess = null;
-        }
-        if (this._activeServer) {
-            // The Vite dev server will handle closing the standalone WebSocket server through the plugin's closeBundle hook
-            await this._activeServer.close();
-            this._activeServer = null;
-        }
+        // Use resource manager to handle all resource cleanup
+        await resourceManager.shutdown();
     },
 };
 
@@ -130,12 +124,9 @@ const main = async () => {
 
 // This check ensures that main() is only called when the script is executed directly
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-    import {handleUncaughtError} from './core/utils/system.js';
     main().catch(error => {
         handleUncaughtError(error, log, async () => {
-            if (AppRunner._activeAgentManager) {
-                await AppRunner._activeAgentManager.stop();
-            }
+            // Resource manager handles cleanup
         });
     });
 }
