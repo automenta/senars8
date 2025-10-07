@@ -5,12 +5,13 @@ import {metaCognitionErrorHandler as errorHandler} from '../utils/errorHandler.j
 import {SystemCommands} from './SystemCommands.js';
 
 class MetaCognition {
-    constructor(configManager, contradictionAnalyzer, resolutionStrategy, eventBus, commandBus) {
+    constructor(configManager, contradictionAnalyzer, resolutionStrategy, eventBus, commandBus, metricsService = null) {
         this.configManager = configManager;
         this.contradictionAnalyzer = contradictionAnalyzer;
         this.resolutionStrategy = resolutionStrategy;
         this.eventBus = eventBus;
         this.commandBus = commandBus;
+        this.metricsService = metricsService;
         this.contradictions = [];
         this._registerCommandHandlers();
         info('MetaCognition initialized');
@@ -58,6 +59,11 @@ class MetaCognition {
                             details: contradictionType.details,
                             severity: this.contradictionAnalyzer.calculateSeverity(contradictionType, item1.task, item2.task),
                         });
+                        
+                        // Track contradiction detection in metrics
+                        if (this.metricsService) {
+                            this.metricsService.trackContradictionDetection(contradictionType.type);
+                        }
                     }
                 }, `analyze-contradiction-${item1.task.id}-${item2.task.id}`);
             }
@@ -77,7 +83,30 @@ class MetaCognition {
             }) {
         return errorHandler.executeSync(() => {
             debug(`Resolving contradiction of type: ${contradiction.type}`);
-            const result = this.resolutionStrategy.resolve(contradiction, strategy);
+            const startTime = Date.now();
+            let success = false;
+            let result;
+            
+            try {
+                result = this.resolutionStrategy.resolve(contradiction, strategy);
+                success = !!result && result.length > 0;
+            } catch (error) {
+                debug(`Contradiction resolution failed: ${error.message}`);
+                result = [];
+            } finally {
+                const executionTime = Date.now() - startTime;
+                
+                // Track contradiction resolution in metrics
+                if (this.metricsService) {
+                    this.metricsService.trackContradictionResolution(
+                        contradiction.type, 
+                        strategy || 'default', 
+                        success, 
+                        success ? 'success' : 'failure'
+                    );
+                }
+            }
+            
             debug('Contradiction resolution completed');
             return result;
         }, 'resolve', []);

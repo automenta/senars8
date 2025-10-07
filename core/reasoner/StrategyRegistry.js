@@ -1,11 +1,12 @@
 import {error as logError, info, warn} from '../utils/logger.js';
 
 class StrategyRegistry {
-    constructor() {
+    constructor(metricsService = null) {
         this.strategies = new Map();
         this.instances = new Map();
         this.metadata = new Map();
         this.stats = new Map();
+        this.metricsService = metricsService;
         info('StrategyRegistry initialized');
     }
 
@@ -177,6 +178,53 @@ class StrategyRegistry {
         this.metadata.clear();
         this.stats.clear();
         info('StrategyRegistry cleared all strategies');
+    }
+
+    async executeStrategy(strategyName, task, systemContext) {
+        const startTime = Date.now();
+        let success = false;
+        let result;
+
+        try {
+            const strategy = this.getStrategy(strategyName);
+            const validation = strategy.validate(task);
+            
+            if (validation.isValid) {
+                result = await Promise.resolve(strategy.execute(task, systemContext));
+                success = result && result.success !== false;
+            } else {
+                result = { success: false, errors: validation.errors };
+            }
+        } catch (error) {
+            result = { success: false, error: error.message };
+        } finally {
+            const executionTime = Date.now() - startTime;
+            
+            // Track in metrics service if available
+            if (this.metricsService) {
+                this.metricsService.trackStrategyExecution(strategyName, success, executionTime);
+            }
+            
+            // Update internal stats
+            this._updateInternalStats(strategyName, success, executionTime);
+        }
+
+        return result;
+    }
+
+    _updateInternalStats(name, success, executionTime) {
+        const stats = this.stats.get(name);
+        if (stats) {
+            if (!stats.totalTime) stats.totalTime = 0;
+            stats.totalTime += executionTime;
+            stats.averageTime = stats.totalTime / (stats.usageCount || 1);
+            
+            if (success) {
+                stats.successes = (stats.successes || 0) + 1;
+            } else {
+                stats.failures = (stats.failures || 0) + 1;
+            }
+        }
     }
 
     _isReasoning(StrategyClass) {

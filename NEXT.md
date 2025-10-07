@@ -34,36 +34,55 @@ Maximize algorithmic power and functionality with minimal effort by focusing on 
 
 ## Phase 3: Enhanced Reasoning Power & Flexibility (Maximum Capability, Minimal Changes)
 
-### 3.1 Strategy Selection Enhancement (Smart Algorithmic Improvement)
+### 3.1 System Observability (Priority: First - High Value, Low Complexity, Enables Measuring Other Changes)
+- [ ] **Enhance**: Integrate LM performance metrics with existing system statistics (embedding generation rates, hypothesis success rates)
+- [ ] **Enhance**: Add reasoning strategy effectiveness tracking to complement existing strategy registry statistics  
+- [ ] **Enhance**: Add temporal reasoning performance metrics integration with existing module statistics
+- [ ] **Implement**: Create unified metrics dashboard aggregating system, reasoning, and LM performance data
+- [ ] **Implement**: Add detailed contradiction resolution outcome tracking and metrics
+- [ ] **Implement**: Add strategy success rate measurement and reporting capabilities
+- [ ] **Implement**: Add temporal reasoning caching effectiveness metrics
+- [ ] **Validate**: Ensure enhanced metrics are accessible via current agent broadcasting
+- [ ] **Validate**: Ensure metrics collection doesn't interfere with normal operation
+- [ ] **Validate**: Ensure metrics accuracy for measuring improvements in other Phase 3 tasks
+- [ ] **Validate**: Test resource usage to confirm metrics collection doesn't cause memory issues under high load
+
+### 3.2 Strategy Selection Enhancement (Smart Algorithmic Improvement)
 - [ ] **Enhance**: Add LM-powered strategy meta-learning for adaptive strategy evolution based on reasoning context
 - [ ] **Enhance**: Integrate strategy performance analytics with existing usage statistics for better selection
 - [ ] **Implement**: Add strategy success rate visualization and reporting for debugging and optimization
+- [ ] **Implement**: Add contextual strategy selection based on task characteristics and task history
+- [ ] **Implement**: Add machine learning model (using existing LM infrastructure) for predicting optimal strategy selection
 - [ ] **Validate**: Maintain all existing reasoning contracts while adding intelligence
 - [ ] **Validate**: Ensure backward compatibility with existing strategy interface
+- [ ] **Validate**: Measure improvement in strategy selection effectiveness using new metrics system
+- [ ] **Validate**: Verify error handling in strategy selection when LM services are unavailable
 
-### 3.2 Contradiction Resolution Improvement (Enhanced Reasoning Power)
-- [ ] **Implement**: Add simple effectiveness scoring to ResolutionStrategy based on contradiction type and resolution outcome
+### 3.3 Contradiction Resolution Improvement (Enhanced Reasoning Power)
+- [ ] **Implement**: Add effectiveness scoring to ResolutionStrategy based on contradiction type and resolution outcome
 - [ ] **Implement**: Extend `ResolutionStrategy.js` to track resolution outcomes by contradiction type
 - [ ] **Implement**: Update strategy selection logic to prefer more effective resolution methods based on contradiction type
 - [ ] **Implement**: Use existing contradiction type weights in `ContradictionAnalyzer.js` as base data
 - [ ] **Implement**: Integrate LM explanation service for contradiction analysis and resolution rationale
+- [ ] **Implement**: Add feedback loop to improve resolution strategies based on outcome success rates
+- [ ] **Implement**: Add contradiction resolution performance tracking and metrics
 - [ ] **Validate**: Ensure all existing contradiction handling still works, only enhanced
 - [ ] **Validate**: Verify backward compatibility with existing contradiction handling contracts
+- [ ] **Validate**: Measure improvement in contradiction resolution success rates using new metrics
+- [ ] **Validate**: Test error handling when LM explanation service fails
 
-### 3.3 Temporal Reasoning Efficiency (Increased Capability)
+### 3.4 Temporal Reasoning Efficiency (Increased Capability)
 - [ ] **Enhance**: Add LM-enhanced temporal pattern recognition for complex temporal inferences and prediction
 - [ ] **Enhance**: Integrate temporal reasoning performance analytics with existing module statistics
+- [ ] **Enhance**: Add temporal pattern prediction and proactive generation capabilities
 - [ ] **Implement**: Add temporal reasoning result caching for frequently occurring temporal patterns
+- [ ] **Implement**: Add intelligent caching strategy that predicts likely temporal patterns
+- [ ] **Implement**: Add performance optimization for temporal reasoning modules based on usage patterns
 - [ ] **Validate**: Maintain backward compatibility with existing temporal logic
 - [ ] **Validate**: Ensure all temporal reasoning inferences remain correct
-
-### 3.4 System Observability (High Value, Low Complexity)
-- [ ] **Enhance**: Integrate LM performance metrics with existing system statistics (embedding generation rates, hypothesis success rates)
-- [ ] **Enhance**: Add reasoning strategy effectiveness tracking to complement existing strategy registry statistics
-- [ ] **Implement**: Add temporal reasoning performance metrics integration with existing module statistics
-- [ ] **Implement**: Create unified metrics dashboard aggregating system, reasoning, and LM performance data
-- [ ] **Validate**: Ensure enhanced metrics are accessible via current agent broadcasting
-- [ ] **Validate**: Ensure metrics collection doesn't interfere with normal operation
+- [ ] **Validate**: Measure performance improvements using new metrics system
+- [ ] **Validate**: Test cache invalidation to ensure stale data is not returned
+- [ ] **Validate**: Verify LM-enhanced pattern recognition doesn't degrade temporal reasoning accuracy
 
 ## Phase 4: Comprehensive Profiling & Benchmarking (Final Validation)
 

@@ -17,6 +17,7 @@ import CommandBus from './CommandBus.js';
 import TruthValueManager from '../reasoner/TruthValueManager.js';
 import TaskFactory from '../core/TaskFactory.js';
 import StrategyRegistry from '../reasoner/StrategyRegistry.js';
+import MetricsService from './MetricsService.js';
 
 /**
  * Registers all core components with the DI container.
@@ -29,26 +30,27 @@ const registerComponents = (container, configManager) => {
     container.registerValue('configManager', configManager);
     container.register('eventBus', EventBus, [], singleton);
     container.register('commandBus', CommandBus, [], singleton);
+    container.register('metricsService', MetricsService, [], singleton);
 
     // Foundational components first
     container.register('memory', Memory, ['configManager', 'eventBus', 'commandBus'], singleton);
     container.register('truthValueManager', TruthValueManager, [], singleton);
-    container.register('strategyRegistry', StrategyRegistry, [], singleton);
-    container.register('lm', LM, ['configManager', 'commandBus', 'eventBus'], singleton);
+    container.register('strategyRegistry', StrategyRegistry, ['metricsService'], singleton);
+    container.register('lm', LM, ['configManager', 'commandBus', 'eventBus', 'metricsService'], singleton);
 
     // Components that depend on the foundational ones
     container.register('taskFactory', TaskFactory, ['memory', 'lm', 'eventBus', 'commandBus'], singleton);
-    container.register('temporalReasoner', TemporalReasoner, ['configManager'], singleton);
+    container.register('temporalReasoner', TemporalReasoner, ['configManager', 'metricsService'], singleton);
     container.register('actionExecutor', ActionExecutor, ['memory', 'configManager', 'eventBus', 'commandBus'], singleton);
     container.register('perception', Perception, ['memory', 'taskFactory', 'eventBus', 'commandBus'], singleton);
     container.register('planner', Planner, ['memory', 'lm', 'actionExecutor', 'configManager'], singleton);
     container.register('priorityManager', PriorityManager, ['memory', 'configManager'], singleton);
     container.register('contradictionAnalyzer', ContradictionAnalyzer, [], singleton);
-    container.register('resolutionStrategy', ResolutionStrategy, ['truthValueManager'], singleton);
+    container.register('resolutionStrategy', ResolutionStrategy, ['truthValueManager', 'metricsService'], singleton);
 
     // Higher-level components
     container.register('reasoner', Reasoner, ['configManager', 'temporalReasoner', 'strategyRegistry', 'commandBus'], singleton);
-    container.register('metaCognition', MetaCognition, ['configManager', 'contradictionAnalyzer', 'resolutionStrategy', 'eventBus', 'commandBus'], singleton);
+    container.register('metaCognition', MetaCognition, ['configManager', 'contradictionAnalyzer', 'resolutionStrategy', 'eventBus', 'commandBus', 'metricsService'], singleton);
 
     // The main cycle and system, which depend on almost everything else
     container.register('cycle', Cycle, [

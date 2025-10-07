@@ -26,10 +26,11 @@ const PIPELINE_TYPES = {
 };
 
 class LM {
-    constructor(_configManager, commandBus, eventBus) {
+    constructor(_configManager, commandBus, eventBus, metricsService = null) {
         this.config = configService;
         this.commandBus = commandBus;
         this.eventBus = eventBus;
+        this.metricsService = metricsService;
         this._pipelineFactory = PipelineFactory;
         this._llm = null;
         this._reasoner = null;
@@ -253,6 +254,9 @@ class LM {
     }
 
     async _generateAndAssignEmbedding(term) {
+        const startTime = Date.now();
+        let success = false;
+        
         await errorHandler.execute(async () => {
             debug(`Generating embedding for term: ${term.key}`);
             const extractor = await this.getFeaturePipeline();
@@ -263,7 +267,15 @@ class LM {
             const embeddingVector = Array.from(output.data);
             term.setEmbedding(embeddingVector);
             debug(`Embedding generated and assigned for term: ${term.key}`);
+            success = true;
         }, 'generateAndAssignEmbedding');
+        
+        const executionTime = Date.now() - startTime;
+        
+        // Track in metrics service if available
+        if (this.metricsService) {
+            this.metricsService.trackEmbeddingGeneration(success, executionTime);
+        }
     }
 
     async _processEmbeddingBatch(batch) {
@@ -291,13 +303,49 @@ class LM {
     }
 
     async generateHypotheses(tasks, options = {}) {
-        debug(`Generating hypotheses for ${tasks.length} tasks`);
-        return this._hypothesisGenerator.generateHypotheses(tasks, options);
+        const startTime = Date.now();
+        let success = false;
+        let result;
+        
+        try {
+            debug(`Generating hypotheses for ${tasks.length} tasks`);
+            result = await this._hypothesisGenerator.generateHypotheses(tasks, options);
+            success = true;
+        } catch (error) {
+            debug(`Hypothesis generation failed: ${error.message}`);
+        } finally {
+            const executionTime = Date.now() - startTime;
+            
+            // Track in metrics service if available
+            if (this.metricsService) {
+                this.metricsService.trackHypothesisGeneration(success, executionTime);
+            }
+        }
+        
+        return result;
     }
 
     async evaluateAndRankHypotheses(tasks, hypotheses) {
-        debug(`Evaluating and ranking ${hypotheses.length} hypotheses`);
-        return this._hypothesisGenerator.evaluateAndRankHypotheses(tasks, hypotheses);
+        const startTime = Date.now();
+        let success = false;
+        let result;
+        
+        try {
+            debug(`Evaluating and ranking ${hypotheses.length} hypotheses`);
+            result = await this._hypothesisGenerator.evaluateAndRankHypotheses(tasks, hypotheses);
+            success = true;
+        } catch (error) {
+            debug(`Hypothesis evaluation and ranking failed: ${error.message}`);
+        } finally {
+            const executionTime = Date.now() - startTime;
+            
+            // Track in metrics service if available
+            if (this.metricsService) {
+                this.metricsService.trackHypothesisGeneration(success, executionTime); // Reuse the same metric for now
+            }
+        }
+        
+        return result;
     }
 
     async refineHypothesis(hypothesis, refinementType) {

@@ -1,7 +1,4 @@
-/**
- * High-quality TemporalReasoner for temporal inference and pattern recognition
- * This refactored version improves maintainability, performance, and extensibility
- */
+/**\n * High-quality TemporalReasoner for temporal inference and pattern recognition\n * This refactored version improves maintainability, performance, and extensibility\n */
 
 import {createUnifiedErrorHandler} from '../utils/errorHandler.js';
 import {debug, info} from '../utils/logger.js';
@@ -15,7 +12,7 @@ class TemporalReasoner {
      * Creates a TemporalReasoner instance
      * @param {ConfigManager} configManager - System configuration manager
      */
-    constructor(configManager, metricsService = null) {
+    constructor(configManager) {
         this.config = createConfigAccessor(configManager, 'temporal');
 
         // Initialize all temporal inference modules
@@ -40,8 +37,8 @@ class TemporalReasoner {
             misses: 0,
             totalRequests: 0
         };
-        
-        this.metricsService = metricsService;
+
+        this.metricsService = null; // Will be set via dependency injection
 
         info(`TemporalReasoner initialized with ${this.inferenceModules.length} inference modules`);
     }
@@ -145,11 +142,6 @@ class TemporalReasoner {
                 const endTime = Date.now();
 
                 this._updatePerformanceStats(moduleName, endTime - startTime, Array.isArray(result) ? result.length : 0);
-                
-                // Update metrics service with temporal performance stats
-                if (this.metricsService) {
-                    this.metricsService.updateTemporalPerformanceStats(this.getPerformanceStats());
-                }
 
                 return Array.isArray(result) ? result : [];
             }, `selectiveInfer:${moduleName}`, []);

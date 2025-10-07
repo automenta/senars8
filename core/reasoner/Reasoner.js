@@ -155,19 +155,13 @@ class Reasoner {
                     instance: strategy
                 } of this.strategyRegistry.findApplicableStrategies(task, this.systemContext)) {
                     if (derivedTasks.length >= maxModularTasks) break;
-
                     try {
-                        const validation = strategy.validate(task);
-                        if (validation.isValid) {
-                            const result = await strategy.execute(task, this.systemContext);
-                            if (result.success && Array.isArray(result.inferredTasks)) {
-                                for (const inferredTask of result.inferredTasks) {
-                                    if (derivedTasks.length >= maxModularTasks) break;
-                                    derivedTasks.push(inferredTask);
-                                }
+                        const result = await this.strategyRegistry.executeStrategy(strategyName, task, this.systemContext);
+                        if (result.success && Array.isArray(result.inferredTasks)) {
+                            for (const inferredTask of result.inferredTasks) {
+                                if (derivedTasks.length >= maxModularTasks) break;
+                                derivedTasks.push(inferredTask);
                             }
-                        } else {
-                            debug(`Strategy "${strategyName}" validation failed for task:`, validation.errors);
                         }
                     } catch (error) {
                         logError(`Error executing reasoning strategy "${strategyName}":`, error);
